@@ -27,7 +27,7 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(4);
         // should be little endian
-        console.log(binaryStream.stream.slice(0,4));//toJSON());
+        //xx console.log(binaryStream.stream.slice(0,4));//toJSON());
         binaryStream.stream.readUInt8(0).should.equal(0x00);
         binaryStream.stream.readUInt8(1).should.equal(0xCA);
         binaryStream.stream.readUInt8(2).should.equal(0x9A);
@@ -44,7 +44,7 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(4);
         // should be little endian
-        console.log(binaryStream.stream.slice(0,4));//toJSON());
+        //xx console.log(binaryStream.stream.slice(0,4));//toJSON());
         binaryStream.stream.readUInt8(0).should.equal(0x00);
         binaryStream.stream.readUInt8(1).should.equal(0x00);
         binaryStream.stream.readUInt8(2).should.equal(0xD0);
@@ -61,7 +61,7 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(8);
         // should be little endian
-        console.log(binaryStream.stream.slice(0,8));//toJSON());
+        //xx console.log(binaryStream.stream.slice(0,8));//toJSON());
         binaryStream.stream.readUInt8(0).should.equal(0x00);
         binaryStream.stream.readUInt8(1).should.equal(0x00);
         binaryStream.stream.readUInt8(2).should.equal(0x00);
@@ -211,24 +211,25 @@ describe("testing message encoding and decoding",function(){
     it("should encode and decode HelloMessage ",function(){
 
         var helloMessage1 = new opcua.HelloMessage();
-        console.log(Object.getPrototypeOf(helloMessage1),opcua.HelloMessage);
+        //xx console.log(Object.getPrototypeOf(helloMessage1),opcua.HelloMessage);
 
         var stream = new opcua.BinaryStream(2000);
 
         opcua.encodeMessage('HEL',helloMessage1,stream);
 
-        console.log(helloMessage1);
+        //xx console.log(helloMessage1);
 
         stream.rewind();
 
         var helloMessage2 = opcua.decodeMessage(stream,opcua.HelloMessage);
-        console.log(helloMessage2);
+        //xx console.log(helloMessage2);
 
-        helloMessage1.ProtocolVersion.should.eql(helloMessage2.ProtocolVersion);
-        helloMessage1.ReceiveBufferSize.should.eql(helloMessage2.ReceiveBufferSize);
-        helloMessage1.SendBufferSize.should.eql(helloMessage2.SendBufferSize);
-        helloMessage1.MaxMessageSize.should.eql(helloMessage2.MaxMessageSize);
-        helloMessage1.EndpointUrl.should.eql(helloMessage2.EndpointUrl);
+        helloMessage1.should.eql(helloMessage2);
+        helloMessage1.protocolVersion.should.eql(helloMessage2.protocolVersion);
+        helloMessage1.receiveBufferSize.should.eql(helloMessage2.receiveBufferSize);
+        helloMessage1.sendBufferSize.should.eql(helloMessage2.sendBufferSize);
+        helloMessage1.maxMessageSize.should.eql(helloMessage2.maxMessageSize);
+        helloMessage1.endpointUrl.should.eql(helloMessage2.endpointUrl);
 
     });
 });
