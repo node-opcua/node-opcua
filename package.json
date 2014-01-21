@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "int64-native": "~0.2.1",
+    "should": "~3.0.1",
+    "colors": "~0.6.2"
+  }
+}
