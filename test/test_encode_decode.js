@@ -189,6 +189,27 @@ describe("testing built-in type encoding",function() {
 
 
     });
+
+
+    it("should encode and decode a ByteString" ,function() {
+
+        var buf = new Buffer(256);
+        buf.write("THIS IS MY BUFFER");
+
+        var binaryStream = new opcua.BinaryStream();
+        binaryStream.length.should.equal(0);
+
+        ec.encodeByteString(buf,binaryStream);
+        binaryStream.length.should.equal(256+4);
+
+        binaryStream.rewind();
+        var check_buf = ec.decodeByteString(binaryStream);
+        check_buf.length.should.equal(buf.length);
+
+
+
+    });
+
     it("should encode a two byte NodeId" ,function() {
         // standard binary encoding
         var binaryStream = new opcua.BinaryStream();

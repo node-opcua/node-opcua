@@ -28,7 +28,8 @@ describe(" EndPoint Service",function()
     it(" should create a EndpointDescription",function()
     {
 
-        //xx  var endpointDescription = new s.EndpointDescription();
+        var endpointDescription = new s.EndpointDescription();
+
 
     });
 });
