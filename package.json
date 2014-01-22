@@ -1,9 +1,33 @@
 {
-  "dependencies": {
-    "int64-native": "~0.2.1",
-    "should": "~3.0.1",
-    "colors": "~0.6.2",
-    "x509": "0.0.7",
-    "enum": "~0.2.5"
-  }
+    "name": "node-opcua",
+    "version": "0.0.1",
+    "description": "pure nodejs OPCUA SDK",
+    "main": "",
+    "bin": {},
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "test": "mocha test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/erossignon/node-opcua.git"
+    },
+    "keywords": [
+        "OPC UA",
+        "M2M"
+    ],
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "bugs" : {
+        "url": "git://github.com/erossignon/node-opcua/issues"
+    },
+    "dependencies": {
+        "int64-native": "~0.2.1",
+        "should": "~3.0.1",
+        "colors": "~0.6.2",
+        "x509": "0.0.7",
+        "enum": "~0.2.5"
+    }
 }
