@@ -1,7 +1,40 @@
 var should = require("should");
+var util = require("util");
 var s  = require("../lib/structures");
+var opcua = require("../lib/nodeopcua");
 
 describe("testing OPCUA structures ",function() {
+
+    it("should create a LocalizeText" , function() {
+
+        var ltext = new s.LocalizedText({text: "HelloWorld" , locale: "en-US"});
+        ltext.should.have.property("text");
+        ltext.should.have.property("locale");
+        ltext.text.should.equal("HelloWorld");
+        ltext.locale.should.equal("en-US");
+    });
+
+    it("should encode and decode a LocalizeText" , function() {
+
+        var ltext = new s.LocalizedText({text: "HelloWorld" , locale: "en-US"});
+
+        var stream = new opcua.BinaryStream();
+        stream.length.should.equal(0);
+
+        ltext.encode(stream);
+
+        stream.length.should.be.greaterThan(0);
+
+        var ltext_verif = new s.LocalizedText();
+
+        stream.rewind();
+        ltext_verif.decode(stream);
+
+        ltext_verif.should.eql(ltext);
+        ltext_verif.text.should.equal("HelloWorld");
+
+
+    });
 
     it("should create a RequestHeader",function(){
 
@@ -28,6 +61,7 @@ describe("testing OPCUA structures ",function() {
         responseHeader.should.have.property("additionalHeader");
         responseHeader.stringTable.should.be.instanceOf(Array);
 
+        responseHeader.timeStamp.should.be.lessThan(new Date());
     });
 
 

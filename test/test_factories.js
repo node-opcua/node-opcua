@@ -1,7 +1,7 @@
 var factories = require("../lib/factories");
 var should = require("should");
 var BinaryStream =require("../lib/binaryStream").BinaryStream;
-
+var util = require("util");
 
 var Person_Description = {
     name: "Person",
@@ -34,6 +34,10 @@ describe("testing object factory", function () {
 
         var person = new Person();
 
+        person.should.have.property("lastName");
+        person.should.have.property("address");
+        person.should.have.property("age");
+
         person.lastName.should.equal("");
         person.address.should.equal("");
         person.age.should.equal(25);
@@ -51,6 +55,10 @@ describe("testing object factory", function () {
     it("should construct a new object from a complex Class Description", function () {
 
         var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+
+        employee.should.have.property("person");
+        employee.should.have.property("service");
+        employee.should.have.property("salary");
 
         employee.person.lastName.should.equal("John");
         employee.person.address.should.equal("");
@@ -94,7 +102,7 @@ describe("testing object factory", function () {
         var MyStruct = factories.UAObjectFactoryBuild( {
             name: "MyStruct",
             fields: [
-                { name: "value", fieldType: "MyInteger" },
+                { name: "value", fieldType: "MyInteger" }
             ]
         });
 
@@ -102,5 +110,64 @@ describe("testing object factory", function () {
         s.should.have.property("value");
         s.value.should.equal(0);
     });
+    it('should handle enumeration properly',function(){
 
+        var ShapeType = factories.UAObjectFactoryBuild( {
+            name: "EnumShapeType",
+            isEnum: true,
+            enumValues: {
+                CIRCLE:    1,
+                SQUARE:    2,
+                RECTANGLE: 3
+            }
+        });
+        var Shape = factories.UAObjectFactoryBuild({
+            name: "Shape",
+            fields: [
+                { name:"shapeType" , fieldType: "EnumShapeType" }
+            ]
+        });
+
+        var shape = new Shape();
+
+        shape.shapeType.should.eql(ShapeType.CIRCLE);
+
+        shape.shapeType = ShapeType.RECTANGLE;
+        shape.shapeType.should.equal(ShapeType.RECTANGLE);
+
+        (function(){
+            shape.shapeType = 34;
+        }).should.throw();
+
+    });
 });
+describe("testing strong typed enums", function(){
+
+    it('installEnumProp should create a strong typed enum',function(){
+
+        var ShapeType = factories.UAObjectFactoryBuild( {
+            name: "EnumShapeType",
+            isEnum: true,
+            enumValues: {
+                CIRCLE: 1,
+                SQUARE: 2,
+                RECTANGLE: 3
+            }
+        });
+        var obj = { };
+        factories.installEnumProp(obj,"shapeType",ShapeType);
+        obj.shapeType.value.should.equal(1);
+
+        (function() {
+            obj.shapeType = "toto";
+        }).should.throw();
+
+        var value = ShapeType.CIRCLE;
+
+        ShapeType.CIRCLE.key.should.equal("CIRCLE");
+
+        value.should.equal(ShapeType.CIRCLE);
+
+    });
+});
+
