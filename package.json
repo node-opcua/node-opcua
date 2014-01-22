@@ -23,8 +23,11 @@
   "bugs": {
     "url": "git://github.com/erossignon/node-opcua/issues"
   },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "~3.0.1"
+  },
   "dependencies": {
-    "should": "~3.0.1",
     "colors": "~0.6.2",
     "x509": "0.0.7",
     "enum": "~0.2.5",
