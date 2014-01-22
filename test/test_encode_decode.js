@@ -1,5 +1,5 @@
 var should = require("should");
-var ec = require("../lib/encoding_decoding");
+var ec = require("../lib/encode_decode");
 
 
 describe("testing built-in type encoding",function() {

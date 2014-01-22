@@ -12,17 +12,42 @@ var Person_Description = {
     ]
 };
 
-describe("testing object factory",function() {
 
-    it("should construct a new factory from a Class Description",function(){
+var Employee_Description = {
 
+    name: "Employee",
+    fields: [
+        { name: "person", fieldType: "Person" },
+        { name: "service", fieldType: "UAString" },
+        { name: "salary", fieldType: "Double", defaultValue: 1000.00  }
+    ]
+};
 
-        var Person = factories.UAObjectFactoryBuild(Person_Description);
+var Person = factories.UAObjectFactoryBuild(Person_Description);
+var Employee = factories.UAObjectFactoryBuild(Employee_Description);
+
+describe("testing object factory", function () {
+
+    it("should construct a new object from a simple Class Description", function () {
+
         var person = new Person({lastName:"Joe"});
 
         person.lastName.should.equal("Joe");
         person.address.should.equal("");
         person.age.should.equal(25);
+    });
+
+    it("should construct a new object from a complex Class Description", function () {
+
+        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+
+        employee.person.lastName.should.equal("John");
+        employee.person.address.should.equal("");
+        employee.person.age.should.equal(25);
+
+        employee.service.should.equal("R&D");
+        employee.salary.should.equal(1000.0);
+
     });
 
     it("should encode and decode a object created from the Factory",function(){
