@@ -23,12 +23,23 @@ var Employee_Description = {
     ]
 };
 
+
+
 var Person = factories.UAObjectFactoryBuild(Person_Description);
 var Employee = factories.UAObjectFactoryBuild(Employee_Description);
 
 describe("testing object factory", function () {
 
     it("should construct a new object from a simple Class Description", function () {
+
+        var person = new Person();
+
+        person.lastName.should.equal("");
+        person.address.should.equal("");
+        person.age.should.equal(25);
+    });
+
+    it("should construct a new object with options from a simple Class Description", function () {
 
         var person = new Person({lastName:"Joe"});
 
@@ -71,7 +82,25 @@ describe("testing object factory", function () {
         person.address.should.equal(person_reloaded.address);
 
     });
+    it("should handle subtype properly",function(){
 
+        factories.UAObjectFactoryBuild( {
+            name: "MyInteger",
+            subtype: "Integer"
+        });
 
+        should.exist(factories.findSimpleType("MyInteger"));
+
+        var MyStruct = factories.UAObjectFactoryBuild( {
+            name: "MyStruct",
+            fields: [
+                { name: "value", fieldType: "MyInteger" },
+            ]
+        });
+
+        var s = new MyStruct();
+        s.should.have.property("value");
+        s.value.should.equal(0);
+    });
 
 });

@@ -1,5 +1,6 @@
 var should = require("should");
 var ec = require("../lib/encode_decode");
+var opcua = require("../lib/nodeopcua");
 
 
 describe("testing built-in type encoding",function() {
@@ -193,8 +194,8 @@ describe("testing built-in type encoding",function() {
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
 
-        var value = new opcua.NodeId(25);
-        value.encode(binaryStream);
+        var value = ec.makeNodeId(25);
+        ec.encodeNodeId(value,binaryStream);
 
         binaryStream.length.should.equal(2);
         binaryStream.stream.readUInt8(0).should.equal(0);
@@ -205,8 +206,8 @@ describe("testing built-in type encoding",function() {
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
 
-        var value = new opcua.NodeId(258);
-        value.encode(binaryStream);
+        var value = ec.makeNodeId(258);
+        ec.encodeNodeId(value,binaryStream);
 
         binaryStream.length.should.equal(4);
         binaryStream.stream.readUInt8(0).should.equal(1);
@@ -216,15 +217,16 @@ describe("testing built-in type encoding",function() {
     });
     it("should encode a Numeric NodeId" ,function() {
     });
-    it("should encode a String NodeId" ,function() {
+    it("should encode a long NodeId" ,function() {
 
 
         // standard binary encoding
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
 
-        var value = new opcua.NodeId("SomeName");
-        value.encode(binaryStream);
+        var value = new ec.makeNodeId("SomeStuff",2500);
+        ec.encodeNodeId(value,binaryStream);
+
         binaryStream.stream.readUInt8(0).should.equal(3);
 
 
