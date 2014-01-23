@@ -175,16 +175,31 @@ describe("testing object factory", function () {
                 RECTANGLE: 3
             }
         });
+        var Color = factories.UAObjectFactoryBuild( {
+            name: "EnumColor",
+            isEnum: true,
+            enumValues: {
+                RED:     100,
+                BLUE:    200,
+                GREEN:   300
+            }
+        });
+
         var Shape = factories.UAObjectFactoryBuild({
             name: "Shape",
             fields: [
-                { name:"shapeType" , fieldType: "EnumShapeType" }
+                { name:"name",       fieldType: "String" , defaultValue: function() { return "my shape";} },
+                { name:"shapeType",  fieldType: "EnumShapeType" },
+                { name:"color",      fieldType: "EnumColor", defaultValue: Color.GREEN }
             ]
         });
 
         var shape = new Shape();
 
         shape.shapeType.should.eql(ShapeType.CIRCLE);
+        shape.name.should.eql("my shape");
+        shape.color.should.eql(Color.GREEN);
+
 
         shape.shapeType = ShapeType.RECTANGLE;
         shape.shapeType.should.equal(ShapeType.RECTANGLE);
@@ -194,6 +209,13 @@ describe("testing object factory", function () {
         }).should.throw();
 
     });
+
+
+    it("should encode and decode a structure containing a enumeration properly",function(){
+
+
+    });
+
 });
 describe("testing strong typed enums", function(){
 
