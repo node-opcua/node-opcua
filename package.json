@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test -R spec"
   },
   "repository": {
     "type": "git",
@@ -29,8 +29,8 @@
   },
   "dependencies": {
     "colors": "~0.6.2",
-    "x509": "0.0.7",
     "enum": "~0.2.5",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "underscore": "~1.5.2"
   }
 }

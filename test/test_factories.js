@@ -23,10 +23,21 @@ var Employee_Description = {
     ]
 };
 
+var Company_Description = {
+
+    name: "Company",
+    fields: [
+        { name: "name",                     fieldType: "String"   },
+        { name: "employees", isArray: true, fieldType: "Employee" }
+    ]
+};
+
 
 
 var Person = factories.UAObjectFactoryBuild(Person_Description);
 var Employee = factories.UAObjectFactoryBuild(Employee_Description);
+var Company  = factories.UAObjectFactoryBuild(Company_Description);
+
 
 describe("testing object factory", function () {
 
@@ -69,9 +80,7 @@ describe("testing object factory", function () {
 
     });
 
-    it("should encode and decode a object created from the Factory",function(){
-
-        var Person = factories.UAObjectFactoryBuild(Person_Description);
+    it("should encode and decode a simple object created from the Factory",function(){
 
         var person = new Person({lastName:"Joe"});
         person.age = 50;
@@ -90,6 +99,51 @@ describe("testing object factory", function () {
         person.address.should.equal(person_reloaded.address);
 
     });
+
+    it("should encode and decode a composite object created from the Factory",function(){
+
+        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+
+
+        var stream  = new BinaryStream();
+        employee.encode(stream);
+
+        stream.rewind();
+
+        var employee_reloaded = new Employee();
+        employee_reloaded.decode(stream);
+
+        employee_reloaded.should.eql(employee);
+
+    });
+
+    it("should encode and decode a composite object containing an array",function(){
+
+
+        var company  = new Company({name: "ACME" });
+        company.employees.length.should.equal(0);
+
+
+        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+
+        company.employees.push(employee);
+        company.employees.push(new Employee({ person: { lastName: "Peter"}, service: "R&D" }));
+
+        company.employees.length.should.equal(2);
+
+
+        var stream  = new BinaryStream();
+        company.encode(stream);
+
+        stream.rewind();
+        var company_reloaded = new Company();
+        company_reloaded.decode(stream);
+
+        company_reloaded.should.eql(company);
+
+    });
+
+
     it("should handle subtype properly",function(){
 
         factories.UAObjectFactoryBuild( {
