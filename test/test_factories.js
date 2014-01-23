@@ -39,6 +39,37 @@ var Employee = factories.UAObjectFactoryBuild(Employee_Description);
 var Company  = factories.UAObjectFactoryBuild(Company_Description);
 
 
+
+var ShapeType = factories.UAObjectFactoryBuild( {
+    name: "EnumShapeType",
+    isEnum: true,
+    enumValues: {
+        CIRCLE:    1,
+        SQUARE:    2,
+        RECTANGLE: 3,
+        HEXAGON:   6
+    }
+});
+var Color = factories.UAObjectFactoryBuild( {
+    name: "EnumColor",
+    isEnum: true,
+    enumValues: {
+        RED:     100,
+        BLUE:    200,
+        GREEN:   300
+    }
+});
+
+var Shape = factories.UAObjectFactoryBuild({
+    name: "Shape",
+    fields: [
+        { name:"name",       fieldType: "String" , defaultValue: function() { return "my shape";} },
+        { name:"shapeType",  fieldType: "EnumShapeType" },
+        { name:"color",      fieldType: "EnumColor", defaultValue: Color.GREEN }
+    ]
+});
+
+
 describe("testing object factory", function () {
 
     it("should construct a new object from a simple Class Description", function () {
@@ -164,35 +195,10 @@ describe("testing object factory", function () {
         s.should.have.property("value");
         s.value.should.equal(0);
     });
+
+
     it('should handle enumeration properly',function(){
 
-        var ShapeType = factories.UAObjectFactoryBuild( {
-            name: "EnumShapeType",
-            isEnum: true,
-            enumValues: {
-                CIRCLE:    1,
-                SQUARE:    2,
-                RECTANGLE: 3
-            }
-        });
-        var Color = factories.UAObjectFactoryBuild( {
-            name: "EnumColor",
-            isEnum: true,
-            enumValues: {
-                RED:     100,
-                BLUE:    200,
-                GREEN:   300
-            }
-        });
-
-        var Shape = factories.UAObjectFactoryBuild({
-            name: "Shape",
-            fields: [
-                { name:"name",       fieldType: "String" , defaultValue: function() { return "my shape";} },
-                { name:"shapeType",  fieldType: "EnumShapeType" },
-                { name:"color",      fieldType: "EnumColor", defaultValue: Color.GREEN }
-            ]
-        });
 
         var shape = new Shape();
 
@@ -209,10 +215,27 @@ describe("testing object factory", function () {
         }).should.throw();
 
     });
+    it('should allow enumeration value to be passed in options during construction',function(){
 
+        var shape1 = new Shape({ shapeType: ShapeType.HEXAGON});
+        shape1.shapeType.should.eql(ShapeType.HEXAGON);
+
+        var shape2 = new Shape({ shapeType: ShapeType.RECTANGLE});
+        shape2.shapeType.should.eql(ShapeType.RECTANGLE);
+    });
 
     it("should encode and decode a structure containing a enumeration properly",function(){
 
+        var shape = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , color: Color.BLUE });
+
+        var stream  = new BinaryStream();
+        shape.encode(stream);
+
+        stream.rewind();
+        var shape_reloaded = new Shape();
+        shape_reloaded.decode(stream);
+
+        shape_reloaded.should.eql(shape);
 
     });
 
