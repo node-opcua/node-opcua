@@ -12,9 +12,12 @@ describe("testing OPCUA structures ",function() {
         ltext.should.have.property("locale");
         ltext.text.should.equal("HelloWorld");
         ltext.locale.should.equal("en-US");
+
     });
 
-    it("should encode and decode a LocalizeText" , function() {
+
+
+    it("should encode and decode a LocalizeText that have both text and locale" , function() {
 
         var ltext = new s.LocalizedText({text: "HelloWorld" , locale: "en-US"});
 
@@ -32,9 +35,61 @@ describe("testing OPCUA structures ",function() {
 
         ltext_verif.should.eql(ltext);
         ltext_verif.text.should.equal("HelloWorld");
+        ltext_verif.locale.should.equal("en-US");
 
 
     });
+
+    it("should encode and decode a LocalizeText that have text but no locale" , function() {
+
+        var ltext = new s.LocalizedText({text: "HelloWorld" , locale: null });
+
+        ltext.should.have.property("locale");
+        should(ltext.locale).equal(null);
+
+        var stream = new opcua.BinaryStream();
+        stream.length.should.equal(0);
+
+        ltext.encode(stream);
+
+        stream.length.should.be.greaterThan(0);
+
+        var ltext_verif = new s.LocalizedText();
+
+        stream.rewind();
+        ltext_verif.decode(stream);
+
+        ltext_verif.text.should.equal("HelloWorld");
+        should(ltext_verif.locale).equal(null);
+
+    });
+
+    it("should encode and decode a LocalizeText that have no text but a locale" , function() {
+
+        var ltext = new s.LocalizedText({text: null , locale: "en-US" });
+
+        ltext.should.have.property("text");
+        should(ltext.text).equal(null);
+
+        var stream = new opcua.BinaryStream();
+        stream.length.should.equal(0);
+
+        ltext.encode(stream);
+
+        stream.length.should.be.greaterThan(0);
+
+        var ltext_verif = new s.LocalizedText();
+
+        stream.rewind();
+        ltext_verif.decode(stream);
+
+        ltext_verif.should.eql(ltext);
+        ltext_verif.locale.should.equal("en-US");
+        ltext_verif.should.have.property("text");
+        should(ltext_verif.text).equal(null);
+
+    });
+
 
     it("should create a RequestHeader",function(){
 
