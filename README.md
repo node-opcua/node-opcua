@@ -15,3 +15,12 @@ Why NodeJS ?
 Because nodeJs is a great framework to design asynchronous application.
 
 
+Getting started:
+================
+
+
+    $ git clone git://github.com/erossignon/node-opcua.git node-opcua
+    $ cd node-opcua
+    $ npm install
+    $ npm test
+
