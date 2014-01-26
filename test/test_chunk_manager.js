@@ -1,6 +1,7 @@
 var should = require("should");
-var ChunkManager = require("../lib/chunck_manager").ChunkManager;
-var MessageChunkManager = require("../lib/chunck_manager").MessageChunkManager;
+var ChunkManager = require("../lib/chunk_manager").ChunkManager;
+var MessageChunkManager = require("../lib/chunk_manager").MessageChunkManager;
+var ChunkStream = require("../lib/chunk_manager").ChunkStream;
 
 describe("Chunk manager",function(){
 
@@ -15,9 +16,9 @@ describe("Chunk manager",function(){
             if (chunk_counter < 2 ) {
                 chunk.length.should.equal(48);
             } else {
-                chunk.length.should.equal(12);
+                chunk.length.should.equal(48);
             }
-            console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
+            //console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
             chunk_counter +=1;
         });
 
@@ -28,7 +29,7 @@ describe("Chunk manager",function(){
 
         // write this single buffer
         chunkManager.write(buf,buf.length);
-        chunkManager.eof();
+        chunkManager.end();
 
         chunk_counter.should.equal(3);
 
@@ -42,8 +43,8 @@ describe("Chunk manager",function(){
 
         var chunk_counter =0;
         chunkManager.on("chunk",function(chunk){
-
-            console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
+            // console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
+            chunk.length.should.equal(48);
             chunk_counter +=1;
         });
 
@@ -56,21 +57,17 @@ describe("Chunk manager",function(){
         }
 
         // write this single buffer
-        chunkManager.eof();
+        chunkManager.end();
 
         chunk_counter.should.equal(3);
 
     });
-
-
-
 });
 
 describe("MessageChunkManager",function(){
    it("should split a message in chunk and produce a header.",function()
    {
        var msgChunkManager = new MessageChunkManager(48);
-
        var chunks = [];
        msgChunkManager.on("chunk",function(chunk){
 
@@ -78,8 +75,8 @@ describe("MessageChunkManager",function(){
            copy_chunk = new Buffer(chunk.length);
            chunk.copy(copy_chunk,0,0,chunk.length);
            chunks.push(copy_chunk);
-
-           console.log(" chunk "+ chunks.length + " " + copy_chunk.toString("hex"));
+           // console.log(" chunk "+ chunks.length + " " + copy_chunk.toString("hex"));
+           chunk.length.should.equal(48);
        });
 
        // feed chunk-manager on byte at a time
@@ -91,7 +88,7 @@ describe("MessageChunkManager",function(){
        }
 
        // write this single buffer
-       msgChunkManager.eof();
+       msgChunkManager.end();
 
        chunks.length.should.equal(5);
 
@@ -105,5 +102,43 @@ describe("MessageChunkManager",function(){
    });
 });
 
+
+describe("using ChunkManager as stream with ChunkStream",function(){
+    //
+    //
+    it("should pipe over a ChunkManager with ChunkStream",function(done){
+
+        var r = require("stream").Readable();
+        r.push("01234567890123456789012345678901234567890123456789012345678901234567890123");
+        r.push(null);
+
+        counter = 0;
+        r.pipe(ChunkStream(new ChunkManager(10))).on("data",function(data) {
+            data.length.should.equal(10);
+            counter +=1;
+        }).on("finish",function(){
+            counter.should.equal(8);
+            done();
+        });
+    });
+    //
+    //
+    it("should pipe over a  MessageChunkManager with ChunkStream",function(done){
+
+        var r = require("stream").Readable();
+        r.push("01234567890123456789012345678901234567890123456789012345678901234567890123");
+        r.push(null);
+
+        counter = 0;
+        r.pipe(ChunkStream(new MessageChunkManager(20,"HEL",0xBEEF))).on("data",function(data) {
+            // console.log(" ",counter, " " , data.toString("ascii"));
+            data.length.should.equal(20);
+            counter +=1;
+        }).on("finish",function(){
+            counter.should.equal(10);
+            done();
+        });
+    });
+});
 
 

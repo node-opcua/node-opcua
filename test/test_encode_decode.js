@@ -6,7 +6,7 @@ var opcua = require("../lib/nodeopcua");
 describe("testing built-in type encoding",function() {
 
 
-    it("should encode a boolean as a single byte",function(){
+    it("should encode and decode a boolean as a single byte",function(){
 
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -21,7 +21,7 @@ describe("testing built-in type encoding",function() {
 
     });
 
-    it("should encode a Integer as a 4 byte stream",function(){
+    it("should encode and decode a Integer (4 bytes)",function(){
 
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -30,18 +30,18 @@ describe("testing built-in type encoding",function() {
         binaryStream.length.should.equal(4);
 
         // should be little endian
-        //xx console.log(binaryStream.stream.slice(0,4));//toJSON());
-        binaryStream.stream.readUInt8(0).should.equal(0x00);
-        binaryStream.stream.readUInt8(1).should.equal(0xCA);
-        binaryStream.stream.readUInt8(2).should.equal(0x9A);
-        binaryStream.stream.readUInt8(3).should.equal(0x3B);
+        //xx console.log(binaryStream._buffer.slice(0,4));//toJSON());
+        binaryStream._buffer.readUInt8(0).should.equal(0x00);
+        binaryStream._buffer.readUInt8(1).should.equal(0xCA);
+        binaryStream._buffer.readUInt8(2).should.equal(0x9A);
+        binaryStream._buffer.readUInt8(3).should.equal(0x3B);
 
         binaryStream.rewind();
         var check_value =ec.decodeInt32(binaryStream);
         check_value.should.equal(1000000000);
     });
 
-    it("should encode a Floating Point as a 4 byte stream",function(){
+    it("should encode and decode a Floating Point (4 bytes)",function(){
         // I EEE-754
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -51,17 +51,17 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(4);
         // should be little endian
-        binaryStream.stream.readUInt8(0).should.equal(0x00);
-        binaryStream.stream.readUInt8(1).should.equal(0x00);
-        binaryStream.stream.readUInt8(2).should.equal(0xD0);
-        binaryStream.stream.readUInt8(3).should.equal(0xC0);
+        binaryStream._buffer.readUInt8(0).should.equal(0x00);
+        binaryStream._buffer.readUInt8(1).should.equal(0x00);
+        binaryStream._buffer.readUInt8(2).should.equal(0xD0);
+        binaryStream._buffer.readUInt8(3).should.equal(0xC0);
 
         binaryStream.rewind();
         var check_value =ec.decodeFloat(binaryStream);
         check_value.should.equal(value);
     });
 
-    it("should encode a Double Point as a 8 byte stream",function(){
+    it("should encode and decode a Double Point (8 bytes)",function(){
         // I EEE-754
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -71,22 +71,22 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(8);
         // should be little endian
-        //xx console.log(binaryStream.stream.slice(0,8));//toJSON());
-        binaryStream.stream.readUInt8(0).should.equal(0x00);
-        binaryStream.stream.readUInt8(1).should.equal(0x00);
-        binaryStream.stream.readUInt8(2).should.equal(0x00);
-        binaryStream.stream.readUInt8(3).should.equal(0x00);
-        binaryStream.stream.readUInt8(4).should.equal(0x00);
-        binaryStream.stream.readUInt8(5).should.equal(0x00);
-        binaryStream.stream.readUInt8(6).should.equal(0x1a);
-        binaryStream.stream.readUInt8(7).should.equal(0xc0);
+        //xx console.log(binaryStream._buffer.slice(0,8));//toJSON());
+        binaryStream._buffer.readUInt8(0).should.equal(0x00);
+        binaryStream._buffer.readUInt8(1).should.equal(0x00);
+        binaryStream._buffer.readUInt8(2).should.equal(0x00);
+        binaryStream._buffer.readUInt8(3).should.equal(0x00);
+        binaryStream._buffer.readUInt8(4).should.equal(0x00);
+        binaryStream._buffer.readUInt8(5).should.equal(0x00);
+        binaryStream._buffer.readUInt8(6).should.equal(0x1a);
+        binaryStream._buffer.readUInt8(7).should.equal(0xc0);
 
         binaryStream.rewind();
         var check_value =ec.decodeDouble(binaryStream);
         check_value.should.equal(value);
     });
 
-    it("should encode a null string" ,function() {
+    it("should encode and decode a null string" ,function() {
 
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -96,10 +96,10 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(4);
 
-        binaryStream.stream.readUInt8(0).should.equal(0xff);
-        binaryStream.stream.readUInt8(1).should.equal(0xff);
-        binaryStream.stream.readUInt8(2).should.equal(0xff);
-        binaryStream.stream.readUInt8(3).should.equal(0xff);
+        binaryStream._buffer.readUInt8(0).should.equal(0xff);
+        binaryStream._buffer.readUInt8(1).should.equal(0xff);
+        binaryStream._buffer.readUInt8(2).should.equal(0xff);
+        binaryStream._buffer.readUInt8(3).should.equal(0xff);
 
         binaryStream.rewind();
         var check_value =ec.decodeUAString(binaryStream);
@@ -107,7 +107,7 @@ describe("testing built-in type encoding",function() {
 
     });
 
-    it("should encode a normal string" ,function() {
+    it("should encode and decode a normal string" ,function() {
 
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -117,15 +117,15 @@ describe("testing built-in type encoding",function() {
 
         binaryStream.length.should.equal(4 + 5);
         // should be little endian
-        binaryStream.stream.readUInt8(0).should.equal(0x05);
-        binaryStream.stream.readUInt8(1).should.equal(0x00);
-        binaryStream.stream.readUInt8(2).should.equal(0x00);
-        binaryStream.stream.readUInt8(3).should.equal(0x00);
-        binaryStream.stream.readUInt8(4).should.equal('H'.charCodeAt(0));
-        binaryStream.stream.readUInt8(5).should.equal('e'.charCodeAt(0));
-        binaryStream.stream.readUInt8(6).should.equal('l'.charCodeAt(0));
-        binaryStream.stream.readUInt8(7).should.equal('l'.charCodeAt(0));
-        binaryStream.stream.readUInt8(8).should.equal('o'.charCodeAt(0));
+        binaryStream._buffer.readUInt8(0).should.equal(0x05);
+        binaryStream._buffer.readUInt8(1).should.equal(0x00);
+        binaryStream._buffer.readUInt8(2).should.equal(0x00);
+        binaryStream._buffer.readUInt8(3).should.equal(0x00);
+        binaryStream._buffer.readUInt8(4).should.equal('H'.charCodeAt(0));
+        binaryStream._buffer.readUInt8(5).should.equal('e'.charCodeAt(0));
+        binaryStream._buffer.readUInt8(6).should.equal('l'.charCodeAt(0));
+        binaryStream._buffer.readUInt8(7).should.equal('l'.charCodeAt(0));
+        binaryStream._buffer.readUInt8(8).should.equal('o'.charCodeAt(0));
 
         binaryStream.rewind();
         var check_value =ec.decodeUAString(binaryStream);
@@ -133,7 +133,7 @@ describe("testing built-in type encoding",function() {
 
     });
 
-    it("should encode a DateTime" ,function() {
+    it("should encode and decode a DateTime" ,function() {
 
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -149,7 +149,7 @@ describe("testing built-in type encoding",function() {
 
     });
 
-    it("should encode a GUID" ,function() {
+    it("should encode and decode a GUID" ,function() {
 
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
@@ -205,37 +205,55 @@ describe("testing built-in type encoding",function() {
         binaryStream.rewind();
         var check_buf = ec.decodeByteString(binaryStream);
         check_buf.length.should.equal(buf.length);
-
+        check_buf.toString('hex').should.equal(buf.toString('hex'));
 
 
     });
 
-    it("should encode a two byte NodeId" ,function() {
+    it("should encode and decode a two byte NodeId" ,function() {
         // standard binary encoding
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
 
-        var value = ec.makeNodeId(25);
-        ec.encodeNodeId(value,binaryStream);
+        var nodeId = ec.makeNodeId(25);
+        ec.encodeNodeId(nodeId,binaryStream);
 
         binaryStream.length.should.equal(2);
-        binaryStream.stream.readUInt8(0).should.equal(0);
-        binaryStream.stream.readUInt8(1).should.equal(25);
+        binaryStream._buffer.readUInt8(0).should.equal(0);
+        binaryStream._buffer.readUInt8(1).should.equal(25);
+
+        binaryStream.rewind();
+
+        var check_nodeId = ec.decodeNodeId(binaryStream);
+        binaryStream.length.should.equal(2);
+
+        check_nodeId.should.eql(nodeId);
 
     });
-    it("should encode a four byte NodeId" ,function() {
+
+
+    it("should encode and decode a four byte NodeId" ,function() {
         var binaryStream = new opcua.BinaryStream();
         binaryStream.length.should.equal(0);
 
-        var value = ec.makeNodeId(258);
-        ec.encodeNodeId(value,binaryStream);
+        var nodeId = ec.makeNodeId(258);
+        ec.encodeNodeId(nodeId,binaryStream);
 
         binaryStream.length.should.equal(4);
-        binaryStream.stream.readUInt8(0).should.equal(1);
-        binaryStream.stream.readUInt8(1).should.equal(0); // namespace
-        binaryStream.stream.readUInt16LE(2).should.equal(258);
+        binaryStream._buffer.readUInt8(0).should.equal(1);
+        binaryStream._buffer.readUInt8(1).should.equal(0); // namespace
+        binaryStream._buffer.readUInt16LE(2).should.equal(258);
+
+
+        binaryStream.rewind();
+
+        var check_nodeId = ec.decodeNodeId(binaryStream);
+        binaryStream.length.should.equal(4);
+
+        check_nodeId.should.eql(nodeId);
 
     });
+
     it("should encode a Numeric NodeId" ,function() {
     });
     it("should encode a long NodeId" ,function() {
@@ -248,7 +266,7 @@ describe("testing built-in type encoding",function() {
         var value = new ec.makeNodeId("SomeStuff",2500);
         ec.encodeNodeId(value,binaryStream);
 
-        binaryStream.stream.readUInt8(0).should.equal(3);
+        binaryStream._buffer.readUInt8(0).should.equal(3);
 
 
     });
