@@ -28,9 +28,11 @@ on linux:
     $ npm test
 
 
+
 on windows:
 ~~~~~~~~~~~
-    not tested yet
+
+not tested yet
 
 
 
