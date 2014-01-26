@@ -18,9 +18,22 @@ Because nodeJs is a great framework to design asynchronous application.
 Getting started:
 ================
 
+on linux:
+~~~~~~~~~
+
 
     $ git clone git://github.com/erossignon/node-opcua.git node-opcua
     $ cd node-opcua
     $ npm install
     $ npm test
 
+
+on windows:
+~~~~~~~~~~~
+    not tested yet
+
+
+
+
+
+[![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
