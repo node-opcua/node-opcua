@@ -1,7 +1,7 @@
 var BinaryStream2 = require("../lib/binaryStream").BinaryStream2;
 var BinaryStream = require("../lib/binaryStream").BinaryStream;
 var BinaryReader = require("../lib/binaryStream").BinaryReader;
-
+var BinaryStreamSizeCalculator = require("../lib/binaryStream").BinaryStreamSizeCalculator;
 
 var fs=require("fs");
 
@@ -28,3 +28,18 @@ describe("binaryStream",function() {
     });
 
 });
+
+describe("BinaryStreamSizeCalculator",function() {
+
+    it("should calculate the right size",function(){
+
+        var stream = new BinaryStreamSizeCalculator();
+        stream.writeFloat(10.00234);
+        stream.writeInteger(100000);
+        stream.writeDouble(100000.0);
+        stream.writeByteStream(new Buffer("Hello"));
+        stream.length.should.equal( 4+ 4+ 8+ 4+ 5);
+
+    })
+});
+
