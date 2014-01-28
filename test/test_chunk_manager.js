@@ -64,11 +64,15 @@ describe("Chunk manager",function(){
     });
 });
 
-describe("MessageChunkManager",function(){
+describe("MessageChunkManager",function() {
+
+
    it("should split a message in chunk and produce a header.",function()
    {
        var msgChunkManager = new MessageChunkManager(48);
+
        var chunks = [];
+
        msgChunkManager.on("chunk",function(chunk){
 
            // keep a copy ..
@@ -100,6 +104,7 @@ describe("MessageChunkManager",function(){
        chunks[4].readUInt8(3).should.equal("F".charCodeAt(0));
 
    });
+
 });
 
 
