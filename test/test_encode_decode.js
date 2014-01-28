@@ -237,6 +237,9 @@ describe("testing built-in type encoding",function() {
         binaryStream.length.should.equal(0);
 
         var nodeId = ec.makeNodeId(258);
+
+        nodeId.identifierType.should.eql(ec.NodeIdType.NUMERIC);
+
         ec.encodeNodeId(nodeId,binaryStream);
 
         binaryStream.length.should.equal(4);
@@ -264,17 +267,35 @@ describe("testing built-in type encoding",function() {
         binaryStream.length.should.equal(0);
 
         var value = new ec.makeNodeId("SomeStuff",2500);
+
+        value.identifierType.should.eql(ec.NodeIdType.STRING);
+
         ec.encodeNodeId(value,binaryStream);
 
         binaryStream._buffer.readUInt8(0).should.equal(3);
 
-
     });
+
     it("should encode a Guid NodeId" ,function() {
     });
+
     it("should encode a Opaque NodeId" ,function() {
     });
+
+
     it("should encode a Expanded NodeId" ,function() {
+
+        var binaryStream = new opcua.BinaryStream();
+        binaryStream.length.should.equal(0);
+
+        var e1 = ec.makeExpandedNodeId(10);
+        ec.encodeExpandedNodeId(e1,binaryStream);
+
+        binaryStream.rewind();
+        var e1_verif = ec.decodeExpandedNodeId(binaryStream);
+
+        e1_verif.should.eql(e1);
+
     });
 
 
