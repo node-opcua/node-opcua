@@ -2,6 +2,7 @@ var util = require('util');
 var xml = require("node-expat");
 var fs = require("fs");
 var csv = require("csv");
+var sprintf = require("sprintf").sprintf;
 
 // see OPC-UA Part 6 , A2
 var codeMap= {};
@@ -20,7 +21,6 @@ csv().from.stream(fs.createReadStream(__dirname+'/StatusCodes.csv')).to.array(fu
 function parseStatusCodeXML() {
 
     var xmlFile = "./code_gen/UA_StatusCodes.xml";
-    var sprintf = require("sprintf").sprintf;
 
     var parser = new xml.Parser();
 
