@@ -6,7 +6,9 @@ var BinaryStreamSizeCalculator = require("../lib/binaryStream").BinaryStreamSize
 var fs=require("fs");
 
 
-describe("binaryStream",function() {
+describe("Testing BinaryStream",function() {
+
+
     it("should create a binary stream",function(){
 
         var binStream = new BinaryStream(48);
@@ -29,7 +31,7 @@ describe("binaryStream",function() {
 
 });
 
-describe("BinaryStreamSizeCalculator",function() {
+describe("Testing BinaryStreamSizeCalculator",function() {
 
     it("should calculate the right size",function(){
 
