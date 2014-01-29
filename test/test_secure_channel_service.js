@@ -30,7 +30,7 @@ describe("SecureMessageChunkManager",function(){
         async.series([
 
             function (callback) {
-                secure_channel.chunkSecureMessage(requestId,endPointResponse,function(messageChunk) {
+                secure_channel.chunkSecureMessage("MSG",requestId,endPointResponse,function(messageChunk) {
                     if (messageChunk) {
 
                         // messageChunk.length.should.equal(1024);

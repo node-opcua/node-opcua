@@ -23,6 +23,11 @@ TrafficAnalyser.prototype.add = function(data)
 {
 
     var stream = new opcua.BinaryStream(data);
+    var messageHeader = opcua.readMessageHeader(stream);
+
+    if (messageHeader.msgType == "ERR") {
+        console.log(hexy.hexy(data));
+    }
 
     var messageBuild = new MessageBuilder();
     messageBuild.on("raw_buffer",function(fullMessage){
@@ -34,7 +39,7 @@ TrafficAnalyser.prototype.add = function(data)
     });
 
 
-    var messageHeader = opcua.readMessageHeader(stream);
+
 
     if (this.id%2) {
         console.log( JSON.stringify(messageHeader,null,"").red.bold);
@@ -78,16 +83,27 @@ require('net').createServer(function (socket) {
 
     proxy_client.on('data',function(data) {
         console.log(" server -> client : packet length " + data.length);
-        socket.write(data);
         ta_server.add(data);
+        try {
+            socket.write(data);
+        } catch(err) {
+
+        }
     });
 
     socket.on('data', function (data) {
         console.log(" client -> server : packet length " + data.length);
-        proxy_client.write(data);
         ta_client.add(data);
+        proxy_client.write(data);
+    });
+    socket.on('close', function() {
+        console.log('server disconnected (CLOSE)');
+        proxy_client.end();
     });
 
+    socket.on('end', function() {
+        console.log('server disconnected (END)');
+    });
 
 }).listen(my_port);
 
