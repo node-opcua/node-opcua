@@ -72,8 +72,6 @@ function makebuffer(listOfBytes)
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
 var s = require("../lib/secure_channel_service");
-var opcua = require("../lib/nodeopcua");
-
 
 function verify_single_chunk_message(messageChunk)
 {
@@ -89,33 +87,11 @@ function verify_single_chunk_message(messageChunk)
     messageBuild.feed(messageChunk);
 }
 
-function redirectToFile(tmpfile,action_func,callback)
-{
-    var fs = require('fs');
-    var log_file = fs.createWriteStream(__dirname + '/../tmp/' + tmpfile, {flags : 'w'});
-    var old_console_log = console.log;
-    var util = require('util');
 
-    console.log = function(d) { //
-        log_file.write(util.format(d) + '\n');
-    };
-
-    if (callback) {
-        // async version
-        action_func(function() {
-            console.log = old_console_log;
-            callback.call(arguments);
-        });
-    } else {
-        // synchrone version
-        action_func();
-        console.log = old_console_log;
-    }
-
-};
+var redirectToFile = require("../lib/utils").redirectToFile;
 
 
-describe("checking encoding from WireShark packet",function(){
+describe("checking decoding real packets captured with WireShark ",function(){
 
     it("should decode a real OpenSecureChannelRequest message",function() {
 
