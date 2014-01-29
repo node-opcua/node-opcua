@@ -2,8 +2,26 @@
 var should =require("should");
 var BinaryStream = require("../lib/nodeopcua").BinaryStream;
 var factories = require("../lib/factories");
+var dump_block = require("../lib/utils").dump_block;
 
-function encode_decode_round_trip_test(obj) {
+
+var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
+
+process.argv.push("DEBUG");
+
+function dump_block_in_debug_mode(buffer,id) {
+
+    if ( process.env.DEBUG )  {
+        dump_block(buffer);
+
+        packet_analyzer(buffer,id);
+
+    }
+}
+function encode_decode_round_trip_test(obj,callback_buffer) {
+
+
+    callback_buffer = callback_buffer || dump_block_in_debug_mode;
 
     should(obj).not.be.null;
 
@@ -14,6 +32,8 @@ function encode_decode_round_trip_test(obj) {
     var stream  = new BinaryStream(size);
 
     obj.encode(stream);
+
+    callback_buffer(stream._buffer,obj.encodingDefaultBinary);
 
     stream.rewind();
 

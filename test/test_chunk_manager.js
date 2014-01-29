@@ -1,7 +1,14 @@
 var should = require("should");
 var ChunkManager = require("../lib/chunk_manager").ChunkManager;
 var MessageChunkManager = require("../lib/chunk_manager").MessageChunkManager;
+var MessageBuilderBase = require("../lib/chunk_manager").MessageBuilderBase;
+
 var ChunkStream = require("../lib/chunk_manager").ChunkStream;
+var dump_block = require("../lib/utils").dump_block;
+var compare_buffers = require("../lib/utils").compare_buffers;
+var EventEmitter = require("events").EventEmitter;
+var util = require("util");
+
 
 describe("Chunk manager",function(){
 
@@ -14,9 +21,11 @@ describe("Chunk manager",function(){
         chunkManager.on("chunk",function(chunk){
 
             if (chunk_counter < 2 ) {
+                // all packets shall be 48 byte long, except last
                 chunk.length.should.equal(48);
             } else {
-                chunk.length.should.equal(48);
+                // last packet is smaller
+                chunk.length.should.equal(12);
             }
             //console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
             chunk_counter +=1;
@@ -44,7 +53,13 @@ describe("Chunk manager",function(){
         var chunk_counter =0;
         chunkManager.on("chunk",function(chunk){
             // console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
-            chunk.length.should.equal(48);
+            if (chunk_counter < 2 ) {
+                // all packets shall be 48 byte long, except last
+                chunk.length.should.equal(48);
+            } else {
+                // last packet is smaller
+                chunk.length.should.equal(12);
+            }
             chunk_counter +=1;
         });
 
@@ -69,9 +84,16 @@ describe("MessageChunkManager",function() {
 
    it("should split a message in chunk and produce a header.",function()
    {
-       var msgChunkManager = new MessageChunkManager(48);
+       var chunk_size  = 48;
+       var header_size = 12;
+       var body_size   = chunk_size -header_size;
+
+
+       var msgChunkManager = new MessageChunkManager(chunk_size);
 
        var chunks = [];
+
+       chunk_counter = 0;
 
        msgChunkManager.on("chunk",function(chunk){
 
@@ -79,12 +101,20 @@ describe("MessageChunkManager",function() {
            copy_chunk = new Buffer(chunk.length);
            chunk.copy(copy_chunk,0,0,chunk.length);
            chunks.push(copy_chunk);
-           // console.log(" chunk "+ chunks.length + " " + copy_chunk.toString("hex"));
-           chunk.length.should.equal(48);
+           if (chunk_counter < 4 ) {
+               // all packets shall be 'chunk_size'  byte long, except last
+               chunk.length.should.equal(chunk_size);
+           } else {
+               // last packet is smaller
+               chunk.length.should.equal(12+header_size);
+           }
+           chunk_counter+=1;
        });
 
        // feed chunk-manager on byte at a time
-       var n =(48-12)*4+12;
+
+       var n =body_size*4+12;
+
        var buf = new Buffer(1);
        for (var i=0;i<n;i+=1) {
            buf.writeUInt8(i%256,0);
@@ -108,6 +138,18 @@ describe("MessageChunkManager",function() {
 });
 
 
+var Readable = require("stream").Readable;
+function BinaryStreamReader(buf,opt) {
+    Readable.call(this, opt);
+    this._buffer = buf;
+}
+util.inherits(BinaryStreamReader, Readable);
+BinaryStreamReader.prototype._read = function() {
+    this.push(this._buffer);
+    this._buffer = null;
+};
+
+
 describe("using ChunkManager as stream with ChunkStream",function(){
     //
     //
@@ -117,9 +159,15 @@ describe("using ChunkManager as stream with ChunkStream",function(){
         r.push("01234567890123456789012345678901234567890123456789012345678901234567890123");
         r.push(null);
 
+
         counter = 0;
         r.pipe(ChunkStream(new ChunkManager(10))).on("data",function(data) {
-            data.length.should.equal(10);
+            data.length.should.be.lessThan(10+1);
+            if (counter < 7) {
+                data.toString("ascii").should.eql("0123456789");
+            } else {
+                data.slice(0,4).toString("ascii").should.eql("0123");
+            }
             counter +=1;
         }).on("finish",function(){
             counter.should.equal(8);
@@ -137,13 +185,45 @@ describe("using ChunkManager as stream with ChunkStream",function(){
         counter = 0;
         r.pipe(ChunkStream(new MessageChunkManager(20,"HEL",0xBEEF))).on("data",function(data) {
             // console.log(" ",counter, " " , data.toString("ascii"));
-            data.length.should.equal(20);
+            data.length.should.lessThan(20+1);
             counter +=1;
         }).on("finish",function(){
             counter.should.equal(10);
             done();
         });
     });
+    it("should not alter a very large binary block",function(done){
+
+        var original_buffer = new Buffer(8*256);
+        for (var i =0; i < original_buffer.length;i+=4){
+            original_buffer.writeUInt32LE(i/4,i);
+        }
+
+        //xx dump_block(buf);
+
+        var builder = new MessageBuilderBase();
+
+        builder.on("raw_buffer",function(buffer) {
+            compare_buffers(buffer,original_buffer,original_buffer.length);
+            done();
+        });
+
+        var block_size = 80;
+        counter = 0;
+        var r = new BinaryStreamReader(original_buffer);
+
+        r.pipe(ChunkStream(new MessageChunkManager(block_size,"HEL",0xBEEF))).on("data",function(data) {
+
+            data.length.should.lessThan(block_size+1);
+            counter +=data.length;
+            builder.feed(data);
+
+        }).on("finish",function(){
+           // counter.should.equal(buf.length+block_size-(buf.length)%block_size);
+        });
+    });
+
 });
+
 
 

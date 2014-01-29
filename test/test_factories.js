@@ -2,8 +2,13 @@ var factories = require("../lib/factories");
 var should = require("should");
 var BinaryStream =require("../lib/binaryStream").BinaryStream;
 var util = require("util");
+var ec = require("../lib/encode_decode");
+
+var encode_decode_round_trip_test = require("./encode_decode_round_trip_test").encode_decode_round_trip_test;
+
 
 var Person_Description = {
+    id:  0xFFFF1000,
     name: "Person",
     fields: [
         { name: "lastName" , fieldType: "UAString" },
@@ -14,7 +19,7 @@ var Person_Description = {
 
 
 var Employee_Description = {
-
+    id:  0xFFFF1001,
     name: "Employee",
     fields: [
         { name: "person", fieldType: "Person" },
@@ -24,7 +29,7 @@ var Employee_Description = {
 };
 
 var Company_Description = {
-
+    id:  0xFFFF1002,
     name: "Company",
     fields: [
         { name: "name",                     fieldType: "String"   },
@@ -61,6 +66,7 @@ var Color = factories.UAObjectFactoryBuild( {
 });
 
 var Shape = factories.UAObjectFactoryBuild({
+    id:  0xFFFF1004,
     name: "Shape",
     fields: [
         { name:"name",       fieldType: "String" , defaultValue: function() { return "my shape";} },
@@ -70,7 +76,11 @@ var Shape = factories.UAObjectFactoryBuild({
 });
 
 
-describe("testing object factory", function () {
+
+
+
+
+describe("Factories: testing object factory", function () {
 
     it("should construct a new object from a simple Class Description", function () {
 
@@ -117,17 +127,13 @@ describe("testing object factory", function () {
         person.age = 50;
         person.address = "Paris";
 
-        var stream  = new BinaryStream();
-        person.encode(stream);
-
-        stream.rewind();
-
-        var person_reloaded = new Person();
-        person_reloaded.decode(stream);
+        var person_reloaded = encode_decode_round_trip_test(person);
 
         person.lastName.should.equal(person_reloaded.lastName);
         person.age.should.equal(person_reloaded.age);
         person.address.should.equal(person_reloaded.address);
+
+
 
     });
 
@@ -135,16 +141,7 @@ describe("testing object factory", function () {
 
         var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
 
-
-        var stream  = new BinaryStream();
-        employee.encode(stream);
-
-        stream.rewind();
-
-        var employee_reloaded = new Employee();
-        employee_reloaded.decode(stream);
-
-        employee_reloaded.should.eql(employee);
+        encode_decode_round_trip_test(employee);
 
     });
 
@@ -162,15 +159,7 @@ describe("testing object factory", function () {
 
         company.employees.length.should.equal(2);
 
-
-        var stream  = new BinaryStream();
-        company.encode(stream);
-
-        stream.rewind();
-        var company_reloaded = new Company();
-        company_reloaded.decode(stream);
-
-        company_reloaded.should.eql(company);
+        encode_decode_round_trip_test(company);
 
     });
 
@@ -228,19 +217,14 @@ describe("testing object factory", function () {
 
         var shape = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , color: Color.BLUE });
 
-        var stream  = new BinaryStream();
-        shape.encode(stream);
+        encode_decode_round_trip_test(shape);
 
-        stream.rewind();
-        var shape_reloaded = new Shape();
-        shape_reloaded.decode(stream);
-
-        shape_reloaded.should.eql(shape);
 
     });
 
 });
-describe("testing strong typed enums", function(){
+
+describe("Factories: testing strong typed enums", function(){
 
     it('installEnumProp should create a strong typed enum',function(){
 
@@ -270,3 +254,64 @@ describe("testing strong typed enums", function(){
     });
 });
 
+
+describe("Factories: testing binaryStoreSize",function(){
+
+    it("should implement binaryStoreSize",function(){
+
+        var shape = new  Shape();
+
+        shape.binaryStoreSize().should.be.greaterThan(10);
+
+    });
+});
+
+describe("Factories: testing encodingDefaultBinary and constructObject",function(){
+
+    it("a factory object should have a encodingDefaultBinary",function(){
+
+        var company = new Company({name: "ACME"});
+
+        company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(0xFFFF1002));
+
+    });
+
+    it("should create a object from a encodingDefaultBinaryId", function() {
+
+
+        var getObjectClassName = require("../lib/utils").getObjectClassName;
+
+        var obj = factories.constructObject(ec.makeExpandedNodeId(0xFFFF1002));
+
+        should(obj).have.property("_description");
+        obj._description.name.should.equal("Company");
+
+        getObjectClassName(obj).should.equal("Object");
+
+    });
+
+
+
+    it("should encode and decode a Object containing ByteString",function(done){
+
+        var Blob_Description = {
+            id:  0xFFFF1005,
+            name: "FakeBlob",
+            fields: [
+                { name: "name",                     fieldType: "String"     },
+                { name: "buffer0",                  fieldType: "ByteString" },
+                { name: "buffer1",                  fieldType: "ByteString" }
+            ]
+        };
+
+        var Blob = factories.UAObjectFactoryBuild(Blob_Description);
+
+        var blob = new Blob({ buffer0: new Buffer(0), buffer1: new Buffer(1024) });
+
+        encode_decode_round_trip_test(blob);
+
+        done();
+
+    });
+
+});
