@@ -90,7 +90,7 @@ var redirectToFile = require("../lib/utils").redirectToFile;
 
 describe("checking decoding real message bodies captured with WireShark ",function(){
 
-    it("should decode a real OpenSecureChannelRequest message",function() {
+    it("should decode a real OpenSecureChannelRequest message",function(done) {
 
 
         // a real OpenSecureChannelRequest captured with wireshark
@@ -108,13 +108,12 @@ describe("checking decoding real message bodies captured with WireShark ",functi
 
         redirectToFile("OpenSecureChannelResponse.log",function(){
             verify_single_chunk_message(ws_OpenSecureChannelRequest);
-        });
-
+        },done);
 
     });
 
 
-    it("should decode a real OpenSecureChannelResponse message",function() {
+    it("should decode a real OpenSecureChannelResponse message",function(done) {
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_OpenSecureChannelResponse = makebuffer(
@@ -131,7 +130,7 @@ describe("checking decoding real message bodies captured with WireShark ",functi
 
         redirectToFile("OpenSecureChannelResponse.log",function(){
             verify_single_chunk_message(ws_OpenSecureChannelResponse);
-        });
+        },done);
 
     });
 });
@@ -140,10 +139,10 @@ describe("checking decoding real message bodies captured with WireShark ",functi
 describe("checking decoding real messageChunks captured with WireShark ",function(){
 
     var packets = require("./fixture_full_tcp_packets");
-    it("should decode a real GetEndPointResponse message",function() {
+    it("should decode a real GetEndPointResponse message",function(done) {
 
         redirectToFile("GetEndPointResponse.log",function(){
             verify_multi_chunk_message([packets.packet_sc_3_a,packets.packet_sc_3_b]);
-        });
+        },done);
     });
 });
