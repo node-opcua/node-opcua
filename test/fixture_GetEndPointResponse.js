@@ -27,20 +27,23 @@ exports.makeEndPoint = function(){
                 "discoveryUrls2",
                 "discoveryUrls3",
                 "discoveryUrls4",
-                "discoveryUrls5",
+                "discoveryUrls5"
             ]
         },
 
-        // serverCertificate: "some certificate",
+        serverCertificate: new Buffer(256),
 
         securityMode: s.MessageSecurityMode.NONE,
 
-        securityPolicyUri: "some securityPolicyUri",
+        securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
         userIdentityTokens: [
-            "token1",
-            "token2",
-            "token3",
-            "token4"
+            {
+                policyId: "policyId",
+                tokenType: s.UserIdentityTokenType.ANONYMOUS,
+                issuedTokenType: "issuedTokenType",
+                issuerEndpointUrl: "qdqsdq",
+                securityPolicyUri: "String"
+            }
         ],
         transportProfileUri: "",
         securityLevel:    36

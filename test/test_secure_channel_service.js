@@ -32,11 +32,7 @@ describe("SecureMessageChunkManager",function(){
             function (callback) {
                 secure_channel.chunkSecureMessage("MSG",{ requestId: requestId},endPointResponse,function(messageChunk) {
                     if (messageChunk) {
-
-                        // messageChunk.length.should.equal(1024);
-                        //xx console.log("received : ",chunk_ellipsis(messageChunk,79));
                         chunk_stack.push(clone_buffer(messageChunk));
-
                     } else {
                         fullBufferForVerif = secure_channel.fullbuf;
                         callback();
@@ -45,7 +41,6 @@ describe("SecureMessageChunkManager",function(){
             },
 
             function (callback) {
-                // chunk_stack.length.should.equal(7);
                 for (var i = 0; i<chunk_stack.length -1;i++) {
                     String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("C");
                 }
@@ -73,7 +68,21 @@ describe("SecureMessageChunkManager",function(){
                 });
 
                 // feed messageBuilder with
-                chunk_stack.forEach(function(chunk){  messageBuilder.feed(chunk); });
+                chunk_stack.forEach(function(chunk){
+
+                    // let simulate a real TCP communication
+                    // where our messageChunk would be split into several packages....
+
+                    l1 = Math.round(chunk.length/3); // arbitrarily split into 2 packets : 1/3 and 2/3
+
+                    // just for testing the ability to reassemble data block
+                    var data1 = chunk.slice(0,l1);
+                    var data2 = chunk.slice(l1);
+
+                    messageBuilder.feed(data1);
+                    messageBuilder.feed(data2);
+
+                });
             }
         ],done);
 

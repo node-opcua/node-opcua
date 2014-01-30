@@ -3,6 +3,8 @@ var crypto = require("crypto");
 var fs= require("fs");
 var should = require("should");
 
+var hexy = require("hexy");
+
 // generate a self-signed key
 // openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem
 // generate public key from private.key
@@ -15,13 +17,6 @@ function debugLog() {
         console.log.apply(console,arguments);
     }
 }
-
-
-function BufferStream(size)
-{
-
-}
-
 
 describe("testing and exploring the NodeJS crypto api",function(){
 

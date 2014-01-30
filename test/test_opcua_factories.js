@@ -54,51 +54,48 @@ describe("OPCUA Structure encoding and decoding", function() {
 
 });
 
-function makebuffer(listOfBytes)
-{
-    var l = listOfBytes.split(" ");
-    var b = new Buffer(l.length);
-    var i=0;
-    l.forEach(function(value) {
-        b.writeUInt8(parseInt(value,16),i);
-        i+=1;
-    })
-    return b;
-}
 
 
-
+var makebuffer = require("../lib/utils").makebuffer;
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
 var s = require("../lib/secure_channel_service");
 
-function verify_single_chunk_message(messageChunk)
+function verify_multi_chunk_message(messageChunks)
 {
-    // analyse security header
-    var h = new s.AsymmetricAlgorithmSecurityHeader();
-    packet_analyzer(messageChunk.slice(12),h);
+    //xx analyse security header
+    //xx var h = new s.AsymmetricAlgorithmSecurityHeader();
+    //xx packet_analyzer(fullMessage.slice(12),h);
 
     var messageBuild = new MessageBuilder();
     messageBuild.on("raw_buffer",function(fullMessage){
+
         packet_analyzer(fullMessage);
     });
 
-    messageBuild.feed(messageChunk);
+    messageChunks.forEach(function(messageChunk){
+
+        messageBuild.feed(messageChunk);
+    });
 }
 
+function verify_single_chunk_message(messageChunk)
+{
+    verify_multi_chunk_message([messageChunk]);
+}
 
 var redirectToFile = require("../lib/utils").redirectToFile;
 
 
-describe("checking decoding real packets captured with WireShark ",function(){
+describe("checking decoding real message bodies captured with WireShark ",function(){
 
     it("should decode a real OpenSecureChannelRequest message",function() {
 
 
         // a real OpenSecureChannelRequest captured with wireshark
         var ws_OpenSecureChannelRequest = makebuffer(
-            "4f 50 4e 46 85 00 00 00 00 00 00 00 2f 00 00 00 " +
+            "4f 50 4e 46 85 00 00 00 00 00 00 00 2f 00 00 00 " + // OPNF ...
             "68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 " +
             "74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 " +
             "72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 ff " +
@@ -121,7 +118,7 @@ describe("checking decoding real packets captured with WireShark ",function(){
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_OpenSecureChannelResponse = makebuffer(
-            "4f 50 4e 46 87 00 00 00 01 00 " +
+            "4f 50 4e 46 87 00 00 00 01 00 " +                      // OPNF ...
             "00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 " +
             "66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 " +
             "41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 " +
@@ -139,3 +136,14 @@ describe("checking decoding real packets captured with WireShark ",function(){
     });
 });
 
+
+describe("checking decoding real messageChunks captured with WireShark ",function(){
+
+    var packets = require("./fixture_full_tcp_packets");
+    it("should decode a real GetEndPointResponse message",function() {
+
+        redirectToFile("GetEndPointResponse.log",function(){
+            verify_multi_chunk_message([packets.packet_sc_3_a,packets.packet_sc_3_b]);
+        });
+    });
+});
