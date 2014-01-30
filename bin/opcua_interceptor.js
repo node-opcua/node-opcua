@@ -1,16 +1,21 @@
-var argv = require('optimist').argv;
+
+var argv = require('optimist')
+    .usage('Usage: $0 --portServer [num]--port [num]  --hostname <hostname>')
+    .argv;
 var net = require("net");
 var hexy = require("hexy");
 var opcua = require("../lib/nodeopcua");
 var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var messageHeaderToString = require("../lib/secure_channel_service").messageHeaderToString;
+var s = require("../lib/structures");
+
 require("colors");
 
-var remote_port = 4841;
-hostname = "localhost";
+var remote_port = parseInt(argv.port) || 4841;
+hostname = argv.hostname || "localhost" ;
 
-var my_port = remote_port + 1;
+var my_port = parseInt(argv.portServer) || remote_port + 1;
 
 
 var TrafficAnalyser = function(id)
@@ -25,6 +30,10 @@ TrafficAnalyser.prototype.add = function(data)
     var messageHeader = opcua.readMessageHeader(stream);
 
     if (messageHeader.msgType == "ERR") {
+
+        var err = new s.TCPErrorMessage();
+        err.decode(stream);
+        console.log(" Error 0x" + err.name.toString(16) + " reason:" + err.reason);
         console.log(hexy.hexy(data));
     }
 

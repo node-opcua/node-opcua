@@ -133,8 +133,52 @@ describe("checking decoding real message bodies captured with WireShark ",functi
         },done);
 
     });
-});
 
+    it("should decode a real FindServersRequest message",function(done) {
+
+        // a real OpenSecureChannelResponse captured with wireshark
+        var ws_message = makebuffer(
+            "4d 53 47 46 60 00 00 00 01 00 " +
+            "00 00 02 00 00 00 34 00 00 00 02 00 00 00 01 00 " +
+            "a6 01 00 00 62 2c 63 d3 0c f7 ce 01 01 00 00 00 " +
+            "00 00 00 00 ff ff ff ff 10 27 00 00 00 00 00 1b " +
+            "00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 31 39 32 " +
+            "2e 31 36 38 2e 32 2e 36 30 3a 34 38 34 30 00 00 " +
+            "00 00 00 00 00 00"
+        );
+
+        redirectToFile("FindServersRequest.log",function(){
+            verify_single_chunk_message(ws_message);
+        },done);
+
+    });
+
+    it("should decode a real FindServersResponse message",function(done) {
+
+        // a real OpenSecureChannelResponse captured with wireshark
+        var ws_message = makebuffer(
+            "4d 53 47 46 b9 00 00 00 01 00 " +
+            "00 00 02 00 00 00 01 00 00 00 02 00 00 00 01 00 " +
+            "a9 01 e2 2b 63 d3 0c f7 ce 01 01 00 00 00 00 00 " +
+            "00 00 00 00 00 00 00 00 00 00 01 00 00 00 1c 00 " +
+            "00 00 75 75 75 75 75 75 75 75 75 75 75 75 75 75 " +
+            "75 75 75 75 75 75 75 75 75 75 75 75 75 75 1f 00 " +
+            "00 00 68 74 74 70 3a 2f 2f 77 77 77 2e 75 75 75 " +
+            "75 75 75 75 75 75 75 75 75 75 75 75 75 75 2e 75 " +
+            "75 02 0a 00 00 00 53 49 50 4c 55 47 34 4f 50 43 " +
+            "00 00 00 00 ff ff ff ff ff ff ff ff 01 00 00 00 " +
+            "1b 00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 31 39 " +
+            "32 2e 31 36 38 2e 32 2e 36 30 3a 34 38 34 30"
+        );
+
+        redirectToFile("FindServersResponse.log",function(){
+            verify_single_chunk_message(ws_message);
+        },done);
+
+    });
+
+
+});
 
 describe("checking decoding real messageChunks captured with WireShark ",function(){
 
