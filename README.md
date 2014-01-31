@@ -6,6 +6,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 
 [![Build Status](https://travis-ci.org/erossignon/node-opcua.png?branch=master)](https://travis-ci.org/erossignon/node-opcua)
+[![Dependency Status](https://gemnasium.com/erossignon/node-opcua.png)](https://gemnasium.com/erossignon/node-opcua)
 
 
 node-opcua is an experimental OPC-UA stack written in NodeJS.
