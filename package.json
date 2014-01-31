@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "mocha": "*",
-    "should": "~3.0.1",
+    "should": "*",
     "csv": "~0.3.6"
   },
   "dependencies": {
