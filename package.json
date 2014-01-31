@@ -45,6 +45,8 @@
     "hexy": "~0.2.5",
     "optimist": "~0.6.0",
     "prettyjson": "~0.10.0",
-    "treeify": "~1.0.1"
+    "treeify": "~1.0.1",
+    "coveralls": "~2.7.0",
+    "mocha-lcov-reporter": "0.0.1"
   }
 }

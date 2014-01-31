@@ -2,3 +2,4 @@
 specs/
 node_modules/
 tmp/
+.coveralls.yml
