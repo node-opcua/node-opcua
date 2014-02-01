@@ -1,3 +1,4 @@
+var Table = require('easy-table');
 var argv = require('optimist')
     .usage('Usage: $0 --port [num] --hostname <hostname>')
     .argv;
@@ -14,6 +15,27 @@ async.series([
     function(callback) {
         client.connect(hostname,port,callback);
     },
+
+    function(callback) {
+        client.getEndPointRequest(function (err,endpoints) {
+
+            var table= new Table();
+            if (!err) {
+                endpoints.forEach(function(endpoint){
+                    table.cell('endpoint', endpoint.endpointUrl);
+                    table.cell('Application URI', endpoint.server.applicationUri);
+                    table.cell('Security Mode', endpoint.securityMode);
+                    table.cell('securityPolicyUri', endpoint.securityPolicyUri);
+                    table.cell('Type', endpoint.server.applicationType.key);
+                    table.cell('certificate', endpoint.serverCertificate.length);
+                    table.newRow();
+                });
+            }
+            console.log(table.toString());
+            callback(err);
+        });
+    },
+
     function(callback) {
         client.disconnect(callback);
     }
