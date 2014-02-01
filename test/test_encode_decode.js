@@ -276,23 +276,22 @@ describe("check OPCUA Date Type ", function () {
     });
     it("dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601",function(){
 
-        var date    = new Date(1601,0,1,1,0);
+        var date    = new Date(Date.UTC(1601,0,1,0,0));
         var nano   = ec.dateToHundredNanoSecondFrom1601(date);
         nano.should.equal(0);
     });
 
     it("dateToHundredNanoSecondFrom1601 should return xx nanos for 2st of January 1601",function(){
-        var date   = new Date(1601,0,2,1,0);
+
+        var date    = new Date(Date.UTC(1601,0,2,0,0));
         var nano   = ec.dateToHundredNanoSecondFrom1601(date);
         nano.should.equal(24*60*60*1000*10000);
     });
 
     it("hundredNanoSecondFrom1601ToDate and dateToHundredNanoSecondFrom1601 ",function(){
 
-        var date    = new Date(1601,0,2,1,0);
-
+        var date    = new Date(1789,6,14,19,47);
         var nano    = ec.dateToHundredNanoSecondFrom1601(date);
-
         var date2   = ec.hundredNanoSecondFrom1601ToDate(nano);
 
         date2.toString().should.equal(date.toString());
