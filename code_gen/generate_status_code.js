@@ -30,6 +30,7 @@ function parseStatusCodeXML() {
     outFile.write("// this file has been automatically generated\n");
     outFile.write(" exports.StatusCodes = { \n");
     parser.on('startElement',function(name,attrs) {
+        var obj ;
         if ( name == "opc:Constant") {
             var cstName = attrs.Name;
             if (cstName in codeMap) {

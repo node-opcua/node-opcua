@@ -93,12 +93,12 @@ describe("MessageChunkManager",function() {
 
        var chunks = [];
 
-       chunk_counter = 0;
+       var chunk_counter = 0;
 
        msgChunkManager.on("chunk",function(chunk){
 
            // keep a copy ..
-           copy_chunk = new Buffer(chunk.length);
+           var copy_chunk = new Buffer(chunk.length);
            chunk.copy(copy_chunk,0,0,chunk.length);
            chunks.push(copy_chunk);
            if (chunk_counter < 4 ) {
@@ -160,7 +160,7 @@ describe("using ChunkManager as stream with ChunkStream",function(){
         r.push(null);
 
 
-        counter = 0;
+        var counter = 0;
         r.pipe(ChunkStream(new ChunkManager(10))).on("data",function(data) {
             data.length.should.be.lessThan(10+1);
             if (counter < 7) {
@@ -182,7 +182,7 @@ describe("using ChunkManager as stream with ChunkStream",function(){
         r.push("01234567890123456789012345678901234567890123456789012345678901234567890123");
         r.push(null);
 
-        counter = 0;
+        var counter = 0;
         r.pipe(ChunkStream(new MessageChunkManager(20,"HEL",0xBEEF))).on("data",function(data) {
             // console.log(" ",counter, " " , data.toString("ascii"));
             data.length.should.lessThan(20+1);
@@ -209,7 +209,7 @@ describe("using ChunkManager as stream with ChunkStream",function(){
         });
 
         var block_size = 80;
-        counter = 0;
+        var counter = 0;
         var r = new BinaryStreamReader(original_buffer);
 
         r.pipe(ChunkStream(new MessageChunkManager(block_size,"HEL",0xBEEF))).on("data",function(data) {

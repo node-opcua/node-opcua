@@ -73,7 +73,7 @@ describe("SecureMessageChunkManager",function(){
                     // let simulate a real TCP communication
                     // where our messageChunk would be split into several packages....
 
-                    l1 = Math.round(chunk.length/3); // arbitrarily split into 2 packets : 1/3 and 2/3
+                    var l1 = Math.round(chunk.length/3); // arbitrarily split into 2 packets : 1/3 and 2/3
 
                     // just for testing the ability to reassemble data block
                     var data1 = chunk.slice(0,l1);
