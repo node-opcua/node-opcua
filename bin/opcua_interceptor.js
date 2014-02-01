@@ -1,6 +1,6 @@
 
 var argv = require('optimist')
-    .usage('Usage: $0 --portServer [num]--port [num]  --hostname <hostname>')
+    .usage('Usage: $0 --portServer [num]--port [num]  --hostname <hostname> -block')
     .argv;
 var net = require("net");
 var hexy = require("hexy");
@@ -27,6 +27,10 @@ TrafficAnalyser.prototype.add = function(data)
 {
 
     var stream = new opcua.BinaryStream(data);
+	if (argv.block) {
+	   console.log(hexy.hexy(data , { width: 32, format: "twos" }));
+	   return ;
+	}
     var messageHeader = opcua.readMessageHeader(stream);
 
     if (messageHeader.msgType == "ERR") {
@@ -42,8 +46,12 @@ TrafficAnalyser.prototype.add = function(data)
 
         console.log(hexy.hexy(fullMessage , { width: 32}));
 
-        packet_analyzer(fullMessage);
-
+        try {
+		   packet_analyzer(fullMessage);
+        } 
+		catch(err) {
+		   console.log("ERROR : ".red, err);
+		}
     });
 
 
