@@ -204,4 +204,24 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
             verify_multi_chunk_message([packets.packet_sc_3_a, packets.packet_sc_3_b]);
         }, done);
     });
+    it("should decode a real CloseSecureChannel message", function (done) {
+
+        redirectToFile("ws_CloseSecureChannel.log", function () {
+            verify_multi_chunk_message([packets.packet_sc_5]);
+        }, done);
+    });
+
+    it("should handle tcp packet that have data from two messages", function (done) {
+
+        // construct a tcp packet that have 2 messages
+        var buffer = new Buffer(packets.packet_sc_3_a.length+packets.packet_sc_3_b.length+packets.packet_sc_5.length);
+        packets.packet_sc_3_a.copy(buffer,0);
+        packets.packet_sc_3_b.copy(buffer,packets.packet_sc_3_a.length);
+        packets.packet_sc_5.copy(buffer,packets.packet_sc_3_a.length + packets.packet_sc_3_b.length);
+
+        redirectToFile("ws_overlaping_message.log", function () {
+            verify_multi_chunk_message([buffer]);
+        }, done);
+    });
+
 });

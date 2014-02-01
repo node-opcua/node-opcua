@@ -1,6 +1,6 @@
 
 var argv = require('optimist')
-    .usage('Usage: $0 --portServer [num]--port [num]  --hostname <hostname> -block')
+    .usage('Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block')
     .argv;
 var net = require("net");
 var hexy = require("hexy");
