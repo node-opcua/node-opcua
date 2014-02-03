@@ -349,3 +349,10 @@ exports.packet_sc_4 = makebuffer_from_trace(function(){
 */
 });
 
+exports.packet_sc_5 = makebuffer_from_trace(function(){
+/*
+ 00000000: 43 4c 4f 46 39 00 00 00 02 00 00 00 01 00 00 00 03 00 00 00 03 00 00 00 01 00 c4 01 00 00 cd e6    CLOF9.....................D...Mf
+ 00000020: 25 6b 8c 1f cf 01 00 00 00 00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00                         %k..O....................
+ */
+});
+

@@ -1,13 +1,15 @@
 
 var argv = require('optimist')
-    .usage('Usage: $0 --portServer [num]--port [num]  --hostname <hostname> -block')
+    .usage('Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block')
     .argv;
 var net = require("net");
 var hexy = require("hexy");
 var opcua = require("../lib/nodeopcua");
 var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
+
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
-var messageHeaderToString = require("../lib/secure_channel_service").messageHeaderToString;
+var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
+
 var s = require("../lib/structures");
 
 require("colors");

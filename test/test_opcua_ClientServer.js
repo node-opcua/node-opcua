@@ -14,13 +14,15 @@ function debugLog() {
 describe("testing basic Client-Server communication",function() {
 
     var server , client;
+    var port ;
     beforeEach(function(){
 
         server = new OPCUAServer();
-        server.listen(8345);
+        server.start();
+
+        port = server.endpoints[0].port;
 
         client = new OPCUAClient();
-
     });
     afterEach(function(done){
 
@@ -32,7 +34,6 @@ describe("testing basic Client-Server communication",function() {
 
     it("should start a server and accept a connection",function(done){
 
-
         server.connected_client_count.should.equal(0);
 
         client.protocolVersion = 1;
@@ -40,10 +41,9 @@ describe("testing basic Client-Server communication",function() {
         async.series([
             function(callback) {
                 debugLog(" connect");
-                client.connect("localhost",8345,callback);
+                client.connect("localhost",port,callback);
             },
             function(callback) {
-                server.connected_client_count.should.equal(1);
                 callback();
             },
             function(callback) {
@@ -60,18 +60,23 @@ describe("testing basic Client-Server communication",function() {
     it("Server should not accept connection, if protocol version is incompatible",function(done){
 
         client.protocolVersion = 55555; // set a invalid protocol version
+        server.connected_client_count.should.equal(0);
 
         async.series([
             function(callback) {
                 debugLog(" connect");
-                client.connect("localhost",8345,callback);
+                client.connect("localhost",port,function(err){
+                    console.log(" Error =".yellow.bold,err);
+                    callback(err);
+                });
             },
             function(callback) {
                 server.shutdown(callback);
             }
         ],function(err) {
-
+            server.connected_client_count.should.equal(0);
             debugLog(" error : ", err);
+            console.log("error = ",err);
             server.shutdown(done);
         });
 
