@@ -10,13 +10,11 @@ describe("testing message encoding and decoding",function(){
         var helloMessage1 = new opcua.HelloMessage();
         //xx console.log(Object.getPrototypeOf(helloMessage1),opcua.HelloMessage);
 
-        var stream = new opcua.BinaryStream(2000);
 
-        opcua.encodeMessage('HEL',helloMessage1,stream);
+        var message = opcua.packTcpMessage('HEL',helloMessage1);
 
-        //xx console.log(helloMessage1);
 
-        stream.rewind();
+        var stream = new opcua.BinaryStream(message);
 
         var helloMessage2 = opcua.decodeMessage(stream,opcua.HelloMessage);
         //xx console.log(helloMessage2);
