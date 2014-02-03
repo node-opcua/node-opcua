@@ -40,7 +40,7 @@ async.series([
             endpoints = replaceBufferWithHexDump(endpoints);
 
             if (argv.d) {
-                var f = fs.writeFile("endpoints.log",JSON.stringify(endpoints,null," "));
+                var f = fs.writeFile("tmp/endpoints.log",JSON.stringify(endpoints,null," "));
                 console.log(treeify.asTree(endpoints,true));
 
             }
