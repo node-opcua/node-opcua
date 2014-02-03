@@ -1,6 +1,9 @@
+var fs = require("fs");
+var treeify = require('treeify');
+
 var Table = require('easy-table');
 var argv = require('optimist')
-    .usage('Usage: $0 --port [num] --hostname <hostname>')
+    .usage('Usage: $0 --port [num] --hostname <hostname>  -d')
     .argv;
 
 var OPCUAClient = require("../lib/opcua-client.js").OPCUAClient;
@@ -11,6 +14,20 @@ var client = new OPCUAClient();
 var port = argv.port  || 4841
 var hostname = argv.hostname || "localhost";
 
+
+function replaceBufferWithHexDump(obj)
+{
+    for ( var p in obj) {
+        if (obj.hasOwnProperty(p)) {
+            if (obj[p] instanceof Buffer) {
+                obj[p]  = "<BUFFER>"+ obj[p].toString("hex")+ "</BUFFER>";
+            } else if ( typeof(obj[p]) === "object" ) {
+                replaceBufferWithHexDump(obj[p]);
+            }
+        }
+    }
+    return obj;
+}
 async.series([
     function(callback) {
         client.connect(hostname,port,callback);
@@ -18,6 +35,15 @@ async.series([
 
     function(callback) {
         client.getEndPointRequest(function (err,endpoints) {
+
+
+            endpoints = replaceBufferWithHexDump(endpoints);
+
+            if (argv.d) {
+                var f = fs.writeFile("endpoints.log",JSON.stringify(endpoints,null," "));
+                console.log(treeify.asTree(endpoints,true));
+
+            }
 
             var table= new Table();
             if (!err) {
@@ -27,7 +53,7 @@ async.series([
                     table.cell('Security Mode', endpoint.securityMode);
                     table.cell('securityPolicyUri', endpoint.securityPolicyUri);
                     table.cell('Type', endpoint.server.applicationType.key);
-                    table.cell('certificate', endpoint.serverCertificate.length);
+                    table.cell('certificate', "..." /*endpoint.serverCertificate*/);
                     table.newRow();
                 });
             }
