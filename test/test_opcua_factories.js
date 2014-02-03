@@ -224,4 +224,10 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
         }, done);
     });
 
+    it("should decode a real createSessionRequest message",function(done){
+        redirectToFile("ws_CreateSessionRequest.log", function () {
+            verify_multi_chunk_message([packets.packet_cs_6]);
+        }, done);
+
+    });
 });
