@@ -50,6 +50,7 @@
     "mocha-lcov-reporter": "0.0.1",
     "node-int64": "~0.3.0",
     "easy-table": "~0.2.0",
-    "tracer": "~0.6.2"
+    "tracer": "~0.6.2",
+    "base64-js": "0.0.6"
   }
 }
