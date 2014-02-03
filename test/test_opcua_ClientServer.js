@@ -57,7 +57,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    xit("Server should not accept connection, if protocol version is incompatible",function(done){
+    it("Server should not accept connection, if protocol version is incompatible",function(done){
 
         client.protocolVersion = 55555; // set a invalid protocol version
         server.connected_client_count.should.equal(0);
