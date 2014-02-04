@@ -313,5 +313,16 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
         done();
 
     });
+    it(" it should pretty print an object ",function(){
 
+        var company  = new Company({name: "ACME" });
+        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+        company.employees.push(employee);
+        company.employees.push(new Employee({ person: { lastName: "Peter"}, service: "R&D" }));
+
+        var str = company.explore();
+
+        console.log(str);
+
+    });
 });
