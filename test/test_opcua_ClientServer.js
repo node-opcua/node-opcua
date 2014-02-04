@@ -25,11 +25,11 @@ describe("testing basic Client-Server communication",function() {
         client = new OPCUAClient();
     });
     afterEach(function(done){
-
-        client.disconnect(function(){
-            server.shutdown(done);
-        });
-
+        if (client) {
+            client.disconnect(function(){
+                server.shutdown(done);
+            });
+        }
     });
 
     it("should start a server and accept a connection",function(done){
