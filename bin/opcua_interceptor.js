@@ -40,13 +40,13 @@ TrafficAnalyser.prototype.add = function(data)
         var err = new s.TCPErrorMessage();
         err.decode(stream);
         console.log(" Error 0x" + err.name.toString(16) + " reason:" + err.reason);
-        console.log(hexy.hexy(data));
+        console.log(hexy.hexy(data,{width: 32,format: "twos"}));
     }
 
     var messageBuild = new MessageBuilder();
     messageBuild.on("raw_buffer",function(fullMessage){
 
-        console.log(hexy.hexy(fullMessage , { width: 32}));
+        console.log(hexy.hexy(fullMessage , { width: 32 , format: "twos"}));
 
         try {
 		   packet_analyzer(fullMessage);
@@ -85,7 +85,7 @@ TrafficAnalyser.prototype.add = function(data)
             messageBuild.feed(data);
             break;
         case "ERR":
-            console.log(hexy.hexy(data));
+            console.log(hexy.hexy(data),{width: 32,format: "twos"});
             break;
         default:
             break;

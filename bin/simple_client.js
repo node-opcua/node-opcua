@@ -1,5 +1,6 @@
 var fs = require("fs");
 var treeify = require('treeify');
+var utils = require('../lib/utils');
 
 var Table = require('easy-table');
 var argv = require('optimist')
@@ -15,19 +16,7 @@ var port = argv.port  || 4841
 var hostname = argv.hostname || "localhost";
 
 
-function replaceBufferWithHexDump(obj)
-{
-    for ( var p in obj) {
-        if (obj.hasOwnProperty(p)) {
-            if (obj[p] instanceof Buffer) {
-                obj[p]  = "<BUFFER>"+ obj[p].toString("hex")+ "</BUFFER>";
-            } else if ( typeof(obj[p]) === "object" ) {
-                replaceBufferWithHexDump(obj[p]);
-            }
-        }
-    }
-    return obj;
-}
+
 async.series([
     function(callback) {
         client.connect(hostname,port,callback);
@@ -37,7 +26,7 @@ async.series([
         client.getEndPointRequest(function (err,endpoints) {
 
 
-            endpoints = replaceBufferWithHexDump(endpoints);
+            endpoints = utils.replaceBufferWithHexDump(endpoints);
 
             if (argv.d) {
                 var f = fs.writeFile("tmp/endpoints.log",JSON.stringify(endpoints,null," "));

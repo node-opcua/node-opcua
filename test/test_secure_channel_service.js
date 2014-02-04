@@ -41,6 +41,7 @@ describe("SecureMessageChunkManager",function(){
             },
 
             function (callback) {
+                // let verify that each intermediate chunk is marked with "C" and final chunk is marked with "F"
                 for (var i = 0; i<chunk_stack.length -1;i++) {
                     String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("C");
                 }
@@ -57,9 +58,8 @@ describe("SecureMessageChunkManager",function(){
                 var messageBuilder = new secure_channel.MessageBuilder();
                 messageBuilder.on("raw_buffer",function(buffer){
                     compare_buffers(fullBufferForVerif,buffer,40);
-                });
 
-                messageBuilder.on("message",function(message) {
+                }).on("message",function(message) {
                     //xx console.log("message = ", util.inspect(message));
                     message.should.eql(endPointResponse);
                     callback();
@@ -87,5 +87,37 @@ describe("SecureMessageChunkManager",function(){
         ],done);
 
     });
+
+    it("should receive an ERR message",function(done){
+
+
+        var messageBuilder = new secure_channel.MessageBuilder();
+
+        messageBuilder.on("raw_buffer",function(buffer){
+                console.log(" On raw Buffer \n" );
+                console.log(require("../lib/utils").hexDump(buffer));
+
+        }).on("message",function(message) {
+                console.log(" message ", message);
+                done();
+        }).on("error",function(errCode){
+                console.log(" errCode ", errCode);
+                done();
+        });
+
+        var makebuffer_from_trace = require("./makebuffer_from_trace").makebuffer_from_trace;
+
+        var packet =makebuffer_from_trace(function(){
+/*
+ 00000000: 4d 53 47 46 64 00 00 00 0c 00 00 00 01 00 00 00 04 00 00 00 03 00 00 00 01 00 8d 01 00 00 00 00    MSGFd...........................
+ 00000020: 00 00 00 00 00 00 00 00 00 00 82 80 24 00 00 00 00 00 00 00 80 01 00 00 00 24 00 00 00 55 6e 65    ............$............$...Une
+ 00000040: 78 70 65 63 74 65 64 20 65 72 72 6f 72 20 70 72 6f 63 65 73 73 69 6e 67 20 72 65 71 75 65 73 74    xpected.error.processing.request
+ 00000060: 2e 00 00 00                                                                                        ....
+*/
+        });
+        messageBuilder.feed(packet);
+
+    });
+
 
 });
