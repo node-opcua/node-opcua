@@ -2,7 +2,7 @@
 var should =require("should");
 var BinaryStream = require("../lib/nodeopcua").BinaryStream;
 var factories = require("../lib/factories");
-var dump_block = require("../lib/utils").dump_block;
+var hexDump = require("../lib/utils").hexDump;
 
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
@@ -12,8 +12,7 @@ process.argv.push("DEBUG");
 function dump_block_in_debug_mode(buffer,id) {
 
     if ( process.env.DEBUG )  {
-        dump_block(buffer);
-
+        console.log(hexDump(buffer));
         packet_analyzer(buffer,id);
 
     }

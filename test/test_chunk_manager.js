@@ -4,9 +4,7 @@ var MessageChunkManager = require("../lib/chunk_manager").MessageChunkManager;
 var MessageBuilderBase = require("../lib/chunk_manager").MessageBuilderBase;
 
 var ChunkStream = require("../lib/chunk_manager").chunkStream;
-var dump_block = require("../lib/utils").dump_block;
 var compare_buffers = require("../lib/utils").compare_buffers;
-var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 
 
@@ -198,8 +196,6 @@ describe("using ChunkManager as stream with chunkStream",function(){
         for (var i =0; i < original_buffer.length;i+=4){
             original_buffer.writeUInt32LE(i/4,i);
         }
-
-        //xx dump_block(buf);
 
         var builder = new MessageBuilderBase();
 

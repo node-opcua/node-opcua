@@ -29,6 +29,8 @@ describe("testing basic Client-Server communication",function() {
             client.disconnect(function(){
                 server.shutdown(done);
             });
+        } else {
+            server.shutdown(done);
         }
     });
 

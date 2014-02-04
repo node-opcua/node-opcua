@@ -3,7 +3,7 @@ var argv = require('optimist')
     .usage('Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block')
     .argv;
 var net = require("net");
-var hexy = require("hexy");
+var hexDump = require("../lib/utils").hexDump;
 var opcua = require("../lib/nodeopcua");
 var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
 
@@ -30,7 +30,7 @@ TrafficAnalyser.prototype.add = function(data)
 
     var stream = new opcua.BinaryStream(data);
 	if (argv.block) {
-	   console.log(hexy.hexy(data , { width: 32, format: "twos" }));
+	   console.log(hexDump(data));
 	   return ;
 	}
     var messageHeader = opcua.readMessageHeader(stream);
@@ -40,13 +40,13 @@ TrafficAnalyser.prototype.add = function(data)
         var err = new s.TCPErrorMessage();
         err.decode(stream);
         console.log(" Error 0x" + err.name.toString(16) + " reason:" + err.reason);
-        console.log(hexy.hexy(data,{width: 32,format: "twos"}));
+        console.log(hexDump(data));
     }
 
     var messageBuild = new MessageBuilder();
     messageBuild.on("raw_buffer",function(fullMessage){
 
-        console.log(hexy.hexy(fullMessage , { width: 32 , format: "twos"}));
+        console.log(hexDump(fullMessage));
 
         try {
 		   packet_analyzer(fullMessage);
@@ -85,7 +85,7 @@ TrafficAnalyser.prototype.add = function(data)
             messageBuild.feed(data);
             break;
         case "ERR":
-            console.log(hexy.hexy(data),{width: 32,format: "twos"});
+            console.log(hexDump(data));
             break;
         default:
             break;
