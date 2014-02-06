@@ -277,8 +277,6 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
         var packet1 = require("./fixture_CreateSessionResponse.js").packet_CreateSessionResponse_1;
         var packet2 = require("./fixture_CreateSessionResponse.js").packet_CreateSessionResponse_2;
 
-        verify_multi_chunk_message([packet1,packet2]);
-
         redirectToFile("ws_CreateSessionResponse.log", function () {
             verify_multi_chunk_message([packet1,packet2]);
         }, done);
