@@ -35,8 +35,6 @@
     "underscore": "~1.5.2",
     "ignite": "~0.1.8",
     "machina": "~0.3.4",
-    "ursa": "~0.8.0",
-    "rsa-stream": "0.0.2",
     "through2": "~0.4.1",
     "node-xml": "~1.0.2",
     "node-expat": "~2.1.4",

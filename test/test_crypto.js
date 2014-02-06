@@ -63,12 +63,29 @@ describe("testing and exploring the NodeJS crypto api",function(){
 
     });
 
+
+    function encrypt_buffer(buffer,algorithm,key) {
+        var crypto = require('crypto');
+        var cipher = crypto.createCipher(algorithm, key);
+        var encrypted_chunks= [];
+        encrypted_chunks.push(cipher.update(buffer));
+        encrypted_chunks.push(cipher.final());
+
+        return Buffer.concat(encrypted_chunks);
+    };
+
+    function decrypt_buffer(buffer,algorithm,key) {
+        var crypto = require('crypto');
+        var decipher = crypto.createDecipher('aes-256-cbc', key);
+        var decrypted_chunks= [];
+        decrypted_chunks.push(decipher.update(buffer));
+        decrypted_chunks.push(decipher.final());
+        return Buffer.concat(decrypted_chunks);
+    }
+    // encrypt_buffer(buffer,'aes-256-cbc',key);
     it("should encrypt a message",function() {
 
-        var ursa = require('ursa');
 
-
-        var rsa = require('rsa-stream');
 
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
@@ -76,34 +93,55 @@ describe("testing and exploring the NodeJS crypto api",function(){
         public_key = public_key.toString('ascii');
 
 
-        // var pubkey = ursa.createPublicKey(public_key);
+        // var pubkey = ursa.createPublicKey(public_k ey);
 
-        var buf = new Buffer(1024);
+        var buf = new Buffer(16);
         buf.writeDoubleLE(3.14,0);
-        buf.writeDoubleLE(3.14,4);
+        buf.writeDoubleLE(3.14,8);
 
-        var enc = rsa.encrypt(public_key);
+        var encryptedBuf = encrypt_buffer(buf,'aes-256-cbc',public_key);
 
-        var through = require("through2");
+        var s = fs.createWriteStream("output2.bin","ascii");
+        s.write(encryptedBuf.toString("hex"));
+        s.end();
 
-
-        enc.pipe(through(function(chunk,enc,next) {
-            this.push(chunk.toString("hex"));
-            next();
-        })).pipe(fs.createWriteStream("output2.bin","hex"));
-        enc.write(buf);
-        enc.end();
-
-
-        // console.log(enc.read().toString("hex"));
-        // var encoded = pubkey.encrypt(buf);
-
-        // debugLog(encoded.toString("hex"));
-
-        buf.write("HelloWorld",0);
 
 
 
     });
 
+    var loremIpsum= "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam " +
+                    "nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat "+
+                    "volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation "+
+                    "ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat."+
+                    "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse "+
+                    "molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros "+
+                    "et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit "+
+                    "augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis "+
+                    "eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim "+
+                    "assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum "+
+                    "claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt"+
+                    "saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium "+
+                    "lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, "+
+                    "anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta "+
+                    "decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
+
+
+    it("exploring crypto api",function(){
+
+        var crypto = require('crypto')
+            , key = 'salt_from_the_user_document'
+            , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum)
+
+
+
+        var encrypted_buff =encrypt_buffer(buffer,'aes-256-cbc',key);
+        var decrypted_buff = decrypt_buffer(encrypted_buff,'aes-256-cbc',key);
+
+
+        // xx console.log('encrypted  %d :', encrypted_buff.length,encrypted_buff.toString("hex"));
+        // xx console.log('decrypted  %d :', decrypted_buff.length,decrypted_buff.toString("hex"));
+        // xx console.log('decrypted  %d :', buffer.length,buffer.toString("hex"));
+        buffer.toString("hex").should.equal(decrypted_buff.toString("hex"));
+    })
 });
