@@ -313,7 +313,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
         done();
 
     });
-    it(" it should pretty print an object ",function(){
+    it("should pretty print an object ",function(){
 
         var company  = new Company({name: "ACME" });
         var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
@@ -323,6 +323,38 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
         var str = company.explore();
 
         // console.log(str);
+
+    });
+
+
+    it("should handle ExtensionObject ",function(){
+
+
+        var MetaShape_Description = {
+            id:  0xFFFF1006,
+            fields: [
+                { name: "name",                     fieldType: "String"          },
+                { name: "shape",                    fieldType: "ExtensionObject" },
+                { name: "comment",                  fieldType: "String" }
+            ]
+        };
+
+        var MetaShape = factories.UAObjectFactoryBuild(MetaShape_Description);
+
+
+        var shape  = new MetaShape({
+            name: "MyCircle",
+            shape: new Shape({name: "circle" , shapeType:ShapeType.CIRCLE , color: Color.BLUE}),
+            comment:  "this is a comment"
+        });
+        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(0xFFFF1006));
+
+        var stream = new BinaryStream(shape.binaryStoreSize());
+        shape.encode(stream);
+
+        var encode_decode_round_trip_test = require("./encode_decode_round_trip_test").encode_decode_round_trip_test;
+
+        encode_decode_round_trip_test(shape);
 
     });
 });
