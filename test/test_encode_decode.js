@@ -236,8 +236,31 @@ describe("testing built-in type encoding", function () {
         // todo
     });
 
-    xit("should encode and decode a Opaque NodeId", function () {
-        // todo
+    it("should encode and decode a Opaque NodeId", function () {
+
+        var value = Buffer(32);
+        for(var i= 0; i< 32;i++) { value.writeUInt8(i,i); }
+        var nodeId = ec.makeNodeId(value, 0x1BCD);
+        nodeId.identifierType.should.equal(ec.NodeIdType.BYTESTRING);
+        var expectedLength = 1+ 2 + 4 + 32;
+        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function (buffer) {
+            // cod
+            buffer.readUInt8(0).should.equal(0x05);
+            // namespace
+            buffer.readUInt8(1).should.equal(0xCD);
+            buffer.readUInt8(2).should.equal(0x1B);
+            // size
+            buffer.readUInt32LE(3).should.equal(32);
+
+            buffer.readUInt8( 7).should.equal(0x00);
+            buffer.readUInt8( 8).should.equal(0x01);
+            buffer.readUInt8( 9).should.equal(0x02);
+            buffer.readUInt8(10).should.equal(0x03);
+            buffer.readUInt8(11).should.equal(0x04);
+            buffer.readUInt8(12).should.equal(0x05);
+            // ...
+            buffer.readUInt8(38).should.equal( 31);
+        });
     });
 
     it("should encode and decode a Expanded NodeId  - TwoBytes", function () {
