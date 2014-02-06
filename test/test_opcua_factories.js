@@ -152,8 +152,7 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
     });
 
-
-    it("should decode a real OpenSecureChannelResponse message", function (done) {
+it("should decode a real OpenSecureChannelResponse message", function (done) {
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_OpenSecureChannelResponse = makebuffer(
@@ -272,6 +271,16 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
         redirectToFile("ws_CreateSessionRequest.log", function () {
             verify_multi_chunk_message([packets.packet_cs_6]);
         }, done);
+    });
+    it("should decode a real CreateSessionResponse message", function (done) {
 
+        var packet1 = require("./fixture_CreateSessionResponse.js").packet_CreateSessionResponse_1;
+        var packet2 = require("./fixture_CreateSessionResponse.js").packet_CreateSessionResponse_2;
+
+        verify_multi_chunk_message([packet1,packet2]);
+
+        redirectToFile("ws_CreateSessionResponse.log", function () {
+            verify_multi_chunk_message([packet1,packet2]);
+        }, done);
     });
 });

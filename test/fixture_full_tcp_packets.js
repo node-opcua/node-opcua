@@ -5,7 +5,6 @@ var makebuffer_from_trace = require("./makebuffer_from_trace").makebuffer_from_t
 
 exports.packet_cs_1 = makebuffer_from_trace(function(){
 /*
-
  00000000: 48 45 4c 46 4f 00 00 00 00 00 00 00 ff ff 00 00 ff ff 00 00 00 00 40 00 00 00 00 00 2f 00 00 00    HELFO.................@...../...
  00000020: 6f 70 63 2e 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 33 2f 41 41 41 41 41 2f 41 67    opc.tcp://tattata:62543/AAAAA/Ag
  00000040: 67 72 65 67 61 74 69 6f 6e 53 65 72 76 65 72                                                       gregationServer
