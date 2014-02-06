@@ -322,7 +322,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
         var str = company.explore();
 
-        console.log(str);
+        // console.log(str);
 
     });
 });

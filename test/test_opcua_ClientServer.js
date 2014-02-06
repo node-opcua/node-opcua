@@ -3,24 +3,32 @@ var OPCUAClient = require("../lib/opcua-client").OPCUAClient;
 var should = require("should");
 var async = require("async");
 var util = require("util");
+var opcua = require("../lib/nodeopcua");
 
-var doDebug  = require("../lib/utils").should_debug(__filename);
-function debugLog() {
-    if (doDebug) {
-        console.log.apply(console,arguments);
+var debugLog  = require("../lib/utils").make_debugLog(__filename);
+
+
+function is_valid_endpointUrl(endpointUrl) {
+    var e = opcua.parseEndpointUrl(endpointUrl);
+    if (e.hasOwnProperty("hostname")) {
+        return true;
     }
+    return false;
 }
 
 describe("testing basic Client-Server communication",function() {
 
     var server , client;
-    var port ;
+    var endpointUrl ;
     beforeEach(function(){
 
         server = new OPCUAServer();
         server.start();
 
-        port = server.endpoints[0].port;
+        // we will connect to first server end point
+        endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+        debugLog("endpointUrl",endpointUrl);
+        is_valid_endpointUrl(endpointUrl).should.equal(true);
 
         client = new OPCUAClient();
     });
@@ -42,14 +50,9 @@ describe("testing basic Client-Server communication",function() {
 
         async.series([
             function(callback) {
-                debugLog(" connect");
-                client.connect("localhost",port,callback);
+                client.connect(endpointUrl,callback);
             },
             function(callback) {
-                callback();
-            },
-            function(callback) {
-                debugLog(" disconnect");
                 client.disconnect(callback);
             },
             function(callback) {
@@ -67,8 +70,8 @@ describe("testing basic Client-Server communication",function() {
         async.series([
             function(callback) {
                 debugLog(" connect");
-                client.connect("localhost",port,function(err){
-                    console.log(" Error =".yellow.bold,err);
+                client.connect(endpointUrl,function(err){
+                    debugLog(" Error =".yellow.bold,err);
                     callback(err);
                 });
             },
@@ -78,7 +81,6 @@ describe("testing basic Client-Server communication",function() {
         ],function(err) {
             server.connected_client_count.should.equal(0);
             debugLog(" error : ", err);
-            console.log("error = ",err);
             server.shutdown(done);
         });
 

@@ -15,23 +15,23 @@ var client = new OPCUAClient();
 var port = argv.port  || 4841
 var hostname = argv.hostname || "localhost";
 
+var endpointUrl = "opc.tcp://" + hostname + ":" + port + "/SomeAddress";
 
 
 async.series([
     function(callback) {
-        client.connect(hostname,port,callback);
+        console.log(" connecting to ", endpointUrl);
+        client.connect(endpointUrl,callback);
     },
 
     function(callback) {
         client.getEndPointRequest(function (err,endpoints) {
-
 
             endpoints = utils.replaceBufferWithHexDump(endpoints);
 
             if (argv.d) {
                 var f = fs.writeFile("tmp/endpoints.log",JSON.stringify(endpoints,null," "));
                 console.log(treeify.asTree(endpoints,true));
-
             }
 
             var table= new Table();

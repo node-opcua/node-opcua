@@ -28,3 +28,25 @@ describe("testing message encoding and decoding",function(){
 
     });
 });
+
+describe("testing parseEndpointUrl",function(){
+    it(" should parse a endpoint ",function(){
+
+        var ep = opcua.parseEndpointUrl("opc.tcp://abcd1234:51210/UA/SampleServer");
+
+        ep.protocol.should.equal("opc.tcp");
+        ep.hostname.should.equal("abcd1234");
+        ep.port.should.equal(51210);
+        ep.address.should.equal("/UA/SampleServer");
+    });
+    it(" should parse this endpoint as well",function(){
+
+        var ep = opcua.parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
+
+        ep.protocol.should.equal("opc.tcp");
+        ep.hostname.should.equal("ABCD12354");
+        ep.port.should.equal(51210);
+        ep.address.should.equal("/UA/SampleServer");
+    });
+
+});

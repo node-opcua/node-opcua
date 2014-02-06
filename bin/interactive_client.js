@@ -3,18 +3,20 @@ var fs = require("fs");
 var treeify = require('treeify');
 var OPCUAClient = require("../lib/opcua-client.js").OPCUAClient;
 var utils = require('../lib/utils');
+var opcua = require('../lib/nodeopcua');
 var color = require('colors');
 
 function completer(line) {
 
+    var completion,hits;
     if (line.trim().indexOf("open")) {
 
-        var completions = 'localhost <port>'.split(' ');
-        var hits = completions.filter(function(c) { return c.indexOf(line) == 0 });
+        completions = 'localhost <port>'.split(' ');
+        hits = completions.filter(function(c) { return c.indexOf(line) == 0 });
         return [hits.length ? hits : completions, line]
     } else {
-        var completions = 'open close getEndpoints quit'.split(' ');
-        var hits = completions.filter(function(c) { return c.indexOf(line) == 0 });
+        completions = 'open close getEndpoints quit'.split(' ');
+        hits = completions.filter(function(c) { return c.indexOf(line) == 0 });
         // show all completions if none found
         return [hits.length ? hits : completions, line]
     }
@@ -30,6 +32,8 @@ var the_sesssion = {};
 
 var client = new OPCUAClient();
 
+rl.history.push("open opc.tcp://xleuri11022:51210/UA/SampleServer");
+
 rl.prompt(">");
 rl.on('line', function (line) {
 
@@ -37,16 +41,19 @@ rl.on('line', function (line) {
     var cmd = args[0];
 
     switch(cmd) {
+        case 'debug':
+            process.env.DEBUG = "ALL";
+            console.log(" Debug is ON");
+            break;
         case 'open':
-            var hostname = args[1];
-            var port = args[2] ;
-            if ( !port ) {
-                hostname = "localhost";
-                port = args[1];
-            }
+
+            var endpoint_url = args[1];
+            var p = opcua.parseEndpointUrl(endpoint_url);
+            var hostname = p.hostname;
+            var port = p.port;
             console.log(" open hostname " + hostname + " port : " + port);
             rl.pause();
-            client.connect(hostname,port,function(err){
+            client.connect(endpoint_url,function(err){
                 console.log("client connected err=",err);
                 rl.resume();
                 rl.prompt();

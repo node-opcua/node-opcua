@@ -1,5 +1,55 @@
 var encode_decode_round_trip_test = require("./encode_decode_round_trip_test").encode_decode_round_trip_test;
 
+var makebuffer = require("../lib/utils").makebuffer;
+
+var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
+var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
+var s = require("../lib/secure_channel_service");
+var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
+
+describe("OPCUA Object creation",function() {
+
+    var s = require("../lib/structures");
+    it("should create a complex type with embedded type",function(){
+
+        var applicationDescription = new s.ApplicationDescription({
+            applicationUri: "application:uri",
+            productUri: "uri:product",
+            applicationName: { text: "MyApplication"},
+            applicationType: s.EnumApplicationType.CLIENT,
+            gatewayServerUri: undefined,
+            discoveryProfileUri: undefined,
+            discoveryUrls: []
+        });
+        applicationDescription.applicationUri.should.equal( "application:uri");
+        applicationDescription.productUri.should.equal( "uri:product");
+        applicationDescription.applicationName.text.should.equal( "MyApplication");
+        applicationDescription.applicationType.should.equal( s.EnumApplicationType.CLIENT);
+        applicationDescription.discoveryUrls.length.should.equal(0);
+
+
+        var request = new s.CreateSessionRequest({
+            clientDescription: applicationDescription,
+            serverUri:  "serverUri",
+            endpointUrl: "endpointUrl",
+            sessionName: "sessionName",
+            clientNonce: new Buffer("_clientNonce"),
+            clientCertificate: undefined,
+            requestedSessionTimeout: 300000,
+            maxResponseMessageSize: 800000
+        });
+
+        request.clientDescription.applicationUri.should.equal( "application:uri");
+        request.clientDescription.productUri.should.equal( "uri:product");
+        request.clientDescription.applicationName.text.should.equal( "MyApplication");
+        request.clientDescription.applicationType.should.equal( s.EnumApplicationType.CLIENT);
+        request.clientDescription.discoveryUrls.length.should.equal(0);
+
+
+    });
+
+});
+
 
 describe("OPCUA Structure encoding and decoding", function () {
     it("should encode and decode a EndPointDescription", function (done) {
@@ -52,12 +102,6 @@ describe("OPCUA Structure encoding and decoding", function () {
 });
 
 
-var makebuffer = require("../lib/utils").makebuffer;
-
-var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
-var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
-var s = require("../lib/secure_channel_service");
-var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
 
 function verify_multi_chunk_message(messageChunks) {
 
@@ -72,7 +116,7 @@ function verify_multi_chunk_message(messageChunks) {
     });
 
     messageChunks.forEach(function (messageChunk) {
-        console.log(messageHeaderToString(messageChunk));
+        // console.log(messageHeaderToString(messageChunk));
         messageBuild.feed(messageChunk);
     });
 }

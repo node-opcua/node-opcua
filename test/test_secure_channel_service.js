@@ -6,17 +6,17 @@ var async = require("async");
 var util = require("util");
 
 
-var buffer_ellipsis = require("./../lib/utils").buffer_ellipsis;
-var chunk_ellipsis  = require("./../lib/utils").chunk_ellipsis;
 var compare_buffers = require("./../lib/utils").compare_buffers;
 
 
+var debugLog  = require("../lib/utils").make_debugLog(__filename);
 
 var clone_buffer = secure_channel.clone_buffer;
+var MessageChunker = secure_channel.MessageChunker;
 
 describe("SecureMessageChunkManager",function(){
 
-    it("should produce a valid message",function(done){
+    it("should reconstruct a valid message when message is received in multiple chunks",function(done){
 
         // a very large endPointResponse spanning on multiple chunks ...
         var endPointResponse = require("./fixture_GetEndPointResponse").fixture2;
@@ -30,7 +30,15 @@ describe("SecureMessageChunkManager",function(){
         async.series([
 
             function (callback) {
-                secure_channel.chunkSecureMessage("MSG",{ requestId: requestId},endPointResponse,function(messageChunk) {
+
+                var options = {
+                    requestId: requestId,
+                    tokenId: 1
+                };
+                endPointResponse.responseHeader.requestHandle = requestId;
+
+                var chunker = new MessageChunker();
+                chunker.chunkSecureMessage("MSG",options,endPointResponse,function(messageChunk) {
                     if (messageChunk) {
                         chunk_stack.push(clone_buffer(messageChunk));
                     } else {
@@ -51,6 +59,8 @@ describe("SecureMessageChunkManager",function(){
 
             function (callback) {
 
+                chunk_stack.length.should.be.greaterThan(0);
+
                 // now apply the opposite operation by reconstructing the message from chunk and
                 // decoding the inner object
 
@@ -62,9 +72,11 @@ describe("SecureMessageChunkManager",function(){
                 }).on("message",function(message) {
                     //xx console.log("message = ", util.inspect(message));
                     message.should.eql(endPointResponse);
+                    // check also that requestId has been properly installed by chunkSecureMessage
+
                     callback();
                 }).on("error",function(errCode){
-                    callback(new Error("Error"));
+                    callback(new Error("Error : code 0x"+ errCode.toString(16)));
                 });
 
                 // feed messageBuilder with
@@ -94,14 +106,14 @@ describe("SecureMessageChunkManager",function(){
         var messageBuilder = new secure_channel.MessageBuilder();
 
         messageBuilder.on("raw_buffer",function(buffer){
-                console.log(" On raw Buffer \n" );
-                console.log(require("../lib/utils").hexDump(buffer));
+                debugLog(" On raw Buffer \n" );
+                debugLog(require("../lib/utils").hexDump(buffer));
 
         }).on("message",function(message) {
-                console.log(" message ", message);
+                debugLog(" message ", message);
                 done();
         }).on("error",function(errCode){
-                console.log(" errCode ", errCode);
+                debugLog(" errCode ", errCode);
                 done();
         });
 
