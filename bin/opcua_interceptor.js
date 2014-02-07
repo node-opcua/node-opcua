@@ -5,7 +5,7 @@ var argv = require('optimist')
 var net = require("net");
 var hexDump = require("../lib/utils").hexDump;
 var opcua = require("../lib/nodeopcua");
-var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
+var MessageBuilder = require("../lib/message_builder").MessageBuilder;
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;

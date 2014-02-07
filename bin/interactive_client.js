@@ -32,7 +32,36 @@ var the_sesssion = {};
 
 var client = new OPCUAClient();
 
-rl.history.push("open opc.tcp://xleuri11022:51210/UA/SampleServer");
+client.on("send_chunk",function(message_chunk){
+    console.log(">> " +message_chunk.length);
+});
+
+client.on("receive_chunk",function(message_chunk){
+    console.log("<< " +message_chunk.length);
+});
+
+var dumpPacket = false;
+
+client.on("send_request",function(message){
+    if (dumpPacket) {
+        console.log(" sending request".red);
+        var analyze_object_binary_encoding = require("../lib/packet_analyzer").analyze_object_binary_encoding;
+        analyze_object_binary_encoding(message);
+    }
+});
+client.on("receive_response",function(message){
+    if (dumpPacket) {
+        console.log(" receive response".cyan.bold);
+        var analyze_object_binary_encoding = require("../lib/packet_analyzer").analyze_object_binary_encoding;
+        analyze_object_binary_encoding(message);
+    }
+});
+
+
+
+if (rl.history) {
+    rl.history.push("open opc.tcp://localhost:51210/UA/SampleServer");
+}
 
 rl.prompt(">");
 rl.on('line', function (line) {
@@ -44,6 +73,7 @@ rl.on('line', function (line) {
         case 'debug':
             process.env.DEBUG = "ALL";
             console.log(" Debug is ON");
+            dumpPacket = true;
             break;
         case 'open':
 
@@ -72,7 +102,7 @@ rl.on('line', function (line) {
                 endpoints = utils.replaceBufferWithHexDump(endpoints);
                 console.log(treeify.asTree(endpoints,true));
 
-                rl.prompt("client connected");
+                rl.prompt(">");
                 rl.resume();
             });
             break;
@@ -81,13 +111,13 @@ rl.on('line', function (line) {
             rl.pause();
             client.createSession(function (err,session){
                 if (err) {
-                    console.log("Error : ", err);
+                    console.log("Error : ".red, err);
                 } else {
-                    console.log("Session  : ", session);
+                    //xx  console.log("Session  : ", session);
                     the_sesssion = session;
-                    rl.prompt("session created");
-                    rl.resume();
+                    console.log("session created");
                 }
+                rl.resume();
             });
             break;
 

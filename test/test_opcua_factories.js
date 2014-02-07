@@ -3,7 +3,7 @@ var encode_decode_round_trip_test = require("./encode_decode_round_trip_test").e
 var makebuffer = require("../lib/utils").makebuffer;
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
-var MessageBuilder = require("../lib/secure_channel_service").MessageBuilder;
+var MessageBuilder = require("../lib/message_builder").MessageBuilder;
 var s = require("../lib/secure_channel_service");
 var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
 

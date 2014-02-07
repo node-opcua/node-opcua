@@ -1,6 +1,8 @@
 
 var should = require("should");
 var secure_channel = require("../lib/secure_channel_service");
+var MessageBuilder = require("../lib/message_builder").MessageBuilder;
+
 var s = require("../lib/structures");
 var async = require("async");
 var util = require("util");
@@ -65,7 +67,7 @@ describe("SecureMessageChunkManager",function(){
                 // decoding the inner object
 
                 // console.log(" message Builder");
-                var messageBuilder = new secure_channel.MessageBuilder();
+                var messageBuilder = new MessageBuilder();
                 messageBuilder.on("raw_buffer",function(buffer){
                     compare_buffers(fullBufferForVerif,buffer,40);
 
@@ -103,7 +105,7 @@ describe("SecureMessageChunkManager",function(){
     it("should receive an ERR message",function(done){
 
 
-        var messageBuilder = new secure_channel.MessageBuilder();
+        var messageBuilder = new MessageBuilder();
 
         messageBuilder.on("raw_buffer",function(buffer){
                 debugLog(" On raw Buffer \n" );
