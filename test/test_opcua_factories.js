@@ -110,9 +110,9 @@ function verify_multi_chunk_message(messageChunks) {
     //xx packet_analyzer(fullMessage.slice(12),h);
 
     var messageBuild = new MessageBuilder();
-    messageBuild.on("raw_buffer", function (fullMessage) {
+    messageBuild.on("full_message_body", function (full_message_body) {
 
-        packet_analyzer(fullMessage);
+        packet_analyzer(full_message_body);
     });
 
     messageChunks.forEach(function (messageChunk) {

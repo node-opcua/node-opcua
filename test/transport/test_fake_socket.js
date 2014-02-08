@@ -12,7 +12,7 @@ describe("A Fake Socket to emulate client/server communication in tests",functio
     it("server side should receive data send by the client only",function(done){
 
         transport.client.on("data",function(data){
-            data.should.equal("Some Data");
+            data.toString().should.equal("Some Data");
             done();
         });
         transport.server.write("Some Data");
@@ -20,7 +20,7 @@ describe("A Fake Socket to emulate client/server communication in tests",functio
 
     it("client side should receive data send by the server only",function(done){
         transport.server.on("data",function(data){
-            data.should.equal("Some Data");
+            data.toString().should.equal("Some Data");
             done();
         });
         transport.client.write("Some Data");

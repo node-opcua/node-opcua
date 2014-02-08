@@ -194,120 +194,96 @@ describe("testing ClientTCP_transport",function(){
             transport.write(buf);
         });
     });
+
+    it("should close the socket and emit a close event when disconnect() is called",function(done){
+
+        var fake_socket = new DirectTransport();
+
+        var counter = 1;
+
+        var server_confirms_that_server_socket_has_been_closed = false;
+        var transport_confirms_that_close_event_has_been_processed = false;
+
+        fake_socket.server.on("data",function(data){
+
+            debugLog("\ncounter = ".cyan.bold , counter);
+            debugLog(utils.hexDump(data).yellow.bold);
+            if (counter === 1) {
+                // HEL/ACK transaction
+                var messageChunk = opcua.packTcpMessage("ACK", fake_AcknowledgeMessage);
+                counter += 1;
+                fake_socket.server.write(messageChunk);
+                return ;
+            }
+            assert(false,"unexpected data received");
+        }).on("end",function(){
+             server_confirms_that_server_socket_has_been_closed = true;
+        });
+
+        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+
+        transport.timeout = 10; // very short timeout;
+
+        transport.on("close",function(){
+            transport_confirms_that_close_event_has_been_processed = true;
+        });
+        transport.connect("fake://localhost:2033/SomeAddress",function(err){
+            assert(!err);
+            server_confirms_that_server_socket_has_been_closed.should.equal(false);
+            transport_confirms_that_close_event_has_been_processed.should.equal(false);
+            transport.disconnect(function(err){
+                assert(!err);
+                server_confirms_that_server_socket_has_been_closed.should.equal(true);
+                transport_confirms_that_close_event_has_been_processed.should.equal(true);
+                done();
+            })
+        });
+    });
+
+    it("should dispose the socket and emit a close event when socket is closed by the other end",function(done){
+
+        var fake_socket = new DirectTransport();
+
+        var counter = 1;
+
+        var server_confirms_that_server_socket_has_been_closed = false;
+        var transport_confirms_that_close_event_has_been_processed = false;
+        fake_socket.server.on("data",function(data){
+
+            debugLog("\ncounter = ".cyan.bold , counter);
+            debugLog(utils.hexDump(data).yellow.bold);
+            if (counter === 1) {
+                // HEL/ACK transaction
+                var messageChunk = opcua.packTcpMessage("ACK", fake_AcknowledgeMessage);
+                counter += 1;
+                fake_socket.server.write(messageChunk);
+
+                setTimeout(function(){
+                    debugLog(" Aborting server ");
+                    fake_socket.server.end(); // close after 10 ms
+                },10);
+
+            } else if (counter === 2) {
+
+            } else {
+                assert(false,"unexpected data received");
+            }
+        }).on("end",function(){
+           server_confirms_that_server_socket_has_been_closed = true;
+        });
+
+        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+
+        transport.timeout = 10; // very short timeout;
+        transport.on("close",function(){
+            transport_confirms_that_close_event_has_been_processed= true;
+            done();
+        });
+        transport.connect("fake://localhost:2033/SomeAddress",function(err){
+            assert(!err);
+        });
+
+    })
+
 });
 
-
-describe("testing ServerTCP_transport",function(){
-    var ServerTCP_transport = require("../../lib/transport/tcp_transport").ServerTCP_transport;
-
-    var fake_socket;
-    beforeEach(function(){
-        fake_socket = new DirectTransport();
-    });
-    afterEach(function(){
-
-    });
-
-    it("should close the communication if the client initiates the communication with a message which is not HEL",function(done){
-
-        var transport = new ServerTCP_transport();
-        transport.init(fake_socket.server,function(err){ assert(!err); });
-
-        var not_an_helloMessage = require("../fixture_full_tcp_packets").packet_cs_3;
-
-        fake_socket.client.on("data",function(data){
-            var stream = new opcua.BinaryStream(data);
-            var messageHeader = opcua.readMessageHeader(stream);
-            messageHeader.msgType.should.equal("ERR");
-            stream.rewind();
-            var response = opcua.decodeMessage(stream, opcua.TCPErrorMessage);
-            response._description.name.should.equal("TCPErrorMessage");
-            done();
-        });
-
-        fake_socket.client.write(not_an_helloMessage);
-
-    });
-
-    it("should bind a socket and process the HEL message by returning ACK",function(done){
-
-        var transport = new ServerTCP_transport();
-        transport.init(fake_socket.server,function(err){ assert(!err); });
-
-        // simulate client send HEL
-
-        var helloMessage = require("../fixture_full_tcp_packets").packet_cs_1;
-
-        fake_socket.client.on("data",function(data){
-            var stream = new opcua.BinaryStream(data);
-            var messageHeader = opcua.readMessageHeader(stream);
-            messageHeader.msgType.should.equal("ACK");
-            stream.rewind();
-            var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
-            response._description.name.should.equal("AcknowledgeMessage");
-            done();
-        });
-
-        fake_socket.client.write(helloMessage);
-
-    });
-
-    it("should bind a socket and process the HEL message by returning ERR if protocol version is not OK",function(done){
-
-        var transport = new ServerTCP_transport();
-        transport.init(fake_socket.server,function(err){
-            assert(err);
-            err.message.should.match(/Protocol version mismatch/);
-        });
-
-        // simulate client send HEL
-        var helloMessage =   new opcua.HelloMessage({
-            protocolVersion:   5555,
-            receiveBufferSize: 1000,
-            sendBufferSize:    1000,
-            maxMessageSize:    10,
-            maxChunkCount:     10,
-            endpointUrl:       "some string"
-        });
-
-        fake_socket.client.on("data",function(data){
-            var stream = new opcua.BinaryStream(data);
-            var messageHeader = opcua.readMessageHeader(stream);
-            messageHeader.msgType.should.equal("ERR");
-            stream.rewind();
-            var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
-            response._description.name.should.equal("TCPErrorMessage");
-            done();
-        });
-
-        fake_socket.client.write(opcua.packTcpMessage("HEL", helloMessage));
-
-    });
-
-    it("should bind a socket, process the HEL message and forward subsequent messageChunk",function(done){
-
-        var transport = new ServerTCP_transport();
-        transport.init(fake_socket.server,function(err){ assert(!err); });
-
-        var helloMessage = require("../fixture_full_tcp_packets").packet_cs_1;
-        var openChannelRequest = require("../fixture_full_tcp_packets").packet_cs_2;
-
-        transport.on("message",function(messageChunk){
-            utils.compare_buffers(messageChunk,openChannelRequest);
-            done();
-        });
-
-        var counter =1;
-        fake_socket.client.on("data",function(data){
-            counter++;
-
-        });
-
-        fake_socket.client.write(helloMessage);
-
-        fake_socket.client.write(openChannelRequest);
-
-
-    });
-
-});

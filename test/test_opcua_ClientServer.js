@@ -20,26 +20,27 @@ describe("testing basic Client-Server communication",function() {
 
     var server , client;
     var endpointUrl ;
-    beforeEach(function(){
+    beforeEach(function(done){
 
         server = new OPCUAServer();
-        server.start();
-
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
         debugLog("endpointUrl",endpointUrl);
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
+        server.start(function() {
+            done();
+        });
         client = new OPCUAClient();
+
+
     });
     afterEach(function(done){
-        if (client) {
-            client.disconnect(function(){
-                server.shutdown(done);
-            });
-        } else {
-            server.shutdown(done);
-        }
+
+        server.shutdown(function() {
+            done();
+        });
+
     });
 
     it("should start a server and accept a connection",function(done){
@@ -71,6 +72,7 @@ describe("testing basic Client-Server communication",function() {
             function(callback) {
                 debugLog(" connect");
                 client.connect(endpointUrl,function(err){
+
                     debugLog(" Error =".yellow.bold,err);
                     callback(err);
                 });
@@ -86,6 +88,44 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
+    it("Client shall be able to create a session with a anonymous token",function(done){
+
+        server.connected_client_count.should.equal(0);
+
+        var g_session ;
+        async.series([
+            function(callback) {
+                debugLog(" connect");
+                client.connect(endpointUrl,function(err){
+                    debugLog(" Error =".yellow.bold,err);
+                    callback(err);
+                });
+            },
+            function(callback) {
+                debugLog(" createSession");
+                client.createSession(function(err,session){
+                    g_session = session;
+                    debugLog(" Error =".yellow.bold,err);
+                    callback(err);
+                });
+            },
+            function(callback) {
+                debugLog("closing session");
+                g_session.close(callback);
+            },
+            function(callback) {
+                debugLog("Disconnecting client");
+                client.disconnect(callback);
+            }
+        ],function(err) {
+
+            debugLog("finally");
+            server.connected_client_count.should.equal(0);
+            debugLog(" error : ", err);
+            done();
+        });
+
+    });
 
 });
 

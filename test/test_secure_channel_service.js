@@ -68,8 +68,8 @@ describe("SecureMessageChunkManager",function(){
 
                 // console.log(" message Builder");
                 var messageBuilder = new MessageBuilder();
-                messageBuilder.on("raw_buffer",function(buffer){
-                    compare_buffers(fullBufferForVerif,buffer,40);
+                messageBuilder.on("full_message_body",function(full_message_body){
+                    compare_buffers(fullBufferForVerif,full_message_body,40);
 
                 }).on("message",function(message) {
                     //xx console.log("message = ", util.inspect(message));
@@ -107,9 +107,9 @@ describe("SecureMessageChunkManager",function(){
 
         var messageBuilder = new MessageBuilder();
 
-        messageBuilder.on("raw_buffer",function(buffer){
+        messageBuilder.on("full_message_body",function(full_message_body){
                 debugLog(" On raw Buffer \n" );
-                debugLog(require("../lib/utils").hexDump(buffer));
+                debugLog(require("../lib/utils").hexDump(full_message_body));
 
         }).on("message",function(message) {
                 debugLog(" message ", message);

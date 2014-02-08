@@ -17,7 +17,7 @@ exports.packet_sc_1 = makebuffer_from_trace(function(){
 */
 });
 
-//client -> server : packet length 132
+//client -> server : packet length 132   => OpenSecureChannelRequest
 exports.packet_cs_2 = makebuffer_from_trace(function(){
 /*
  00000000: 4f 50 4e 46 84 00 00 00 00 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNF......../...http://opcfounda
@@ -28,7 +28,7 @@ exports.packet_cs_2 = makebuffer_from_trace(function(){
 */
 });
 
-// server -> client : packet length 135
+// server -> client : packet length 135    => OpenSecureChannelResponse
 exports.packet_sc_2 = makebuffer_from_trace(function(){
 /*
  00000000: 4f 50 4e 46 87 00 00 00 0a 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNF......../...http://opcfounda
@@ -39,7 +39,7 @@ exports.packet_sc_2 = makebuffer_from_trace(function(){
 */
 });
 
-// client -> server : packet length 116
+// client -> server : packet length 116  => GetEndpointsRequest
 exports.packet_cs_3= makebuffer_from_trace(function(){
 /*
  00000000: 4d 53 47 46 74 00 00 00 0a 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 ac 01 00 00 b7 19    MSGFt.....................,...7.
@@ -50,7 +50,7 @@ exports.packet_cs_3= makebuffer_from_trace(function(){
 });
 
 
-//  server -> client : packet length 4380
+//  server -> client : packet length 4380  => GetEndpointsResponse 1/2
 exports.packet_sc_3_a = makebuffer_from_trace(function(){
 /*
  00000000: 4d 53 47 46 e0 1f 00 00 0a 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 af 01 ec 46 47 d9    MSGF`...................../.lFGY
@@ -193,7 +193,7 @@ exports.packet_sc_3_a = makebuffer_from_trace(function(){
  */
 });
 
-// server -> client : packet length 3780
+// server -> client : packet length 3780  => GetEndpointsResponse 2/2
 exports.packet_sc_3_b = makebuffer_from_trace(function(){
  /*
  00000000: 03 00 00 30 82 03 20 30 82 02 89 a0 03 02 01 02 02 10 2e 1b cc fe 63 34 7b 47 9e d3 11 f9 fe a2    ...0...0............L~c4{G.S.y~"
@@ -317,14 +317,15 @@ exports.packet_sc_3_b = makebuffer_from_trace(function(){
  00000ec0: 61 72 79 00                                                                                        ary.
   */
 });
-// client -> server : packet length 57
-exports.packet_sc_4 = makebuffer_from_trace(function(){
+// client -> server : packet length 57  => CloseSecureChannelRequest
+exports.packet_cs_4 = makebuffer_from_trace(function(){
 /*
  00000000: 43 4c 4f 46 39 00 00 00 0a 00 00 00 01 00 00 00 03 00 00 00 03 00 00 00 01 00 c4 01 00 00 95 78    CLOF9.....................D....x
  00000020: 65 d9 d0 1d cf 01 00 00 00 00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00                         eYP.O....................
 */
 });
 
+// server -> client                      => CloseSecureChannelResponse
 exports.packet_sc_5 = makebuffer_from_trace(function(){
 /*
  00000000: 43 4c 4f 46 39 00 00 00 02 00 00 00 01 00 00 00 03 00 00 00 03 00 00 00 01 00 c4 01 00 00 cd e6    CLOF9.....................D...Mf

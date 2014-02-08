@@ -44,12 +44,12 @@ TrafficAnalyser.prototype.add = function(data)
     }
 
     var messageBuild = new MessageBuilder();
-    messageBuild.on("raw_buffer",function(fullMessage){
+    messageBuild.on("full_message_body",function(full_message_body){
 
-        console.log(hexDump(fullMessage));
+        console.log(hexDump(full_message_body));
 
         try {
-		   packet_analyzer(fullMessage);
+		   packet_analyzer(full_message_body);
         } 
 		catch(err) {
 		   console.log("ERROR : ".red, err);

@@ -1,10 +1,9 @@
 var should = require("should");
 var ChunkManager = require("../lib/chunk_manager").ChunkManager;
 var MessageChunkManager = require("../lib/chunk_manager").MessageChunkManager;
-var MessageBuilderBase = require("../lib/chunk_manager").MessageBuilderBase;
 
 var ChunkStream = require("../lib/chunk_manager").chunkStream;
-var compare_buffers = require("../lib/utils").compare_buffers;
+
 var util = require("util");
 
 
@@ -77,6 +76,7 @@ describe("Chunk manager",function(){
     });
 });
 
+
 describe("MessageChunkManager",function() {
 
 
@@ -135,7 +135,8 @@ describe("MessageChunkManager",function() {
 
 });
 
-
+var MessageBuilderBase = require("../lib/message_builder_base").MessageBuilderBase;
+var compare_buffers = require("../lib/utils").compare_buffers;
 var Readable = require("stream").Readable;
 function BinaryStreamReader(buf,opt) {
     Readable.call(this, opt);
@@ -146,6 +147,16 @@ BinaryStreamReader.prototype._read = function() {
     this.push(this._buffer);
     this._buffer = null;
 };
+
+
+function message_body_fixture() {
+    var original_message_body = new Buffer(8 * 256);
+    for (var i = 0; i < original_message_body.length; i += 4) {
+        original_message_body.writeUInt32LE(i / 4, i);
+    }
+    return original_message_body;
+}
+
 
 
 describe("using ChunkManager as stream with chunkStream",function(){
@@ -190,23 +201,21 @@ describe("using ChunkManager as stream with chunkStream",function(){
             done();
         });
     });
+
     it("should not alter a very large binary block",function(done){
 
-        var original_buffer = new Buffer(8*256);
-        for (var i =0; i < original_buffer.length;i+=4){
-            original_buffer.writeUInt32LE(i/4,i);
-        }
+        var original_message_body = message_body_fixture();
 
         var builder = new MessageBuilderBase();
 
-        builder.on("raw_buffer",function(buffer) {
-            compare_buffers(buffer,original_buffer,original_buffer.length);
+        builder.on("full_message_body",function(full_message_body) {
+            compare_buffers(full_message_body,original_message_body,original_message_body.length);
             done();
         });
 
         var block_size = 80;
         var counter = 0;
-        var r = new BinaryStreamReader(original_buffer);
+        var r = new BinaryStreamReader(original_message_body);
 
         r.pipe(ChunkStream(new MessageChunkManager(block_size,"HEL",0xBEEF))).on("data",function(data) {
 
@@ -215,11 +224,8 @@ describe("using ChunkManager as stream with chunkStream",function(){
             builder.feed(data);
 
         }).on("finish",function(){
-           // counter.should.equal(buf.length+block_size-(buf.length)%block_size);
+                // counter.should.equal(buf.length+block_size-(buf.length)%block_size);
         });
     });
-
 });
-
-
 
