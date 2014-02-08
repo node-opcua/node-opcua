@@ -1,6 +1,6 @@
 
-var s = require("../lib/structures");
-var sc= require("../lib/secure_channel_service");
+var s = require("../../lib/structures");
+var sc= require("../../lib/secure_channel_service");
 
 exports.fixture1 = (function(){
 

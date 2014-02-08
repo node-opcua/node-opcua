@@ -4,7 +4,7 @@ var BinaryStream =require("../lib/binaryStream").BinaryStream;
 var util = require("util");
 var ec = require("../lib/encode_decode");
 
-var encode_decode_round_trip_test = require("./encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 var Person_Description = {
@@ -352,7 +352,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
         var stream = new BinaryStream(shape.binaryStoreSize());
         shape.encode(stream);
 
-        var encode_decode_round_trip_test = require("./encode_decode_round_trip_test").encode_decode_round_trip_test;
+        var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
         encode_decode_round_trip_test(shape);
 

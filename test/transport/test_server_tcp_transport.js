@@ -27,7 +27,7 @@ describe("testing ServerTCP_transport",function(){
         var transport = new ServerTCP_transport();
         transport.init(fake_socket.server,function(err){ assert(!err); });
 
-        var not_an_helloMessage = require("../fixture_full_tcp_packets").packet_cs_3;
+        var not_an_helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_3;
 
         fake_socket.client.on("data",function(data){
             var stream = new opcua.BinaryStream(data);
@@ -50,7 +50,7 @@ describe("testing ServerTCP_transport",function(){
 
         // simulate client send HEL
 
-        var helloMessage = require("../fixture_full_tcp_packets").packet_cs_1;
+        var helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1;
 
         fake_socket.client.on("data",function(data){
             var stream = new opcua.BinaryStream(data);
@@ -103,8 +103,8 @@ describe("testing ServerTCP_transport",function(){
         var transport = new ServerTCP_transport();
         transport.init(fake_socket.server,function(err){ assert(!err); });
 
-        var helloMessage = require("../fixture_full_tcp_packets").packet_cs_1;
-        var openChannelRequest = require("../fixture_full_tcp_packets").packet_cs_2;
+        var helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1;
+        var openChannelRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_2;
 
         transport.on("message",function(messageChunk){
             utils.compare_buffers(messageChunk,openChannelRequest);

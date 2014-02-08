@@ -21,7 +21,7 @@ describe("SecureMessageChunkManager",function(){
     it("should reconstruct a valid message when message is received in multiple chunks",function(done){
 
         // a very large endPointResponse spanning on multiple chunks ...
-        var endPointResponse = require("./fixture_GetEndPointResponse").fixture2;
+        var endPointResponse = require("./fixtures/fixture_GetEndPointResponse").fixture2;
 
         var requestId = 0x1000;
 
@@ -119,7 +119,7 @@ describe("SecureMessageChunkManager",function(){
                 done();
         });
 
-        var makebuffer_from_trace = require("./makebuffer_from_trace").makebuffer_from_trace;
+        var makebuffer_from_trace = require("./utils/makebuffer_from_trace").makebuffer_from_trace;
 
         var packet =makebuffer_from_trace(function(){
 /*

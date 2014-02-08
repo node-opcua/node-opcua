@@ -5,6 +5,8 @@ var OPCUAClient = require("../lib/opcua-client.js").OPCUAClient;
 var utils = require('../lib/utils');
 var opcua = require('../lib/nodeopcua');
 var color = require('colors');
+var ec = require("../lib/encode_decode");
+var browseService = require("../lib/browse_service");
 
 function completer(line) {
 
@@ -121,6 +123,20 @@ rl.on('line', function (line) {
             });
             break;
 
+        case 'browse':
+            if (the_sesssion) {
+                nodes = [];
+                nodes.push( {
+                    nodeId: ec.makeNodeId(parseInt(args[1])),
+                    includeSubtypes: true,
+                    browseDirection: browseService.BrowseDirection.Both
+                });
+                the_sesssion.browse(nodes,function(err,nodes) {
+                    console.log(treeify.asTree(nodes,true));
+                });
+
+            }
+            break;
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
             break;

@@ -1,11 +1,11 @@
 
 var should =require("should");
-var BinaryStream = require("../lib/nodeopcua").BinaryStream;
-var factories = require("../lib/factories");
-var hexDump = require("../lib/utils").hexDump;
+var BinaryStream = require("../../lib/nodeopcua").BinaryStream;
+var factories = require("../../lib/factories");
+var hexDump = require("../../lib/utils").hexDump;
 
 
-var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
+var packet_analyzer = require("../../lib/packet_analyzer").packet_analyzer;
 
 process.argv.push("DEBUG");
 
