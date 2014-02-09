@@ -127,12 +127,20 @@ rl.on('line', function (line) {
             if (the_sesssion) {
                 nodes = [];
                 nodes.push( {
-                    nodeId: ec.makeNodeId(parseInt(args[1])),
+                    nodeId: ec.makeNodeId(parseInt(args[1]),parseInt(args[2])),
                     includeSubtypes: true,
                     browseDirection: browseService.BrowseDirection.Both
                 });
                 the_sesssion.browse(nodes,function(err,nodes) {
-                    console.log(treeify.asTree(nodes,true));
+
+                    console.log(nodes);
+                    // console.log(nodes.continuationPoint.toString("hex"));
+                    console.log(nodes[0].references[0]);
+                    var summary = {};
+                    nodes[0].references.forEach(function(node){
+                        summary[node.browseName.name] = "id: " +  node.nodeId.value  + " ns:" +  node.nodeId.namespace;
+                    });
+                    console.log(treeify.asTree(summary,true));
                 });
 
             }
