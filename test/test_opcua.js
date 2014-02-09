@@ -2,6 +2,7 @@ var should = require("should");
 var util = require("util");
 var s  = require("../lib/structures");
 var opcua = require("../lib/nodeopcua");
+var BinaryStream = require("../lib/binaryStream").BinaryStream;
 
 describe("testing OPCUA structures ",function() {
 
@@ -21,7 +22,7 @@ describe("testing OPCUA structures ",function() {
 
         var ltext = new s.LocalizedText({text: "HelloWorld" , locale: "en-US"});
 
-        var stream = new opcua.BinaryStream();
+        var stream = new BinaryStream();
         stream.length.should.equal(0);
 
         ltext.encode(stream);
@@ -47,7 +48,7 @@ describe("testing OPCUA structures ",function() {
         ltext.should.have.property("locale");
         should(ltext.locale).equal(null);
 
-        var stream = new opcua.BinaryStream();
+        var stream = new BinaryStream();
         stream.length.should.equal(0);
 
         ltext.encode(stream);
@@ -71,7 +72,7 @@ describe("testing OPCUA structures ",function() {
         ltext.should.have.property("text");
         should(ltext.text).equal(null);
 
-        var stream = new opcua.BinaryStream();
+        var stream = new BinaryStream();
         stream.length.should.equal(0);
 
         ltext.encode(stream);

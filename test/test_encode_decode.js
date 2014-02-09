@@ -1,9 +1,11 @@
 var should = require("should");
 var ec = require("../lib/encode_decode");
 var opcua = require("../lib/nodeopcua");
+var BinaryStream = require("../lib/binaryStream").BinaryStream;
+
 
 function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
-    var binaryStream = new opcua.BinaryStream();
+    var binaryStream = new BinaryStream();
     binaryStream.length.should.equal(0);
 
     encode_func(obj, binaryStream);
@@ -332,7 +334,7 @@ describe("check OPCUA Date Type ", function () {
         buf.readUInt8(2).should.equal(0x53);
         buf.readUInt8(7).should.equal(0x01);
 
-        var stream = new opcua.BinaryStream(buf);
+        var stream = new BinaryStream(buf);
         var date = ec.decodeDateTime(stream);
 
         stream.rewind();

@@ -1,6 +1,6 @@
 
 var should =require("should");
-var BinaryStream = require("../../lib/nodeopcua").BinaryStream;
+var BinaryStream = require("../../lib/binaryStream").BinaryStream;
 var factories = require("../../lib/factories");
 var hexDump = require("../../lib/utils").hexDump;
 

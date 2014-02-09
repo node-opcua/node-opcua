@@ -1,5 +1,6 @@
 var ClientSecureChannelLayer = require("../../lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 var should  = require("should");
+var assert = require("assert");
 
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);
 

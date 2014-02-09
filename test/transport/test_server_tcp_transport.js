@@ -5,6 +5,7 @@ var assert = require("assert");
 var utils = require("../../lib/utils");
 var color = require("colors");
 var s = require("../../lib/structures");
+var BinaryStream = require("../../lib/binaryStream").BinaryStream;
 
 
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);
@@ -30,7 +31,7 @@ describe("testing ServerTCP_transport",function(){
         var not_an_helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_3;
 
         fake_socket.client.on("data",function(data){
-            var stream = new opcua.BinaryStream(data);
+            var stream = new BinaryStream(data);
             var messageHeader = opcua.readMessageHeader(stream);
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
@@ -53,7 +54,7 @@ describe("testing ServerTCP_transport",function(){
         var helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1;
 
         fake_socket.client.on("data",function(data){
-            var stream = new opcua.BinaryStream(data);
+            var stream = new BinaryStream(data);
             var messageHeader = opcua.readMessageHeader(stream);
             messageHeader.msgType.should.equal("ACK");
             stream.rewind();
@@ -85,7 +86,7 @@ describe("testing ServerTCP_transport",function(){
         });
 
         fake_socket.client.on("data",function(data){
-            var stream = new opcua.BinaryStream(data);
+            var stream = new BinaryStream(data);
             var messageHeader = opcua.readMessageHeader(stream);
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();

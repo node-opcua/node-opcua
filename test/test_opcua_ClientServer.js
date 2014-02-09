@@ -106,8 +106,10 @@ describe("testing basic Client-Server communication",function() {
                 client.createSession(function(err,session){
                     g_session = session;
                     debugLog(" Error =".yellow.bold,err);
+                    client.transactionInProgress.should.equal(false);
                     callback(err);
                 });
+                client.transactionInProgress.should.equal(true);
             },
             function(callback) {
                 debugLog("closing session");

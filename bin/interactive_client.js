@@ -125,14 +125,18 @@ rl.on('line', function (line) {
 
         case 'browse':
             if (the_sesssion) {
+                rl.pause();
                 nodes = [];
                 nodes.push( {
                     nodeId: ec.makeNodeId(parseInt(args[1]),parseInt(args[2])),
                     includeSubtypes: true,
                     browseDirection: browseService.BrowseDirection.Both
                 });
+                console.log(" browse ");
+                console.log(treeify.asTree(nodes,true) );
                 the_sesssion.browse(nodes,function(err,nodes) {
 
+                    console.log(err);
                     console.log(nodes);
                     // console.log(nodes.continuationPoint.toString("hex"));
                     console.log(nodes[0].references[0]);
@@ -142,6 +146,7 @@ rl.on('line', function (line) {
                     });
                     console.log(treeify.asTree(summary,true));
                 });
+                rl.resume();
 
             }
             break;

@@ -1,5 +1,5 @@
-
-opcua = require("../lib/nodeopcua");
+var opcua = require("../lib/nodeopcua");
+var BinaryStream = require("../lib/binaryStream").BinaryStream;
 var should = require("should");
 
 
@@ -14,7 +14,7 @@ describe("testing message encoding and decoding",function(){
         var message = opcua.packTcpMessage('HEL',helloMessage1);
 
 
-        var stream = new opcua.BinaryStream(message);
+        var stream = new BinaryStream(message);
 
         var helloMessage2 = opcua.decodeMessage(stream,opcua.HelloMessage);
         //xx console.log(helloMessage2);
