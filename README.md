@@ -38,4 +38,4 @@ Getting started:
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 
-[![Project Stats](https://www.ohloh.net/p/node-opcua/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
+[![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
