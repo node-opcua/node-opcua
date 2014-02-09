@@ -1,8 +1,7 @@
-var BinaryStream2 = require("../lib/binaryStream").BinaryStream2;
 var BinaryStream = require("../lib/binaryStream").BinaryStream;
 var BinaryReader = require("../lib/binaryStream").BinaryReader;
 var BinaryStreamSizeCalculator = require("../lib/binaryStream").BinaryStreamSizeCalculator;
-
+var should =require("should");
 var fs=require("fs");
 
 
