@@ -1,6 +1,6 @@
 {
   "name": "node-opcua",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "pure nodejs OPCUA SDK",
   "main": "",
   "bin": {},
@@ -32,7 +32,7 @@
     "colors": "~0.6.2",
     "enum": "~0.2.5",
     "async": "~0.2.9",
-    "underscore": "~1.5.2",
+    "underscore": "~1.6.0",
     "ignite": "~0.1.8",
     "machina": "~0.3.4",
     "through2": "~0.4.1",

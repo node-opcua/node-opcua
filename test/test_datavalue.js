@@ -25,6 +25,7 @@ describe("DataValue",function(){
             buffer.length.should.equal(1 + 1 + 4 + 5);
         });
     });
+
     it("should create a DataValue with string variant and some date and encode/decode it nicely",function(){
 
         var dataValue = new DataValue({
