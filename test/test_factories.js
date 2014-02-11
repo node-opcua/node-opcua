@@ -8,7 +8,7 @@ var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_te
 
 
 var Person_Description = {
-    id:  0xFFFF1000,
+    id: factories.next_available_id(),
     name: "Person",
     fields: [
         { name: "lastName" , fieldType: "UAString" },
@@ -19,7 +19,7 @@ var Person_Description = {
 
 
 var Employee_Description = {
-    id:  0xFFFF1001,
+    id: factories.next_available_id(),
     name: "Employee",
     fields: [
         { name: "person", fieldType: "Person" },
@@ -29,7 +29,7 @@ var Employee_Description = {
 };
 
 var Company_Description = {
-    id:  0xFFFF1002,
+    id: factories.next_available_id(),
     name: "Company",
     fields: [
         { name: "name",                     fieldType: "String"   },
@@ -66,12 +66,13 @@ var Color = factories.UAObjectFactoryBuild( {
 });
 
 var Shape = factories.UAObjectFactoryBuild({
-    id:  0xFFFF1004,
+    id: factories.next_available_id(),
     name: "Shape",
     fields: [
-        { name:"name",       fieldType: "String" , defaultValue: function() { return "my shape";} },
-        { name:"shapeType",  fieldType: "EnumShapeType" },
-        { name:"color",      fieldType: "EnumColor", defaultValue: Color.GREEN }
+        { name:"name",              fieldType: "String" , defaultValue: function() { return "my shape";} },
+        { name:"shapeType",        fieldType: "EnumShapeType" },
+        { name:"color",            fieldType: "EnumColor", defaultValue: Color.GREEN },
+        { name:"inner_color",      fieldType: "EnumColor", defaultValue: function() { return Color.BLUE; }}
     ]
 });
 
@@ -175,6 +176,7 @@ describe("Factories: testing object factory", function () {
 
         var MyStruct = factories.UAObjectFactoryBuild( {
             name: "MyStruct",
+            id: factories.next_available_id(),
             fields: [
                 { name: "value", fieldType: "MyInteger" }
             ]
@@ -195,6 +197,7 @@ describe("Factories: testing object factory", function () {
         shape.name.should.eql("my shape");
         shape.color.should.eql(Color.GREEN);
 
+        shape.inner_color.should.eql(Color.BLUE);
 
         shape.shapeType = ShapeType.RECTANGLE;
         shape.shapeType.should.equal(ShapeType.RECTANGLE);
@@ -226,7 +229,7 @@ describe("Factories: testing object factory", function () {
 
 describe("Factories: testing strong typed enums", function(){
 
-    it('installEnumProp should create a strong typed enum',function(){
+    it('installEnumProp should append a member as a strong typed enum',function(){
 
         var ShapeType = factories.UAObjectFactoryBuild( {
             name: "EnumShapeType",
@@ -252,6 +255,7 @@ describe("Factories: testing strong typed enums", function(){
         value.should.equal(ShapeType.CIRCLE);
 
     });
+
 });
 
 
@@ -272,7 +276,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
         var company = new Company({name: "ACME"});
 
-        company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(0xFFFF1002));
+        company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(Company_Description.id));
 
     });
 
@@ -281,7 +285,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
         var getObjectClassName = require("../lib/utils").getObjectClassName;
 
-        var obj = factories.constructObject(ec.makeExpandedNodeId(0xFFFF1002));
+        var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Description.id));
 
         should(obj).have.property("_description");
         obj._description.name.should.equal("Company");

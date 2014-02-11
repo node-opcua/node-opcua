@@ -66,6 +66,11 @@ describe("Browse Service", function(){
         encode_decode_round_trip_test(browseRequest);
     });
 
+    it("should create a BrowseResponse",function(){
+        var browseResponse = new bs.BrowseResponse({});
+        encode_decode_round_trip_test(browseResponse);
+    });
+
     it("should decode a real BrowseRequest",function(done){
         redirectToFile("ws_BrowseRequest.log", function () {
             verify_multi_chunk_message([fixture_ws_browseRequest_message]);

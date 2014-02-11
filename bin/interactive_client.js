@@ -92,9 +92,19 @@ rl.on('line', function (line) {
             });
             break;
         case 'close':
-            client.disconnect(function(){
-                rl.write("client disconnected");
-            });
+            if (the_sesssion) {
+                the_sesssion.close(function(){
+                    the_sesssion = null;
+                    client.disconnect(function(){
+                        rl.write("client disconnected");
+                    });
+
+                });
+            } else {
+                client.disconnect(function(){
+                    rl.write("client disconnected");
+                });
+            }
             break;
         case 'gep':
         case 'getEndpoints':
@@ -136,15 +146,19 @@ rl.on('line', function (line) {
                 console.log(treeify.asTree(nodes,true) );
                 the_sesssion.browse(nodes,function(err,nodes) {
 
-                    console.log(err);
-                    console.log(nodes);
-                    // console.log(nodes.continuationPoint.toString("hex"));
-                    console.log(nodes[0].references[0]);
-                    var summary = {};
-                    nodes[0].references.forEach(function(node){
-                        summary[node.browseName.name] = "id: " +  node.nodeId.value  + " ns:" +  node.nodeId.namespace;
-                    });
-                    console.log(treeify.asTree(summary,true));
+                    if (err ) {
+                        console.log(err);
+                        console.log(nodes);
+                    } else {
+                        // console.log(nodes.continuationPoint.toString("hex"));
+                        console.log(nodes[0].references[0]);
+                        var summary = {};
+                        nodes[0].references.forEach(function(node){
+                            summary[node.browseName.name] =  "id: " + (node.isForward ? "->" : "<-") +  node.nodeId.value  + " ns:" +  node.nodeId.namespac ;
+                        });
+                        console.log(treeify.asTree(summary,true));
+
+                    }
                 });
                 rl.resume();
 
