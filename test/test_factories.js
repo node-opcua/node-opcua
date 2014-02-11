@@ -282,7 +282,6 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
     it("should create a object from a encodingDefaultBinaryId", function() {
 
-
         var getObjectClassName = require("../lib/utils").getObjectClassName;
 
         var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Description.id));
@@ -299,7 +298,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     it("should encode and decode a Object containing ByteString",function(done){
 
         var Blob_Description = {
-            id:  0xFFFF1005,
+            id: factories.next_available_id(),
             name: "FakeBlob",
             fields: [
                 { name: "name",                     fieldType: "String"     },
@@ -335,7 +334,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
 
         var MetaShape_Description = {
-            id:  0xFFFF1006,
+            id: factories.next_available_id(),
             fields: [
                 { name: "name",                     fieldType: "String"          },
                 { name: "shape",                    fieldType: "ExtensionObject" },
@@ -351,7 +350,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
             shape: new Shape({name: "circle" , shapeType:ShapeType.CIRCLE , color: Color.BLUE}),
             comment:  "this is a comment"
         });
-        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(0xFFFF1006));
+        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Description.id));
 
         var stream = new BinaryStream(shape.binaryStoreSize());
         shape.encode(stream);
