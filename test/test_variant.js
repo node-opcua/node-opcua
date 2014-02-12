@@ -15,7 +15,7 @@ describe("Variant",function(){
 
         var1.dataType.should.eql(DataType.Null);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
-        should(var1.value).be.equal("null");
+        should(var1.value).be.equal(null);
 
         encode_decode_round_trip_test(var1,function(stream){
             stream.length.should.equal(1);

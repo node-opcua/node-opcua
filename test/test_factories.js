@@ -32,8 +32,9 @@ var Company_Description = {
     id: factories.next_available_id(),
     name: "Company",
     fields: [
-        { name: "name",                     fieldType: "String"   },
-        { name: "employees", isArray: true, fieldType: "Employee" }
+        { name: "name",                          fieldType: "String"   },
+        { name: "employees",      isArray: true, fieldType: "Employee" },
+        { name: "company_values", isArray: true, fieldType: "String" }
     ]
 };
 
@@ -164,6 +165,41 @@ describe("Factories: testing object factory", function () {
 
     });
 
+    it("should create an Object with a containing an array of JSON object passed in the initializer",function(){
+
+        var company  = new Company({
+            name: "ACME",
+            employees: [
+                { person: { lastName: "John",  age: 25}, service: "R&D" },
+                { person: { lastName: "Peter", age: 56}, service: "R&D" }
+            ]
+        });
+
+        company.employees.length.should.equal(2);
+        company.employees[0].should.be.instanceOf(Employee);
+        company.employees[1].should.be.instanceOf(Employee);
+
+        encode_decode_round_trip_test(company);
+    });
+
+    it("should create an Object with a containing an array of string passed in the initializer",function(){
+
+        var company  = new Company({
+            name: "ACME",
+            company_values: [
+                "A commitment to sustainability and to acting in an environmentally friendly way",
+                "A commitment to innovation and excellence.",
+                "Encouraging employees to take initiative and give the best."
+            ]
+        });
+
+        company.company_values.length.should.equal(3);
+        company.company_values[0].should.equal( "A commitment to sustainability and to acting in an environmentally friendly way");
+
+        company.should.have.property("employees");
+
+        encode_decode_round_trip_test(company);
+    });
 
     it("should handle subtype properly",function(){
 
@@ -221,7 +257,6 @@ describe("Factories: testing object factory", function () {
         var shape = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , color: Color.BLUE });
 
         encode_decode_round_trip_test(shape);
-
 
     });
 

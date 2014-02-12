@@ -63,10 +63,46 @@ var fixture_ws_readResponse_message2= makebuffer(
 "00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 "+
 "00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00");
 
+
+
 describe("Read Service", function(){
 
-    it("should create a ReadRequest",function(){
+    it("should create a empty ReadRequest",function(){
         var readRequest = new bs.ReadRequest({});
+
+        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Neither);
+        readRequest.nodesToRead.length.should.equal(0);
+
+        encode_decode_round_trip_test(readRequest);
+    });
+
+    it("should create a ReadRequest and append ReadValueId to nodesToRead   ",function(){
+
+        var readRequest = new bs.ReadRequest({
+            timestampsToReturn: bs.TimestampsToReturn.Both
+        });
+
+        readRequest.nodesToRead.push(new bs.ReadValueId({ nodeId : "i=2255", attributeId: 13 }));
+
+        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Both);
+        readRequest.nodesToRead.length.should.equal(1);
+
+        encode_decode_round_trip_test(readRequest);
+    });
+
+    it("should create a ReadRequest",function(){
+        var readRequest = new bs.ReadRequest({
+            timestampsToReturn: bs.TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId : "i=2255",
+                    attributeId: 13
+                }
+            ]
+        });
+        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Both);
+        readRequest.nodesToRead.length.should.equal(1);
+
         encode_decode_round_trip_test(readRequest);
     });
 
