@@ -30,7 +30,7 @@ var rl = readline.createInterface({
     completer: completer
 });
 
-var the_sesssion = {};
+var the_sesssion = null;
 
 var client = new OPCUAClient();
 
@@ -59,6 +59,15 @@ client.on("receive_response",function(message){
     }
 });
 
+
+var variables = require("./../lib/opcua_node_ids").Variable;
+
+function get_variable_nodeid(value1,value2) {
+    if(variables.hasOwnProperty(value1)) {
+        return get_variable_nodeid(variables[value1],0);
+    }
+    return  ec.makeNodeId(parseInt(value1),parseInt(value2));
+}
 
 
 if (rl.history) {
@@ -138,7 +147,7 @@ rl.on('line', function (line) {
                 rl.pause();
                 nodes = [];
                 nodes.push( {
-                    nodeId: ec.makeNodeId(parseInt(args[1]),parseInt(args[2])),
+                    nodeId: get_variable_nodeid(args[1],args[2]),
                     includeSubtypes: true,
                     browseDirection: browseService.BrowseDirection.Both
                 });
@@ -164,6 +173,33 @@ rl.on('line', function (line) {
 
             }
             break;
+
+        case 'r':
+        case 'read':
+            if (the_sesssion) {
+                rl.pause();
+                nodes = [];
+                nodes.push( {
+                    nodeId: get_variable_nodeid(args[1],args[2]),
+                    attributeId: 13,
+                    indexRange: null
+                });
+                console.log(treeify.asTree(nodes,true));
+
+                the_sesssion.read(nodes,function(err,dataValues) {
+                    console.log(" done ...");
+                    if (err ) {
+                        console.log(err);
+                        console.log(dataValues);
+                    } else {
+                        console.log(dataValues[0]);
+
+                    }
+                });
+                rl.resume();
+            }
+            break;
+
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
             break;
