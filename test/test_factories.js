@@ -334,6 +334,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
 
         var MetaShape_Description = {
+            name: "metashape",
             id: factories.next_available_id(),
             fields: [
                 { name: "name",                     fieldType: "String"          },

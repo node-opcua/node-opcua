@@ -5,6 +5,7 @@ var VariantArrayType = require("../lib/variant").VariantArrayType;
 
 var should = require("should");
 var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var s = require("./../lib/structures");
 
 
 describe("Variant",function(){
@@ -29,6 +30,20 @@ describe("Variant",function(){
 
         encode_decode_round_trip_test(var1,function(stream){
             stream.length.should.equal(5);
+        });
+    });
+
+    it("should create a Scalar LocalizedText Variant",function(){
+        var var1 = new Variant({
+            dataType: DataType.LocalizedText,
+            value: new s.LocalizedText({ text: "Hello" , locale: "en" })
+        });
+
+        var1.dataType.should.eql(DataType.LocalizedText);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        encode_decode_round_trip_test(var1,function(stream){
+            stream.length.should.equal(17);
         });
     });
 
