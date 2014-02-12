@@ -36,7 +36,7 @@ describe("testing ServerTCP_transport",function(){
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
             var response = opcua.decodeMessage(stream, opcua.TCPErrorMessage);
-            response._description.name.should.equal("TCPErrorMessage");
+            response._schema.name.should.equal("TCPErrorMessage");
             done();
         });
 
@@ -59,7 +59,7 @@ describe("testing ServerTCP_transport",function(){
             messageHeader.msgType.should.equal("ACK");
             stream.rewind();
             var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
-            response._description.name.should.equal("AcknowledgeMessage");
+            response._schema.name.should.equal("AcknowledgeMessage");
             done();
         });
 
@@ -91,7 +91,7 @@ describe("testing ServerTCP_transport",function(){
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
             var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
-            response._description.name.should.equal("TCPErrorMessage");
+            response._schema.name.should.equal("TCPErrorMessage");
             done();
         });
 

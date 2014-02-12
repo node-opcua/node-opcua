@@ -7,6 +7,11 @@ var MessageBuilder = require("../lib/message_builder").MessageBuilder;
 var s = require("../lib/secure_channel_service");
 var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
 
+var verify_multi_chunk_message= require("./utils/verify_message_chunk").verify_multi_chunk_message;
+var verify_single_chunk_message= require("./utils/verify_message_chunk").verify_single_chunk_message;
+
+var redirectToFile = require("../lib/utils").redirectToFile;
+
 describe("OPCUA Object creation",function() {
 
     var s = require("../lib/structures");
@@ -103,10 +108,6 @@ describe("OPCUA Structure encoding and decoding", function () {
 
 
 
-var verify_multi_chunk_message= require("./utils/verify_message_chunk").verify_multi_chunk_message;
-var verify_single_chunk_message= require("./utils/verify_message_chunk").verify_single_chunk_message;
-
-var redirectToFile = require("../lib/utils").redirectToFile;
 
 
 describe("checking decoding real message bodies captured with WireShark ", function () {
@@ -265,80 +266,3 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
 });
 
 
-describe("DiagnosticInfo",function(){
-
-    var s = require("./../lib/structures");
-
-    it("should have encodingDefaultBinary = 25",function(){
-        var diag = new s.DiagnosticInfo();
-        diag.encodingDefaultBinary.value.should.equal(25);
-    });
-
-    it("should encode default DiagnosticInfo in a single byte",function(){
-
-        var diag = new s.DiagnosticInfo();
-
-        encode_decode_round_trip_test(diag,function(buffer,id){
-            buffer.length.should.equal(1);
-        });
-
-    });
-    it("should encode default DiagnosticInfo with only symbolicId in 5-bytes",function(){
-
-        var diag = new s.DiagnosticInfo({
-            identifier: { symbolicId: 120 }
-        });
-
-        encode_decode_round_trip_test(diag,function(buffer,id){
-            buffer.length.should.equal(5);
-        });
-
-    });
-
-    it("should encode DiagnosticInfo with symbolicId and locale in 9-bytes",function(){
-
-        var diag = new s.DiagnosticInfo({
-            identifier: { symbolicId: 120 , locale:128 }
-        });
-
-        encode_decode_round_trip_test(diag,function(buffer,id){
-            buffer.length.should.equal(9);
-        });
-
-    });
-
-    it("should encode DiagnosticInfo with InnerStatusCode in 5-bytes",function(){
-
-        var diag = new s.DiagnosticInfo({
-            identifier: { symbolicId: 120 , locale:128 },
-            innerStatusCode: 234
-        });
-
-        encode_decode_round_trip_test(diag,function(buffer,id){
-            buffer.length.should.equal(13);
-        });
-
-    });
-
-    it("should encode DiagnosticInfo with a default innerDiagnosticInfo in 2-bytes",function(){
-
-        var diag = new s.DiagnosticInfo({
-            innerDiagnosticInfo: new s.DiagnosticInfo({ })
-        });
-
-        encode_decode_round_trip_test(diag,function(buffer,id){
-            buffer.length.should.equal(2);
-        });
-    });
-
-    it("should encode default DiagnosticInfo with an innerDiagnosticInfo  containing a 5 car string in 11-bytes",function(){
-
-        var diag = new s.DiagnosticInfo({
-            innerDiagnosticInfo: new s.DiagnosticInfo({ additionalInfo : "Hello"})
-        });
-
-        encode_decode_round_trip_test(diag,function(buffer,id){
-            buffer.length.should.equal(2 + 4 + 5);
-        });
-    });
-});

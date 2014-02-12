@@ -39,13 +39,13 @@ var Company_Description = {
 
 
 
-var Person = factories.UAObjectFactoryBuild(Person_Description);
-var Employee = factories.UAObjectFactoryBuild(Employee_Description);
-var Company  = factories.UAObjectFactoryBuild(Company_Description);
+var Person = factories.registerObject(Person_Description);
+var Employee = factories.registerObject(Employee_Description);
+var Company  = factories.registerObject(Company_Description);
 
 
 
-var ShapeType = factories.UAObjectFactoryBuild( {
+var ShapeType = factories.registerObject( {
     name: "EnumShapeType",
     isEnum: true,
     enumValues: {
@@ -55,7 +55,7 @@ var ShapeType = factories.UAObjectFactoryBuild( {
         HEXAGON:   6
     }
 });
-var Color = factories.UAObjectFactoryBuild( {
+var Color = factories.registerObject( {
     name: "EnumColor",
     isEnum: true,
     enumValues: {
@@ -65,7 +65,7 @@ var Color = factories.UAObjectFactoryBuild( {
     }
 });
 
-var Shape = factories.UAObjectFactoryBuild({
+var Shape = factories.registerObject({
     id: factories.next_available_id(),
     name: "Shape",
     fields: [
@@ -167,14 +167,14 @@ describe("Factories: testing object factory", function () {
 
     it("should handle subtype properly",function(){
 
-        factories.UAObjectFactoryBuild( {
+        factories.registerObject( {
             name: "MyInteger",
             subtype: "Integer"
         });
 
         should.exist(factories.findSimpleType("MyInteger"));
 
-        var MyStruct = factories.UAObjectFactoryBuild( {
+        var MyStruct = factories.registerObject( {
             name: "MyStruct",
             id: factories.next_available_id(),
             fields: [
@@ -231,7 +231,7 @@ describe("Factories: testing strong typed enums", function(){
 
     it('installEnumProp should append a member as a strong typed enum',function(){
 
-        var ShapeType = factories.UAObjectFactoryBuild( {
+        var ShapeType = factories.registerObject( {
             name: "EnumShapeType",
             isEnum: true,
             enumValues: {
@@ -286,8 +286,8 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
         var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Description.id));
 
-        should(obj).have.property("_description");
-        obj._description.name.should.equal("Company");
+        should(obj).have.property("_schema");
+        obj._schema.name.should.equal("Company");
 
         getObjectClassName(obj).should.equal("Object");
 
@@ -307,7 +307,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
             ]
         };
 
-        var Blob = factories.UAObjectFactoryBuild(Blob_Description);
+        var Blob = factories.registerObject(Blob_Description);
 
         var blob = new Blob({ buffer0: new Buffer(0), buffer1: new Buffer(1024) });
 
@@ -342,7 +342,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
             ]
         };
 
-        var MetaShape = factories.UAObjectFactoryBuild(MetaShape_Description);
+        var MetaShape = factories.registerObject(MetaShape_Description);
 
 
         var shape  = new MetaShape({

@@ -104,7 +104,7 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         });
         server_scl.on("message",function(message){
-            message._description.name.should.equal("GetEndpointsRequest");
+            message._schema.name.should.equal("GetEndpointsRequest");
             done();
         });
 
@@ -131,11 +131,11 @@ describe("testing ServerSecureChannelLayer ",function(){
         var nb_on_message_calls = 0;
         server_scl.on("message",function(message){
 
-            message._description.name.should.not.equal("CloseSecureChannelRequest");
+            message._schema.name.should.not.equal("CloseSecureChannelRequest");
             nb_on_message_calls.should.equal(0);
             nb_on_message_calls +=1;
 
-            message._description.name.should.equal("GetEndpointsRequest");
+            message._schema.name.should.equal("GetEndpointsRequest");
         });
 
         server_scl.on("abort",function(){
