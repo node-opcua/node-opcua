@@ -1,6 +1,7 @@
 var OPCUAServer = require("../lib/opcua-server").OPCUAServer;
 var OPCUAClient = require("../lib/opcua-client").OPCUAClient;
 var should = require("should");
+var assert = require("assert");
 var async = require("async");
 var util = require("util");
 var opcua = require("../lib/nodeopcua");
@@ -146,7 +147,7 @@ describe("testing basic Client-Server communication",function() {
             },
             function(callback) {
                 client.connect(endpointUrl,function(err){
-                    should(err).not.ok;
+                    assert( err === null);
                     callback(err);
                 });
             },
@@ -158,7 +159,31 @@ describe("testing basic Client-Server communication",function() {
             }
         ],done);
 
-    });});
+    });
+    it("client shall be able to connect & disconnect multiple times",function(done){
+
+        server.connected_client_count.should.equal(0);
+
+
+        async.series([
+
+            function(callback) { client.connect(endpointUrl,callback);  },
+            function(callback) { client.disconnect(callback);           },
+
+
+            function(callback) { client.connect(endpointUrl,callback);  },
+            function(callback) { client.disconnect(callback);           },
+
+            function(callback) { client.connect(endpointUrl,callback);  },
+            function(callback) { client.disconnect(callback);           },
+
+            function(callback) {
+                server.shutdown(callback);
+            }
+        ],done);
+
+    });
+});
 
 
 
