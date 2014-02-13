@@ -49,6 +49,8 @@
     "node-int64": "~0.3.0",
     "easy-table": "~0.3.0",
     "tracer": "~0.6.2",
-    "base64-js": "0.0.6"
+    "base64-js": "0.0.6",
+    "request": "~2.33.0",
+    "progress": "~1.1.3"
   }
 }
