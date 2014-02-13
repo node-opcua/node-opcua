@@ -39,6 +39,7 @@ describe("testing parseEndpointUrl",function(){
         ep.port.should.equal(51210);
         ep.address.should.equal("/UA/SampleServer");
     });
+
     it(" should parse this endpoint as well",function(){
 
         var ep = opcua.parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
@@ -48,5 +49,16 @@ describe("testing parseEndpointUrl",function(){
         ep.port.should.equal(51210);
         ep.address.should.equal("/UA/SampleServer");
     });
+
+    it(" should parse this endpoint as well",function(){
+
+        var ep = opcua.parseEndpointUrl("opc.tcp://portable-Precision-M4500:4841");
+
+        ep.protocol.should.equal("opc.tcp");
+        ep.hostname.should.equal("portable-Precision-M4500");
+        ep.port.should.equal(4841);
+        ep.address.should.equal("");
+    });
+
 
 });
