@@ -254,13 +254,24 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
             verify_multi_chunk_message([packets.packet_cs_6]);
         }, done);
     });
-    it("should decode a real CreateSessionResponse message", function (done) {
+
+
+    it("should decode a real CreateSessionResponse message sent in two chunks", function (done) {
 
         var packet1 = require("./fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_1;
         var packet2 = require("./fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_2;
 
         redirectToFile("ws_CreateSessionResponse.log", function () {
             verify_multi_chunk_message([packet1,packet2]);
+        }, done);
+    });
+
+    it("should decode this real CreateSessionResponse message sent in one chunk", function (done) {
+
+        var packet1 = require("./fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_3;
+
+        redirectToFile("ws_CreateSessionResponse2.log", function () {
+            verify_multi_chunk_message([packet1]);
         }, done);
     });
 });

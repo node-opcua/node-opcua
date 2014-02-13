@@ -11,11 +11,16 @@ function inlineText(f) {
 var makebuffer = require("../../lib/utils").makebuffer;
 
 var hexString = function(str) {
-    var hexline =""
+
+    var hexline ="";
     var lines = str.split("\n");
     lines.forEach(function(line){
+
         if (line.length > 80) {
             line = trim(line.substr(10,98));
+            hexline = hexline ? hexline + " " + line : line;
+        } else if ( line.length > 60) {
+            line = trim(line.substr(7,48));
             hexline = hexline ? hexline + " " + line : line;
         }
     });
