@@ -64,14 +64,24 @@ var variables = require("./../lib/opcua_node_ids").Variable;
 
 function get_variable_nodeid(value1,value2) {
     if(variables.hasOwnProperty(value1)) {
-        return get_variable_nodeid(variables[value1],0);
+        nodeId = get_variable_nodeid(variables[value1],0);
+        console.log("node 0 ",nodeId);
+    } else if (parseInt(value1).toString() === value1 ) {
+        nodeId= ec.makeNodeId(parseInt(value1),parseInt(value2));
+        console.log("node 1 ",parseInt(value1),nodeId);
+    } else {
+        nodeId = ec.makeNodeId(value1,parseInt(value2));
+        console.log("node 2 ",nodeId);
+
     }
-    return  ec.makeNodeId(parseInt(value1),parseInt(value2));
+
+    return nodeId;
 }
 
 
 if (rl.history) {
-    rl.history.push("open opc.tcp://localhost:51210/UA/SampleServer");
+    var hostname = require("os").hostname();
+    rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
 }
 
 rl.prompt(">");
@@ -142,6 +152,7 @@ rl.on('line', function (line) {
             });
             break;
 
+        case 'b':
         case 'browse':
             if (the_sesssion) {
                 rl.pause();
@@ -159,11 +170,11 @@ rl.on('line', function (line) {
                         console.log(err);
                         console.log(nodes);
                     } else {
-                        // console.log(nodes.continuationPoint.toString("hex"));
-                        console.log(nodes[0].references[0]);
+                        //xx console.log(nodes.continuationPoint.toString("hex"));
+                        //xx console.log(nodes[0].references[0]);
                         var summary = {};
                         nodes[0].references.forEach(function(node){
-                            summary[node.browseName.name] =  "id: " + (node.isForward ? "->" : "<-") +  node.nodeId.value  + " ns:" +  node.nodeId.namespac ;
+                            summary[node.browseName.name] =  "id: " + (node.isForward ? "->" : "<-") +  node.nodeId.toString() ;
                         });
                         console.log(treeify.asTree(summary,true));
 
@@ -182,7 +193,8 @@ rl.on('line', function (line) {
                 nodes.push( {
                     nodeId: get_variable_nodeid(args[1],args[2]),
                     attributeId: 13,
-                    indexRange: null
+                    indexRange: null,
+                    dataEncoding: { id:0 , name: null}
                 });
                 console.log(treeify.asTree(nodes,true));
 
