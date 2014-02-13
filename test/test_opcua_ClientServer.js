@@ -128,7 +128,37 @@ describe("testing basic Client-Server communication",function() {
         });
 
     });
-});
+
+    it("client shall be able to reconnect if first connection failed",function(done){
+
+        server.connected_client_count.should.equal(0);
+
+        client.protocolVersion = 1;
+
+        var bad_endpointUrl = "opc.tcp://localhost:80";
+
+        async.series([
+            function(callback) {
+                client.connect(bad_endpointUrl,function(err){
+                    err.message.should.equal("connect ECONNREFUSED");
+                    callback();
+                });
+            },
+            function(callback) {
+                client.connect(endpointUrl,function(err){
+                    should(err).not.ok;
+                    callback(err);
+                });
+            },
+            function(callback) {
+                client.disconnect(callback);
+            },
+            function(callback) {
+                server.shutdown(callback);
+            }
+        ],done);
+
+    });});
 
 
 
