@@ -164,7 +164,6 @@ describe("testing basic Client-Server communication",function() {
 
         server.connected_client_count.should.equal(0);
 
-
         async.series([
 
             function(callback) { client.connect(endpointUrl,callback);  },
@@ -178,8 +177,30 @@ describe("testing basic Client-Server communication",function() {
             function(callback) { client.disconnect(callback);           },
 
             function(callback) {
+                server.connected_client_count.should.equal(0);
                 server.shutdown(callback);
             }
+        ],done);
+
+    });
+
+
+    it("client shall raise an error when trying to create a session on an invalid endpoint",function(done){
+
+        async.series([
+            function(callback) { client.connect(endpointUrl+"/somecrap",callback);       },
+
+            function(callback) {
+                client.createSession(function(err,session){
+
+                    assert(err);
+                    assert(!session);
+                    callback(err ? null: new Error("Expecting a failure"));
+                });
+            },
+
+            function(callback) { client.disconnect(callback);                },
+
         ],done);
 
     });

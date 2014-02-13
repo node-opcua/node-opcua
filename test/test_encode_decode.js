@@ -234,14 +234,6 @@ describe("testing built-in type encoding", function () {
 
     });
 
-    it("should detect strings that looks like GUID",function(){
-
-        ec.is_guid("72962B91-FA75-4AE6-8D28-B404DC7DAF63").should.equal(true);
-        ec.is_guid("zz962B91-FA75-4AE6-8D28-B404DC7DAF63").should.equal(false);
-        ec.is_guid("72962B-91FA75-4AE6-8D28-B404DC7DAF63").should.equal(false);
-
-    });
-
     it("should encode and decode a Guid NodeId", function () {
 
         var nodeId = ec.makeNodeId("72962B91-FA75-4AE6-8D28-B404DC7DAF63", 2500);

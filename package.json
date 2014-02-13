@@ -44,7 +44,7 @@
     "optimist": "~0.6.0",
     "prettyjson": "~0.11.1",
     "treeify": "~1.0.1",
-    "coveralls": "~2.7.0",
+    "coveralls": "*",
     "mocha-lcov-reporter": "0.0.1",
     "node-int64": "~0.3.0",
     "easy-table": "~0.3.0",
