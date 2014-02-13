@@ -101,4 +101,18 @@ describe("testing ClientSecureChannelLayer ",function(){
         });
     });
 
+    it("should callback with an error if performMessageTransaction is called before connection",function(done){
+
+        var secureChannel = new ClientSecureChannelLayer();
+        var s = require("../../lib/structures");
+        var message = new s.GetEndpointsRequest();
+        secureChannel.performMessageTransaction(message, s.GetEndpointsResponse,function(err){
+            err.message.should.equal("Client not connected");
+            done();
+        });
+    });
+
+
+
+
 });
