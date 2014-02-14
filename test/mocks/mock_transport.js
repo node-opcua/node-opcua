@@ -31,6 +31,18 @@ var fake_OpenSecureChannelResponse = new s.OpenSecureChannelResponse({
     serverNonce:  new Buffer("qwerty")
 });
 
+var fake_GetEndpointsResponse = new s.GetEndpointsResponse({
+    endpoints: [
+        {
+            endpointUrl: "fake://localhost:2033/SomeAddress"
+        }
+    ]
+});
+
+var CreateSessionResponse = require("../../lib/session_service").CreateSessionResponse;
+var fake_CreateSessionResponse = new CreateSessionResponse();
+var ActivateSessionResponse = require("../../lib/session_service").ActivateSessionResponse;
+var fake_ActivateSessionResponse = new ActivateSessionResponse();
 
 
 function MockTransport(promised_replies,done) {
@@ -86,3 +98,6 @@ exports.MockTransport = MockTransport;
 exports.fake_AcknowledgeMessage = fake_AcknowledgeMessage;
 exports.fake_CloseSecureChannelResponse = fake_CloseSecureChannelResponse;
 exports.fake_OpenSecureChannelResponse = fake_OpenSecureChannelResponse;
+exports.fake_CreateSessionResponse = fake_CreateSessionResponse;
+exports.fake_ActivateSessionResponse = fake_ActivateSessionResponse;
+exports.fake_GetEndpointsResponse = fake_GetEndpointsResponse;

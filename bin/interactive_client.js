@@ -6,7 +6,7 @@ var utils = require('../lib/utils');
 var opcua = require('../lib/nodeopcua');
 var color = require('colors');
 var ec = require("../lib/encode_decode");
-var browseService = require("../lib/browse_service");
+var browse_service = require("../lib/browse_service");
 
 function completer(line) {
 
@@ -160,7 +160,7 @@ rl.on('line', function (line) {
                 nodes.push( {
                     nodeId: get_variable_nodeid(args[1],args[2]),
                     includeSubtypes: true,
-                    browseDirection: browseService.BrowseDirection.Both
+                    browseDirection: browse_service.BrowseDirection.Both
                 });
                 console.log(" browse ");
                 console.log(treeify.asTree(nodes,true) );
