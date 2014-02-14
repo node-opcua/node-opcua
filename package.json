@@ -1,8 +1,8 @@
 {
   "name": "node-opcua",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "pure nodejs OPCUA SDK",
-  "main": "",
+  "main": "index.js",
   "bin": {},
   "directories": {
     "test": "test"
@@ -10,7 +10,6 @@
   "scripts": {
     "test": "mocha test -R spec --recursive"
   },
-  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/erossignon/node-opcua.git"
