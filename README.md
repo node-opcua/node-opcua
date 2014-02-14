@@ -37,29 +37,28 @@ install pre-requisite:
 
 create a file `myfirstclient.js` and add the following code :
 
-    ```javascript
-    var opcua = require("node-opcua");
-    var async = require("async");
+```javascript
+var opcua = require("node-opcua");
+var async = require("async");
 
-    var client = new opcua.OPCUAClient();
+var client = new opcua.OPCUAClient();
 
-    var endpointUrl = "opc.tcp://localhost:4841/UA/Sample";
-    async.series([
-        // step 1 : connect to
-        function(callback)  {
-          client.connect(endpointUrl,function (err) {
-             if(err) {
-               console.log(" cannot connect to endpoint :" , endpointUrl );
-             } else {
-              console.log("connected !");
-             }
-             callback(err);
-          });
-       },
-       function(callback) { client.disconnect(callback); }
-    ], function() { console.log("done!")} ) ;
+var endpointUrl = "opc.tcp://localhost:4841/UA/Sample";
+async.series([
+    function(callback)  {
+      client.connect(endpointUrl,function (err) {
+         if(err) {
+           console.log(" cannot connect to endpoint :" , endpointUrl );
+         } else {
+          console.log("connected !");
+         }
+         callback(err);
+      });
+   },
+   function(callback) { client.disconnect(callback); }
+], function() { console.log("done!")} ) ;
 
-    ```
+```
 
 now run it
 
