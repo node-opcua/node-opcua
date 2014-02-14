@@ -8,6 +8,27 @@ var NodeId = require("../lib/nodeid").NodeId;
 
 var should = require("should");
 
+describe("testing NodeIds",function(){
+
+    it("should create a NUMERIC nodeID",function(){
+        var nodeId = new NodeId(NodeIdType.NUMERIC,23,2);
+        nodeId.value.should.equal(23);
+        nodeId.namespace.should.equal(2);
+        nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
+        nodeId.toString().should.eql("ns=2;i=23");
+
+    });
+
+    it("should create a STRING nodeID",function() {
+        var nodeId = new NodeId(NodeIdType.STRING,"TemperatureSensor",4);
+        nodeId.value.should.equal("TemperatureSensor");
+        nodeId.namespace.should.equal(4);
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.toString().should.eql("ns=4;s=TemperatureSensor");
+    });
+
+});
+
 describe("testing coerceNodeId",function(){
 
     it("should coerce a string of a form 'i=1234'",function(){
