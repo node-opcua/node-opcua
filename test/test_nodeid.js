@@ -96,3 +96,14 @@ describe("testing resolveNodeId",function(){
         resolveNodeId("AnalogItemType").toString().should.equal("ns=0;i=2368");
     });
 });
+
+
+
+describe("testing NodeId.displayText",function(){
+
+    it("should provide a richer display text when nodeid is known",function(){
+        var ref_nodeId = new NodeId(NodeIdType.NUMERIC,85,0);
+        ref_nodeId.displayText().should.equal("ObjectsFolder (ns=0;i=85)");
+    });
+
+});
