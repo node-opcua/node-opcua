@@ -2,6 +2,7 @@ var should = require("should");
 
 var NodeId = require("../../lib/nodeid").NodeId;
 var resolveNodeId = require("../../lib/nodeid").resolveNodeId;
+var makeNodeId =  require("../../lib/nodeid").makeNodeId;
 var assert = require("assert");
 var s = require("../../lib/structures");
 
@@ -10,7 +11,7 @@ var HasTypeDefinition = resolveNodeId("i=40");
 
 function pack(obj) {
     if (obj.referenceType) {
-        reference
+        // xx reference
     }
 }
 function Folder(options) {
@@ -99,7 +100,7 @@ ServerEngine.prototype._findObject= function(nodeId)
 };
 
 ServerEngine.prototype._build_new_NodeId = function() {
-    var nodeId =  new NodeId(this._internal_id_counter,this._private_namespace);
+    var nodeId =  makeNodeId(this._internal_id_counter,this._private_namespace);
     this._internal_id_counter+=1;
     return nodeId;
 };
@@ -118,14 +119,15 @@ ServerEngine.prototype.createFolder = function(parentFolder,newFolderName) {
 
     parentFolder = this.getFolder(parentFolder);
 
-
     options = {
         nodeId:               this._build_new_NodeId(),
         browseName:           newFolderName,
         hasTypeDefinition:    "FolderType",
         organizes_Reversed:   parentFolder.nodeId
     };
-    return this._createObject(options);
+    var obj = this._createObject(options);
+
+    return obj;
 };
 
 
@@ -143,6 +145,8 @@ ServerEngine.prototype._createObject = function(options)
         displayName: options.displayName || options.browseName,
         description: options.description
     });
+
+
     this._register(object);
 
     if (options.organizes_Reversed) {
@@ -152,6 +156,7 @@ ServerEngine.prototype._createObject = function(options)
         object.parent = parent;
     }
 
+    assert(object.nodeId instanceof NodeId);
     return object;
 };
 
@@ -170,12 +175,12 @@ ServerEngine.prototype._add_objects_folder = function() {
 
 };
 
-ServerEngine.prototype.addVariableInFolder = function(parentFolder,variableDefinition){
+ServerEngine.prototype.addVariableInFolder = function(parentFolder,options){
 
     parentFolder = this.getFolder(parentFolder);
 
-    var variableName = variableDefinition.name;
-    var value        = variableDefinition.value;
+    var variableName = options.name;
+    var value        = options.value;
 
     var newNodeId = this._build_new_NodeId();
     var variable = new Variable( { nodeId: newNodeId, browseName: variableName, value: value });
@@ -213,10 +218,10 @@ describe("ServerEngine",function(){
 
     });
 
-    it("should browse the RootFolder",function(){
+    it("should browse the rootFolder by browseName",function(){
 
         var server = new server_engine.ServerEngine();
-        var browseNode = server.browseSync(resolveNodeId("RootFolder"));
+        var browseNode = server.browseSync("RootFolder");
 
         browseNode.should.be.instanceOf(Folder);
         browseNode.should.equal(server.rootFolder);
@@ -224,10 +229,30 @@ describe("ServerEngine",function(){
 
     });
 
+    it("should browse the rootFolder by nodeId",function(){
+
+        var server = new server_engine.ServerEngine();
+        var browseNode = server.browseSync("i=84");
+
+        browseNode.should.be.instanceOf(Folder);
+        browseNode.should.equal(server.rootFolder);
+
+    });
+
+    it("should have an ObjectsFolder",function(){
+
+        var server = new server_engine.ServerEngine();
+        var rootFolder = server.browseSync("RootFolder");
+
+        var objectFolder = server.browseSync("ObjectsFolder");
+        objectFolder.parent.should.equal(rootFolder);
+
+    });
+
     it("should allow to create a new folder",function(){
 
         var server = new server_engine.ServerEngine();
-        var rootFolder = server.browseSync(resolveNodeId("RootFolder"));
+        var rootFolder = server.browseSync("RootFolder");
         var newFolder = server.createFolder("RootFolder","MyNewFolder");
 
         newFolder.should.be.instanceOf(Folder);
@@ -235,21 +260,34 @@ describe("ServerEngine",function(){
 
     });
 
-    it("should allow browse a newly created folder",function(){
+    it("should allow browse a newly created folder by nodeId",function(){
 
         var server = new server_engine.ServerEngine();
-        var newFolder = server.createFolder("RootFolder","MyNewFolder");
+        var newFolder = server.createFolder("ObjectsFolder","MyNewFolder");
+
+        assert(newFolder.nodeId instanceof NodeId);
+        newFolder.nodeId.toString().should.eql("ns=1;i=1000");
 
         var result = server.browseSync(newFolder.nodeId);
         result.should.eql(newFolder);
 
     });
 
+    it("should allow browse a newly created folder by nodeId string",function(){
+        var server = new server_engine.ServerEngine();
+
+        var newFolder = server.createFolder("ObjectsFolder","MyNewFolder");
+
+        var result = server.browseSync(newFolder.nodeId);
+        result.should.eql(newFolder);
+    });
+
+
     it("should allow to create a variable in a folder",function(){
 
         var server = new server_engine.ServerEngine();
-        var rootFolder = server.browseSync(resolveNodeId("RootFolder"));
-        var newFolder  = server.createFolder("RootFolder","MyNewFolder");
+        var rootFolder = server.browseSync("ObjectsFolder");
+        var newFolder  = server.createFolder("ObjectsFolder","MyNewFolder");
 
         var newVariable = server.addVariableInFolder("MyNewFolder",
             {
@@ -257,14 +295,12 @@ describe("ServerEngine",function(){
                 value: 10.0
             });
 
+        newVariable.value.should.equal(10.0);
+
         newVariable.should.be.instanceOf(Variable);
         newVariable.parent.should.equal(newFolder);
 
     });
 
-    it("should have ObjectsFolder",function(){
 
-
-
-    });
 });
