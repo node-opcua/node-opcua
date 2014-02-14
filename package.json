@@ -1,6 +1,6 @@
 {
   "name": "node-opcua",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "pure nodejs OPCUA SDK",
   "main": "",
   "bin": {},
