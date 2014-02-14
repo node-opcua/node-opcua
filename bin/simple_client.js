@@ -1,18 +1,20 @@
 var fs = require("fs");
 var treeify = require('treeify');
-var utils = require('../lib/utils');
-var coerceNodeId = require("../lib/nodeid").coerceNodeId;
-
+var _ = require("underscore");
+var color = require("colors");
 var util = require("util");
 var Table = require('easy-table');
+var async = require("async");
+var utils = require('../lib/utils');
+
+
 var argv = require('optimist')
     .usage('Usage: $0 --port [num] --hostname <hostname>  -d')
     .argv;
 
-var OPCUAClient = require("../lib/opcua-client.js").OPCUAClient;
-var async = require("async");
+var opcua = require("../");
 
-var client = new OPCUAClient();
+var client = new opcua.OPCUAClient();
 
 var port = argv.port  || 4841
 var hostname = argv.hostname || "localhost";
@@ -21,59 +23,46 @@ var endpointUrl = "opc.tcp://" + hostname + ":" + port + "/SomeAddress";
 
 var the_session = null;
 
-var browse_service = require("../lib/browse_service");
-var color = require("colors");
-
-
 
 function browseTree(root, nodeId, callback) {
 
+    var nodeIds = _.isArray(nodeId) ? nodeId : [nodeId];
 
-    var nodeIds = _.isArray(nodeId) ? nodeId : [ nodeId];
+    var folderTypeNodeId = opcua.resolveNodeId("FolderType");
 
-
-    var nodesToBrowse = [];
-    nodeIds.map(function(nodeId) {
-        return {
-            nodeId: nodeId,
-            includeSubtypes: true,
-            browseDirection: browse_service.BrowseDirection.Forward
-        };
-    });
-
-
-    var folderTypeNodeId = coerceNodeId("i=61");
-    the_session.browse(nodesToBrowse, function (err, nodes) {
-
+    the_session.browse(nodeIds, function (err, results,diagnostics) {
 
         var tasks = [];
-        var nodeIds = [];
+
         if (!err) {
             // we want typeDefinition i=61 => FolderType
-            nodes[0].references.forEach(function (node) {
+            results[0].references.forEach(function (node) {
 
                 root[node.browseName.name] = {};
                 root[node.browseName.name].value =(node.isForward ? "->" : "<-") + "id: " + node.nodeId.toString();
                 root[node.browseName.name].typeDefinition  =node.typeDefinition.toString();
                 root[node.browseName.name].nodes = {};
 
-                if (node.typeDefinition.value != 0 ) { // folderTypeNodeId.value   || node.typeDefinition.value == 2000 || node.typeDefinition.value == 62  ) {
-                    nodeIds.push(node.nodeId);
+                if (node.typeDefinition.value == folderTypeNodeId.value   || node.typeDefinition.value == 2000 || node.typeDefinition.value == 62  ) {
+
+                    if (node.isForward) {
+                        //xx console.log(" appending : " + node.nodeId.displayText());
+                        tasks.push(function(callback){    browseTree(root[node.browseName.name].nodes,node.nodeId,callback);                });
+                    }
                 }
             });
-        } else {
-            console.log(err.message.red);
-        }
-        tasks.push(function(callback){
-            browseTree(root[node.browseName.name].nodes,nodeIds,callback);
-        });
 
-        process.nextTick(function(){
-            async.series(tasks,function(){
-                callback(err,root);
-           });
-        });
-        // xxcallback(err,root);
+
+            process.nextTick(function(){
+                async.series(tasks,function() {
+                    callback(err,root);
+                });
+            });
+
+        } else {
+            console.log(err);
+            callback(err,null);
+        }
     });
 
 
@@ -82,7 +71,7 @@ function browseTree(root, nodeId, callback) {
 
 async.series([
     function(callback) {
-        console.log(" connecting to ", endpointUrl);
+        console.log(" connecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl,callback);
     },
 
@@ -123,30 +112,37 @@ async.series([
 
     // reconnect using the correct end point URL now
     function(callback) {
-        console.log(" connecting to ", endpointUrl);
+        console.log(" reconnecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl,callback);
     },
 
     //------------------------------------------
     function(callback) {
         client.createSession(function (err,session){
-            the_session = session;
+            if (!err) {
+                the_session = session;
+                console.log(" session created".yellow);
+            }
             callback(err);
         });
     },
 
     //------------------------------------------
     function(callback) {
-    return callback();
         var root = {};
-        browseTree(root,coerceNodeId("i=84"),function(err,root){
+        browseTree(root,"RootFolder",function(err,root){
             console.log(treeify.asTree(root, true));
             callback(err);
         });
 
     },
     function(callback) {
-        the_session.close(callback);
+        console.log(" closing session");
+        the_session.close(function(err){
+
+            console.log(" session closed");
+            callback();
+        });
     },
 
     function(callback) {
@@ -155,11 +151,14 @@ async.series([
     }
 ],function(err){
     if (err) {
-        console.log(" process terminated with an error");
+        console.log(" client : process terminated with an error");
         console.log(" error" , err) ;
+        console.log(err.stack) ;
     } else {
         console.log("success !!   ");
     }
+    // force disconnection
+    if (client) {  client.disconnect(function(){}); }
 });
 
 

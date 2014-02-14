@@ -4,3 +4,6 @@ node_modules/
 tmp/
 .coveralls.yml
 coverage
+*.swp
+*#
+tmptmp/

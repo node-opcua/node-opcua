@@ -1,12 +1,15 @@
 var readline = require('readline');
 var fs = require("fs");
 var treeify = require('treeify');
-var OPCUAClient = require("../lib/opcua-client.js").OPCUAClient;
-var utils = require('../lib/utils');
-var opcua = require('../lib/nodeopcua');
 var color = require('colors');
-var ec = require("../lib/encode_decode");
-var browse_service = require("../lib/browse_service");
+var sprintf = require('sprintf');
+
+var opcua = require("..");
+var OPCUAClient = opcua.OPCUAClient;
+
+var utils = require('../lib/utils');
+
+
 
 function completer(line) {
 
@@ -60,28 +63,17 @@ client.on("receive_response",function(message){
 });
 
 
-var variables = require("./../lib/opcua_node_ids").Variable;
-
-function get_variable_nodeid(value1,value2) {
-    if(variables.hasOwnProperty(value1)) {
-        nodeId = get_variable_nodeid(variables[value1],0);
-        console.log("node 0 ",nodeId);
-    } else if (parseInt(value1).toString() === value1 ) {
-        nodeId= ec.makeNodeId(parseInt(value1),parseInt(value2));
-        console.log("node 1 ",parseInt(value1),nodeId);
-    } else {
-        nodeId = ec.makeNodeId(value1,parseInt(value2));
-        console.log("node 2 ",nodeId);
-
-    }
-
-    return nodeId;
+function colorize(value) {
+    return ("" + value).yellow.bold;
 }
-
 
 if (rl.history) {
     var hostname = require("os").hostname();
     rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
+    rl.history.push("open opc.tcp://" + hostname + ":4841");
+    rl.history.push("b ObjectsFolder");
+    rl.history.push("r ns=2;s=Furnace_1.Temperature");
+
 }
 
 rl.prompt(">");
@@ -156,28 +148,23 @@ rl.on('line', function (line) {
         case 'browse':
             if (the_sesssion) {
                 rl.pause();
-                nodes = [];
-                nodes.push( {
-                    nodeId: get_variable_nodeid(args[1],args[2]),
-                    includeSubtypes: true,
-                    browseDirection: browse_service.BrowseDirection.Both
-                });
-                console.log(" browse ");
-                console.log(treeify.asTree(nodes,true) );
-                the_sesssion.browse(nodes,function(err,nodes) {
+
+                nodes = [ args[1] ];
+
+                the_sesssion.browse(nodes,function(err,nodeResults) {
 
                     if (err ) {
                         console.log(err);
-                        console.log(nodes);
+                        console.log(nodeResults);
                     } else {
-                        //xx console.log(nodes.continuationPoint.toString("hex"));
-                        //xx console.log(nodes[0].references[0]);
-                        var summary = {};
-                        nodes[0].references.forEach(function(node){
-                            summary[node.browseName.name] =  "id: " + (node.isForward ? "->" : "<-") +  node.nodeId.toString() ;
-                        });
-                        console.log(treeify.asTree(summary,true));
 
+                        for (var i = 0; i < nodeResults.length; i++ ) {
+                            console.log("Node: ", nodes[i]);
+                            nodeResults[i].references.forEach(function(node){
+                                str = sprintf("    %-30s%s%s",node.browseName.name,(node.isForward ? "->" : "<-") ,node.nodeId.displayText()  );
+                                console.log(str);
+                            });
+                        }
                     }
                 });
                 rl.resume();
@@ -189,23 +176,21 @@ rl.on('line', function (line) {
         case 'read':
             if (the_sesssion) {
                 rl.pause();
-                nodes = [];
-                nodes.push( {
-                    nodeId: get_variable_nodeid(args[1],args[2]),
-                    attributeId: 13,
-                    indexRange: null,
-                    dataEncoding: { id:0 , name: null}
-                });
-                console.log(treeify.asTree(nodes,true));
+                nodes = [args[1]];
 
                 the_sesssion.read(nodes,function(err,dataValues) {
-                    console.log(" done ...");
                     if (err ) {
                         console.log(err);
                         console.log(dataValues);
                     } else {
-                        console.log(dataValues[0]);
-
+                        for (var i = 0; i < dataValues.length; i++ ) {
+                            var dataValue = dataValues[i];
+                            console.log("           Node : ", (nodes[i]).cyan.bold);
+                            console.log("           type : ",colorize(dataValue.value.dataType.key));
+                            console.log("           value: ",colorize(dataValue.value.value));
+                            console.log("      statusCode: 0x", dataValue.statusCode.toString(16) );
+                            console.log(" sourceTimestamp: ",dataValue.sourceTimestamp, dataValue.sourcePicoseconds );
+                        }
                     }
                 });
                 rl.resume();
