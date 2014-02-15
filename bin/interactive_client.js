@@ -69,6 +69,7 @@ function colorize(value) {
 
 if (rl.history) {
     var hostname = require("os").hostname();
+    hostname = hostname.toLowerCase();
     rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
     rl.history.push("open opc.tcp://" + hostname + ":4841");
     rl.history.push("b ObjectsFolder");
@@ -160,6 +161,7 @@ rl.on('line', function (line) {
 
                         for (var i = 0; i < nodeResults.length; i++ ) {
                             console.log("Node: ", nodes[i]);
+                            console.log(" StatusCode =", nodeResults[i].statusCode.toString(16));
                             nodeResults[i].references.forEach(function(node){
                                 str = sprintf("    %-30s%s%s",node.browseName.name,(node.isForward ? "->" : "<-") ,node.nodeId.displayText()  );
                                 console.log(str);
@@ -178,7 +180,7 @@ rl.on('line', function (line) {
                 rl.pause();
                 nodes = [args[1]];
 
-                the_sesssion.read(nodes,function(err,dataValues) {
+                the_sesssion.readVariableValue(nodes,function(err,dataValues) {
                     if (err ) {
                         console.log(err);
                         console.log(dataValues);

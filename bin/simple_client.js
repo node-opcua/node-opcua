@@ -9,17 +9,14 @@ var utils = require('../lib/utils');
 
 
 var argv = require('optimist')
-    .usage('Usage: $0 --port [num] --hostname <hostname>  -d')
+    .usage('Usage: $0 -d')
     .argv;
 
 var opcua = require("../");
 
 var client = new opcua.OPCUAClient();
 
-var port = argv.port  || 4841
-var hostname = argv.hostname || "localhost";
-
-var endpointUrl = "opc.tcp://" + hostname + ":" + port + "/SomeAddress";
+var endpointUrl = argv.endpoint;
 
 var the_session = null;
 
