@@ -36,6 +36,7 @@ describe("testing basic Client-Server communication",function() {
 
 
     });
+
     afterEach(function(done){
 
         server.shutdown(function() {
@@ -136,7 +137,8 @@ describe("testing basic Client-Server communication",function() {
 
         client.protocolVersion = 1;
 
-        var bad_endpointUrl = "opc.tcp://localhost:80";
+        var unused_port = 78909;
+        var bad_endpointUrl = "opc.tcp://localhost:"+unused_port;
 
         async.series([
             function(callback) {
@@ -160,6 +162,7 @@ describe("testing basic Client-Server communication",function() {
         ],done);
 
     });
+
     it("client shall be able to connect & disconnect multiple times",function(done){
 
         server.connected_client_count.should.equal(0);
@@ -184,7 +187,6 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-
     it("client shall raise an error when trying to create a session on an invalid endpoint",function(done){
 
         async.series([
@@ -199,7 +201,43 @@ describe("testing basic Client-Server communication",function() {
                 });
             },
 
-            function(callback) { client.disconnect(callback);                },
+            function(callback) { client.disconnect(callback);                }
+
+        ],done);
+
+    });
+
+    it("should browse RootFolder",function(done){
+
+        var g_session = null;
+
+        async.series([
+
+            function(callback) {
+                client.connect(endpointUrl,callback);
+            },
+
+            function(callback) {
+                client.createSession(function(err,session){
+                        g_session = session;
+                        callback(err);
+                });
+            },
+
+            function(callback) {
+
+                g_session.browse("RootFolder",function(err,browseResult,diagnosticInfos){
+
+                    callback(err);
+
+                });
+
+            },
+
+
+            function(callback) {
+                client.disconnect(callback);
+            }
 
         ],done);
 
