@@ -226,7 +226,10 @@ describe("testing basic Client-Server communication",function() {
 
             function(callback) {
 
-                g_session.browse("RootFolder",function(err,browseResult,diagnosticInfos){
+                g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
+
+                    browseResults.length.should.equal(1);
+                    browseResults[0]._schema.name.should.equal("BrowseResult");
 
                     callback(err);
 

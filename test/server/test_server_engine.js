@@ -3,26 +3,34 @@ var server_engine = require("../../lib/server/server_engine");
 var resolveNodeId = require("../../lib/nodeid").resolveNodeId;
 var NodeClass = require("../../lib/browse_service").NodeClass;
 var browse_service = require("../../lib/browse_service");
+var read_service = require("../../lib/read_service");
 var util = require("util");
 var NodeId = require("../../lib/nodeid").NodeId;
 var assert = require("assert");
 var Variable = server_engine.Variable;
+var AttributeIds = read_service.AttributeIds;
 var Folder = server_engine.Folder;
-
+var DataType = require("../../lib/variant").DataType;
 
 describe("ServerEngine", function () {
 
 
+    var server;
+    beforeEach(function(){
+        server = new server_engine.ServerEngine();
+    })
+    afterEach(function(){
+        server = null;
+    })
+
     it("should have a rootFolder ", function () {
 
-        var server = new server_engine.ServerEngine();
         server.rootFolder.should.instanceOf(Folder);
 
     });
 
     it("should find the rootFolder by browseName", function () {
 
-        var server = new server_engine.ServerEngine();
         var browseNode = server.findObject("RootFolder");
 
         browseNode.should.be.instanceOf(Folder);
@@ -33,7 +41,6 @@ describe("ServerEngine", function () {
 
     it("should find the rootFolder by nodeId", function () {
 
-        var server = new server_engine.ServerEngine();
         var browseNode = server.findObject("i=84");
 
         browseNode.should.be.instanceOf(Folder);
@@ -43,7 +50,6 @@ describe("ServerEngine", function () {
 
     it("should have an ObjectsFolder", function () {
 
-        var server = new server_engine.ServerEngine();
         var rootFolder = server.findObject("RootFolder");
 
         var objectFolder = server.findObject("ObjectsFolder");
@@ -53,7 +59,6 @@ describe("ServerEngine", function () {
 
     it("should allow to create a new folder", function () {
 
-        var server = new server_engine.ServerEngine();
         var rootFolder = server.findObject("RootFolder");
         var newFolder = server.createFolder("RootFolder", "MyNewFolder");
 
@@ -64,7 +69,6 @@ describe("ServerEngine", function () {
 
     it("should allow to find a newly created folder by nodeId", function () {
 
-        var server = new server_engine.ServerEngine();
         var newFolder = server.createFolder("ObjectsFolder", "MyNewFolder");
 
         assert(newFolder.nodeId instanceof NodeId);
@@ -76,7 +80,6 @@ describe("ServerEngine", function () {
     });
 
     it("should allow to find a newly created folder by nodeId string", function () {
-        var server = new server_engine.ServerEngine();
 
         var newFolder = server.createFolder("ObjectsFolder", "MyNewFolder");
 
@@ -87,7 +90,6 @@ describe("ServerEngine", function () {
 
     it("should allow to create a variable in a folder", function () {
 
-        var server = new server_engine.ServerEngine();
         var rootFolder = server.findObject("ObjectsFolder");
         var newFolder = server.createFolder("ObjectsFolder", "MyNewFolder");
 
@@ -106,7 +108,6 @@ describe("ServerEngine", function () {
 
 
     it("should browse object folder",function(){
-        var server = new server_engine.ServerEngine();
 
         var browseResult = server.browseSingleNode("ObjectsFolder");
 
@@ -120,11 +121,8 @@ describe("ServerEngine", function () {
         browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
 
-
     });
     it("should browse root folder",function(){
-
-        var server = new server_engine.ServerEngine();
 
         var browseResult = server.browseSingleNode("RootFolder");
 
@@ -138,6 +136,50 @@ describe("ServerEngine", function () {
         browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
 
+    });
+
+    it("should handle a BrowseRequest and set StatusCode if node doesn't exist",function() {
+
+        var browseResult = server.browseSingleNode("ns=46;id=123456");
+
+        browseResult.statusCode.toString(16).should.equal("80005e");
+        browseResult.references.length.should.equal(0);
+
+
+    });
+
+    it("should handle a BrowseRequest with multiple nodes to browse",function() {
+
+        var browseRequest = new browse_service.BrowseRequest({
+            nodesToBrowse: [
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    includeSubtypes: true,
+                    browseDirection: browse_service.BrowseDirection.Both,
+                    resultMask: 63
+                },
+                {
+                    nodeId: resolveNodeId("ObjectsFolder"),
+                    includeSubtypes: true,
+                    browseDirection: browse_service.BrowseDirection.Both,
+                    resultMask: 63
+                }
+            ]
+        });
+
+        browseRequest.nodesToBrowse.length.should.equal(2);
+        var results = server.browse(browseRequest.nodesToBrowse);
+
+        results.length.should.equal(2);
+
+    });
+
+    it("should handle a readSingleNode",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.BrowseName);
+
+        readResult.value.dataType.should.eql(DataType.QualifiedName);
+        readResult.value.value.name.should.equal("Root");
     });
 
 });

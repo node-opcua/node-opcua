@@ -39,7 +39,7 @@ function encode_decode_round_trip_test(obj,callback_buffer) {
     var obj_reloaded = factories.constructObject(expandedId);
     obj_reloaded.decode(stream);
 
-    obj_reloaded.should.eql(obj);
+    JSON.stringify(obj_reloaded).should.eql(JSON.stringify(obj));
 
     return obj_reloaded;
 }
