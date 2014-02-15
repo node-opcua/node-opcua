@@ -207,43 +207,52 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("should browse RootFolder",function(done){
+    describe("Browse&Read Service",function() {
 
         var g_session = null;
 
-        async.series([
-
-            function(callback) {
-                client.connect(endpointUrl,callback);
-            },
-
-            function(callback) {
-                client.createSession(function(err,session){
+        beforeEach(function(done){
+            client.connect(endpointUrl,function(err){
+                if (err) { done(err);}
+                else {
+                    client.createSession(function(err,session){
                         g_session = session;
-                        callback(err);
-                });
-            },
+                        done(err);
+                    });
+                }
+            });
 
-            function(callback) {
+        })
+        afterEach(function(done){
 
-                g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
+            client.disconnect(done);
+        });
+        it("should browse RootFolder",function(done){
 
-                    browseResults.length.should.equal(1);
-                    browseResults[0]._schema.name.should.equal("BrowseResult");
+            g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
 
-                    callback(err);
+                browseResults.length.should.equal(1);
+                browseResults[0]._schema.name.should.equal("BrowseResult");
 
-                });
+                done(err);
+            });
 
-            },
+        });
 
+        it("should read a Variable",function(done){
 
-            function(callback) {
-                client.disconnect(callback);
-            }
+            g_session.readVariableValue("RootFolder",function(err,dataValues,diagnosticInfos){
 
-        ],done);
+                if (!err) {
+                    dataValues.length.should.equal(1);
+                    dataValues[0]._schema.name.should.equal("DataValue");
+                }
 
+                done(err);
+
+            });
+
+        });
     });
 });
 
