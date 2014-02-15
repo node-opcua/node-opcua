@@ -108,7 +108,7 @@ describe("ServerEngine", function () {
     it("should browse object folder",function(){
         var server = new server_engine.ServerEngine();
 
-        var browseResult = server.browseSync("ObjectsFolder");
+        var browseResult = server.browseSingleNode("ObjectsFolder");
 
         browseResult.statusCode.should.equal(0);
         browseResult.references.length.should.equal(1);
@@ -126,7 +126,7 @@ describe("ServerEngine", function () {
 
         var server = new server_engine.ServerEngine();
 
-        var browseResult = server.browseSync("RootFolder");
+        var browseResult = server.browseSingleNode("RootFolder");
 
         browseResult.statusCode.should.equal(0);
         browseResult.references.length.should.equal(1);
