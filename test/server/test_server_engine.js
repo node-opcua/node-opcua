@@ -4,6 +4,7 @@ var resolveNodeId = require("../../lib/nodeid").resolveNodeId;
 var NodeClass = require("../../lib/browse_service").NodeClass;
 var browse_service = require("../../lib/browse_service");
 var read_service = require("../../lib/read_service");
+var TimestampsToReturn = read_service.TimestampsToReturn;
 var util = require("util");
 var NodeId = require("../../lib/nodeid").NodeId;
 var assert = require("assert");
@@ -174,12 +175,61 @@ describe("ServerEngine", function () {
 
     });
 
-    it("should handle a readSingleNode",function() {
+    it("should handle a readSingleNode - BrowseName",function() {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.BrowseName);
 
         readResult.value.dataType.should.eql(DataType.QualifiedName);
         readResult.value.value.name.should.equal("Root");
+    });
+
+    it("should handle a readSingleNode - NodeClass",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.NodeClass);
+
+        readResult.value.dataType.should.eql(DataType.UInt32);
+        readResult.value.value.should.equal(NodeClass.Object.value);
+    });
+
+    it("should handle a readSingleNode - NodeId",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.NodeId);
+
+        readResult.value.dataType.should.eql(DataType.NodeId);
+        readResult.value.value.toString().should.equal("ns=0;i=84");
+    });
+
+    it("should handle a readSingleNode - DisplayName",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.DisplayName);
+
+        readResult.value.dataType.should.eql(DataType.LocalizedText);
+        readResult.value.value.text.toString().should.equal("Root");
+    });
+
+    it("should retun null  - readSingleNode - with unknown object",function() {
+
+        var readResult = server.readSingleNode("**UNKNONW**",AttributeIds.DisplayName);
+        assert(readResult === null);
+    });
+
+    it("should read ",function() {
+
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.DisplayName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ]
+        });
+        var dataValues = server.read(readRequest.nodesToRead);
+        dataValues.length.should.equal(1);
+
     });
 
 });
