@@ -26,12 +26,27 @@ describe("DataValue",function(){
         });
     });
 
+
     it("should create a DataValue with string variant and some date and encode/decode it nicely",function(){
 
         var dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value:"Hello"}),
             serverTimestamp: new Date(),
             serverPicoseconds: 1000
+        });
+        encode_decode_round_trip_test(dataValue,function(buffer,id){
+        });
+    });
+
+    it("should create a DataValue with string variant and all dates and encode/decode it nicely",function(){
+
+        var dataValue = new DataValue({
+            value: new Variant({dataType: DataType.String, value:"Hello"}),
+            statusCode: 0xBEEF,
+            serverTimestamp: new Date(),
+            serverPicoseconds: 1000,
+            sourceTimestamp: new Date(),
+            sourcePicoseconds: 2000
         });
         encode_decode_round_trip_test(dataValue,function(buffer,id){
         });

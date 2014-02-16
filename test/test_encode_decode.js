@@ -2,7 +2,8 @@ var should = require("should");
 var ec = require("../lib/encode_decode");
 var opcua = require("../lib/nodeopcua");
 var BinaryStream = require("../lib/binaryStream").BinaryStream;
-
+var ExpandedNodeId = require("./../lib/nodeId").ExpandedNodeId;
+var NodeIdType = require("./../lib/nodeId").NodeIdType;
 
 function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
     var binaryStream = new BinaryStream();
@@ -34,6 +35,28 @@ describe("testing built-in type encoding", function () {
 
         test_encode_decode(true, ec.encodeBoolean, ec.decodeBoolean, 1);
         test_encode_decode(false, ec.encodeBoolean, ec.decodeBoolean, 1);
+
+    });
+
+
+    it("should encode and decode a Int16 (2 bytes)", function () {
+
+        test_encode_decode(255, ec.encodeInt16, ec.decodeInt16, 2, function (buffer) {
+            // should be little endian
+            buffer.readUInt8(0).should.equal(0xFF);
+            buffer.readUInt8(1).should.equal(0x00);
+        });
+        test_encode_decode(-32000, ec.encodeInt16, ec.decodeInt16, 2);
+
+    });
+
+    it("should encode and decode a Int16 (2 bytes)", function () {
+
+        test_encode_decode(0xFFFE, ec.encodeUInt16, ec.decodeUInt16, 2, function (buffer) {
+            // should be little endian
+            buffer.readUInt8(0).should.equal(0xFE);
+            buffer.readUInt8(1).should.equal(0xFF);
+        });
 
     });
 
@@ -282,6 +305,7 @@ describe("testing built-in type encoding", function () {
             2
         );
     });
+
     it("should encode and decode a Expanded NodeId  - FourBytes", function () {
 
         test_encode_decode(
@@ -292,6 +316,18 @@ describe("testing built-in type encoding", function () {
         );
     });
 
+    it("should encode and decode a Expanded NodeId with namespaceUri", function () {
+
+        var serverIndex = 2;
+        var namespaceUri = "some:namespace:uri";
+        var expandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC,4123,4,namespaceUri,serverIndex);
+        test_encode_decode(
+            expandedNodeId,
+            ec.encodeExpandedNodeId,
+            ec.decodeExpandedNodeId,
+            33
+        );
+    });
 
 });
 
