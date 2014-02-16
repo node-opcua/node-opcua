@@ -2,8 +2,8 @@ var should = require("should");
 var ec = require("../lib/encode_decode");
 var opcua = require("../lib/nodeopcua");
 var BinaryStream = require("../lib/binaryStream").BinaryStream;
-var ExpandedNodeId = require("./../lib/nodeId").ExpandedNodeId;
-var NodeIdType = require("./../lib/nodeId").NodeIdType;
+var ExpandedNodeId = require("./../lib/nodeid").ExpandedNodeId;
+var NodeIdType = require("./../lib/nodeid").NodeIdType;
 
 function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
     var binaryStream = new BinaryStream();
