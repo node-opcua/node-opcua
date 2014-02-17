@@ -367,6 +367,22 @@ describe("check OPCUA Date Type ", function () {
 
     });
 
+    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601",function(){
+
+        var date    = new Date(Date.UTC(1601,0,2,0,0));
+        var nano   = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var  value = 24*60*60*1000*10000;
+        nano[0].should.equal(Math.floor(value / 0xFFFFFFFF));
+        nano[1].should.equal(value % 0xFFFFFFFF);
+    });
+
+    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601",function(){
+
+        var date    = new Date(Date.UTC(1601,0,1,0,0));
+        var nano   = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        nano[0].should.equal(0);
+        nano[1].should.equal(0);
+    });
 
     it("should decode 92c253d3 0cf7ce01 DateTime as  Dec 12, 2013 08:36:09.747317000 ", function () {
 

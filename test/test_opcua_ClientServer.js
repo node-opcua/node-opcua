@@ -181,7 +181,7 @@ describe("testing basic Client-Server communication",function() {
 
             function(callback) {
                 server.connected_client_count.should.equal(0);
-                server.shutdown(callback);
+                callback();
             }
         ],done);
 
