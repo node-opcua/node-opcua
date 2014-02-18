@@ -18,6 +18,10 @@ var client = new opcua.OPCUAClient();
 
 var endpointUrl = argv.endpoint;
 
+if (!endpointUrl) {
+    console.log(" node bin/simple_client.js --endpointUrl <endpointUrl>");
+    return;
+}
 var the_session = null;
 
 
