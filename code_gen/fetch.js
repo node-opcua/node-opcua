@@ -7,9 +7,10 @@ function wget2(url) {
 
     var bar = new ProgressBar(':bar', { total: 10 });
     var path = require("path");
-    var filename = path.basename(url) + path.extname(url);
-    request(url).pipe(fs.createWriteStream(filename));
+    var filename = path.basename(url) ;
 
+
+    request(url).pipe(fs.createWriteStream(filename));
 
     request.on("data", function(chunk){
 
@@ -23,8 +24,13 @@ function wget(url) {
 
     var http = require('http');
     var path = require("path");
-    var filename = path.basename(url) + path.extname(url);
+    var filename = path.basename(url); // + path.extname(url);
 
+    if (fs.existsSync(filename))  {
+        console.log("  " + filename +" already downloaded " + url);
+        return;
+    }
+    console.log(" downloading " + filename + " from " + url);
 
     var stream = fs.createWriteStream(filename,"w");
 
@@ -79,15 +85,45 @@ OPC UA Node Set (Part 10)             The UANodeSet for all Nodes defined by Par
 OPC UA Node Set (Part 11)             The UANodeSet for all Nodes defined by Part 11 of the OPC UA specification.	    Opc.Ua.NodeSet2.Part11.xml	http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part11.xml
 OPC UA Node Set (Part 13)	          The UANodeSet for all Nodes defined by Part 13 of the OPC UA specification.	    Opc.Ua.NodeSet2.Part13.xml	http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part13.xml
 DI NodeSet	                          The UANodeSet for all Nodes defined by the DI specification.	                    Opc.Ua.Di.NodeSet2.xml	    http://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.NodeSet2.xml
-ADI NodeSet	                          The UANodeSet for all Nodes defined by the ADI specification.	                    Opc.Ua.Adi.NodeSet2.xml    http://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.NodeSet2.xml
+ADI NodeSet	                          The UANodeSet for all Nodes defined by the ADI specification.	                    Opc.Ua.Adi.NodeSet2.xml     http://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.NodeSet2.xml
 
 OPC Binary Type Schema	              The XML schema used to describe the layout of binary encoding structures.	        OPC BinarySchema.xsd	    http://opcfoundation.org/UA/schemas/1.02/OPCBinarySchema.xsd	    http://opcfoundation.org/BinarySchema/
 OPC UA Binary Type Definitions	      The OPC Binary schema for all data types defined in the OPC UA specifications.	Opc.Ua.Types.bsd	        http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd
-                                      The OPC Binary schema for all data types defined in the DI specification.	        Opc.Ua.Di.Types.bsd	    http://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.bsd	    http://opcfoundation.org/UA/DI/Types.bsd
+                                      The OPC Binary schema for all data types defined in the DI specification.	        Opc.Ua.Di.Types.bsd	        http://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.bsd	    http://opcfoundation.org/UA/DI/Types.bsd
                                       The OPC Binary schema for all data types defined in the ADI specification.	    Opc.Ua.Adi.Types.bsd	    http://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.bsd	http://opcfoundation.org/UA/ADI/Types.bsd
 
 OPC UA Attribute Ids	              The numeric identifier for all OPC UA Node attributes.	                        AttributeIds.csv	        http://opcfoundation.org/UA/schemas/1.02/AttributeIds.csv
 OPC UA Status Codes	                  The numeric identifier for all StatusCodes defined in the OPC UA specifications.  StatusCode.csv	            http://opcfoundation.org/UA/schemas/1.02/StatusCode.csv
-OPC UA NodeIds	                      The numeric identifier for all NodeIds defined in the OPC UA specifications.	    NodeIds.csv	            http://opcfoundation.org/UA/schemas/1.02/NodeIds.csv
+OPC UA NodeIds	                      The numeric identifier for all NodeIds defined in the OPC UA specifications.	    NodeIds.csv	                http://opcfoundation.org/UA/schemas/1.02/NodeIds.csv
 */
 wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
+wget("http://opcfoundation.org/UA/2008/02/Types.xsd");
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.xsd")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Services.wsdl")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Endpoints.wsdl")
+wget("http://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.xsd")
+wget("http://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.xsd")
+wget("http://opcfoundation.org/UA/schemas/1.02/SecuredApplication.xsd")
+
+wget("http://opcfoundation.org/UA/schemas/1.02/UANodeSet.xsd")
+wget("http://opcfoundation.org/UA/schemas/1.02/UAVariant.xsd")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part3.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part4.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part5.xml")
+wget("http://opcfoundation.org/UA/schemas/Opc.Ua.NodeSet2.Part8.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part9.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part10.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part11.xml")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part13.xml")
+wget("http://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.NodeSet2.xml")
+wget("http://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.NodeSet2.xml")
+
+wget("http://opcfoundation.org/UA/schemas/1.02/OPCBinarySchema.xsd")
+wget("http://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd")
+wget("http://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.bsd")
+wget("http://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.bsd")
+
+wget("http://opcfoundation.org/UA/schemas/1.02/AttributeIds.csv")
+wget("http://opcfoundation.org/UA/schemas/1.02/StatusCode.csv")
+wget("http://opcfoundation.org/UA/schemas/1.02/NodeIds.csv")
