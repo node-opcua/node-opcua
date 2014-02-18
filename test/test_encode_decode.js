@@ -296,6 +296,19 @@ describe("testing built-in type encoding", function () {
         });
     });
 
+    it("should encode and decode a BYTESTRING NodeId", function () {
+        var NodeId = require("./../lib/nodeid").NodeId;
+        var NodeIdType = require("./../lib/nodeid").NodeIdType;
+        var crypto =require("crypto");
+
+        var nodeId = new NodeId(NodeIdType.BYTESTRING,crypto.randomBytes(16));
+
+        var expectedLength = 1 + 2 + 4 + 16;
+        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function (buffer) {
+        });
+
+    });
+
     it("should encode and decode a Expanded NodeId  - TwoBytes", function () {
 
         test_encode_decode(
