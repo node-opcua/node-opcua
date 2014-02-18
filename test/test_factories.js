@@ -397,3 +397,25 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
     });
 });
+
+describe("PacketAnalyzer",function(){
+    it("should analyse a encoded object",function(done){
+        var analyze_object_binary_encoding = require("../lib/packet_analyzer").analyze_object_binary_encoding;
+
+        var redirectToFile = require("../lib/utils").redirectToFile;
+
+        var company  = new Company({
+            name: "ACME",
+            employees: [
+                { person: { lastName: "John",  age: 25}, service: "R&D" },
+                { person: { lastName: "Peter", age: 56}, service: "R&D" }
+            ]
+        });
+        var stream = new BinaryStream(company.binaryStoreSize());
+        company.encode(stream);
+
+        redirectToFile("analyze_object_binary_encoding",function(){
+            analyze_object_binary_encoding(company);
+        },done);
+    })
+});
