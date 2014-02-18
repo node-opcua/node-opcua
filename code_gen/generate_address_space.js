@@ -3,7 +3,7 @@ var xml = require("node-expat");
 var fs = require("fs");
 //xx var csv = require("csv");
 //xx var sprintf = require("sprintf").sprintf;
-var assert  = require("assert");
+var assert  = require('better-assert');
 
 var coerceNodeId = require("../lib/nodeid").coerceNodeId;
 var resolveNodeId = require("../lib/nodeid").resolveNodeId;

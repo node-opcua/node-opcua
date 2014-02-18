@@ -12,6 +12,8 @@ var verify_single_chunk_message= require("./utils/verify_message_chunk").verify_
 
 var redirectToFile = require("../lib/utils").redirectToFile;
 
+var FindServersResponse = require("../lib/register_server_service").FindServersResponse;
+
 describe("OPCUA Object creation",function() {
 
     var s = require("../lib/structures");
@@ -21,7 +23,7 @@ describe("OPCUA Object creation",function() {
             applicationUri: "application:uri",
             productUri: "uri:product",
             applicationName: { text: "MyApplication"},
-            applicationType: s.EnumApplicationType.CLIENT,
+            applicationType: s.ApplicationType.CLIENT,
             gatewayServerUri: undefined,
             discoveryProfileUri: undefined,
             discoveryUrls: []
@@ -29,7 +31,7 @@ describe("OPCUA Object creation",function() {
         applicationDescription.applicationUri.should.equal( "application:uri");
         applicationDescription.productUri.should.equal( "uri:product");
         applicationDescription.applicationName.text.should.equal( "MyApplication");
-        applicationDescription.applicationType.should.equal( s.EnumApplicationType.CLIENT);
+        applicationDescription.applicationType.should.equal( s.ApplicationType.CLIENT);
         applicationDescription.discoveryUrls.length.should.equal(0);
 
 
@@ -47,7 +49,7 @@ describe("OPCUA Object creation",function() {
         request.clientDescription.applicationUri.should.equal( "application:uri");
         request.clientDescription.productUri.should.equal( "uri:product");
         request.clientDescription.applicationName.text.should.equal( "MyApplication");
-        request.clientDescription.applicationType.should.equal( s.EnumApplicationType.CLIENT);
+        request.clientDescription.applicationType.should.equal( s.ApplicationType.CLIENT);
         request.clientDescription.discoveryUrls.length.should.equal(0);
 
 

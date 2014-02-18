@@ -1,12 +1,12 @@
 var ClientSecureChannelLayer = require("../../lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 var should  = require("should");
-var assert = require("assert");
+var assert = require('better-assert');
 
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);
 
 var MockTransport           = require("../mocks/mock_transport").MockTransport;
 var fake_AcknowledgeMessage = require("../mocks/mock_transport").fake_AcknowledgeMessage;
-var assert = require("assert");
+var assert = require('better-assert');
 
 
 describe("testing ClientSecureChannelLayer ",function(){

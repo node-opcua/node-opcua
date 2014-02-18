@@ -4,7 +4,7 @@ var debugLog  = require("../../lib/utils").make_debugLog(__filename);
 var _ = require("underscore");
 var s  = require("../../lib/structures");
 var packet_analyzer = require("../../lib/packet_analyzer").packet_analyzer;
-var assert = require("assert");
+var assert = require('better-assert');
 var display_trace_from_this_projet_only = require("../../lib/utils").display_trace_from_this_projet_only;
 
 var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({

@@ -19,7 +19,7 @@ exports.makeEndPoint = function(){
             applicationUri :  "OPCUA  node-js",
             productUri:       "some product uri",
             applicationName:  { text: "Localised application name"},
-            applicationType:   s.EnumApplicationType.CLIENTANDSERVER,
+            applicationType:   s.ApplicationType.CLIENTANDSERVER,
             gatewayServerUri:  "gatewayServerUri",
             discoveryProfileUri: "discoveryProfileUri",
             discoveryUrls: [
