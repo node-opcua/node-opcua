@@ -122,3 +122,28 @@ describe("testing OPCUA structures ",function() {
 
 
 });
+
+describe("Testing ChannelSecurityToken", function(){
+
+    it("should exposed a expired property", function(){
+
+        var channelSecurityToken = new  s.ChannelSecurityToken({});
+
+        channelSecurityToken.revisedLifeTime.should.equal(30000);
+        channelSecurityToken.createdAt.getTime().should.be.lessThan((new Date().getTime() +1));
+        (channelSecurityToken.expired).should.equal(false);
+
+    });
+    it("a ChannelSecurityToken should expired after the revisedLifeTime", function(done){
+        var channelSecurityToken = new  s.ChannelSecurityToken({
+            revisedLifeTime: 3
+        });
+        (channelSecurityToken.expired).should.equal(false);
+        setTimeout(function(){
+            (channelSecurityToken.expired).should.equal(true);
+            done();
+        },10);
+    });
+
+
+});
