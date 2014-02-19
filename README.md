@@ -139,3 +139,7 @@ Contributing
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 
 [![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/erossignon/node-opcua/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
