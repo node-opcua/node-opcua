@@ -11,8 +11,8 @@ var s = require("../lib/structures");
 var OPCUAServerEndPoint = require("../lib/server/server_endpoint").OPCUAServerEndPoint;
 var RegisterServerRequest  = require("../lib/register_server_service").RegisterServerRequest;
 var RegisterServerResponse = require("../lib/register_server_service").RegisterServerResponse;
-var FindServerRequest = require("../lib/register_server_service").FindServerRequest;
-var FindServerResponse = require("../lib/register_server_service").FindServerResponse;
+var FindServersRequest = require("../lib/register_server_service").FindServersRequest;
+var FindServersResponse = require("../lib/register_server_service").FindServersResponse;
 
 // add the tcp/ip endpoint with no security
 
@@ -44,7 +44,7 @@ OPCUADiscoveryServer.prototype.start = function (done) {
         });
     });
     async.parallel(tasks, done);
-}
+};
 
 
 OPCUADiscoveryServer.prototype.shutdown = function (done) {
@@ -77,8 +77,11 @@ OPCUADiscoveryServer.prototype.on_request = function (request,channel,endpoint) 
         self._on_GetEndpointsRequest(request, channel);
     } else  if (request instanceof RegisterServerRequest) {
         self._on_RegisterServerRequest(request,channel);
-    } else  if (request instanceof RegisterServerRequest) {
-         self._on_FindServers(request,channel);
+    } else  if (request instanceof FindServersRequest) {
+         self._on_FindServersRequest(request,channel);
+    } else {
+        var response = new s.ServiceFault({});
+        channel.send_response("MSG", response);
     }
 };
 
@@ -89,11 +92,10 @@ OPCUADiscoveryServer.prototype._on_GetEndpointsRequest = function (request,chann
     assert(request._schema.name == "GetEndpointsRequest");
 
     var response = new s.GetEndpointsResponse({});
-
-    server.registered_servers.forEach(function (endpointDescription) {
-        response.endpoints.push(endpointDescription);
+    response.endpoints = server.endpoints.map(function (endpoint) {
+       return endpoint.endpointDescription();
     });
-
+    assert( response.endpoints.length>=1);
     channel.send_response("MSG", response);
 
 };
@@ -119,23 +121,24 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (request,cha
 OPCUADiscoveryServer.prototype._on_FindServersRequest = function (request,channel,endpoint) {
 
     var server = this;
-    assert(request._schema.name == "FindServerRequest");
-    assert(request instanceof FindServerRequest);
+    assert(request._schema.name == "FindServersRequest");
+    assert(request instanceof FindServersRequest);
 
-    var registered_server = server.registered_servers[0];
+    var servers = server.registered_servers.map(function(registered_server){
+        return new s.ApplicationDescription({
+            applicationUri: registered_server.serverUri,
+            productUri:     registered_server.productUri,
+            applicationName: registered_server.serverNames[0], // find one with the expected locale
+            applicationType: registered_server.serverType,
+            gatewayServerUri: registered_server.gatewayServerUri,
+            discoveryProfileUri: registered_server.discoveryUrls[0]
+        });
 
-    var applicationDescription = new s.ApplicationDescription({
-        applicationUri: registered_server.serverUri,
-        productUri:     registered_server.productUri,
-        applicationName: registered_server.serverNames[0], // find one with the expected locale
-        applicationType: registered_server.serverType,
-        gatewayServerUri: registered_server.gatewayServerUri,
-        discoveryProfileUri: registered_server.discoveryUrls[0],
     });
 
 
-    var response = new FindServerResponse({
-
+    var response = new FindServersResponse({
+        servers: servers
     });
     channel.send_response("MSG", response);
 };
@@ -156,6 +159,7 @@ OPCUAServer.prototype.registerServer = function (discovery_server_endpointUrl,ca
     }
     client.connect(discovery_server_endpointUrl,function(err){
         if (!err) {
+
 
             var request = new RegisterServerRequest({
                 server: {
@@ -179,7 +183,24 @@ OPCUAServer.prototype.registerServer = function (discovery_server_endpointUrl,ca
 
         }
     })
+};
+
+
+function perform_findServersRequest(discovery_server_endpointUrl,done) {
+
+    var client = new OPCUAClientBase();
+
+    client.connect(discovery_server_endpointUrl,function(err){
+        if (!err) {
+           client.findServers(function(err,servers){
+                client.disconnect(done);
+           });
+        } else {
+            client.disconnect(function(){done(err);});
+        }
+    })
 }
+
 
 
 describe("Discovery server",function(){
@@ -190,14 +211,16 @@ describe("Discovery server",function(){
         discovery_server = new OPCUADiscoveryServer({ port: 1234 });
         discovery_server_endpointUrl = discovery_server.endpoints[0].endpointDescription().endpointUrl;
         discovery_server.start(done);
-    })
+    });
     afterEach(function(done){
 
         discovery_server.shutdown(done);
-    })
+    });
 
     var server = new OPCUAServer({ port: 1235 });
     server.serverType = s.ApplicationType.SERVER;
+
+
 
     it("should register server to the discover server",function(done){
 
@@ -207,7 +230,10 @@ describe("Discovery server",function(){
         server.registerServer(discovery_server_endpointUrl,function(err){
 
             discovery_server.registered_servers.length.should.not.equal(0);
-            done(err);
+
+            perform_findServersRequest(discovery_server_endpointUrl,done);
+            // now check that find server
+            //done(err);
         });
 
     });
