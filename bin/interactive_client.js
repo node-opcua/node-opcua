@@ -188,8 +188,12 @@ rl.on('line', function (line) {
                         for (var i = 0; i < dataValues.length; i++ ) {
                             var dataValue = dataValues[i];
                             console.log("           Node : ", (nodes[i]).cyan.bold);
-                            console.log("           type : ",colorize(dataValue.value.dataType.key));
-                            console.log("           value: ",colorize(dataValue.value.value));
+                            if (dataValue.value) {
+                                 console.log("           type : ",colorize(dataValue.value.dataType.key));
+                                 console.log("           value: ",colorize(dataValue.value.value));
+                            } else {
+                                console.log("           value: <null>");
+                            }
                             console.log("      statusCode: 0x", dataValue.statusCode.toString(16) );
                             console.log(" sourceTimestamp: ",dataValue.sourceTimestamp, dataValue.sourcePicoseconds );
                         }
