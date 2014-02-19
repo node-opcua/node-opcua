@@ -259,4 +259,47 @@ describe("testing basic Client-Server communication",function() {
 
 
 
+describe("Testing ChannelSecurityToken livetime",function(){
 
+
+    var server , client;
+    var endpointUrl ;
+    beforeEach(function(done){
+
+        server = new OPCUAServer({
+            defaultSecureTokenLiveTime: 8 , // very short !
+        });
+
+
+        // we will connect to first server end point
+        endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+        debugLog("endpointUrl",endpointUrl);
+        is_valid_endpointUrl(endpointUrl).should.equal(true);
+
+        client = new OPCUAClient();
+        server.start(function() {
+            done();
+        });
+
+
+    });
+
+    afterEach(function(done){
+
+        client.disconnect(function(){
+            server.shutdown(function() {
+                done();
+            });
+
+        })
+
+    });
+    it("A secureschannel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
+
+        client.connect(endpointUrl,function(err){should(err).eql(null); })
+        client._secureChannel.on("livetime_75",function(){
+            console.log(" received livetime_75")
+            done();
+        });
+    })
+})
