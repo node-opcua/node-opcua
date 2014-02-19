@@ -9,7 +9,15 @@ var hexy = require("hexy");
 // openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem
 // generate public key from private.key
 // openssl rsa -in key.pem -pubout > public_key.pub will extract the public key and print that out.
-
+//
+// converting der to pem files:
+// openssl x509 -inform DER -outform PEM -text -in der-certificate-file -out pem-certificate-file
+//
+// converting pem to der files:
+// openssl rsa -inform DER -outform PEM -in der-rsa-key-file -out pem-rsa-key-file
+//
+// If you have .pfx certificates you can convert them to .pem using openssl:
+//openssl pkcs12 -in  cert.pfx -out cert.pem
 var doDebug = false;
 // doDebug = true;
 function debugLog() {
