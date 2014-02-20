@@ -335,7 +335,7 @@ describe("Testing ChannelSecurityToken livetime",function(){
     it("A secureschannel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
 
         client.connect(endpointUrl,function(err){should(err).eql(null); })
-        client._secureChannel.on("livetime_75",function(){
+        client._secureChannel.once("livetime_75",function(){
             debugLog(" received livetime_75")
             done();
         });
