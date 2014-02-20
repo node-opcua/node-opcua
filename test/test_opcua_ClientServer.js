@@ -296,7 +296,7 @@ describe("Testing ChannelSecurityToken livetime",function(){
     beforeEach(function(done){
 
         server = new OPCUAServer({
-            defaultSecureTokenLiveTime: 100  // very short !
+            defaultSecureTokenLiveTime: 100  // very short livetime !
         });
 
         // we will connect to first server end point
@@ -340,7 +340,7 @@ describe("Testing ChannelSecurityToken livetime",function(){
         });
     });
 
-    it("A client should periodically renew expiring security token",function(done){
+    it("A client should periodically renew the expiring security token",function(done){
 
         client.connect(endpointUrl,function(err){should(err).eql(null); })
 
