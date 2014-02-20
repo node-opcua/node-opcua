@@ -9,7 +9,7 @@ var OPCUAClient = opcua.OPCUAClient;
 
 var utils = require('../lib/utils');
 var assert = require('better-assert');
-
+var util = require("util");
 
 function completer(line) {
 
@@ -205,7 +205,31 @@ rl.on('line', function (line) {
                 rl.resume();
             }
             break;
+        case 'ra':
+        case 'readall':
+            if (the_sesssion) {
+                rl.pause();
+                nodes = [args[1]];
 
+                the_sesssion.readAllAttributes(nodes,function(err,nodesToRead,dataValues,diagnosticInfos) {
+                    if (!err) {
+                        for (var i = 0; i < dataValues.length; i++ ) {
+                            console.log("           Node : ", util.inspect(nodesToRead[i],{colors:true}));
+                            var dataValue = dataValues[i];
+                            if (dataValue.value) {
+                                console.log("           type : ",colorize(dataValue.value.dataType.key));
+                                console.log("           value: ",colorize(dataValue.value.value));
+                            } else {
+                                console.log("           value: <null>");
+                            }
+                            console.log("      statusCode: 0x", dataValue.statusCode.toString(16) );
+                            console.log(" sourceTimestamp: ",dataValue.sourceTimestamp, dataValue.sourcePicoseconds );
+                        }
+                    }
+                });
+                rl.resume();
+            }
+            break;
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
             break;

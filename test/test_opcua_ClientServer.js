@@ -282,6 +282,16 @@ describe("testing basic Client-Server communication",function() {
             });
 
         });
+
+        it("should readAllAttributes",function(){
+            var readResult = g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
+
+                nodesToRead.length.should.equal(dataValues.length);
+            });
+
+        });
+
+
     });
 });
 
