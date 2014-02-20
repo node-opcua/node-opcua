@@ -301,5 +301,14 @@ describe("Testing ChannelSecurityToken livetime",function(){
             console.log(" received livetime_75")
             done();
         });
-    })
+    });
+    it("A secureschannel should raise a event to notify its client that a token about to expired has been renewed",function(done){
+
+        client.connect(endpointUrl,function(err){should(err).eql(null); })
+        client._secureChannel.on("security_token_renewed",function(){
+            console.log(" received security_token_renewed")
+            done();
+        });
+    });
+
 })
