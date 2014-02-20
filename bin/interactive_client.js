@@ -73,6 +73,8 @@ if (rl.history) {
     hostname = hostname.toLowerCase();
     rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
     rl.history.push("open opc.tcp://" + hostname + ":4841");
+    rl.history.push("open opc.tcp://" + "localhost" + ":51210/UA/SampleServer");
+    rl.history.push("open opc.tcp://" + hostname + ":6543/UA/SampleServer");
     rl.history.push("b ObjectsFolder");
     rl.history.push("r ns=2;s=Furnace_1.Temperature");
 

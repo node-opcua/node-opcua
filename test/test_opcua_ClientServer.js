@@ -207,6 +207,35 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
+
+    it(" calling connect on the client twice shall return a error the second time",function(done){
+        server.connected_client_count.should.equal(0);
+
+        client.protocolVersion = 1;
+
+        async.series([
+            function(callback) {
+                client.connect(endpointUrl,callback);
+            },
+            function(callback) {
+
+
+                client.connect(endpointUrl,function(err) {
+
+                    err.should.be.instanceOf(Error);
+
+                    callback();
+                });
+            },
+            function(callback) {
+                client.disconnect(callback);
+            },
+            function(callback) {
+                server.shutdown(callback);
+            }
+        ],done);
+    });
+
     describe("Browse&Read Service",function() {
 
         var g_session = null;

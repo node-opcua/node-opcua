@@ -16,7 +16,7 @@ describe("Testing a simple server from Server side",function(){
 
         var e = opcua.parseEndpointUrl(endpoint.endpointDescription().endpointUrl);
 
-        e.hostname.should.be.equal(require("os").hostname());
+        e.hostname.should.be.equal(require("os").hostname().toLowerCase());
         e.port.should.be.greaterThan(500);
 
     });

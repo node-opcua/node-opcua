@@ -12,6 +12,9 @@ var Variable = server_engine.Variable;
 var AttributeIds = read_service.AttributeIds;
 var Folder = server_engine.Folder;
 var DataType = require("../../lib/variant").DataType;
+var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
+
+
 
 describe("ServerEngine", function () {
 
@@ -179,6 +182,7 @@ describe("ServerEngine", function () {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.BrowseName);
 
+        readResult.statusCode.should.eql(0);
         readResult.value.dataType.should.eql(DataType.QualifiedName);
         readResult.value.value.name.should.equal("Root");
     });
@@ -187,6 +191,7 @@ describe("ServerEngine", function () {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.NodeClass);
 
+        readResult.statusCode.should.eql(0);
         readResult.value.dataType.should.eql(DataType.UInt32);
         readResult.value.value.should.equal(NodeClass.Object.value);
     });
@@ -195,6 +200,7 @@ describe("ServerEngine", function () {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.NodeId);
 
+        readResult.statusCode.should.eql(0);
         readResult.value.dataType.should.eql(DataType.NodeId);
         readResult.value.value.toString().should.equal("ns=0;i=84");
     });
@@ -203,14 +209,75 @@ describe("ServerEngine", function () {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.DisplayName);
 
+        readResult.statusCode.should.eql(0);
         readResult.value.dataType.should.eql(DataType.LocalizedText);
         readResult.value.value.text.toString().should.equal("Root");
     });
 
-    it("should retun null  - readSingleNode - with unknown object",function() {
+    it("should handle a readSingleNode - Description",function() {
 
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.Description);
+        readResult.statusCode.should.eql(0);
+        readResult.value.dataType.should.eql(DataType.LocalizedText);
+        readResult.value.value.text.toString().should.equal("");
+    });
+
+    it("should handle a readSingleNode - WriteMask",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.WriteMask);
+        readResult.statusCode.should.eql(0);
+        readResult.value.dataType.should.eql(DataType.UInt32);
+        readResult.value.value.should.equal(0);
+    });
+
+    it("should handle a readSingleNode - UserWriteMask",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.UserWriteMask);
+        readResult.value.dataType.should.eql(DataType.UInt32);
+        readResult.value.value.should.equal(0);
+    });
+
+    it("should handle a readSingleNode - IsAbstract",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.IsAbstract);
+        readResult.value.dataType.should.eql(DataType.Boolean);
+        readResult.value.value.should.equal(false);
+    });
+
+    it("should handle a readSingleNode - Symmetric",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.Symmetric);
+        readResult.value.dataType.should.eql(DataType.Boolean);
+        readResult.value.value.should.equal(false);
+    });
+    it("should handle a readSingleNode - ContainsNoLoops",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops);
+        readResult.value.dataType.should.eql(DataType.Boolean);
+        readResult.value.value.should.equal(true);
+    });
+    it("should handle a readSingleNode - EventNotifier",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.EventNotifier);
+        readResult.value.dataType.should.eql(DataType.UInt32);
+        readResult.value.value.should.equal(0   );
+    });
+    it("should handle a readSingleNode - InverseName",function() {
+
+        var readResult = server.readSingleNode("RootFolder",AttributeIds.InverseName);
+        readResult.value.dataType.should.eql(DataType.String);
+        //xx readResult.value.value.should.equal(false);
+    });
+
+
+
+
+
+
+
+    it("should retun null  - readSingleNode - with unknown object",function() {
         var readResult = server.readSingleNode("**UNKNONW**",AttributeIds.DisplayName);
-        assert(readResult === null);
+        readResult.statusCode.should.equal(StatusCodes.Bad_NodeIdUnknown.value);
     });
 
     it("should read ",function() {
