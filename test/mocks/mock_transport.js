@@ -60,7 +60,7 @@ function MockTransport(promised_replies,done) {
 
             if (_.isFunction(reply)) {
                 reply = reply.call(self);
-                console.log(" interpreting reply as a function" + reply);
+                // console.log(" interpreting reply as a function" + reply);
                 if (!reply) {
                     return;
                 }

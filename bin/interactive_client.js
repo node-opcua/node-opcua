@@ -8,7 +8,7 @@ var opcua = require("..");
 var OPCUAClient = opcua.OPCUAClient;
 
 var utils = require('../lib/utils');
-
+var assert = require('better-assert');
 
 
 function completer(line) {
@@ -56,6 +56,7 @@ client.on("send_request",function(message){
 });
 client.on("receive_response",function(message){
     if (dumpPacket) {
+        assert(message);
         console.log(" receive response".cyan.bold);
         var analyze_object_binary_encoding = require("../lib/packet_analyzer").analyze_object_binary_encoding;
         analyze_object_binary_encoding(message);

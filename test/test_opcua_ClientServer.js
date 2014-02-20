@@ -267,9 +267,8 @@ describe("Testing ChannelSecurityToken livetime",function(){
     beforeEach(function(done){
 
         server = new OPCUAServer({
-            defaultSecureTokenLiveTime: 8 , // very short !
+            defaultSecureTokenLiveTime: 100  // very short !
         });
-
 
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
@@ -298,17 +297,32 @@ describe("Testing ChannelSecurityToken livetime",function(){
 
         client.connect(endpointUrl,function(err){should(err).eql(null); })
         client._secureChannel.on("livetime_75",function(){
-            console.log(" received livetime_75")
+            debugLog(" received livetime_75")
             done();
         });
     });
+
     it("A secureschannel should raise a event to notify its client that a token about to expired has been renewed",function(done){
 
         client.connect(endpointUrl,function(err){should(err).eql(null); })
         client._secureChannel.on("security_token_renewed",function(){
-            console.log(" received security_token_renewed")
+            debugLog(" received security_token_renewed")
             done();
         });
     });
 
+    it("A client should periodically renew expiring security token",function(done){
+
+        client.connect(endpointUrl,function(err){should(err).eql(null); })
+
+        var security_token_renewed_counter = 0;
+        client._secureChannel.on("security_token_renewed",function(){
+            debugLog(" received security_token_renewed")
+            security_token_renewed_counter+=1;
+        });
+        setTimeout(function(){
+            security_token_renewed_counter.should.be.greaterThan(3);
+            done();
+        },600);
+    });
 })

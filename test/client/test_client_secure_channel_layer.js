@@ -90,11 +90,18 @@ describe("testing ClientSecureChannelLayer ",function(){
 
         var secureChannel = new ClientSecureChannelLayer();
 
-        (!!secureChannel.tokenId).should.equal(false);
+        // before connection the securityToken shall not exist
+        should(secureChannel.securityToken).equal(undefined);
 
         secureChannel.create("fake://localhost:2033/SomeAddress",function(err){
 
-            secureChannel.tokenId.should.equal(1);
+            // after connection client holds the security token provided by the server
+            should(secureChannel.securityToken).not.equal(undefined);
+
+            // in our server implementation, token id starts at 1
+            secureChannel.securityToken.tokenId.should.equal(1);
+
+
             secureChannel.close(function(err){
                 done(err);
             });
