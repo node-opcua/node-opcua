@@ -3,12 +3,12 @@ node-opcua
 
 an implementation of a OPC UA stack fully written in javascript and nodejs
 
-![OPC UA](http://b.repl.ca/v1/OPC-UA-blue.png)
+
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
 [![Build Status](https://travis-ci.org/erossignon/node-opcua.png?branch=master)](https://travis-ci.org/erossignon/node-opcua)
 [![Dependency Status](https://gemnasium.com/erossignon/node-opcua.png)](https://gemnasium.com/erossignon/node-opcua)
 [![Coverage Status](https://coveralls.io/repos/erossignon/node-opcua/badge.png)](https://coveralls.io/r/erossignon/node-opcua)
-
+[![OPC UA](http://b.repl.ca/v1/OPC-UA-blue.png)](http://opcfoundation.org/)
 
 
 
