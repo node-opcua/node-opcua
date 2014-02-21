@@ -1,52 +1,190 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Node-opcua by erossignon</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Node-opcua : an implementation of a OPC UA stack fully written in javascript and nodejs" />
 
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Node-opcua</title>
   </head>
+
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/erossignon/node-opcua">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/erossignon/node-opcua/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/erossignon/node-opcua/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
 
-    <div class="wrapper">
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/erossignon/node-opcua">View on GitHub</a>
 
-      <section>
-        <div id="title">
-          <h1>Node-opcua</h1>
-          <p>an implementation of a OPC UA stack fully written in javascript and nodejs</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/erossignon">erossignon</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
+          <h1 id="project_title">Node-opcua</h1>
+          <h2 id="project_tagline">an implementation of a OPC UA stack fully written in javascript and nodejs</h2>
 
-        <h3>
-<a name="welcome-to-upc-ua-nodejs-sdk" class="anchor" href="#welcome-to-upc-ua-nodejs-sdk"><span class="octicon octicon-link"></span></a>Welcome to UPC-UA NodeJS SDK</h3>
-
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-      </section>
-
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/erossignon/node-opcua/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/erossignon/node-opcua/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="node-opcua" class="anchor" href="#node-opcua"><span class="octicon octicon-link"></span></a>node-opcua</h1>
+
+<p>an implementation of a OPC UA stack fully written in javascript and nodejs</p>
+
+<p><a href="http://badge.fury.io/js/node-opcua"><img src="https://badge.fury.io/js/node-opcua.png" alt="NPM version"></a>
+<a href="https://travis-ci.org/erossignon/node-opcua"><img src="https://travis-ci.org/erossignon/node-opcua.png?branch=master" alt="Build Status"></a>
+<a href="https://gemnasium.com/erossignon/node-opcua"><img src="https://gemnasium.com/erossignon/node-opcua.png" alt="Dependency Status"></a>
+<a href="https://coveralls.io/r/erossignon/node-opcua"><img src="https://coveralls.io/repos/erossignon/node-opcua/badge.png" alt="Coverage Status"></a>
+<a href="https://codeclimate.com/github/erossignon/node-opcua"><img src="https://codeclimate.com/github/erossignon/node-opcua.png" alt="Code Climate"></a></p>
+
+<p><a href="http://opcfoundation.org/"><img src="http://b.repl.ca/v1/OPC-UA-blue.png" alt="OPC UA"></a></p>
+
+<p>node-opcua is an experimental OPC-UA stack written in NodeJS.</p>
+
+<p>Why NodeJS ?</p>
+
+<p>Because nodeJs is a great framework to design asynchronous application.</p>
+
+<h1>
+<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting started</h1>
+
+<h2>
+<a name="installing-node-opcua" class="anchor" href="#installing-node-opcua"><span class="octicon octicon-link"></span></a>installing node-opcua</h2>
+
+<pre><code>$ npm install node-opcua
+</code></pre>
+
+<h2>
+<a name="first-example" class="anchor" href="#first-example"><span class="octicon octicon-link"></span></a>first example</h2>
+
+<p>install pre-requisite:</p>
+
+<pre><code>$ npm install async node-opcua
+</code></pre>
+
+<p>create a file <code>myfirstclient.js</code> and add the following code :</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">opcua</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"node-opcua"</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">async</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"async"</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">opcua</span><span class="p">.</span><span class="nx">OPCUAClient</span><span class="p">();</span>
+
+<span class="kd">var</span> <span class="nx">endpointUrl</span> <span class="o">=</span> <span class="s2">"opc.tcp://"</span> <span class="o">+</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"os"</span><span class="p">).</span><span class="nx">hostname</span><span class="p">()</span> <span class="o">+</span> <span class="s2">":4841"</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">the_session</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<span class="nx">async</span><span class="p">.</span><span class="nx">series</span><span class="p">([</span>
+
+
+    <span class="c1">// step 1 : connect to</span>
+    <span class="kd">function</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span>  <span class="p">{</span>
+      <span class="nx">client</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">endpointUrl</span><span class="p">,</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+         <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+           <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">" cannot connect to endpoint :"</span> <span class="p">,</span> <span class="nx">endpointUrl</span> <span class="p">);</span>
+         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"connected !"</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="p">});</span>
+   <span class="p">},</span>
+
+
+   <span class="c1">// step 2 : createSession</span>
+   <span class="kd">function</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+     <span class="nx">client</span><span class="p">.</span><span class="nx">createSession</span><span class="p">(</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+         <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+           <span class="nx">the_session</span> <span class="o">=</span> <span class="nx">session</span><span class="p">;</span>
+         <span class="p">}</span>
+         <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+     <span class="p">});</span>
+
+   <span class="p">},</span>
+
+
+   <span class="c1">// step 3 : browse</span>
+   <span class="kd">function</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+
+     <span class="nx">the_session</span><span class="p">.</span><span class="nx">browse</span><span class="p">(</span><span class="s2">"RootFolder"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="nx">browse_result</span><span class="p">,</span><span class="nx">diagnostics</span><span class="p">){</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">browse_result</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">references</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">reference</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span> <span class="nx">reference</span><span class="p">.</span><span class="nx">browseName</span><span class="p">);</span>
+          <span class="p">});</span>
+        <span class="p">}</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+     <span class="p">});</span>
+   <span class="p">},</span>
+
+
+   <span class="c1">// step 4 : read a variable</span>
+   <span class="kd">function</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+     <span class="nx">the_session</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="s2">"ns=2;s=Furnace_1.Temperature"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="nx">dataValues</span><span class="p">,</span><span class="nx">diagnostics</span><span class="p">)</span> <span class="p">{</span>
+       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">" temperature = "</span> <span class="p">,</span> <span class="nx">dataValues</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">value</span><span class="p">.</span><span class="nx">value</span><span class="p">);</span>
+       <span class="p">}</span>
+       <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+     <span class="p">})</span>
+   <span class="p">},</span>
+
+
+<span class="p">],</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">" failure "</span><span class="p">,</span><span class="nx">err</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"done!"</span><span class="p">)</span>
+  <span class="p">}</span>
+  <span class="c1">// disconnect regardless</span>
+  <span class="nx">client</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">(</span><span class="kd">function</span><span class="p">(){});</span>
+<span class="p">})</span> <span class="p">;</span>
+
+</pre></div>
+
+<p>now run it</p>
+
+<pre><code>$ node myfirstclient.js
+</code></pre>
+
+<h1>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h1>
+
+<pre><code>$ git clone git://github.com/erossignon/node-opcua.git node-opcua
+$ cd node-opcua
+$ npm install
+$ npm test
+</code></pre>
+
+<p><a href="https://flattr.com/submit/auto?user_id=gadz_er&amp;url=https://github.com/erossignon/node-opcua&amp;title=Node-OPCUA&amp;language=nodejs&amp;tags=github&amp;category=software"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this git repo"></a></p>
+
+<p><a href="https://nodei.co/npm/node-opcua/"><img src="https://nodei.co/npm/node-opcua.png?downloads=true&amp;stars=true" alt="NPM"></a></p>
+
+<p><a href="https://www.ohloh.net/p/node-opcua"><img src="https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif" alt="Project Stats"></a></p>
+
+<p><a href="https://bitdeli.com/free" title="Bitdeli Badge"><img src="https://d2weczhvl823v0.cloudfront.net/erossignon/node-opcua/trend.png" alt="Bitdeli Badge"></a></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Node-opcua maintained by <a href="https://github.com/erossignon">erossignon</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-25438821-3");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
   </body>
 </html>
