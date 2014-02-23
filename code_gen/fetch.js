@@ -38,7 +38,7 @@ function wget(url) {
         // handle the response
         var res_data = '';
         // console.log(response);
-        var fileBytes = parseInt(response.headers['content-length']);
+        var fileBytes = parseInt(response.headers['content-length'],10);
         var bar = new ProgressBar('  downloading ' + url + '[:bar] :percent :etas', {
             complete: '='
             , incomplete: ' '

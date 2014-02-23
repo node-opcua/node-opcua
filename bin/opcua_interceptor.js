@@ -15,10 +15,10 @@ var s = require("../lib/structures");
 
 require("colors");
 
-var remote_port = parseInt(argv.port) || 4841;
+var remote_port = parseInt(argv.port,10) || 4841;
 hostname = argv.hostname || "localhost" ;
 
-var my_port = parseInt(argv.portServer) || remote_port + 1;
+var my_port = parseInt(argv.portServer,10) || remote_port + 1;
 
 
 var TrafficAnalyser = function(id)

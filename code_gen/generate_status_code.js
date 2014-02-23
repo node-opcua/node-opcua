@@ -11,7 +11,7 @@ var codeMap = {};
 csv().from.stream(fs.createReadStream(__dirname + '/StatusCodes.csv')).to.array(function (data) {
     data.forEach(function (e) {
         var codeName = e[0];
-        codeMap[codeName] = parseInt(e[1]);
+        codeMap[codeName] = parseInt(e[1],10);
     });
     //xx console.log(data);
 

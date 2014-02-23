@@ -40,7 +40,7 @@ csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(functi
             if (codeMap.hasOwnProperty(name)) {
                 e = codeMap[name];
                 var name = e[0];
-                var id   = parseInt(e[1]);
+                var id   = parseInt(e[1],10);
                 var typeName = e[2];
 
                 outFile.write(sprintf("  %40s: { name: %40s , value: %6d }, \n",name,"'"+name+"'",id));
@@ -59,7 +59,7 @@ csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(functi
                 if (typeMap.hasOwnProperty(name)) {
                     e = typeMap[name];
                     var name = e[0];
-                    var id   = parseInt(e[1]);
+                    var id   = parseInt(e[1],10);
                     var type = e[2];
                     outFile.write(sprintf("  %80s: %6d , \n",name,id));
                 }
