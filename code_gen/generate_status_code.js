@@ -4,53 +4,65 @@ var fs = require("fs");
 var csv = require("csv");
 var sprintf = require("sprintf").sprintf;
 
-// see OPC-UA Part 6 , A2
-var codeMap= {};
-csv().from.stream(fs.createReadStream(__dirname+'/StatusCodes.csv')).to.array(function(data)
-{
-   data.forEach(function(e){
-       var codeName = e[0];
-       codeMap[codeName] = parseInt(e[1]);
-   });
-   //xx console.log(data);
 
-   parseStatusCodeXML();
+
+// see OPC-UA Part 6 , A2
+var codeMap = {};
+csv().from.stream(fs.createReadStream(__dirname + '/StatusCodes.csv')).to.array(function (data) {
+    data.forEach(function (e) {
+        var codeName = e[0];
+        codeMap[codeName] = parseInt(e[1]);
+    });
+    //xx console.log(data);
+
+    console.log("codeMap" , codeMap);
+    parseStatusCodeXML();
 
 });
 
 function parseStatusCodeXML() {
 
-    var xmlFile = "./code_gen/UA_StatusCodes.xml";
+    var xmlFile = __dirname + "/UA_StatusCodes.xml";
 
     var parser = new xml.Parser();
 
     var obj = {};
-    var outFile = fs.createWriteStream("lib/opcua_status_code.js");
+    var outFile = fs.createWriteStream(__dirname + "/../lib/raw_status_codes.js");
 
     outFile.write("// this file has been automatically generated\n");
+
     outFile.write(" exports.StatusCodes = { \n");
-    parser.on('startElement',function(name,attrs) {
-        var obj ;
-        if ( name == "opc:Constant") {
+
+    outFile.write("  Good: { name:'Good', value: 0, description:'No Error' }\n");
+
+    parser.on('startElement', function (name, attrs) {
+
+        if (name == "opc:Constant") {
             var cstName = attrs.Name;
             if (cstName in codeMap) {
-                obj = { name:cstName,value:codeMap[cstName]};
+                obj = { name: cstName, value: codeMap[cstName]};
             } else {
-                console.log("cannot find",cstName);
+                console.log("cannot find", cstName);
             }
-        }  else if ( name == "opc:Documentation") {
+        } else if (name == "opc:Documentation") {
 
-            parser.once("text",function(txt) {
+            parser.once("text", function (txt) {
                 obj.description = txt;
             });
         }
     });
-    parser.on("endElement",function(name){
-       if ( name === "opc:TypeDictionary") {
-           outFile.write("};\n");
-       } else if ( name === "opc:Constant") {
-           outFile.write(sprintf("  %40s: { name: %40s , value: %6d  ,description: \"%s\"}, \n",obj.name,"'"+obj.name+"'",obj.value, obj.description));
-       }
+
+    var sep = ",";
+    parser.on("endElement", function (name) {
+
+        if (name === "opc:TypeDictionary") {
+            outFile.write("};\n");
+        } else if (name === "opc:Constant") {
+            outFile.write(
+                sprintf("%1s %40s: { name: %40s , value: %6d  ,description: \"%s\"}\n",
+                    sep, obj.name, "'" + obj.name + "'", obj.value, obj.description));
+            sep = ",";
+        }
     });
 
     parser.write(fs.readFileSync(xmlFile));

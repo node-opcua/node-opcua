@@ -1,12 +1,15 @@
 
 var s = require("./../lib/structures");
 var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var StatusCodes = require("./../lib/opcua_status_code").StatusCodes;
 
 describe("DiagnosticInfo",function(){
 
     it("should have encodingDefaultBinary = 25",function(){
+
         var diag = new s.DiagnosticInfo();
         diag.encodingDefaultBinary.value.should.equal(25);
+
     });
 
     it("should encode default DiagnosticInfo in a single byte",function(){
@@ -46,7 +49,7 @@ describe("DiagnosticInfo",function(){
 
         var diag = new s.DiagnosticInfo({
             identifier: { symbolicId: 120 , locale:128 },
-            innerStatusCode: 234
+            innerStatusCode: StatusCodes.Bad_CertificateRevocationUnknown
         });
 
         encode_decode_round_trip_test(diag,function(buffer,id){

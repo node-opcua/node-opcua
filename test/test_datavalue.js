@@ -1,6 +1,9 @@
 var DataValue = require("../lib/datavalue").DataValue;
 var Variant = require("../lib/variant").Variant;
 var DataType = require("../lib/variant").DataType;
+
+var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
+
 var should = require("should");
 
 var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -42,7 +45,7 @@ describe("DataValue",function(){
 
         var dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value:"Hello"}),
-            statusCode: 0xBEEF,
+            statusCode: StatusCodes.Bad_CertificateHostNameInvalid,
             serverTimestamp: new Date(),
             serverPicoseconds: 1000,
             sourceTimestamp: new Date(),

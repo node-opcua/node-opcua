@@ -5,7 +5,7 @@ var assert = require('better-assert');
 var utils = require("../../lib/utils");
 var color = require("colors");
 var s = require("../../lib/structures");
-
+var StatusCode = require("../../lib/opcua_status_code").StatusCode;
 
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);
 
@@ -109,6 +109,7 @@ describe("testing ClientTCP_transport",function(){
     });
 
     function makeError(statusCode){
+        assert(statusCode instanceof StatusCode);
         return new s.TCPErrorMessage({ name: statusCode.value, reason: statusCode.description});
     }
 

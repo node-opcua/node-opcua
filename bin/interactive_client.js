@@ -17,11 +17,11 @@ function completer(line) {
     if (line.trim().indexOf("open")) {
 
         completions = 'localhost <port>'.split(' ');
-        hits = completions.filter(function(c) { return c.indexOf(line) == 0 });
+        hits = completions.filter(function(c) { return c.indexOf(line) === 0 });
         return [hits.length ? hits : completions, line]
     } else {
         completions = 'open close getEndpoints quit'.split(' ');
-        hits = completions.filter(function(c) { return c.indexOf(line) == 0 });
+        hits = completions.filter(function(c) { return c.indexOf(line) === 0 });
         // show all completions if none found
         return [hits.length ? hits : completions, line]
     }

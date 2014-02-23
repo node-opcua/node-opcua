@@ -223,6 +223,29 @@ describe("Factories: testing object factory", function () {
         s.value.should.equal(0);
     });
 
+    it("should handle StatusCode ",function(){
+
+        var StatusCode = require("../lib/opcua_status_code").StatusCode;
+        var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
+        var MyStruct2 = factories.registerObject( {
+            name: "MyStruct2",
+            id: factories.next_available_id(),
+            fields: [
+                { name: "value",      fieldType: "MyInteger" },
+                { name: "statusCode", fieldType: "StatusCode" }
+            ]
+        });
+
+        var s = new MyStruct2();
+        s.should.have.property("value");
+        s.should.have.property("statusCode");
+        s.value.should.equal(0);
+        s.statusCode.value.should.equal(0);
+        s.statusCode.should.eql(StatusCodes.Good);
+        // should.eql(StatusCode.Good);
+
+
+    });
 
     it('should handle enumeration properly',function(){
 

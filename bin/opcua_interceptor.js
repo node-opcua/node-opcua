@@ -36,7 +36,7 @@ TrafficAnalyser.prototype.add = function(data)
 	}
     var messageHeader = opcua.readMessageHeader(stream);
 
-    if (messageHeader.msgType == "ERR") {
+    if (messageHeader.msgType === "ERR") {
 
         var err = new s.TCPErrorMessage();
         err.decode(stream);

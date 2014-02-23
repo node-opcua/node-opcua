@@ -44,7 +44,7 @@ function browseTree(root, nodeId, callback) {
                 root[node.browseName.name].typeDefinition  =node.typeDefinition.toString();
                 root[node.browseName.name].nodes = {};
 
-                if (node.typeDefinition.value == folderTypeNodeId.value   || node.typeDefinition.value == 2000 || node.typeDefinition.value == 62  ) {
+                if (node.typeDefinition.value === folderTypeNodeId.value   || node.typeDefinition.value === 2000 || node.typeDefinition.value === 62  ) {
 
                     if (node.isForward) {
                         //xx console.log(" appending : " + node.nodeId.displayText());
