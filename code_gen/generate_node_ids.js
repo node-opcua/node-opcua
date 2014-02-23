@@ -11,16 +11,16 @@ var codeMap= {};
 csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(function(data)
 {
     //xx console.log(data);
-
+    var name,id,type,codeName,value,typeName;
     var metaMap = {
 
     };
 
     data.forEach(function(e) {
 
-        var codeName = e[0];
-        var value    = e[1];
-        var type     = e[2];
+        codeName = e[0];
+        value    = e[1];
+        type     = e[2];
 
         if (!metaMap.hasOwnProperty(type)) {
             metaMap[type]= {};
@@ -39,9 +39,9 @@ csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(functi
         for(name in codeMap) {
             if (codeMap.hasOwnProperty(name)) {
                 e = codeMap[name];
-                var name = e[0];
-                var id   = parseInt(e[1],10);
-                var typeName = e[2];
+                name = e[0];
+                id   = parseInt(e[1],10);
+                typeName = e[2];
 
                 outFile.write(sprintf("  %40s: { name: %40s , value: %6d }, \n",name,"'"+name+"'",id));
             }
@@ -58,9 +58,9 @@ csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(functi
             for(name in typeMap) {
                 if (typeMap.hasOwnProperty(name)) {
                     e = typeMap[name];
-                    var name = e[0];
-                    var id   = parseInt(e[1],10);
-                    var type = e[2];
+                    name = e[0];
+                    id   = parseInt(e[1],10);
+                    type = e[2];
                     outFile.write(sprintf("  %80s: %6d , \n",name,id));
                 }
             }

@@ -29,7 +29,7 @@ describe("OPCUA-CLIENT",function(){
             opcua.packTcpMessage("MSG", m.fake_GetEndpointsResponse),
 
             // transaction 4 ( CloseChannelResponse )
-            opcua.packTcpMessage("CLO",m.fake_CloseSecureChannelResponse),
+            opcua.packTcpMessage("CLO",m.fake_CloseSecureChannelResponse)
 
 
         ],done);
@@ -72,7 +72,7 @@ describe("OPCUA-CLIENT",function(){
 
 
             // transaction 4 ( CloseChannelResponse )
-            opcua.packTcpMessage("CLO",m.fake_CloseSecureChannelResponse),
+            opcua.packTcpMessage("CLO",m.fake_CloseSecureChannelResponse)
 
         ],done);
         require("../lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);

@@ -20,7 +20,7 @@ perform_findServersRequest(discovery_server_endpointUrl,function(err,servers){
             console.log("               type:",server.applicationType.key.cyan.bold);
             console.log("   gatewayServerUri:",server.gatewayServerUri.cyan.bold);
             console.log("discoveryProfileUri:",server.discoveryProfileUri.cyan.bold);
-            console.log("      discoveryUrls:")
+            console.log("      discoveryUrls:");
             server.discoveryUrls.forEach(function(discoveryUrl) {
             console.log("                    " + discoveryUrl.cyan.bold);
             });

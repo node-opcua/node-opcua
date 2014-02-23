@@ -139,7 +139,7 @@ describe("testing and exploring the NodeJS crypto api",function(){
 
         var crypto = require('crypto')
             , key = 'salt_from_the_user_document'
-            , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum)
+            , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum);
 
 
 

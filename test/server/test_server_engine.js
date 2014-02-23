@@ -22,10 +22,10 @@ describe("ServerEngine", function () {
     var server;
     beforeEach(function(){
         server = new server_engine.ServerEngine();
-    })
+    });
     afterEach(function(){
         server = null;
-    })
+    });
 
     it("should have a rootFolder ", function () {
 

@@ -25,4 +25,4 @@ server.registerServer(discovery_server_endpointUrl,function(err){
         });
 
     }
-})
+});

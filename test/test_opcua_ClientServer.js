@@ -251,7 +251,7 @@ describe("testing basic Client-Server communication",function() {
                 }
             });
 
-        })
+        });
         afterEach(function(done){
 
             client.disconnect(done);
@@ -334,29 +334,29 @@ describe("Testing ChannelSecurityToken livetime",function(){
     });
     it("A secureschannel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
 
-        client.connect(endpointUrl,function(err){should(err).eql(null); })
+        client.connect(endpointUrl,function(err){should(err).eql(null); });
         client._secureChannel.once("livetime_75",function(){
-            debugLog(" received livetime_75")
+            debugLog(" received livetime_75");
             done();
         });
     });
 
     it("A secureschannel should raise a event to notify its client that a token about to expired has been renewed",function(done){
 
-        client.connect(endpointUrl,function(err){should(err).eql(null); })
+        client.connect(endpointUrl,function(err){should(err).eql(null); });
         client._secureChannel.on("security_token_renewed",function(){
-            debugLog(" received security_token_renewed")
+            debugLog(" received security_token_renewed");
             done();
         });
     });
 
     it("A client should periodically renew the expiring security token",function(done){
 
-        client.connect(endpointUrl,function(err){should(err).eql(null); })
+        client.connect(endpointUrl,function(err){should(err).eql(null); });
 
         var security_token_renewed_counter = 0;
         client._secureChannel.on("security_token_renewed",function(){
-            debugLog(" received security_token_renewed")
+            debugLog(" received security_token_renewed");
             security_token_renewed_counter+=1;
         });
         setTimeout(function(){
@@ -364,4 +364,4 @@ describe("Testing ChannelSecurityToken livetime",function(){
             done();
         },600);
     });
-})
+});

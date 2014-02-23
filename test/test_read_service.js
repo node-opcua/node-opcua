@@ -29,7 +29,7 @@ var fixture_ws_readRequest_message2= makebuffer(
 "0f 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d 10 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d "+
 "11 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d 12 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d "+
 "13 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d 14 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d "+
-"15 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d 16 00 00 00 ff ff ff ff 00 00 ff ff ff ff")
+"15 00 00 00 ff ff ff ff 00 00 ff ff ff ff 00 3d 16 00 00 00 ff ff ff ff 00 00 ff ff ff ff");
 
 var fixture_ws_readResponse_message= makebuffer(
 "4d 53 47 46 f0 01 00 00 08 00 " +

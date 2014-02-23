@@ -10,7 +10,7 @@ function verify_multi_chunk_message(packets) {
 
     var messageBuild = new MessageBuilder();
     messageBuild.on("full_message_body", function (full_message_body) {
-        console.log("full_message_body received:")
+        console.log("full_message_body received:");
         packet_analyzer(full_message_body);
     });
     messageBuild.on("start_chunk", function (info,data) {

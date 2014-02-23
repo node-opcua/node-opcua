@@ -3057,14 +3057,13 @@ exports.peer0_19 = new Buffer([
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var verify_multi_chunk_message= require("../test/utils/verify_message_chunk").verify_multi_chunk_message;
-var session_service = require("../lib/session_service").packet_analyzer;
-var session_service = require("../lib/read_service").packet_analyzer;
-var session_service = require("../lib/browse_service").packet_analyzer;
+require("../lib/session_service").packet_analyzer;
+require("../lib/read_service").packet_analyzer;
+require("../lib/browse_service").packet_analyzer;
 //xx verify_multi_chunk_message([exports.peer0_0]);
 //xx verify_multi_chunk_message([exports.peer1_0]);
 
 
-if (false) {
 
 // OpenChannelRequest
 verify_multi_chunk_message([exports.peer0_1]);
@@ -3074,7 +3073,7 @@ verify_multi_chunk_message([exports.peer1_1]);
 // CreateSessionRequest
 verify_multi_chunk_message([exports.peer0_2,exports.peer0_3]);
 // CreateSessionResponse
-}
+
 
 verify_multi_chunk_message([
     exports.peer1_2, exports.peer1_3, exports.peer1_4,  exports.peer1_5, exports.peer1_6, exports.peer1_7,
@@ -3083,7 +3082,6 @@ verify_multi_chunk_message([
     exports.peer1_20,exports.peer1_21,exports.peer1_22,exports.peer1_23,exports.peer1_24
 ]);
 
-process.exit(0);
 
 console.log("===================================================================================== A");
 // ActivateSessionRequest
