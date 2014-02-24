@@ -10,6 +10,8 @@ var resolveNodeId = require("../lib/nodeid").resolveNodeId;
 var ec = require("../lib/encode_decode");
 var _ = require("underscore");
 
+var Xml2Json = require("../lib/xml2json/lib").Xml2Json;
+
 function add_alias(alias_name,nodeid) {
 
    console.log(" adding alias "+ alias_name + " => "+ nodeid);
@@ -33,8 +35,8 @@ function addUAVariableType(obj) {
     map[obj.nodeId.toString()] = obj;
 }
 function addUAReferenceType(obj) {
-    //  console.log(" adding addUAReferenceType " + obj.nodeId.toString() + " "+ obj.displayName);
-//    console.dir(obj);
+    console.log(" adding addUAReferenceType " + obj.nodeId.toString() + " "+ obj.displayName + " " + obj.inverseName);
+    console.dir(obj);
     map[obj.nodeId.toString()] = obj;
 }
 function addUADataType(obj) {
@@ -42,116 +44,13 @@ function addUADataType(obj) {
 //    console.dir(obj);
     map[obj.nodeId.toString()] = obj;
 }
+
 function addUAObjectType(obj) {
     //  console.log(" adding addUAObjectType " + obj.nodeId.toString() + " "+ obj.displayName);
 //    console.dir(obj);
     map[obj.nodeId.toString()] = obj;
     mapOT[obj.nodeId.toString()] = obj;
 }
-
-function coerceReaderState(options_or_reader_state)
-{
-    if (!(options_or_reader_state instanceof ReaderState)) {
-        return new ReaderState(options_or_reader_state);
-    }
-    var reader = options_or_reader_state;
-    for( var name in reader.parser) {
-        if (reader.parser.hasOwnProperty(name)) {
-            reader.parser[name] = coerceReaderState(reader.parser[name]);
-        }
-    }
-    return reader;
-}
-
-function ReaderState(options){
-    this.parser= options.parser || {};
-    this._init  = options.init;
-    this._finish  = options.finish;
-    this._startElement = options.startElement;
-    this._endElement = options.endElement;
-
-    var reader = this;
-    for( var name in reader.parser) {
-        if (reader.parser.hasOwnProperty(name)) {
-            reader.parser[name] = coerceReaderState(reader.parser[name]);
-        }
-    }
-}
-
-ReaderState.prototype.init= function(name,attrs) {
-    this.attrs = attrs;
-    assert(this.attrs);
-    if (this._init) {
-        this._init(name,attrs);
-    }
-};
-
-ReaderState.prototype.startElement= function(name,attrs) {
-
-    if (this.parser.hasOwnProperty(name)) {
-        this.engine._promote(this.parser[name],name,attrs);
-    } else  if (this._startElement) {
-        this._startElement(name,attrs);
-    }
-};
-ReaderState.prototype.endElement= function(name) {
-    assert(this.attrs);
-    if (this._endElement) {
-        this._endElement(name);
-    }
-    if (name==this.name) {
-        if (this._finish) {
-            this._finish();
-        }
-        // this is the end
-        this.engine._demote(this);
-    }
-};
-
-ReaderState.prototype.onText = function(text){
-    this.text = text;
-};
-
-function Xml2Json(state) {
-
-    state = coerceReaderState(state);
-
-    this.state_stack = [];
-    this.current_state = null;
-    this._promote(state);
-}
-
-Xml2Json.prototype._promote = function (new_state,name,attr) {
-    attr = attr || {};
-    new_state.name = name;
-    new_state.parent = this.current_state;
-    new_state.engine = this;
-
-    this.state_stack.push(this.current_state);
-    this.current_state = new_state;
-    this.current_state.init(name,attr);
-};
-
-Xml2Json.prototype._demote = function(cur_state) {
-    assert(this.current_state===cur_state);
-    this.current_state = this.state_stack.pop();
-};
-
-
-Xml2Json.prototype.parse = function(xmlFile) {
-    var self = this;
-    var parser = new xml.Parser();
-    parser.on('startElement',function(name,attrs)   {
-        self.current_state.startElement(name,attrs);
-    });
-    parser.on('endElement',  function(name)         {
-        self.current_state.endElement(name);
-    });
-    parser.on('text',        function(text)         {
-        self.current_state.onText(text);
-    });
-    parser.write(fs.readFileSync(xmlFile));
-};
 
 
 function generate_address_space() {
@@ -202,8 +101,24 @@ function generate_address_space() {
     var state_UAObjectType = _.clone(state_UAObject);
     state_UAObjectType.finish= function(name) { addUAObjectType(this.obj);    };
 
-    var state_UAReferenceType = _.clone(state_UAObject);
-    state_UAReferenceType.finish= function(name) { addUAReferenceType(this.obj);    };
+
+    var state_UAReferenceType= {
+        init: function(name,attrs) {
+            this.obj = {};
+            this.obj.isAbstract = attrs["IsAbstract"] || false;
+            this.obj.nodeId = coerceNodeId(attrs["NodeId"]) || null;
+            this.obj.browseName = attrs["BrowseName"];
+        },
+        finish: function(name) {
+            addUAReferenceType(this.obj);
+        },
+        parser: {
+            'DisplayName': {finish: function() { this.parent.obj.displayName = this.text; }},
+            'Description': {finish: function() { this.parent.obj.description = this.text; }},
+            'InverseName': {finish: function() { this.parent.obj.inverseName = this.text; }},
+            'References':  references_parser
+        }
+    };
 
     var state_UADataType = _.clone(state_UAObject);
     state_UADataType.finish= function(name) { addUADataType(this.obj);    };
@@ -268,28 +183,20 @@ var utils = require("../lib/utils");
 
 
 var template_Object= function(){/*
-&**
+£**
  *{{className}}
  * {{description}}
  *
  * @options:  construction values
  *
- *&
-function   {{className}}(options) {
+ *£
+function  {{className}}(options) {
     assert(options);
     assert(options.nodeId);
     assert(options.browseName);
     {{baseClassName}}.apply(this,arguments);
 
     assert(this.typeDefinition.value === {{nodeId.value}});
-
-    this.nodeId = resolveNodeId(options.nodeId);
-    this.browseName = options.browseName;
-    options.displayName = options.displayName || options.browseName; // xx { locale: "en", text: options.browseName };
-    this.displayName = [];
-    if (typeof options.displayName === "string") {
-         this.displayName.push(new s.LocalizedText({ locale: "en", text: options.displayName }));
-    }
 
     //---------------------------------- properties
     {{#properties}}
@@ -430,8 +337,37 @@ function dumpObjectType(objectType)
     console.log(txt);
 
 }
+
+
+function constructObjectFromTypeDefinition(nodeId , options)  {
+    var typeDefinition =map[nodeId.toString()];
+
+    console.log(" constructing a object of type : "  +typeDefinition.browseName);
+    console.log(" with parameters ,",options)
+
+};
+
+function dumpObject(obj) {
+
+    var parent = findReference(obj,"Organizes",false);
+
+    var typeDefinitionRef = findReference(obj,"HasTypeDefinition",true);
+    var typeDefinition =map[typeDefinitionRef.nodeId.toString()];
+
+    constructObjectFromTypeDefinition(typeDefinitionRef.nodeId,obj);
+
+    console.log(util.inspect(obj,{colors:true}));
+    console.log(util.inspect(typeDefinition,{colors:true}));
+    console.log(util.inspect(parent,{colors:true}));
+
+
+};
+
 var folderType =findByBrowseName("FolderType");
 dumpObjectType(folderType);
+
+var folder_Objects =findByBrowseName("Objects");
+dumpObject(folder_Objects);
 
 
 var serverType =findByBrowseName("ServerType");
