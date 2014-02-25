@@ -1,6 +1,8 @@
 var OPCUAServer = require("../lib/opcua-server.js").OPCUAServer;
 
-var server = new OPCUAServer();
+
+var default_xmlFile = __dirname + "../code_gen/Opc.Ua.NodeSet2.xml";
+var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
 
 var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
 var hostname = require("os").hostname().toLowerCase();
