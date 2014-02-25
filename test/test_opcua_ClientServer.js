@@ -236,6 +236,7 @@ describe("testing basic Client-Server communication",function() {
         ],done);
     });
 
+
     describe("Browse&Read Service",function() {
 
         var g_session = null;
@@ -253,9 +254,9 @@ describe("testing basic Client-Server communication",function() {
 
         });
         afterEach(function(done){
-
             client.disconnect(done);
         });
+
         it("should browse RootFolder",function(done){
 
             g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
@@ -263,7 +264,6 @@ describe("testing basic Client-Server communication",function() {
                     browseResults.length.should.equal(1);
                     browseResults[0]._schema.name.should.equal("BrowseResult");
                 }
-
                 done(err);
             });
 
@@ -286,10 +286,8 @@ describe("testing basic Client-Server communication",function() {
 
         it("should readAllAttributes",function(){
             var readResult = g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
-
                 nodesToRead.length.should.equal(dataValues.length);
             });
-
         });
 
 
@@ -306,16 +304,16 @@ describe("Testing ChannelSecurityToken livetime",function(){
     var endpointUrl ;
     beforeEach(function(done){
 
-        server = new OPCUAServer({
-            defaultSecureTokenLiveTime: 100  // very short livetime !
-        });
+        server = new OPCUAServer();
 
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
         debugLog("endpointUrl",endpointUrl);
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-        client = new OPCUAClient();
+        client = new OPCUAClient({
+            defaultSecureTokenLiveTime: 100  // very short livetime !
+        });
         server.start(function() {
             done();
         });
@@ -365,4 +363,74 @@ describe("Testing ChannelSecurityToken livetime",function(){
             done();
         },600);
     });
+
+
+});
+
+
+var factories = require("../lib/factories");
+// a fake request type that is supposed to be correcly decoded on server side
+// but that is not supported by the server engine
+var ServerSideUnimplementedRequest_Schema = {
+    name: "AggregateConfiguration",
+    fields: [
+        { name: "requestHeader" ,              fieldType:"RequestHeader" }
+    ]
+};
+var ServerSideUnimplementedRequest = factories.registerObject(ServerSideUnimplementedRequest_Schema);
+
+describe("testing Server resiliance to unsupported request",function(){
+
+
+
+    var server , client;
+    var endpointUrl,g_session ;
+    beforeEach(function(done){
+
+        server = new OPCUAServer();
+        // we will connect to first server end point
+        endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+        debugLog("endpointUrl",endpointUrl);
+        is_valid_endpointUrl(endpointUrl).should.equal(true);
+
+        client = new OPCUAClient();
+
+        server.start(function() {
+            client.connect(endpointUrl,function(err){
+                client.createSession(function(err,session){
+                    g_session = session;
+                    done();
+                });
+            });
+        });
+    });
+
+    afterEach(function(done){
+        client.disconnect(function(){
+            server.shutdown(function() {
+                done();
+            });
+        });
+
+    });
+
+
+    it("server should return a ServiceFault if receiving a unsupported MessageType",function(done){
+
+        var s = require("../lib/structures");
+        var bad_request = new ServerSideUnimplementedRequest(); // intentionnaly send a bad request
+
+        g_session.performMessageTransaction(bad_request,function(err,response){
+            assert(err instanceof Error);
+            if(err) {
+                done(null);
+            } else {
+                // console.log(JSON.stringify(response.results,null," ").yellow.bold);
+                done(null);
+            }
+        });
+    });
+
+
+
 });

@@ -113,7 +113,7 @@ describe("testing ClientSecureChannelLayer ",function(){
         var secureChannel = new ClientSecureChannelLayer();
         var s = require("../../lib/structures");
         var message = new s.GetEndpointsRequest();
-        secureChannel.performMessageTransaction(message, s.GetEndpointsResponse,function(err){
+        secureChannel.performMessageTransaction(message,function(err/*, response*/){
             err.message.should.equal("Client not connected");
             done();
         });
