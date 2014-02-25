@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="SByte">i=2</Alias>
+        <Alias Alias="Byte">i=3</Alias>
+        <Alias Alias="Int16">i=4</Alias>
+        <Alias Alias="UInt16">i=5</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="Int64">i=8</Alias>
+        <Alias Alias="UInt64">i=9</Alias>
+        <Alias Alias="Float">i=10</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="Guid">i=14</Alias>
+        <Alias Alias="XmlElement">i=16</Alias>
+        <Alias Alias="NodeId">i=17</Alias>
+        <Alias Alias="ExpandedNodeId">i=18</Alias>
+        <Alias Alias="QualifiedName">i=20</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="StatusCode">i=19</Alias>
+        <Alias Alias="Structure">i=22</Alias>
+        <Alias Alias="Number">i=26</Alias>
+        <Alias Alias="Integer">i=27</Alias>
+        <Alias Alias="UInteger">i=28</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasEventSource">i=36</Alias>
+        <Alias Alias="HasNotifier">i=48</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+    </Aliases>
+
+    <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
+        <DisplayName>References</DisplayName>
+        <Description>The abstract base type for all references.</Description>
+        <References />
+        <InverseName>References</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=32" BrowseName="NonHierarchicalReferences" IsAbstract="true">
+        <DisplayName>NonHierarchicalReferences</DisplayName>
+        <Description>The abstract base type for all non-hierarchical references.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=31</Reference>
+        </References>
+        <InverseName>NonHierarchicalReferences</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=33" BrowseName="HierarchicalReferences" IsAbstract="true">
+        <DisplayName>HierarchicalReferences</DisplayName>
+        <Description>The abstract base type for all hierarchical references.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=31</Reference>
+        </References>
+        <InverseName>HierarchicalReferences</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=34" BrowseName="HasChild">
+        <DisplayName>HasChild</DisplayName>
+        <Description>The abstract base type for all non-looping hierarchical references.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+        </References>
+        <InverseName>ChildOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=35" BrowseName="Organizes">
+        <DisplayName>Organizes</DisplayName>
+        <Description>The type for hierarchical references that are used to organize nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+        </References>
+        <InverseName>OrganizedBy</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=36" BrowseName="HasEventSource">
+        <DisplayName>HasEventSource</DisplayName>
+        <Description>The type for non-looping hierarchical references that are used to organize event sources.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+        </References>
+        <InverseName>EventSourceOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=37" BrowseName="HasModellingRule">
+        <DisplayName>HasModellingRule</DisplayName>
+        <Description>The type for references from instance declarations to modelling rule nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>ModellingRuleOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=38" BrowseName="HasEncoding">
+        <DisplayName>HasEncoding</DisplayName>
+        <Description>The type for references from data type nodes to to data type encoding nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>EncodingOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=39" BrowseName="HasDescription">
+        <DisplayName>HasDescription</DisplayName>
+        <Description>The type for references from data type encoding nodes to data type description nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>DescriptionOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=40" BrowseName="HasTypeDefinition">
+        <DisplayName>HasTypeDefinition</DisplayName>
+        <Description>The type for references from a instance node its type defintion node.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>TypeDefinitionOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=41" BrowseName="GeneratesEvent">
+        <DisplayName>GeneratesEvent</DisplayName>
+        <Description>The type for references from a node to an event type that is raised by node.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>GeneratesEvent</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=3065" BrowseName="AlwaysGeneratesEvent">
+        <DisplayName>AlwaysGeneratesEvent</DisplayName>
+        <Description>The type for references from a node to an event type that is always raised by node.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>AlwaysGeneratesEvent</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=44" BrowseName="Aggregates">
+        <DisplayName>Aggregates</DisplayName>
+        <Description>The type for non-looping hierarchical references that are used to aggregate nodes into complex types.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=34</Reference>
+        </References>
+        <InverseName>AggregatedBy</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=45" BrowseName="HasSubtype">
+        <DisplayName>HasSubtype</DisplayName>
+        <Description>The type for non-looping hierarchical references that are used to define sub types.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=34</Reference>
+        </References>
+        <InverseName>HasSupertype</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=46" BrowseName="HasProperty">
+        <DisplayName>HasProperty</DisplayName>
+        <Description>The type for non-looping hierarchical reference from a node to its property.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+        </References>
+        <InverseName>PropertyOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=47" BrowseName="HasComponent">
+        <DisplayName>HasComponent</DisplayName>
+        <Description>The type for non-looping hierarchical reference from a node to its component.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+        </References>
+        <InverseName>ComponentOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=48" BrowseName="HasNotifier">
+        <DisplayName>HasNotifier</DisplayName>
+        <Description>The type for non-looping hierarchical references that are used to indicate how events propagate from node to node.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=36</Reference>
+        </References>
+        <InverseName>NotifierOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=49" BrowseName="HasOrderedComponent">
+        <DisplayName>HasOrderedComponent</DisplayName>
+        <Description>The type for non-looping hierarchical reference from a node to its component when the order of references matters.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+        </References>
+        <InverseName>OrderedComponentOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=51" BrowseName="FromState">
+        <DisplayName>FromState</DisplayName>
+        <Description>The type for a reference to the state before a transition.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>ToTransition</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=52" BrowseName="ToState">
+        <DisplayName>ToState</DisplayName>
+        <Description>The type for a reference to the state after a transition.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>FromTransition</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=53" BrowseName="HasCause">
+        <DisplayName>HasCause</DisplayName>
+        <Description>The type for a reference to a method that can cause a transition to occur.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>MayBeCausedBy</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=54" BrowseName="HasEffect">
+        <DisplayName>HasEffect</DisplayName>
+        <Description>The type for a reference to an event that may be raised when a transition occurs.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>MayBeEffectedBy</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=117" BrowseName="HasSubStateMachine">
+        <DisplayName>HasSubStateMachine</DisplayName>
+        <Description>The type for a reference to a substate for a state.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>SubStateMachineOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=56" BrowseName="HasHistoricalConfiguration">
+        <DisplayName>HasHistoricalConfiguration</DisplayName>
+        <Description>The type for a reference to the historical configuration for a data variable.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+        </References>
+        <InverseName>HistoricalConfigurationOf</InverseName>
+    </UAReferenceType>
+
+
+
+
+    <UAObject NodeId="i=84" BrowseName="Root" SymbolicName="RootFolder">
+        <DisplayName>Root</DisplayName>
+        <Description>The root of the server address space.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=85" BrowseName="Objects" SymbolicName="ObjectsFolder">
+        <DisplayName>Objects</DisplayName>
+        <Description>The browse entry point when looking for objects in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=84</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=86" BrowseName="Types" SymbolicName="TypesFolder">
+        <DisplayName>Types</DisplayName>
+        <Description>The browse entry point when looking for types in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=84</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=87" BrowseName="Views" SymbolicName="ViewsFolder">
+        <DisplayName>Views</DisplayName>
+        <Description>The browse entry point when looking for views in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=84</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=88" BrowseName="ObjectTypes" SymbolicName="ObjectTypesFolder">
+        <DisplayName>ObjectTypes</DisplayName>
+        <Description>The browse entry point when looking for object types in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=86</Reference>
+            <Reference ReferenceType="Organizes">i=58</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=89" BrowseName="VariableTypes" SymbolicName="VariableTypesFolder">
+        <DisplayName>VariableTypes</DisplayName>
+        <Description>The browse entry point when looking for variable types in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=86</Reference>
+            <Reference ReferenceType="Organizes">i=62</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=90" BrowseName="DataTypes" SymbolicName="DataTypesFolder">
+        <DisplayName>DataTypes</DisplayName>
+        <Description>The browse entry point when looking for data types in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=86</Reference>
+            <Reference ReferenceType="Organizes">i=24</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=91" BrowseName="ReferenceTypes" SymbolicName="ReferenceTypesFolder">
+        <DisplayName>ReferenceTypes</DisplayName>
+        <Description>The browse entry point when looking for reference types in the server address space.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=86</Reference>
+            <Reference ReferenceType="Organizes">i=31</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+
+    <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
+        <DisplayName>BaseObjectType</DisplayName>
+        <Description>The base type for all object nodes.</Description>
+        <References />
+    </UAObjectType>
+
+    <UAObjectType NodeId="i=61" BrowseName="FolderType">
+        <DisplayName>FolderType</DisplayName>
+        <Description>The type for objects that organize other nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+
+
+    <UAVariableType NodeId="i=62" BrowseName="BaseVariableType" IsAbstract="true" ValueRank="-2">
+        <DisplayName>BaseVariableType</DisplayName>
+        <Description>The abstract base type for all variable nodes.</Description>
+        <References />
+    </UAVariableType>
+    <UAVariableType NodeId="i=63" BrowseName="BaseDataVariableType" ValueRank="-2">
+        <DisplayName>BaseDataVariableType</DisplayName>
+        <Description>The type for variable that represents a process value.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=62</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariableType NodeId="i=68" BrowseName="PropertyType" ValueRank="-2">
+        <DisplayName>PropertyType</DisplayName>
+        <Description>The type for variable that represents a property of another node.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=62</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariableType NodeId="i=69" BrowseName="DataTypeDescriptionType" DataType="String" ValueRank="-2">
+        <DisplayName>DataTypeDescriptionType</DisplayName>
+        <Description>The type for variable that represents the description of a data type encoding.</Description>
+        <References>
+            <Reference ReferenceType="HasProperty">i=104</Reference>
+            <Reference ReferenceType="HasProperty">i=105</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariable NodeId="i=104" BrowseName="DataTypeVersion" ParentNodeId="i=69" DataType="String">
+        <DisplayName>DataTypeVersion</DisplayName>
+        <Description>The version number for the data type description.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=69</Reference>
+        </References>
+    </UAVariable>
+
+
+</UANodeSet>

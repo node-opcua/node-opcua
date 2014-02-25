@@ -259,9 +259,10 @@ describe("testing basic Client-Server communication",function() {
         it("should browse RootFolder",function(done){
 
             g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
-
-                browseResults.length.should.equal(1);
-                browseResults[0]._schema.name.should.equal("BrowseResult");
+                if (!err) {
+                    browseResults.length.should.equal(1);
+                    browseResults[0]._schema.name.should.equal("BrowseResult");
+                }
 
                 done(err);
             });

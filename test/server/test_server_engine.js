@@ -3,25 +3,26 @@ var server_engine = require("../../lib/server/server_engine");
 var resolveNodeId = require("../../lib/nodeid").resolveNodeId;
 var NodeClass = require("../../lib/browse_service").NodeClass;
 var browse_service = require("../../lib/browse_service");
+BrowseDirection = browse_service.BrowseDirection;
 var read_service = require("../../lib/read_service");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 var util = require("util");
 var NodeId = require("../../lib/nodeid").NodeId;
 var assert = require('better-assert');
-var Variable = server_engine.Variable;
 var AttributeIds = read_service.AttributeIds;
-var Folder = server_engine.Folder;
+
 var DataType = require("../../lib/variant").DataType;
 var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
-
-
 
 describe("ServerEngine", function () {
 
 
-    var server;
+    var server,FolderTypeId,BaseDataVariableTypeId;
     beforeEach(function(){
         server = new server_engine.ServerEngine();
+        FolderTypeId = server.findObject("FolderType").nodeId;
+        BaseDataVariableTypeId = server.findObject("BaseDataVariableType").nodeId;
+
     });
     afterEach(function(){
         server = null;
@@ -29,7 +30,7 @@ describe("ServerEngine", function () {
 
     it("should have a rootFolder ", function () {
 
-        server.rootFolder.should.instanceOf(Folder);
+        server.rootFolder.hasTypeDefinition.should.eql(FolderTypeId);
 
     });
 
@@ -37,7 +38,7 @@ describe("ServerEngine", function () {
 
         var browseNode = server.findObject("RootFolder");
 
-        browseNode.should.be.instanceOf(Folder);
+        browseNode.hasTypeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(server.rootFolder);
 
 
@@ -47,27 +48,33 @@ describe("ServerEngine", function () {
 
         var browseNode = server.findObject("i=84");
 
-        browseNode.should.be.instanceOf(Folder);
+        browseNode.hasTypeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(server.rootFolder);
 
     });
 
-    it("should have an ObjectsFolder", function () {
+    it("should have an 'Objects' folder", function () {
 
         var rootFolder = server.findObject("RootFolder");
 
-        var objectFolder = server.findObject("ObjectsFolder");
-        objectFolder.parent.should.equal(rootFolder);
+        var objectFolder = server.findObject("Objects");
+
+        assert(objectFolder !== null);
+        objectFolder.parent.should.eql(rootFolder.nodeId);
+
 
     });
 
     it("should allow to create a new folder", function () {
 
         var rootFolder = server.findObject("RootFolder");
-        var newFolder = server.createFolder("RootFolder", "MyNewFolder");
 
-        newFolder.should.be.instanceOf(Folder);
-        newFolder.parent.should.equal(rootFolder);
+
+        var newFolder = server.createFolder("RootFolder", "MyNewFolder");
+        assert(newFolder);
+
+        newFolder.hasTypeDefinition.should.eql(FolderTypeId);
+        newFolder.parent.should.equal(rootFolder.nodeId);
 
     });
 
@@ -105,15 +112,21 @@ describe("ServerEngine", function () {
 
         newVariable.value.should.equal(10.0);
 
-        newVariable.should.be.instanceOf(Variable);
-        newVariable.parent.should.equal(newFolder);
+        newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
+        newVariable.parent.should.equal(newFolder.nodeId);
 
     });
 
 
-    it("should browse object folder",function(){
+    it("should browse the 'Objects' folder for back references",function(){
 
-        var browseResult = server.browseSingleNode("ObjectsFolder");
+
+        var browseDescription = {
+            browseDirection : BrowseDirection.Inverse,
+            referenceTypeId : "Organizes"
+        };
+
+        var browseResult = server.browseSingleNode("ObjectsFolder",browseDescription);
 
         browseResult.statusCode.should.eql( StatusCodes.Good);
         browseResult.references.length.should.equal(1);
@@ -125,20 +138,45 @@ describe("ServerEngine", function () {
         browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
 
+
     });
+
+
+
+
     it("should browse root folder",function(){
 
-        var browseResult = server.browseSingleNode("RootFolder");
+        var browseDescription = {
+            browseDirection : BrowseDirection.Both,
+            referenceTypeId : "Organizes"
+        };
+        var browseResult = server.browseSingleNode("RootFolder",browseDescription);
 
-        browseResult.statusCode.should.eql( StatusCodes.Good);
-        browseResult.references.length.should.equal(1);
+        browseResult.statusCode.should.eql(StatusCodes.Good);
+
+        browseResult.references.length.should.equal(3);
+
 
         browseResult.references[0].isForward.should.equal(true);
         browseResult.references[0].browseName.name.should.equal("Objects");
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
-        //xx browseResult.references[0].displayName.text.should.equal("Root");
-        browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[0].displayName.text.should.equal("Objects");
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
+        browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
+
+
+        browseResult.references[1].isForward.should.equal(true);
+        browseResult.references[1].browseName.name.should.equal("Types");
+        browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
+        browseResult.references[1].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
+
+
+        browseResult.references[2].isForward.should.equal(true);
+        browseResult.references[2].browseName.name.should.equal("Views");
+        browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
+        browseResult.references[2].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });
 
@@ -175,6 +213,9 @@ describe("ServerEngine", function () {
         var results = server.browse(browseRequest.nodesToBrowse);
 
         results.length.should.equal(2);
+
+        // RootFolder should have 4 nodes ( 1 hasTypeDefinition , 3 sub-folders)
+        results[0].references.length.should.equal(4);
 
     });
 
