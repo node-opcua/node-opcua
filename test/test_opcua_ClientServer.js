@@ -7,7 +7,7 @@ var util = require("util");
 var opcua = require("../lib/nodeopcua");
 
 var debugLog  = require("../lib/utils").make_debugLog(__filename);
-
+var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
 
 function is_valid_endpointUrl(endpointUrl) {
     var e = opcua.parseEndpointUrl(endpointUrl);
@@ -29,10 +29,11 @@ describe("testing basic Client-Server communication",function() {
         debugLog("endpointUrl",endpointUrl);
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-        server.start(function() {
-            done();
-        });
         client = new OPCUAClient();
+
+        server.start(function() {
+            setImmediate(done);
+        });
 
 
     });
@@ -207,7 +208,6 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-
     it(" calling connect on the client twice shall return a error the second time",function(done){
         server.connected_client_count.should.equal(0);
 
@@ -237,7 +237,7 @@ describe("testing basic Client-Server communication",function() {
     });
 
 
-    describe("Browse&Read Service",function() {
+    describe("Browse-Read-Write Services",function() {
 
         var g_session = null;
 
@@ -253,6 +253,7 @@ describe("testing basic Client-Server communication",function() {
             });
 
         });
+
         afterEach(function(done){
             client.disconnect(done);
         });
@@ -272,7 +273,33 @@ describe("testing basic Client-Server communication",function() {
         it("should read a Variable",function(done){
 
             g_session.readVariableValue("RootFolder",function(err,dataValues,diagnosticInfos){
+                if (!err) {
+                    dataValues.length.should.equal(1);
+                    dataValues[0]._schema.name.should.equal("DataValue");
+                }
+                done(err);
+            });
+        });
 
+        it("should readAllAttributes",function(done){
+            var readResult = g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
+                nodesToRead.length.should.equal(dataValues.length);
+                done(err);
+            });
+        });
+
+        it("should return a appropriate status code if nodeid to read doesn't exists",function(done){
+
+            g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist",function(err,dataValues,diagnosticInfos){
+                dataValues[0].statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
+                done();
+
+            });
+        });
+
+        it("should read the TemperatureTarget value", function(done) {
+
+            g_session.readVariableValue("ns=1;s=TemperatureTarget",function(err,dataValues,diagnosticInfos){
                 if (!err) {
                     dataValues.length.should.equal(1);
                     dataValues[0]._schema.name.should.equal("DataValue");
@@ -281,13 +308,22 @@ describe("testing basic Client-Server communication",function() {
                 done(err);
 
             });
-
         });
 
-        it("should readAllAttributes",function(){
-            var readResult = g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
-                nodesToRead.length.should.equal(dataValues.length);
-            });
+        it("should write the TemperatureTarget value", function(done) {
+
+            var Variant = require("../lib/variant").Variant;
+            var DataType = require("../lib/variant").DataType;
+            // write a single value
+            g_session.writeSingleNode(
+                "ns=1;s=TemperatureTarget",
+                {dataType: DataType.Double, value: 37.5 },
+                function(err,statusCode,diagnosticInfo){
+                    if (!err) {
+                        statusCode.should.eql(StatusCodes.Good);
+                    }
+                    done(err);
+                });
         });
 
 

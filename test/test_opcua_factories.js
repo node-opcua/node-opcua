@@ -109,6 +109,45 @@ describe("OPCUA Structure encoding and decoding", function () {
 });
 
 
+describe("testing DataValue encoding decoding",function(){
+
+    var DataValue = require("./../lib/datavalue").DataValue;
+    var DataType = require("./../lib/variant").DataType;
+    var StatusCodes = require("./../lib/opcua_status_code").StatusCodes;
+
+    it("should encode and decode a empty DataValue 1/3",function(done){
+        var dataValue1 = new DataValue({
+        });
+        encode_decode_round_trip_test(dataValue1,function(buf) {
+            buf.length.should.eql(1);
+        });
+        done();
+    });
+
+
+    it("should encode and decode a DataValue with only value field 2/3",function(done){
+        var dataValue1 = new DataValue({
+            value: {dataType: DataType.Double, value: 37.5 }
+        });
+        encode_decode_round_trip_test(dataValue1);
+        done();
+    });
+
+    it("should encode and decode a DataValue with all fields 3/3",function(done){
+        var dataValue1 = new DataValue({
+            sourceTimestamp: new Date(),
+            sourcePicoseconds: 100,
+            serverTimestamp: new Date(),
+            serverPicoseconds: 110,
+            statusCode: StatusCodes.Bad_ApplicationSignatureInvalid,
+            value: {dataType: DataType.Double, value: 37.5 }
+        });
+        encode_decode_round_trip_test(dataValue1);
+        done();
+    });
+
+
+});
 
 
 

@@ -37,7 +37,11 @@
         <Alias Alias="HasEncoding">i=38</Alias>
         <Alias Alias="HasDescription">i=39</Alias>
     </Aliases>
-
+    <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
+        <DisplayName>BaseDataType</DisplayName>
+        <Description>Describes a value that can have any valid DataType.</Description>
+        <References />
+    </UADataType>
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
         <Description>The abstract base type for all references.</Description>
