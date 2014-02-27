@@ -4,7 +4,7 @@ var should = require("should");
 
 describe("XMLToJSON",function(){
 
-    it("should parse a simple xml data string",function(){
+    it("should parse a simple xml data string",function(done){
 
         var init_called = false;
         var finish_called = false;
@@ -44,10 +44,13 @@ describe("XMLToJSON",function(){
             "   <person name='John'>" +
             "     <address>Paris</address>" +
             "   </person>" +
-            "</employees>");
+            "</employees>",function() {
+                init_called.should.equal(true);
+                finish_called.should.equal(true);
+                done();
+            });
 
 
-        init_called.should.equal(true);
-        finish_called.should.equal(true);
+
     });
 });

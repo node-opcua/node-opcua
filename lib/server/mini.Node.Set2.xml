@@ -358,4 +358,131 @@
     </UAVariable>
 
 
+    <UAObject NodeId="i=2253" BrowseName="Server" EventNotifier="1">
+        <DisplayName>Server</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2254</Reference>
+            <Reference ReferenceType="HasProperty">i=2255</Reference>
+            <Reference ReferenceType="HasComponent">i=2256</Reference>
+            <Reference ReferenceType="HasProperty">i=2267</Reference>
+            <Reference ReferenceType="HasProperty">i=2994</Reference>
+            <Reference ReferenceType="HasComponent">i=2268</Reference>
+            <Reference ReferenceType="HasComponent">i=2274</Reference>
+            <Reference ReferenceType="HasComponent">i=2295</Reference>
+            <Reference ReferenceType="HasComponent">i=2296</Reference>
+            <Reference ReferenceType="HasComponent">i=11715</Reference>
+            <Reference ReferenceType="HasComponent">i=11492</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=2004</Reference>
+        </References>
+    </UAObject>
+
+    <UAVariable NodeId="i=2254" BrowseName="ServerArray" ParentNodeId="i=2253" DataType="String" ValueRank="1" MinimumSamplingInterval="1000">
+        <DisplayName>ServerArray</DisplayName>
+        <Description>The list of server URIs used by the server.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2253</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2255" BrowseName="NamespaceArray" ParentNodeId="i=2253" DataType="String" ValueRank="1" MinimumSamplingInterval="1000">
+        <DisplayName>NamespaceArray</DisplayName>
+        <Description>The list of namespace URIs used by the server.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2253</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2256" BrowseName="ServerStatus" ParentNodeId="i=2253" DataType="i=862" MinimumSamplingInterval="1000">
+        <DisplayName>ServerStatus</DisplayName>
+        <Description>The current status of the server.</Description>
+        <References>
+            <Reference ReferenceType="HasComponent">i=2257</Reference>
+            <Reference ReferenceType="HasComponent">i=2258</Reference>
+            <Reference ReferenceType="HasComponent">i=2259</Reference>
+            <Reference ReferenceType="HasComponent">i=2260</Reference>
+            <Reference ReferenceType="HasComponent">i=2992</Reference>
+            <Reference ReferenceType="HasComponent">i=2993</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=2138</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2257" BrowseName="StartTime" ParentNodeId="i=2256" DataType="i=294">
+        <DisplayName>StartTime</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2258" BrowseName="CurrentTime" ParentNodeId="i=2256" DataType="i=294">
+        <DisplayName>CurrentTime</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2259" BrowseName="State" ParentNodeId="i=2256" DataType="i=852">
+        <DisplayName>State</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2260" BrowseName="BuildInfo" ParentNodeId="i=2256" DataType="i=338">
+        <DisplayName>BuildInfo</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">i=2262</Reference>
+            <Reference ReferenceType="HasComponent">i=2263</Reference>
+            <Reference ReferenceType="HasComponent">i=2261</Reference>
+            <Reference ReferenceType="HasComponent">i=2264</Reference>
+            <Reference ReferenceType="HasComponent">i=2265</Reference>
+            <Reference ReferenceType="HasComponent">i=2266</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=3051</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2262" BrowseName="ProductUri" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
+        <DisplayName>ProductUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2263" BrowseName="ManufacturerName" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
+        <DisplayName>ManufacturerName</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2261" BrowseName="ProductName" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
+        <DisplayName>ProductName</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2264" BrowseName="SoftwareVersion" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
+        <DisplayName>SoftwareVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2265" BrowseName="BuildNumber" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
+        <DisplayName>BuildNumber</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2266" BrowseName="BuildDate" ParentNodeId="i=2260" DataType="i=294" MinimumSamplingInterval="1000">
+        <DisplayName>BuildDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
+        </References>
+    </UAVariable>
+
+
 </UANodeSet>

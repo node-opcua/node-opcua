@@ -18,10 +18,13 @@ describe("ServerEngine", function () {
 
 
     var server,FolderTypeId,BaseDataVariableTypeId;
-    beforeEach(function(){
+    beforeEach(function(done){
         server = new server_engine.ServerEngine();
-        FolderTypeId = server.findObject("FolderType").nodeId;
-        BaseDataVariableTypeId = server.findObject("BaseDataVariableType").nodeId;
+        server.initialize(null,function(){
+            FolderTypeId = server.findObject("FolderType").nodeId;
+            BaseDataVariableTypeId = server.findObject("BaseDataVariableType").nodeId;
+            done();
+        });
 
     });
     afterEach(function(){
@@ -142,8 +145,6 @@ describe("ServerEngine", function () {
     });
 
 
-
-
     it("should browse root folder",function(){
 
         var browseDescription = {
@@ -184,7 +185,7 @@ describe("ServerEngine", function () {
 
         var browseResult = server.browseSingleNode("ns=46;id=123456");
 
-        browseResult.statusCode.should.equal(StatusCodes.Bad_NodeIdExists);
+        browseResult.statusCode.should.equal(StatusCodes.Bad_NodeIdUnknown);
         browseResult.references.length.should.equal(0);
 
 
