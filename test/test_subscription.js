@@ -34,11 +34,13 @@ describe("testing subscription objects",function(){
         encode_decode_round_trip_test(request);
         done();
     });
+
     it("should encode and decode a CreateSubscriptionResponse",function(done){
         var response = new subscription_service.CreateSubscriptionResponse({ });
         encode_decode_round_trip_test(response);
         done();
     });
+
     it("should encode and decode a CreateMonitoredItemsRequest",function(done){
         var request = new subscription_service.CreateMonitoredItemsRequest({
             subscriptionId: 1,
@@ -60,6 +62,7 @@ describe("testing subscription objects",function(){
         encode_decode_round_trip_test(request);
         done();
     });
+
     it("should encode and decode a CreateMonitoredItemsResponse",function(done){
         var response = new subscription_service.CreateMonitoredItemsResponse({
 
@@ -72,12 +75,109 @@ describe("testing subscription objects",function(){
         var obj = new subscription_service.MonitoringParameters({
 
         });
-        encode_decode_round_trip_test(obj,function(buf){
-            console.log(hexDump(buf));
-        });
+        encode_decode_round_trip_test(obj);
         done();
     });
 
+    it("should encode and decode a DeleteMonitoredItemsRequest",function(done){
+        var obj = new subscription_service.DeleteMonitoredItemsRequest({
+            subscriptionId: 100,
+            monitoredItemIds: [1,2,3,4]
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a DeleteMonitoredItemsResponse",function(done){
+        var obj = new subscription_service.DeleteMonitoredItemsResponse({
+            subscriptionId: 100,
+            results: [
+                StatusCodes.Bad_ApplicationSignatureInvalid,
+                StatusCodes.Good
+            ]
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a SetPublishingModeRequest",function(done){
+        var obj = new subscription_service.SetPublishingModeRequest({
+            publishingEnabled: true,
+            subscriptionIds: [1,2,3,4]
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a SetPublishingModeResponse",function(done){
+        var obj = new subscription_service.SetPublishingModeRequest({
+            results: [
+                StatusCodes.Bad_ApplicationSignatureInvalid,
+                StatusCodes.Good
+            ]
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a PublishRequest",function(done){
+        var obj = new subscription_service.PublishRequest({
+            subscriptionAcknowledgements: [
+                {
+                    subscriptionId: 1,
+                    sequenceNumber: 1
+                },
+                {
+                    subscriptionId: 2,
+                    sequenceNumber: 2
+                }
+            ]
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a PublishResponse",function(done){
+        var obj = new subscription_service.PublishResponse({
+            subscriptionId: 1,
+            availableSequenceNumbers: [ 1,2,3],
+            moreNotifications: true,
+            notificationMessage: {
+                sequenceNumber: 1,
+                publishTime: new Date(),
+                notificationData: null
+            },
+            results: [
+                StatusCodes.Good
+            ],
+            diagnosticInfos: [
+            ]
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a RepublishRequest",function(done){
+        var obj = new subscription_service.RepublishRequest({
+            subscriptionId: 1,
+            retransmitSequenceNumber: 20
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a RepublishResponse",function(done){
+        var obj = new subscription_service.RepublishResponse({
+            notificationMessage: {
+                sequenceNumber: 1,
+                publishTime: new Date(),
+                notificationData: [
+                ]
+            }
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
 });
 
 var _ = require("underscore");
@@ -164,4 +264,58 @@ describe("testing Client Server dealing with subscription",function(){
             done(err);
         });
     });
+
+    it("server should handle Publish request",function(done){
+
+        var request = new subscription_service.PublishRequest({
+
+        });
+        g_session.publish(request,function(err,response){
+            if(!err) {
+                assert(response instanceof subscription_service.PublishResponse);
+            }
+            done(err);
+        });
+    });
+
+    it("server should handle Republish request",function(done){
+
+        var request = new subscription_service.RepublishRequest({
+
+        });
+        g_session.republish(request,function(err,response){
+            if(!err) {
+                assert(response instanceof subscription_service.RepublishResponse);
+            }
+            done(err);
+        });
+    });
+
+    it("server should handle DeleteMonitoredItems  request",function(done){
+
+        var request = new subscription_service.DeleteMonitoredItemsRequest({
+
+        });
+        g_session.deleteMonitoredItems(request,function(err,response){
+            if(!err) {
+                assert(response instanceof subscription_service.DeleteMonitoredItemsResponse);
+            }
+            done(err);
+        });
+    });
+
+    it("server should handle SetPublishingMode   request",function(done){
+
+        var request = new subscription_service.SetPublishingModeRequest({
+
+        });
+        g_session.setPublishingMode(request,function(err,response){
+            if(!err) {
+                assert(response instanceof subscription_service.SetPublishingModeResponse);
+            }
+            done(err);
+        });
+    });
+
+
 });

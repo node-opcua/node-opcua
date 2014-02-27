@@ -333,7 +333,7 @@ describe("testing basic Client-Server communication",function() {
                 {dataType: DataType.Double, value: 37.5 },
                 function(err,statusCode,diagnosticInfo){
                     if (!err) {
-//xx                        statusCode.should.eql(StatusCodes.Good);
+//xx                   statusCode.should.eql(StatusCodes.Good);
                     }
                     done(err);
                 });
