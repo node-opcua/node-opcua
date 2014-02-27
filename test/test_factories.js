@@ -388,9 +388,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     });
 
 
-    it("should handle ExtensionObject ",function(){
-
-
+    describe("ExtensionObject",function(){
         var MetaShape_Description = {
             name: "metashape",
             id: factories.next_available_id(),
@@ -402,23 +400,39 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
         };
 
         var MetaShape = factories.registerObject(MetaShape_Description);
-
-
-        var shape  = new MetaShape({
-            name: "MyCircle",
-            shape: new Shape({name: "circle" , shapeType:ShapeType.CIRCLE , color: Color.BLUE}),
-            comment:  "this is a comment"
-        });
-        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Description.id));
-
-        var stream = new BinaryStream(shape.binaryStoreSize());
-        shape.encode(stream);
-
         var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-        encode_decode_round_trip_test(shape);
+        it("should work with some missing ExtensionObject ",function(){
 
+            var shape  = new MetaShape({
+                name: "MyCircle",
+                shape: null,
+                comment:  "this is a comment"
+            });
+            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Description.id));
+
+            var stream = new BinaryStream(shape.binaryStoreSize());
+            shape.encode(stream);
+            encode_decode_round_trip_test(shape);
+        });
+
+        it("should work with some existing ExtensionObject ",function(){
+
+            var shape  = new MetaShape({
+                name: "MyCircle",
+                shape: new Shape({name: "circle" , shapeType:ShapeType.CIRCLE , color: Color.BLUE}),
+                comment:  "this is a comment"
+            });
+            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Description.id));
+
+            var stream = new BinaryStream(shape.binaryStoreSize());
+            shape.encode(stream);
+
+            encode_decode_round_trip_test(shape);
+
+        });
     });
+
 });
 
 describe("PacketAnalyzer",function(){
