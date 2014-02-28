@@ -11,6 +11,9 @@ var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
 
+var Variant = require("../lib/variant").Variant;
+var DataType = require("../lib/variant").DataType;
+
 var _ = require("underscore");
 
 var port = 2000;
@@ -19,12 +22,18 @@ describe("testing basic Client-Server communication",function() {
 
     var server , client;
     var endpointUrl ;
+    var temperatureVariableId;
     beforeEach(function(done){
 
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could provoque an error
         port+=1;
         server = new OPCUAServer({ port:port});
+
+
+
+
+
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
         debugLog("endpointUrl",endpointUrl);
@@ -32,6 +41,31 @@ describe("testing basic Client-Server communication",function() {
         client = new OPCUAClient();
 
         server.start(function() {
+
+
+            server.engine.createFolder("RootFolder",{
+                browseName: "MyDevices"
+            });
+
+            // install a Read/Write variable representing a temperature set point of a temperature controler.
+            var set_point_temperature = 20.0;
+
+            temperatureVariableId = server.engine.addVariableInFolder("MyDevices",
+                {
+                    browseName: "SetPointTemperature",
+                    value: {
+                        get: function(){
+                            return new Variant({dataType: DataType.Double , value: set_point_temperature});
+                        },
+                        set: function(variant){
+                            // to do : test if variant can be coerce to Float or Double
+                            set_point_temperature = parseFloat(variant.value);
+                            return StatusCodes.Good;
+                        }
+                    }
+
+                });
+
             done();
         });
     });
@@ -310,12 +344,15 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        xit("should read the TemperatureTarget value", function(done) {
+        it("should read the TemperatureTarget value", function(done) {
 
-            g_session.readVariableValue("ns=1;s=TemperatureTarget",function(err,dataValues,diagnosticInfos){
+            g_session.readVariableValue(temperatureVariableId.nodeId,function(err,dataValues,diagnosticInfos){
+
+            console.log("dataValues",dataValues);
                 if (!err) {
                     dataValues.length.should.equal(1);
                     dataValues[0]._schema.name.should.equal("DataValue");
+                    dataValues[0].value._schema.name.should.equal("Variant");
                 }
 
                 done(err);
@@ -323,27 +360,30 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        xit("should write the TemperatureTarget value", function(done) {
+        it("should write the TemperatureTarget value", function(done) {
 
             var Variant = require("../lib/variant").Variant;
             var DataType = require("../lib/variant").DataType;
             // write a single value
             g_session.writeSingleNode(
-                "ns=1;s=TemperatureTarget",
+                temperatureVariableId.nodeId,
                 {dataType: DataType.Double, value: 37.5 },
                 function(err,statusCode,diagnosticInfo){
                     if (!err) {
-//xx                   statusCode.should.eql(StatusCodes.Good);
+                         statusCode.should.eql(StatusCodes.Good);
                     }
                     done(err);
                 });
         });
 
         describe("Accessing Server Object",function(){
+            var makeNodeId = require("../lib/nodeid").makeNodeId;
+            var ReferenceType = require("../lib/opcua_node_ids").ReferenceType;
+            var VariableIds = require("../lib/opcua_node_ids").Variable;
 
             it("Server should expose a 'Server' object in the 'Objects' folder",function(done){
 
-                var Organizes = "ns=0;i=35";
+                var Organizes = makeNodeId(ReferenceType.Organizes); // "ns=0;i=35";
                 var browseDesc = {
                     nodeId: "ObjectsFolder",
                     referenceTypeId: Organizes,
@@ -364,6 +404,18 @@ describe("testing basic Client-Server communication",function() {
                     }
                     done(err);
                 });
+            });
+
+            it("Server should expose 'Server_NamespaceArray' variable ",function(done){
+
+                var Organizes = makeNodeId(ReferenceType.Organizes); // "ns=0;i=35";
+
+                var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+                g_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo){
+                    console.log(results);
+                    done();
+                });
+
             });
         });
     });

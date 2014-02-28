@@ -13,6 +13,11 @@ var AttributeIds = read_service.AttributeIds;
 
 var DataType = require("../../lib/variant").DataType;
 var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
+var makeNodeId = require("../../lib/nodeid").makeNodeId;
+var ReferenceType = require("../../lib/opcua_node_ids").ReferenceType;
+var VariableIds = require("../../lib/opcua_node_ids").Variable;
+var Variant = require("../../lib/variant").Variant;
+
 
 describe("ServerEngine", function () {
 
@@ -44,7 +49,6 @@ describe("ServerEngine", function () {
         browseNode.hasTypeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(server.rootFolder);
 
-
     });
 
     it("should find the rootFolder by nodeId", function () {
@@ -65,6 +69,25 @@ describe("ServerEngine", function () {
         assert(objectFolder !== null);
         objectFolder.parent.should.eql(rootFolder.nodeId);
 
+    });
+
+    it("should have an 'Server' object", function () {
+
+        var serverObject = server.findObject("Server");
+        var objectFolder = server.findObject("Objects");
+        assert(serverObject !== null);
+        serverObject.parent.should.eql(objectFolder.nodeId);
+
+    });
+    it("should have an 'Server.NamespaceArray' Variable", function () {
+
+        var serverObject = server.findObject("Server");
+        var objectFolder = server.findObject("Objects");
+
+        var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray);
+        var server_NamespaceArray = server.findObject(server_NamespaceArray_Id);
+        assert(server_NamespaceArray !== null);
+        //xx server_NamespaceArray.parent.should.eql(serverObject.nodeId);
 
     });
 
@@ -109,11 +132,20 @@ describe("ServerEngine", function () {
 
         var newVariable = server.addVariableInFolder("MyNewFolder",
             {
-                name: "Temperature",
-                value: 10.0
+                browseName: "Temperature",
+                value: {
+                    get: function(){
+                        return new Variant({dataType: DataType.UInt32 , value: 10.0});
+                    },
+                    set: function(){
+                        return StatusCodes.Bad_NotWritable;
+                    }
+                }
+
             });
 
-        newVariable.value.should.equal(10.0);
+        newVariable.value.should.be.instanceOf(Variant);
+        newVariable.value.value.should.equal(10.0);
 
         newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.should.equal(newFolder.nodeId);
@@ -286,24 +318,31 @@ describe("ServerEngine", function () {
     });
 
     //  --- on reference Type ....
-    xit("should handle a readSingleNode - IsAbstract",function() {
+    it("should handle a readSingleNode - IsAbstract",function() {
 
-        var readResult = server.readSingleNode("RootFolder",AttributeIds.IsAbstract);
+        var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
+
+        var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.IsAbstract);
+        readResult.value.dataType.should.eql(DataType.Boolean);
+        readResult.value.value.should.equal(false);
+        readResult.statusCode.should.eql(StatusCodes.Good);
+    });
+
+    it("should handle a readSingleNode - Symmetric",function() {
+
+        var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
+        var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.Symmetric);
+        readResult.statusCode.should.eql(StatusCodes.Good);
         readResult.value.dataType.should.eql(DataType.Boolean);
         readResult.value.value.should.equal(false);
     });
 
-    xit("should handle a readSingleNode - Symmetric",function() {
+    it("should handle a readSingleNode - InverseName",function() {
 
-        var readResult = server.readSingleNode("RootFolder",AttributeIds.Symmetric);
-        readResult.value.dataType.should.eql(DataType.Boolean);
-        readResult.value.value.should.equal(false);
-    });
-
-    xit("should handle a readSingleNode - InverseName",function() {
-
-        var readResult = server.readSingleNode("RootFolder",AttributeIds.InverseName);
-        readResult.value.dataType.should.eql(DataType.String);
+        var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
+        var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.InverseName);
+        readResult.statusCode.should.eql(StatusCodes.Good);
+        readResult.value.dataType.should.eql(DataType.LocalizedText);
         //xx readResult.value.value.should.equal(false);
     });
 
@@ -316,16 +355,16 @@ describe("ServerEngine", function () {
     });
 
 
-    it("should retun Bad_AttributeIdInvalid  - readSingleNode - for bad attribute    ",function() {
+    it("should return Bad_AttributeIdInvalid  - readSingleNode - for bad attribute    ",function() {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops);
         readResult.statusCode.should.eql(StatusCodes.Bad_AttributeIdInvalid);
 
     });
 
-    it("should retun Bad_NodeIdUnknown  - readSingleNode - with unknown object",function() {
+    it("should return Bad_NodeIdUnknown  - readSingleNode - with unknown object",function() {
 
-        var readResult = server.readSingleNode("**UNKNONW**",AttributeIds.DisplayName);
+        var readResult = server.readSingleNode("**UNKNOWN**",AttributeIds.DisplayName);
         readResult.statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
     });
 
@@ -348,8 +387,31 @@ describe("ServerEngine", function () {
 
     });
 
+    it("should read Server_NamespaceArray ",function() {
 
-
-
+        var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: server_NamespaceArray_Id,
+                    attributeId: AttributeIds.DisplayName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: server_NamespaceArray_Id,
+                    attributeId: AttributeIds.Value,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ]
+        });
+        var dataValues = server.read(readRequest.nodesToRead);
+        dataValues.length.should.equal(2);
+        dataValues[0].value.value.text.should.eql("NamespaceArray");
+        dataValues[1].value.value.should.be.instanceOf(Array);
+    });
 
 });
