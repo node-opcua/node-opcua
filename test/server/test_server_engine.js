@@ -266,7 +266,7 @@ describe("ServerEngine", function () {
         var readResult = server.readSingleNode("RootFolder",AttributeIds.NodeClass);
 
         readResult.statusCode.should.eql( StatusCodes.Good);
-        readResult.value.dataType.should.eql(DataType.UInt32);
+        readResult.value.dataType.should.eql(DataType.Int32);
         readResult.value.value.should.equal(NodeClass.Object.value);
     });
 
@@ -313,7 +313,7 @@ describe("ServerEngine", function () {
     it("should handle a readSingleNode - EventNotifier",function() {
 
         var readResult = server.readSingleNode("RootFolder",AttributeIds.EventNotifier);
-        readResult.value.dataType.should.eql(DataType.UInt32);
+        readResult.value.dataType.should.eql(DataType.Byte);
         readResult.value.value.should.equal(0   );
     });
 
