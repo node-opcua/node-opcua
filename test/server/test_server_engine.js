@@ -17,7 +17,7 @@ var makeNodeId = require("../../lib/nodeid").makeNodeId;
 var ReferenceType = require("../../lib/opcua_node_ids").ReferenceType;
 var VariableIds = require("../../lib/opcua_node_ids").Variable;
 var Variant = require("../../lib/variant").Variant;
-
+var VariantArrayType =  require("../../lib/variant").VariantArrayType;
 
 describe("ServerEngine", function () {
 
@@ -387,9 +387,9 @@ describe("ServerEngine", function () {
 
     });
 
+    var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
     it("should read Server_NamespaceArray ",function() {
 
-        var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
@@ -413,5 +413,43 @@ describe("ServerEngine", function () {
         dataValues[0].value.value.text.should.eql("NamespaceArray");
         dataValues[1].value.value.should.be.instanceOf(Array);
     });
+
+    it("should read Server_NamespaceArray  DataType",function() {
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: server_NamespaceArray_Id,
+                    attributeId: AttributeIds.DataType,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ]
+        });
+        var dataValues = server.read(readRequest.nodesToRead);
+        dataValues.length.should.equal(1);
+        dataValues[0].value.dataType.should.eql(DataType.Int32);
+        dataValues[0].value.value.should.eql(DataType.String.value);
+    });
+
+    it("should read Server_NamespaceArray  ValueRank",function() {
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: server_NamespaceArray_Id,
+                    attributeId: AttributeIds.ValueRank,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ]
+        });
+        var dataValues = server.read(readRequest.nodesToRead);
+        dataValues.length.should.equal(1);
+        dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
+    });
+
 
 });
