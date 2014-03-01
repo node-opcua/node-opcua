@@ -40,11 +40,13 @@ describe("Testing ChannelSecurityToken live time",function(){
 
     afterEach(function(done){
 
-        client.disconnect(function(){
-            server.shutdown(function() {
-                done();
-            });
-        })
+        setImmediate(function(){
+            client.disconnect(function(){
+                server.shutdown(function() {
+                    done();
+                });
+            })
+        });
 
     });
 

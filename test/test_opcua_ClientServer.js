@@ -23,22 +23,13 @@ describe("testing basic Client-Server communication",function() {
     var server , client;
     var endpointUrl ;
     var temperatureVariableId;
-    beforeEach(function(done){
 
+
+    before(function(done){
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could provoque an error
         port+=1;
         server = new OPCUAServer({ port:port});
-
-
-
-
-
-        // we will connect to first server end point
-        endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
-        debugLog("endpointUrl",endpointUrl);
-        opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
-        client = new OPCUAClient();
 
         server.start(function() {
 
@@ -65,12 +56,26 @@ describe("testing basic Client-Server communication",function() {
                     }
 
                 });
+            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            debugLog("endpointUrl",endpointUrl);
+            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
             done();
         });
     });
 
+    beforeEach(function(done){
+
+        client = new OPCUAClient();
+        done();
+    });
+
     afterEach(function(done){
+       client = null;
+       done();
+    });
+
+    after(function(done){
 
         server.shutdown(function() {
             done();
@@ -90,9 +95,6 @@ describe("testing basic Client-Server communication",function() {
             },
             function(callback) {
                 client.disconnect(callback);
-            },
-            function(callback) {
-                server.shutdown(callback);
             }
         ],done);
 
@@ -111,14 +113,11 @@ describe("testing basic Client-Server communication",function() {
                     debugLog(" Error =".yellow.bold,err);
                     callback(err);
                 });
-            },
-            function(callback) {
-                server.shutdown(callback);
             }
         ],function(err) {
             server.connected_client_count.should.equal(0);
             debugLog(" error : ", err);
-            server.shutdown(done);
+            done();
         });
 
     });
@@ -188,9 +187,6 @@ describe("testing basic Client-Server communication",function() {
             },
             function(callback) {
                 client.disconnect(callback);
-            },
-            function(callback) {
-                server.shutdown(callback);
             }
         ],done);
 
@@ -227,7 +223,6 @@ describe("testing basic Client-Server communication",function() {
 
             function(callback) {
                 client.createSession(function(err,session){
-
                     assert(err);
                     assert(!session);
                     callback(err ? null: new Error("Expecting a failure"));
@@ -261,9 +256,6 @@ describe("testing basic Client-Server communication",function() {
             },
             function(callback) {
                 client.disconnect(callback);
-            },
-            function(callback) {
-                server.shutdown(callback);
             }
         ],done);
     });
@@ -329,7 +321,8 @@ describe("testing basic Client-Server communication",function() {
         });
 
         it("should readAllAttributes",function(done){
-            var readResult = g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
+
+            g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
                 nodesToRead.length.should.equal(dataValues.length);
                 done(err);
             });
@@ -340,7 +333,6 @@ describe("testing basic Client-Server communication",function() {
             g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist",function(err,dataValues,diagnosticInfos){
                 dataValues[0].statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
                 done();
-
             });
         });
 
@@ -348,7 +340,6 @@ describe("testing basic Client-Server communication",function() {
 
             g_session.readVariableValue(temperatureVariableId.nodeId,function(err,dataValues,diagnosticInfos){
 
-            console.log("dataValues",dataValues);
                 if (!err) {
                     dataValues.length.should.equal(1);
                     dataValues[0]._schema.name.should.equal("DataValue");
@@ -407,12 +398,17 @@ describe("testing basic Client-Server communication",function() {
             });
 
             it("Server should expose 'Server_NamespaceArray' variable ",function(done){
-
-                var Organizes = makeNodeId(ReferenceType.Organizes); // "ns=0;i=35";
-
+                var DataValue = require("../lib/datavalue").DataValue;
+                var DataType = require("../lib/variant").DataType;
+                var VariantArrayType = require("../lib/variant").VariantArrayType;
+                var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
                 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
                 g_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo){
-                    console.log(results);
+                    var dataValue = results[0];
+                    dataValue.should.be.instanceOf(DataValue);
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    dataValue.value.dataType.should.eql(DataType.String);
+                    dataValue.value.arrayType.should.eql(VariantArrayType.Array);
                     done();
                 });
 
