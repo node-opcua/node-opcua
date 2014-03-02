@@ -10,7 +10,7 @@ var debugLog  = require("../lib/utils").make_debugLog(__filename);
 var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
-
+var os =require("os");
 var _ = require("underscore");
 
 var port = 3000;
@@ -77,10 +77,15 @@ describe("Testing ChannelSecurityToken live time",function(){
             debugLog(" received security_token_renewed");
             security_token_renewed_counter+=1;
         });
+        var waitingTime = 1000;
+        if ( os.arch() === "arm" ) { 
+              // give more time for slow raspberry to react */
+              waitingTime+=4000;
+         } 
         setTimeout(function(){
             security_token_renewed_counter.should.be.greaterThan(3);
             done();
-        },600);
+        },waitingTime);
     });
 
 });

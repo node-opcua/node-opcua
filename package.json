@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha test -R spec --recursive"
+    "test": "mocha test -R spec --recursive --timeout 8000"
   },
   "repository": {
     "type": "git",
