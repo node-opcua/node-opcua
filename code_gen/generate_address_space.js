@@ -189,13 +189,13 @@ function dumpObject(obj) {
 
 };
 
-//xx var folderType =findByBrowseName("FolderType");
+//xx var folderType =findObjectByBrowseName("FolderType");
 //xx dumpObjectType(folderType);
 
-//xx var folder_Objects =findByBrowseName("Objects");
+//xx var folder_Objects =findObjectByBrowseName("Objects");
 //xx dumpObject(folder_Objects);
 
-//xx var serverType =findByBrowseName("ServerType");
+//xx var serverType =findObjectByBrowseName("ServerType");
 //x dumpObjectType(serverType);
 
 // xxdumpObjectType(map[coerceNodeId("ns=0;i=58")]);

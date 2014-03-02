@@ -484,5 +484,28 @@
         </References>
     </UAVariable>
 
+    <UADataType NodeId="i=294" BrowseName="UtcTime">
+        <DisplayName>UtcTime</DisplayName>
+        <Description>A date/time value specified in Universal Coordinated Time (UTC).</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=13</Reference>
+        </References>
+    </UADataType>
+    
+    <UADataType NodeId="i=862" BrowseName="ServerStatusDataType">
+        <DisplayName>ServerStatusDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="ServerStatusDataType">
+            <Field Name="StartTime" DataType="i=294" />
+            <Field Name="CurrentTime" DataType="i=294" />
+            <Field Name="State" DataType="i=852" />
+            <Field Name="BuildInfo" DataType="i=338" />
+            <Field Name="SecondsTillShutdown" DataType="i=7" />
+            <Field Name="ShutdownReason" DataType="i=21" />
+        </Definition>
+    </UADataType>
+
 
 </UANodeSet>
