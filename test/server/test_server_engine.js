@@ -105,7 +105,6 @@ describe("ServerEngine", function () {
         //xx server_NamespaceArray.parent.should.eql(serverObject.nodeId);
     });
 
-
     it("should allow to create a new folder", function () {
 
         var rootFolder = server.findObject("RootFolder");
@@ -179,7 +178,6 @@ describe("ServerEngine", function () {
 
     });
 
-
     it("should browse the 'Objects' folder for back references",function(){
 
 
@@ -202,7 +200,6 @@ describe("ServerEngine", function () {
 
 
     });
-
 
     it("should browse root folder",function(){
 
@@ -442,6 +439,41 @@ describe("ServerEngine", function () {
         });
     });
 
+    describe("readSingleNode on Variable (ProductUri)",function(){
+        var productUri_id = makeNodeId(2262,0);
+        it("should handle a readSingleNode - BrowseName",function() {
+
+            var readResult = server.readSingleNode(productUri_id,AttributeIds.BrowseName);
+            readResult.statusCode.should.eql( StatusCodes.Good);
+        });
+        it("should handle a readSingleNode - ArrayDimensions",function() {
+
+            var readResult = server.readSingleNode(productUri_id,AttributeIds.ArrayDimensions);
+            readResult.statusCode.should.eql( StatusCodes.Good);
+        });
+        it("should handle a readSingleNode - AccessLevel",function() {
+
+            var readResult = server.readSingleNode(productUri_id,AttributeIds.AccessLevel);
+            readResult.statusCode.should.eql( StatusCodes.Good);
+        });
+        it("should handle a readSingleNode - UserAccessLevel",function() {
+
+            var readResult = server.readSingleNode(productUri_id,AttributeIds.UserAccessLevel);
+            readResult.statusCode.should.eql( StatusCodes.Good);
+        });
+        it("should handle a readSingleNode - MinimumSamplingInterval",function() {
+
+            var readResult = server.readSingleNode(productUri_id,AttributeIds.MinimumSamplingInterval);
+            readResult.statusCode.should.eql( StatusCodes.Good);
+            readResult.value.value.should.eql(1000);
+        });
+        it("should handle a readSingleNode - Historizing",function() {
+
+            var readResult = server.readSingleNode(productUri_id,AttributeIds.Historizing);
+            readResult.statusCode.should.eql( StatusCodes.Good);
+            readResult.value.value.should.eql(false);
+        });
+    });
 
     describe("readSingleNode on View",function(){
         // for views
@@ -452,6 +484,7 @@ describe("ServerEngine", function () {
             readResult.value.value.should.equal(true);
         });
     });
+
     describe("readSingleNode on DataType",function(){
         // for views
         it("should have ServerStatusDataType dataType exposed",function(){
@@ -468,7 +501,6 @@ describe("ServerEngine", function () {
             readResult.value.value.name.should.equal("ServerStatusDataType");
         });
     });
-
 
 
     it("should return Bad_NodeIdUnknown  - readSingleNode - with unknown object",function() {
