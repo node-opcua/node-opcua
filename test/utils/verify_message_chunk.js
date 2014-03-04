@@ -21,13 +21,13 @@ function verify_multi_chunk_message(packets) {
         console.log(messageHeaderToString(messageChunk));
     });
 
-    var l = 0;
+    var total_length = 0;
     packets.forEach(function (packet) {
         if (packet instanceof Array) {
             packet = new Buffer(packet);
         }
-        l+=packet.length;
-        console.log(sprintf(" adding packet size : %5d l=%d", packet.length,l));
+        total_length+=packet.length;
+        console.log(sprintf(" adding packet size : %5d l=%d", packet.length,total_length));
         messageBuild.feed(packet);
     });
 }
