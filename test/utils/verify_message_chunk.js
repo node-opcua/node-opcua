@@ -23,6 +23,9 @@ function verify_multi_chunk_message(packets) {
 
     var l = 0;
     packets.forEach(function (packet) {
+        if (packet instanceof Array) {
+            packet = new Buffer(packet);
+        }
         l+=packet.length;
         console.log(sprintf(" adding packet size : %5d l=%d", packet.length,l));
         messageBuild.feed(packet);
