@@ -43,7 +43,7 @@
     "sprintf": "~0.1.3",
     "hexy": "~0.2.5",
     "optimist": "~0.6.0",
-    "prettyjson": "~0.11.1",
+    "prettyjson": "~0.12.0",
     "treeify": "~1.0.1",
     "coveralls": "*",
     "node-int64": "~0.3.0",

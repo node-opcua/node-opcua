@@ -409,6 +409,10 @@ describe("testing basic Client-Server communication",function() {
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.String);
                     dataValue.value.arrayType.should.eql(VariantArrayType.Array);
+
+                    // first namespace must be standard OPC namespace
+                    dataValue.value.value[0].should.eql("http://opcfoundation.org/UA/");
+
                     done();
                 });
 

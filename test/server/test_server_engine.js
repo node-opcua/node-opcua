@@ -139,7 +139,7 @@ describe("ServerEngine", function () {
         result.should.eql(newFolder);
     });
 
-    it("should not allow to create a object with an existing 'browse name'", function () {
+    xit("should not allow to create a object with an existing 'browse name'", function () {
 
         var newFolder1 = server.createFolder("ObjectsFolder", "NoUniqueName");
 
@@ -178,8 +178,12 @@ describe("ServerEngine", function () {
 
     });
 
+
+
     it("should browse the 'Objects' folder for back references",function(){
 
+        var ref_Organizes_Id = server.resolveNodeId("Organizes");
+        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
         var browseDescription = {
             browseDirection : BrowseDirection.Inverse,
@@ -191,9 +195,10 @@ describe("ServerEngine", function () {
         browseResult.statusCode.should.eql( StatusCodes.Good);
         browseResult.references.length.should.equal(1);
 
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[0].isForward.should.equal(false);
         browseResult.references[0].browseName.name.should.equal("Root");
-        browseResult.references[0].nodeId.toString().should.equal("ns=0;i=84");
+        browseResult.references [0].nodeId.toString().should.equal("ns=0;i=84");
         //xx browseResult.references[0].displayName.text.should.equal("Root");
         browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
@@ -202,6 +207,9 @@ describe("ServerEngine", function () {
     });
 
     it("should browse root folder",function(){
+
+        var ref_Organizes_Id = server.resolveNodeId("Organizes");
+        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
         var browseDescription = {
             browseDirection : BrowseDirection.Both,
@@ -213,7 +221,7 @@ describe("ServerEngine", function () {
 
         browseResult.references.length.should.equal(3);
 
-
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[0].isForward.should.equal(true);
         browseResult.references[0].browseName.name.should.equal("Objects");
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
@@ -221,19 +229,38 @@ describe("ServerEngine", function () {
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
         browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
 
-
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[1].isForward.should.equal(true);
         browseResult.references[1].browseName.name.should.equal("Types");
         browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
         browseResult.references[1].typeDefinition.should.eql(resolveNodeId("FolderType"));
         browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
 
-
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[2].isForward.should.equal(true);
         browseResult.references[2].browseName.name.should.equal("Views");
         browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
         browseResult.references[2].typeDefinition.should.eql(resolveNodeId("FolderType"));
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
+
+    });
+
+    it("should browse a 'Server' object in  the 'Objects' folder",function(){
+
+        var ref_Organizes_Id = server.resolveNodeId("Organizes");
+        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
+
+        var browseDescription = {
+            browseDirection : BrowseDirection.Forward,
+            referenceTypeId : "Organizes"
+        };
+        var browseResult = server.browseSingleNode("ObjectsFolder",browseDescription);
+        browseResult.statusCode.should.eql(StatusCodes.Good);
+
+        browseResult.references.length.should.equal(1);
+        console.log(browseResult.references[0].browseName.name);
+
+        browseResult.references[0].browseName.name.should.equal("Server");
 
     });
 
@@ -243,7 +270,6 @@ describe("ServerEngine", function () {
 
         browseResult.statusCode.should.equal(StatusCodes.Bad_NodeIdUnknown);
         browseResult.references.length.should.equal(0);
-
 
     });
 
@@ -502,14 +528,13 @@ describe("ServerEngine", function () {
         });
     });
 
-
     it("should return Bad_NodeIdUnknown  - readSingleNode - with unknown object",function() {
 
         var readResult = server.readSingleNode("**UNKNOWN**",AttributeIds.DisplayName);
         readResult.statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
     });
 
-    it("should read ",function() {
+    it("should read the display name of RootFolder",function() {
 
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
@@ -573,7 +598,7 @@ describe("ServerEngine", function () {
         dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
     });
 
-    it("should read Server_NamespaceArray  ValueRank",function() {
+    it("should read Server_NamespaceArray ValueRank",function() {
 
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
@@ -593,6 +618,8 @@ describe("ServerEngine", function () {
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
     });
+
+
 
 
 });
