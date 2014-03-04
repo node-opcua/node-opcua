@@ -178,6 +178,21 @@ describe("testing subscription objects",function(){
         encode_decode_round_trip_test(obj);
         done();
     });
+
+    it("should encode and decode a DeleteSubscriptionsRequest",function(done){
+        var obj = new subscription_service.DeleteSubscriptionsRequest({
+
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+    it("should encode and decode a DeleteSubscriptionsResponse",function(done){
+        var obj = new subscription_service.DeleteSubscriptionsResponse({
+
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
 });
 
 var _ = require("underscore");

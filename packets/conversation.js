@@ -3060,10 +3060,10 @@ var verify_multi_chunk_message= require("../test/utils/verify_message_chunk").ve
 require("../lib/session_service");
 require("../lib/read_service");
 require("../lib/browse_service");
-//xx verify_multi_chunk_message([exports.peer0_0];
-//xx verify_multi_chunk_message([exports.peer1_0];
 
-
+//xxverify_multi_chunk_message([exports.peer0_10]);
+verify_multi_chunk_message([exports.peer1_28]);
+process.exit(0);
 
 // OpenChannelRequest
 verify_multi_chunk_message([exports.peer0_1]);

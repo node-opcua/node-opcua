@@ -289,6 +289,7 @@ describe("ServerEngine", function () {
                     browseDirection: browse_service.BrowseDirection.Both,
                     resultMask: 63
                 }
+
             ]
         });
 
