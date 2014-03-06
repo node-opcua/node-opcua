@@ -333,4 +333,16 @@ describe("testing Client Server dealing with subscription",function(){
     });
 
 
+    it("server should handle DeleteSubscriptionsRequest",function(done){
+
+        var request = new subscription_service.DeleteMonitoredItemsRequest({
+            subscriptionIds: [1,2]
+        });
+        g_session.deleteSubscriptions(request,function(err,response){
+            if(!err) {
+                assert(response instanceof subscription_service.DeleteSubscriptionsResponse);
+            }
+            done(err);
+        });
+    });
 });
