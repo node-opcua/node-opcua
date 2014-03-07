@@ -254,13 +254,15 @@ describe("testing Client Server dealing with subscription",function(){
     });
     it("server should create a CreateMonitoredItems ",function(done){
 
+        var VariableIds =require("../lib/opcua_node_ids").Variable;
+
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateMonitoredItemsRequest({
             subscriptionId: 1,
             timestampsToReturn: read_service.TimestampsToReturn.Both,
             itemsToCreate:  [
                 {
-                    itemToMonitor: ec.makeNodeId("i:100"),
+                    itemToMonitor: ec.makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
                     monitoringMode: subscription_service.MonitoringMode.Sampling,
                     requestedParameters: {
                         clientHandle: 26,
@@ -283,11 +285,18 @@ describe("testing Client Server dealing with subscription",function(){
     it("server should handle Publish request",function(done){
 
         var request = new subscription_service.PublishRequest({
-
+            subscriptionAcknowledgements: []
         });
         g_session.publish(request,function(err,response){
             if(!err) {
                 assert(response instanceof subscription_service.PublishResponse);
+
+                assert(response.hasOwnProperty("subscriptionId"));          // IntegerId
+                assert(response.hasOwnProperty("availableSequenceNumbers"));// Array,Counter,
+                assert(response.hasOwnProperty("moreNotifications"));       // Boolean
+                assert(response.hasOwnProperty("notificationMessage"));
+                assert(response.hasOwnProperty("results"));
+                assert(response.hasOwnProperty("diagnosticInfos"));
             }
             done(err);
         });
@@ -333,4 +342,16 @@ describe("testing Client Server dealing with subscription",function(){
     });
 
 
+    it("server should handle DeleteSubscriptionsRequest",function(done){
+
+        var request = new subscription_service.DeleteMonitoredItemsRequest({
+            subscriptionIds: [1,2]
+        });
+        g_session.deleteSubscriptions(request,function(err,response){
+            if(!err) {
+                assert(response instanceof subscription_service.DeleteSubscriptionsResponse);
+            }
+            done(err);
+        });
+    });
 });

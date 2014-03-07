@@ -46,17 +46,21 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("should check the subscription live cycle",function(){
 
-        server.getSubscriptionCount().should.equal(0);
+        server.currentSubscriptionCount.should.equal(0);
+        server.cumulatedSubscriptionCount.should.equal(0);
+
         var subscription = server.createSubscription();
-        server.getSubscriptionCount().should.equal(1);
+
+        server.currentSubscriptionCount.should.equal(1);
+        server.cumulatedSubscriptionCount.should.equal(1);
 
         server.getSubscription(subscription.id).should.equal(subscription);
 
         var statusCode = server.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
 
-        server.getSubscriptionCount().should.equal(0);
-
+        server.currentSubscriptionCount.should.equal(0);
+        server.cumulatedSubscriptionCount.should.equal(1);
     });
 
 });
