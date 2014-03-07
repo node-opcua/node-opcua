@@ -143,9 +143,9 @@ describe("testing subscription objects",function(){
             availableSequenceNumbers: [ 1,2,3],
             moreNotifications: true,
             notificationMessage: {
-                sequenceNumber: 1,
+                sequenceNumber: 4,
                 publishTime: new Date(),
-                notificationData: null
+                notificationData: null // DataChange or EventNotificiation
             },
             results: [
                 StatusCodes.Good

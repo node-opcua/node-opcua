@@ -29,7 +29,8 @@
     "csv": "~0.3.6",
     "node-xml": "~1.0.2",
     "node-expat": "~2.1.4",
-    "mocha-lcov-reporter": "0.0.1"
+    "mocha-lcov-reporter": "0.0.1",
+    "sinon": "~1.9.0"
   },
   "dependencies": {
     "colors": "~0.6.2",

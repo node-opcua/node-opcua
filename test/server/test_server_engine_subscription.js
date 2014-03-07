@@ -38,7 +38,7 @@ describe("ServerEngine Subscriptions service", function () {
         server = null;
     });
 
-    it("should return an error when tryoing to delete an non-existing subscription",function(){
+    it("should return an error when trying to delete an non-existing subscription",function(){
 
         server.deleteSubscription(-6789).should.eql(StatusCodes.Bad_SubscriptionIdInvalid);
 
