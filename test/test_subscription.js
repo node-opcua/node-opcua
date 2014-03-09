@@ -47,7 +47,9 @@ describe("testing subscription objects",function(){
             timestampsToReturn: read_service.TimestampsToReturn.Both,
             itemsToCreate:  [
                 {
-                    itemToMonitor: ec.makeNodeId("i:100"),
+                    itemToMonitor: { // ReadValue
+                        nodeId: ec.makeNodeId("i:100")
+                    },
                     monitoringMode: subscription_service.MonitoringMode.Sampling,
                     requestedParameters: {
                         clientHandle: 26,
@@ -90,7 +92,7 @@ describe("testing subscription objects",function(){
 
     it("should encode and decode a DeleteMonitoredItemsResponse",function(done){
         var obj = new subscription_service.DeleteMonitoredItemsResponse({
-            subscriptionId: 100,
+            responseHeader: { serviceResult: StatusCodes.Good },
             results: [
                 StatusCodes.Bad_ApplicationSignatureInvalid,
                 StatusCodes.Good
@@ -110,12 +112,13 @@ describe("testing subscription objects",function(){
     });
 
     it("should encode and decode a SetPublishingModeResponse",function(done){
-        var obj = new subscription_service.SetPublishingModeRequest({
+        var obj = new subscription_service.SetPublishingModeResponse({
             results: [
                 StatusCodes.Bad_ApplicationSignatureInvalid,
                 StatusCodes.Good
             ]
         });
+        assert(obj instanceof subscription_service.SetPublishingModeResponse);
         encode_decode_round_trip_test(obj);
         done();
     });
@@ -262,7 +265,9 @@ describe("testing Client Server dealing with subscription",function(){
             timestampsToReturn: read_service.TimestampsToReturn.Both,
             itemsToCreate:  [
                 {
-                    itemToMonitor: ec.makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
+                    itemToMonitor: {
+                        nodeId: ec.makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
+                    },
                     monitoringMode: subscription_service.MonitoringMode.Sampling,
                     requestedParameters: {
                         clientHandle: 26,
@@ -344,7 +349,7 @@ describe("testing Client Server dealing with subscription",function(){
 
     it("server should handle DeleteSubscriptionsRequest",function(done){
 
-        var request = new subscription_service.DeleteMonitoredItemsRequest({
+        var request = new subscription_service.DeleteSubscriptionsRequest({
             subscriptionIds: [1,2]
         });
         g_session.deleteSubscriptions(request,function(err,response){

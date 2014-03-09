@@ -21,6 +21,11 @@ var VariantArrayType =  require("../../lib/variant").VariantArrayType;
 
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
+
+
+
+
+
 describe("ServerEngine Subscriptions service", function () {
 
 

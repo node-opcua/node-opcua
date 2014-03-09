@@ -4,6 +4,8 @@ var BinaryStream = require("../lib/binaryStream").BinaryStream;
 var redirectToFile = require("../lib/utils").redirectToFile;
 var s = require("./../lib/structures");
 var ec = require("./../lib/encode_decode");
+var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
+var should = require("should");
 
 describe("ServiceFault",function() {
 
@@ -36,8 +38,11 @@ describe("ServiceFault",function() {
 
         }, done);
     });
-    /*
 
-
-     */
+    it("should create a ServiceFault with a specific serviceResult",function(){
+        var sf = new s.ServiceFault({
+            responseHeader: { serviceResult: StatusCodes.Bad_NoSubscription }
+        });
+        sf.responseHeader.serviceResult.should.eql(StatusCodes.Bad_NoSubscription);
+    });
 });

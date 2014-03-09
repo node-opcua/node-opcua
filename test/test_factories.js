@@ -283,6 +283,21 @@ describe("Factories: testing object factory", function () {
 
     });
 
+    it("should raise an exception when trying to pass an invalid field to constructor",function(){
+
+        (function() {
+           new Shape({
+
+                this_invalid_field_should_cause_Shape_Constructor_to_raise_an_exception: "**bingo**",
+
+                name: "yo" ,
+                shapeType: ShapeType.HEXAGON ,
+                color: Color.BLUE });
+
+        }).should.throw();
+
+    });
+
 });
 
 describe("Factories: testing strong typed enums", function(){

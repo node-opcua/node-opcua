@@ -14,6 +14,8 @@ var redirectToFile = require("../lib/utils").redirectToFile;
 
 var FindServersResponse = require("../lib/register_server_service").FindServersResponse;
 
+var should  =require("should");
+
 describe("OPCUA Object creation",function() {
 
     var s = require("../lib/structures");
@@ -326,5 +328,4 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
         }, done);
     });
 });
-
 

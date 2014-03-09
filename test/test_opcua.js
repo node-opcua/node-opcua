@@ -3,6 +3,7 @@ var util = require("util");
 var s  = require("../lib/structures");
 var opcua = require("../lib/nodeopcua");
 var BinaryStream = require("../lib/binaryStream").BinaryStream;
+var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
 
 describe("testing OPCUA structures ",function() {
 
@@ -147,3 +148,4 @@ describe("Testing ChannelSecurityToken", function(){
 
 
 });
+
