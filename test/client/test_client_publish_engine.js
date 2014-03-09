@@ -55,6 +55,8 @@ describe("Testing the client publish engine", function () {
 
     it("a client should acknowledge sequence numbers received in PublishResponse in next PublishRequest",function(){
 
+        // the spec says: Clients are required to acknowledge  Notification Messages as they are received.
+
         var response_maker = sinon.stub();
 
         var response1 = new subscription_service.PublishResponse({
