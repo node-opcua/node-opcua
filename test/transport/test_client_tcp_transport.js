@@ -164,7 +164,7 @@ describe("testing ClientTCP_transport",function(){
                 counter += 1;
                 fake_socket.server.write(messageChunk);
 
-            } else if (counter == 2) {
+            } else if (counter === 2) {
 
                 counter += 1;
                 data.length.should.equal(18);

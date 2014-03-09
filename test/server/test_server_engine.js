@@ -135,7 +135,7 @@ describe("ServerEngine", function () {
 
         var newFolder = server.createFolder("ObjectsFolder", "MySecondNewFolder");
         var result = server.findObjectByBrowseName("MySecondNewFolder");
-        assert(result != null);
+        assert(result !== null);
         result.should.eql(newFolder);
     });
 
