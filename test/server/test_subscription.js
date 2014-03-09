@@ -329,10 +329,11 @@ describe("Subscriptions", function () {
         var subscription = new Subscription();
         subscription._get_future_sequence_number().should.equal(1);
 
-        subscription.__next_sequence_number = 3999999999;
+        var max_counter_value =SequenceNumberGenerator.prototype.MAXVALUE;
+        subscription._sequence_number_generator._set(max_counter_value);
 
-        subscription._get_future_sequence_number().should.equal(4000000000);
-        subscription._get_next_sequence_number().should.equal(4000000000);
+        subscription._get_future_sequence_number().should.equal(max_counter_value);
+        subscription._get_next_sequence_number().should.equal(max_counter_value);
 
         subscription._get_future_sequence_number().should.equal(1);
         subscription._get_next_sequence_number().should.equal(1);
