@@ -179,5 +179,28 @@ describe("Testing the server publish engine", function () {
 
     });
 
+    it("when the client send too many publish requests that the server can queue, the server returns a Service result of BadTooManyPublishRequests",function(){
+
+        var publish_server = new ServerSidePublishEngine({
+            maxPublishRequestInQueue: 5
+        });
+        var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
+        publish_server.add_subscription(new Subscription({id: 1}));
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+
+
+        send_response_for_request_spy.callCount.should.equal(1);
+        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("ServiceFault");
+        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Bad_TooManyPublishRequests);
+
+    });
+
 
 });
