@@ -36,7 +36,7 @@
 
 var sinon = require("sinon");
 var ServerSidePublishEngine = require("../../lib/server/server_publish_engine").ServerSidePublishEngine;
-var Subscription = require("../../lib/server/server_publish_engine").Subscription;
+var Subscription = require("../../lib/server/subscription").Subscription;
 var subscription_service = require("../../lib/subscription_service");
 var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
 var NotificationMessage = subscription_service.NotificationMessage;
@@ -84,7 +84,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(subscription.publishingInterval * 5);
         publish_server.pendingPublishRequestCount.should.equal(0);
 
-
+        publish_server.shutdown();
     });
 
 
@@ -116,6 +116,7 @@ describe("Testing the server publish engine", function () {
 
         // send_response_for_request_spy.
 
+        publish_server.shutdown();
     });
 
     it("a server should return Bad_NoSubscription as a response for a publish Request if there is no subscription available for this session. ",function(){
@@ -136,6 +137,45 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("ServiceFault");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Bad_NoSubscription);
+
+    });
+    it("should allow to find a subscription by id",function(){
+        var publish_server = new ServerSidePublishEngine();
+        publish_server.subscriptionCount.should.equal(0);
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount: 1000,
+            maxKeepAliveCount: 20
+        });
+        publish_server.add_subscription(subscription);
+        publish_server.subscriptionCount.should.equal(1);
+        publish_server.getSubscriptionById(1234).should.equal(subscription);
+
+        publish_server.shutdown();
+        publish_server.subscriptionCount.should.equal(0);
+
+    });
+
+    it("should remove a subscription",function(){
+        var publish_server = new ServerSidePublishEngine();
+        publish_server.subscriptionCount.should.equal(0);
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount: 1000,
+            maxKeepAliveCount: 20
+        });
+        publish_server.add_subscription(subscription);
+        publish_server.subscriptionCount.should.equal(1);
+
+        publish_server.remove_subscription(subscription);
+        publish_server.subscriptionCount.should.equal(0);
+
+        publish_server.shutdown();
+        publish_server.subscriptionCount.should.equal(0);
 
     });
 
