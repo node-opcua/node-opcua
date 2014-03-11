@@ -623,4 +623,94 @@ describe("ServerEngine", function () {
 
 
 
+    describe("testing ServerEngine browsePath",function(){
+        var translate_service = require("../../lib/translate_browse_paths_to_node_ids_service");
+        var nodeid = require("../../lib/nodeid");
+
+        it(" translate a browse path to a nodeId with a invalid starting node shall return Bad_NodeIdUnknown",function() {
+            var browsePath = new translate_service.BrowsePath({
+                startingNode: nodeid.makeNodeId(0), // <=== invalid node id
+                relativePath:[]
+            });
+
+            var browsePathResult = server.browsePath(browsePath);
+            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+
+            browsePathResult.statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
+        });
+        it(" translate a browse path to a nodeId with an empty relativePath  shall return Bad_NothingToDo",function() {
+            var browsePath = new translate_service.BrowsePath({
+                startingNode: nodeid.makeNodeId(84), // <=== valid node id
+                relativePath: { elements:[]}         // <=== empty path
+            });
+
+            var browsePathResult = server.browsePath(browsePath);
+            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+
+            browsePathResult.statusCode.should.eql(StatusCodes.Bad_NothingToDo);
+        });
+
+        it("The Server shall return Bad_BrowseNameInvalid if the targetName is missing. ",function() {
+            var browsePath = new translate_service.BrowsePath({
+                startingNode: nodeid.makeNodeId(84),
+                relativePath: { elements:[
+                    {
+                        //xx referenceTypeId: null,
+                        isInverse:       false,
+                        includeSubtypes: 0,
+                        targetName: null // { namespaceIndex:0 , name: "Server"}
+                    }
+                ]}
+            });
+
+            var browsePathResult = server.browsePath(browsePath);
+            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+
+            browsePathResult.statusCode.should.eql(StatusCodes.Bad_BrowseNameInvalid);
+            browsePathResult.targets.length.should.eql(0);
+        });
+        it("The Server shall return Bad_NoMatch if the targetName doesn't exist. ",function() {
+            var browsePath = new translate_service.BrowsePath({
+                startingNode: nodeid.makeNodeId(84),
+                relativePath: { elements:[
+                    {
+                        //xx referenceTypeId: null,
+                        isInverse:       false,
+                        includeSubtypes: 0,
+                        targetName: { namespaceIndex:0 , name: "xxxx invalid name xxx"}
+                    }
+                ]}
+            });
+
+            var browsePathResult = server.browsePath(browsePath);
+            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            browsePathResult.statusCode.should.eql(StatusCodes.Bad_NoMatch);
+            browsePathResult.targets.length.should.eql(0);
+        });
+
+        it("The Server shall return Good if the targetName do exist. ",function() {
+            var browsePath = new translate_service.BrowsePath({
+                startingNode: nodeid.makeNodeId(84),
+                relativePath: { elements:[
+                    {
+                        //xx referenceTypeId: null,
+                        isInverse:       false,
+                        includeSubtypes: 0,
+                        targetName: { namespaceIndex:0 , name: "Objects"}
+                    }
+                ]}
+            });
+
+            var browsePathResult = server.browsePath(browsePath);
+            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            browsePathResult.statusCode.should.eql(StatusCodes.Good);
+            browsePathResult.targets.length.should.eql(1);
+            browsePathResult.targets[0].targetId.should.eql(nodeid.makeNodeId(85));
+            var UInt32_MaxValue = 0xFFFFFFFF;
+            browsePathResult.targets[0].remainingPathIndex.should.equal(UInt32_MaxValue);
+        });
+
+    });
+
 });
+
