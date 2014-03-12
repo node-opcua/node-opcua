@@ -1,3 +1,5 @@
+Error.stackTraceLimit = Infinity;
+
 var OPCUAServer = require("../lib/opcua-server.js").OPCUAServer;
 
 
