@@ -97,7 +97,7 @@ function dumpObjectType(objectType)
     }
    // console.log(util.inspect(objectType,{colors:true,depth:10}) );
 
-    // find hasSubType
+    // find isSubtypeOf
     var st = findReference(objectType,"HasSubtype",false);
     assert(st);
     if (st) {

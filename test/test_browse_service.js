@@ -2,7 +2,6 @@ var bs = require("./../lib/browse_service");
 var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var redirectToFile = require("../lib/utils").redirectToFile;
 var verify_multi_chunk_message= require("./utils/verify_message_chunk").verify_multi_chunk_message;
-var verify_single_chunk_message= require("./utils/verify_message_chunk").verify_single_chunk_message;
 var makebuffer = require("../lib/utils").makebuffer;
 
 
@@ -61,8 +60,29 @@ var fixture_ws_browseResponse_with_error_and_diagnostic_info_message= makebuffer
 
 describe("Browse Service", function(){
 
+
+
+    it("should construct a BrowseDescription",function(){
+
+        var makeNodeId = require("../lib/nodeid").makeNodeId;
+
+        var browseDescription = new bs.BrowseDescription({
+            browseDirection: bs.BrowseDirection.Both,
+            referenceTypeId: makeNodeId(12),
+            includeSubtypes: true,
+            nodeClassMask: 25,
+            resultMask: 32
+        });
+        browseDescription.browseDirection.should.eql(bs.BrowseDirection.Both);
+        browseDescription.referenceTypeId.value.should.eql(12);
+        browseDescription.includeSubtypes.should.equal(true);
+        encode_decode_round_trip_test(browseDescription);
+    });
+
     it("should create a BrowseRequest",function(){
-       var browseRequest = new bs.BrowseRequest({});
+       var browseRequest = new bs.BrowseRequest({
+
+       });
         encode_decode_round_trip_test(browseRequest);
     });
 

@@ -206,14 +206,17 @@ describe("ServerEngine", function () {
 
     });
 
-    it("should browse root folder",function(){
+    it("should browse root folder with referenceTypeId",function(){
 
         var ref_Organizes_Id = server.resolveNodeId("Organizes");
         ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
         var browseDescription = {
             browseDirection : BrowseDirection.Both,
-            referenceTypeId : "Organizes"
+            referenceTypeId : "Organizes",
+            includeSubtypes : false,
+            nodeClassMask:  0, // 0 = all nodes
+            resultMask: 0x3F
         };
         var browseResult = server.browseSingleNode("RootFolder",browseDescription);
 
@@ -244,6 +247,54 @@ describe("ServerEngine", function () {
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });
+
+    it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true" ,function(){
+
+        var ref_hierarchical_Ref_Id = server.resolveNodeId("HierarchicalReferences");
+        ref_hierarchical_Ref_Id.toString().should.eql("ns=0;i=33");
+
+        var ref_Organizes_Id = server.resolveNodeId("Organizes");
+        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
+
+        var browseDescription = new browse_service.BrowseDescription({
+            browseDirection : BrowseDirection.Both,
+            referenceTypeId : ref_hierarchical_Ref_Id,
+            includeSubtypes : true,
+            nodeClassMask:  0, // 0 = all nodes
+            resultMask: 0x3F
+        });
+        browseDescription.browseDirection.should.eql(BrowseDirection.Both);
+
+        var browseResult = server.browseSingleNode("RootFolder",browseDescription);
+
+        browseResult.statusCode.should.eql(StatusCodes.Good);
+
+        browseResult.references.length.should.equal(3);
+
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references[0].isForward.should.equal(true);
+        browseResult.references[0].browseName.name.should.equal("Objects");
+        browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
+        browseResult.references[0].displayName.text.should.equal("Objects");
+        browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
+        browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
+
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references[1].isForward.should.equal(true);
+        browseResult.references[1].browseName.name.should.equal("Types");
+        browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
+        browseResult.references[1].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
+
+        browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references[2].isForward.should.equal(true);
+        browseResult.references[2].browseName.name.should.equal("Views");
+        browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
+        browseResult.references[2].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
+
+    });
+
 
     it("should browse a 'Server' object in  the 'Objects' folder",function(){
 
@@ -280,13 +331,13 @@ describe("ServerEngine", function () {
                 {
                     nodeId: resolveNodeId("RootFolder"),
                     includeSubtypes: true,
-                    browseDirection: browse_service.BrowseDirection.Both,
+                    browseDirection: BrowseDirection.Both,
                     resultMask: 63
                 },
                 {
                     nodeId: resolveNodeId("ObjectsFolder"),
                     includeSubtypes: true,
-                    browseDirection: browse_service.BrowseDirection.Both,
+                    browseDirection: BrowseDirection.Both,
                     resultMask: 63
                 }
 
