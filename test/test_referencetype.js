@@ -23,20 +23,20 @@ describe("testing ReferenceType",function(){
     });
     it("should find 'HierarchicalReferences'",function(){
 
-       var hr =  address_space.findObject("HierarchicalReferences");
+       var hr =  address_space.findReferenceType("HierarchicalReferences");
        hr.browseName.should.equal("HierarchicalReferences");
        hr.nodeId.should.eql(nodeid.makeNodeId(33));
 
     });
     it("should find 'Organizes'",function(){
-        var organizes_refId =  address_space.findObject("Organizes");
+        var organizes_refId =  address_space.findReferenceType("Organizes");
         organizes_refId.browseName.should.equal("Organizes");
         organizes_refId.nodeId.should.eql(nodeid.makeNodeId(35));
     });
     it("'Organizes' should be a sub-type of 'HierarchicalReferences'",function(){
 
-        var hr =  address_space.findObject("HierarchicalReferences");
-        var organizes_refId =  address_space.findObject("Organizes");
+        var hr =  address_space.findReferenceType("HierarchicalReferences");
+        var organizes_refId =  address_space.findReferenceType("Organizes");
 
         organizes_refId.isSubtypeOf(hr).should.eql(true);
         hr.isSubtypeOf(organizes_refId).should.eql(false);
@@ -45,8 +45,8 @@ describe("testing ReferenceType",function(){
 
     it("'HasTypeDefinition' should *not* be a sub-type of 'HierarchicalReferences'",function(){
 
-        var hr =  address_space.findObject("HierarchicalReferences");
-        var hasTypeDefinition_refId =  address_space.findObject("HasTypeDefinition");
+        var hr =  address_space.findReferenceType("HierarchicalReferences");
+        var hasTypeDefinition_refId =  address_space.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition_refId.isSubtypeOf(hr).should.eql(false);
         hr.isSubtypeOf(hasTypeDefinition_refId).should.eql(false);
@@ -54,8 +54,8 @@ describe("testing ReferenceType",function(){
     });
     it("'HasTypeDefinition' should  be a sub-type of 'NonHierarchicalReferences'",function(){
 
-        var nhr =  address_space.findObject("NonHierarchicalReferences");
-        var hasTypeDefinition_refId =  address_space.findObject("HasTypeDefinition");
+        var nhr =  address_space.findReferenceType("NonHierarchicalReferences");
+        var hasTypeDefinition_refId =  address_space.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition_refId.isSubtypeOf(nhr).should.eql(true);
         nhr.isSubtypeOf(hasTypeDefinition_refId).should.eql(false);
@@ -65,7 +65,7 @@ describe("testing ReferenceType",function(){
 
     it("should returns 4 refs for browseNode on RootFolder ,  referenceTypeId=null,!includeSubtypes  ",function(){
         var browse_service = require("../lib/browse_service");
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
         var references  = rootFolder.browseNode({
@@ -80,7 +80,7 @@ describe("testing ReferenceType",function(){
 
     it("should returns 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ",function(){
         var browse_service = require("../lib/browse_service");
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
         var references  = rootFolder.browseNode({
@@ -94,7 +94,7 @@ describe("testing ReferenceType",function(){
     });
     it("should returns 3 refs for browseNode on RootFolder , Organizes ,!includeSubtypes  ",function(){
         var browse_service = require("../lib/browse_service");
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
         var references  = rootFolder.browseNode({
@@ -109,7 +109,7 @@ describe("testing ReferenceType",function(){
 
     it("should returns 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ",function(){
         var browse_service = require("../lib/browse_service");
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
         var references  = rootFolder.browseNode({
@@ -125,7 +125,7 @@ describe("testing ReferenceType",function(){
 
     it("should returns 3 refs for browseNode on RootFolder , HierarchicalReferences , includeSubtypes  ",function(){
         var browse_service = require("../lib/browse_service");
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
         var references  = rootFolder.browseNode({

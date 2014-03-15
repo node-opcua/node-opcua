@@ -24,12 +24,15 @@ var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); /
 describe("ServerEngine", function () {
 
 
-    var server,FolderTypeId,BaseDataVariableTypeId;
+    var server,FolderTypeId,BaseDataVariableTypeId,ref_Organizes_Id;
+
     beforeEach(function(done){
         server = new server_engine.ServerEngine();
         server.initialize(null,function(){
-            FolderTypeId = server.findObject("FolderType").nodeId;
-            BaseDataVariableTypeId = server.findObject("BaseDataVariableType").nodeId;
+            FolderTypeId = server.address_space.findObjectType("FolderType").nodeId;
+            BaseDataVariableTypeId = server.address_space.findVariableType("BaseDataVariableType").nodeId;
+            ref_Organizes_Id = server.address_space.findReferenceType("Organizes").nodeId;
+            ref_Organizes_Id.toString().should.eql("ns=0;i=35");
             done();
         });
 
@@ -64,9 +67,9 @@ describe("ServerEngine", function () {
 
     it("should have an 'Objects' folder", function () {
 
-        var rootFolder = server.findObject("RootFolder");
+        var rootFolder = server.findObjectByBrowseName("Root");
 
-        var objectFolder = server.findObject("Objects");
+        var objectFolder = server.findObjectByBrowseName("Objects");
 
         assert(objectFolder !== null);
         objectFolder.parent.should.eql(rootFolder.nodeId);
@@ -75,8 +78,8 @@ describe("ServerEngine", function () {
 
     it("should have an 'Server' object", function () {
 
-        var serverObject = server.findObject("Server");
-        var objectFolder = server.findObject("Objects");
+        var serverObject = server.findObjectByBrowseName("Server");
+        var objectFolder = server.findObjectByBrowseName("Objects");
         assert(serverObject !== null);
         serverObject.parent.should.eql(objectFolder.nodeId);
 
@@ -84,8 +87,8 @@ describe("ServerEngine", function () {
 
     it("should have an 'Server.NamespaceArray' Variable", function () {
 
-        var serverObject = server.findObject("Server");
-        var objectFolder = server.findObject("Objects");
+        var serverObject = server.findObjectByBrowseName("Server");
+        var objectFolder = server.findObjectByBrowseName("Objects");
 
         var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray);
         var server_NamespaceArray = server.findObject(server_NamespaceArray_Id);
@@ -96,8 +99,8 @@ describe("ServerEngine", function () {
 
     it("should have an 'Server.Server_ServerArray' Variable", function () {
 
-        var serverObject = server.findObject("Server");
-        var objectFolder = server.findObject("Objects");
+        var serverObject = server.findObjectByBrowseName("Server");
+        var objectFolder = server.findObjectByBrowseName("Objects");
 
         var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_ServerArray);
         var server_NamespaceArray = server.findObject(server_NamespaceArray_Id);
@@ -107,13 +110,14 @@ describe("ServerEngine", function () {
 
     it("should allow to create a new folder", function () {
 
-        var rootFolder = server.findObject("RootFolder");
+        var rootFolder = server.findObjectByBrowseName("Root");
 
-
-        var newFolder = server.createFolder("RootFolder", "MyNewFolder");
+        var newFolder = server.createFolder("Root", "MyNewFolder");
         assert(newFolder);
 
         newFolder.hasTypeDefinition.should.eql(FolderTypeId);
+        newFolder.nodeClass.should.eql(NodeClass.Object);
+
         newFolder.parent.should.equal(rootFolder.nodeId);
 
     });
@@ -182,9 +186,6 @@ describe("ServerEngine", function () {
 
     it("should browse the 'Objects' folder for back references",function(){
 
-        var ref_Organizes_Id = server.resolveNodeId("Organizes");
-        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
-
         var browseDescription = {
             browseDirection : BrowseDirection.Inverse,
             referenceTypeId : "Organizes"
@@ -208,17 +209,14 @@ describe("ServerEngine", function () {
 
     it("should browse root folder with referenceTypeId",function(){
 
-        var ref_Organizes_Id = server.resolveNodeId("Organizes");
-        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
-
         var browseDescription = {
-            browseDirection : BrowseDirection.Both,
-            referenceTypeId : "Organizes",
-            includeSubtypes : false,
-            nodeClassMask:  0, // 0 = all nodes
-            resultMask: 0x3F
+            browseDirection: BrowseDirection.Both,
+            referenceTypeId: "Organizes",
+            includeSubtypes: false,
+            nodeClassMask:   0, // 0 = all nodes
+            resultMask:      0x3F
         };
-        var browseResult = server.browseSingleNode("RootFolder",browseDescription);
+        var browseResult = server.browseSingleNode("Root",browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -250,11 +248,8 @@ describe("ServerEngine", function () {
 
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true" ,function(){
 
-        var ref_hierarchical_Ref_Id = server.resolveNodeId("HierarchicalReferences");
+        var ref_hierarchical_Ref_Id = server.address_space.findReferenceType("HierarchicalReferences").nodeId;
         ref_hierarchical_Ref_Id.toString().should.eql("ns=0;i=33");
-
-        var ref_Organizes_Id = server.resolveNodeId("Organizes");
-        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
         var browseDescription = new browse_service.BrowseDescription({
             browseDirection : BrowseDirection.Both,
@@ -297,9 +292,6 @@ describe("ServerEngine", function () {
 
 
     it("should browse a 'Server' object in  the 'Objects' folder",function(){
-
-        var ref_Organizes_Id = server.resolveNodeId("Organizes");
-        ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
         var browseDescription = {
             browseDirection : BrowseDirection.Forward,
@@ -432,10 +424,13 @@ describe("ServerEngine", function () {
 
     describe("readSingleNode on ReferenceType",function(){
 
+        var ref_Organizes_nodeId;
+        beforeEach(function(){
+            ref_Organizes_nodeId = server.address_space.findReferenceType("Organizes").nodeId;
+        });
+
         //  --- on reference Type ....
         it("should handle a readSingleNode - IsAbstract",function() {
-
-            var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
 
             var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.IsAbstract);
             readResult.value.dataType.should.eql(DataType.Boolean);
@@ -445,7 +440,6 @@ describe("ServerEngine", function () {
 
         it("should handle a readSingleNode - Symmetric",function() {
 
-            var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
             var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.Symmetric);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.Boolean);
@@ -454,7 +448,6 @@ describe("ServerEngine", function () {
 
         it("should handle a readSingleNode - InverseName",function() {
 
-            var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
             var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.InverseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
@@ -463,7 +456,6 @@ describe("ServerEngine", function () {
 
         it("should handle a readSingleNode - BrowseName",function() {
 
-            var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
             var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
@@ -472,7 +464,6 @@ describe("ServerEngine", function () {
         });
         it("should return Bad_AttributeIdInvalid on EventNotifier",function() {
 
-            var ref_Organizes_nodeId = server.findNodeIdByBrowseName("Organizes");
             var readResult = server.readSingleNode(ref_Organizes_nodeId,AttributeIds.EventNotifier);
             readResult.statusCode.should.eql(StatusCodes.Bad_AttributeIdInvalid);
             assert(readResult.value === null);
@@ -566,13 +557,13 @@ describe("ServerEngine", function () {
     describe("readSingleNode on DataType",function(){
         // for views
         it("should have ServerStatusDataType dataType exposed",function(){
-            var obj =server.findObjectByBrowseName("ServerStatusDataType");
+            var obj =server.address_space.findDataType("ServerStatusDataType");
             obj.browseName.should.eql("ServerStatusDataType");
             obj.nodeClass.should.eql(NodeClass.DataType);
         });
         it("should handle a readSingleNode - ServerStatusDataType - BrowseName",function() {
 
-            var obj =server.findObjectByBrowseName("ServerStatusDataType");
+            var obj =server.address_space.findDataType("ServerStatusDataType");
             var serverStatusDataType_id = obj.nodeId;
             var readResult = server.readSingleNode(serverStatusDataType_id,AttributeIds.BrowseName);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
@@ -670,9 +661,6 @@ describe("ServerEngine", function () {
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
     });
-
-
-
 
     describe("testing ServerEngine browsePath",function(){
         var translate_service = require("../../lib/translate_browse_paths_to_node_ids_service");

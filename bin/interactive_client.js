@@ -33,7 +33,7 @@ var rl = readline.createInterface({
     completer: completer
 });
 
-var the_sesssion = null;
+var the_session = null;
 
 var client = new OPCUAClient();
 
@@ -107,9 +107,9 @@ rl.on('line', function (line) {
             });
             break;
         case 'close':
-            if (the_sesssion) {
-                the_sesssion.close(function(){
-                    the_sesssion = null;
+            if (the_session) {
+                the_session.close(function(){
+                    the_session = null;
                     client.disconnect(function(){
                         rl.write("client disconnected");
                     });
@@ -141,7 +141,7 @@ rl.on('line', function (line) {
                     console.log("Error : ".red, err);
                 } else {
                     //xx  console.log("Session  : ", session);
-                    the_sesssion = session;
+                    the_session = session;
                     console.log("session created");
                 }
                 rl.resume();
@@ -150,12 +150,12 @@ rl.on('line', function (line) {
 
         case 'b':
         case 'browse':
-            if (the_sesssion) {
+            if (the_session) {
                 rl.pause();
 
                 nodes = [ args[1] ];
 
-                the_sesssion.browse(nodes,function(err,nodeResults) {
+                the_session.browse(nodes,function(err,nodeResults) {
 
                     if (err ) {
                         console.log(err);
@@ -179,11 +179,11 @@ rl.on('line', function (line) {
 
         case 'r':
         case 'read':
-            if (the_sesssion) {
+            if (the_session) {
                 rl.pause();
                 nodes = [args[1]];
 
-                the_sesssion.readVariableValue(nodes,function(err,dataValues) {
+                the_session.readVariableValue(nodes,function(err,dataValues) {
                     if (err ) {
                         console.log(err);
                         console.log(dataValues);
@@ -207,11 +207,11 @@ rl.on('line', function (line) {
             break;
         case 'ra':
         case 'readall':
-            if (the_sesssion) {
+            if (the_session) {
                 rl.pause();
                 nodes = [args[1]];
 
-                the_sesssion.readAllAttributes(nodes,function(err,nodesToRead,dataValues,diagnosticInfos) {
+                the_session.readAllAttributes(nodes,function(err,nodesToRead,dataValues,diagnosticInfos) {
                     if (!err) {
                         for (var i = 0; i < dataValues.length; i++ ) {
                             console.log("           Node : ", util.inspect(nodesToRead[i],{colors:true}));
@@ -229,6 +229,18 @@ rl.on('line', function (line) {
                 });
                 rl.resume();
             }
+            break;
+
+        case 'tb':
+            if (the_session){
+
+                var path = args[1];
+                var nodeid = the_session.translateBrowsePath(path,function(err,results){
+                    console.log(" Path ",path," is ");
+                    console.log(util.inspect(results,{colors:true,depth:100}));
+
+                });
+            };
             break;
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
