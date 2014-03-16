@@ -1,7 +1,6 @@
 var readline = require('readline');
-var fs = require("fs");
 var treeify = require('treeify');
-var color = require('colors');
+require('colors');
 var sprintf = require('sprintf');
 
 var opcua = require("..");
@@ -13,18 +12,14 @@ var util = require("util");
 
 function completer(line) {
 
-    var completion,hits;
+    var completions,hits;
     if (line.trim().indexOf("open")) {
-
         completions = 'localhost <port>'.split(' ');
-        hits = completions.filter(function(c) { return c.indexOf(line) === 0 });
-        return [hits.length ? hits : completions, line]
     } else {
         completions = 'open close getEndpoints quit'.split(' ');
-        hits = completions.filter(function(c) { return c.indexOf(line) === 0 });
-        // show all completions if none found
-        return [hits.length ? hits : completions, line]
     }
+    hits = completions.filter(function(c) { return c.indexOf(line) === 0 });
+    return [hits.length ? hits : completions, line]
 }
 
 var rl = readline.createInterface({
@@ -83,6 +78,7 @@ if (rl.history) {
 rl.prompt(">");
 rl.on('line', function (line) {
 
+    var nodes,str;
     var args = line.trim().split(" ");
     var cmd = args[0];
 
@@ -162,13 +158,14 @@ rl.on('line', function (line) {
                         console.log(nodeResults);
                     } else {
 
+                        function dumpNodeResult(node) {
+                            str = sprintf("    %-30s%s%s",node.browseName.name,(node.isForward ? "->" : "<-") ,node.nodeId.displayText()  );
+                            console.log(str);
+                        }
                         for (var i = 0; i < nodeResults.length; i++ ) {
                             console.log("Node: ", nodes[i]);
                             console.log(" StatusCode =", nodeResults[i].statusCode.toString(16));
-                            nodeResults[i].references.forEach(function(node){
-                                str = sprintf("    %-30s%s%s",node.browseName.name,(node.isForward ? "->" : "<-") ,node.nodeId.displayText()  );
-                                console.log(str);
-                            });
+                            nodeResults[i].references.forEach(dumpNodeResult);
                         }
                     }
                 });
@@ -211,7 +208,7 @@ rl.on('line', function (line) {
                 rl.pause();
                 nodes = [args[1]];
 
-                the_session.readAllAttributes(nodes,function(err,nodesToRead,dataValues,diagnosticInfos) {
+                the_session.readAllAttributes(nodes,function(err,nodesToRead,dataValues/*,diagnosticInfos*/) {
                     if (!err) {
                         for (var i = 0; i < dataValues.length; i++ ) {
                             console.log("           Node : ", util.inspect(nodesToRead[i],{colors:true}));
@@ -235,12 +232,11 @@ rl.on('line', function (line) {
             if (the_session){
 
                 var path = args[1];
-                var nodeid = the_session.translateBrowsePath(path,function(err,results){
+                the_session.translateBrowsePath(path,function(err,results){
                     console.log(" Path ",path," is ");
                     console.log(util.inspect(results,{colors:true,depth:100}));
-
                 });
-            };
+            }
             break;
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
