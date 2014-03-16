@@ -69,6 +69,7 @@ var OPCUAServer = require("../lib/opcua-server").OPCUAServer;
 var OPCUAClient = require("../lib/opcua-client").OPCUAClient;
 var should = require("should");
 var debugLog  = require("../lib/utils").make_debugLog(__filename);
+var opcua = require("../lib/nodeopcua");
 
 function build_client_server_session(done){
     var server , client;
