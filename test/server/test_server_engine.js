@@ -591,11 +591,125 @@ describe("ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = server.read(readRequest.nodesToRead);
+        var dataValues = server.read(readRequest);
         dataValues.length.should.equal(1);
 
     });
+    describe("testing read operation with timestamps",function() {
 
+        var nodesToRead =
+            [
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.DisplayName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.BrowseName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ];
+        it("should read and set the required timestamps : TimestampsToReturn.Neither",function() {
+
+            var DataValue = require("../../lib/datavalue").DataValue;
+            var readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Neither,
+                nodesToRead: nodesToRead
+            });
+            var dataValues = server.read(readRequest);
+            dataValues.length.should.equal(2);
+            dataValues[0].should.be.instanceOf(DataValue);
+            dataValues[1].should.be.instanceOf(DataValue);
+            should(dataValues[0].serverTimeStamp).be.eql(null);
+            should(dataValues[0].sourceTimeStamp).be.eql(null);
+            should(dataValues[0].serverPicoseconds).be.eql(0);
+            should(dataValues[0].sourcePicoseconds).be.eql(0);
+            should(dataValues[1].serverTimeStamp).be.eql(null);
+            should(dataValues[1].sourceTimeStamp).be.eql(null);
+            should(dataValues[1].serverPicoseconds).be.eql(0);
+            should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+        });
+
+        it("should read and set the required timestamps : TimestampsToReturn.Server",function() {
+
+            var DataValue = require("../../lib/datavalue").DataValue;
+            var readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Server,
+                nodesToRead: nodesToRead
+            });
+            var dataValues = server.read(readRequest);
+            dataValues.length.should.equal(2);
+            dataValues[0].should.be.instanceOf(DataValue);
+            dataValues[1].should.be.instanceOf(DataValue);
+
+            should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+            should(dataValues[0].sourceTimestamp).be.eql(null);
+            should(dataValues[0].serverPicoseconds).be.eql(0);
+            should(dataValues[0].sourcePicoseconds).be.eql(0);
+            should(dataValues[1].serverTimestamp).be.instanceOf(Date);
+            should(dataValues[1].sourceTimestamp).be.eql(null);
+            should(dataValues[1].serverPicoseconds).be.eql(0);
+            should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+        });
+
+        it("should read and set the required timestamps : TimestampsToReturn.Source",function() {
+
+            var DataValue = require("../../lib/datavalue").DataValue;
+            var readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Source,
+                nodesToRead: nodesToRead
+            });
+
+            var dataValues = server.read(readRequest);
+
+            dataValues.length.should.equal(2);
+            dataValues[0].should.be.instanceOf(DataValue);
+            dataValues[1].should.be.instanceOf(DataValue);
+            should(dataValues[0].serverTimestamp).be.eql(null);
+            should(dataValues[0].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[0].serverPicoseconds).be.eql(0);
+            should(dataValues[0].sourcePicoseconds).be.eql(0);
+
+            should(dataValues[1].serverTimestamp).be.eql(null);
+            should(dataValues[1].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[1].serverPicoseconds).be.eql(0);
+            should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+        });
+
+        it("should read and set the required timestamps : TimestampsToReturn.Both",function() {
+
+            var DataValue = require("../../lib/datavalue").DataValue;
+            var readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Both,
+                nodesToRead: nodesToRead
+            });
+            var dataValues = server.read(readRequest);
+
+            dataValues.length.should.equal(2);
+            dataValues[0].should.be.instanceOf(DataValue);
+            dataValues[1].should.be.instanceOf(DataValue);
+            should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+            should(dataValues[0].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[0].serverPicoseconds).be.eql(0);
+            should(dataValues[0].sourcePicoseconds).be.eql(0);
+            should(dataValues[1].serverTimestamp).be.instanceOf(Date);
+            should(dataValues[1].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[1].serverPicoseconds).be.eql(0);
+            should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+        });
+
+    });
     it("should read Server_NamespaceArray ",function() {
 
         var readRequest = new read_service.ReadRequest({
@@ -616,7 +730,7 @@ describe("ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = server.read(readRequest.nodesToRead);
+        var dataValues = server.read(readRequest);
         dataValues.length.should.equal(2);
         dataValues[0].value.value.text.should.eql("NamespaceArray");
         dataValues[1].value.value.should.be.instanceOf(Array);
@@ -635,7 +749,7 @@ describe("ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = server.read(readRequest.nodesToRead);
+        var dataValues = server.read(readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].value.dataType.should.eql(DataType.NodeId);
         dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
@@ -656,7 +770,7 @@ describe("ServerEngine", function () {
             ]
         });
 
-        var dataValues = server.read(readRequest.nodesToRead);
+        var dataValues = server.read(readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
