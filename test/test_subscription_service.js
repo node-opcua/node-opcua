@@ -202,13 +202,17 @@ describe("testing subscription objects",function(){
 var _ = require("underscore");
 var build_client_server_session = require("./utils/build_client_server_session").build_client_server_session;
 
-
+//var sinon = require("sinon");
+//self.clock = sinon.useFakeTimers();
+//self.clock.restore();
 describe("testing Client Server dealing with subscription",function(){
     var server,g_session ;
-
+    var self = this;
     var client_server;
 
     before(function(done){
+
+
         client_server = build_client_server_session(function(){
             g_session = client_server.g_session;
             done();
@@ -220,15 +224,15 @@ describe("testing Client Server dealing with subscription",function(){
         client_server.shutdown(done);
     });
 
-    it("server should create a subscription",function(done){
+    it("server should create a subscription (CreateSubscriptionRequest)",function(done){
         var s = require("../lib/structures");
 
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateSubscriptionRequest({
-            requestedPublishingInterval: 10,
-            requestedLifetimeCount:      10 * 60 * 10 ,
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount:      100 * 60 * 10 ,
             requestedMaxKeepAliveCount:  2,
-            maxNotificationsPerPublish:  10,
+            maxNotificationsPerPublish:  2,
             publishingEnabled:           true,
             priority:                    6
         });
@@ -240,7 +244,7 @@ describe("testing Client Server dealing with subscription",function(){
 
         });
     });
-    it("server should create a CreateMonitoredItems ",function(done){
+    it("server should create a monitored item  (CreateMonitoredItems)",function(done){
 
         var VariableIds =require("../lib/opcua_node_ids").Variable;
 
@@ -273,11 +277,14 @@ describe("testing Client Server dealing with subscription",function(){
     });
 
     it("server should handle Publish request",function(done){
+        var self = this;
+
         // publish request now requires a subscriptions
         var request = new subscription_service.PublishRequest({
             subscriptionAcknowledgements: []
         });
         g_session.publish(request,function(err,response){
+
             if(!err) {
                 assert(response instanceof subscription_service.PublishResponse);
 
