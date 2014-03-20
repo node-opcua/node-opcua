@@ -225,9 +225,9 @@ describe("testing Client Server dealing with subscription",function(){
 
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateSubscriptionRequest({
-            requestedPublishingInterval: 1000,
-            requestedLifetimeCount:      1000 * 60 * 10 ,// 10 minutes
-            requestedMaxKeepAliveCount:  10,
+            requestedPublishingInterval: 10,
+            requestedLifetimeCount:      10 * 60 * 10 ,
+            requestedMaxKeepAliveCount:  2,
             maxNotificationsPerPublish:  10,
             publishingEnabled:           true,
             priority:                    6
@@ -272,7 +272,7 @@ describe("testing Client Server dealing with subscription",function(){
         });
     });
 
-    xit("server should handle Publish request",function(done){
+    it("server should handle Publish request",function(done){
         // publish request now requires a subscriptions
         var request = new subscription_service.PublishRequest({
             subscriptionAcknowledgements: []
