@@ -235,7 +235,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it(" calling connect on the client twice shall return a error the second time",function(done){
+    it("calling connect on the client twice shall return a error the second time",function(done){
         server.connected_client_count.should.equal(0);
 
         client.protocolVersion = 1;

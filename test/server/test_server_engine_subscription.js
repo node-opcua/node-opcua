@@ -22,50 +22,55 @@ var VariantArrayType =  require("../../lib/variant").VariantArrayType;
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
 
-
-
-
-
 describe("ServerEngine Subscriptions service", function () {
 
 
-    var server,FolderTypeId,BaseDataVariableTypeId;
+    var engine,FolderTypeId,BaseDataVariableTypeId;
     beforeEach(function(done){
-        server = new server_engine.ServerEngine();
-        server.initialize(null,function(){
-            FolderTypeId = server.findObject("FolderType").nodeId;
-            BaseDataVariableTypeId = server.findObject("BaseDataVariableType").nodeId;
+        engine = new server_engine.ServerEngine();
+        engine.initialize(null,function(){
+            FolderTypeId = engine.findObject("FolderType").nodeId;
+            BaseDataVariableTypeId = engine.findObject("BaseDataVariableType").nodeId;
             done();
         });
 
     });
     afterEach(function(){
-        server = null;
+        should(engine).not.equal(null);
+        engine.shutdown();
+        engine = null;
     });
 
     it("should return an error when trying to delete an non-existing subscription",function(){
 
-        server.deleteSubscription(-6789).should.eql(StatusCodes.Bad_SubscriptionIdInvalid);
+        engine.deleteSubscription(-6789).should.eql(StatusCodes.Bad_SubscriptionIdInvalid);
 
     });
 
     it("should check the subscription live cycle",function(){
 
-        server.currentSubscriptionCount.should.equal(0);
-        server.cumulatedSubscriptionCount.should.equal(0);
+        engine.currentSubscriptionCount.should.equal(0);
+        engine.cumulatedSubscriptionCount.should.equal(0);
 
-        var subscription = server.createSubscription();
+        var subscription = engine.createSubscription({
+            requestedPublishingInterval: 1000,  // Duration
+            requestedLifetimeCount: 10,         // Counter
+            requestedMaxKeepAliveCount: 10,     // Counter
+            maxNotificationsPerPublish: 10,     // Counter
+            publishingEnabled: true,            // Boolean
+            priority: 14                        // Byte
+        });
 
-        server.currentSubscriptionCount.should.equal(1);
-        server.cumulatedSubscriptionCount.should.equal(1);
+        engine.currentSubscriptionCount.should.equal(1);
+        engine.cumulatedSubscriptionCount.should.equal(1);
 
-        server.getSubscription(subscription.id).should.equal(subscription);
+        engine.getSubscription(subscription.id).should.equal(subscription);
 
-        var statusCode = server.deleteSubscription(subscription.id);
+        var statusCode = engine.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
 
-        server.currentSubscriptionCount.should.equal(0);
-        server.cumulatedSubscriptionCount.should.equal(1);
+        engine.currentSubscriptionCount.should.equal(0);
+        engine.cumulatedSubscriptionCount.should.equal(1);
     });
 
 });

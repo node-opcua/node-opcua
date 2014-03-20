@@ -29,3 +29,17 @@ server.start(function(){
     console.log("  server on port", server.endpoints[0].port);
     console.log("  server now waiting for connections. CTRL+C to stop");
 });
+server.on("request",function(request){
+    console.log(request._schema.name);
+    switch(request._schema.name) {
+        case "ReadRequest":
+            var str = "";
+            request.nodesToRead.map(function(node){str+= node.nodeId.toString() + " " + node.attributeId + " " ;});
+            console.log(str);
+            break;
+        case "TranslateBrowsePathsToNodeIdsRequest":
+            console.log(util.inspect(request,{colors:true,depth:10}));
+            break;
+    }
+    // console.log(util.inspect(request,{colors:true,depth:10}));
+});

@@ -21,7 +21,7 @@ var VariantArrayType =  require("../../lib/variant").VariantArrayType;
 
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
-describe("ServerEngine", function () {
+describe("testing ServerEngine", function () {
 
 
     var server,FolderTypeId,BaseDataVariableTypeId,ref_Organizes_Id;
@@ -38,6 +38,7 @@ describe("ServerEngine", function () {
 
     });
     afterEach(function(){
+        server.shutdown();
         server = null;
     });
 
@@ -865,5 +866,40 @@ describe("ServerEngine", function () {
 
     });
 
+    describe("Accessing ServerStatus nodes",function(){
+
+        it("should read  Server_ServerStatus_CurrentTime",function(){
+
+            var readRequest = new read_service.ReadRequest({
+                nodesToRead: [{
+                    nodeId:  VariableIds.Server_ServerStatus_CurrentTime,
+                    attributeId: AttributeIds.Value,
+                }]
+            });
+
+            var dataValues = server.read(readRequest);
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[0].value.dataType.should.eql(DataType.DateTime);
+            dataValues[0].value.value.should.be.instanceOf(Date);
+
+        });
+        it("should read  Server_ServerStatus_StartTime",function(){
+
+            var readRequest = new read_service.ReadRequest({
+                nodesToRead: [{
+                    nodeId:  VariableIds.Server_ServerStatus_StartTime,
+                    attributeId: AttributeIds.Value,
+                }]
+            });
+
+            var dataValues = server.read(readRequest);
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[0].value.dataType.should.eql(DataType.DateTime);
+            dataValues[0].value.value.should.be.instanceOf(Date);
+
+        });
+    })
 });
 
