@@ -18,54 +18,23 @@ var _ = require("underscore");
 
 var port = 2000;
 
+var build_server_with_temperature_device = require("./utils/build_server_with_temperature_device").build_server_with_temperature_device;
 describe("testing basic Client-Server communication",function() {
 
-    var server , client;
-    var endpointUrl ;
-    var temperatureVariableId;
-
+    var server , client,temperatureVariableId,endpointUrl ;
 
     before(function(done){
         // we use a different port for each tests to make sure that there is
-        // no left over in the tcp pipe that could provoque an error
+        // no left over in the tcp pipe that could generate an error
         port+=1;
-        server = new OPCUAServer({ port:port});
-
-        server.start(function() {
-
-
-            server.engine.createFolder("RootFolder",{
-                browseName: "MyDevices"
-            });
-
-            // install a Read/Write variable representing a temperature set point of a temperature controler.
-            var set_point_temperature = 20.0;
-
-            temperatureVariableId = server.engine.addVariableInFolder("MyDevices",
-                {
-                    browseName: "SetPointTemperature",
-                    value: {
-                        get: function(){
-                            return new Variant({dataType: DataType.Double , value: set_point_temperature});
-                        },
-                        set: function(variant){
-                            // to do : test if variant can be coerce to Float or Double
-                            set_point_temperature = parseFloat(variant.value);
-                            return StatusCodes.Good;
-                        }
-                    }
-
-                });
+        server = build_server_with_temperature_device({ port:port},function() {
             endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
-            debugLog("endpointUrl",endpointUrl);
-            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
-
+            temperatureVariableId = server.temperatureVariableId;
             done();
         });
     });
 
     beforeEach(function(done){
-
         client = new OPCUAClient();
         done();
     });
@@ -76,11 +45,7 @@ describe("testing basic Client-Server communication",function() {
     });
 
     after(function(done){
-
-        server.shutdown(function() {
-            done();
-        });
-
+        server.shutdown(done);
     });
 
     it("should start a server and accept a connection",function(done){
@@ -359,7 +324,7 @@ describe("testing basic Client-Server communication",function() {
             g_session.writeSingleNode(
                 temperatureVariableId.nodeId,
                 {dataType: DataType.Double, value: 37.5 },
-                function(err,statusCode,diagnosticInfo){
+                function(err,statusCode/*,diagnosticInfo*/){
                     if (!err) {
                          statusCode.should.eql(StatusCodes.Good);
                     }

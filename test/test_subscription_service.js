@@ -202,16 +202,12 @@ describe("testing subscription objects",function(){
 var _ = require("underscore");
 var build_client_server_session = require("./utils/build_client_server_session").build_client_server_session;
 
-//var sinon = require("sinon");
-//self.clock = sinon.useFakeTimers();
-//self.clock.restore();
-describe("testing Client Server dealing with subscription",function(){
+describe("testing basic Client Server dealing with subscription at low level",function(){
     var server,g_session ;
     var self = this;
     var client_server;
 
     before(function(done){
-
 
         client_server = build_client_server_session(function(){
             g_session = client_server.g_session;
@@ -227,7 +223,7 @@ describe("testing Client Server dealing with subscription",function(){
     it("server should create a subscription (CreateSubscriptionRequest)",function(done){
         var s = require("../lib/structures");
 
-        // CreateMonitoredItemsRequest
+        // CreateSubscriptionRequest
         var request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount:      100 * 60 * 10 ,

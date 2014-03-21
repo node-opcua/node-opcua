@@ -26,8 +26,6 @@ describe("Testing the client publish engine", function () {
 
         var fake_session = {
             publish: function (request, callback) {
-
-
             }
         };
 
