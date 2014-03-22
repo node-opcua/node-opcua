@@ -97,7 +97,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
             subscription.on("started",function(){
-                this.terminate();
+                subscription.terminate();
             });
             subscription.on("terminated",function(){
                 done();
@@ -119,7 +119,9 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
             subscription.on("started",function(){
-                setTimeout(function() { subscription.terminate();}, 200 );
+                setTimeout(function() {
+                    subscription.terminate();
+                },200 );
             });
             subscription.on("terminated",function(){
                 done();

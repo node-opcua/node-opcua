@@ -81,6 +81,7 @@ describe("Testing the client publish engine", function () {
         response_maker.onCall(1).returns([null,response2]);
         response_maker.onCall(2).returns([null,response2]);
         response_maker.onCall(3).returns([null,response2]);
+        response_maker.onCall(4).returns([null,response2]);
 
         var fake_session = {
             publish: function (request, callback) {
