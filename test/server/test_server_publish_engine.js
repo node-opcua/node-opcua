@@ -65,7 +65,7 @@ describe("Testing the server publish engine", function () {
 
         publish_server.add_subscription(subscription);
 
-        // client sends a PublishRequest to the server
+            // client sends a PublishRequest to the server
         var fake_request1 = new subscription_service.PublishRequest({
             subscriptionAcknowledgements: []
         });
@@ -97,22 +97,40 @@ describe("Testing the server publish engine", function () {
             maxLifeTimeCount: 1000,
             maxKeepAliveCount: 20
         });
+
         publish_server.add_subscription(subscription);
         var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
 
         // client sends a PublishRequest to the server
         var fake_request1 = new subscription_service.PublishRequest({ subscriptionAcknowledgements: [] });
         publish_server._on_PublishRequest(fake_request1);
+        send_response_for_request_spy.callCount.should.equal(0);
 
         // server send a notification to the client
-        publish_server.send_notification_message(subscription.id,new NotificationMessage({}));
+        subscription.addNotificationMessage([{}]);
+
+        // server should send a response for the first publish request with the above notification
+        // in this response, there should be no availableSequenceNumbers yet
+        send_response_for_request_spy.callCount.should.equal(1);
+        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].subscriptionId.should.eql(1234);
+        send_response_for_request_spy.getCall(0).args[1].availableSequenceNumbers.should.eql([]);
 
         // client sends a PublishRequest to the server ( with no acknowledgement)
         var fake_request2 = new subscription_service.PublishRequest({ subscriptionAcknowledgements: [] });
         publish_server._on_PublishRequest(fake_request2);
 
-        // server send a notification to the client
-        publish_server.send_notification_message(subscription.id,new NotificationMessage({}));
+
+        // server has now some notification ready and send them to the client
+        subscription.addNotificationMessage([{}]);
+
+        // server should send an response for the second publish request with a notification
+        // in this respo
+        send_response_for_request_spy.callCount.should.equal(2);
+        send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(1).args[1].subscriptionId.should.eql(1234);
+        send_response_for_request_spy.getCall(1).args[1].availableSequenceNumbers.should.eql([1]);
+
 
         // send_response_for_request_spy.
 

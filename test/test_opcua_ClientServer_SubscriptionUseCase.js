@@ -83,7 +83,6 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
     it("should create a ClientSubscription to manage a subscription",function(done){
 
-
         perform_operation_on_client_session(function(session,done){
 
             assert(session instanceof OPCUASession);
@@ -91,13 +90,13 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             var subscription = new ClientSubscription(session,{
                 requestedPublishingInterval: 100,
                 requestedLifetimeCount:      100 * 60 * 10 ,
-                requestedMaxKeepAliveCount:  2,
-                maxNotificationsPerPublish:  2,
+                requestedMaxKeepAliveCount:  5,
+                maxNotificationsPerPublish:  5,
                 publishingEnabled:           true,
                 priority:                    6
             });
             subscription.on("started",function(){
-                subscription.terminate();
+                setTimeout(function() { subscription.terminate(); },1000 );
             });
             subscription.on("terminated",function(){
                 done();
@@ -110,20 +109,24 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
             assert(session instanceof OPCUASession);
 
+            var nb_keep_alive_received = 0;
+
             var subscription = new ClientSubscription(session,{
-                requestedPublishingInterval: 100,
-                requestedLifetimeCount:      100 * 60 * 10 ,
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount:      10 * 60 * 10 ,
                 requestedMaxKeepAliveCount:  2,
                 maxNotificationsPerPublish:  2,
                 publishingEnabled:           true,
                 priority:                    6
             });
             subscription.on("started",function(){
-                setTimeout(function() {
-                    subscription.terminate();
-                },200 );
+                setTimeout(function() { subscription.terminate(); },1000 );
+            });
+            subscription.on("keepalive",function(){
+                nb_keep_alive_received +=1;
             });
             subscription.on("terminated",function(){
+                nb_keep_alive_received.should.be.greaterThan(0);
                 done();
             });
         },done);

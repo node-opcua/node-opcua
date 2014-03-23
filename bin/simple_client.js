@@ -23,6 +23,7 @@ if (!endpointUrl) {
     return;
 }
 var the_session = null;
+var the_subscription= null;
 
 
 function browseTree(root, nodeId, callback) {
@@ -136,6 +137,28 @@ async.series([
             callback(err);
         });
 
+    },
+    // -----------------------------------------
+    // create subscription
+    function(callback) {
+        the_subscription=new opcua.ClientSubscription(the_session,{
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount: 10,
+            requestedMaxKeepAliveCount: 2,
+            maxNotificationsPerPublish: 10,
+            publishingEnabled: false,
+            priority: 10
+        });
+        the_subscription.on("started",function(){
+            console.log("started",the_subscription);
+        }).on("keepalive",function(){
+            console.log("keepalive")
+        }).on("terminated",function(){
+            callback();
+        });
+        setTimeout(function(){
+            the_subscription.terminate();
+        },2000);
     },
     function(callback) {
         console.log(" closing session");
