@@ -112,7 +112,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             var nb_keep_alive_received = 0;
 
             var subscription = new ClientSubscription(session,{
-                requestedPublishingInterval: 10,
+                requestedPublishingInterval: 100,
                 requestedLifetimeCount:      10 * 60 * 10 ,
                 requestedMaxKeepAliveCount:  2,
                 maxNotificationsPerPublish:  2,
@@ -120,7 +120,9 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
             subscription.on("started",function(){
-                setTimeout(function() { subscription.terminate(); },1000 );
+                setTimeout(function() {
+                    subscription.terminate(); }
+                , 500 );
             });
             subscription.on("keepalive",function(){
                 nb_keep_alive_received +=1;
