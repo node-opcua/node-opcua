@@ -122,31 +122,6 @@ describe("Testing the client publish engine", function () {
 
     });
 
-
-    it("a client should send a publish request to the server, on a regular basis", function () {
-
-        var fake_session = {publish: function (request, callback) {}};
-        var spy = sinon.spy(fake_session, "publish");
-
-        var publish_client = new ClientSidePublishEngine(fake_session);
-        publish_client.keepalive_interval = 1000; // 1 second
-
-        publish_client.start();
-
-        // now advance the time artificially by 4.5 seconds
-        this.clock.tick(500 + 4 * 1000);
-
-        // publish should have been called 3 times at least
-        spy.callCount.should.be.greaterThan(3);
-
-        // args[0] shall be a Publish Request
-        spy.getCall(0).args[0]._schema.name.should.equal("PublishRequest");
-        assert(_.isFunction(spy.getCall(0).args[1]));
-
-        spy.restore();
-        publish_client.stop();
-    });
-
     it("a client should acknowledge sequence numbers received in PublishResponse in next PublishRequest",function(){
 
         // the spec says: Clients are required to acknowledge  Notification Messages as they are received.
