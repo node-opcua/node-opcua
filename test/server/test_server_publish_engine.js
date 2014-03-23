@@ -65,7 +65,7 @@ describe("Testing the server publish engine", function () {
 
         publish_server.add_subscription(subscription);
 
-            // client sends a PublishRequest to the server
+        // client sends a PublishRequest to the server
         var fake_request1 = new subscription_service.PublishRequest({
             subscriptionAcknowledgements: []
         });
@@ -125,7 +125,6 @@ describe("Testing the server publish engine", function () {
         subscription.addNotificationMessage([{}]);
 
         // server should send an response for the second publish request with a notification
-        // in this respo
         send_response_for_request_spy.callCount.should.equal(2);
         send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(1).args[1].subscriptionId.should.eql(1234);
@@ -153,7 +152,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(2000);
 
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("ServiceFault");
+        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Bad_NoSubscription);
 
     });
@@ -205,18 +204,124 @@ describe("Testing the server publish engine", function () {
         var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
         publish_server.add_subscription(new Subscription({id: 1}));
 
+        // simulate client sending PublishRequest ,and server doing nothing
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
+        //en: the straw that broke the camel's back.
+        //fr: la goutte qui fait déborder le vase.
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
-
 
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("ServiceFault");
+        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Bad_TooManyPublishRequests);
+        send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
+
+    });
+
+    it("the server shall process the client acknowledge sequence number",function(){
+
+        var publish_server = new ServerSidePublishEngine();
+        var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount: 1000,
+            maxKeepAliveCount: 20
+        });
+        publish_server.add_subscription(subscription);
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        // server send a notification to the client
+        subscription.addNotificationMessage([{}]);
+        subscription.getAvailableSequenceNumbers().should.eql([1]);
+
+        send_response_for_request_spy.callCount.should.equal(1);
+        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
+
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        subscription.addNotificationMessage([{}]);
+        subscription.getAvailableSequenceNumbers().should.eql([1,2]);
+
+        send_response_for_request_spy.callCount.should.equal(2);
+        send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.getCall(1).args[1].results.should.eql([]);
+
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        subscription.addNotificationMessage([{}]);
+        subscription.getAvailableSequenceNumbers().should.eql([1,2,3]);
+
+        send_response_for_request_spy.callCount.should.equal(3);
+        send_response_for_request_spy.getCall(2).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.getCall(2).args[1].results.should.eql([]);
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({
+            subscriptionAcknowledgements: [
+                { subscriptionId: 1234 , sequenceNumber:2 }
+            ]}
+        ));
+        subscription.getAvailableSequenceNumbers().should.eql([1,3]);
+
+        subscription.addNotificationMessage([{}]);
+        send_response_for_request_spy.callCount.should.equal(4);
+        send_response_for_request_spy.getCall(3).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.getCall(3).args[1].results.should.eql([StatusCodes.Good]);
+
+
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({
+                subscriptionAcknowledgements: [
+                    { subscriptionId: 1234 , sequenceNumber:1 },
+                    { subscriptionId: 1234 , sequenceNumber:3 }
+                ]}
+        ));
+        subscription.getAvailableSequenceNumbers().should.eql([4]);
+
+        subscription.addNotificationMessage([{}]);
+        send_response_for_request_spy.callCount.should.equal(5);
+        send_response_for_request_spy.getCall(4).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.getCall(4).args[1].results.should.eql([StatusCodes.Good,StatusCodes.Good]);
+
+    });
+
+    it("the server shall return Bad_SequenceNumberInvalid if the client attempts to acknowledge a notification that is not in the queue",function(){
+
+        var publish_server = new ServerSidePublishEngine();
+        var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount: 1000,
+            maxKeepAliveCount: 20
+        });
+        publish_server.add_subscription(subscription);
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({
+            subscriptionAcknowledgements: [
+                { subscriptionId: 1234 , sequenceNumber:36 }
+            ]}
+        ));
+        // server send a notification to the client
+        subscription.addNotificationMessage([{}]);
+        subscription.getAvailableSequenceNumbers().should.eql([1]);
+
+        send_response_for_request_spy.callCount.should.equal(1);
+        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.getCall(0).args[1].results.should.eql([StatusCodes.Bad_SequenceNumberUnknown]);
 
     });
 
