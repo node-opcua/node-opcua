@@ -192,7 +192,6 @@ describe("testing server and subscription",function(){
                         priority: 14                        // Byte
                     }, function(err,response){
                         subscriptionId = response.subscriptionId;
-                        console.log(" subscript",subscriptionId,err);
                         callback(err);
                     });
                 },
@@ -202,34 +201,30 @@ describe("testing server and subscription",function(){
                     });
                 },
                 function(callback) {
-                    session.publish({},function(err,response){});
-                    /*
-                    session.publish({},function(err,response){
-                        callback();
-                    });
+
+                    // send many publish request
                     session.publish({},function(err,response){});
                     session.publish({},function(err,response){});
-                     setTimeout(function() {  callback();},100);
-                     */
+                    session.publish({},function(err,response){});
+                    session.publish({},function(err,response){});
+                    session.publish({},function(err,response){});
+                    session.publish({},function(err,response){});
                     callback();
                 },
                 function(callback) {
-                   console.log(" read 2");
                    session.readVariableValue("RootFolder",function(err,dataValues,diagnosticInfos){
-                        console.log(" read 2");
                         callback();
                    });
                 },
                 function(callback) {
-                    console.log("here.deleteSubscriptions");
                     session.deleteSubscriptions({
                         subscriptionIds: [subscriptionId]
                     },function(err,response){
-                        console.log("here.deleteSubscriptions");
                         callback();
                     });
                 }
-            ], function(err) { console.log("sdsd"); done(err) ;
+            ], function(err) {
+                done(err) ;
             });
 
         },done);
