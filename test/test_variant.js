@@ -118,6 +118,9 @@ describe("Variant",function(){
 
         var1.dataType.should.eql(DataType.String);
         var1.arrayType.should.eql(VariantArrayType.Array);
+        var1.value.length.should.eql(2);
+        var1.value[0].should.eql("Hello");
+        var1.value[1].should.eql("World");
 
         encode_decode_round_trip_test(var1,function(stream){
             stream.length.should.equal(1 + 4 + ( 4 +5 + 4 + 5) );
@@ -144,5 +147,6 @@ describe("Variant",function(){
             stream.length.should.equal(27);
         });
     });
+
 
 });
