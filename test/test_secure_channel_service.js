@@ -71,9 +71,9 @@ describe("SecureMessageChunkManager",function(){
                 messageBuilder.on("full_message_body",function(full_message_body){
                     compare_buffers(fullBufferForVerif,full_message_body,40);
 
-                }).on("message",function(message) {
+                }).on("message",function(request) {
                     //xx console.log("message = ", util.inspect(message));
-                    message.should.eql(endPointResponse);
+                    request.should.eql(endPointResponse);
                     // check also that requestId has been properly installed by chunkSecureMessage
 
                     callback();

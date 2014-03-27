@@ -149,10 +149,13 @@ async.series([
             publishingEnabled: false,
             priority: 10
         });
+        //xx the_subscription.monitor("i=155",DataType.Value,function onchanged(dataValue){
+        //xx    console.log(" temperature has changed " + dataValue.value.value);
+        //xx });
         the_subscription.on("started",function(){
             console.log("started",the_subscription);
         }).on("keepalive",function(){
-            console.log("keepalive")
+            console.log("keepalive");
         }).on("terminated",function(){
             callback();
         });
