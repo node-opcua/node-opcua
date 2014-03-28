@@ -842,7 +842,8 @@ describe("testing ServerEngine", function () {
             browsePathResult.targets.length.should.eql(0);
         });
 
-        it("The Server shall return Good if the targetName do exist. ",function() {
+        it("The Server shall return Good if the targetName does exist. ",function() {
+
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: { elements:[
@@ -898,6 +899,25 @@ describe("testing ServerEngine", function () {
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             dataValues[0].value.dataType.should.eql(DataType.DateTime);
             dataValues[0].value.value.should.be.instanceOf(Date);
+
+        });
+
+        it("should read  all attributes of Server_ServerStatus_CurrentTime",function(){
+
+            var readRequest = new read_service.ReadRequest({
+                nodesToRead:[1,2,3,4,5,6,7,13,14,15,16,17,18,19,20].map(function(attributeId) {
+                    return {
+                        nodeId:  VariableIds.Server_ServerStatus_CurrentTime,
+                        attributeId: attributeId
+                    };
+                })
+            });
+
+            var dataValues = server.read(readRequest);
+            dataValues.length.should.equal(15);
+            dataValues[7].statusCode.should.eql(StatusCodes.Good);
+            dataValues[7].value.dataType.should.eql(DataType.DateTime);
+            dataValues[7].value.value.should.be.instanceOf(Date);
 
         });
     })
