@@ -1,7 +1,6 @@
 /**
  * this script queries the discovery server and display the discovery urls
  *
- * @type {perform_findServersRequest}
  */
 
 var perform_findServersRequest = require("../lib/findservers").perform_findServersRequest;
