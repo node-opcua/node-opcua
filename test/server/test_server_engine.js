@@ -902,7 +902,7 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should read  all attributes of Server_ServerStatus_CurrentTime",function(){
+        it("should read all attributes of Server_ServerStatus_CurrentTime",function(){
 
             var readRequest = new read_service.ReadRequest({
                 nodesToRead:[1,2,3,4,5,6,7,13,14,15,16,17,18,19,20].map(function(attributeId) {
