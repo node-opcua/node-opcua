@@ -92,7 +92,7 @@ async.series([
 
    // step 4 : read a variable
    function(callback) {
-     the_session.read("ns=2;s=Furnace_1.Temperature", function(err,dataValues,diagnostics) {
+     the_session.readVariableValue("ns=2;s=Furnace_1.Temperature", function(err,dataValues,diagnostics) {
        if (!err) {
          console.log(" temperature = " , dataValues[0].value.value);
        }
