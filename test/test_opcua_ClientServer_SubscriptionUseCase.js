@@ -142,16 +142,48 @@ describe("testing Client-Server subscription use case, on a fake server exposing
     it("client should be able to create subscription to monitor the temperature variable and received notification of change",function(done){
         done();
     });
+
+    it("should be possible to monitor an item with a ClientSubscription",function(done){
+
+        var makeNodeId = require("../lib/nodeid").makeNodeId;
+        perform_operation_on_client_session(client,function(session,done){
+
+            assert(session instanceof OPCUASession);
+
+            var subscription = new ClientSubscription(session,{
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount:      10 * 60 * 10 ,
+                requestedMaxKeepAliveCount:  2,
+                maxNotificationsPerPublish:  2,
+                publishingEnabled:           true,
+                priority:                    6
+            });
+
+            var monitoredItemNotificationCount = 0;
+            subscription.on("started",function(){
+                setTimeout(function() { subscription.terminate(); }, 1500 );
+            });
+            subscription.on("terminated",function(){
+                done();
+               //xx todo: monitoredItemNotificationCount.should.be.greaterThan(1);
+            });
+
+
+            subscription.monitor(
+                {nodeId: makeNodeId("ns=0;i=2258")},
+                {samplingInterval: 50,discardOldest: true,queueSize:1 },function(value){
+
+                    console.log(" Monitored Item changed :----> ",value.toString());
+                    monitoredItemNotificationCount ++;
+                });
+        },done);
+    });
 });
 
 describe("testing server and subscription",function(){
     var server , client,temperatureVariableId,endpointUrl ;
-
     var port = 2001;
     before(function(done){
-        // we use a different port for each tests to make sure that there is
-        // no left over in the tcp pipe that could generate an error
-        port+=1;
         server = build_server_with_temperature_device({ port:port},function() {
             endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -172,7 +204,6 @@ describe("testing server and subscription",function(){
     after(function(done){
         server.shutdown(done);
     });
-
 
     it(" a server should accept several Publish Requests from the client without sending notification immediately,"+
        " and should still be able to reply to other request",function(done) {
@@ -230,3 +261,22 @@ describe("testing server and subscription",function(){
         },done);
     })
 });
+
+
+/*
+    itemToMonitor: {
+        nodeId: 'ns=0;i=2258',
+        attributeId: 13,
+        indexRange: null,
+        dataEncoding: { namespaceIndex: 0, name: '' }
+    },
+    monitoringMode: 'Reporting',
+    requestedParameters: {
+        clientHandle: 13,
+        samplingInterval: 3000,
+        filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
+        queueSize: 1,
+        discardOldest: true
+    }
+ }
+ */
