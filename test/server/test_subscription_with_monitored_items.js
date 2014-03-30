@@ -14,6 +14,7 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 var DataType = require("../../lib/variant").DataType;
 var DataValue = require("../../lib/datavalue").DataValue;
 var Variant = require("../../lib/variant").Variant;
+var dump = require("../../lib/utils").dump;
 
 
 
@@ -41,6 +42,7 @@ describe("Subscriptions and MonitoredItems", function () {
             monitoringMode: subscription_service.MonitoringMode.Reporting,
 
             requestedParameters: {
+                queueSize: 10,
                 samplingInterval: 10
             }
         });
@@ -58,7 +60,6 @@ describe("Subscriptions and MonitoredItems", function () {
         monitoredItemCreateResult.revisedSamplingInterval.should.eql(10);
 
 
-
         subscription.on("terminated",function(){
             done();
             // monitored Item shall be deleted at this stage
@@ -69,7 +70,7 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
 
-    it("a subscription should collect monitored item notification at publishing interval",function(done){
+    it("a subscription should collect monitored item notification with collectDataChangeNotification",function(done){
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -79,20 +80,98 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {
-
             },
             monitoringMode: subscription_service.MonitoringMode.Reporting,
-
             requestedParameters: {
+                queueSize: 10,
                 samplingInterval: 100
             }
         });
+
         var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both,monitoredItemCreateRequest);
 
-        this.clock.tick(2000);
-        subscription.on("notifications",function(notifications){
+        var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
+        // at first, collectDataChangeNotification  should collect nothing
+        var notification = subscription.collectDataChangeNotification();
+        should(notification).equal(null);
+
+        // now simulate some data change
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1000});
+
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1001});
+        monitoredItem.queue.length.should.eql(2);
+
+        // then, collectDataChangeNotification  should collect at least 2 values
+        notification = subscription.collectDataChangeNotification();
+        notification.monitoredItems.length.should.eql(2);
+        notification.monitoredItems[0].clientHandle.should.eql(monitoredItem.clientHandle);
+
+        subscription.on("terminated",function(){
+            done();
         });
+        subscription.terminate();
+
+    });
+
+    it("a subscription should collect monitored item notification at publishing interval",function(done){
+
+        var subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20
+        });
+
+        // let spy the notifications event handler
+        var spy_notification_event = new sinon.spy();
+        subscription.on("notification",spy_notification_event);
+
+        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            itemToMonitor: {
+            },
+            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            requestedParameters: {
+                clientHandle: 123,
+                queueSize: 10,
+                samplingInterval: 100
+            }
+        });
+
+        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both,monitoredItemCreateRequest);
+
+        var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+        // now simulate some data change
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1000});
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1001});
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1002});
+        monitoredItem.queue.length.should.eql(3);
+
+        this.clock.tick(800);
+        // monitoredItem values should have been harvested by subscription timer by now
+        monitoredItem.queue.length.should.eql(0);
+
+        //xx dump(subscription._pending_notifications);
+
+        // now let the subscription send a PublishResponse to the client
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 2000});
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 2001});
+        this.clock.tick(100);
+        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 2002});
+        monitoredItem.queue.length.should.eql(3);
+        this.clock.tick(800);
+
+        // monitoredItem values should have been harvested by subscription timer by now
+        monitoredItem.queue.length.should.eql(0);
+
+        spy_notification_event.callCount.should.be.greaterThan(3);
+
 
         subscription.on("terminated",function(){
             done();

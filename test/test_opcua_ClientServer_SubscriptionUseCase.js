@@ -125,14 +125,14 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             subscription.on("started",function(){
                 setTimeout(function() {
                     subscription.terminate(); }
-                , 500 );
+                , 1500 );
             });
             subscription.on("keepalive",function(){
                 nb_keep_alive_received +=1;
             });
             subscription.on("terminated",function(){
-                nb_keep_alive_received.should.be.greaterThan(0);
                 done();
+                nb_keep_alive_received.should.be.greaterThan(0);
             });
         },done);
     });

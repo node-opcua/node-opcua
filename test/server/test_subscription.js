@@ -20,7 +20,7 @@ describe("Subscriptions", function () {
             maxKeepAliveCount: 20
         });
         subscription.on("perform_update", function () {
-            this.addNotificationMessage([{}]);
+            this.addNotificationMessage({});
         });
 
         var notification_event_spy = sinon.spy();
@@ -68,7 +68,7 @@ describe("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(0);
 
         // a notification finally arrived !
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage({});
 
         this.clock.tick(subscription.publishingInterval * 4);
 
@@ -77,7 +77,7 @@ describe("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(0);
 
         // a other notification finally arrived !
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage({});
 
         this.clock.tick(subscription.publishingInterval * 4);
         notification_event_spy.callCount.should.equal(2);
@@ -95,7 +95,7 @@ describe("Subscriptions", function () {
             maxKeepAliveCount: 20
         });
         subscription.on("perform_update", function () {
-            this.addNotificationMessage([{}]);
+            this.addNotificationMessage({});
         });
 
         var expire_event_spy = sinon.spy();
@@ -122,7 +122,7 @@ describe("Subscriptions", function () {
             maxKeepAliveCount: 20
         });
         subscription.on("perform_update", function () {
-            this.addNotificationMessage([{}]);
+            this.addNotificationMessage({});
         });
 
         var expire_event_spy = sinon.spy();
@@ -199,7 +199,7 @@ describe("Subscriptions", function () {
         });
 
         subscription.pendingNotificationsCount.should.equal(0);
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage({});
         subscription.pendingNotificationsCount.should.equal(1);
 
     });
@@ -217,7 +217,7 @@ describe("Subscriptions", function () {
         subscription.pendingNotificationsCount.should.equal(0);
         subscription.sentNotificationsCount.should.equal(0);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage({});
         subscription.pendingNotificationsCount.should.equal(1);
         subscription.sentNotificationsCount.should.equal(0);
 
@@ -237,8 +237,8 @@ describe("Subscriptions", function () {
                 maxKeepAliveCount: 20
             });
 
-            subscription.addNotificationMessage([{}]);
-            subscription.addNotificationMessage([{}]);
+            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage({});
             subscription.pendingNotificationsCount.should.equal(2);
             subscription.sentNotificationsCount.should.equal(0);
 
@@ -267,13 +267,13 @@ describe("Subscriptions", function () {
                 maxKeepAliveCount: 20 //
             });
             // create a notification at t=0
-            subscription.addNotificationMessage([{}]);
+            subscription.addNotificationMessage({});
             subscription.popNotificationToSend();
             subscription.sentNotificationsCount.should.equal(1);
 
             this.clock.tick(1000*5);
             // create a notification at t=1000*5
-            subscription.addNotificationMessage([{}]);
+            subscription.addNotificationMessage({});
             subscription.popNotificationToSend();
             subscription.sentNotificationsCount.should.equal(2);
 
