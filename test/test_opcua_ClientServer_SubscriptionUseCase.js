@@ -99,7 +99,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
             subscription.on("started",function(){
-                setTimeout(function() { subscription.terminate(); },1000 );
+                setTimeout(function() { subscription.terminate(); },200 );
             });
             subscription.on("terminated",function(){
                 done();
@@ -115,8 +115,8 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             var nb_keep_alive_received = 0;
 
             var subscription = new ClientSubscription(session,{
-                requestedPublishingInterval: 100,
-                requestedLifetimeCount:      10 * 60 * 10 ,
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount:      10 ,
                 requestedMaxKeepAliveCount:  2,
                 maxNotificationsPerPublish:  2,
                 publishingEnabled:           true,
@@ -125,7 +125,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             subscription.on("started",function(){
                 setTimeout(function() {
                     subscription.terminate(); }
-                , 1500 );
+                , 500 );
             });
             subscription.on("keepalive",function(){
                 nb_keep_alive_received +=1;
@@ -145,13 +145,13 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
     it("should be possible to monitor an item with a ClientSubscription",function(done){
 
-        var makeNodeId = require("../lib/nodeid").makeNodeId;
+        var resolveNodeId = require("../lib/nodeid").resolveNodeId;
         perform_operation_on_client_session(client,function(session,done){
 
             assert(session instanceof OPCUASession);
 
             var subscription = new ClientSubscription(session,{
-                requestedPublishingInterval: 100,
+                requestedPublishingInterval: 50,
                 requestedLifetimeCount:      10 * 60 * 10 ,
                 requestedMaxKeepAliveCount:  2,
                 maxNotificationsPerPublish:  2,
@@ -161,20 +161,20 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
             var monitoredItemNotificationCount = 0;
             subscription.on("started",function(){
-                setTimeout(function() { subscription.terminate(); }, 1500 );
+                setTimeout(function() { subscription.terminate(); }, 500 );
             });
             subscription.on("terminated",function(){
                 done();
-               //xx todo: monitoredItemNotificationCount.should.be.greaterThan(1);
+                //xx monitoredItemNotificationCount.should.be.greaterThan(1);
             });
 
 
             subscription.monitor(
-                {nodeId: makeNodeId("ns=0;i=2258")},
-                {samplingInterval: 50,discardOldest: true,queueSize:1 },function(value){
-
+                {nodeId: resolveNodeId("ns=0;i=2258")},
+                {samplingInterval: 10,discardOldest: true,queueSize:1 },
+                function(value){
                     console.log(" Monitored Item changed :----> ",value.toString());
-                    monitoredItemNotificationCount ++;
+                    monitoredItemNotificationCount +=1;
                 });
         },done);
     });
