@@ -71,30 +71,70 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("a MonitoredItem should discard old value from the queue",function(done){
+    it("a MonitoredItem should discard old value from the queue when discardOldest is true",function(done){
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
-            discardOldest: true,
-            queueSize: 2  // <=== only 2 values in queue
+            discardOldest: true, // <= discard oldest !
+            queueSize: 2         // <=== only 2 values in queue
         });
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
         monitoredItem.recordValue({dataType: DataType.UInt32, value: 1000 });
         monitoredItem.queue.length.should.eql(1);
+        monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
         monitoredItem.recordValue({dataType: DataType.UInt32, value: 1001 });
         monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[0].value.value.should.eql(1000);
+        monitoredItem.queue[1].value.value.should.eql(1001);
+        monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
         monitoredItem.recordValue({dataType: DataType.UInt32, value: 1002 });
         monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[0].value.value.should.eql(1001);
+        monitoredItem.queue[1].value.value.should.eql(1002);
+        monitoredItem.overflow.should.eql(true);
 
         done();
     });
+
+    it("a MonitoredItem should not accept new value when queue is full when discardOldest is false",function(done){
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: false, // <= discard oldest !
+            queueSize: 2         // <=== only 2 values in queue
+        });
+
+        monitoredItem.queue.length.should.eql(0);
+        this.clock.tick(100);
+        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1000 });
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.overflow.should.eql(false);
+
+        this.clock.tick(100);
+        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1001 });
+        monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[0].value.value.should.eql(1000);
+        monitoredItem.queue[1].value.value.should.eql(1001);
+        monitoredItem.overflow.should.eql(false);
+
+        this.clock.tick(100);
+        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1002 });
+        monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[0].value.value.should.eql(1000);
+        monitoredItem.queue[1].value.value.should.eql(1001);
+        monitoredItem.overflow.should.eql(true);
+
+        done();
+    });
+
 
     it("should set timestamp to the recorded value", function(done){
 
