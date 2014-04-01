@@ -3,7 +3,7 @@ var server_engine = require("../../lib/server/server_engine");
 var resolveNodeId = require("../../lib/nodeid").resolveNodeId;
 var NodeClass = require("../../lib/browse_service").NodeClass;
 var browse_service = require("../../lib/browse_service");
-BrowseDirection = browse_service.BrowseDirection;
+var BrowseDirection = browse_service.BrowseDirection;
 var read_service = require("../../lib/read_service");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 var util = require("util");
@@ -14,8 +14,7 @@ var AttributeIds = read_service.AttributeIds;
 var DataType = require("../../lib/variant").DataType;
 var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
 var makeNodeId = require("../../lib/nodeid").makeNodeId;
-var ReferenceType = require("../../lib/opcua_node_ids").ReferenceType;
-var VariableIds = require("../../lib/opcua_node_ids").Variable;
+var VariableIds = require("../../lib/opcua_node_ids").VariableIds;
 var Variant = require("../../lib/variant").Variant;
 var VariantArrayType =  require("../../lib/variant").VariantArrayType;
 
@@ -290,7 +289,6 @@ describe("testing ServerEngine", function () {
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });
-
 
     it("should browse a 'Server' object in  the 'Objects' folder",function(){
 
@@ -874,7 +872,7 @@ describe("testing ServerEngine", function () {
             var readRequest = new read_service.ReadRequest({
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus_CurrentTime,
-                    attributeId: AttributeIds.Value,
+                    attributeId: AttributeIds.Value
                 }]
             });
 
@@ -885,12 +883,13 @@ describe("testing ServerEngine", function () {
             dataValues[0].value.value.should.be.instanceOf(Date);
 
         });
+
         it("should read  Server_ServerStatus_StartTime",function(){
 
             var readRequest = new read_service.ReadRequest({
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus_StartTime,
-                    attributeId: AttributeIds.Value,
+                    attributeId: AttributeIds.Value
                 }]
             });
 
@@ -899,6 +898,56 @@ describe("testing ServerEngine", function () {
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             dataValues[0].value.dataType.should.eql(DataType.DateTime);
             dataValues[0].value.value.should.be.instanceOf(Date);
+
+        });
+
+        it("should read  Server_ServerStatus_BuildInfo_BuildNumber",function(){
+
+            var readRequest = new read_service.ReadRequest({
+                nodesToRead: [{
+                    nodeId:  VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
+                    attributeId: AttributeIds.Value
+                }]
+            });
+
+            var dataValues = server.read(readRequest);
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[0].value.dataType.should.eql(DataType.String);
+            dataValues[0].value.value.should.eql("1234")
+
+        });
+
+        it("should read  Server_ServerStatus_BuildInfo_BuildNumber (2nd)",function(){
+
+
+            var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
+            console.log(nodeid);
+            var node = server.findObject(nodeid);
+            should(node).not.equal(null);
+
+            var dataValue = node.readAttribute(13);
+
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.dataType.should.eql(DataType.String);
+            dataValue.value.value.should.eql("1234");
+
+        });
+
+        it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount",function(){
+
+
+            var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
+            console.log(nodeid);
+            var node = server.findObject(nodeid);
+            assert(node!=null);
+            should(node).not.eql(null);
+
+            var dataValue = node.readAttribute(13);
+
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.dataType.should.eql(DataType.UInt32);
+            dataValue.value.value.should.eql(0);
 
         });
 

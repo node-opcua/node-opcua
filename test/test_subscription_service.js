@@ -265,7 +265,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
     });
     it("server should create a monitored item  (CreateMonitoredItems)",function(done){
 
-        var VariableIds =require("../lib/opcua_node_ids").Variable;
+        var VariableIds =require("../lib/opcua_node_ids").VariableIds;
 
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateMonitoredItemsRequest({

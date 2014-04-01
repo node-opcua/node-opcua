@@ -14,8 +14,7 @@ var AttributeIds = read_service.AttributeIds;
 var DataType = require("../../lib/variant").DataType;
 var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
 var makeNodeId = require("../../lib/nodeid").makeNodeId;
-var ReferenceType = require("../../lib/opcua_node_ids").ReferenceType;
-var VariableIds = require("../../lib/opcua_node_ids").Variable;
+var VariableIds = require("../../lib/opcua_node_ids").VariableIds;
 var Variant = require("../../lib/variant").Variant;
 var VariantArrayType =  require("../../lib/variant").VariantArrayType;
 

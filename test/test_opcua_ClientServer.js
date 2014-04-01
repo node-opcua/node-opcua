@@ -145,7 +145,7 @@ describe("testing basic Client-Server communication",function() {
             },
             function(callback) {
                 client.connect(endpointUrl,function(err){
-                    assert( err === null);
+                    assert(!err);
                     callback(err);
                 });
             },
@@ -333,12 +333,12 @@ describe("testing basic Client-Server communication",function() {
 
         describe("Accessing Server Object",function(){
             var makeNodeId = require("../lib/nodeid").makeNodeId;
-            var ReferenceType = require("../lib/opcua_node_ids").ReferenceType;
-            var VariableIds = require("../lib/opcua_node_ids").Variable;
+            var ReferenceTypeIds = require("../lib/opcua_node_ids").ReferenceTypeIds;
+            var VariableIds = require("../lib/opcua_node_ids").VariableIds;
 
             it("Server should expose a 'Server' object in the 'Objects' folder",function(done){
 
-                var Organizes = makeNodeId(ReferenceType.Organizes); // "ns=0;i=35";
+                var Organizes = makeNodeId(ReferenceTypeIds.Organizes); // "ns=0;i=35";
                 var browseDesc = {
                     nodeId: "ObjectsFolder",
                     referenceTypeId: Organizes,
