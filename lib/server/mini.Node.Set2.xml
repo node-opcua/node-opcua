@@ -507,5 +507,25 @@
         </Definition>
     </UADataType>
 
-
+  <UAVariable NodeId="i=2285" BrowseName="CurrentSubscriptionCount" ParentNodeId="i=2275" DataType="UInt32">
+    <DisplayName>CurrentSubscriptionCount</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2278" BrowseName="CumulatedSessionCount" ParentNodeId="i=2275" DataType="UInt32">
+    <DisplayName>CumulatedSessionCount</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2277" BrowseName="CurrentSessionCount" ParentNodeId="i=2275" DataType="UInt32">
+    <DisplayName>CurrentSessionCount</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
+    </References>
+  </UAVariable>
 </UANodeSet>
