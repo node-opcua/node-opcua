@@ -5,8 +5,10 @@ var assert = require('better-assert');
 var async = require("async");
 var should = require('should');
 var build_server_with_temperature_device = require("./utils/build_server_with_temperature_device").build_server_with_temperature_device;
+var ReadValueId = require("../lib/read_service").ReadValueId;
+var AttributeIds = require("../lib/read_service").AttributeIds;
+var resolveNodeId = require("../lib/nodeid").resolveNodeId;
 var sinon = require("sinon");
-
 
 
 /**
@@ -52,6 +54,43 @@ function perform_operation_on_client_session(client,func,done_func) {
         function(callback) { client.disconnect(function() {  callback(); }); }
     ],done_func);
 }
+
+
+// callback function(session, subscriptionId,done)
+function perform_operation_on_subscription(client,do_func,done_func){
+    var subscriptionId;
+    perform_operation_on_client_session(client,function(session,done){
+
+        var subscription;
+        async.series([
+
+            function(callback) {
+                subscription = new ClientSubscription(session,{
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount:      10 * 60 ,
+                    requestedMaxKeepAliveCount:  5,
+                    maxNotificationsPerPublish:  2,
+                    publishingEnabled:           true,
+                    priority:                    6
+                });
+                subscription.on("started",function(){ callback();  });
+            },
+
+            function(callback) {
+                do_func(session,subscription,callback);
+            },
+
+            function(callback) {
+                subscription.on("terminated",callback);
+                subscription.terminate();
+            }
+        ], function(err) {
+            done(err) ;
+        });
+
+    },done_func)
+}
+
 
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device",function() {
 
@@ -123,9 +162,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
             subscription.on("started",function(){
-                setTimeout(function() {
-                    subscription.terminate(); }
-                , 500 );
+                setTimeout(function() { subscription.terminate(); }, 500 );
             });
             subscription.on("keepalive",function(){
                 nb_keep_alive_received +=1;
@@ -145,7 +182,6 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
     it("should be possible to monitor an item with a ClientSubscription",function(done){
 
-        var resolveNodeId = require("../lib/nodeid").resolveNodeId;
         perform_operation_on_client_session(client,function(session,done){
 
             assert(session instanceof OPCUASession);
@@ -159,23 +195,25 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
 
-            var monitoredItemNotificationCount = 0;
+
             subscription.on("started",function(){
-                setTimeout(function() { subscription.terminate(); }, 500 );
+
             });
             subscription.on("terminated",function(){
                 done();
-                //xx monitoredItemNotificationCount.should.be.greaterThan(1);
             });
 
+            var monitoredItem  = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258") , attributeId: AttributeIds.Value},
+                {samplingInterval: 10,discardOldest: true,queueSize:1 });
 
-            subscription.monitor(
-                {nodeId: resolveNodeId("ns=0;i=2258")},
-                {samplingInterval: 10,discardOldest: true,queueSize:1 },
-                function(value){
-                    console.log(" Monitored Item changed :----> ",value.toString());
-                    monitoredItemNotificationCount +=1;
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItem.on("initialized",function(){
+                monitoredItem.terminate(function(){
+                    subscription.terminate();
                 });
+            });
+
         },done);
     });
 });
@@ -259,24 +297,86 @@ describe("testing server and subscription",function(){
             });
 
         },done);
-    })
+    });
+
+    it("A Subscription can be added and then deleted",function(done){
+        var subscriptionId;
+        perform_operation_on_client_session(client,function(session,done){
+
+            async.series([
+
+                function(callback) {
+                    session.createSubscription({
+                        requestedPublishingInterval: 100,  // Duration
+                        requestedLifetimeCount: 10,         // Counter
+                        requestedMaxKeepAliveCount: 10,     // Counter
+                        maxNotificationsPerPublish: 10,     // Counter
+                        publishingEnabled: true,            // Boolean
+                        priority: 14                        // Byte
+                    }, function(err,response){
+                        subscriptionId = response.subscriptionId;
+                        callback(err);
+                    });
+                },
+
+
+                function(callback) {
+                    session.deleteSubscriptions({
+                        subscriptionIds: [subscriptionId]
+                    },function(err,response){
+                        callback();
+                    });
+                }
+            ], function(err) {
+                done(err) ;
+            });
+
+        },done)
+
+    });
+
+    it("A MonitoredItem can be added to a subscription and then deleted",function(done){
+
+        perform_operation_on_subscription(client,function(session,subscription,callback){
+
+            var monitoredItem  = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258") , attributeId: AttributeIds.Value},
+                {samplingInterval: 10,discardOldest: true,queueSize:1 });
+
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItem.on("initialized",function(){
+                monitoredItem.terminate(function(){
+                    callback();
+                });
+            });
+        },done);
+
+    });
+
+    it("A MonitoredItem should received changed event",function(done){
+
+        perform_operation_on_subscription(client,function(session,subscription,callback){
+
+            var monitoredItem  = subscription.monitor(
+                {
+                    nodeId: resolveNodeId("ns=0;i=2258"),
+                    attributeId: 13
+                },
+                {samplingInterval: 100,discardOldest: true,queueSize:1 });
+
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItem.on("initialized",function(){
+            });
+
+            monitoredItem.on("changed",function(value){
+                monitoredItem.terminate(function(){});
+            });
+            monitoredItem.on("terminated",function(value){
+                callback();
+            });
+
+        },done);
+
+    });
+
 });
-
-
-/*
-    itemToMonitor: {
-        nodeId: 'ns=0;i=2258',
-        attributeId: 13,
-        indexRange: null,
-        dataEncoding: { namespaceIndex: 0, name: '' }
-    },
-    monitoringMode: 'Reporting',
-    requestedParameters: {
-        clientHandle: 13,
-        samplingInterval: 3000,
-        filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
-        queueSize: 1,
-        discardOldest: true
-    }
- }
- */

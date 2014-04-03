@@ -220,6 +220,24 @@ describe("testing subscription objects",function(){
         encode_decode_round_trip_test(obj);
         done();
     });
+
+    it("should encode and decode a ModifyMonitoredItemsRequest",function(done){
+        var obj = new subscription_service.ModifyMonitoredItemsRequest({
+
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+    it("should encode and decode a ModifyMonitoredItemsResponse",function(done){
+        var obj = new subscription_service.ModifyMonitoredItemsResponse({
+
+        });
+        encode_decode_round_trip_test(obj);
+        done();
+    });
+
+
 });
 
 var _ = require("underscore");
