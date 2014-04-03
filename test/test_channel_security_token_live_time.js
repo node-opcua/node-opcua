@@ -16,7 +16,7 @@ var _ = require("underscore");
 var port = 3000;
 
 
-describe("Testing ChannelSecurityToken live time",function(){
+describe("Testing ChannelSecurityToken lifetime",function(){
     var server , client;
     var endpointUrl ;
 
@@ -31,7 +31,7 @@ describe("Testing ChannelSecurityToken live time",function(){
         opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
         client = new OPCUAClient({
-            defaultSecureTokenLiveTime: 100  // very short live time !
+            defaultSecureTokenLifetime: 100  // very short live time !
         });
         server.start(function() {
             setImmediate(done);

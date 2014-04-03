@@ -88,7 +88,7 @@ describe("Subscriptions", function () {
 
     });
 
-    it("a subscription that hasn't been pinged by client within the live time interval shall terminate", function () {
+    it("a subscription that hasn't been pinged by client within the lifetime interval shall terminate", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -115,7 +115,7 @@ describe("Subscriptions", function () {
         subscription.terminate();
     });
 
-    it("a subscription that has been pinged by client before the live time expiration shall not terminate", function () {
+    it("a subscription that has been pinged by client before the lifetime expiration shall not terminate", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -150,7 +150,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxLifeTimeCount: 100000, // very large live time not to be bother by client not pinging us
+            maxLifeTimeCount: 100000, // very large lifetime not to be bother by client not pinging us
             maxKeepAliveCount: 20
         });
         subscription.on("perform_update", function () {
