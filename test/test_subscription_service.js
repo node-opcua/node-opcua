@@ -65,26 +65,45 @@ describe("testing subscription objects",function(){
         done();
     });
 
-    it("should decode a real CreateMonitoredItemsRequest ",function(done){
+
+    describe("testing subscription services data structure from the field", function() {
 
         var makebuffer = require("../lib/utils").makebuffer;
         var redirectToFile = require("../lib/utils").redirectToFile;
         var verify_multi_chunk_message= require("./utils/verify_message_chunk").verify_multi_chunk_message;
-        // a real OpenSecureChannelRequest message chunk
-        var ws_CreateMonitoredItemsRequest = makebuffer(
+        it("should decode a real CreateMonitoredItemsRequest ",function(done){
+
+          // a real OpenSecureChannelRequest message chunk
+          var ws_CreateMonitoredItemsRequest = makebuffer(
             "4d 53 47 46 84 00 00 00 01 00 00 00 01 00 00 00 5f 00 00 00 2d 00 00 00 01 00 ef 02 05 00 00 10 " +
             "00 00 00 ce 74 00 ff 1f 61 a5 2f a9 ac b1 52 43 30 d4 c1 9b 0f cd 7b 09 4a cf 01 02 05 00 00 00 " +
             "00 00 00 ff ff ff ff 10 27 00 00 00 00 00 03 00 00 00 02 00 00 00 01 00 00 00 01 00 d5 08 0d 00 " +
             "00 00 ff ff ff ff 00 00 ff ff ff ff 02 00 00 00 0b 00 00 00 00 00 00 00 00 70 a7 40 00 00 00 01 " +
             "00 00 00 01"
-        );
+          );
+ 
+          redirectToFile("CreateMonitoredItemsRequest.log", function () {
+             verify_multi_chunk_message([ws_CreateMonitoredItemsRequest]);
+          }, done);
 
-        redirectToFile("CreateMonitoredItemsRequest.log", function () {
-            verify_multi_chunk_message([ws_CreateMonitoredItemsRequest]);
-        }, done);
+      });
+      it("should decode a real CreateMonitoredItemResponse",function(done) {
+         var ws_CreateMonitoredItemsResponse = makebuffer(
 
+"4d 53 47 46 53 00 00 00 fb 58 70 00 01 00 00 00 3a 00 00 00 08 00 00 00 01 00 f2 02 d0 21 53 68 " + //   MSGFS...{Xp.....:.........r.P!Sh
+"17 51 cf 01 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 39 80 00 00 00 00 " + //     .QO.......................9.....
+"00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+         );
+
+          redirectToFile("CreateMonitoredItemsResponse.log", function () {
+             verify_multi_chunk_message([ws_CreateMonitoredItemsResponse]);
+          }, done);
     });
 
+
+
+
+    });
 
 
 
