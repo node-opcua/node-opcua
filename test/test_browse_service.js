@@ -81,10 +81,30 @@ describe("Browse Service", function(){
 
     it("should create a BrowseRequest",function(){
        var browseRequest = new bs.BrowseRequest({
-
+           view: {},
+           requestedMaxReferencesPerNode: 1,
+           nodesToBrowse: [ { }]
        });
-        encode_decode_round_trip_test(browseRequest);
+       encode_decode_round_trip_test(browseRequest);
     });
+
+    it("should create a BrowseRequest with correct default value in  viewDescription",function() {
+        var browseRequest = new bs.BrowseRequest({
+            view: {},
+            requestedMaxReferencesPerNode: 1,
+            nodesToBrowse: [ { }]
+        });
+        // by default timeStamp shall be set to minDate
+        browseRequest.view.viewId.toString().should.eql("ns=0;i=0");
+        browseRequest.view.viewVersion.should.eql(0);
+
+        // timestamp shall be minDate( 01/01/1601) to satisfy the .NET server
+        // implementation.
+        var ec = require("../lib/encode_decode");
+        ec.dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql(0);
+    });
+
+
 
     it("should create a BrowseResponse",function(){
         var browseResponse = new bs.BrowseResponse({});
