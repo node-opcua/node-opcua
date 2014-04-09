@@ -52,6 +52,26 @@ function build_server_with_temperature_device(options,done) {
                     }
                 });
 
+            // install a Read-Only variable defined with a fancy Opaque nodeid
+            var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+
+            server.pumpSpeed = server.engine.addVariableInFolder("MyDevices",
+                {
+                    browseName: "PumpSpeed",
+                    nodeId: pumpSpeedId,
+                    value: {
+                        get: function(){
+                            var pump_speed = 200 + Math.rnd();
+                            return new Variant({dataType: DataType.Double ,value: pump_speed});
+                        },
+                        //xx set: function(variant){// to do : test if variant can be coerce to Float or Double
+                        //xx     server.set_point_temperature = parseFloat(variant.value);
+                        //xx     return StatusCodes.Good;
+                        //xx }
+                    }
+                });
+            assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
+
             endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
             debugLog("endpointUrl",endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);

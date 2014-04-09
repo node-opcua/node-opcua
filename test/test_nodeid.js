@@ -27,6 +27,18 @@ describe("testing NodeIds",function(){
         nodeId.toString().should.eql("ns=4;s=TemperatureSensor");
     });
 
+    it("should create a OPAQUE nodeID",function() {
+
+        var buffer = new Buffer(4);
+        buffer.writeUInt32BE(0xDEADBEEF,0);
+
+        var nodeId = new NodeId(NodeIdType.BYTESTRING, buffer,4 );
+        nodeId.value.toString("hex").should.equal("deadbeef");
+        nodeId.namespace.should.equal(4);
+        nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
+        nodeId.toString().should.eql("ns=4;b=deadbeef");
+    });
+
 });
 
 describe("testing coerceNodeId",function(){
@@ -51,6 +63,46 @@ describe("testing coerceNodeId",function(){
 
     it("should coerce a integer",function(){
         coerceNodeId(1234).should.eql(makeNodeId(1234));
+    });
+
+    it("should coerce a OPAQUE buffer as a BYTESTRING",function(){
+        var buffer = new Buffer(8);
+        buffer.writeUInt32BE(0xB1DEDADA,0);
+        buffer.writeUInt32BE(0xB0B0ABBA,4);
+        var nodeId = coerceNodeId(buffer);
+        nodeId.toString("hex").should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+    });
+
+    it("should coerce a OPAQUE buffer in a string ( with namespace ) ",function(){
+
+        var nodeId = coerceNodeId("ns=0;b=b1dedadab0b0abba");
+        nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
+        nodeId.toString("hex").should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+
+    });
+    it("should coerce a OPAQUE buffer in a string ( without namespace ) ",function(){
+
+        var nodeId = coerceNodeId("b=b1dedadab0b0abba");
+        nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
+        nodeId.toString("hex").should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+
+    });
+    it("should coeerce a GUID node id (without namespace)",function(){
+
+        var nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.identifierType.should.eql(NodeIdType.GUID);
+        nodeId.toString("hex").should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
+    });
+    it("should coeerce a GUID node id (with namespace)",function(){
+
+        var nodeId = coerceNodeId("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.identifierType.should.eql(NodeIdType.GUID);
+        nodeId.toString("hex").should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
     });
 
 });
