@@ -64,10 +64,9 @@ function build_server_with_temperature_device(options,done) {
                             var pump_speed = 200 + Math.rnd();
                             return new Variant({dataType: DataType.Double ,value: pump_speed});
                         },
-                        //xx set: function(variant){// to do : test if variant can be coerce to Float or Double
-                        //xx     server.set_point_temperature = parseFloat(variant.value);
-                        //xx     return StatusCodes.Good;
-                        //xx }
+                        set: function(variant){
+                            return StatusCodes.Bad_NotWritable
+                        }
                     }
                 });
             assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
