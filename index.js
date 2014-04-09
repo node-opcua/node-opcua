@@ -6,3 +6,6 @@ module.exports.parseEndpointUrl = require("./lib/nodeopcua").parseEndpointUrl;
 module.exports.resolveNodeId    = require("./lib/nodeid").resolveNodeId;
 module.exports.ClientSubscription = require("./lib/client/client_subscription").ClientSubscription;
 module.exports.OPCUAServer      = require("./lib/opcua-server").OPCUAServer;
+module.exports.ClientSubscription = require("./lib/client/client_subscription").ClientSubscription;
+module.exports.StatusCodes      = require("./lib/opcua_status_code").StatusCodes;
+module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
