@@ -1,7 +1,6 @@
 Error.stackTraceLimit = Infinity;
 
-var OPCUAServer = require("../lib/opcua-server.js").OPCUAServer;
-
+var OPCUAServer = require("..").OPCUAServer;
 
 var default_xmlFile = __dirname + "/../code_gen/Opc.Ua.NodeSet2.xml";
 var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
@@ -11,7 +10,6 @@ var hostname = require("os").hostname().toLowerCase();
 
 var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
 console.log(" endpointUrl = ",endpointUrl);
-
 
 console.log(" registering server to " + discovery_server_endpointUrl);
 

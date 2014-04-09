@@ -903,6 +903,8 @@ describe("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_BuildInfo_BuildNumber",function(){
 
+            server.buildInfo.buildNumber = "1234";
+
             var readRequest = new read_service.ReadRequest({
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
@@ -920,6 +922,7 @@ describe("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_BuildInfo_BuildNumber (2nd)",function(){
 
+            server.buildInfo.buildNumber = "1234";
 
             var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
             console.log(nodeid);
