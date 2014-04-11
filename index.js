@@ -7,4 +7,6 @@ module.exports.resolveNodeId    = require("./lib/nodeid").resolveNodeId;
 module.exports.ClientSubscription = require("./lib/client/client_subscription").ClientSubscription;
 module.exports.OPCUAServer      = require("./lib/opcua-server").OPCUAServer;
 module.exports.StatusCodes      = require("./lib/opcua_status_code").StatusCodes;
+module.exports.DataType         = require("./lib/variant").DataType;
+module.exports.Variant         = require("./lib/variant").Variant;
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;

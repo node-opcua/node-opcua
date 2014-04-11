@@ -23,7 +23,9 @@ server.initialize(function() {
 
     // we can now start the server
     server.start(function() {
-        console.log("Server is now listening ... ( press CTRL+C to stop)")
+        console.log("Server is now listening ... ( press CTRL+C to stop)");
+        var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+        console.log(endpointUrl);
     })
 
 });
@@ -46,15 +48,19 @@ function construct_my_address_space(server) {
         });
 
     ///
-    var variable2 = "some text";
+    var variable2 = 10.0;
 
     server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",
         {
+            nodeId: "ns=4;b=1020ffaa", // some opaque NodeId in namespace 4
             browseName: "MyVariable2",
             value: {
-                nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
                 get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
+                    var value = variable2 + Math.sin( new Date());
+                    console.log("value = ",value);
+                    console.log(server.engine.publishEngine._publish_request_queue.length);
+
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
                 },
                 set: function (variant) {
                     variable1 = parseFloat(variant.value);
