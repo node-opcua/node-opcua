@@ -13,13 +13,42 @@ describe("Subscriptions", function () {
     afterEach(function () {
         this.clock.restore();
     });
+
+    it("a subscription will make sure that maxLifeTimeCount is at least 3 times  maxKeepAliveCount", function () {
+
+        {
+           var subscription = new Subscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount:  20,
+                maxLifeTimeCount:   60 // at least 3 times maxKeepAliveCount
+            });
+            subscription.maxKeepAliveCount.should.eql(20);
+            subscription.maxLifeTimeCount.should.eql(60);
+        }
+        {
+            var subscription = new Subscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount:  20,
+                maxLifeTimeCount:   1 // at least 3 times maxKeepAliveCount
+            });
+            subscription.maxKeepAliveCount.should.eql(20);
+            subscription.maxLifeTimeCount.should.eql(60);
+        }
+
+    });
+
     it("a subscription that have a new notification ready every publishingInterval shall send notifications and no keepalive", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount:  20,
+            maxLifeTimeCount:   60 // at least 3 times maxKeepAliveCount
         });
+
+        subscription.maxKeepAliveCount.should.eql(20);
+
         subscription.on("perform_update", function () {
+            //  pretend there is always something to notify
             this.addNotificationMessage({});
         });
 
@@ -134,7 +163,7 @@ describe("Subscriptions", function () {
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
 
-        subscription.ping_from_client();
+        subscription.reset_life_time_counters();
 
         this.clock.tick(subscription.publishingInterval * 4);
 

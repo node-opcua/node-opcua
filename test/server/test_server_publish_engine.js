@@ -24,7 +24,7 @@
  * Keep alive mechanism:
  * ---------------------
  *    Publish Request/Response are also use as a keep alive signal between the server and the client.
- *    Every publish request is a live ping from the client to the server.
+ *    Every publish request  is a live ping from the client to the server.
  *    Every publish response is a live ping from the server to the client.
  *
  *    If no notification are available after the keep-alive timeout interval, the server shall return an empty
