@@ -41,9 +41,13 @@ function construct_my_address_space(server) {
 
     server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",
         {
+            nodeId: "ns=4;b=1020ffaa", // some opaque NodeId in namespace 4
             browseName: "MyVariable1",
             value: {
-                get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });}
+                get: function () {
+                    var t = new Date() / 10000.0;
+                    var value = variable1 + 10.0*Math.sin(t);
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: value });}
             }
         });
 
@@ -52,20 +56,31 @@ function construct_my_address_space(server) {
 
     server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",
         {
-            nodeId: "ns=4;b=1020ffaa", // some opaque NodeId in namespace 4
             browseName: "MyVariable2",
             value: {
                 get: function () {
-                    var value = variable2 + Math.sin( new Date());
-                    console.log("value = ",value);
-                    console.log(server.engine.publishEngine._publish_request_queue.length);
-
-                    return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
                 },
                 set: function (variant) {
-                    variable1 = parseFloat(variant.value);
+                    variable2 = parseFloat(variant.value);
                     return opcua.StatusCodes.Good;
                 }
+            }
+        });
+
+
+
+    var os = require("os");
+    server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice",
+        {
+            nodeId: "ns=4;b=1020ffab", // some opaque NodeId in namespace 4
+            browseName: "MyVariable3",
+            value: {
+                get: function () {
+                    // var value = process.memoryUsage().heapUsed / 1000000;
+                    var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
+                    value = percentageMemUsed;
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: value });}
             }
         });
 

@@ -35,7 +35,7 @@
   "dependencies": {
     "colors": "~0.6.2",
     "enum": "~0.2.6",
-    "async": "~0.6.2",
+    "async": "~0.7.0",
     "underscore": "~1.6.0",
     "ignite": "~0.1.8",
     "machina": "~0.3.6",
