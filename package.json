@@ -57,6 +57,7 @@
     "mustache": "~0.8.1",
     "better-assert": "~1.0.0",
     "eyes": "~0.1.8",
-    "collections": "~1.0.2"
+    "collections": "~1.0.2",
+    "node-expat": "~2.1.4"
   }
 }
