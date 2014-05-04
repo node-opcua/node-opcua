@@ -1,0 +1,11 @@
+
+
+creating_a_server.md is a "literate program" or a "executable documentation".
+
+Is is written as a documentation with embedded examples. A fully runable script can be extracted with a little utility
+and executed.
+
+$  ./node_modules/literate-programming/bin/literate-programming.js
+
+reference:
+    https://github.com/jostylr/literate-programming/blob/master/lp.md
