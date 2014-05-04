@@ -27,7 +27,9 @@ The server will expose the variable under a new folder named "MyDevice".
 
 The node-opcua sdk is made available to the application by this 'require' statement:
 
+```javascript
     var opcua = require("node-opcua");
+```
 
 ### server instantiation
 
@@ -35,19 +37,23 @@ A OPCUAServer instance need to be created.
 Options can be passed to the OPCUAServer to customize the behavior.
 For a simple server, you just need to specify a tcp port.
 
+```javascript
     // Let create an instance of OPCUAServer
     var server = new opcua.OPCUAServer({
         port: 4334 // the port of the listening socket of the server
     });
+```
 
 ### setting server info
 
 additional information can be set at this stage such as the server *buildInfo*.
 
+```javascript
     // we can set the buildInfo
     server.buildInfo.productName = "MySampleServer1";
     server.buildInfo.buildNumber = "7658";
     server.buildInfo.buildDate = new Date(2014,5,2);
+```
 
 ### server initialisation
 
@@ -57,12 +63,13 @@ The **initialize** method is a asynchronous operation that requires a 'callback'
 when the initialization process is completed. the *callback* is function that contains the post_initialisation
 steps that we want to execute.
 
+```javascript
     function post_initialize() {
         console.log("initialized");
         _"post initialisation"
     }
     server.initialize(post_initialize);
-
+```
 
 ### post initialisation
 
@@ -72,6 +79,7 @@ Lets create a function that will extend the server default address space with so
 variables that we want to expose. This function will be called inside the initialize callback.
 
 
+```javascript
     function construct_my_address_space(server) {
 
         // declare some folders
@@ -89,17 +97,21 @@ variables that we want to expose. This function will be called inside the initia
         console.log("port ", server.endpoints[0].port);
         _"display endpoint url"
     });
+```
 
 
 #### declare a new folder
 
+```javascript
      server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
+```
 
 #### add a variable
 
 Adding a read variable inside the server namespace requires only a getter function that returns a opcua.Variant
 containing the value of the variable to scan.
 
+```javascript
     // add a variable named MyVariable1 to the newly created folder "MyDevice"
     var variable1 = 10.0;
     server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
@@ -108,11 +120,13 @@ containing the value of the variable to scan.
             get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });}
         }
     });
+```
 
 Note that we haven't specified a nodeid for the variable.The server will automatically assign a new nodeId for us.
 
 Let's create a more comprehensive Read-Write variable with a fancy nodeId
 
+```javascript
     // add a variable named MyVariable1 to the newly created folder "MyDevice"
     var variable2 = "some text";
     server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
@@ -128,11 +142,13 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
                 }
             }
     });
+```
 
 Lets create a variable that expose the percentage of free memory on the running machine.
 
 Let's write a small utility function that calculate this value.
 
+```javascript
     var os = require("os");
     /**
      * returns the percentage of free memory on the running machine
@@ -143,9 +159,11 @@ Let's write a small utility function that calculate this value.
         var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
         return percentageMemUsed;
     }
+```
 
 Now let's expose our OPUC Variable
 
+```javascript
     server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
         nodeId: "ns=4;s=free_memory", // a string nodeID
         browseName: "FreeMemory",
@@ -153,14 +171,17 @@ Now let's expose our OPUC Variable
             get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: available_memory() });}
         }
     });
+```
 
 
 ### display endpoint url
 
 Once the server has been created and configured, it is possible to retrieve the endpoint url.
 
+```javascript
     var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
     console.log(" the primary server endpoint url is ", endpointUrl );
+```
 
 
 ### starting a server
