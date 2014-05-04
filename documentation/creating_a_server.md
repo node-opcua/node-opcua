@@ -92,11 +92,8 @@ variables that we want to expose. This function will be called inside the initia
 
     construct_my_address_space(server);
 
-    server.start(function() {
-        console.log("Server is now listening ... ( press CTRL+C to stop)");
-        console.log("port ", server.endpoints[0].port);
-        _"display endpoint url"
-    });
+    _"start the server"
+
 ```
 
 
@@ -174,6 +171,19 @@ Now let's expose our OPUC Variable
 ```
 
 
+### start the server
+
+Once the server has been created and initialised, we use the **start** asynchronous method to let the server
+initiate all its endpoints and start listening to clients.
+
+```javascript
+    server.start(function() {
+        console.log("Server is now listening ... ( press CTRL+C to stop)");
+        console.log("port ", server.endpoints[0].port);
+        _"display endpoint url"
+    });
+```
+
 ### display endpoint url
 
 Once the server has been created and configured, it is possible to retrieve the endpoint url.
@@ -182,16 +192,3 @@ Once the server has been created and configured, it is possible to retrieve the 
     var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
     console.log(" the primary server endpoint url is ", endpointUrl );
 ```
-
-
-### starting a server
-
-Once the server has been created and initialised, we use the **start** asynchronous method to let the server
-initiate all its endpoints and start listening to clients.
-
-```javascript
-    server.start(function(){
-        console.log("  server now waiting for connections. CTRL+C to stop");
-    });
-```
-
