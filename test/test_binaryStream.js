@@ -1,5 +1,4 @@
 var BinaryStream = require("../lib/binaryStream").BinaryStream;
-var BinaryReader = require("../lib/binaryStream").BinaryReader;
 var BinaryStreamSizeCalculator = require("../lib/binaryStream").BinaryStreamSizeCalculator;
 var should =require("should");
 var fs=require("fs");
@@ -10,21 +9,27 @@ describe("Testing BinaryStream",function() {
 
     it("should create a binary stream",function(){
 
-        var binStream = new BinaryStream(48);
 
-        binStream.writeFloat(10.00234);
-        binStream.writeInteger(100000);
-        binStream._buffer.write("HelloWorld",8);
-        // binStream.end();
+        var stream = new BinaryStream();
+        stream.length.should.equal(0);
 
-        var binReader = new BinaryReader(binStream._buffer);
+        stream.writeDouble(10.00234);
+        stream.length.should.equal(8);
 
-        binReader.pipe(fs.createWriteStream("tmp/output.bin","binary"));
+        stream.writeInteger(100000);
+        stream.length.should.equal(12);
 
-        var r = new require("stream").Readable();
-        r.push("Hello World");
-        r.push(null);
-        r.pipe(fs.createWriteStream("tmp/output2.bin","binary"));
+        stream.rewind();
+        stream.length.should.equal(0);
+
+        var f =  stream.readDouble();
+        f.should.equal(10.00234);
+        stream.length.should.equal(8);
+
+        var i = stream.readInteger();
+        i.should.equal(100000);
+        stream.length.should.equal(12);
+
 
     });
 

@@ -1,0 +1,27 @@
+
+
+finding a way to produce nice documentation:
+
+* http://github.com/dtao/autodoc
+
+     npm run_script generate_doc
+
+     ./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc lib/binaryStream.js
+
+
+
+
+* https://github.com/jbt/docker
+
+* http://yui.github.com/yuidoc
+
+  - Companion for  yui to mend the javascript file and insert or update default method comments
+     * http://smartcomments.github.io
+
+* docco
+* jsdoc
+
+
+Using literate programming
+
+* https://github.com/jostylr/literate-programming/blob/master/lp.md

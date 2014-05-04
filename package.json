@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha test -R spec --recursive --timeout 8000"
+    "test": "mocha test -R spec --recursive --timeout 8000",
+    "generate_doc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
   },
   "repository": {
     "type": "git",
@@ -16,21 +17,26 @@
   },
   "keywords": [
     "OPC UA",
-    "M2M"
+    "OPCUA",
+    "M2M",
+    "IOT"
   ],
   "author": "Etienne Rossignon",
   "license": "MIT",
   "bugs": {
-    "url": "git://github.com/erossignon/node-opcua/issues"
+    "url": "https://github.com/erossignon/node-opcua/issues"
   },
   "devDependencies": {
-    "mocha": "*",
-    "should": "*",
+    "autodoc": "^0.6.1",
     "csv": "~0.3.7",
-    "node-xml": "~1.0.2",
-    "node-expat": "~2.1.4",
+    "literate-programming": "^0.7.5",
+    "mocha": "*",
     "mocha-lcov-reporter": "0.0.1",
-    "sinon": "1.9.0"
+    "node-expat": "~2.1.4",
+    "node-xml": "~1.0.2",
+    "should": "*",
+    "sinon": "1.9.0",
+    "yuidocjs": "^0.3.50"
   },
   "dependencies": {
     "colors": "~0.6.2",
