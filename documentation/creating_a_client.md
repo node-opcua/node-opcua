@@ -95,6 +95,7 @@ The script will be organised around the following four steps:
         }
         client.disconnect(function(){});
     }) ;
+```
 
 
 ### Connection
