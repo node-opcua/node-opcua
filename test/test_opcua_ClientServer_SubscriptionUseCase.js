@@ -16,12 +16,13 @@ var sinon = require("sinon");
  * The wrapper:
  *   - connects to the server,
  *   - creates a session
- *   -     calls your callback method wit the session object
+ *   - calls your **callback** method (func) with the session object
  *   - closes the session
  *   - disconnects the client
+ *   - finally call the final **callback** (done_func)
  *
- * @param func
- * @param done_func
+ * @param {function:callback} func
+ * @param {function:callback} done_func
  */
 function perform_operation_on_client_session(client,func,done_func) {
 
@@ -51,14 +52,28 @@ function perform_operation_on_client_session(client,func,done_func) {
         function(callback) { the_session.close(function(err){ callback(err); }); },
 
         // disconnect
-        function(callback) { client.disconnect(function() {  callback(); }); }
+        function(callback) { client.disconnect(function() { callback(); }); }
     ],done_func);
 }
 
 
+/**
+ *  simple wrapper that operates on a freshly created subscription.
+ *
+ *  - connects to the server,and create a session
+ *  - create a new subscription with a publish interval of 100 ms
+ *  - calls your **callback** method (do_func) with the subscription object
+ *  - delete the subscription
+ *  - close the session and disconnect from the server
+ *  - finally call the final **callback** (done_func)
+ *
+ * @param client
+ * @param do_func
+ * @param done_func
+ */
 // callback function(session, subscriptionId,done)
 function perform_operation_on_subscription(client,do_func,done_func){
-    var subscriptionId;
+
     perform_operation_on_client_session(client,function(session,done){
 
         var subscription;
@@ -173,10 +188,13 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             });
         },done);
     });
+
     it("a ClientSubscription should survive longer than the life time",function(done){
+        // todo
         done();
     });
     it("client should be able to create subscription to monitor the temperature variable and received notification of change",function(done){
+        // todo
         done();
     });
 
@@ -187,7 +205,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             assert(session instanceof OPCUASession);
 
             var subscription = new ClientSubscription(session,{
-                requestedPublishingInterval: 50,
+                requestedPublishingInterval: 150,
                 requestedLifetimeCount:      10 * 60 * 10 ,
                 requestedMaxKeepAliveCount:  2,
                 maxNotificationsPerPublish:  2,
@@ -244,7 +262,7 @@ describe("testing server and subscription",function(){
     });
 
     it(" a server should accept several Publish Requests from the client without sending notification immediately,"+
-       " and should still be able to reply to other request",function(done) {
+       " and should still be able to reply to other requests",function(done) {
 
         var subscriptionId;
         perform_operation_on_client_session(client,function(session,done){
@@ -271,7 +289,7 @@ describe("testing server and subscription",function(){
                 },
                 function(callback) {
 
-                    // send many publish request
+                    // send many publish requests, in one go
                     session.publish({},function(err,response){});
                     session.publish({},function(err,response){});
                     session.publish({},function(err,response){});

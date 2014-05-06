@@ -19,28 +19,35 @@ function post_initialize() {
     
         // add variables in folders
         // add a variable named MyVariable1 to the newly created folder "MyDevice"
-        var variable1 = 10.0;
-        server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
-            browseName: "MyVariable1",
-            value: {
-                get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });}
-            }
-        });
+        var variable1 = 1;
         
-        // add a variable named MyVariable1 to the newly created folder "MyDevice"
-        var variable2 = "some text";
-        server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
+        // emulate variable1 changing every 500 ms
+        setInterval(function(){  variable1+=1; }, 500);
+        
+        server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
                 browseName: "MyVariable1",
                 value: {
-                    nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
                     get: function () {
-                        return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
+                        return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
                     },
-                    set: function (variant) {
-                        variable1 = parseFloat(variant.value);
-                        return opcua.StatusCodes.Good;
-                    }
                 }
+        });
+        
+        // add a variable named MyVariable2 to the newly created folder "MyDevice"
+        var variable2 = 10.0;
+        server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
+        
+            nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
+            browseName: "MyVariable2",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
+                },
+                set: function (variant) {
+                    variable2 = parseFloat(variant.value);
+                    return opcua.StatusCodes.Good;
+                }
+            }
         });
         
         var os = require("os");

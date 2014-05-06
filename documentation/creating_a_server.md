@@ -125,6 +125,7 @@ variables that we want to expose. This function will be called inside the initia
 
 
 ```javascript
+
     function construct_my_address_space(server) {
 
         // declare some folders
@@ -150,41 +151,52 @@ variables that we want to expose. This function will be called inside the initia
 
 ##### add a variable
 
-Adding a read variable inside the server namespace requires only a getter function that returns a opcua.Variant
-containing the value of the variable to scan.
+Adding a read-only variable inside the server namespace requires only a getter function.
+This function returns a Variant containing the value of the variable to scan.
 
 ```javascript
+
     // add a variable named MyVariable1 to the newly created folder "MyDevice"
-    var variable1 = 10.0;
+    var variable1 = 1;
+
+    // emulate variable1 changing every 500 ms
+    setInterval(function(){  variable1+=1; }, 500);
+
     server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
-        browseName: "MyVariable1",
-        value: {
-            get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });}
-        }
+            browseName: "MyVariable1",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
+                },
+            }
     });
 ```
 
-Note that we haven't specified a nodeid for the variable.The server will automatically assign a new nodeId for us.
+Note that we haven't specified a NodeId for the variable.The server will automatically assign a new nodeId for us.
 
 Let's create a more comprehensive Read-Write variable with a fancy nodeId
 
 ```javascript
-    // add a variable named MyVariable1 to the newly created folder "MyDevice"
-    var variable2 = "some text";
+
+    // add a variable named MyVariable2 to the newly created folder "MyDevice"
+    var variable2 = 10.0;
     server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
-            browseName: "MyVariable1",
-            value: {
-                nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
-                get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
-                },
-                set: function (variant) {
-                    variable1 = parseFloat(variant.value);
-                    return opcua.StatusCodes.Good;
-                }
+
+        nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
+        browseName: "MyVariable2",
+        value: {
+            get: function () {
+                return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
+            },
+            set: function (variant) {
+                variable2 = parseFloat(variant.value);
+                return opcua.StatusCodes.Good;
             }
+        }
     });
 ```
+
+
 
 Lets create a variable that expose the percentage of free memory on the running machine.
 
@@ -237,3 +249,10 @@ Once the server has been created and configured, it is possible to retrieve the 
     var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
     console.log(" the primary server endpoint url is ", endpointUrl );
 ```
+
+## Execute and test the server
+
+``` sh
+      $ node sample_server.js
+```
+
