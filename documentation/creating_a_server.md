@@ -1,9 +1,7 @@
-Creating a Simple Server
-=========================
+# Creating a Simple Server
 
-[sample_server.js](#Structure "save: | jshint ")
 
-In this example, we want to create a OPCUA Server that exposes 2 read/write variables
+In this example, we want to create a OPCUA Server that exposes 3 read/write variables
 
 The server will expose the variable under a new folder named "MyDevice".
 
@@ -12,7 +10,50 @@ The server will expose the variable under a new folder named "MyDevice".
              + MyVariable1
              + MyVariable2
 
-## Structure
+
+The first steps assumes that you are running a shell in a terminal on Linux or Mac,
+or under [Git Bash](http://msysgit.github.io/) cmd on Windows.
+
+## preparation
+
+* (note: please make sure node.js is installed. Follow the instructions [here](http://nodejs.org/) ).
+
+
+Let's create a node project for our server.
+
+``` shell
+    $ mkdir myserver
+    $ cd myserver
+    $ npm init                      # create a package.json
+    $ npm install node-opcua --save # add the node-opcua
+```
+
+## creating certificates
+
+A server certificate is required. Let's generate a self-signed private key.
+By default, the server will search for a certificate named **cert.pem** in the **certificates** folder.
+
+``` shell
+    $ mkdir certificates
+    $ openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout certificates/key.pem -out certificates/cert.pem
+```
+
+Then, answer the question requested by openssl (organizational  name , address and so on )
+The server private key is key.pem.
+
+The certificate file contains also a public key. The public key can be extracted from the certificate
+file with the following command
+
+``` shell
+    $ openssl rsa -in certificates/cert.pem -pubout > certificates/public_key.pub
+```
+
+
+## the server script
+
+Now edit the [sample_server.js](#the server script "save: | jshint ") script.
+
+The script will be organised around the following four steps:
 
     _"declaration"
 
@@ -22,6 +63,7 @@ The server will expose the variable under a new folder named "MyDevice".
 
     _"server initialisation"
 
+Let visit each step in order:
 
 ### declaration
 
@@ -29,19 +71,22 @@ The node-opcua sdk is made available to the application by this 'require' statem
 
 ```javascript
     var opcua = require("node-opcua");
+
 ```
 
 ### server instantiation
 
 A OPCUAServer instance need to be created.
 Options can be passed to the OPCUAServer to customize the behavior.
-For a simple server, you just need to specify a tcp port.
+For a simple server, you just need to specify a TCP port.
 
 ```javascript
-    // Let create an instance of OPCUAServer
+
+    // Let's create an instance of OPCUAServer
     var server = new opcua.OPCUAServer({
         port: 4334 // the port of the listening socket of the server
     });
+
 ```
 
 ### setting server info
@@ -71,7 +116,7 @@ steps that we want to execute.
     server.initialize(post_initialize);
 ```
 
-### post initialisation
+#### post initialisation
 
 Once the server has been initialized, it is a good idea to extend the default server namespace with our variables.
 
@@ -97,13 +142,13 @@ variables that we want to expose. This function will be called inside the initia
 ```
 
 
-#### declare a new folder
+##### declare a new folder
 
 ```javascript
      server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
 ```
 
-#### add a variable
+##### add a variable
 
 Adding a read variable inside the server namespace requires only a getter function that returns a opcua.Variant
 containing the value of the variable to scan.

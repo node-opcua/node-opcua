@@ -1,6 +1,6 @@
 var opcua = require("node-opcua");
 
-// Let create an instance of OPCUAServer
+// Let's create an instance of OPCUAServer
 var server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server
 });
