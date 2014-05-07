@@ -29,7 +29,7 @@
   "devDependencies": {
     "autodoc": "^0.6.1",
     "csv": "~0.3.7",
-    "literate-programming": "^0.7.5",
+    "literate-programming": "^0.8.0",
     "mocha": "*",
     "mocha-lcov-reporter": "0.0.1",
     "node-expat": "~2.1.4",

@@ -82,10 +82,10 @@ For a simple server, you just need to specify a TCP port.
 
 ```javascript
 
-    // Let's create an instance of OPCUAServer
-    var server = new opcua.OPCUAServer({
-        port: 4334 // the port of the listening socket of the server
-    });
+// Let's create an instance of OPCUAServer
+var server = new opcua.OPCUAServer({
+    port: 4334 // the port of the listening socket of the server
+});
 
 ```
 
@@ -94,10 +94,10 @@ For a simple server, you just need to specify a TCP port.
 additional information can be set at this stage such as the server *buildInfo*.
 
 ```javascript
-    // we can set the buildInfo
-    server.buildInfo.productName = "MySampleServer1";
-    server.buildInfo.buildNumber = "7658";
-    server.buildInfo.buildDate = new Date(2014,5,2);
+// we can set the buildInfo
+server.buildInfo.productName = "MySampleServer1";
+server.buildInfo.buildNumber = "7658";
+server.buildInfo.buildDate = new Date(2014,5,2);
 ```
 
 ### server initialisation
@@ -109,11 +109,11 @@ when the initialization process is completed. the *callback* is function that co
 steps that we want to execute.
 
 ```javascript
-    function post_initialize() {
-        console.log("initialized");
-        _"post initialisation"
-    }
-    server.initialize(post_initialize);
+function post_initialize() {
+    console.log("initialized");
+    _"post initialisation"
+}
+server.initialize(post_initialize);
 ```
 
 #### post initialisation
@@ -126,19 +126,19 @@ variables that we want to expose. This function will be called inside the initia
 
 ```javascript
 
-    function construct_my_address_space(server) {
+function construct_my_address_space(server) {
 
-        // declare some folders
-        _"declare a new folder"
+    // declare some folders
+    _"declare a new folder"
 
-        // add variables in folders
-        _"add a variable"
+    // add variables in folders
+    _"add a variable"
 
-    }
+}
 
-    construct_my_address_space(server);
+construct_my_address_space(server);
 
-    _"start the server"
+_"start the server"
 
 ```
 
@@ -146,7 +146,7 @@ variables that we want to expose. This function will be called inside the initia
 ##### declare a new folder
 
 ```javascript
-     server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
+ server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
 ```
 
 ##### add a variable
@@ -156,20 +156,20 @@ This function returns a Variant containing the value of the variable to scan.
 
 ```javascript
 
-    // add a variable named MyVariable1 to the newly created folder "MyDevice"
-    var variable1 = 1;
+// add a variable named MyVariable1 to the newly created folder "MyDevice"
+var variable1 = 1;
 
-    // emulate variable1 changing every 500 ms
-    setInterval(function(){  variable1+=1; }, 500);
+// emulate variable1 changing every 500 ms
+setInterval(function(){  variable1+=1; }, 500);
 
-    server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
-            browseName: "MyVariable1",
-            value: {
-                get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
-                },
-            }
-    });
+server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
+        browseName: "MyVariable1",
+        value: {
+            get: function () {
+                return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
+            },
+        }
+});
 ```
 
 Note that we haven't specified a NodeId for the variable.The server will automatically assign a new nodeId for us.
@@ -178,22 +178,22 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
 
 ```javascript
 
-    // add a variable named MyVariable2 to the newly created folder "MyDevice"
-    var variable2 = 10.0;
-    server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
+// add a variable named MyVariable2 to the newly created folder "MyDevice"
+var variable2 = 10.0;
+server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
 
-        nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
-        browseName: "MyVariable2",
-        value: {
-            get: function () {
-                return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
-            },
-            set: function (variant) {
-                variable2 = parseFloat(variant.value);
-                return opcua.StatusCodes.Good;
-            }
+    nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
+    browseName: "MyVariable2",
+    value: {
+        get: function () {
+            return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
+        },
+        set: function (variant) {
+            variable2 = parseFloat(variant.value);
+            return opcua.StatusCodes.Good;
         }
-    });
+    }
+});
 ```
 
 
@@ -203,28 +203,28 @@ Lets create a variable that expose the percentage of free memory on the running 
 Let's write a small utility function that calculate this value.
 
 ```javascript
-    var os = require("os");
-    /**
-     * returns the percentage of free memory on the running machine
-     * @returns {double}
-     */
-    function available_memory() {
-        // var value = process.memoryUsage().heapUsed / 1000000;
-        var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
-        return percentageMemUsed;
-    }
+var os = require("os");
+/**
+ * returns the percentage of free memory on the running machine
+ * @returns {double}
+ */
+function available_memory() {
+    // var value = process.memoryUsage().heapUsed / 1000000;
+    var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
+    return percentageMemUsed;
+}
 ```
 
 Now let's expose our OPUC Variable
 
 ```javascript
-    server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
-        nodeId: "ns=4;s=free_memory", // a string nodeID
-        browseName: "FreeMemory",
-        value: {
-            get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: available_memory() });}
-        }
-    });
+server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
+    nodeId: "ns=4;s=free_memory", // a string nodeID
+    browseName: "FreeMemory",
+    value: {
+        get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: available_memory() });}
+    }
+});
 ```
 
 
@@ -234,11 +234,11 @@ Once the server has been created and initialised, we use the **start** asynchron
 initiate all its endpoints and start listening to clients.
 
 ```javascript
-    server.start(function() {
-        console.log("Server is now listening ... ( press CTRL+C to stop)");
-        console.log("port ", server.endpoints[0].port);
-        _"display endpoint url"
-    });
+server.start(function() {
+    console.log("Server is now listening ... ( press CTRL+C to stop)");
+    console.log("port ", server.endpoints[0].port);
+    _"display endpoint url"
+});
 ```
 
 ### display endpoint url
@@ -246,13 +246,13 @@ initiate all its endpoints and start listening to clients.
 Once the server has been created and configured, it is possible to retrieve the endpoint url.
 
 ```javascript
-    var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
-    console.log(" the primary server endpoint url is ", endpointUrl );
+var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+console.log(" the primary server endpoint url is ", endpointUrl );
 ```
 
 ## Execute and test the server
 
 ``` sh
-      $ node sample_server.js
+  $ node sample_server.js
 ```
 

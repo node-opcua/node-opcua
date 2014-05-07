@@ -1,4 +1,4 @@
-var opcua = require("node-opcua");
+    var opcua = require("node-opcua");
 
 // Let's create an instance of OPCUAServer
 var server = new opcua.OPCUAServer({
@@ -32,6 +32,7 @@ function post_initialize() {
                     },
                 }
         });
+        
         
         // add a variable named MyVariable2 to the newly created folder "MyDevice"
         var variable2 = 10.0;
