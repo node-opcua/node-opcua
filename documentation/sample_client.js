@@ -96,7 +96,7 @@ async.series([
         the_session.close(function(err){
             callback();
         });
-    },
+    }
 
 ],
 function(err) {

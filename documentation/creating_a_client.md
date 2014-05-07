@@ -84,7 +84,7 @@ async.series([
     // close session
     function(callback) {
         _"closing session"
-    },
+    }
 
 ],
 function(err) {

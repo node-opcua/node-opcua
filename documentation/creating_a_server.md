@@ -167,7 +167,7 @@ server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
         value: {
             get: function () {
                 return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
-            },
+            }
         }
 });
 ```

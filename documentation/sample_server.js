@@ -29,7 +29,7 @@ function post_initialize() {
                 value: {
                     get: function () {
                         return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
-                    },
+                    }
                 }
         });
         
