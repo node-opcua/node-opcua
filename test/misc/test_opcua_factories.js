@@ -1,24 +1,24 @@
-var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-var makebuffer = require("../lib/utils").makebuffer;
+var makebuffer = require("../../lib/misc/utils").makebuffer;
 
-var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
-var MessageBuilder = require("../lib/message_builder").MessageBuilder;
-var s = require("../lib/services/secure_channel_service");
-var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
+var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
+var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
+var s = require("../../lib/services/secure_channel_service");
+var messageHeaderToString = require("../../lib/misc/packet_analyzer").messageHeaderToString;
 
-var verify_multi_chunk_message= require("./utils/verify_message_chunk").verify_multi_chunk_message;
-var verify_single_chunk_message= require("./utils/verify_message_chunk").verify_single_chunk_message;
+var verify_multi_chunk_message= require("./../utils/verify_message_chunk").verify_multi_chunk_message;
+var verify_single_chunk_message= require("./../utils/verify_message_chunk").verify_single_chunk_message;
 
-var redirectToFile = require("../lib/utils").redirectToFile;
+var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
-var FindServersResponse = require("../lib/services/register_server_service").FindServersResponse;
+var FindServersResponse = require("../../lib/services/register_server_service").FindServersResponse;
 
 var should  =require("should");
 
 describe("OPCUA Object creation",function() {
 
-    var s = require("../lib/datamodel/structures");
+    var s = require("../../lib/datamodel/structures");
     it("should create a complex type with embedded type",function(){
 
         var applicationDescription = new s.ApplicationDescription({
@@ -63,45 +63,45 @@ describe("OPCUA Object creation",function() {
 describe("OPCUA Structure encoding and decoding", function () {
     it("should encode and decode a EndPointDescription", function (done) {
 
-        var obj = require("./fixtures/fixture_GetEndPointResponse").makeEndPoint();
+        var obj = require("./../fixtures/fixture_GetEndPointResponse").makeEndPoint();
         encode_decode_round_trip_test(obj);
         done();
     });
 
     it("should encode and decode a GetEndPointResponse 1/4", function (done) {
 
-        var obj = require("./fixtures/fixture_GetEndPointResponse").fixture1;
+        var obj = require("./../fixtures/fixture_GetEndPointResponse").fixture1;
         encode_decode_round_trip_test(obj);
         done();
     });
     it("should encode and decode a GetEndPointResponse 2/4", function (done) {
 
-        var obj = require("./fixtures/fixture_GetEndPointResponse").fixture2;
+        var obj = require("./../fixtures/fixture_GetEndPointResponse").fixture2;
         encode_decode_round_trip_test(obj);
         done();
     });
     it("should encode and decode a GetEndPointResponse 3/4", function (done) {
 
-        var obj = require("./fixtures/fixture_GetEndPointResponse").fixture3;
+        var obj = require("./../fixtures/fixture_GetEndPointResponse").fixture3;
         encode_decode_round_trip_test(obj);
         done();
     });
     it("should encode and decode a GetEndPointResponse 4/4", function (done) {
 
-        var obj = require("./fixtures/fixture_GetEndPointResponse").fixture4;
+        var obj = require("./../fixtures/fixture_GetEndPointResponse").fixture4;
         encode_decode_round_trip_test(obj);
         done();
     });
 
     it("should encode and decode a AsymmetricAlgorithmSecurityHeader ", function (done) {
 
-        var obj = require("./fixtures/fixture_AsymmetricAlgorithmSecurityHeader").fixture1;
+        var obj = require("./../fixtures/fixture_AsymmetricAlgorithmSecurityHeader").fixture1;
         encode_decode_round_trip_test(obj);
         done();
     });
     it("should encode and decode a OpenSecureChannelRequest", function (done) {
 
-        var obj = require("./fixtures/fixture_OpenSecureChannelRequest").fixture1;
+        var obj = require("./../fixtures/fixture_OpenSecureChannelRequest").fixture1;
 
         encode_decode_round_trip_test(obj);
         done();
@@ -113,9 +113,9 @@ describe("OPCUA Structure encoding and decoding", function () {
 
 describe("testing DataValue encoding decoding",function(){
 
-    var DataValue = require("./../lib/datamodel/datavalue").DataValue;
-    var DataType = require("./../lib/datamodel/variant").DataType;
-    var StatusCodes = require("./../lib/datamodel/opcua_status_code").StatusCodes;
+    var DataValue = require("./../../lib/datamodel/datavalue").DataValue;
+    var DataType = require("./../../lib/datamodel/variant").DataType;
+    var StatusCodes = require("./../../lib/datamodel/opcua_status_code").StatusCodes;
 
     it("should encode and decode a empty DataValue 1/3",function(done){
         var dataValue1 = new DataValue({
@@ -246,7 +246,7 @@ it("should decode a real OpenSecureChannelResponse message", function (done) {
 
 describe("checking decoding real messageChunks captured with WireShark ", function () {
 
-    var packets = require("./fixtures/fixture_full_tcp_packets");
+    var packets = require("./../fixtures/fixture_full_tcp_packets");
 
     it("should decode a real OpenSecureChannelRequest message", function (done) {
 
@@ -311,8 +311,8 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
 
     it("should decode a real CreateSessionResponse message sent in two chunks", function (done) {
 
-        var packet1 = require("./fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_1;
-        var packet2 = require("./fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_2;
+        var packet1 = require("./../fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_1;
+        var packet2 = require("./../fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_2;
 
         redirectToFile("ws_CreateSessionResponse.log", function () {
             verify_multi_chunk_message([packet1,packet2]);
@@ -321,7 +321,7 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
 
     it("should decode this real CreateSessionResponse message sent in one chunk", function (done) {
 
-        var packet1 = require("./fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_3;
+        var packet1 = require("./../fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_3;
 
         redirectToFile("ws_CreateSessionResponse2.log", function () {
             verify_multi_chunk_message([packet1]);

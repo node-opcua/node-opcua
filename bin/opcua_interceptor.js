@@ -3,13 +3,13 @@ var argv = require('optimist')
     .usage('Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block')
     .argv;
 var net = require("net");
-var hexDump = require("../lib/utils").hexDump;
+var hexDump = require("../lib/misc/utils").hexDump;
 var opcua = require("../lib/nodeopcua");
-var MessageBuilder = require("../lib/message_builder").MessageBuilder;
+var MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
 var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
-var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
-var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
+var packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
+var messageHeaderToString = require("../lib/misc/packet_analyzer").messageHeaderToString;
 
 var s = require("../lib/datamodel/structures");
 

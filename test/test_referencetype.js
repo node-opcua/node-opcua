@@ -1,6 +1,6 @@
 
-var address_space = require("../lib/common/address_space");
-var generate_address_space = require("../lib/common/load_nodeset2").generate_address_space;
+var address_space = require("./address_space");
+var generate_address_space = require("./load_nodeset2").generate_address_space;
 var AddressSpace = address_space.AddressSpace;
 var should  = require("should");
 var nodeid = require("../lib/datamodel/nodeid");

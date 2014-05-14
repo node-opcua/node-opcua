@@ -1,9 +1,9 @@
-var makebuffer = require("../lib/utils").makebuffer;
-var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
+var makebuffer = require("../lib/misc/utils").makebuffer;
+var packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
 var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
-var redirectToFile = require("../lib/utils").redirectToFile;
+var redirectToFile = require("../lib/misc/utils").redirectToFile;
 var s = require("./../lib/datamodel/structures");
-var ec = require("./../lib/encode_decode");
+var ec = require("./../lib/misc/encode_decode");
 var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var should = require("should");
 

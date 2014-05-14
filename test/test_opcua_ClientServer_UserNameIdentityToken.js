@@ -1,4 +1,4 @@
-var OPCUAClient = require("../lib/opcua-client").OPCUAClient;
+var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
 
 var assert = require('better-assert');
 var async = require("async");

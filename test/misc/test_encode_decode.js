@@ -1,9 +1,9 @@
 var should = require("should");
-var ec = require("../lib/encode_decode");
-var opcua = require("../lib/nodeopcua");
-var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
-var ExpandedNodeId = require("./../lib/datamodel/nodeid").ExpandedNodeId;
-var NodeIdType = require("./../lib/datamodel/nodeid").NodeIdType;
+var ec = require("../../lib/misc/encode_decode");
+var opcua = require("../../lib/nodeopcua");
+var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
+var ExpandedNodeId = require("./../../lib/datamodel/nodeid").ExpandedNodeId;
+var NodeIdType = require("./../../lib/datamodel/nodeid").NodeIdType;
 
 function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
     var binaryStream = new BinaryStream();
@@ -297,8 +297,8 @@ describe("testing built-in type encoding", function () {
     });
 
     it("should encode and decode a BYTESTRING NodeId", function () {
-        var NodeId = require("./../lib/datamodel/nodeid").NodeId;
-        var NodeIdType = require("./../lib/datamodel/nodeid").NodeIdType;
+        var NodeId = require("./../../lib/datamodel/nodeid").NodeId;
+        var NodeIdType = require("./../../lib/datamodel/nodeid").NodeIdType;
         var crypto =require("crypto");
 
         var nodeId = new NodeId(NodeIdType.BYTESTRING,crypto.randomBytes(16));

@@ -135,8 +135,8 @@ describe("MessageChunkManager",function() {
 
 });
 
-var MessageBuilderBase = require("../../lib/message_builder_base").MessageBuilderBase;
-var compare_buffers = require("../../lib/utils").compare_buffers;
+var MessageBuilderBase = require("../../lib/misc/message_builder_base").MessageBuilderBase;
+var compare_buffers = require("../../lib/misc/utils").compare_buffers;
 var Readable = require("stream").Readable;
 function BinaryStreamReader(buf,opt) {
     Readable.call(this, opt);

@@ -1,14 +1,14 @@
 
 
-var OPCUAServer = require("../../lib/opcua-server").OPCUAServer;
-var OPCUAClient = require("../../lib/opcua-client").OPCUAClient;
+var OPCUAServer = require("../../lib/server/opcua_server").OPCUAServer;
+var OPCUAClient = require("../../lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 var assert = require('better-assert');
 var async = require("async");
 var util = require("util");
 var opcua = require("../../lib/nodeopcua");
 
-var debugLog  = require("../../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 
 var read_service= require("../../lib/services/read_service");
@@ -16,8 +16,8 @@ var browse_service = require("../../lib/services/browse_service");
 var subscription_service = require("../../lib/services/subscription_service");
 
 var s = require("../../lib/datamodel/structures");
-var ec = require("../../lib/encode_decode");
-var hexDump = require("../../lib/utils").hexDump;
+var ec = require("../../lib/misc/encode_decode");
+var hexDump = require("../../lib/misc/utils").hexDump;
 
 describe("testing subscription objects",function(){
     var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -68,8 +68,8 @@ describe("testing subscription objects",function(){
 
     describe("testing subscription services data structure from the field", function() {
 
-        var makebuffer = require("../../lib/utils").makebuffer;
-        var redirectToFile = require("../../lib/utils").redirectToFile;
+        var makebuffer = require("../../lib/misc/utils").makebuffer;
+        var redirectToFile = require("../../lib/misc/utils").redirectToFile;
         var verify_multi_chunk_message= require("./../utils/verify_message_chunk").verify_multi_chunk_message;
         it("should decode a real CreateMonitoredItemsRequest ",function(done){
 

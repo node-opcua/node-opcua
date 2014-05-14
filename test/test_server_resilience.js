@@ -1,14 +1,14 @@
 
 
-var OPCUAServer = require("../lib/opcua-server").OPCUAServer;
-var OPCUAClient = require("../lib/opcua-client").OPCUAClient;
+var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
+var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 var assert = require('better-assert');
 var async = require("async");
 var util = require("util");
 var opcua = require("../lib/nodeopcua");
 
-var debugLog  = require("../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../lib/misc/utils").make_debugLog(__filename);
 var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;

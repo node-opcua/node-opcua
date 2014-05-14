@@ -8,7 +8,7 @@ function inlineText(f) {
         replace(/^[^\/]+\/\*!?/, '').
         replace(/\*\/[^\/]+$/, '');
 }
-var makebuffer = require("../../lib/utils").makebuffer;
+var makebuffer = require("../../lib/misc/utils").makebuffer;
 
 var hexString = function(str) {
 

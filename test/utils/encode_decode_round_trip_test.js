@@ -2,10 +2,10 @@
 var should =require("should");
 var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 var factories = require("../../lib/misc/factories");
-var hexDump = require("../../lib/utils").hexDump;
+var hexDump = require("../../lib/misc/utils").hexDump;
 
 
-var packet_analyzer = require("../../lib/packet_analyzer").packet_analyzer;
+var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
 
 process.argv.push("DEBUG");
 

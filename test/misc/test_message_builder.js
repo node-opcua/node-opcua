@@ -1,8 +1,8 @@
-var MessageBuilder = require("../lib/message_builder").MessageBuilder;
+var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var should = require('should');
-var packets = require("./fixtures/fixture_full_tcp_packets");
+var packets = require("./../fixtures/fixture_full_tcp_packets");
 
-var redirectToFile = require("../lib/utils").redirectToFile;
+var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
 describe("MessageBuilder",function(){
 

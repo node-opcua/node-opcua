@@ -2,13 +2,13 @@ var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport
 var should = require("should");
 var opcua = require("../../lib/nodeopcua");
 var assert = require('better-assert');
-var utils = require("../../lib/utils");
+var utils = require("../../lib/misc/utils");
 var color = require("colors");
 var s = require("../../lib/datamodel/structures");
 var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 
 
-var debugLog  = require("../../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 
 
 

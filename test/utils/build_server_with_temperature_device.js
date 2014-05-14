@@ -1,7 +1,7 @@
-var OPCUAServer = require("../../lib/opcua-server").OPCUAServer;
+var OPCUAServer = require("../../lib/server/opcua_server").OPCUAServer;
 var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 var opcua = require("../../lib/nodeopcua");
-var debugLog  = require("../../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 var Variant = require("../../lib/datamodel/variant").Variant;
 var DataType = require("../../lib/datamodel/variant").DataType;
 

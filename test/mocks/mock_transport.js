@@ -1,11 +1,11 @@
-var hexDump = require("../../lib/utils").hexDump;
+var hexDump = require("../../lib/misc/utils").hexDump;
 var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
-var debugLog  = require("../../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 var _ = require("underscore");
 var s  = require("../../lib/datamodel/structures");
-var packet_analyzer = require("../../lib/packet_analyzer").packet_analyzer;
+var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
 var assert = require('better-assert');
-var display_trace_from_this_projet_only = require("../../lib/utils").display_trace_from_this_projet_only;
+var display_trace_from_this_projet_only = require("../../lib/misc/utils").display_trace_from_this_projet_only;
 
 var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({
     protocolVersion:      1,

@@ -1,9 +1,9 @@
 var bs = require("./../../lib/services/read_service");
 var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var redirectToFile = require("../../lib/utils").redirectToFile;
+var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 var verify_multi_chunk_message= require("./../utils/verify_message_chunk").verify_multi_chunk_message;
 var verify_single_chunk_message= require("./../utils/verify_message_chunk").verify_single_chunk_message;
-var makebuffer = require("../../lib/utils").makebuffer;
+var makebuffer = require("../../lib/misc/utils").makebuffer;
 
 
 /* a real readRequest (with two nodeIds) captured with ws*/

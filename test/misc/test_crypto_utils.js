@@ -1,6 +1,6 @@
 var hexy = require("hexy");
 var should = require("should");
-var  read_certificate = require("../lib/crypto_utils").read_certificate;
+var  read_certificate = require("../../lib/misc/crypto_utils").read_certificate;
 
 describe("Crypto utils", function () {
     it("should read a PEM file",function(){

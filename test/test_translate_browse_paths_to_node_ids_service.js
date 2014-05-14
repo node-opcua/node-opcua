@@ -1,6 +1,6 @@
 var translate_service = require("../lib/services/translate_browse_paths_to_node_ids_service");
 var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
-var ec = require("../lib/encode_decode");
+var ec = require("../lib/misc/encode_decode");
 
 describe("TranslateBrowsePathsToNodeIds service",function(){
     var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -65,8 +65,8 @@ describe("TranslateBrowsePathsToNodeIds service",function(){
 
 
 var _ = require("underscore");
-var OPCUAServer = require("../lib/opcua-server").OPCUAServer;
-var OPCUAClient = require("../lib/opcua-client").OPCUAClient;
+var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
+var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 
 var opcua = require("../lib/nodeopcua");

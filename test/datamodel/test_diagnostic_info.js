@@ -1,7 +1,7 @@
 
-var s = require("./../lib/datamodel/structures");
-var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var StatusCodes = require("./../lib/datamodel/opcua_status_code").StatusCodes;
+var s = require("./../../lib/datamodel/structures");
+var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var StatusCodes = require("./../../lib/datamodel/opcua_status_code").StatusCodes;
 
 describe("DiagnosticInfo",function(){
 

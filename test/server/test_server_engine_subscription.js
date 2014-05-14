@@ -1,7 +1,7 @@
 var should = require("should");
 var server_engine = require("../../lib/server/server_engine");
 var resolveNodeId = require("../../lib/datamodel/nodeid").resolveNodeId;
-var NodeClass = require("../../lib/services/browse_service").NodeClass;
+var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
 var browse_service = require("../../lib/services/browse_service");
 BrowseDirection = browse_service.BrowseDirection;
 var read_service = require("../../lib/services/read_service");

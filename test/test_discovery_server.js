@@ -1,11 +1,11 @@
 
-var OPCUAServer = require("../lib/opcua-server").OPCUAServer;
+var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
 var should = require("should");
 var util = require("util");
 var async = require("async");
 var _ = require("underscore");
 var assert = require('better-assert');
-var debugLog = require("../lib/utils").make_debugLog(__filename);
+var debugLog = require("../lib/misc/utils").make_debugLog(__filename);
 
 var s = require("../lib/datamodel/structures");
 var OPCUAServerEndPoint = require("../lib/server/server_endpoint").OPCUAServerEndPoint;
@@ -16,7 +16,7 @@ var FindServersResponse = require("../lib/services/register_server_service").Fin
 
 // add the tcp/ip endpoint with no security
 
-var OPCUADiscoveryServer =  require("../lib/opcua_discovery_server").OPCUADiscoveryServer;
+var OPCUADiscoveryServer =  require("../lib/server/opcua_discovery_server").OPCUADiscoveryServer;
 assert(OPCUADiscoveryServer);
 
 

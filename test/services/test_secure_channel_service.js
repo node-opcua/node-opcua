@@ -1,17 +1,17 @@
 
 var should = require("should");
 var secure_channel = require("../../lib/services/secure_channel_service");
-var MessageBuilder = require("../../lib/message_builder").MessageBuilder;
+var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 
 var s = require("../../lib/datamodel/structures");
 var async = require("async");
 var util = require("util");
 
 
-var compare_buffers = require("./../../lib/utils").compare_buffers;
+var compare_buffers = require("./../../lib/misc/utils").compare_buffers;
 
 
-var debugLog  = require("../../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 
 var clone_buffer = secure_channel.clone_buffer;
 var MessageChunker = secure_channel.MessageChunker;
@@ -109,7 +109,7 @@ describe("SecureMessageChunkManager",function(){
 
         messageBuilder.on("full_message_body",function(full_message_body){
                 debugLog(" On raw Buffer \n" );
-                debugLog(require("../../lib/utils").hexDump(full_message_body));
+                debugLog(require("../../lib/misc/utils").hexDump(full_message_body));
 
         }).on("message",function(message) {
                 debugLog(" message ", message);

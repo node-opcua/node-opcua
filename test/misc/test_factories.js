@@ -2,7 +2,7 @@ var factories = require("../../lib/misc/factories");
 var should = require("should");
 var BinaryStream =require("../../lib/misc/binaryStream").BinaryStream;
 var util = require("util");
-var ec = require("../../lib/encode_decode");
+var ec = require("../../lib/misc/encode_decode");
 
 var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
@@ -355,7 +355,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
     it("should create a object from a encodingDefaultBinaryId", function() {
 
-        var getObjectClassName = require("../../lib/utils").getObjectClassName;
+        var getObjectClassName = require("../../lib/misc/utils").getObjectClassName;
 
         var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Description.id));
 
@@ -452,9 +452,9 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
 describe("PacketAnalyzer",function(){
     it("should analyse a encoded object",function(done){
-        var analyze_object_binary_encoding = require("../../lib/packet_analyzer").analyze_object_binary_encoding;
+        var analyze_object_binary_encoding = require("../../lib/misc/packet_analyzer").analyze_object_binary_encoding;
 
-        var redirectToFile = require("../../lib/utils").redirectToFile;
+        var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
         var company  = new Company({
             name: "ACME",

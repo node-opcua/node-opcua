@@ -1,6 +1,6 @@
 var ServerSecureChannelLayer = require("../../lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
 var should  = require("should");
-var debugLog  = require("../../lib/utils").make_debugLog(__filename);
+var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
 
 

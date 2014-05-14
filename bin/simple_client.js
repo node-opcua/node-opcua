@@ -5,7 +5,7 @@ var color = require("colors");
 var util = require("util");
 var Table = require('easy-table');
 var async = require("async");
-var utils = require('../lib/utils');
+var utils = require('../lib/misc/utils');
 
 
 var argv = require('optimist')

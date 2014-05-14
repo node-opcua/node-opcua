@@ -3,7 +3,7 @@ var fs = require("fs");
 var packets = require("./conversationData.js_data");
 
 
-var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
+var packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
 var verify_multi_chunk_message= require("../test/utils/verify_message_chunk").verify_multi_chunk_message;
 require("../lib/services/session_service");
 require("../lib/services/read_service");

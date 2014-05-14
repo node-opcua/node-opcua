@@ -14,7 +14,7 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 var DataType = require("../../lib/datamodel/variant").DataType;
 var DataValue = require("../../lib/datamodel/datavalue").DataValue;
 var Variant = require("../../lib/datamodel/variant").Variant;
-var dump = require("../../lib/utils").dump;
+var dump = require("../../lib/misc/utils").dump;
 
 
 

@@ -5,22 +5,22 @@ var assert  = require('better-assert');
 
 var coerceNodeId = require("../lib/datamodel/nodeid").coerceNodeId;
 var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
-var ec = require("../lib/encode_decode");
+var ec = require("../lib/misc/encode_decode");
 var _ = require("underscore");
 
 
-var AddressSpace = require("../lib/common/address_space").AddressSpace;
+var AddressSpace = require("./address_space").AddressSpace;
 
-var findReference =   require("../lib/common/address_space").findReference;
+var findReference =   require("./address_space").findReference;
 
-var generate_address_space = require("../lib/common/load_nodeset2").generate_address_space;
+var generate_address_space = require("./load_nodeset2").generate_address_space;
 
 var address_space = new AddressSpace();
 
 generate_address_space(address_space);
 
 
-var utils = require("../lib/utils");
+var utils = require("../lib/misc/utils");
 
 var template_Object= function(){/*
 £**
