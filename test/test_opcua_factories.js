@@ -4,7 +4,7 @@ var makebuffer = require("../lib/utils").makebuffer;
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var MessageBuilder = require("../lib/message_builder").MessageBuilder;
-var s = require("../lib/secure_channel_service");
+var s = require("../lib/services/secure_channel_service");
 var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
 
 var verify_multi_chunk_message= require("./utils/verify_message_chunk").verify_multi_chunk_message;
@@ -12,13 +12,13 @@ var verify_single_chunk_message= require("./utils/verify_message_chunk").verify_
 
 var redirectToFile = require("../lib/utils").redirectToFile;
 
-var FindServersResponse = require("../lib/register_server_service").FindServersResponse;
+var FindServersResponse = require("../lib/services/register_server_service").FindServersResponse;
 
 var should  =require("should");
 
 describe("OPCUA Object creation",function() {
 
-    var s = require("../lib/structures");
+    var s = require("../lib/datamodel/structures");
     it("should create a complex type with embedded type",function(){
 
         var applicationDescription = new s.ApplicationDescription({
@@ -113,9 +113,9 @@ describe("OPCUA Structure encoding and decoding", function () {
 
 describe("testing DataValue encoding decoding",function(){
 
-    var DataValue = require("./../lib/datavalue").DataValue;
-    var DataType = require("./../lib/variant").DataType;
-    var StatusCodes = require("./../lib/opcua_status_code").StatusCodes;
+    var DataValue = require("./../lib/datamodel/datavalue").DataValue;
+    var DataType = require("./../lib/datamodel/variant").DataType;
+    var StatusCodes = require("./../lib/datamodel/opcua_status_code").StatusCodes;
 
     it("should encode and decode a empty DataValue 1/3",function(done){
         var dataValue1 = new DataValue({

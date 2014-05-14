@@ -37,8 +37,8 @@
 var sinon = require("sinon");
 var ServerSidePublishEngine = require("../../lib/server/server_publish_engine").ServerSidePublishEngine;
 var Subscription = require("../../lib/server/subscription").Subscription;
-var subscription_service = require("../../lib/subscription_service");
-var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
+var subscription_service = require("../../lib/services/subscription_service");
+var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 var NotificationMessage = subscription_service.NotificationMessage;
 var should =require("should");
 

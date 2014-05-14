@@ -1,22 +1,22 @@
 var should = require("should");
 var server_engine = require("../../lib/server/server_engine");
-var resolveNodeId = require("../../lib/nodeid").resolveNodeId;
-var NodeClass = require("../../lib/browse_service").NodeClass;
-var browse_service = require("../../lib/browse_service");
+var resolveNodeId = require("../../lib/datamodel/nodeid").resolveNodeId;
+var NodeClass = require("../../lib/services/browse_service").NodeClass;
+var browse_service = require("../../lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
-var read_service = require("../../lib/read_service");
+var read_service = require("../../lib/services/read_service");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 var util = require("util");
-var NodeId = require("../../lib/nodeid").NodeId;
+var NodeId = require("../../lib/datamodel/nodeid").NodeId;
 var assert = require('better-assert');
 var AttributeIds = read_service.AttributeIds;
 
-var DataType = require("../../lib/variant").DataType;
-var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
-var makeNodeId = require("../../lib/nodeid").makeNodeId;
+var DataType = require("../../lib/datamodel/variant").DataType;
+var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
 var VariableIds = require("../../lib/opcua_node_ids").VariableIds;
-var Variant = require("../../lib/variant").Variant;
-var VariantArrayType =  require("../../lib/variant").VariantArrayType;
+var Variant = require("../../lib/datamodel/variant").Variant;
+var VariantArrayType =  require("../../lib/datamodel/variant").VariantArrayType;
 
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
@@ -638,7 +638,7 @@ describe("testing ServerEngine", function () {
             ];
         it("should read and set the required timestamps : TimestampsToReturn.Neither",function() {
 
-            var DataValue = require("../../lib/datavalue").DataValue;
+            var DataValue = require("../../lib/datamodel/datavalue").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Neither,
@@ -661,7 +661,7 @@ describe("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Server",function() {
 
-            var DataValue = require("../../lib/datavalue").DataValue;
+            var DataValue = require("../../lib/datamodel/datavalue").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Server,
@@ -685,7 +685,7 @@ describe("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Source",function() {
 
-            var DataValue = require("../../lib/datavalue").DataValue;
+            var DataValue = require("../../lib/datamodel/datavalue").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Source,
@@ -711,7 +711,7 @@ describe("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Both",function() {
 
-            var DataValue = require("../../lib/datavalue").DataValue;
+            var DataValue = require("../../lib/datamodel/datavalue").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
@@ -801,8 +801,8 @@ describe("testing ServerEngine", function () {
     });
 
     describe("testing ServerEngine browsePath",function(){
-        var translate_service = require("../../lib/translate_browse_paths_to_node_ids_service");
-        var nodeid = require("../../lib/nodeid");
+        var translate_service = require("../../lib/services/translate_browse_paths_to_node_ids_service");
+        var nodeid = require("../../lib/datamodel/nodeid");
 
         it(" translate a browse path to a nodeId with a invalid starting node shall return Bad_NodeIdUnknown",function() {
             var browsePath = new translate_service.BrowsePath({

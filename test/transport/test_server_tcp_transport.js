@@ -4,8 +4,8 @@ var opcua = require("../../lib/nodeopcua");
 var assert = require('better-assert');
 var utils = require("../../lib/utils");
 var color = require("colors");
-var s = require("../../lib/structures");
-var BinaryStream = require("../../lib/binaryStream").BinaryStream;
+var s = require("../../lib/datamodel/structures");
+var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 
 
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);

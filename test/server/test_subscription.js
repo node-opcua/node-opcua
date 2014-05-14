@@ -1,9 +1,9 @@
 var should =require("should");
 var sinon = require("sinon");
 
-var subscription_service = require("../../lib/subscription_service");
+var subscription_service = require("../../lib/services/subscription_service");
 var NotificationMessage = subscription_service.NotificationMessage;
-var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
+var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 var Subscription = require("../../lib/server/subscription").Subscription;
 
 describe("Subscriptions", function () {
@@ -359,20 +359,7 @@ describe("Subscriptions", function () {
         subscription._get_next_sequence_number().should.equal(3);
         subscription._get_future_sequence_number().should.equal(4);
     });
-    it("the Notification Message sequence number should roll over to 1 after reaching four billion",function(){
-        var subscription = new Subscription();
-        subscription._get_future_sequence_number().should.equal(1);
 
-        var max_counter_value =SequenceNumberGenerator.prototype.MAXVALUE;
-        subscription._sequence_number_generator._set(max_counter_value);
-
-        subscription._get_future_sequence_number().should.equal(max_counter_value);
-        subscription._get_next_sequence_number().should.equal(max_counter_value);
-
-        subscription._get_future_sequence_number().should.equal(1);
-        subscription._get_next_sequence_number().should.equal(1);
-
-    });
     it("closing a Subscription causes its MonitoredItems to be deleted. ",function(){
 
     });

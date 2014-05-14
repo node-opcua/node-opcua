@@ -5,9 +5,9 @@ var assert = require('better-assert');
 var async = require("async");
 var should = require('should');
 var build_server_with_temperature_device = require("./utils/build_server_with_temperature_device").build_server_with_temperature_device;
-var ReadValueId = require("../lib/read_service").ReadValueId;
-var AttributeIds = require("../lib/read_service").AttributeIds;
-var resolveNodeId = require("../lib/nodeid").resolveNodeId;
+var ReadValueId = require("../lib/services/read_service").ReadValueId;
+var AttributeIds = require("../lib/services/read_service").AttributeIds;
+var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
 var sinon = require("sinon");
 
 

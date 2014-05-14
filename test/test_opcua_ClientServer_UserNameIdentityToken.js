@@ -5,7 +5,7 @@ var async = require("async");
 var should = require('should');
 var build_server_with_temperature_device = require("./utils/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var s = require("../lib/structures");
+var s = require("../lib/datamodel/structures");
 
 
 describe("testing Client-Server with UserName/Password identity token",function() {

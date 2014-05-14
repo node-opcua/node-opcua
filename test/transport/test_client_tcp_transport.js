@@ -4,8 +4,8 @@ var opcua = require("../../lib/nodeopcua");
 var assert = require('better-assert');
 var utils = require("../../lib/utils");
 var color = require("colors");
-var s = require("../../lib/structures");
-var StatusCode = require("../../lib/opcua_status_code").StatusCode;
+var s = require("../../lib/datamodel/structures");
+var StatusCode = require("../../lib/datamodel/opcua_status_code").StatusCode;
 
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);
 
@@ -116,7 +116,7 @@ describe("testing ClientTCP_transport",function(){
     it("should report an error if the server reports a protocol version mismatch",function(done){
 
         var fake_socket = new DirectTransport();
-        var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
+        var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 
         fake_socket.server.on("data",function(data){
             // received Fake HEL Message

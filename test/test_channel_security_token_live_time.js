@@ -7,8 +7,8 @@ var util = require("util");
 var opcua = require("../lib/nodeopcua");
 
 var debugLog  = require("../lib/utils").make_debugLog(__filename);
-var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
-var browse_service = require("../lib/browse_service");
+var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
+var browse_service = require("../lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
 var os =require("os");
 var _ = require("underscore");

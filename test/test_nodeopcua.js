@@ -1,5 +1,5 @@
 var opcua = require("../lib/nodeopcua");
-var BinaryStream = require("../lib/binaryStream").BinaryStream;
+var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 var should = require("should");
 
 

@@ -1,9 +1,9 @@
 var should = require("should");
 var util = require("util");
-var s  = require("../lib/structures");
+var s  = require("../lib/datamodel/structures");
 var opcua = require("../lib/nodeopcua");
-var BinaryStream = require("../lib/binaryStream").BinaryStream;
-var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
+var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
+var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 
 describe("testing OPCUA structures ",function() {
 

@@ -3,8 +3,8 @@ var xml = require("node-expat");
 var fs = require("fs");
 var assert  = require('better-assert');
 
-var coerceNodeId = require("../lib/nodeid").coerceNodeId;
-var resolveNodeId = require("../lib/nodeid").resolveNodeId;
+var coerceNodeId = require("../lib/datamodel/nodeid").coerceNodeId;
+var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
 var ec = require("../lib/encode_decode");
 var _ = require("underscore");
 

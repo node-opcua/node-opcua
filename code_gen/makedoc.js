@@ -5,20 +5,20 @@ console.log("/**");
 console.log(" * @module toto");
 console.log(" */");
 
-dumpModule(require("../lib/variant.js"));
-dumpModule(require("../lib/buildinfo.js"));
-dumpModule(require("../lib/browse_service.js"));
-dumpModule(require("../lib/factories.js"));
-dumpModule(require("../lib/subscription_service.js"));
-dumpModule(require("../lib/read_service.js"));
-dumpModule(require("../lib/session_service.js"));
-dumpModule(require("../lib/write_service.js"));
-dumpModule(require("../lib/translate_browse_paths_to_node_ids_service.js"));
-dumpModule(require("../lib/structures.js"));
-dumpModule(require("../lib/secure_channel_service.js"));
-dumpModule(require("../lib/register_server_service.js"));
+dumpModule(require("../lib/datamodel/variant.js"));
+dumpModule(require("../lib/datamodel/buildinfo.js"));
+dumpModule(require("../lib/services/browse_service.js"));
+dumpModule(require("../lib/misc/factories.js"));
+dumpModule(require("../lib/services/subscription_service.js"));
+dumpModule(require("../lib/services/read_service.js"));
+dumpModule(require("../lib/services/session_service.js"));
+dumpModule(require("../lib/services/write_service.js"));
+dumpModule(require("../lib/services/translate_browse_paths_to_node_ids_service.js"));
+dumpModule(require("../lib/datamodel/structures.js"));
+dumpModule(require("../lib/services/secure_channel_service.js"));
+dumpModule(require("../lib/services/register_server_service.js"));
 dumpModule(require("../lib/nodeopcua.js"));
-dumpModule(require("../lib/datavalue.js"));
+dumpModule(require("../lib/datamodel/datavalue.js"));
 
 
 

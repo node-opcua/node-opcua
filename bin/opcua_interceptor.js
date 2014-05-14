@@ -6,12 +6,12 @@ var net = require("net");
 var hexDump = require("../lib/utils").hexDump;
 var opcua = require("../lib/nodeopcua");
 var MessageBuilder = require("../lib/message_builder").MessageBuilder;
-var BinaryStream = require("../lib/binaryStream").BinaryStream;
+var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var messageHeaderToString = require("../lib/packet_analyzer").messageHeaderToString;
 
-var s = require("../lib/structures");
+var s = require("../lib/datamodel/structures");
 
 require("colors");
 

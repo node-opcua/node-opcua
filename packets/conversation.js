@@ -5,9 +5,9 @@ var packets = require("./conversationData.js_data");
 
 var packet_analyzer = require("../lib/packet_analyzer").packet_analyzer;
 var verify_multi_chunk_message= require("../test/utils/verify_message_chunk").verify_multi_chunk_message;
-require("../lib/session_service");
-require("../lib/read_service");
-require("../lib/browse_service");
+require("../lib/services/session_service");
+require("../lib/services/read_service");
+require("../lib/services/browse_service");
 
 //xxverify_multi_chunk_message([packets.peer0_10]);
 verify_multi_chunk_message([packets.peer1_28]);

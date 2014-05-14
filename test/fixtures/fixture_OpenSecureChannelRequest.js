@@ -1,4 +1,4 @@
-var s = require("../../lib/structures");
+var s = require("../../lib/datamodel/structures");
 var should = require("should");
 
 

@@ -1,9 +1,9 @@
 var OPCUAServer = require("../../lib/opcua-server").OPCUAServer;
-var StatusCodes = require("../../lib/opcua_status_code").StatusCodes;
+var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 var opcua = require("../../lib/nodeopcua");
 var debugLog  = require("../../lib/utils").make_debugLog(__filename);
-var Variant = require("../../lib/variant").Variant;
-var DataType = require("../../lib/variant").DataType;
+var Variant = require("../../lib/datamodel/variant").Variant;
+var DataType = require("../../lib/datamodel/variant").DataType;
 
 var _ = require("underscore");
 var assert = require('better-assert');

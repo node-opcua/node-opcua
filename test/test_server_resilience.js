@@ -9,14 +9,14 @@ var util = require("util");
 var opcua = require("../lib/nodeopcua");
 
 var debugLog  = require("../lib/utils").make_debugLog(__filename);
-var StatusCodes = require("../lib/opcua_status_code").StatusCodes;
-var browse_service = require("../lib/browse_service");
+var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
+var browse_service = require("../lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
 
 var _ = require("underscore");
 
 
-var factories = require("../lib/factories");
+var factories = require("../lib/misc/factories");
 // a fake request type that is supposed to be correcly decoded on server side
 // but that is not supported by the server engine
 var ServerSideUnimplementedRequest_Schema = {
@@ -63,7 +63,7 @@ describe("testing Server resilience to unsupported request",function(){
     });
 
     it("server should return a ServiceFault if receiving a unsupported MessageType",function(done){
-        var s = require("../lib/structures");
+        var s = require("../lib/datamodel/structures");
         var bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
 
         g_session.performMessageTransaction(bad_request,function(err,response){

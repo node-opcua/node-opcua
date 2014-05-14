@@ -7,12 +7,12 @@ var _ = require("underscore");
 var assert = require('better-assert');
 var debugLog = require("../lib/utils").make_debugLog(__filename);
 
-var s = require("../lib/structures");
+var s = require("../lib/datamodel/structures");
 var OPCUAServerEndPoint = require("../lib/server/server_endpoint").OPCUAServerEndPoint;
-var RegisterServerRequest  = require("../lib/register_server_service").RegisterServerRequest;
-var RegisterServerResponse = require("../lib/register_server_service").RegisterServerResponse;
-var FindServersRequest = require("../lib/register_server_service").FindServersRequest;
-var FindServersResponse = require("../lib/register_server_service").FindServersResponse;
+var RegisterServerRequest  = require("../lib/services/register_server_service").RegisterServerRequest;
+var RegisterServerResponse = require("../lib/services/register_server_service").RegisterServerResponse;
+var FindServersRequest = require("../lib/services/register_server_service").FindServersRequest;
+var FindServersResponse = require("../lib/services/register_server_service").FindServersResponse;
 
 // add the tcp/ip endpoint with no security
 

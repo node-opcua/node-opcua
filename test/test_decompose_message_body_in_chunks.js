@@ -1,4 +1,4 @@
-var decompose_message_body_in_chunks = require("./../lib/secure_channel_service").decompose_message_body_in_chunks;
+var decompose_message_body_in_chunks = require("./../lib/services/secure_channel_service").decompose_message_body_in_chunks;
 var should = require("should");
 
 describe("decompose_message_body_in_chunks",function(){

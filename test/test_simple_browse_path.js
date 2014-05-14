@@ -2,7 +2,7 @@ var should =require("should");
 var constructBrowsePath = require("../lib/common/address_space").constructBrowsePath;
 var AddressSpace = require("../lib/common/address_space").AddressSpace;
 var generate_address_space = require("../lib/common/load_nodeset2").generate_address_space;
-var makeNodeId = require("../lib/nodeid").makeNodeId;
+var makeNodeId = require("../lib/datamodel/nodeid").makeNodeId;
 var util = require("util");
 
 describe("constructBrowsePath and simpleBrowsePath",function(){

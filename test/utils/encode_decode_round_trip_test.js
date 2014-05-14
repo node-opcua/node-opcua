@@ -1,7 +1,7 @@
 
 var should =require("should");
-var BinaryStream = require("../../lib/binaryStream").BinaryStream;
-var factories = require("../../lib/factories");
+var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
+var factories = require("../../lib/misc/factories");
 var hexDump = require("../../lib/utils").hexDump;
 
 
