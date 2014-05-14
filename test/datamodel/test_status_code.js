@@ -1,10 +1,10 @@
 var assert = require('better-assert');
-var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
-var StatusCode = require("../lib/datamodel/opcua_status_code").StatusCode;
-var encodeStatusCode  = require("../lib/datamodel/opcua_status_code").encodeStatusCode;
-var decodeStatusCode  = require("../lib/datamodel/opcua_status_code").decodeStatusCode;
+var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+var StatusCode = require("../../lib/datamodel/opcua_status_code").StatusCode;
+var encodeStatusCode  = require("../../lib/datamodel/opcua_status_code").encodeStatusCode;
+var decodeStatusCode  = require("../../lib/datamodel/opcua_status_code").decodeStatusCode;
 var should = require("should");
-var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
+var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 
 describe("testing status code manipulation",function(){
 

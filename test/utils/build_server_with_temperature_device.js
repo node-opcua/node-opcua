@@ -21,7 +21,7 @@ var should = require('should');
  *
  * @param options {options}
  * @param done {callback}
- * @returns {OPCUAServer}
+ * @return {OPCUAServer}
  */
 function build_server_with_temperature_device(options,done) {
 

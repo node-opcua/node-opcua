@@ -1,7 +1,8 @@
 var should =require("should");
-var constructBrowsePath = require("./address_space").constructBrowsePath;
-var AddressSpace = require("./address_space").AddressSpace;
-var generate_address_space = require("./load_nodeset2").generate_address_space;
+
+var constructBrowsePath = require("../lib/address_space/address_space").constructBrowsePath;
+var AddressSpace = require("../lib/address_space/address_space").AddressSpace;
+var generate_address_space = require("../lib/address_space/load_nodeset2").generate_address_space;
 var makeNodeId = require("../lib/datamodel/nodeid").makeNodeId;
 var util = require("util");
 

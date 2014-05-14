@@ -206,7 +206,7 @@ Let's write a small utility function that calculate this value.
 var os = require("os");
 /**
  * returns the percentage of free memory on the running machine
- * @returns {double}
+ * @return {double}
  */
 function available_memory() {
     // var value = process.memoryUsage().heapUsed / 1000000;
