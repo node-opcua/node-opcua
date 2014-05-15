@@ -5,7 +5,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
-[![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/erossignon/node-opcua)
+[![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
 [![Dependency Status](https://gemnasium.com/node-opcua/node-opcua.png)](https://gemnasium.com/node-opcua/node-opcua)
 [![Coverage Status](https://coveralls.io/repos/node-opcua/node-opcua/badge.png)](https://coveralls.io/r/node-opcua/node-opcua)
 [![Code Climate](https://codeclimate.com/github/node-opcua/node-opcua.png)](https://codeclimate.com/github/node-opcua/node-opcua)
@@ -125,7 +125,7 @@ Contributing
 ================
 
 
-    $ git clone git://github.com/erossignon/node-opcua.git node-opcua
+    $ git clone git://github.com/node-opcua/node-opcua.git node-opcua
     $ cd node-opcua
     $ npm install
     $ npm test
@@ -136,12 +136,9 @@ Contributing
 
 
 
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://github.com/erossignon/node-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software)
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://github.com/node-opcua/node-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software)
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 
 [![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/erossignon/node-opcua/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
