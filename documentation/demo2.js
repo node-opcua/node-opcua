@@ -1,29 +1,13 @@
 /*global require,setInterval,console */
 var cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
 
-function perform_read(city,body) {
-    var obj = JSON.parse(body);
-    var current_condition = obj.data.current_condition[0];
-    var request = obj.data.request[0];
+// read the World Weather Online API key.
+var fs = require("fs");
+var key = fs.readFileSync("worldweatheronline.key");
 
-    return  {
-        city:               request.query,
-        date:               new Date(),
-        observation_time:   current_condition.observation_time,
-        temperature:        parseFloat(current_condition.temp_C),
-        humidity:           parseFloat(current_condition.humidity),
-        pressure:           parseFloat(current_condition.pressure),
-        weather:            current_condition.weatherDesc.value
-    };
-}
+function getCityWeather(city,callback) {
 
-function get_city_weather(city,callback) {
-
-    // read the World Weather Online API key.
-    var fs = require("fs");
-    var key = fs.readFileSync("worldweatheronline.key");
-
-    var api_url="http://api.worldweatheronline.com/free/v1/weather.ashx?num_of_results=1&fx=no&q="+city+"+&format=json&key="+ key;
+    var api_url="http://api.worldweatheronline.com/free/v1/weather.ashx?q="+city+"+&format=json&key="+ key;
 
     var options = {
         url: api_url,
@@ -42,24 +26,38 @@ function get_city_weather(city,callback) {
     });
 }
 
+function perform_read(city,body) {
+    var obj = JSON.parse(body);
+    var current_condition = obj.data.current_condition[0];
+    var request = obj.data.request[0];
+    return  {
+        city:               request.query,
+        date:               new Date(),
+        observation_time:   current_condition.observation_time,
+        temperature:        parseFloat(current_condition.temp_C),
+        humidity:           parseFloat(current_condition.humidity),
+        pressure:           parseFloat(current_condition.pressure),
+        weather:            current_condition.weatherDesc.value
+    };
+}
+
 var city_data_map = { };
 
-var next_city = function(cities) {
-   var counter = cities.length;
+// a infinite round-robin iterator over the city array
+var next_city = function(arr) {
+   var counter = arr.length;
    return function() {
       counter += 1;
-      if (counter>=cities.length) {
+      if (counter>=arr.length) {
         counter = 0;
       }
-      return cities[counter];
+      return arr[counter];
    };
 }(cities);
 
-
-
 function update_city_data(city) {
 
-    get_city_weather(city,function(err,data) {
+    getCityWeather(city,function(err,data) {
          if (!err) {
             city_data_map[city] = data;
             console.log(city,JSON.stringify(data, null," "));
@@ -69,8 +67,8 @@ function update_city_data(city) {
      });
 }
 
-// calculate the timeout interval to get a update every 5 minute for each city
-var interval =( 6*100*60 )/ cities.length;
+// make a API call every 10 seconds
+var interval = 10* 1000;
 
 setInterval(function() {
      var city = next_city();

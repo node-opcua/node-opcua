@@ -137,7 +137,7 @@ an object containing the temperature and pressure of a city. This function will 
 /*global require,console */
 /*jshint evil:true */
 
-_"reading the weather of a city"
+_"getCityWeather"
 
 var city = "London";
 
@@ -152,7 +152,9 @@ getCityWeather(city,function(err,data) {
 
 ```
 
-## reading the weather of a city
+## getCityWeather
+
+Let's write the method that reads the weather of a city.
 
 ``` javascript
 _"accessing the _worldweatheronline_ API key"
@@ -178,7 +180,7 @@ function getCityWeather(city,callback) {
     });
 }
 
-_"extract useful data";
+_"extract useful data"
 ```
 ### extract useful data
 
