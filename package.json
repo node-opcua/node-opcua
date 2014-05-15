@@ -9,22 +9,23 @@
   },
   "scripts": {
     "test": "mocha test -R spec --recursive --timeout 8000",
-    "generate_doc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
+    "generate_doc": "make doc",
+    "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/erossignon/node-opcua.git"
+    "url": "git://github.com/node-opcua/node-opcua.git"
   },
   "keywords": [
     "OPC UA",
     "OPCUA",
     "M2M",
-    "IOT"
+    "IoT"
   ],
   "author": "Etienne Rossignon",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/erossignon/node-opcua/issues"
+    "url": "https://github.com/node-opcua/node-opcua/issues"
   },
   "devDependencies": {
     "autodoc": "^0.6.1",

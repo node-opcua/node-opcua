@@ -37,6 +37,7 @@ The script will be organised around the following four steps:
 ### declaration
 
 ```javascript
+/*global require,console,setTimeout */
 var opcua = require("node-opcua");
 var async = require("async");
 ```
@@ -53,7 +54,8 @@ var endpointUrl = "opc.tcp://" + require("os").hostname().toLowerCase() + ":4334
 
 ```javascript
 
-var the_session = null;
+var the_session, the_subscription;
+
 async.series([
 
     // step 1 : connect to
@@ -126,6 +128,9 @@ client.createSession( function(err,session) {
 
 ```javascript
 the_session.close(function(err){
+    if(err) {
+        console.log("session closed failed ?");
+    }
     callback();
 });
 ```
@@ -147,7 +152,7 @@ the_session.browse("RootFolder", function(err,browse_result){
 ### read a variable
 
 ```javascript
-the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues,diagnostics) {
+the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues) {
     if (!err) {
         console.log(" free mem % = " , dataValues);
     }

@@ -1,10 +1,12 @@
+/*global require,console,setTimeout */
 var opcua = require("node-opcua");
 var async = require("async");
 
 var client = new opcua.OPCUAClient();
 var endpointUrl = "opc.tcp://" + require("os").hostname().toLowerCase() + ":4334/UA/SampleServer";
 
-var the_session = null;
+var the_session, the_subscription;
+
 async.series([
 
     // step 1 : connect to
@@ -43,7 +45,7 @@ async.series([
 
     // step 4 : read a variable
     function(callback) {
-       the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues,diagnostics) {
+       the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues) {
            if (!err) {
                console.log(" free mem % = " , dataValues);
            }
@@ -94,6 +96,9 @@ async.series([
     // close session
     function(callback) {
         the_session.close(function(err){
+            if(err) {
+                console.log("session closed failed ?");
+            }
             callback();
         });
     }
