@@ -17,15 +17,14 @@ describe("XMLToJSON",function(){
                         attrs.should.have.property("name");
                         attrs['name'].should.equal("John");
                         init_called = true;
-                        this.obj = {};
+
+                        this.parent.root.obj = {};
+                        this.obj =  this.parent.root.obj;
                         this.obj['name'] = attrs['name'];
                     },
                     finish: function(name) {
 
-                        this.obj.should.eql({
-                            name: 'John',
-                            address: 'Paris'
-                        })
+                        this.obj.should.eql({name: 'John',address: 'Paris' });
                         finish_called = true;
                     },
                     parser: {
@@ -39,6 +38,7 @@ describe("XMLToJSON",function(){
             }
         });
 
+
         parser.parseString(
             "<employees>" +
             "   <person name='John'>" +
@@ -47,10 +47,10 @@ describe("XMLToJSON",function(){
             "</employees>",function() {
                 init_called.should.equal(true);
                 finish_called.should.equal(true);
+
+                parser.obj.should.eql({name: 'John',address: 'Paris'});
                 done();
             });
-
-
 
     });
 });
