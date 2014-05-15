@@ -1,4 +1,6 @@
-var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
+var verify_single_chunk_message= require("../helpers/verify_message_chunk").verify_single_chunk_message;
 
 var makebuffer = require("../../lib/misc/utils").makebuffer;
 
@@ -7,8 +9,6 @@ var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var s = require("../../lib/services/secure_channel_service");
 var messageHeaderToString = require("../../lib/misc/packet_analyzer").messageHeaderToString;
 
-var verify_multi_chunk_message= require("./../utils/verify_message_chunk").verify_multi_chunk_message;
-var verify_single_chunk_message= require("./../utils/verify_message_chunk").verify_single_chunk_message;
 
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
@@ -101,7 +101,7 @@ describe("OPCUA Structure encoding and decoding", function () {
     });
     it("should encode and decode a OpenSecureChannelRequest", function (done) {
 
-        var obj = require("./../fixtures/fixture_OpenSecureChannelRequest").fixture1;
+        var obj = require("../fixtures/fixture_OpenSecureChannelRequest").fixture1;
 
         encode_decode_round_trip_test(obj);
         done();

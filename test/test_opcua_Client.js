@@ -6,8 +6,8 @@ var m = require("./mocks/mock_transport");
 var opcua = require("../lib/nodeopcua");
 
 /*
- * this test verifies that the OPCUA Client  behave correctly
- * Server responses are emulated using a mock
+ * this test verifies that the OPCUA Client  behaves correctly
+ * Server responses are emulated using a mock object.
  *
  */
 describe("OPCUA-CLIENT",function(){
@@ -15,7 +15,6 @@ describe("OPCUA-CLIENT",function(){
 
 
     xit("should connect and disconnect",function(done){
-
 
         var mock = new MockTransport([
 
@@ -105,7 +104,6 @@ describe("OPCUA-CLIENT",function(){
 
     it("should connect, createSession, browseVariable, closeSession, and disconnect",function(done){
         done();
-
     });
 
     it("should not hang if the server send a ServerFault when closing the session",function(){

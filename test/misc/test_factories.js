@@ -4,7 +4,7 @@ var BinaryStream =require("../../lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 var ec = require("../../lib/misc/encode_decode");
 
-var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 var Person_Description = {
@@ -415,7 +415,6 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
         };
 
         var MetaShape = factories.registerObject(MetaShape_Description);
-        var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
         it("should work with some missing ExtensionObject ",function(){
 

@@ -3,7 +3,7 @@ var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var ec = require("../lib/misc/encode_decode");
 
 describe("TranslateBrowsePathsToNodeIds service",function(){
-    var encode_decode_round_trip_test = require("./utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+    var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
     it("should encode and decode a TranslateBrowsePathsToNodeIdsRequest",function(){
 
@@ -71,7 +71,7 @@ var should = require("should");
 
 var opcua = require("../lib/nodeopcua");
 
-var build_client_server_session = require("./utils/build_client_server_session").build_client_server_session;
+var build_client_server_session = require("./helpers/build_client_server_session").build_client_server_session;
 
 
 describe("testing Client Server dealing with translate browse path",function(){

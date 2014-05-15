@@ -18,7 +18,9 @@ var _ = require("underscore");
 
 var port = 2000;
 
-var build_server_with_temperature_device = require("./utils/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+
+
 describe("testing basic Client-Server communication",function() {
 
     var server , client,temperatureVariableId,endpointUrl ;
@@ -26,7 +28,7 @@ describe("testing basic Client-Server communication",function() {
     before(function(done){
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        port+=1;
+//xx        port+=1;
         server = build_server_with_temperature_device({ port:port},function() {
             endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
             temperatureVariableId = server.temperatureVariableId;

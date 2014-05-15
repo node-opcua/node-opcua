@@ -6,7 +6,7 @@ var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 
 var should = require("should");
 
-var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("DataValue",function(){
 

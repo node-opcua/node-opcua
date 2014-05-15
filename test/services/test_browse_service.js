@@ -1,7 +1,8 @@
+var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
+
 var bs = require("./../../lib/services/browse_service");
-var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
-var verify_multi_chunk_message= require("./../utils/verify_message_chunk").verify_multi_chunk_message;
 var makebuffer = require("../../lib/misc/utils").makebuffer;
 
 

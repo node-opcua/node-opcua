@@ -119,7 +119,7 @@ describe("SecureMessageChunkManager",function(){
                 done();
         });
 
-        var makebuffer_from_trace = require("./../utils/makebuffer_from_trace").makebuffer_from_trace;
+        var makebuffer_from_trace = require("../helpers/makebuffer_from_trace").makebuffer_from_trace;
 
         var packet =makebuffer_from_trace(function(){
 /*

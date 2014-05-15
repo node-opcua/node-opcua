@@ -2,10 +2,10 @@
 var Variant = require("../../lib/datamodel/variant").Variant;
 var DataType = require("../../lib/datamodel/variant").DataType;
 var VariantArrayType = require("../../lib/datamodel/variant").VariantArrayType;
+var s = require("./../../lib/datamodel/structures");
 
 var should = require("should");
-var encode_decode_round_trip_test = require("./../utils/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var s = require("./../../lib/datamodel/structures");
+var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 describe("Variant",function(){

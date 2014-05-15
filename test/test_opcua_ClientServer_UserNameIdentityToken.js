@@ -3,7 +3,7 @@ var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
 var assert = require('better-assert');
 var async = require("async");
 var should = require('should');
-var build_server_with_temperature_device = require("./utils/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 var s = require("../lib/datamodel/structures");
 
