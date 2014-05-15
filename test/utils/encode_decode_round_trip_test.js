@@ -7,7 +7,7 @@ var hexDump = require("../../lib/misc/utils").hexDump;
 
 var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
 
-process.argv.push("DEBUG");
+//xx process.argv.push("DEBUG");
 
 function dump_block_in_debug_mode(buffer,id) {
 

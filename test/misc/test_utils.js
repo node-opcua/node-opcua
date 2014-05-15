@@ -27,15 +27,17 @@ describe("testing utility functions",function(){
         utils.display_trace_from_this_projet_only();
 
     });
+
     it("make_debugLog",function() {
 
         var tmp= process.env.DEBUG;
+
         process.env.DEBUG= 'ALL';
         var debugLog = utils.make_debugLog("<some file>");
 
         debugLog("help!");
 
-        process.env.DEBUG= tmp;
+        delete process.env.DEBUG;
 
     });
 
