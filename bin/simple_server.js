@@ -1,7 +1,7 @@
 Error.stackTraceLimit = Infinity;
 
 var OPCUAServer = require("..").OPCUAServer;
-
+var path = require("path");
 var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
 var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
 
