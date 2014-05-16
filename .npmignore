@@ -4,6 +4,7 @@
 .coveralls.yml
 code_gen/
 docs/
+autodoc
 documentation/
 examples/
 support/
