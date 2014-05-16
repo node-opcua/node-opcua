@@ -15,3 +15,5 @@ code_gen/*.bsd
 code_gen/*.xls
 code_gen/*.xml
 documentation/worldweatheronline.key
+*.tgz
+npm-debug.log

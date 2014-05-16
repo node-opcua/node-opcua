@@ -36,8 +36,10 @@ a.*
 *.raw
 toto.*
 Makefile
+notes.txt
+yuidoc.json
 *.gz
 *.tgz
 Vagrantfile
-
-
+tttt
+package
