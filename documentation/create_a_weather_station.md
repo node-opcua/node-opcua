@@ -340,10 +340,31 @@ function create_CityNode(city_name) {
     _"construct city weather variables"
 }
 
-Object.keys(cities).forEach(function(city) {
+cities.forEach(function(city) {
     create_CityNode(city);
 });
 
+_"extracting a DataValue"
+
+```
+
+#### extracting a DataValue
+
+Let's write a helper function (```extract_value```) to extract a city weather variable as DataValue.
+Since the city weather data are read asynchronously at a very low rate, it is possible that the data doesn't exist
+yet when the client will send its request. We have to be careful to handle this case appropriately.
+In the absence of city data, I have chose to send a Bad_WaitingForInitialData status code.
+
+```javascript
+function extract_value(city_name,property) {
+  var city = city_data_map[city_name];
+  if (city) {
+   var value = city[property];
+   return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
+  } else {
+    return new opcua.Variant({dataType: opcua.DataType.StatusCode, value: opcua.StatusCodes.Bad_WaitingForInitialData });
+  }
+}
 ```
 
 #### construct city weather variables
@@ -354,30 +375,16 @@ Each city node exposes 3 read-only variables that can be instantiated this way:
 
 server.engine.addVariableInFolder(city_name,{
     browseName: "Temperature",
-    value: {
-        get: function () {
-            var value = city_data_map[city_name].temperature;
-            return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
-        }
-    }
+    value: {  get: function () { return extract_value(city_name,"temperature"); } }
 });
 server.engine.addVariableInFolder(city_name,{
     browseName: "Humidity",
-    value: {
-        get: function () {
-            var value = city_data_map[city_name].humidity;
-            return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
-        }
-    }
+    value: {  get: function () { return extract_value(city_name,"humidity"); } }
+
 });
 server.engine.addVariableInFolder(city_name,{
     browseName: "Pressure",
-    value: {
-        get: function () {
-            var value = city_data_map[city_name].pressure;
-            return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
-        }
-    }
+    value: {  get: function () { return extract_value(city_name,"pressure"); } }
 });
 ```
 
