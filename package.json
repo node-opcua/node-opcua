@@ -43,7 +43,7 @@
     "yuidocjs": "^0.3.50"
   },
   "dependencies": {
-    "async": "~0.8.0",
+    "async": "~0.9.0",
     "base64-js": "0.0.6",
     "better-assert": "~1.0.0",
     "bignumber.js": "~1.3.0",
