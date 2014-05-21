@@ -17,10 +17,11 @@ var _ = require("underscore");
 
 
 var factories = require("../lib/misc/factories");
-// a fake request type that is supposed to be correcly decoded on server side
+
+// a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
 var ServerSideUnimplementedRequest_Schema = {
-    name: "AggregateConfiguration",
+    name: "Annotation",
     fields: [
         { name: "requestHeader" ,              fieldType:"RequestHeader" }
     ]
