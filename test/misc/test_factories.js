@@ -7,7 +7,7 @@ var ec = require("../../lib/misc/encode_decode");
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
-var Person_Description = {
+var Person_Schema = {
     id: factories.next_available_id(),
     name: "Person",
     fields: [
@@ -17,18 +17,27 @@ var Person_Description = {
     ]
 };
 
-
-var Employee_Description = {
+var Role_Schema = {
     id: factories.next_available_id(),
-    name: "Employee",
+    name: "Role",
     fields: [
-        { name: "person", fieldType: "Person" },
-        { name: "service", fieldType: "UAString" },
-        { name: "salary", fieldType: "Double", defaultValue: 1000.00  }
+        { name: "title" ,        fieldType: "UAString" },
+        { name: "description"  , fieldType: "UAString" }
     ]
 };
 
-var Company_Description = {
+var Employee_Schema = {
+    id: factories.next_available_id(),
+    name: "Employee",
+    baseType: "Person",
+    fields: [
+        { name: "role",    fieldType: "Role" },
+        { name: "service", fieldType: "UAString" },
+        { name: "salary",  fieldType: "Double", defaultValue: 1000.00  }
+    ]
+};
+
+var Company_Schema = {
     id: factories.next_available_id(),
     name: "Company",
     fields: [
@@ -40,9 +49,10 @@ var Company_Description = {
 
 
 
-var Person = factories.registerObject(Person_Description);
-var Employee = factories.registerObject(Employee_Description);
-var Company  = factories.registerObject(Company_Description);
+var Person   = factories.registerObject(Person_Schema);
+var Role     = factories.registerObject(Role_Schema);
+var Employee = factories.registerObject(Employee_Schema);
+var Company  = factories.registerObject(Company_Schema);
 
 
 
@@ -80,6 +90,15 @@ var Shape = factories.registerObject({
 
 
 
+describe("Factories: construction",function() {
+
+    it("should produce correct possible fields",function() {
+
+        Person.possibleFields().should.eql(["lastName","address","age"]);
+        Employee.possibleFields().should.eql(["lastName","address","age","role","service","salary"]);
+    });
+});
+
 
 
 describe("Factories: testing object factory", function () {
@@ -87,6 +106,7 @@ describe("Factories: testing object factory", function () {
     it("should construct a new object from a simple Class Description", function () {
 
         var person = new Person();
+
 
         person.should.have.property("lastName");
         person.should.have.property("address");
@@ -108,18 +128,30 @@ describe("Factories: testing object factory", function () {
 
     it("should construct a new object from a complex Class Description", function () {
 
-        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+        var employee = new Employee({ lastName: "John", service: "R&D" , role: { title: "developer", description: "create the awesome"} });
 
-        employee.should.have.property("person");
+        employee.should.be.instanceOf(Person);
+        employee.should.be.instanceOf(Employee);
+
+        employee.should.have.property("role");
         employee.should.have.property("service");
         employee.should.have.property("salary");
 
-        employee.person.lastName.should.equal("John");
-        employee.person.address.should.equal("");
-        employee.person.age.should.equal(25);
+        // due to inheritance, employee shall be a person
+        employee.should.have.property("lastName");
+        employee.should.have.property("address");
+        employee.should.have.property("age");
+
+        employee.lastName.should.equal("John");
+        employee.address.should.equal("");
+        employee.age.should.equal(25);
 
         employee.service.should.equal("R&D");
         employee.salary.should.equal(1000.0);
+
+        employee.role.should.be.instanceOf(Role);
+        employee.role.title.should.equal("developer");
+        employee.role.description.should.equal("create the awesome");
 
     });
 
@@ -135,14 +167,11 @@ describe("Factories: testing object factory", function () {
         person.age.should.equal(person_reloaded.age);
         person.address.should.equal(person_reloaded.address);
 
-
-
     });
 
     it("should encode and decode a composite object created from the Factory",function(){
 
-        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
-
+        var employee = new Employee({  lastName: "John" , service: "R&D" });
         encode_decode_round_trip_test(employee);
 
     });
@@ -154,10 +183,10 @@ describe("Factories: testing object factory", function () {
         company.employees.length.should.equal(0);
 
 
-        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+        var employee = new Employee({ lastName: "John", service: "R&D" });
 
         company.employees.push(employee);
-        company.employees.push(new Employee({ person: { lastName: "Peter"}, service: "R&D" }));
+        company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
 
         company.employees.length.should.equal(2);
 
@@ -170,8 +199,8 @@ describe("Factories: testing object factory", function () {
         var company  = new Company({
             name: "ACME",
             employees: [
-                { person: { lastName: "John",  age: 25}, service: "R&D" },
-                { person: { lastName: "Peter", age: 56}, service: "R&D" }
+                { lastName: "John",  age: 25 , service: "R&D" , role: {title: "manager",  description: "" } },
+                { lastName: "Peter", age: 56 , service: "R&D" , role: {title: "engineer", description: "" } }
             ]
         });
 
@@ -349,7 +378,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
         var company = new Company({name: "ACME"});
 
-        company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(Company_Description.id));
+        company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(Company_Schema.id));
 
     });
 
@@ -357,7 +386,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
         var getObjectClassName = require("../../lib/misc/utils").getObjectClassName;
 
-        var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Description.id));
+        var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Schema.id));
 
         should(obj).have.property("_schema");
         obj._schema.name.should.equal("Company");
@@ -370,7 +399,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
     it("should encode and decode a Object containing ByteString",function(done){
 
-        var Blob_Description = {
+        var Blob_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob",
             fields: [
@@ -380,7 +409,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
             ]
         };
 
-        var Blob = factories.registerObject(Blob_Description);
+        var Blob = factories.registerObject(Blob_Schema);
 
         var blob = new Blob({ buffer0: new Buffer(0), buffer1: new Buffer(1024) });
 
@@ -392,9 +421,9 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     it("should pretty print an object ",function(){
 
         var company  = new Company({name: "ACME" });
-        var employee = new Employee({ person: { lastName: "John"}, service: "R&D" });
+        var employee = new Employee({lastName: "John", service: "R&D" });
         company.employees.push(employee);
-        company.employees.push(new Employee({ person: { lastName: "Peter"}, service: "R&D" }));
+        company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
 
         var str = company.explore();
 
@@ -404,7 +433,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
 
     describe("ExtensionObject",function(){
-        var MetaShape_Description = {
+        var MetaShape_Schema = {
             name: "metashape",
             id: factories.next_available_id(),
             fields: [
@@ -414,7 +443,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
             ]
         };
 
-        var MetaShape = factories.registerObject(MetaShape_Description);
+        var MetaShape = factories.registerObject(MetaShape_Schema);
 
         it("should work with some missing ExtensionObject ",function(){
 
@@ -423,7 +452,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
                 shape: null,
                 comment:  "this is a comment"
             });
-            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Description.id));
+            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Schema.id));
 
             var stream = new BinaryStream(shape.binaryStoreSize());
             shape.encode(stream);
@@ -437,7 +466,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
                 shape: new Shape({name: "circle" , shapeType:ShapeType.CIRCLE , color: Color.BLUE}),
                 comment:  "this is a comment"
             });
-            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Description.id));
+            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Schema.id));
 
             var stream = new BinaryStream(shape.binaryStoreSize());
             shape.encode(stream);
@@ -458,8 +487,8 @@ describe("PacketAnalyzer",function(){
         var company  = new Company({
             name: "ACME",
             employees: [
-                { person: { lastName: "John",  age: 25}, service: "R&D" },
-                { person: { lastName: "Peter", age: 56}, service: "R&D" }
+                {  lastName: "John",  age: 25, service: "R&D" },
+                {  lastName: "Peter", age: 56, service: "R&D" }
             ]
         });
         var stream = new BinaryStream(company.binaryStoreSize());
@@ -470,3 +499,4 @@ describe("PacketAnalyzer",function(){
         },done);
     })
 });
+
