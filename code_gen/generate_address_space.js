@@ -1,5 +1,4 @@
 var util = require('util');
-var xml = require("node-expat");
 var fs = require("fs");
 var assert  = require('better-assert');
 
@@ -9,11 +8,11 @@ var ec = require("../lib/misc/encode_decode");
 var _ = require("underscore");
 
 
-var AddressSpace = require("./address_space").AddressSpace;
+var AddressSpace = require("../lib/address_space/address_space").AddressSpace;
 
-var findReference =   require("./address_space").findReference;
+var findReference =   require("../lib/address_space/address_space").findReference;
 
-var generate_address_space = require("./load_nodeset2").generate_address_space;
+var generate_address_space = require("../lib/address_space/load_nodeset2").generate_address_space;
 
 var address_space = new AddressSpace();
 

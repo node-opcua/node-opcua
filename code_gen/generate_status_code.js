@@ -1,5 +1,5 @@
 var util = require('util');
-var xml = require("node-expat");
+var xml = require("ersatz-node-expat");
 var fs = require("fs");
 var csv = require("csv");
 var sprintf = require("sprintf").sprintf;
@@ -66,6 +66,7 @@ function parseStatusCodeXML() {
     });
 
     parser.write(fs.readFileSync(xmlFile));
+    parser.end();
 
 }
 

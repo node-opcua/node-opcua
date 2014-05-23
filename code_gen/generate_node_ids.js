@@ -1,5 +1,4 @@
 var util = require('util');
-var xml = require("node-expat");
 var fs = require("fs");
 var csv = require("csv");
 var sprintf = require("sprintf").sprintf;
