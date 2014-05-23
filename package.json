@@ -1,8 +1,8 @@
 {
   "name": "node-opcua",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "pure nodejs OPCUA SDK",
-  "homepage":  "http://node-opcua.github.io/",
+  "homepage": "http://node-opcua.github.io/",
   "main": "index.js",
   "bin": {},
   "directories": {
@@ -28,7 +28,6 @@
   "bugs": {
     "url": "https://github.com/node-opcua/node-opcua/issues"
   },
-
   "devDependencies": {
     "autodoc": "^0.6.1",
     "csv": "~0.3.7",
@@ -69,6 +68,6 @@
     "tracer": "~0.7.1",
     "treeify": "~1.0.1",
     "underscore": "~1.6.0",
-    "ersatz-node-expat":"*"
+    "ersatz-node-expat": "*"
   }
 }
