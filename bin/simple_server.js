@@ -3,6 +3,7 @@ Error.stackTraceLimit = Infinity;
 var OPCUAServer = require("..").OPCUAServer;
 var path = require("path");
 var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
+console.log(" node set " , default_xmlFile);
 var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
 
 var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;

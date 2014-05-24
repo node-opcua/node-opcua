@@ -38,14 +38,15 @@ describe("XMLToJSON",function(){
             }
         });
 
-
         parser.parseString(
             "<employees>" +
             "   <person name='John'>" +
             "     <address>Paris</address>" +
             "   </person>" +
             "</employees>",function() {
+
                 init_called.should.equal(true);
+
                 finish_called.should.equal(true);
 
                 parser.obj.should.eql({name: 'John',address: 'Paris'});
@@ -53,4 +54,12 @@ describe("XMLToJSON",function(){
             });
 
     });
+    it("should parse a UTF8 encoded xml file with a BOM",function(done) {
+        var xml_file = __dirname + "/../../nodesets/Opc.Ua.NodeSet2.xml";
+        var parser = new Xml2Json({});
+        parser.parse(xml_file,function(err) {
+            done(err);
+        })  ;
+    });
+
 });

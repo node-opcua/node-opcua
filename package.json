@@ -52,15 +52,18 @@
     "async": "~0.9.0",
     "better-assert": "~1.0.0",
     "bignumber.js": "~1.3.0",
+    "bomstrip": "^0.1.4",
     "colors": "~0.6.2",
     "easy-table": "~0.3.0",
     "enum": "~0.2.6",
+    "ersatz-node-expat": "*",
     "hexy": "~0.2.5",
+    "optimist": "*",
+    "prettyjson": "~1.0.0",
     "sprintf": "~0.1.3",
     "sync": "^0.2.2",
     "through2": "~1.0.0",
     "treeify": "~1.0.1",
-    "underscore": "~1.6.0",
-    "ersatz-node-expat": "*"
+    "underscore": "~1.6.0"
   }
 }
