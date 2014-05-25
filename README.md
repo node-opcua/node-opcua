@@ -14,7 +14,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 
 
-node-opcua is an experimental OPC-UA stack written in NodeJS.
+Node-opcua is an full OPC-UA stack written in NodeJS.
 
 Why NodeJS ?
 
@@ -29,116 +29,56 @@ installing node-opcua
 
     $ npm install node-opcua
 
-first example
----------------------
 
-install pre-requisite:
+Tutorials
+---------
 
+ * [create a server](http://node-opcua.github.io/create_a_server.html)
+ 
+ * [create a client](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client.md)
+   
 
-    $ npm install async node-opcua
-
-create a file `myfirstclient.js` and add the following code :
-
-```javascript
-var opcua = require("node-opcua");
-var async = require("async");
-
-var client = new opcua.OPCUAClient();
-
-var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4841";
-
-var the_session = null;
-async.series([
-
-
-    // step 1 : connect to
-    function(callback)  {
-      client.connect(endpointUrl,function (err) {
-         if(err) {
-           console.log(" cannot connect to endpoint :" , endpointUrl );
-         } else {
-          console.log("connected !");
-         }
-         callback(err);
-      });
-   },
-
-
-   // step 2 : createSession
-   function(callback) {
-     client.createSession( function(err,session) {
-         if(!err) {
-           the_session = session;
-         }
-         callback(err);
-     });
-
-   },
-
-
-   // step 3 : browse
-   function(callback) {
-
-     the_session.browse("RootFolder", function(err,browse_result,diagnostics){
-        if(!err) {
-          browse_result[0].references.forEach(function(reference) {
-            console.log( reference.browseName);
-          });
-        }
-        callback(err);
-     });
-   },
-
-
-   // step 4 : read a variable
-   function(callback) {
-     the_session.readVariableValue("ns=2;s=Furnace_1.Temperature", function(err,dataValues,diagnostics) {
-       if (!err) {
-         console.log(" temperature = " , dataValues[0].value.value);
-       }
-       callback(err);
-     })
-   },
-
-
-], function(err) {
-  if (err) {
-    console.log(" failure ",err);
-  } else {
-    console.log("done!")
-  }
-  // disconnect regardless
-  client.disconnect(function(){});
-}) ;
-
-```
-
-
-now run it
-
-    $ node myfirstclient.js
-
-
-
-
+API Documentation
+----------------- 
+   
+ * check out the [API documentation](http://node-opcua.github.io/api_doc/index.html)
+                                 
 Contributing
-================
-
+============
 
     $ git clone git://github.com/node-opcua/node-opcua.git node-opcua
     $ cd node-opcua
     $ npm install
     $ npm test
 
+Supporting the project
+======================
 
-
-
-
-
-
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://github.com/node-opcua/node-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software)
+If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://github.com/node-opcua/node-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software).
+This will give us full of motivation to carry on and keep working on the roadmap.
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 
 [![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
+               
 
+Road-map
+=========
+
+This are the item we would like to achieve in the next version of the API.
+
+  * sign 
+  * sign & encrypt
+  * improved documentation 
+  * Compliance testing and certification (CTT) 
+  * HA Support : supporting the historizing service
+  * more tutorials
+
+
+Feedback
+========
+
+  * if you're using node-opcua in one of your project, please feel free to leave a comment and a quick description in the [wiki](https://github.com/node-opcua/node-opcua/wiki)
+  
+  * if you have a particular wish or found a issue, let us known and [create a issue](https://github.com/node-opcua/node-opcua/issues?state=open) 
+  
