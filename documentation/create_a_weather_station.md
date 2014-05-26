@@ -5,7 +5,9 @@
 
 In my quest of exploring the ["Internet of Things"](http://en.wikipedia.org/wiki/Internet_of_Things) world,
 I decided to create a simple weather station with 3 sensors mounted on my Raspberry computer.
-I needed to buy some equipment to build the prototype. After studying different type of sensors (1-Wire,Analog,I2C), I finally opted for I2C sensors. (I used I2C chips a long time ago, in a Junior Enterprise Project). I ordered a [breadboard](https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/breadboard)
+I needed to buy some equipment to build the prototype. After studying different type of sensors (1-Wire,Analog,I2C),
+I finally opted for I2C sensors. (I used I2C chips a long time ago, in a Junior Enterprise Project). 
+I ordered a [breadboard](https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/breadboard)
 and [I2C temperature and humidity sensor](http://www.ebay.com/itm/BMP085-IIC-I2C-Barometric-Pressure-module-for-AVR-Arduino-/121233041012?ssPageName=ADME:L:OU:FR:3160).
 
 While waiting for the equipment to be delivered, I though it was time to start coding the Server Application.
@@ -116,7 +118,8 @@ npm install node-opcua --save
 
 ### accessing the _worldweatheronline_ API key
 
-Our application will need to access our API developer key. Let's put it in a file named ```worldweatheronline.key``` in our project folder. The key value can be easily read in nodejs using this code.
+Our application will need to access our API developer key. Let's put it in a file named ```worldweatheronline.key``` in
+our project folder. The key value can be easily read in nodejs using this code.
 
 ``` javascript
 // read the World Weather Online API key.
@@ -330,7 +333,7 @@ The server address space will be made of a ```Cities``` folder containing one fo
 
 ```javascript
 // declare some folders
-server.engine.createFolder("RootFolder",{ browseName: "Cities"});
+server.engine.createFolder("Objects",{ browseName: "Cities"});
 
 function create_CityNode(city_name) {
 
@@ -357,13 +360,12 @@ In the absence of city data, I have chose to send a Bad_WaitingForInitialData st
 
 ```javascript
 function extract_value(city_name,property) {
-  var city = city_data_map[city_name];
-  if (city) {
-   var value = city[property];
-   return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
-  } else {
-    return new opcua.Variant({dataType: opcua.DataType.StatusCode, value: opcua.StatusCodes.Bad_WaitingForInitialData });
-  }
+    var city = city_data_map[city_name];
+    if (!city) {
+        return null;
+    }
+    var value = city[property];
+    return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
 }
 ```
 

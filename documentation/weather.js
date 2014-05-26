@@ -92,7 +92,7 @@ function post_initialize() {
 
     function construct_my_address_space(server) {
        // declare some folders
-       server.engine.createFolder("RootFolder",{ browseName: "Cities"});
+       server.engine.createFolder("Objects",{ browseName: "Cities"});
        
        function create_CityNode(city_name) {
        
