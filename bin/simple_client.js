@@ -143,15 +143,12 @@ async.series([
     function(callback) {
         the_subscription=new opcua.ClientSubscription(the_session,{
             requestedPublishingInterval: 100,
-            requestedLifetimeCount: 10,
-            requestedMaxKeepAliveCount: 2,
+            requestedLifetimeCount: 100,
+            requestedMaxKeepAliveCount: 200,
             maxNotificationsPerPublish: 10,
-            publishingEnabled: false,
+            publishingEnabled: true,
             priority: 10
         });
-        //xx the_subscription.monitor("i=155",DataType.Value,function onchanged(dataValue){
-        //xx    console.log(" temperature has changed " + dataValue.value.value);
-        //xx });
         the_subscription.on("started",function(){
             console.log("started",the_subscription);
         }).on("keepalive",function(){
@@ -159,9 +156,26 @@ async.series([
         }).on("terminated",function(){
             callback();
         });
+        var monitoredItem = the_subscription.monitor(
+            {   nodeId: "ns=1;s=Temperature", attributeId: 13    },
+            {
+                   clientHandle: 13,
+                   samplingInterval: 500,
+                   //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
+                   queueSize: 1,
+                   discardOldest: true
+            }
+        );
+        monitoredItem.on("initialized",function(){
+            console.log("monitoredItem initialized");
+        });
+        monitoredItem.on("changed",function(dataValue){
+            console.log(" temperature has changed " + dataValue.value.value);
+        });
+
         setTimeout(function(){
             the_subscription.terminate();
-        },2000);
+        },10000);
     },
     function(callback) {
         console.log(" closing session");
