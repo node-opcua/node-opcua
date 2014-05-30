@@ -13,13 +13,18 @@ var argv = require('optimist')
     .argv;
 
 var opcua = require("../");
+var VariableIds = opcua.VariableIds;
 
 var client = new opcua.OPCUAClient();
 
 var endpointUrl = argv.endpoint;
 
+var monitored_node = argv.node || "ns=1;s=Temperature";
+
+console.log(" monitoring node id ",monitored_node );
+
 if (!endpointUrl) {
-    console.log(" node bin/simple_client.js --endpoint <endpointUrl>");
+    console.log(" node bin/simple_client.js --endpoint <endpointUrl> --node <node_id_to_monitor>");
     return;
 }
 var the_session = null;
@@ -138,6 +143,26 @@ async.series([
         });
 
     },
+    // ----------------------------------------
+    // display namespace array
+    function(callback) {
+
+        var server_NamespaceArray_Id =  opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
+
+        the_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo) {
+            var dataValue = results[0];
+
+            console.log(" --- NAMESPACE ARRAY ---");
+            if (!err) {
+                var namespaceArray = dataValue.value.value;
+                for (var i = 0; i < namespaceArray.length; i++) {
+                    console.log(" Namespace ", i, "  : ", namespaceArray[i]);
+                }
+            }
+            console.log(" -----------------------");
+            callback(err)
+        });
+    },
     // -----------------------------------------
     // create subscription
     function(callback) {
@@ -157,7 +182,7 @@ async.series([
             callback();
         });
         var monitoredItem = the_subscription.monitor(
-            {   nodeId: "ns=1;s=Temperature", attributeId: 13    },
+            {   nodeId: monitored_node, attributeId: 13    },
             {
                    clientHandle: 13,
                    samplingInterval: 500,
@@ -170,7 +195,7 @@ async.series([
             console.log("monitoredItem initialized");
         });
         monitoredItem.on("changed",function(dataValue){
-            console.log(" temperature has changed " + dataValue.value.value);
+            console.log(monitored_node," value has changed to " + dataValue.value.value);
         });
 
         setTimeout(function(){
