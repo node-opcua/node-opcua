@@ -169,7 +169,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             var nb_keep_alive_received = 0;
 
             var subscription = new ClientSubscription(session,{
-                requestedPublishingInterval: 10,
+                requestedPublishingInterval: 100,
                 requestedLifetimeCount:      10 ,
                 requestedMaxKeepAliveCount:  2,
                 maxNotificationsPerPublish:  2,
@@ -177,14 +177,15 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 priority:                    6
             });
             subscription.on("started",function(){
-                setTimeout(function() { subscription.terminate(); }, 500 );
+                setTimeout(function() { subscription.terminate(); }, 1000 );
             });
             subscription.on("keepalive",function(){
                 nb_keep_alive_received +=1;
             });
             subscription.on("terminated",function(){
-                done();
+                console.log(" subscription has received ",nb_keep_alive_received," keep-alive event(s)")
                 nb_keep_alive_received.should.be.greaterThan(0);
+                done();
             });
         },done);
     });
@@ -207,7 +208,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             var subscription = new ClientSubscription(session,{
                 requestedPublishingInterval: 150,
                 requestedLifetimeCount:      10 * 60 * 10 ,
-                requestedMaxKeepAliveCount:  2,
+                requestedMaxKeepAliveCount:  10,
                 maxNotificationsPerPublish:  2,
                 publishingEnabled:           true,
                 priority:                    6
@@ -240,6 +241,7 @@ describe("testing server and subscription",function(){
     var server , client,temperatureVariableId,endpointUrl ;
     var port = 2001;
     before(function(done){
+        console.log(" Creating Server");
         server = build_server_with_temperature_device({ port:port},function() {
             endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -248,16 +250,21 @@ describe("testing server and subscription",function(){
     });
 
     beforeEach(function(done){
+        //xx console.log(" creating new client");
         client = new OPCUAClient();
         done();
     });
 
     afterEach(function(done){
-        client = null;
-        done();
+        //xx console.log(" shutting down client");
+        client.disconnect(function(err){
+            client = null;
+            done();
+        });
     });
 
     after(function(done){
+        //xx console.log(" shutting down Server");
         server.shutdown(done);
     });
 

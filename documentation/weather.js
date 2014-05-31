@@ -119,13 +119,12 @@ function post_initialize() {
        });
        
        function extract_value(city_name,property) {
-         var city = city_data_map[city_name];
-         if (city) {
-          var value = city[property];
-          return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
-         } else {
-           return new opcua.Variant({dataType: opcua.DataType.StatusCode, value: opcua.StatusCodes.Bad_WaitingForInitialData });
-         }
+           var city = city_data_map[city_name];
+           if (!city) {
+               return null;
+           }
+           var value = city[property];
+           return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
        }
     }
     construct_my_address_space(server);

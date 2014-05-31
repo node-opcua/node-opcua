@@ -9,6 +9,9 @@ module.exports.ClientSubscription = require("./lib/client/client_subscription").
 module.exports.OPCUAServer      = require("./lib/server/opcua_server").OPCUAServer;
 module.exports.StatusCodes      = require("./lib/datamodel/opcua_status_code").StatusCodes;
 module.exports.DataType         = require("./lib/datamodel/variant").DataType;
+module.exports.DataValue        = require("./lib/datamodel/datavalue").DataValue;
 module.exports.Variant          = require("./lib/datamodel/variant").Variant;
+module.exports.NodeId          = require("./lib/datamodel/nodeid").NodeId;
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
 module.exports.VariableIds      = require("./lib/opcua_node_ids").VariableIds;
+

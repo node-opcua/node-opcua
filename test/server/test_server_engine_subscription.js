@@ -24,7 +24,7 @@ var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); /
 describe("ServerEngine Subscriptions service", function () {
 
 
-    var engine,FolderTypeId,BaseDataVariableTypeId;
+    var engine,session,FolderTypeId,BaseDataVariableTypeId;
     beforeEach(function(done){
         engine = new server_engine.ServerEngine();
         engine.initialize(null,function(){
@@ -32,6 +32,8 @@ describe("ServerEngine Subscriptions service", function () {
             BaseDataVariableTypeId = engine.findObject("BaseDataVariableType").nodeId;
             done();
         });
+
+        session  = engine.createSession();
 
     });
     afterEach(function(){
@@ -42,16 +44,16 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("should return an error when trying to delete an non-existing subscription",function(){
 
-        engine.deleteSubscription(-6789).should.eql(StatusCodes.Bad_SubscriptionIdInvalid);
+        session.deleteSubscription(-6789).should.eql(StatusCodes.Bad_SubscriptionIdInvalid);
 
     });
 
     it("should check the subscription live cycle",function(){
 
-        engine.currentSubscriptionCount.should.equal(0);
-        engine.cumulatedSubscriptionCount.should.equal(0);
+        session.currentSubscriptionCount.should.equal(0);
+        session.cumulatedSubscriptionCount.should.equal(0);
 
-        var subscription = engine.createSubscription({
+        var subscription = session.createSubscription({
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount: 10,         // Counter
             requestedMaxKeepAliveCount: 10,     // Counter
@@ -60,16 +62,16 @@ describe("ServerEngine Subscriptions service", function () {
             priority: 14                        // Byte
         });
 
-        engine.currentSubscriptionCount.should.equal(1);
-        engine.cumulatedSubscriptionCount.should.equal(1);
+        session.currentSubscriptionCount.should.equal(1);
+        session.cumulatedSubscriptionCount.should.equal(1);
 
-        engine.getSubscription(subscription.id).should.equal(subscription);
+        session.getSubscription(subscription.id).should.equal(subscription);
 
-        var statusCode = engine.deleteSubscription(subscription.id);
+        var statusCode = session.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
 
-        engine.currentSubscriptionCount.should.equal(0);
-        engine.cumulatedSubscriptionCount.should.equal(1);
+        session.currentSubscriptionCount.should.equal(0);
+        session.cumulatedSubscriptionCount.should.equal(1);
     });
 
 });

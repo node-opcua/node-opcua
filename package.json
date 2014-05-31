@@ -61,7 +61,6 @@
     "optimist": "*",
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.3",
-    "sync": "^0.2.2",
     "through2": "~1.0.0",
     "treeify": "~1.0.1",
     "underscore": "~1.6.0"

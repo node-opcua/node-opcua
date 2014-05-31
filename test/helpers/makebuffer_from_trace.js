@@ -1,5 +1,5 @@
 
-var trim  = function(str) {
+var deprecated_trim  = function(str) {
     return str.replace(/^\s+|\s+$/g, "");
 };
 
@@ -16,11 +16,12 @@ var hexString = function(str) {
     var lines = str.split("\n");
     lines.forEach(function(line){
 
+        line = line.trim();
         if (line.length > 80) {
-            line = trim(line.substr(10,98));
+            line = line.substr(10,98).trim();
             hexline = hexline ? hexline + " " + line : line;
         } else if ( line.length > 60) {
-            line = trim(line.substr(7,48));
+            line = line.substr(7,48).trim();
             hexline = hexline ? hexline + " " + line : line;
         }
     });

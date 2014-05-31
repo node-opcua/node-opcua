@@ -135,7 +135,7 @@ describe("testing basic Client-Server communication",function() {
 
         client.protocolVersion = 1;
 
-        var unused_port = 78909;
+        var unused_port = 8909;
         var bad_endpointUrl = "opc.tcp://localhost:"+unused_port;
 
         async.series([
