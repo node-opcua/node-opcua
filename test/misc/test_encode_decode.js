@@ -6,6 +6,7 @@ var ExpandedNodeId = require("./../../lib/datamodel/nodeid").ExpandedNodeId;
 var NodeIdType = require("./../../lib/datamodel/nodeid").NodeIdType;
 
 function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
+
     var binaryStream = new BinaryStream();
     binaryStream.length.should.equal(0);
 
@@ -241,6 +242,31 @@ describe("testing built-in type encoding", function () {
             7
         );
     });
+    it("should encode and decode a byte NodeId (bug reported by Mika)", function () {
+
+        var nodeId = ec.makeNodeId(129, 129);
+        test_encode_decode(
+            nodeId,
+            ec.encodeNodeId,
+            ec.decodeNodeId,
+            4 // nb bytes
+        );
+    });
+
+    it("should encode and decode any small numeric NodeId", function () {
+
+        for (var i = 0 ; i<=255; i++) {
+            var nodeId = ec.makeNodeId(/*value*/i,/*namespace*/ 2);
+            test_encode_decode(
+                nodeId,
+                ec.encodeNodeId,
+                ec.decodeNodeId,
+                4
+            );
+
+        }
+    });
+
 
 
     it("should encode and decode a String NodeId", function () {

@@ -90,14 +90,14 @@ describe("testing coerceNodeId",function(){
         nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
 
     });
-    it("should coeerce a GUID node id (without namespace)",function(){
+    it("should coerce a GUID node id (without namespace)",function(){
 
         var nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
         nodeId.toString("hex").should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
     });
-    it("should coeerce a GUID node id (with namespace)",function(){
+    it("should coerce a GUID node id (with namespace)",function(){
 
         var nodeId = coerceNodeId("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
@@ -159,3 +159,6 @@ describe("testing NodeId.displayText",function(){
     });
 
 });
+
+
+
