@@ -106,8 +106,8 @@ async.series([
             }
             console.log(table.toString());
 
-            // store the endpointUrl so we can reopen the connection
-            endpointUrl =endpoints[0].endpointUrl;
+            //xx // store the endpointUrl so we can reopen the connection
+            //xx endpointUrl =endpoints[0].endpointUrl;
 
             callback(err);
         });
