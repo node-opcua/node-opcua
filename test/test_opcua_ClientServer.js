@@ -184,8 +184,16 @@ describe("testing basic Client-Server communication",function() {
 
     it("client shall raise an error when trying to create a session on an invalid endpoint",function(done){
 
+        // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
+        //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
+        //   contained in the  endpointUrl  provided in the  EndpointDescription. If there is a difference  then  the
+        //   Client  shall report the difference and may close the  SecureChannel.
         async.series([
-            function(callback) { client.connect(endpointUrl+"/somecrap",callback);       },
+
+            function(callback) {
+                client.endpoint_must_exist = true;
+                client.connect(endpointUrl+"/somecrap",callback);
+            },
 
             function(callback) {
                 client.createSession(function(err,session){
