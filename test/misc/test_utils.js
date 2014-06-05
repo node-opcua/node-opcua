@@ -32,7 +32,7 @@ describe("testing utility functions",function(){
 
         var tmp= process.env.DEBUG;
 
-        process.env.DEBUG= 'ALL';
+        process.env.DEBUG= '<some file>';
         var debugLog = utils.make_debugLog("<some file>");
 
         debugLog("help!");
