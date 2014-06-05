@@ -41,6 +41,67 @@ describe("testing ServerEngine", function () {
         engine = null;
     });
 
+    describe("findReferenceType findReferenceTypeFromInverseName",function(){
+
+        it("should provide a way to access a referenceType from its inverse name",function(){
+            var address_space = engine.address_space;
+            var n1 = address_space.findReferenceType("Organizes").nodeId;
+            should(address_space.findReferenceType("OrganizedBy")).be.undefined;
+
+            var n2 = address_space.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
+            should(address_space.findReferenceTypeFromInverseName("Organizes")).be.undefined;
+
+            n1.should.equal(n2);
+
+        });
+
+        it("should normalize a {referenceType/isForward} combination",function(){
+            var address_space = engine.address_space;
+
+            address_space.normalizeReferenceType(
+                { referenceType: "OrganizedBy"  , isForward: true }).should.eql(
+                { referenceType: "Organizes"    , isForward: false}
+            );
+
+            address_space.normalizeReferenceType(
+                { referenceType: "OrganizedBy"  , isForward: false}).should.eql(
+                { referenceType: "Organizes"    , isForward: true }
+            );
+            address_space.normalizeReferenceType(
+                { referenceType: "Organizes"    , isForward: false}).should.eql(
+                { referenceType: "Organizes"    , isForward: false}
+            );
+            address_space.normalizeReferenceType(
+                { referenceType: "Organizes"    , isForward: true}).should.eql(
+                { referenceType: "Organizes"    , isForward: true}
+            );
+        });
+
+        it("should provide a easy way to get the inverse name of a Reference Type",function(){
+            var address_space = engine.address_space;
+
+            address_space.inverseReferenceType("Organizes").should.eql("OrganizedBy");
+            address_space.inverseReferenceType("ChildOf").should.eql("HasChild");
+            address_space.inverseReferenceType("AggregatedBy").should.eql("Aggregates");
+            address_space.inverseReferenceType("PropertyOf").should.eql("HasProperty");
+            address_space.inverseReferenceType("ComponentOf").should.eql("HasComponent");
+            address_space.inverseReferenceType("HistoricalConfigurationOf").should.eql("HasHistoricalConfiguration");
+            address_space.inverseReferenceType("HasSupertype").should.eql("HasSubtype");
+            address_space.inverseReferenceType("EventSourceOf").should.eql("HasEventSource");
+
+            address_space.inverseReferenceType("OrganizedBy").should.eql("Organizes");
+            address_space.inverseReferenceType("HasChild").should.eql("ChildOf");
+            address_space.inverseReferenceType("Aggregates").should.eql("AggregatedBy");
+            address_space.inverseReferenceType("HasProperty").should.eql("PropertyOf");
+            address_space.inverseReferenceType("HasComponent").should.eql("ComponentOf");
+            address_space.inverseReferenceType("HasHistoricalConfiguration").should.eql("HistoricalConfigurationOf");
+            address_space.inverseReferenceType("HasSubtype").should.eql("HasSupertype");
+            address_space.inverseReferenceType("HasEventSource").should.eql("EventSourceOf");
+        });
+
+
+    });
+
     it("should have a rootFolder ", function () {
 
         engine.rootFolder.hasTypeDefinition.should.eql(FolderTypeId);
@@ -76,24 +137,33 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should have an 'Server' object", function () {
+    it("should have an 'Server' object in the Objects Folder", function () {
 
         var serverObject = engine.findObjectByBrowseName("Server");
         var objectFolder = engine.findObjectByBrowseName("Objects");
+        objectFolder.hasTypeDefinition.should.eql(FolderTypeId);
         assert(serverObject !== null);
         serverObject.parent.should.eql(objectFolder.nodeId);
 
     });
 
-    it("should have an 'Server.NamespaceArray' Variable", function () {
+    it("should have an 'Server.NamespaceArray' Variable ", function () {
 
         var serverObject = engine.findObjectByBrowseName("Server");
-        var objectFolder = engine.findObjectByBrowseName("Objects");
+        //xx var objectFolder = engine.findObjectByBrowseName("Objects");
 
         var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray);
         var server_NamespaceArray = engine.findObject(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
-        //xx server_NamespaceArray.parent.should.eql(serverObject.nodeId);
+
+        //xx console.log(require("util").inspect(server_NamespaceArray));
+
+        server_NamespaceArray.should.have.property("parent");
+        // TODO : should(server_NamespaceArray.parent !==  null).ok;
+
+
+        server_NamespaceArray.parent.should.eql(serverObject.nodeId);
+
 
     });
 
@@ -108,7 +178,7 @@ describe("testing ServerEngine", function () {
         //xx server_NamespaceArray.parent.should.eql(serverObject.nodeId);
     });
 
-    it("should allow to create a new folder", function () {
+    it("should be possible to create a new folder under the 'Root' folder", function () {
 
         var rootFolder = engine.findObjectByBrowseName("Root");
 
@@ -118,11 +188,12 @@ describe("testing ServerEngine", function () {
         newFolder.hasTypeDefinition.should.eql(FolderTypeId);
         newFolder.nodeClass.should.eql(NodeClass.Object);
 
+//xx        console.log(require("util").inspect(newFolder));
         newFolder.parent.should.equal(rootFolder.nodeId);
 
     });
 
-    it("should allow to find a newly created folder by nodeId", function () {
+    it("should be possible to find a newly created folder by nodeId", function () {
 
         var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
 
@@ -135,7 +206,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should allow to find a newly created folder by 'browse name'", function () {
+    it("should be possible to find a newly created folder by 'browse name'", function () {
 
         var newFolder = engine.createFolder("ObjectsFolder", "MySecondNewFolder");
         var result = engine.findObjectByBrowseName("MySecondNewFolder");
@@ -143,7 +214,7 @@ describe("testing ServerEngine", function () {
         result.should.eql(newFolder);
     });
 
-    xit("should not allow to create a object with an existing 'browse name'", function () {
+    xit("should not be possible to create a object with an existing 'browse name'", function () {
 
         var newFolder1 = engine.createFolder("ObjectsFolder", "NoUniqueName");
 
@@ -155,7 +226,7 @@ describe("testing ServerEngine", function () {
         result.should.eql(newFolder1);
     });
 
-    it("should allow to create a variable in a folder", function () {
+    it("should be possible to create a variable in a folder", function () {
 
         var rootFolder = engine.findObject("ObjectsFolder");
         var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
@@ -182,9 +253,9 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should allow to create a variable in a folder with a predefined nodeID", function () {
+    it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
-        var rootFolder = engine.findObject("ObjectsFolder");
+        //xx var rootFolder = engine.findObject("ObjectsFolder");
         var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
 
         var newVariable = engine.addVariableInFolder("MyNewFolder",
@@ -204,6 +275,17 @@ describe("testing ServerEngine", function () {
 
 
         newVariable.nodeId.toString().should.eql("ns=4;b=01020304ffaa");
+
+
+    });
+
+    it("should be possible to create a object in a folder", function () {
+
+        var simulation = engine.addObjectInFolder("Objects", {
+            browseName: "Scalar_Simulation",
+            description: "This folder will contain one item per supported data-type.",
+            nodeId: makeNodeId(4000, 1)
+        });
 
 
     });
@@ -271,6 +353,28 @@ describe("testing ServerEngine", function () {
 
     });
 
+    it("should browse root and find all hierarchical children of the root node (includeSubtypes: true)",function() {
+
+        var browseDescription1 = {
+            browseDirection: BrowseDirection.Forward,
+            referenceTypeId: "Organizes",
+            includeSubtypes: true,
+            nodeClassMask: 0, // 0 = all nodes
+            resultMask: 0x3F
+        };
+        var browseResult1 = engine.browseSingleNode("Root", browseDescription1);
+        browseResult1.references.length.should.equal(3);
+
+        var browseDescription2 = {
+            browseDirection: BrowseDirection.Forward,
+            referenceTypeId: "HierarchicalReferences",
+            includeSubtypes: true, // should include also HasChild , Organizes , HasEventSource etc ...
+            nodeClassMask: 0, // 0 = all nodes
+            resultMask: 0x3F
+        };
+        var browseResult2 = engine.browseSingleNode("Root", browseDescription2);
+    });
+
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true" ,function(){
 
         var ref_hierarchical_Ref_Id = engine.address_space.findReferenceType("HierarchicalReferences").nodeId;
@@ -325,7 +429,7 @@ describe("testing ServerEngine", function () {
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
         browseResult.references.length.should.equal(1);
-        console.log(browseResult.references[0].browseName.name);
+        //xx console.log(browseResult.references[0].browseName.name);
 
         browseResult.references[0].browseName.name.should.equal("Server");
 
@@ -950,7 +1054,6 @@ describe("testing ServerEngine", function () {
             engine.buildInfo.buildNumber = "1234";
 
             var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
-            console.log(nodeid);
             var node = engine.findObject(nodeid);
             should(node).not.equal(null);
 
@@ -966,7 +1069,6 @@ describe("testing ServerEngine", function () {
 
 
             var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
-            console.log(nodeid);
             var node = engine.findObject(nodeid);
             assert(node!=null);
             should(node).not.eql(null);

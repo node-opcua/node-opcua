@@ -34,10 +34,11 @@ function build_server_with_temperature_device(options,done) {
 
     function start(done) {
         server.start(function() {
-            server.engine.createFolder("RootFolder",{ browseName: "MyDevices"});
+
+            var myDevices = server.engine.createFolder("Objects",{ browseName: "MyDevices"});
 
             // install a Read/Write variable representing a temperature set point of a temperature controler.
-            server.temperatureVariableId = server.engine.addVariableInFolder("MyDevices",
+            server.temperatureVariableId = server.engine.addVariableInFolder(myDevices,
                {
                     browseName: "SetPointTemperature",
                     value: {
@@ -55,7 +56,7 @@ function build_server_with_temperature_device(options,done) {
             // install a Read-Only variable defined with a fancy Opaque nodeid
             var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
 
-            server.pumpSpeed = server.engine.addVariableInFolder("MyDevices",
+            server.pumpSpeed = server.engine.addVariableInFolder(myDevices,
                 {
                     browseName: "PumpSpeed",
                     nodeId: pumpSpeedId,

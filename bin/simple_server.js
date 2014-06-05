@@ -1,9 +1,17 @@
 Error.stackTraceLimit = Infinity;
 
+
 var OPCUAServer = require("..").OPCUAServer;
 var path = require("path");
+var address_space_for_conformance_testing  = require("../lib/simulation/address_space_for_conformance_testing");
+var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
+
+
 var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
+
+
 console.log(" node set " , default_xmlFile);
+
 var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
 
 var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
@@ -24,9 +32,14 @@ server.registerServer(discovery_server_endpointUrl,function(err){
     }
 });
 
+server.on("post_initialize",function(){
+    build_address_space_for_conformance_testing(server.engine);
+});
+
 server.start(function(){
     console.log("  server on port", server.endpoints[0].port);
     console.log("  server now waiting for connections. CTRL+C to stop");
+    console.log("  endpointUrl = ",endpointUrl);
 });
 server.on("request",function(request){
     console.log(request._schema.name);

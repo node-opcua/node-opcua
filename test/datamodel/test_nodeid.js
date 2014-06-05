@@ -105,6 +105,25 @@ describe("testing coerceNodeId",function(){
         nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
     });
 
+    it("should not coerce a malformed string to a nodeid",function() {
+
+        var nodeId;
+
+        (function() {
+            nodeId = coerceNodeId("ThisIsNotANodeId");
+        }).should.throw();
+
+        (function() {
+            nodeId = coerceNodeId("HierarchicalReferences");
+        }).should.throw();
+
+        (function() {
+            nodeId = coerceNodeId("ns=0;s=HierarchicalReferences");
+            assert(nodeId !== null);
+        }).should.not.throw();
+
+    });
+
 });
 
 describe("Type coercion at construction time",function(){

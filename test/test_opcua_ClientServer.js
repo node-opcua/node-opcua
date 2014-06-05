@@ -360,7 +360,7 @@ describe("testing basic Client-Server communication",function() {
                         browseResults.length.should.equal(1);
                         browseResults[0]._schema.name.should.equal("BrowseResult");
 
-                        console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
+                        //xx console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
 
                         var foundNode = _.filter(browseResults[0].references,function(result){ return result.browseName.name === "Server"});
                         foundNode.length.should.equal(1);
