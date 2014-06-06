@@ -1,7 +1,10 @@
 Error.stackTraceLimit = Infinity;
 
+var opcua = require("..");
+var OPCUAServer = opcua.OPCUAServer;
+var Variant = opcua.Variant;
+var DataType = opcua.DataType;
 
-var OPCUAServer = require("..").OPCUAServer;
 var path = require("path");
 var address_space_for_conformance_testing  = require("../lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -34,6 +37,24 @@ server.registerServer(discovery_server_endpointUrl,function(err){
 
 server.on("post_initialize",function(){
     build_address_space_for_conformance_testing(server.engine);
+
+    var myDevices = server.engine.createFolder("Objects",{ browseName: "MyDevices"});
+
+    server.engine.addVariableInFolder(myDevices,
+        {
+            browseName: "PumpSpeed",
+            nodeId: "ns=2;s=PumpSpeed",
+            dataType: "Double",
+            value: {
+                get: function(){
+                    var pump_speed = 200 + Math.random();
+                    return new Variant({dataType: DataType.Double ,value: pump_speed});
+                },
+                set: function(variant){
+                    return StatusCodes.Bad_NotWritable
+                }
+            }
+        });
 });
 
 server.start(function(){

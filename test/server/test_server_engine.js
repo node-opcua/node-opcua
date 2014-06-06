@@ -234,9 +234,10 @@ describe("testing ServerEngine", function () {
         var newVariable = engine.addVariableInFolder("MyNewFolder",
             {
                 browseName: "Temperature",
+                dataType: "Float",
                 value: {
                     get: function(){
-                        return new Variant({dataType: DataType.UInt32 , value: 10.0});
+                        return new Variant({dataType: DataType.Float , value: 10.0});
                     },
                     set: function(){
                         return StatusCodes.Bad_NotWritable;
@@ -262,9 +263,10 @@ describe("testing ServerEngine", function () {
             {
                 nodeId: "ns=4;b=01020304ffaa",  // << fancy node id here !
                 browseName: "Temperature",
+                dataType: "Double",
                 value: {
                     get: function(){
-                        return new Variant({dataType: DataType.UInt32 , value: 10.0});
+                        return new Variant({dataType: DataType.Double , value: 10.0});
                     },
                     set: function(){
                         return StatusCodes.Bad_NotWritable;

@@ -164,6 +164,7 @@ setInterval(function(){  variable1+=1; }, 500);
 
 server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
         browseName: "MyVariable1",
+        dataType: "Double",
         value: {
             get: function () {
                 return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
@@ -184,6 +185,7 @@ server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
 
     nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
     browseName: "MyVariable2",
+    dataType: "Double",    
     value: {
         get: function () {
             return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
@@ -221,6 +223,7 @@ Now let's expose our OPUC Variable
 server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
     nodeId: "ns=4;s=free_memory", // a string nodeID
     browseName: "FreeMemory",
+    dataType: "Double",    
     value: {
         get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: available_memory() });}
     }

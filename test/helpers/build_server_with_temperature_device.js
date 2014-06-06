@@ -41,6 +41,7 @@ function build_server_with_temperature_device(options,done) {
             server.temperatureVariableId = server.engine.addVariableInFolder(myDevices,
                {
                     browseName: "SetPointTemperature",
+                    dataType: "Double",
                     value: {
                         get: function(){
                             return new Variant({dataType: DataType.Double , value: server.set_point_temperature});
@@ -60,6 +61,7 @@ function build_server_with_temperature_device(options,done) {
                 {
                     browseName: "PumpSpeed",
                     nodeId: pumpSpeedId,
+                    dataType: "Double",
                     value: {
                         get: function(){
                             var pump_speed = 200 + Math.random();

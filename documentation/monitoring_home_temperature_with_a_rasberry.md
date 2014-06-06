@@ -111,6 +111,7 @@ function install_sensor(sensor) {
       server.engine.addVariableInFolder(sensorName,{
         nodeId: "ns=1;s=Temperature",
         browseName: "temperature",
+        dataType: "Double",
         value: {
             get: function () {
                 return new opcua.Variant({dataType: opcua.DataType.Double, value: value1 });
