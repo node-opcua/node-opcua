@@ -92,7 +92,7 @@ var Shape = factories.registerObject({
 
 describe("Factories: construction",function() {
 
-    it("should produce correct possible fields",function() {
+    it("a schema should provide a list of possible fields",function() {
 
         Person.possibleFields().should.eql(["lastName","address","age"]);
         Employee.possibleFields().should.eql(["lastName","address","age","role","service","salary"]);
@@ -232,7 +232,7 @@ describe("Factories: testing object factory", function () {
 
     it("should handle subtype properly",function(){
 
-        factories.registerObject( {
+        factories.registerBasicType({
             name: "MyInteger",
             subtype: "Integer"
         });
@@ -278,7 +278,6 @@ describe("Factories: testing object factory", function () {
 
     it('should handle enumeration properly',function(){
 
-
         var shape = new Shape();
 
         shape.shapeType.should.eql(ShapeType.CIRCLE);
@@ -314,6 +313,10 @@ describe("Factories: testing object factory", function () {
 
     it("should raise an exception when trying to pass an invalid field to constructor",function(){
 
+        // redirect stdout to null as test will be noisy
+        var old_process_stdout_write = process.stdout.write;
+        process.stdout.write = function() {};
+
         (function() {
            new Shape({
 
@@ -325,6 +328,8 @@ describe("Factories: testing object factory", function () {
 
         }).should.throw();
 
+        // restore stdout
+        process.stdout.write = old_process_stdout_write;
     });
 
 });

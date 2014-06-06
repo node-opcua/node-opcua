@@ -22,7 +22,7 @@ describe("testing utility functions",function(){
         obj.should.eql({  stuff: "<BUFFER>414243444546</BUFFER>" });
 
     });
-    it("display_trace_from_this_projet_only",function() {
+    it("should stress display_trace_from_this_projet_only at least once, for code covering purpose",function() {
 
         utils.display_trace_from_this_projet_only();
 

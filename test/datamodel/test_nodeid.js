@@ -7,6 +7,7 @@ var NodeIdType = require("../../lib/datamodel/nodeid").NodeIdType;
 var NodeId = require("../../lib/datamodel/nodeid").NodeId;
 
 var should = require("should");
+var assert = require("assert");
 
 describe("testing NodeIds",function(){
 

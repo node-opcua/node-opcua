@@ -62,7 +62,7 @@ function build_server_with_temperature_device(options,done) {
                     nodeId: pumpSpeedId,
                     value: {
                         get: function(){
-                            var pump_speed = 200 + Math.rnd();
+                            var pump_speed = 200 + Math.random();
                             return new Variant({dataType: DataType.Double ,value: pump_speed});
                         },
                         set: function(variant){

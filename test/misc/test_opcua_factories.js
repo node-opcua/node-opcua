@@ -9,7 +9,6 @@ var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var s = require("../../lib/services/secure_channel_service");
 var messageHeaderToString = require("../../lib/misc/packet_analyzer").messageHeaderToString;
 
-
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
 var FindServersResponse = require("../../lib/services/register_server_service").FindServersResponse;
@@ -117,6 +116,8 @@ describe("testing DataValue encoding decoding",function(){
     var DataType = require("./../../lib/datamodel/variant").DataType;
     var StatusCodes = require("./../../lib/datamodel/opcua_status_code").StatusCodes;
 
+    var Variant = require("../../lib/datamodel/variant").Variant;
+
     it("should encode and decode a empty DataValue 1/3",function(done){
         var dataValue1 = new DataValue({
         });
@@ -144,6 +145,8 @@ describe("testing DataValue encoding decoding",function(){
             statusCode: StatusCodes.Bad_ApplicationSignatureInvalid,
             value: {dataType: DataType.Double, value: 37.5 }
         });
+
+        dataValue1.value.should.be.instanceOf(Variant);
         encode_decode_round_trip_test(dataValue1);
         done();
     });
