@@ -444,3 +444,53 @@ describe("check OPCUA Date Type ", function () {
     //  =>
 });
 
+describe("check isValid and random for various types", function () {
+
+    it( "should test isValid on UInt16",function(){
+
+        ec.isValidUInt16(0).should.eql(true);
+        ec.isValidUInt16(0xFFFFFF).should.eql(false);
+    });
+
+    var types = [
+        "UInt8",
+        "UInt16",
+        "UInt32",
+        "Byte", // Int8
+        "Int16",
+        "Int32",
+        "UAString",
+        "Boolean",
+        "Double",
+        "Float",
+        "GUID",
+        "DateTime",
+        "NodeId"
+//xx            "Int64"
+//xx            "UInt64"
+    ];
+
+    types.forEach(function(type){
+
+        it("should have a random and isValid method for type "+ type,function(){
+            var encodeFunc = ec["encode"+type];
+            var decodeFunc = ec["decode"+type];
+            var randomFunc = ec["random"+type];
+            var isValidFunc = ec["isValid"+type];
+
+            ec.should.have.property("encode"+type);
+            ec.should.have.property("decode"+type);
+            ec.should.have.property("random"+type);
+            ec.should.have.property("isValid"+type);
+
+            var random_value = randomFunc();
+            // xx console.log("type ",type,"value = ",random_value);
+            isValidFunc(random_value).should.eql(true);
+
+
+
+        });
+
+    });
+
+});
