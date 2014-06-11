@@ -29,7 +29,9 @@ describe("testing address space for conformance testing",function() {
         require("fs").existsSync(xml_file).should.be.eql(true);
         engine.initialize(null,function(){
             build_address_space_for_conformance_testing(engine);
-            done();
+
+            setTimeout(done,500);
+            // done();
         });
     });
 

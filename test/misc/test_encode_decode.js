@@ -113,7 +113,7 @@ describe("testing built-in type encoding", function () {
         var value = undefined;
 
 
-        test_encode_decode(value, ec.encodeUAString, ec.decodeUAString, 4, function (buffer) {
+        test_encode_decode(value, ec.encodeString, ec.decodeString, 4, function (buffer) {
             // should be little endian
             buffer.readUInt8(0).should.equal(0xff);
             buffer.readUInt8(1).should.equal(0xff);
@@ -127,7 +127,7 @@ describe("testing built-in type encoding", function () {
 
         var value = "Hello";
 
-        test_encode_decode(value, ec.encodeUAString, ec.decodeUAString, 9, function (buffer) {
+        test_encode_decode(value, ec.encodeString, ec.decodeString, 9, function (buffer) {
             // should be little endian
             buffer.readUInt8(0).should.equal(0x05);
             buffer.readUInt8(1).should.equal(0x00);
@@ -459,13 +459,14 @@ describe("check isValid and random for various types", function () {
         "Byte", // Int8
         "Int16",
         "Int32",
-        "UAString",
+        "String",
         "Boolean",
         "Double",
         "Float",
         "GUID",
         "DateTime",
-        "NodeId"
+        "NodeId",
+        "ByteString",
 //xx            "Int64"
 //xx            "UInt64"
     ];
@@ -473,8 +474,7 @@ describe("check isValid and random for various types", function () {
     types.forEach(function(type){
 
         it("should have a random and isValid method for type "+ type,function(){
-            var encodeFunc = ec["encode"+type];
-            var decodeFunc = ec["decode"+type];
+
             var randomFunc = ec["random"+type];
             var isValidFunc = ec["isValid"+type];
 
@@ -484,9 +484,7 @@ describe("check isValid and random for various types", function () {
             ec.should.have.property("isValid"+type);
 
             var random_value = randomFunc();
-            // xx console.log("type ",type,"value = ",random_value);
             isValidFunc(random_value).should.eql(true);
-
 
 
         });
