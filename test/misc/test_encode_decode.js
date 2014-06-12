@@ -156,7 +156,7 @@ describe("testing built-in type encoding", function () {
 
         var value = "72962B91-FA75-4AE6-8D28-B404DC7DAF63";
 
-        test_encode_decode(value, ec.encodeGUID, ec.decodeGUID, 16, function (buffer) {
+        test_encode_decode(value, ec.encodeGuid, ec.decodeGuid, 16, function (buffer) {
             buffer.readUInt8(0).should.equal(0x91);
             buffer.readUInt8(1).should.equal(0x2B);
             buffer.readUInt8(2).should.equal(0x96);
@@ -453,17 +453,19 @@ describe("check isValid and random for various types", function () {
     });
 
     var types = [
+        "Byte",
+        "SByte",
         "UInt8",
         "UInt16",
         "UInt32",
-        "Byte", // Int8
+        "Int8",
         "Int16",
         "Int32",
         "String",
         "Boolean",
         "Double",
         "Float",
-        "GUID",
+        "Guid",
         "DateTime",
         "NodeId",
         "ByteString",
