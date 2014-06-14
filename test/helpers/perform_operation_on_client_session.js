@@ -1,6 +1,10 @@
 var async = require("async");
 var should = require('should');
 var _ = require("underscore");
+
+var opcua = require("../../");
+var ClientSubscription = opcua.ClientSubscription;
+
 /**
  * simple wrapper that operates on a freshly created opcua session.
  * The wrapper:
@@ -50,6 +54,8 @@ function perform_operation_on_client_session(client,func,done_func) {
     ],done_func);
 }
 exports.perform_operation_on_client_session = perform_operation_on_client_session;
+
+
 
 /**
  *  simple wrapper that operates on a freshly created subscription.
