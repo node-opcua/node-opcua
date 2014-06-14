@@ -1,6 +1,5 @@
 
 
-var OPCUAServer = require("../../lib/server/opcua_server").OPCUAServer;
 var OPCUAClient = require("../../lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 var assert = require('better-assert');
@@ -263,8 +262,7 @@ var _ = require("underscore");
 var build_client_server_session = require("../helpers/build_client_server_session").build_client_server_session;
 
 describe("testing basic Client Server dealing with subscription at low level",function(){
-    var server,g_session ;
-    var self = this;
+    var g_session ;
     var client_server;
 
     before(function(done){
@@ -277,12 +275,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
 
     });
 
-    after(function(done){
-        client_server.shutdown(function(err) {
-            // assert that g_session jas no subscription anymore
-            done(err);
-        });
-    });
+    after(function(done){ client_server.shutdown(done); });
 
     it("server should create a subscription (CreateSubscriptionRequest)",function(done){
         var s = require("../../lib/datamodel/structures");
@@ -337,7 +330,6 @@ describe("testing basic Client Server dealing with subscription at low level",fu
     });
 
     it("server should handle Publish request",function(done){
-        var self = this;
 
         // publish request now requires a subscriptions
         var request = new subscription_service.PublishRequest({

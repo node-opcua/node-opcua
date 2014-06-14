@@ -56,9 +56,8 @@ var Company  = factories.registerObject(Company_Schema);
 
 
 
-var ShapeType = factories.registerObject( {
+var ShapeType = factories.registerEnumeration( {
     name: "EnumShapeType",
-    isEnum: true,
     enumValues: {
         CIRCLE:    1,
         SQUARE:    2,
@@ -66,9 +65,8 @@ var ShapeType = factories.registerObject( {
         HEXAGON:   6
     }
 });
-var Color = factories.registerObject( {
+var Color = factories.registerEnumeration( {
     name: "EnumColor",
-    isEnum: true,
     enumValues: {
         RED:     100,
         BLUE:    200,
@@ -106,7 +104,6 @@ describe("Factories: testing object factory", function () {
     it("should construct a new object from a simple Class Description", function () {
 
         var person = new Person();
-
 
         person.should.have.property("lastName");
         person.should.have.property("address");
@@ -338,9 +335,8 @@ describe("Factories: testing strong typed enums", function(){
 
     it('installEnumProp should append a member as a strong typed enum',function(){
 
-        var ShapeType = factories.registerObject( {
-            name: "EnumShapeType",
-            isEnum: true,
+        var ShapeType = factories.registerEnumeration( {
+            name: "EnumShapeType-2",
             enumValues: {
                 CIRCLE: 1,
                 SQUARE: 2,

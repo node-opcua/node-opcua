@@ -65,27 +65,26 @@ describe("TranslateBrowsePathsToNodeIds service",function(){
 
 
 var _ = require("underscore");
-var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
 var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 
-var opcua = require("../lib/nodeopcua");
+var opcua = require("../");
 
 var build_client_server_session = require("./helpers/build_client_server_session").build_client_server_session;
 
 
 describe("testing Client Server dealing with translate browse path",function(){
+
     var client_server;
 
     before(function(done){
         client_server = build_client_server_session(done);
     });
 
-    after(function(done){
-        client_server.shutdown(done);
-    });
+    after(function(done){ client_server.shutdown(done);  });
 
     it("server should translate a single browse path to a node id",function(done){
+
         var s = require("../lib/datamodel/structures");
 
         var browsePath = new translate_service.BrowsePath({
