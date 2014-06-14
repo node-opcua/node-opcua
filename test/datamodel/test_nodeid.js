@@ -71,7 +71,7 @@ describe("testing coerceNodeId",function(){
         buffer.writeUInt32BE(0xB1DEDADA,0);
         buffer.writeUInt32BE(0xB0B0ABBA,4);
         var nodeId = coerceNodeId(buffer);
-        nodeId.toString("hex").should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
         nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
     });
 
@@ -79,7 +79,7 @@ describe("testing coerceNodeId",function(){
 
         var nodeId = coerceNodeId("ns=0;b=b1dedadab0b0abba");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString("hex").should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
         nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
 
     });
@@ -87,7 +87,7 @@ describe("testing coerceNodeId",function(){
 
         var nodeId = coerceNodeId("b=b1dedadab0b0abba");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString("hex").should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
         nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
 
     });
@@ -95,14 +95,14 @@ describe("testing coerceNodeId",function(){
 
         var nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
-        nodeId.toString("hex").should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
     });
     it("should coerce a GUID node id (with namespace)",function(){
 
         var nodeId = coerceNodeId("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
-        nodeId.toString("hex").should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
     });
 
