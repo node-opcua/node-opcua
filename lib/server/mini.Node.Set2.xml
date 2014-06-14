@@ -371,7 +371,7 @@
             <Reference ReferenceType="HasComponent">i=2295</Reference>
             <Reference ReferenceType="HasComponent">i=2296</Reference>
             <Reference ReferenceType="HasComponent">i=11715</Reference>
-            <Reference ReferenceType="HasComponent">i=11492</Reference>
+<!--    GetMonitoredItemMethod        <Reference ReferenceType="HasComponent">i=11492</Reference> !-->
             <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=2004</Reference>
         </References>

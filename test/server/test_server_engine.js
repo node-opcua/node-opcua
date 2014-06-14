@@ -1101,6 +1101,60 @@ describe("testing ServerEngine", function () {
             dataValues[7].value.value.should.be.instanceOf(Date);
 
         });
-    })
+    });
+
+    describe("writing nodes ",function(){
+
+        var WriteValue = require("../../lib/services/write_service").WriteValue;
+        it("should write a single node",function(done) {
+
+            var  nodeToWrite = new WriteValue({
+                nodeId: makeNodeId(0,2254),
+                attributeId: AttributeIds.Value,
+                indexRange: null,
+                value: { // dataValue
+                    value: { // variant
+                        dataType: DataType.UInt32,
+                        value: 10
+                    }
+                }
+            });
+            engine.writeSingleNode(nodeToWrite);
+            done();
+        });
+
+        it("should write many nodes",function(done){
+
+            var  nodesToWrite = [
+                new WriteValue({
+                    nodeId: makeNodeId(0,2254),
+                    attributeId: AttributeIds.Value,
+                    indexRange: null,
+                    value: { // dataValue
+                        value: { // variant
+                            dataType: DataType.UInt32,
+                            value: 10
+                        }
+                    }
+                }),
+                new WriteValue({
+                    nodeId: makeNodeId(0,2254),
+                    attributeId: AttributeIds.Value,
+                    indexRange: null,
+                    value: { // dataValue
+                        value: { // variant
+                            dataType: DataType.UInt32,
+                            value: 10
+                        }
+                    }
+                })
+            ];
+            engine.write(nodesToWrite);
+            done();
+
+        });
+    });
 });
+
+
 

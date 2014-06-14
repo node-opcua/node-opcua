@@ -10,14 +10,14 @@ describe("testing Variables ",function(){
 
     it("a variable should return attributes with  the expected data type ",function(){
 
-        var as = new address_space.AddressSpace();
+        var the_address_space = new address_space.AddressSpace();
 
         var v = new Variable({
-            address_space:as,
+            browseName: "some variable",
+            address_space:the_address_space,
             minimumSamplingInterval: 10,
             userAccessLevel: 0,
-            accessLevel: 0,
-
+            accessLevel: 0
         });
 
         var value ;

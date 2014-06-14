@@ -31,7 +31,7 @@ describe("Discovery server",function(){
     var discovery_server,discovery_server_endpointUrl;
 
     beforeEach(function(done){
-        discovery_server = new OPCUADiscoveryServer({ port: 1234 });
+        discovery_server = new OPCUADiscoveryServer({ port: 1235 });
         discovery_server_endpointUrl = discovery_server.endpoints[0].endpointDescription().endpointUrl;
         discovery_server.start(done);
     });
