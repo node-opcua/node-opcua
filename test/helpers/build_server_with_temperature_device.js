@@ -9,6 +9,7 @@ var _ = require("underscore");
 var assert = require('better-assert');
 var should = require('should');
 
+
 /**
  * create and start a fake OPCUA Server that exposes a temperature set point variable.
  *
@@ -37,11 +38,13 @@ function build_server_with_temperature_device(options,done) {
 
             var myDevices = server.engine.createFolder("Objects",{ browseName: "MyDevices"});
 
-            // install a Read/Write variable representing a temperature set point of a temperature controler.
+            var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+            // install a Read/Write variable representing a temperature set point of a temperature controller.
             server.temperatureVariableId = server.engine.addVariableInFolder(myDevices,
                {
                     browseName: "SetPointTemperature",
                     dataType: "Double",
+                    nodeId: setPointTemperatureId,
                     value: {
                         get: function(){
                             return new Variant({dataType: DataType.Double , value: server.set_point_temperature});

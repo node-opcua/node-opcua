@@ -8,107 +8,11 @@ var build_server_with_temperature_device = require("./helpers/build_server_with_
 var ReadValueId = require("../lib/services/read_service").ReadValueId;
 var AttributeIds = require("../lib/services/read_service").AttributeIds;
 var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
-var sinon = require("sinon");
 
-
-/**
- * simple wrapper that operates on a freshly created opcua session.
- * The wrapper:
- *   - connects to the server,
- *   - creates a session
- *   - calls your **callback** method (func) with the session object
- *   - closes the session
- *   - disconnects the client
- *   - finally call the final **callback** (done_func)
- *
- * @param {function:callback} func
- * @param {function:callback} done_func
- */
-function perform_operation_on_client_session(client,func,done_func) {
-
-    assert(_.isFunction(func));
-    assert(_.isFunction(done_func));
-    var the_session;
-
-    async.series([
-
-        // connect
-        function(callback) { client.connect(endpointUrl,callback); },
-
-        // create session
-        function(callback) {
-            client.createSession(function (err,session){
-                if (!err) {
-                    the_session = session;
-                }
-                callback(err);
-            });
-        },
-
-        // call the user provided func
-        function(callback) { func(the_session,callback); },
-
-        // closing session
-        function(callback) { the_session.close(function(err){ callback(err); }); },
-
-        // disconnect
-        function(callback) { client.disconnect(function() { callback(); }); }
-    ],done_func);
-}
-
-
-/**
- *  simple wrapper that operates on a freshly created subscription.
- *
- *  - connects to the server,and create a session
- *  - create a new subscription with a publish interval of 100 ms
- *  - calls your **callback** method (do_func) with the subscription object
- *  - delete the subscription
- *  - close the session and disconnect from the server
- *  - finally call the final **callback** (done_func)
- *
- * @param client
- * @param do_func
- * @param done_func
- */
-// callback function(session, subscriptionId,done)
-function perform_operation_on_subscription(client,do_func,done_func){
-
-    perform_operation_on_client_session(client,function(session,done){
-
-        var subscription;
-        async.series([
-
-            function(callback) {
-                subscription = new ClientSubscription(session,{
-                    requestedPublishingInterval: 100,
-                    requestedLifetimeCount:      10 * 60 ,
-                    requestedMaxKeepAliveCount:  5,
-                    maxNotificationsPerPublish:  2,
-                    publishingEnabled:           true,
-                    priority:                    6
-                });
-                subscription.on("started",function(){ callback();  });
-            },
-
-            function(callback) {
-                do_func(session,subscription,callback);
-            },
-
-            function(callback) {
-                subscription.on("terminated",callback);
-                subscription.terminate();
-            }
-        ], function(err) {
-            done(err) ;
-        });
-
-    },done_func)
-}
-
+var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device",function() {
-
 
     var server , client,temperatureVariableId,endpointUrl ;
 
