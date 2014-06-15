@@ -1,3 +1,5 @@
+/* jslint */
+/* global require */
 var should = require("should");
 var server_engine = require("../../lib/server/server_engine");
 var resolveNodeId = require("../../lib/datamodel/nodeid").resolveNodeId;
@@ -22,10 +24,9 @@ var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); /
 
 describe("testing ServerEngine", function () {
 
-
     var engine,FolderTypeId,BaseDataVariableTypeId,ref_Organizes_Id;
 
-    beforeEach(function(done){
+    before(function(done){
         engine = new server_engine.ServerEngine();
         engine.initialize(null,function(){
             FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
@@ -36,7 +37,7 @@ describe("testing ServerEngine", function () {
         });
 
     });
-    afterEach(function(){
+    after(function(){
         engine.shutdown();
         engine = null;
     });
@@ -180,16 +181,16 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a new folder under the 'Root' folder", function () {
 
-        var rootFolder = engine.findObjectByBrowseName("Root");
+        var objectFolder = engine.findObjectByBrowseName("Objects");
 
-        var newFolder = engine.createFolder("Root", "MyNewFolder");
+        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
         assert(newFolder);
 
         newFolder.hasTypeDefinition.should.eql(FolderTypeId);
         newFolder.nodeClass.should.eql(NodeClass.Object);
 
 //xx        console.log(require("util").inspect(newFolder));
-        newFolder.parent.should.equal(rootFolder.nodeId);
+        newFolder.parent.should.equal(objectFolder.nodeId);
 
     });
 
@@ -199,7 +200,7 @@ describe("testing ServerEngine", function () {
 
         // a specific node id should have been assigned by the engine
         assert(newFolder.nodeId instanceof NodeId);
-        newFolder.nodeId.toString().should.eql("ns=1;i=1000");
+        newFolder.nodeId.namespace.should.eql(1);
 
         var result = engine.findObject(newFolder.nodeId);
         result.should.eql(newFolder);
@@ -329,7 +330,11 @@ describe("testing ServerEngine", function () {
         };
         var browseResult = engine.browseSingleNode("Root",browseDescription);
 
+        var browseNames = browseResult.references.map(function(r){return r.browseName.name;});
+        console.log(browseNames);
+
         browseResult.statusCode.should.eql(StatusCodes.Good);
+
 
         browseResult.references.length.should.equal(3);
 
@@ -433,7 +438,7 @@ describe("testing ServerEngine", function () {
         var browseResult = engine.browseSingleNode("ObjectsFolder",browseDescription);
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
-        browseResult.references.length.should.equal(1);
+        browseResult.references.length.should.be.greaterThan(1);
         //xx console.log(browseResult.references[0].browseName.name);
 
         browseResult.references[0].browseName.name.should.equal("Server");
@@ -1124,6 +1129,24 @@ describe("testing ServerEngine", function () {
             });
             engine.writeSingleNode(nodeToWrite);
             done();
+        });
+
+        it("should return Bad_NotWritable when trying to write a Executable attribute",function(done){
+            var  nodeToWrite = new WriteValue({
+                nodeId: resolveNodeId("RootFolder"),
+                attributeId: AttributeIds.Executable,
+                indexRange: null,
+                value: { // dataValue
+                    value: { // variant
+                        dataType: DataType.UInt32,
+                        value: 10
+                    }
+                }
+            });
+            var result = engine.writeSingleNode(nodeToWrite);
+            assert(result.should.eql(StatusCodes.Bad_NotWritable));
+            done();
+
         });
 
         it("should write many nodes",function(done){

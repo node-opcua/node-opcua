@@ -59,6 +59,12 @@ describe("testing dump browseDescriptions",function(){
 
     });
 
+    it("should provide a convenient a way to construct the node full name ",function(){
+
+        var obj = address_space.findObject("Server_ServerStatus_BuildInfo");
+        obj.full_name().should.eql("Server.ServerStatus.BuildInfo");
+
+    });
 });
 
 

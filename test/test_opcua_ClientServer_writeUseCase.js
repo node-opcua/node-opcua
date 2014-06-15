@@ -44,9 +44,10 @@ describe("end-to-end testing of a write operation between a client and a server"
 
         perform_operation_on_client_session(client,function(session,done) {
 
+            var unknown_nodeid = makeNodeId(7777,8788);
             var nodesToWrite = [
                 {
-                    nodeId: makeNodeId(),
+                    nodeId: unknown_nodeid,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
                         value: { /* Variant */dataType: DataType.Double, value: 10.0  }
@@ -61,6 +62,32 @@ describe("end-to-end testing of a write operation between a client and a server"
             done();
 
         },done);
+    });
+
+    it("should return Good if nodeId is known but not writeable ",function(done) {
+
+        perform_operation_on_client_session(client,function(session,done) {
+
+            var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+
+            var nodesToWrite = [
+                {
+                    nodeId: pumpSpeedId,
+                    attributeId: AttributeIds.Value,
+                    value: /*new DataValue(*/{
+                        value: { /* Variant */dataType: DataType.Double, value: 10.0  }
+                    }
+                }
+            ];
+
+            session.write(nodesToWrite,function(err,statusCodes){
+                statusCodes.length.should.equal(nodesToWrite.length);
+                statusCodes[0].should.eql(opcua.StatusCodes.Bad_NotWritable);
+            });
+            done();
+
+        },done);
+
     });
 
     it("should return Good if nodeId is known and writeable ",function(done){

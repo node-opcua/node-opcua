@@ -44,8 +44,8 @@ function build_server_with_temperature_device(options,done) {
             server.temperatureVariableId = server.engine.addVariableInFolder(myDevices,
                {
                     browseName: "SetPointTemperature",
-                    dataType: "Double",
                     nodeId: setPointTemperatureId,
+                    dataType: "Double",
                     value: {
                         get: function(){
                             return new Variant({dataType: DataType.Double , value: server.set_point_temperature});
@@ -72,7 +72,7 @@ function build_server_with_temperature_device(options,done) {
                             return new Variant({dataType: DataType.Double ,value: pump_speed});
                         },
                         set: function(variant){
-                            return StatusCodes.Bad_NotWritable
+                            return StatusCodes.Bad_NotWritable;
                         }
                     }
                 });

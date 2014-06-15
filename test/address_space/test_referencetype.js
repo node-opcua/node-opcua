@@ -8,6 +8,7 @@ var ReferenceType = address_space.ReferenceType;
 
 var _ = require("underscore");
 var assert = require("better-assert");
+var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
 
 
@@ -162,7 +163,7 @@ describe("testing ReferenceType",function(){
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
     });
-    it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)",function(){
+    it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)",function(done){
 
         var browse_service = require("../../lib/services/browse_service");
         var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
@@ -180,7 +181,14 @@ describe("testing ReferenceType",function(){
         var browseNames = references.map(function(r){return r.browseName.name;});
         var expectedBrowseNames = [ 'StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason' , 'Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+
+        redirectToFile("ReferenceDescription",function(){
+            assert(_.isArray(references));
+            var dump = require("../../lib/address_space/basenode").dumpReferenceDescriptions;
+            dump(address_space,references);
+        },done)
     });
+
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)",function(){
 
         var browse_service = require("../../lib/services/browse_service");
