@@ -6,7 +6,7 @@ var should  = require("should");
 var nodeid = require("../../lib/datamodel/nodeid");
 var ReferenceType = address_space.ReferenceType;
 
-
+var _ = require("underscore");
 var assert = require("better-assert");
 
 
@@ -63,7 +63,7 @@ describe("testing ReferenceType",function(){
     });
 
 
-    it("should returns 4 refs for browseNode on RootFolder ,  referenceTypeId=null,!includeSubtypes  ",function(){
+    it("should return 4 refs for browseNode on RootFolder ,  referenceTypeId=null,!includeSubtypes  ",function(){
         var browse_service = require("../../lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
@@ -78,7 +78,7 @@ describe("testing ReferenceType",function(){
         references.length.should.equal(4);
     });
 
-    it("should returns 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ",function(){
+    it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ",function(){
         var browse_service = require("../../lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
@@ -92,7 +92,7 @@ describe("testing ReferenceType",function(){
         });
         references.length.should.equal(1);
     });
-    it("should returns 3 refs for browseNode on RootFolder , Organizes ,!includeSubtypes  ",function(){
+    it("should return 3 refs for browseNode on RootFolder , Organizes ,!includeSubtypes  ",function(){
         var browse_service = require("../../lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
@@ -107,7 +107,7 @@ describe("testing ReferenceType",function(){
         references.length.should.equal(3);
     });
 
-    it("should returns 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ",function(){
+    it("should return 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ",function(){
         var browse_service = require("../../lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
@@ -119,11 +119,13 @@ describe("testing ReferenceType",function(){
             nodeClassMask:  0, // 0 = all nodes
             resultMask: 0x3F
         });
+        var browseNames = references.map(function (r) { return r.browseName.name;  });
+
         references.length.should.equal(0);
     });
 
 
-    it("should returns 3 refs for browseNode on RootFolder , HierarchicalReferences , includeSubtypes  ",function(){
+    it("should return 3 refs for browseNode on RootFolder , HierarchicalReferences , includeSubtypes  ",function(){
         var browse_service = require("../../lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
@@ -137,4 +139,92 @@ describe("testing ReferenceType",function(){
         });
         references.length.should.equal(3);
     });
+
+    it("should return 6 refs for browseNode on ServerStatus (BrowseDirection.Forward)",function() {
+
+        var browse_service = require("../../lib/services/browse_service");
+        var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
+        serverStatus.browseName.should.equal("ServerStatus");
+
+        var references = serverStatus.browseNode({
+            browseDirection: browse_service.BrowseDirection.Forward,
+            referenceTypeId: "HierarchicalReferences",
+            includeSubtypes: true,
+            nodeClassMask: 0, // 0 = all nodes
+            resultMask: 0x3F
+        });
+        references.length.should.equal(6);
+
+        var expectedBrowseNames = [ 'StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason'];
+
+        var browseNames = references.map(function (r) { return r.browseName.name;  });
+
+        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+
+    });
+    it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)",function(){
+
+        var browse_service = require("../../lib/services/browse_service");
+        var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
+        serverStatus.browseName.should.equal("ServerStatus");
+
+        var references  = serverStatus.browseNode({
+            browseDirection : browse_service.BrowseDirection.Both,
+            referenceTypeId : "HierarchicalReferences",
+            includeSubtypes : true,
+            nodeClassMask:  0, // 0 = all nodes
+            resultMask: 0x3F
+        });
+
+        references.length.should.equal(7);
+        var browseNames = references.map(function(r){return r.browseName.name;});
+        var expectedBrowseNames = [ 'StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason' , 'Server'];
+        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+    });
+    it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)",function(){
+
+        var browse_service = require("../../lib/services/browse_service");
+        var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
+        serverStatus.browseName.should.equal("ServerStatus");
+
+        var references  = serverStatus.browseNode({
+            browseDirection : browse_service.BrowseDirection.Inverse,
+            referenceTypeId : "HierarchicalReferences",
+            includeSubtypes : true,
+            nodeClassMask:  0, // 0 = all nodes
+            resultMask: 0x3F
+        });
+
+        references.length.should.equal(1);
+        var browseNames = references.map(function(r){return r.browseName.name;});
+        var expectedBrowseNames = [ 'Server'];
+        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+    });
+
+    it("should return 1 refs for browseNode on Server (BrowseDirection.Forward) and NodeClass set to Method",function() {
+
+        var browse_service = require("../../lib/services/browse_service");
+        var mask = browse_service.makeNodeClassMask("Method");
+
+        var server = address_space.findObjectByBrowseName("Server");
+        server.browseName.should.equal("Server");
+
+        var references  = server.browseNode({
+            browseDirection : browse_service.BrowseDirection.Forward,
+            referenceTypeId : "HierarchicalReferences",
+            includeSubtypes : true,
+            nodeClassMask: mask, // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            resultMask: 0x3F
+        });
+
+        var browseNames = references.map(function(r){return r.browseName.name;});
+
+        references.length.should.equal(1);
+
+        var expectedBrowseNames = [ 'GetMonitoredItems'];
+        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+
+    });
+
+
 });

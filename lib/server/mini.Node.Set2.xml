@@ -371,7 +371,8 @@
             <Reference ReferenceType="HasComponent">i=2295</Reference>
             <Reference ReferenceType="HasComponent">i=2296</Reference>
             <Reference ReferenceType="HasComponent">i=11715</Reference>
-<!--    GetMonitoredItemMethod        <Reference ReferenceType="HasComponent">i=11492</Reference> !-->
+<!--    GetMonitoredItemMethod !-->
+            <Reference ReferenceType="HasComponent">i=11492</Reference>
             <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=2004</Reference>
         </References>
@@ -507,6 +508,7 @@
         </Definition>
     </UADataType>
 
+
   <UAVariable NodeId="i=2285" BrowseName="CurrentSubscriptionCount" ParentNodeId="i=2275" DataType="UInt32">
     <DisplayName>CurrentSubscriptionCount</DisplayName>
     <References>
@@ -528,6 +530,20 @@
       <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
     </References>
   </UAVariable>
+  <UAVariable NodeId="i=2992" BrowseName="SecondsTillShutdown" ParentNodeId="i=2256" DataType="UInt32">
+    <DisplayName>SecondsTillShutdown</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2993" BrowseName="ShutdownReason" ParentNodeId="i=2256" DataType="LocalizedText">
+    <DisplayName>ShutdownReason</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
+    </References>
+  </UAVariable>
   <UADataType NodeId="i=1" BrowseName="Boolean">
     <DisplayName>Boolean</DisplayName>
     <Description>Describes a value that is either TRUE or FALSE.</Description>
@@ -542,5 +558,12 @@
       <Reference ReferenceType="HasSubtype" IsForward="false">i=11</Reference>
     </References>
   </UADataType>
-
+  <UAMethod NodeId="i=11492" BrowseName="GetMonitoredItems" ParentNodeId="i=2253" MethodDeclarationId="i=11489">
+    <DisplayName>GetMonitoredItems</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">i=11493</Reference>
+      <Reference ReferenceType="HasProperty">i=11494</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
+    </References>
+  </UAMethod>
 </UANodeSet>

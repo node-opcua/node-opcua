@@ -167,6 +167,11 @@ describe("testing resolveNodeId",function(){
     it("should resolve AnalogItemType to 'ns=0;i=2368' ",function(){
         resolveNodeId("AnalogItemType").toString().should.equal("ns=0;i=2368");
     });
+
+    //ReferenceType
+    it("should resolve HierarchicalReferences to 'ns=0;i=33' ",function(){
+        resolveNodeId("HierarchicalReferences").toString().should.equal("ns=0;i=33");
+    });
 });
 
 

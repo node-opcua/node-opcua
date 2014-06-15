@@ -297,7 +297,9 @@ describe("testing ServerEngine", function () {
 
         var browseDescription = {
             browseDirection : BrowseDirection.Inverse,
-            referenceTypeId : "Organizes"
+            nodeClassMask:   0, // 0 = all nodes
+            referenceTypeId : "Organizes",
+            resultMask:      0x3F
         };
 
         var browseResult = engine.browseSingleNode("ObjectsFolder",browseDescription);
@@ -425,6 +427,7 @@ describe("testing ServerEngine", function () {
 
         var browseDescription = {
             browseDirection : BrowseDirection.Forward,
+            nodeClassMask:   0, // 0 = all nodes
             referenceTypeId : "Organizes"
         };
         var browseResult = engine.browseSingleNode("ObjectsFolder",browseDescription);
