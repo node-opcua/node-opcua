@@ -36,6 +36,7 @@ function build_server_with_temperature_device(options,done) {
     function start(done) {
         server.start(function() {
 
+            assert(server.engine.status === "initialized");
             var myDevices = server.engine.createFolder("Objects",{ browseName: "MyDevices"});
 
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
