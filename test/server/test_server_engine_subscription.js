@@ -50,6 +50,8 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("should check the subscription live cycle",function(){
 
+
+
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(0);
 
@@ -72,6 +74,74 @@ describe("ServerEngine Subscriptions service", function () {
 
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(1);
+
+        engine.currentSubscriptionCount.should.equal(0);
+        engine.cumulatedSubscriptionCount.should.equal(1);
+
+    });
+
+    it("should maintain the correct number of  cumulatedSubscriptionCount at the engine leve",function() {
+
+        var subscription_parameters = {
+            requestedPublishingInterval: 1000,  // Duration
+                requestedLifetimeCount: 10,         // Counter
+            requestedMaxKeepAliveCount: 10,     // Counter
+            maxNotificationsPerPublish: 10,     // Counter
+            publishingEnabled: true,            // Boolean
+            priority: 14                        // Byte
+        };
+
+        engine.currentSubscriptionCount.should.equal(0);
+        engine.cumulatedSubscriptionCount.should.equal(0);
+
+        engine.currentSessionCount.should.equal(1);
+        engine.cumulatedSessionCount.should.equal(1);
+
+        var subscription1 = session.createSubscription(subscription_parameters);
+
+        engine.currentSubscriptionCount.should.equal(1);
+        engine.cumulatedSubscriptionCount.should.equal(1);
+
+        var subscription2 = session.createSubscription(subscription_parameters);
+        engine.currentSubscriptionCount.should.equal(2);
+        engine.cumulatedSubscriptionCount.should.equal(2);
+
+
+
+        session.deleteSubscription(subscription2.id);
+        engine.currentSubscriptionCount.should.equal(1);
+        engine.cumulatedSubscriptionCount.should.equal(2);
+
+
+        // Create a new session
+        var session2 = engine.createSession();
+        engine.currentSessionCount.should.equal(2);
+        engine.cumulatedSessionCount.should.equal(2);
+        engine.currentSubscriptionCount.should.equal(1);
+
+        session2.createSubscription(subscription_parameters);
+        session2.createSubscription(subscription_parameters);
+        session2.createSubscription(subscription_parameters);
+
+        engine.currentSubscriptionCount.should.equal(4);
+        engine.cumulatedSubscriptionCount.should.equal(5);
+
+        // close the session, asking to delete subscriptions
+        engine.closeSession(session2.authenticationToken,/* deleteSubscription */true);
+
+        engine.currentSessionCount.should.equal(1);
+        engine.cumulatedSessionCount.should.equal(2);
+        engine.currentSubscriptionCount.should.equal(1);
+        engine.cumulatedSubscriptionCount.should.equal(5);
+
+
+        session.deleteSubscription(subscription1.id);
+
+        engine.currentSubscriptionCount.should.equal(0);
+        engine.cumulatedSubscriptionCount.should.equal(5);
+
+
+
     });
 
 });
