@@ -22,7 +22,7 @@ var ClientSubscription = opcua.ClientSubscription;
  * @param {Function} done_func
  * @param [done_func.err]  {Error} an optional error to pass if the function has failed
  */
-function perform_operation_on_client_session(client,func,done_func) {
+function perform_operation_on_client_session(client,endpointUrl,func,done_func) {
 
     assert(_.isFunction(func));
     assert(_.isFunction(done_func));
@@ -76,9 +76,9 @@ exports.perform_operation_on_client_session = perform_operation_on_client_sessio
  * @param {Error} [done_func.err]
  */
 // callback function(session, subscriptionId,done)
-function perform_operation_on_subscription(client,do_func,done_func){
+function perform_operation_on_subscription(client,endpointUrl,do_func,done_func){
 
-    perform_operation_on_client_session(client,function(session,done){
+    perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
         var subscription;
         async.series([

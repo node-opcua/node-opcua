@@ -42,7 +42,7 @@ describe("end-to-end testing of a write operation between a client and a server"
     });
     it("should return Bad_NodeIdUnknown if nodeId is unknown ",function(done){
 
-        perform_operation_on_client_session(client,function(session,done) {
+        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
             var unknown_nodeid = makeNodeId(7777,8788);
             var nodesToWrite = [
@@ -66,7 +66,7 @@ describe("end-to-end testing of a write operation between a client and a server"
 
     it("should return Good if nodeId is known but not writeable ",function(done) {
 
-        perform_operation_on_client_session(client,function(session,done) {
+        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
             var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
 
@@ -92,7 +92,7 @@ describe("end-to-end testing of a write operation between a client and a server"
 
     it("should return Good if nodeId is known and writeable ",function(done){
 
-        perform_operation_on_client_session(client,function(session,done) {
+        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
 

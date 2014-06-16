@@ -44,7 +44,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
     it("should create a ClientSubscription to manage a subscription",function(done){
 
-        perform_operation_on_client_session(client,function(session,done){
+        perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
             assert(session instanceof OPCUASession);
 
@@ -66,7 +66,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
     });
     it("a ClientSubscription should receive keep-alive events from the server",function(done){
 
-        perform_operation_on_client_session(client,function(session,done){
+        perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
             assert(session instanceof OPCUASession);
 
@@ -105,7 +105,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
     it("should be possible to monitor an item with a ClientSubscription",function(done){
 
-        perform_operation_on_client_session(client,function(session,done){
+        perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
             assert(session instanceof OPCUASession);
 
@@ -176,7 +176,7 @@ describe("testing server and subscription",function(){
        " and should still be able to reply to other requests",function(done) {
 
         var subscriptionId;
-        perform_operation_on_client_session(client,function(session,done){
+        perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
             async.series([
 
@@ -230,7 +230,7 @@ describe("testing server and subscription",function(){
 
     it("A Subscription can be added and then deleted",function(done){
         var subscriptionId;
-        perform_operation_on_client_session(client,function(session,done){
+        perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
             async.series([
 
@@ -266,7 +266,7 @@ describe("testing server and subscription",function(){
 
     it("A MonitoredItem can be added to a subscription and then deleted",function(done){
 
-        perform_operation_on_subscription(client,function(session,subscription,callback){
+        perform_operation_on_subscription(client,endpointUrl,function(session,subscription,callback){
 
             var monitoredItem  = subscription.monitor(
                 {nodeId: resolveNodeId("ns=0;i=2258") , attributeId: AttributeIds.Value},
@@ -284,7 +284,7 @@ describe("testing server and subscription",function(){
 
     it("A MonitoredItem should received changed event",function(done){
 
-        perform_operation_on_subscription(client,function(session,subscription,callback){
+        perform_operation_on_subscription(client,endpointUrl,function(session,subscription,callback){
 
             var monitoredItem  = subscription.monitor(
                 {

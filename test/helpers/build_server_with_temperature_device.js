@@ -78,7 +78,7 @@ function build_server_with_temperature_device(options,done) {
                 });
             assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
 
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
             debugLog("endpointUrl",endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
             done();

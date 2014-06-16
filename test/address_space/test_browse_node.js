@@ -38,7 +38,7 @@ describe("testing dump browseDescriptions",function(){
         var hr =  address_space.findReferenceType("HierarchicalReferences");
 
         redirectToFile("dumpReferences.log",function() {
-            dumpReferences(hr,hr.references);
+            dumpReferences(address_space,hr.references);
         },done);
 
     });

@@ -30,12 +30,82 @@ if (!endpointUrl) {
 var the_session = null;
 var the_subscription= null;
 
+var AttributeNameById = opcua.AttributeNameById;
+var AttributeIds = opcua.AttributeIds;
 
-function browseTree(root, nodeId, callback) {
+
+
+
+
+
+
+function pushBrowseNameExtraction(readValueIds,nodeId) {
+
+    console.log(nodeId);
+    var index =  nodeId.toString();
+    if (!_objectCache.hasOwnProperty(index)) {
+        // not in yet
+        readValueIds.push({
+           nodeId: nodeId,
+           attributeId: AttributeIds.BrowseName
+        });
+        _objectCache[index] =  { browseName: "pending"};
+
+    }
+}
+
+
+function crawlForBrowseName(root,callback) {
+
+    var readValueIds = [];
+
+    function _crawl(parent) {
+        console.log(parent);
+        parent.nodes.forEach(_crawl);
+    }
+
+    _crawl(root);
+    populateObjectCache(readValueIds) ;
+}
+
+function populateObjectCache(readValuesIds,callback) {
+
+    callback();
+    return;
+    the_session.read({
+        nodesToRead: readValuesIds
+    },function(err,results) {
+        assert(_.isArray(results));
+
+        _.zip(readValuesIds,results).forEach(function(pair){
+             var index = pair[0].nodeId.toString();
+             var value =  pair[1].value;
+             console.log(index,value);
+             var attributeName = AttributeNameById[pair[0].attributeId];
+             _objectCache[index][attributeName] = value;
+
+        });
+
+        callback(err);
+
+    });
+
+}
+
+
+
+
+
+function _browseTree(root, nodeId, callback) {
+
+    readValuesIds = [];
+
+    pushBrowseNameExtraction(readValuesIds,nodeId);
 
     var nodeIds = _.isArray(nodeId) ? nodeId : [nodeId];
 
     var folderTypeNodeId = opcua.resolveNodeId("FolderType");
+
 
     the_session.browse(nodeIds, function (err, results,diagnostics) {
 
@@ -45,20 +115,36 @@ function browseTree(root, nodeId, callback) {
             // we want typeDefinition i=61 => FolderType
             results[0].references.forEach(function (node) {
 
-                root[node.browseName.name] = {};
-                root[node.browseName.name].value =(node.isForward ? "->" : "<-") + "id: " + node.nodeId.toString();
-                root[node.browseName.name].typeDefinition  =node.typeDefinition.toString();
-                root[node.browseName.name].nodes = {};
+                pushBrowseNameExtraction(readValuesIds,node.typeDefinition);
 
-                if (node.typeDefinition.value === folderTypeNodeId.value   || node.typeDefinition.value === 2000 || node.typeDefinition.value === 62  ) {
+                if (!node.isForward) {return; }
 
-                    if (node.isForward) {
-                        //xx console.log(" appending : " + node.nodeId.displayText());
-                        tasks.push(function(callback){    browseTree(root[node.browseName.name].nodes,node.nodeId,callback);                });
-                    }
-                }
+                typeDefinition =  node.typeDefinition.toString();
+
+                if(!root.references[typeDefinition] ) { root.references[typeDefinition] = [];}
+
+                //xx if (node.typeDefinition.value === folderTypeNodeId.value   || node.typeDefinition.value === 2000 || node.typeDefinition.value === 62  ) {
+
+                var element ={
+                     nodeId     : node.nodeId,
+                     browseName : node.browseName.name,
+                     references : {}
+                };
+                root.references[typeDefinition].push(element);
+
+                tasks.push(function(callback){
+                    _browseTree(element,node.nodeId,callback);
+                });
+
+                //xx}
             });
 
+           if (readValuesIds.length>0) {
+               tasks.unshift(function(callback){
+                   populateObjectCache(readValuesIds,callback);
+                   readValuesIds =[];
+               });
+           }
 
             process.nextTick(function(){
                 async.series(tasks,function() {
@@ -74,7 +160,20 @@ function browseTree(root, nodeId, callback) {
 
 
 }
+function browseTree( nodeId, callback) {
 
+    var root = {
+        nodeId:nodeId,
+        references:{}
+    };
+    _browseTree(root,nodeId,function(err,root){
+        // add browseName
+        crawlForBrowseName(root,function(err){
+            callback(err,root);
+        });
+
+    });
+}
 
 async.series([
     function(callback) {
@@ -136,8 +235,7 @@ async.series([
 
     //------------------------------------------
     function(callback) {
-        var root = {};
-        browseTree(root,"RootFolder",function(err,root){
+        browseTree("RootFolder",function(err,root){
             console.log(treeify.asTree(root, true));
             callback(err);
         });

@@ -13,6 +13,7 @@ module.exports.DataValue        = require("./lib/datamodel/datavalue").DataValue
 module.exports.Variant          = require("./lib/datamodel/variant").Variant;
 module.exports.NodeId          = require("./lib/datamodel/nodeid").NodeId;
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
+module.exports.AttributeNameById     = module.exports.read_service.AttributeNameById;
 module.exports.VariableIds      = require("./lib/opcua_node_ids").VariableIds;
 module.exports.AddressSpace     = require("./lib/address_space/address_space").AddressSpace;
 module.exports.generate_address_space = require("./lib/address_space/load_nodeset2").generate_address_space;
