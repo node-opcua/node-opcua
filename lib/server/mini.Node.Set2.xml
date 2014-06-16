@@ -37,11 +37,61 @@
         <Alias Alias="HasEncoding">i=38</Alias>
         <Alias Alias="HasDescription">i=39</Alias>
     </Aliases>
+
+
+  <UADataType NodeId="i=7" BrowseName="UInt32">
+    <DisplayName>UInt32</DisplayName>
+    <Description>Describes a value that is an integer between 0 and 4,294,967,295.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
+    </References>
+  </UADataType>
+
+  <UADataType NodeId="i=21" BrowseName="LocalizedText">
+    <DisplayName>LocalizedText</DisplayName>
+    <Description>Describes a value that is human readable Unicode text with a locale identifier.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
+
+  <UADataType NodeId="i=22" BrowseName="Structure" IsAbstract="true">
+    <DisplayName>Structure</DisplayName>
+    <Description>Describes a value that is any type of structure that can be described with a data encoding.
+    </Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
+
     <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
         <DisplayName>BaseDataType</DisplayName>
         <Description>Describes a value that can have any valid DataType.</Description>
         <References />
     </UADataType>
+
+  <UADataType NodeId="i=27" BrowseName="Integer" IsAbstract="true">
+    <DisplayName>Integer</DisplayName>
+    <Description>Describes a value that can have any integer DataType.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
+    </References>
+  </UADataType>
+  <UADataType NodeId="i=28" BrowseName="UInteger" IsAbstract="true">
+    <DisplayName>UInteger</DisplayName>
+    <Description>Describes a value that can have any unsigned integer DataType.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+    </References>
+  </UADataType>
+  <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
+    <DisplayName>Enumeration</DisplayName>
+    <Description>Describes a value that is an enumerated DataType.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
+
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
         <Description>The abstract base type for all references.</Description>
@@ -492,7 +542,40 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=13</Reference>
         </References>
     </UADataType>
-    
+
+  <UADataType NodeId="i=338" BrowseName="BuildInfo">
+    <DisplayName>BuildInfo</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+    </References>
+    <Definition Name="BuildInfo">
+      <Field Name="ProductUri" DataType="i=12" />
+      <Field Name="ManufacturerName" DataType="i=12" />
+      <Field Name="ProductName" DataType="i=12" />
+      <Field Name="SoftwareVersion" DataType="i=12" />
+      <Field Name="BuildNumber" DataType="i=12" />
+      <Field Name="BuildDate" DataType="i=294" />
+    </Definition>
+  </UADataType>
+
+  <UADataType NodeId="i=852" BrowseName="ServerState">
+    <DisplayName>ServerState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">i=7612</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+    </References>
+    <Definition Name="ServerState">
+      <Field Name="Running" Value="0"/>
+      <Field Name="Failed" Value="1"/>
+      <Field Name="NoConfiguration" Value="2"/>
+      <Field Name="Suspended" Value="3"/>
+      <Field Name="Shutdown" Value="4"/>
+      <Field Name="Test" Value="5"/>
+      <Field Name="CommunicationFault" Value="6"/>
+      <Field Name="Unknown" Value="7"/>
+    </Definition>
+  </UADataType>
+
     <UADataType NodeId="i=862" BrowseName="ServerStatusDataType">
         <DisplayName>ServerStatusDataType</DisplayName>
         <References>

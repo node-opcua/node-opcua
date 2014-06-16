@@ -1111,6 +1111,29 @@ describe("testing ServerEngine", function () {
         });
     });
 
+    describe("Accessing ServerStatus as a single composite object",function(){
+
+        it("should be possible to access the ServerStatus Object as a variable",function(){
+
+            var readRequest = new read_service.ReadRequest({
+                nodesToRead: [{
+                    nodeId:  VariableIds.Server_ServerStatus,
+                    attributeId: AttributeIds.Value
+                }]
+            });
+
+            var dataValues = engine.read(readRequest);
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
+
+            //xx console.log('xxxxxx',dataValues[0].value.value);
+
+            dataValues[0].value.value.should.be.instanceOf(Object);
+
+        });
+    });
+
     describe("writing nodes ",function(){
 
         var WriteValue = require("../../lib/services/write_service").WriteValue;
