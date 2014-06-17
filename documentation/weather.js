@@ -101,15 +101,18 @@ function post_initialize() {
        
            server.engine.addVariableInFolder(city_name,{
                browseName: "Temperature",
+               dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"temperature"); } }
            });
            server.engine.addVariableInFolder(city_name,{
                browseName: "Humidity",
+               dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"humidity"); } }
            
            });
            server.engine.addVariableInFolder(city_name,{
                browseName: "Pressure",
+               dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"pressure"); } }
            });
        }
