@@ -1,3 +1,4 @@
+var should = require("should");
 var bs = require("./../../lib/services/read_service");
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 var makebuffer = require("../../lib/misc/utils").makebuffer;
@@ -5,7 +6,6 @@ var makebuffer = require("../../lib/misc/utils").makebuffer;
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
 var verify_single_chunk_message= require("../helpers/verify_message_chunk").verify_single_chunk_message;
-
 
 /* a real readRequest (with two nodeIds) captured with ws*/
 var fixture_ws_readRequest_message= makebuffer(
@@ -106,7 +106,21 @@ describe("Read Service", function(){
 
         encode_decode_round_trip_test(readRequest);
     });
+    it("should raise a exception if ReadRequest is created with a invalid attributeId",function(){
 
+       should(function(){
+          var readRequest = new bs.ReadRequest({
+               timestampsToReturn: bs.TimestampsToReturn.Both,
+               nodesToRead: [
+                   {
+                       nodeId : "i=2255",
+                       attributeId: 5555  //<<<<<<< INVALID ID => Should Throws !!!
+                   }
+               ]
+           });
+       }).throwError();
+
+    });
 
     it("should create a ReadResponse",function(){
         var readResponse = new bs.ReadResponse({});
@@ -135,5 +149,6 @@ describe("Read Service", function(){
             verify_multi_chunk_message([fixture_ws_readResponse_message2]);
         }, done);
     });
+
 
 });

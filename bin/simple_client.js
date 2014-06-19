@@ -35,145 +35,10 @@ var AttributeIds = opcua.AttributeIds;
 
 
 
+var NodeCrawler = opcua.NodeCrawler;
 
 
 
-
-function pushBrowseNameExtraction(readValueIds,nodeId) {
-
-    console.log(nodeId);
-    var index =  nodeId.toString();
-    if (!_objectCache.hasOwnProperty(index)) {
-        // not in yet
-        readValueIds.push({
-           nodeId: nodeId,
-           attributeId: AttributeIds.BrowseName
-        });
-        _objectCache[index] =  { browseName: "pending"};
-
-    }
-}
-
-
-function crawlForBrowseName(root,callback) {
-
-    var readValueIds = [];
-
-    function _crawl(parent) {
-        console.log(parent);
-        parent.nodes.forEach(_crawl);
-    }
-
-    _crawl(root);
-    populateObjectCache(readValueIds) ;
-}
-
-function populateObjectCache(readValuesIds,callback) {
-
-    callback();
-    return;
-    the_session.read({
-        nodesToRead: readValuesIds
-    },function(err,results) {
-        assert(_.isArray(results));
-
-        _.zip(readValuesIds,results).forEach(function(pair){
-             var index = pair[0].nodeId.toString();
-             var value =  pair[1].value;
-             console.log(index,value);
-             var attributeName = AttributeNameById[pair[0].attributeId];
-             _objectCache[index][attributeName] = value;
-
-        });
-
-        callback(err);
-
-    });
-
-}
-
-
-
-
-
-function _browseTree(root, nodeId, callback) {
-
-    readValuesIds = [];
-
-    pushBrowseNameExtraction(readValuesIds,nodeId);
-
-    var nodeIds = _.isArray(nodeId) ? nodeId : [nodeId];
-
-    var folderTypeNodeId = opcua.resolveNodeId("FolderType");
-
-
-    the_session.browse(nodeIds, function (err, results,diagnostics) {
-
-        var tasks = [];
-
-        if (!err) {
-            // we want typeDefinition i=61 => FolderType
-            results[0].references.forEach(function (node) {
-
-                pushBrowseNameExtraction(readValuesIds,node.typeDefinition);
-
-                if (!node.isForward) {return; }
-
-                typeDefinition =  node.typeDefinition.toString();
-
-                if(!root.references[typeDefinition] ) { root.references[typeDefinition] = [];}
-
-                //xx if (node.typeDefinition.value === folderTypeNodeId.value   || node.typeDefinition.value === 2000 || node.typeDefinition.value === 62  ) {
-
-                var element ={
-                     nodeId     : node.nodeId,
-                     browseName : node.browseName.name,
-                     references : {}
-                };
-                root.references[typeDefinition].push(element);
-
-                tasks.push(function(callback){
-                    _browseTree(element,node.nodeId,callback);
-                });
-
-                //xx}
-            });
-
-           if (readValuesIds.length>0) {
-               tasks.unshift(function(callback){
-                   populateObjectCache(readValuesIds,callback);
-                   readValuesIds =[];
-               });
-           }
-
-            process.nextTick(function(){
-                async.series(tasks,function() {
-                    callback(err,root);
-                });
-            });
-
-        } else {
-            console.log(err);
-            callback(err,null);
-        }
-    });
-
-
-}
-function browseTree( nodeId, callback) {
-
-    var root = {
-        nodeId:nodeId,
-        references:{}
-    };
-    _browseTree(root,nodeId,function(err,root){
-        // add browseName
-        crawlForBrowseName(root,function(err){
-            callback(err,root);
-        });
-
-    });
-}
 
 async.series([
     function(callback) {
@@ -235,10 +100,19 @@ async.series([
 
     //------------------------------------------
     function(callback) {
-        browseTree("RootFolder",function(err,root){
-            console.log(treeify.asTree(root, true));
+
+        assert(_.isObject(the_session));
+        var crawler = new NodeCrawler(the_session);
+
+        var nodeId = "ObjectsFolder";
+
+        crawler.read(nodeId, function (err, obj) {
+            if (!err) {
+                console.log(treeify.asTree(obj,true));
+            }
             callback(err);
         });
+
 
     },
     // ----------------------------------------

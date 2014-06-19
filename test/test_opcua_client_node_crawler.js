@@ -23,6 +23,7 @@ var perform_operation_on_client_session = require("./helpers/perform_operation_o
 // var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 var dumpReferences = require("../lib/address_space/basenode").dumpReferences;
+var NodeCrawler = require("../lib/client/node_crawler").NodeCrawler;
 
 describe("NodeCrawler",function(){
 
@@ -55,41 +56,79 @@ describe("NodeCrawler",function(){
     });
 
 
+
     function MyDumpReference(reference) {
-
-        console.log(" referenceTypeId ", reference.referenceTypeId.toString());
-        console.log(" isForward       ", reference.isForward.toString());
-        console.log(" isForward       ", reference.nodeId.toString() +"  "+ reference.browseName.name);
-        // displayName: [Object],
-        // nodeClass: [Getter/Setter],
-        // typeDefinition: [Object]
+        function f(text,width) {
+            return (text + "                                                     ").substring(0,width);
+        }
+        console.log("    referenceTypeId ",
+                f(reference.referenceTypeId.displayText(),35).yellow +
+                (  reference.isForward?" => ":" <= ") +
+                f(reference.browseName.name,20).blue.bold +
+                    "(" + reference.nodeId.displayText().cyan +")"
+        );
     }
-    function MyDumpReferences(index,references) { references.forEach(MyDumpReference);}
+    function MyDumpReferences(index,references) {
+        //xxx console.log(" xxxxxxxxxxxxxxxxx ",references);
+        references.forEach(MyDumpReference);
+    }
 
-    it("should crawl rootNode",function(done){
+
+    it("should crawl for a complete tree",function(done) {
 
         perform_operation_on_client_session(client,endpointUrl,function(session,done){
 
-
-            var NodeCrawler = require("../lib/client/node_crawler").NodeCrawler;
-
             var crawler = new NodeCrawler(session);
 
-            crawler.browse("RootFolder",function(err,nodeElement){
+            var data = {};
+            crawler.on("browsed",function(nodeElement,data) {
 
-                console.log(nodeElement);
-
-                var objectIndex = {
-                    findObject: function(nodeId){
-                        return null;
-                    }
-                };
-
+                console.log("nodeElement ".yellow, nodeElement.browseName, nodeElement.nodeId.displayText());
+                var objectIndex = {  findObject: function(nodeId){ return null; }};
                 MyDumpReferences(objectIndex,nodeElement.references);
+
+            }).on("end",function(){
+                console.log("Data ",data);
+            }).on("error",function(err) {
                 done(err);
             });
 
-        },done);
+            crawler.crawl("RootFolder",data,function(err){
 
-    })
+                crawler.crawl("RootFolder",data,function(err){
+                    done();
+                });
+
+            });
+
+
+        },done);
+    });
+
+    it("should crawl one at a time",function(done){
+        var treeify = require('treeify');
+        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+
+            assert(_.isFunction(done));
+
+            var crawler = new NodeCrawler(session);
+
+            nodeId = "RootFolder";
+
+            crawler.read(nodeId, function (err, obj) {
+
+                if (!err) {
+                    obj.browseName.should.equal("Root");
+                    obj.references.length.should.equal(4);
+                    obj.references[0].referenceType.should.eql('HasTypeDefinition (ns=0;i=40)');
+                    obj.references[0].object.browseName.should.equal("FolderType");
+                    //xx console.log(treeify.asTree(obj,true));
+                }
+                done(err);
+            });
+        },done);
+    });
+
+    //xx it("shuld",function(done){        async.mapSeries([],function(){},done);    });
+
 });

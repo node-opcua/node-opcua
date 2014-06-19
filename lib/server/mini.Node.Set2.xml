@@ -702,4 +702,178 @@
       <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
     </References>
   </UAMethod>
+  <UAVariableType NodeId="i=2138" BrowseName="ServerStatusType" DataType="i=862">
+    <DisplayName>ServerStatusType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent">i=2139</Reference>
+      <Reference ReferenceType="HasComponent">i=2140</Reference>
+      <Reference ReferenceType="HasComponent">i=2141</Reference>
+      <Reference ReferenceType="HasComponent">i=2142</Reference>
+      <Reference ReferenceType="HasComponent">i=2752</Reference>
+      <Reference ReferenceType="HasComponent">i=2753</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+    </References>
+  </UAVariableType>
+  <UAVariable NodeId="i=2139" BrowseName="StartTime" ParentNodeId="i=2138" DataType="i=294">
+    <DisplayName>StartTime</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2138</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2140" BrowseName="CurrentTime" ParentNodeId="i=2138" DataType="i=294">
+    <DisplayName>CurrentTime</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2138</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2141" BrowseName="State" ParentNodeId="i=2138" DataType="i=852">
+    <DisplayName>State</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2138</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2142" BrowseName="BuildInfo" ParentNodeId="i=2138" DataType="i=338">
+    <DisplayName>BuildInfo</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent">i=3698</Reference>
+      <Reference ReferenceType="HasComponent">i=3699</Reference>
+      <Reference ReferenceType="HasComponent">i=3700</Reference>
+      <Reference ReferenceType="HasComponent">i=3701</Reference>
+      <Reference ReferenceType="HasComponent">i=3702</Reference>
+      <Reference ReferenceType="HasComponent">i=3703</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=3051</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2138</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3698" BrowseName="ProductUri" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>ProductUri</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3699" BrowseName="ManufacturerName" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>ManufacturerName</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3700" BrowseName="ProductName" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>ProductName</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3701" BrowseName="SoftwareVersion" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>SoftwareVersion</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3702" BrowseName="BuildNumber" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>BuildNumber</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3703" BrowseName="BuildDate" ParentNodeId="i=2142" DataType="i=294" MinimumSamplingInterval="1000">
+    <DisplayName>BuildDate</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2752" BrowseName="SecondsTillShutdown" ParentNodeId="i=2138" DataType="UInt32">
+    <DisplayName>SecondsTillShutdown</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2138</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=2753" BrowseName="ShutdownReason" ParentNodeId="i=2138" DataType="LocalizedText">
+    <DisplayName>ShutdownReason</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=2138</Reference>
+    </References>
+  </UAVariable>
+  <UAVariableType NodeId="i=3051" BrowseName="BuildInfoType" DataType="i=338">
+    <DisplayName>BuildInfoType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent">i=3052</Reference>
+      <Reference ReferenceType="HasComponent">i=3053</Reference>
+      <Reference ReferenceType="HasComponent">i=3054</Reference>
+      <Reference ReferenceType="HasComponent">i=3055</Reference>
+      <Reference ReferenceType="HasComponent">i=3056</Reference>
+      <Reference ReferenceType="HasComponent">i=3057</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+    </References>
+  </UAVariableType>
+  <UAVariable NodeId="i=3052" BrowseName="ProductUri" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>ProductUri</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3053" BrowseName="ManufacturerName" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>ManufacturerName</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3054" BrowseName="ProductName" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>ProductName</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3055" BrowseName="SoftwareVersion" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>SoftwareVersion</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3056" BrowseName="BuildNumber" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
+    <DisplayName>BuildNumber</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=3057" BrowseName="BuildDate" ParentNodeId="i=3051" DataType="i=294" MinimumSamplingInterval="1000">
+    <DisplayName>BuildDate</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
+    </References>
+  </UAVariable>
 </UANodeSet>
