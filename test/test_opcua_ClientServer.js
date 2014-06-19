@@ -267,7 +267,7 @@ describe("testing basic Client-Server communication",function() {
 
         });
 
-        it("browse should return Bad_ReferenceTypeIdInvalid if referenceTypeId is invalid",function(done){
+        it("browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid",function(done){
 
             var bad_referenceid_node = "ns=3;i=3500";
             var browseDesc = {
@@ -278,7 +278,7 @@ describe("testing basic Client-Server communication",function() {
             g_session.browse(browseDesc,function(err,browseResults,diagnosticInfos){
                 browseResults.length.should.equal(1);
                 browseResults[0]._schema.name.should.equal("BrowseResult");
-                browseResults[0].statusCode.should.eql(StatusCodes.Bad_ReferenceTypeIdInvalid);
+                browseResults[0].statusCode.should.eql(StatusCodes.BadReferenceTypeIdInvalid);
                 done(err);
             });
         });
@@ -305,7 +305,7 @@ describe("testing basic Client-Server communication",function() {
         it("should return a appropriate status code if nodeid to read doesn't exists",function(done){
 
             g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist",function(err,dataValues,diagnosticInfos){
-                dataValues[0].statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
+                dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
                 done();
             });
         });

@@ -45,7 +45,7 @@ describe("DataValue",function(){
 
         var dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value:"Hello"}),
-            statusCode: StatusCodes.Bad_CertificateHostNameInvalid,
+            statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: new Date(),
             serverPicoseconds: 1000,
             sourceTimestamp: new Date(),

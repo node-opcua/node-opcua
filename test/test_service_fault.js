@@ -41,8 +41,8 @@ describe("ServiceFault",function() {
 
     it("should create a ServiceFault with a specific serviceResult",function(){
         var sf = new s.ServiceFault({
-            responseHeader: { serviceResult: StatusCodes.Bad_NoSubscription }
+            responseHeader: { serviceResult: StatusCodes.BadNoSubscription }
         });
-        sf.responseHeader.serviceResult.should.eql(StatusCodes.Bad_NoSubscription);
+        sf.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
     });
 });

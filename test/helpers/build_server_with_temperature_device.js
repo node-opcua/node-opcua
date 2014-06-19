@@ -72,7 +72,7 @@ function build_server_with_temperature_device(options,done) {
                             return new Variant({dataType: DataType.Double ,value: pump_speed});
                         },
                         set: function(variant){
-                            return StatusCodes.Bad_NotWritable;
+                            return StatusCodes.BadNotWritable;
                         }
                     }
                 });

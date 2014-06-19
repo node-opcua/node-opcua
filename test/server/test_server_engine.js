@@ -241,7 +241,7 @@ describe("testing ServerEngine", function () {
                         return new Variant({dataType: DataType.Float , value: 10.0});
                     },
                     set: function(){
-                        return StatusCodes.Bad_NotWritable;
+                        return StatusCodes.BadNotWritable;
                     }
                 }
 
@@ -270,7 +270,7 @@ describe("testing ServerEngine", function () {
                         return new Variant({dataType: DataType.Double , value: 10.0});
                     },
                     set: function(){
-                        return StatusCodes.Bad_NotWritable;
+                        return StatusCodes.BadNotWritable;
                     }
                 }
 
@@ -449,7 +449,7 @@ describe("testing ServerEngine", function () {
 
         var browseResult = engine.browseSingleNode("ns=46;id=123456");
 
-        browseResult.statusCode.should.equal(StatusCodes.Bad_NodeIdUnknown);
+        browseResult.statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         browseResult.references.length.should.equal(0);
 
     });
@@ -552,10 +552,10 @@ describe("testing ServerEngine", function () {
             readResult.value.value.should.equal(0   );
         });
 
-        it("should return Bad_AttributeIdInvalid  - readSingleNode - for bad attribute    ",function() {
+        it("should return BadAttributeIdInvalid  - readSingleNode - for bad attribute    ",function() {
 
             var readResult = engine.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops);
-            readResult.statusCode.should.eql(StatusCodes.Bad_AttributeIdInvalid);
+            readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
             assert(readResult.value === null);
         });
     });
@@ -600,10 +600,10 @@ describe("testing ServerEngine", function () {
             readResult.value.value.name.should.eql("Organizes");
             //xx readResult.value.value.should.equal(false);
         });
-        it("should return Bad_AttributeIdInvalid on EventNotifier",function() {
+        it("should return BadAttributeIdInvalid on EventNotifier",function() {
 
             var readResult = engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.EventNotifier);
-            readResult.statusCode.should.eql(StatusCodes.Bad_AttributeIdInvalid);
+            readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
             assert(readResult.value === null);
         });
     });
@@ -626,7 +626,7 @@ describe("testing ServerEngine", function () {
         it("should handle a readSingleNode - Value",function() {
 
             var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.Value);
-            readResult.statusCode.should.eql( StatusCodes.Bad_AttributeIdInvalid);
+            readResult.statusCode.should.eql( StatusCodes.BadAttributeIdInvalid);
         });
 
         it("should handle a readSingleNode - DataType",function() {
@@ -709,10 +709,10 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    it("should return Bad_NodeIdUnknown  - readSingleNode - with unknown object",function() {
+    it("should return BadNodeIdUnknown  - readSingleNode - with unknown object",function() {
 
         var readResult = engine.readSingleNode("**UNKNOWN**",AttributeIds.DisplayName);
-        readResult.statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
+        readResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
     });
 
     it("should read the display name of RootFolder",function() {
@@ -748,6 +748,12 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.BrowseName,
                     indexRange: null, /* ???? */
                     dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.Value,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
                 }
             ];
         it("should read and set the required timestamps : TimestampsToReturn.Neither",function() {
@@ -759,9 +765,10 @@ describe("testing ServerEngine", function () {
                 nodesToRead: nodesToRead
             });
             var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(2);
+            dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
+            dataValues[2].should.be.instanceOf(DataValue);
             should(dataValues[0].serverTimeStamp).be.eql(null);
             should(dataValues[0].sourceTimeStamp).be.eql(null);
             should(dataValues[0].serverPicoseconds).be.eql(0);
@@ -782,9 +789,10 @@ describe("testing ServerEngine", function () {
                 nodesToRead: nodesToRead
             });
             var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(2);
+            dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
+            dataValues[2].should.be.instanceOf(DataValue);
 
             should(dataValues[0].serverTimestamp).be.instanceOf(Date);
             should(dataValues[0].sourceTimestamp).be.eql(null);
@@ -808,18 +816,22 @@ describe("testing ServerEngine", function () {
 
             var dataValues = engine.read(readRequest);
 
-            dataValues.length.should.equal(2);
+            dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
+            dataValues[2].should.be.instanceOf(DataValue);
+
             should(dataValues[0].serverTimestamp).be.eql(null);
-            should(dataValues[0].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[0].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
 
             should(dataValues[1].serverTimestamp).be.eql(null);
-            should(dataValues[1].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[1].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+            should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
 
         });
 
@@ -833,17 +845,22 @@ describe("testing ServerEngine", function () {
             });
             var dataValues = engine.read(readRequest);
 
-            dataValues.length.should.equal(2);
+            dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
+            dataValues[2].should.be.instanceOf(DataValue);
+
             should(dataValues[0].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[0].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[0].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
+
             should(dataValues[1].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[1].sourceTimestamp).be.instanceOf(Date);
+            should(dataValues[1].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+            should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
 
         });
 
@@ -918,7 +935,7 @@ describe("testing ServerEngine", function () {
         var translate_service = require("../../lib/services/translate_browse_paths_to_node_ids_service");
         var nodeid = require("../../lib/datamodel/nodeid");
 
-        it(" translate a browse path to a nodeId with a invalid starting node shall return Bad_NodeIdUnknown",function() {
+        it(" translate a browse path to a nodeId with a invalid starting node shall return BadNodeIdUnknown",function() {
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(0), // <=== invalid node id
                 relativePath:[]
@@ -927,9 +944,9 @@ describe("testing ServerEngine", function () {
             var browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
 
-            browsePathResult.statusCode.should.eql(StatusCodes.Bad_NodeIdUnknown);
+            browsePathResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
         });
-        it(" translate a browse path to a nodeId with an empty relativePath  shall return Bad_NothingToDo",function() {
+        it(" translate a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo",function() {
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84), // <=== valid node id
                 relativePath: { elements:[]}         // <=== empty path
@@ -938,10 +955,10 @@ describe("testing ServerEngine", function () {
             var browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
 
-            browsePathResult.statusCode.should.eql(StatusCodes.Bad_NothingToDo);
+            browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
         });
 
-        it("The Server shall return Bad_BrowseNameInvalid if the targetName is missing. ",function() {
+        it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ",function() {
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: { elements:[
@@ -957,10 +974,10 @@ describe("testing ServerEngine", function () {
             var browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
 
-            browsePathResult.statusCode.should.eql(StatusCodes.Bad_BrowseNameInvalid);
+            browsePathResult.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
             browsePathResult.targets.length.should.eql(0);
         });
-        it("The Server shall return Bad_NoMatch if the targetName doesn't exist. ",function() {
+        it("The Server shall return BadNoMatch if the targetName doesn't exist. ",function() {
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: { elements:[
@@ -975,7 +992,7 @@ describe("testing ServerEngine", function () {
 
             var browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
-            browsePathResult.statusCode.should.eql(StatusCodes.Bad_NoMatch);
+            browsePathResult.statusCode.should.eql(StatusCodes.BadNoMatch);
             browsePathResult.targets.length.should.eql(0);
         });
 
@@ -1154,7 +1171,7 @@ describe("testing ServerEngine", function () {
             done();
         });
 
-        it("should return Bad_NotWritable when trying to write a Executable attribute",function(done){
+        it("should return BadNotWritable when trying to write a Executable attribute",function(done){
             var  nodeToWrite = new WriteValue({
                 nodeId: resolveNodeId("RootFolder"),
                 attributeId: AttributeIds.Executable,
@@ -1167,7 +1184,7 @@ describe("testing ServerEngine", function () {
                 }
             });
             var result = engine.writeSingleNode(nodeToWrite);
-            assert(result.should.eql(StatusCodes.Bad_NotWritable));
+            assert(result.should.eql(StatusCodes.BadNotWritable));
             done();
 
         });

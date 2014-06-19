@@ -50,7 +50,7 @@ describe("DiagnosticInfo",function(){
 
         var diag = new s.DiagnosticInfo({
             identifier: { symbolicId: 120 , locale:128 },
-            innerStatusCode: StatusCodes.Bad_CertificateRevocationUnknown
+            innerStatusCode: StatusCodes.BadCertificateRevocationUnknown
         });
 
         encode_decode_round_trip_test(diag,function(buffer,id){

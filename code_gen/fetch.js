@@ -111,6 +111,7 @@ OPC UA Status Codes	                  The numeric identifier for all StatusCodes
 OPC UA NodeIds	                      The numeric identifier for all NodeIds defined in the OPC UA specifications.	    NodeIds.csv	                http://opcfoundation.org/UA/schemas/1.02/NodeIds.csv
 */
 wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd.xml");
+wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.StatusCodes.csv");
 
 if(0) {
 
@@ -144,6 +145,5 @@ if(0) {
     wget("https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.bsd");
 
     wget("https://opcfoundation.org/UA/schemas/1.02/AttributeIds.csv");
-    wget("https://opcfoundation.org/UA/schemas/1.02/StatusCode.csv");
     wget("https://opcfoundation.org/UA/schemas/1.02/NodeIds.csv");
 }

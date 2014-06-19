@@ -8,25 +8,22 @@ var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 
 describe("testing status code manipulation",function(){
 
-    it("should create Bad_NodeIdExists",function(){
+    it("should create BadNodeIdExists",function(){
 
-        StatusCodes.Bad_NodeIdExists.value.should.equal(94);
-        StatusCodes.Bad_NodeIdExists.name.should.equal("Bad_NodeIdExists");
-        StatusCodes.Bad_NodeIdExists.highword.should.equal(0x805E);
+        StatusCodes.BadNodeIdExists.value.should.equal(0x805e0000);
+        StatusCodes.BadNodeIdExists.name.should.equal("BadNodeIdExists");
 
     });
 
-    it("should create Bad_AttributeIdInvalid",function(){
-        StatusCodes.Bad_AttributeIdInvalid.value.should.equal(53);
-        StatusCodes.Bad_AttributeIdInvalid.name.should.equal("Bad_AttributeIdInvalid");
-        StatusCodes.Bad_AttributeIdInvalid.highword.should.equal(0x8035);
-
+    it("should create BadAttributeIdInvalid",function(){
+        StatusCodes.BadAttributeIdInvalid.value.should.equal(0x80350000);
+        StatusCodes.BadAttributeIdInvalid.name.should.equal("BadAttributeIdInvalid");
     });
 
     it("should encode and decode a status code",function(){
 
         var stream = new BinaryStream(8);
-        var statusCode = StatusCodes.Bad_NodeIdExists;
+        var statusCode = StatusCodes.BadNodeIdExists;
         encodeStatusCode(statusCode,stream);
 
         stream.rewind();
@@ -37,7 +34,15 @@ describe("testing status code manipulation",function(){
     });
     it("statusCode should implement a special toString",function(){
 
-        StatusCodes.Bad_AttributeIdInvalid.should.be.instanceOf(StatusCode);
-        StatusCodes.Bad_AttributeIdInvalid.toString().should.equal("Bad_AttributeIdInvalid (0x80350000)");
+        StatusCodes.BadAttributeIdInvalid.should.be.instanceOf(StatusCode);
+        StatusCodes.BadAttributeIdInvalid.toString().should.equal("BadAttributeIdInvalid (0x80350000)");
     });
+
+    it("should create Uncertain_InitialValue",function(){
+
+        StatusCodes.UncertainInitialValue.value.toString(16).should.equal("40920000");
+        StatusCodes.UncertainInitialValue.name.should.equal("UncertainInitialValue");
+
+    });
+
 });

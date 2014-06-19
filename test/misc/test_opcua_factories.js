@@ -142,7 +142,7 @@ describe("testing DataValue encoding decoding",function(){
             sourcePicoseconds: 100,
             serverTimestamp: new Date(),
             serverPicoseconds: 110,
-            statusCode: StatusCodes.Bad_ApplicationSignatureInvalid,
+            statusCode: StatusCodes.BadApplicationSignatureInvalid,
             value: {dataType: DataType.Double, value: 37.5 }
         });
 

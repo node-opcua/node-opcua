@@ -122,7 +122,7 @@ describe("testing ClientTCP_transport",function(){
             // received Fake HEL Message
 
             // Pretend the protocol version is wrong.
-            var errorResponse  = makeError(StatusCodes.Bad_ProtocolVersionUnsupported);
+            var errorResponse  = makeError(StatusCodes.BadProtocolVersionUnsupported);
             var messageChunk = opcua.packTcpMessage("ERR",errorResponse);
             fake_socket.server.write(messageChunk);
 

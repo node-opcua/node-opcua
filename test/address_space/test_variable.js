@@ -5,6 +5,7 @@ var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("../../lib/datamodel/variant").DataType;
 var AttributeIds = require("../../lib/services/read_service").AttributeIds;
 var should = require("should");
+var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
 
 describe("testing Variables ",function(){
 
@@ -51,8 +52,12 @@ describe("testing Variables ",function(){
         value.statusCode.should.eql(StatusCodes.Good);
 
         value = v.readAttribute(AttributeIds.IsAbstract);
-        value.statusCode.name.should.eql("Bad_AttributeIdInvalid");
+        value.statusCode.name.should.eql("BadAttributeIdInvalid");
 
+        value = v.readAttribute(AttributeIds.NodeClass);
+        value.value.dataType.should.eql(DataType.Int32);
+        value.value.value.should.eql(NodeClass.Variable.value);
+        value.statusCode.should.eql(StatusCodes.Good);
 
     });
 

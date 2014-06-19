@@ -136,7 +136,7 @@ describe("Testing the server publish engine", function () {
         publish_server.shutdown();
     });
 
-    it("a server should return Bad_NoSubscription as a response for a publish Request if there is no subscription available for this session. ",function(){
+    it("a server should return BadNoSubscription as a response for a publish Request if there is no subscription available for this session. ",function(){
 
         // create a server - server has no subscription
         var publish_server = new ServerSidePublishEngine();
@@ -153,7 +153,7 @@ describe("Testing the server publish engine", function () {
 
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
-        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Bad_NoSubscription);
+        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
     });
     it("should allow to find a subscription by id",function(){
@@ -217,7 +217,7 @@ describe("Testing the server publish engine", function () {
 
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
-        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Bad_TooManyPublishRequests);
+        send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTooManyPublishRequests);
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
 
     });
@@ -296,7 +296,7 @@ describe("Testing the server publish engine", function () {
 
     });
 
-    it("the server shall return Bad_SequenceNumberInvalid if the client attempts to acknowledge a notification that is not in the queue",function(){
+    it("the server shall return BadSequenceNumberInvalid if the client attempts to acknowledge a notification that is not in the queue",function(){
 
         var publish_server = new ServerSidePublishEngine();
         var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
@@ -321,7 +321,7 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
-        send_response_for_request_spy.getCall(0).args[1].results.should.eql([StatusCodes.Bad_SequenceNumberUnknown]);
+        send_response_for_request_spy.getCall(0).args[1].results.should.eql([StatusCodes.BadSequenceNumberUnknown]);
 
     });
 

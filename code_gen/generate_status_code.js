@@ -8,10 +8,18 @@ var sprintf = require("sprintf").sprintf;
 
 // see OPC-UA Part 6 , A2
 var codeMap = {};
-csv().from.stream(fs.createReadStream(__dirname + '/StatusCodes.csv')).to.array(function (data) {
+var code_list = [];
+
+csv().from.stream(fs.createReadStream(__dirname + '/Opc.Ua.StatusCodes.csv')).to.array(function (data) {
     data.forEach(function (e) {
         var codeName = e[0];
-        codeMap[codeName] = parseInt(e[1],10);
+        console.log(e);
+        code_list.push({
+            name: e[0],
+            value: parseInt(e[1],16),
+            description: e[2]
+        });
+        codeMap[codeName] = parseInt(e[1],16);
     });
     //xx console.log(data);
 
@@ -35,39 +43,15 @@ function parseStatusCodeXML() {
 
     outFile.write("  Good: { name:'Good', value: 0, description:'No Error' }\n");
 
-    parser.on('startElement', function (name, attrs) {
 
-        if (name == "opc:Constant") {
-            var cstName = attrs.Name;
-            if (cstName in codeMap) {
-                obj = { name: cstName, value: codeMap[cstName]};
-            } else {
-                console.log("cannot find", cstName);
-            }
-        } else if (name == "opc:Documentation") {
+    sep=",";
 
-            parser.once("text", function (txt) {
-                obj.description = txt;
-            });
-        }
+    code_list.forEach(function(obj){
+        var s = sprintf("%1s %40s: { name: %40s , value: %6s  ,description: \"%s\"}\n",
+            sep, obj.name, "'" + obj.name + "'", "0x"+obj.value.toString(16), obj.description);
+        outFile.write(s);
     });
-
-    var sep = ",";
-    parser.on("endElement", function (name) {
-
-        if (name === "opc:TypeDictionary") {
-            outFile.write("};\n");
-        } else if (name === "opc:Constant") {
-            outFile.write(
-                sprintf("%1s %40s: { name: %40s , value: %6d  ,description: \"%s\"}\n",
-                    sep, obj.name, "'" + obj.name + "'", obj.value, obj.description));
-            sep = ",";
-        }
-    });
-
-    parser.write(fs.readFileSync(xmlFile));
-    parser.end();
-
+    outFile.write("};\n");
 }
 
 

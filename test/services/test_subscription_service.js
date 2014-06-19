@@ -135,7 +135,7 @@ describe("testing subscription objects",function(){
         var obj = new subscription_service.DeleteMonitoredItemsResponse({
             responseHeader: { serviceResult: StatusCodes.Good },
             results: [
-                StatusCodes.Bad_ApplicationSignatureInvalid,
+                StatusCodes.BadApplicationSignatureInvalid,
                 StatusCodes.Good
             ]
         });
@@ -155,7 +155,7 @@ describe("testing subscription objects",function(){
     it("should encode and decode a SetPublishingModeResponse",function(done){
         var obj = new subscription_service.SetPublishingModeResponse({
             results: [
-                StatusCodes.Bad_ApplicationSignatureInvalid,
+                StatusCodes.BadApplicationSignatureInvalid,
                 StatusCodes.Good
             ]
         });

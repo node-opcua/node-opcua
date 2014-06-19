@@ -51,7 +51,7 @@ server.on("post_initialize",function(){
                     return new Variant({dataType: DataType.Double ,value: pump_speed});
                 },
                 set: function(variant){
-                    return StatusCodes.Bad_NotWritable
+                    return StatusCodes.BadNotWritable
                 }
             }
         });

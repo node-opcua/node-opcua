@@ -40,7 +40,7 @@ describe("end-to-end testing of a write operation between a client and a server"
     after(function(done){
         server.shutdown(done);
     });
-    it("should return Bad_NodeIdUnknown if nodeId is unknown ",function(done){
+    it("should return BadNodeIdUnknown if nodeId is unknown ",function(done){
 
         perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
@@ -57,7 +57,7 @@ describe("end-to-end testing of a write operation between a client and a server"
 
             session.write(nodesToWrite,function(err,statusCodes){
                 statusCodes.length.should.equal(nodesToWrite.length);
-                statusCodes[0].should.eql(opcua.StatusCodes.Bad_NodeIdUnknown);
+                statusCodes[0].should.eql(opcua.StatusCodes.BadNodeIdUnknown);
             });
             done();
 
@@ -82,7 +82,7 @@ describe("end-to-end testing of a write operation between a client and a server"
 
             session.write(nodesToWrite,function(err,statusCodes){
                 statusCodes.length.should.equal(nodesToWrite.length);
-                statusCodes[0].should.eql(opcua.StatusCodes.Bad_NotWritable);
+                statusCodes[0].should.eql(opcua.StatusCodes.BadNotWritable);
             });
             done();
 
