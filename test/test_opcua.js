@@ -109,6 +109,15 @@ describe("testing OPCUA structures ",function() {
     });
     it("should create a ResponseHeader", function(){
 
+
+        function get_current_date_with_delta_seconds(date,delta) {
+            var result = new Date(date);
+            result.setTime(date.getTime() + delta * 1000  );
+            return result;
+
+        }
+        var date_before_construction = get_current_date_with_delta_seconds(new Date(),-1);
+
         var responseHeader = new s.ResponseHeader();
 
         responseHeader.should.have.property("timeStamp");
@@ -118,7 +127,15 @@ describe("testing OPCUA structures ",function() {
         responseHeader.should.have.property("additionalHeader");
         responseHeader.stringTable.should.be.instanceOf(Array);
 
-        responseHeader.timeStamp.should.be.lessThan(new Date());
+        responseHeader.timeStamp.should.be.instanceOf(Date);
+
+        var date_after_construction = get_current_date_with_delta_seconds(new Date(),1);
+
+        //xx console.log("date_before_construction " ,date_before_construction , date_before_construction.getTime());
+        //xx console.log("timestamp                " ,responseHeader.timeStamp , responseHeader.timeStamp.getTime());
+        //xx console.log("date_after_construction  " ,date_after_construction  , date_after_construction.getTime());
+        responseHeader.timeStamp.should.be.greaterThan(date_before_construction);
+        responseHeader.timeStamp.should.be.lessThan(date_after_construction);
     });
 
 
