@@ -26,16 +26,14 @@ describe("Testing numerical range",function () {
 
     });
 
-    it("should throw an exception if low bound is greater than high bound", function() {
-        should(function () {
-           new NumericRange(15, 12);
-        }).throwError();
+    it("should  be an InvalidRange if low bound is greater than high bound", function() {
+        var nr =  new NumericRange([15, 12]);
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
     });
 
-    it("should throw an exception if low bound === high bound", function() {
-        should(function () {
-            new NumericRange(15, 15);
-        }).throwError();
+    it("should be an InvalidRange if bound === high bound", function() {
+        var nr = new NumericRange(15, 15);
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
     });
 
     it("should throw an exception if high bound is crap", function() {
@@ -62,10 +60,14 @@ describe("Testing numerical range",function () {
         nr.toString().should.eql("12:15");
     });
 
-    it("should raise an exception if  a NumericRange from a string with invalid simple range", function (){
-        should(function () {
-            var nr = new NumericRange("15:12");
-        }).throwError();
+    it("should be an InvalidRange when constructed withn a tring with invalid simple range", function (){
+        var nr = new NumericRange(15,12);
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+    });
+
+    it("should be an InvalidRange when constructed withn a tring with invalid simple range", function (){
+        var nr = new NumericRange("15:12");
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
     });
 
     describe("extracting ranges from array", function() {
@@ -74,12 +76,18 @@ describe("Testing numerical range",function () {
 
         it("it should extract a single element with a range defined with a individual integer", function () {
             var nr = new NumericRange(2);
-            nr.extract_values(array).should.eql(2);
+            nr.extract_values(array).array.should.eql([2]);
         });
 
         it("it should extract a sub array with the requested element with a simple array range", function () {
             var nr = new NumericRange(2, 4);
-            nr.extract_values(array).should.eql([2, 3, 4]);
+            nr.extract_values(array).array.should.eql([2, 3, 4]);
+        });
+
+
+        it("it should extract a sub array with the requested element with a empty NumericRange", function () {
+            var nr = new NumericRange();
+            nr.extract_values(array).array.should.eql( [ 0, 1, 2, 3, 4, 5]);
         });
 
     });

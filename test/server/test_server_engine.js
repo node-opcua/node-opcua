@@ -33,6 +33,31 @@ describe("testing ServerEngine", function () {
             BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;
             ref_Organizes_Id = engine.address_space.findReferenceType("Organizes").nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
+
+
+            // add a variable as a Array of Double with some values
+            var testArray = [];
+            for ( var i =0; i<10;i++) { testArray.push( i*1.0); }
+
+            engine.addVariable(
+                engine.findObject("ObjectsFolder"),
+                {
+                    browseName: "TestArray",
+                    nodeId : "ns=1;s=TestArray",
+                    dataType: "Double",
+                    value: {
+                        get: function() {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value : testArray
+                            })
+                        },
+                        set: null // read only
+                    }
+                }
+            );
+
             done();
         });
 
@@ -682,7 +707,8 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("readSingleNode on View",function(){
+    describe("readSingleNode on View",function() {
+
         // for views
         xit("should handle a readSingleNode - ContainsNoLoops",function() {
 
@@ -851,12 +877,12 @@ describe("testing ServerEngine", function () {
             dataValues[2].should.be.instanceOf(DataValue);
 
             should(dataValues[0].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[0].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
+            should(dataValues[0].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
 
             should(dataValues[1].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[1].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
+            should(dataValues[1].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
 
@@ -889,6 +915,73 @@ describe("testing ServerEngine", function () {
         dataValues.length.should.equal(2);
         dataValues[0].value.value.text.should.eql("NamespaceArray");
         dataValues[1].value.value.should.be.instanceOf(Array);
+        dataValues[1].value.value.length.should.be.eql(2);
+    });
+
+    it("should handle indexRange with individual value",function() {
+
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: "ns=1;s=TestArray",
+                    attributeId: AttributeIds.Value,
+                    indexRange: "2",     // <<<<<<<<<<<<<<<<<<<<<<<<<<
+                    dataEncoding: null /* */
+                },
+            ]
+        });
+        var dataValues = engine.read(readRequest);
+        dataValues.length.should.equal(1);
+        dataValues[0].statusCode.should.eql(StatusCodes.Good);
+
+        dataValues[0].value.value.should.be.instanceOf(Array);
+        dataValues[0].value.value.length.should.be.eql(1);
+        dataValues[0].value.value[0].should.be.eql(2.0);
+
+    });
+
+    it("should handle indexRange with a simple range",function() {
+
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: "ns=1;s=TestArray",
+                    attributeId: AttributeIds.Value,
+                    indexRange: "2:5",    // <<<<<<<<<<<<<<<<<<<<<<<<<<
+                    dataEncoding: null /* */
+                },
+            ]
+        });
+        var dataValues = engine.read(readRequest);
+        dataValues.length.should.equal(1);
+        dataValues[0].statusCode.should.eql(StatusCodes.Good);
+        dataValues[0].value.value.should.be.instanceOf(Array);
+        dataValues[0].value.value.length.should.be.eql(4);
+        dataValues[0].value.value.should.be.eql([ 2.0 , 3.0 , 4.0, 5.0]);
+
+    });
+    it("should receive BadIndexRangeNoData when indexRange try to access outside boundary",function() {
+
+        var readRequest = new read_service.ReadRequest({
+            maxAge: 0,
+            timestampsToReturn: TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId: "ns=1;s=TestArray",
+                    attributeId: AttributeIds.Value,
+                    indexRange: "2:1000",    // <<<<<<<<<<<<<<<<<<<<<<<<<<
+                    dataEncoding: null /* */
+                },
+            ]
+        });
+        var dataValues = engine.read(readRequest);
+        dataValues.length.should.equal(1);
+        dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+
     });
 
     it("should read Server_NamespaceArray  DataType",function() {
@@ -929,7 +1022,10 @@ describe("testing ServerEngine", function () {
         dataValues.length.should.equal(1);
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
+
     });
+
+
 
     describe("testing ServerEngine browsePath",function(){
         var translate_service = require("../../lib/services/translate_browse_paths_to_node_ids_service");
