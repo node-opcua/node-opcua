@@ -9,6 +9,8 @@ var _ = require("underscore");
 var assert = require('better-assert');
 var should = require('should');
 
+var address_space_for_conformance_testing  = require("../../lib/simulation/address_space_for_conformance_testing");
+var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 /**
  * create and start a fake OPCUA Server that exposes a temperature set point variable.
@@ -21,6 +23,7 @@ var should = require('should');
  *    the 'temperatureVariableId' of the server object.
  *
  * @param options {options}
+ * @param [options.add_simulation = false] {Boolean} add the simulation node in the server
  * @param done {callback}
  * @return {OPCUAServer}
  */
@@ -81,6 +84,10 @@ function build_server_with_temperature_device(options,done) {
             var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
             debugLog("endpointUrl",endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
+
+            if (options.add_simulation) {
+                build_address_space_for_conformance_testing(server.engine);
+            }
             done();
 
         });

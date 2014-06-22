@@ -407,6 +407,21 @@
         </References>
     </UAVariable>
 
+  <UADataType NodeId="i=292" BrowseName="Time">
+  <DisplayName>Time</DisplayName>
+  <Description>A time value specified as HH:MM:SS.SSS.</Description>
+  <References>
+    <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
+  </References>
+  </UADataType>
+
+  <UADataType NodeId="i=295" BrowseName="LocaleId">
+    <DisplayName>LocaleId</DisplayName>
+    <Description>An identifier for a user locale.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
+    </References>
+  </UADataType>
 
     <UAObject NodeId="i=2253" BrowseName="Server" EventNotifier="1">
         <DisplayName>Server</DisplayName>
@@ -892,4 +907,5 @@
       <Reference ReferenceType="HasProperty" IsForward="false">i=2253</Reference>
     </References>
   </UAVariable>
+
 </UANodeSet>
