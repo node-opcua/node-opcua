@@ -60,15 +60,21 @@ describe("Testing numerical range",function () {
         nr.toString().should.eql("12:15");
     });
 
-    it("should be an InvalidRange when constructed withn a tring with invalid simple range", function (){
+    it("should be an InvalidRange when constructed with a string with invalid simple range", function (){
         var nr = new NumericRange(15,12);
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
     });
 
-    it("should be an InvalidRange when constructed withn a tring with invalid simple range", function (){
+    it("should be an InvalidRange when constructed with a string with invalid simple range", function (){
         var nr = new NumericRange("15:12");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
     });
+    it("should be an InvalidRange when constructed with a badly formed string", function (){
+        var nr = new NumericRange( "2-4");
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+    });
+
+   ;
 
     describe("extracting ranges from array", function() {
 

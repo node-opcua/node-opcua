@@ -148,5 +148,29 @@ describe("Variant",function(){
         });
     });
 
+    it("should create a Array of GUID Variant",function(){
+
+        var ec  = require("../../lib/misc/encode_decode");
+        var var1 = new Variant({
+            dataType: DataType.Guid,
+            arrayType: VariantArrayType.Array,
+            value: [
+                ec.randomGuid(),
+                ec.randomGuid(),
+                ec.randomGuid(),
+                ec.randomGuid()
+            ]
+        });
+
+        var1.dataType.should.eql(DataType.Guid);
+        var1.arrayType.should.eql(VariantArrayType.Array);
+
+        should(typeof var1.value[0]).be.eql("string");
+
+        encode_decode_round_trip_test(var1,function(stream){
+            stream.length.should.equal(69);
+        });
+
+    });
 
 });

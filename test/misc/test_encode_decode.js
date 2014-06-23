@@ -151,6 +151,33 @@ describe("testing built-in type encoding", function () {
 
     });
 
+    it("should encode and decode a GUID", function () {
+
+        var value = ec.emptyGuid;
+
+        test_encode_decode(value, ec.encodeGuid, ec.decodeGuid, 16, function (buffer) {
+            buffer.readUInt8(0).should.equal(0x00);
+            buffer.readUInt8(1).should.equal(0x00);
+            buffer.readUInt8(2).should.equal(0x00);
+            buffer.readUInt8(3).should.equal(0x00);
+
+            buffer.readUInt8(4).should.equal(0x00);
+            buffer.readUInt8(5).should.equal(0x00);
+
+            buffer.readUInt8(6).should.equal(0x00);
+            buffer.readUInt8(7).should.equal(0x00);
+
+            buffer.readUInt8(8).should.equal(0x00);
+            buffer.readUInt8(9).should.equal(0x00);
+
+            buffer.readUInt8(10).should.equal(0x00);
+            buffer.readUInt8(11).should.equal(0x00);
+            buffer.readUInt8(12).should.equal(0x00);
+            buffer.readUInt8(13).should.equal(0x00);
+            buffer.readUInt8(14).should.equal(0x00);
+            buffer.readUInt8(15).should.equal(0x00);
+        });
+    });
 
     it("should encode and decode a GUID", function () {
 
@@ -179,7 +206,6 @@ describe("testing built-in type encoding", function () {
             buffer.readUInt8(15).should.equal(0x63);
         });
     });
-
 
     it("should encode and decode a ByteString", function () {
 
@@ -293,6 +319,8 @@ describe("testing built-in type encoding", function () {
             ec.decodeNodeId,
             16 + 2 + 1
         );
+
+
     });
 
     it("should encode and decode a Opaque NodeId", function () {
