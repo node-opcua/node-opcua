@@ -310,6 +310,41 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
+        it("should return BadNothingToDo when reading an empty nodeToRead array", function(done) {
+
+            var nodesToRead = [];
+
+            g_session.read(nodesToRead,function(err,unused,dataValues,diagnosticInfos) {
+                if (err) {
+                    var response = unused;
+                    //dataValues.length.should.be(1);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                    done();
+                } else {
+                    done(new Error("Expecting an error here"));
+                }
+            });
+        });
+
+        it("should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function(done) {
+
+            nodesToRead = [
+                {
+                    nodeId: "RootFolder",
+                    attributeId: 13
+                }
+            ];
+            g_session.read(nodesToRead,-20000,function(err,unused,dataValues,diagnosticInfos) {
+                if (err) {
+                    var response = unused;
+                    //dataValues.length.should.be(1);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadMaxAgeInvalid);
+                    done();
+                } else {
+                    done(new Error("Expecting an error here"));
+                }
+            });
+        });
         it("should read the TemperatureTarget value", function(done) {
 
             g_session.readVariableValue(temperatureVariableId.nodeId,function(err,dataValues,diagnosticInfos){
@@ -341,7 +376,9 @@ describe("testing basic Client-Server communication",function() {
                 });
         });
 
-        describe("Accessing Server Object",function(){
+
+
+        describe("Accessing the Server object in the Root folder",function(){
             var makeNodeId = require("../lib/datamodel/nodeid").makeNodeId;
             var ReferenceTypeIds = require("../lib/opcua_node_ids").ReferenceTypeIds;
             var VariableIds = require("../lib/opcua_node_ids").VariableIds;

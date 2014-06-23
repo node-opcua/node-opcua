@@ -30,8 +30,6 @@ describe("Testing IntegerId",function() {
         });
         o.requestHandle.should.eql(0);
 
-
-        process.env.DEBUG= true;
         var obj_reloaded = encode_decode_round_trip_test(o);
         obj_reloaded.requestHandle.should.eql(0);
 

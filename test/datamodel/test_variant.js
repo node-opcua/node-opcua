@@ -155,8 +155,10 @@ describe("Variant",function(){
             dataType: DataType.Guid,
             arrayType: VariantArrayType.Array,
             value: [
+                ec.emptyGuid,
                 ec.randomGuid(),
                 ec.randomGuid(),
+                ec.emptyGuid,
                 ec.randomGuid(),
                 ec.randomGuid()
             ]
@@ -168,7 +170,7 @@ describe("Variant",function(){
         should(typeof var1.value[0]).be.eql("string");
 
         encode_decode_round_trip_test(var1,function(stream){
-            stream.length.should.equal(69);
+            stream.length.should.equal(101);
         });
 
     });

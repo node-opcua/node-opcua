@@ -360,7 +360,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
             if(!err) {
                 assert(response instanceof subscription_service.RepublishResponse);
             }
-            done(err);
+            done();
         });
     });
 
@@ -373,7 +373,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
             if(!err) {
                 assert(response instanceof subscription_service.DeleteMonitoredItemsResponse);
             }
-            done(err);
+            done();
         });
     });
 

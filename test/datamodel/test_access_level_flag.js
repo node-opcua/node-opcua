@@ -76,4 +76,14 @@ describe("Testing AccessLevelFlag",function() {
 
 
     });
+
+    it("should provide a easy way to check if a flag is set or not",function(){
+
+        var accessLevel = makeAccessLevel("CurrentWrite | CurrentRead");
+
+        accessLevel.has("CurrentWrite").should.be.eql(true);
+        accessLevel.has("CurrentRead").should.be.eql(true);
+        accessLevel.has("HistoryRead").should.be.eql(false);
+
+    });
 });
