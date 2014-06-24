@@ -175,4 +175,29 @@ describe("Variant",function(){
 
     });
 
+    it("should detect invalid SByte Variant",function(){
+        var var1 = new Variant({
+            dataType: DataType.SByte,
+        value: 63
+        });
+        var1.isValid().should.eql(true);
+        var1.value = "Bad!";
+        var1.isValid().should.eql(false);
+
+    });
+
+    it("should detect invalid Array<Int32> Variant",function(){
+        var var1 = new Variant({
+            dataType: DataType.UInt32,
+            arrayType: VariantArrayType.Array,
+            value: [  2,3,4,5 ]
+        });
+        var1.isValid().should.eql(true);
+
+        var1.value[2] = "Bad!";
+        var1.isValid().should.eql(false);
+
+    });
+
+
 });
