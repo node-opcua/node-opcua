@@ -759,6 +759,83 @@ describe("testing ServerEngine", function () {
         dataValues.length.should.equal(1);
 
     });
+
+    describe("testing read with indexRange for attributes that can't be used with IndexRange ",function(){
+        // see CTT Attribute Service, AttributeRead , Test-Case / Err015.js
+        // Read a single node specifying an IndexRange for attributes that can't be used
+        // with IndexRange, as in:
+        // AccessLevel, BrowseName, DataType, DisplayName, Historizing, NodeClass, NodeId, UserAccessLevel, ValueRank
+        // Expect BadIndexRangeNoData
+
+        var nodeId = "ns=1;s=TestVar";
+        before(function() {
+            engine.addVariable(
+                engine.findObject("ObjectsFolder"),
+                {
+                    browseName: "TestVar",
+                    nodeId : nodeId,
+                    dataType: "Double",
+                    value: {
+                        get: function() {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                value : 0
+                            })
+                        },
+                        set: null // read only
+                    }
+                }
+
+            );
+        });
+
+        function read_shall_get_BadIndexRangeNoData(attributeId,done) {
+            assert(attributeId >=0 && attributeId <22);
+            var readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Both,
+                nodesToRead: [
+                    {
+                        nodeId:  nodeId,
+                        attributeId: attributeId,
+                        indexRange: "1:2",
+                        dataEncoding: null /* */
+                    }
+                ]
+            });
+            var dataValues = engine.read(readRequest);
+            dataValues.length.should.eql(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+            done();
+        }
+        var attributes = ["AccessLevel", "BrowseName", "DataType", "DisplayName", "Historizing", "NodeClass", "NodeId", "UserAccessLevel", "ValueRank"];
+        attributes.forEach(function(attribute) {
+
+            it("shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeIt = " + attribute + " ",function(done){
+                read_shall_get_BadIndexRangeNoData(AttributeIds[attribute],done);
+            });
+
+        });
+
+        it("should return ",function(){
+            var readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Both,
+                nodesToRead: [
+                    {
+                        nodeId:  nodeId,
+                        attributeId: AttributeIds.Value,
+                        indexRange: null,
+                        dataEncoding: { name: "Invalid Data Encoding" } // QualifiedName
+                    }
+                ]
+            });
+            var dataValues = engine.read(readRequest);
+            dataValues.length.should.eql(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
+        });
+    });
+
     describe("testing read operation with timestamps",function() {
 
         var nodesToRead =
@@ -1122,6 +1199,7 @@ describe("testing ServerEngine", function () {
         it("should read  Server_ServerStatus_CurrentTime",function(){
 
             var readRequest = new read_service.ReadRequest({
+                timestampsToReturn : read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus_CurrentTime,
                     attributeId: AttributeIds.Value
@@ -1139,6 +1217,7 @@ describe("testing ServerEngine", function () {
         it("should read  Server_ServerStatus_StartTime",function(){
 
             var readRequest = new read_service.ReadRequest({
+                timestampsToReturn : read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus_StartTime,
                     attributeId: AttributeIds.Value
@@ -1158,6 +1237,7 @@ describe("testing ServerEngine", function () {
             engine.buildInfo.buildNumber = "1234";
 
             var readRequest = new read_service.ReadRequest({
+                timestampsToReturn : read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
                     attributeId: AttributeIds.Value
@@ -1207,6 +1287,7 @@ describe("testing ServerEngine", function () {
         it("should read all attributes of Server_ServerStatus_CurrentTime",function(){
 
             var readRequest = new read_service.ReadRequest({
+                timestampsToReturn : read_service.TimestampsToReturn.Neither,
                 nodesToRead:[1,2,3,4,5,6,7,13,14,15,16,17,18,19,20].map(function(attributeId) {
                     return {
                         nodeId:  VariableIds.Server_ServerStatus_CurrentTime,
@@ -1229,6 +1310,7 @@ describe("testing ServerEngine", function () {
         it("should be possible to access the ServerStatus Object as a variable",function(){
 
             var readRequest = new read_service.ReadRequest({
+                timestampsToReturn : read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId:  VariableIds.Server_ServerStatus,
                     attributeId: AttributeIds.Value

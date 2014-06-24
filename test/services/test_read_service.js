@@ -71,7 +71,7 @@ describe("Read Service", function(){
     it("should create a empty ReadRequest",function(){
         var readRequest = new bs.ReadRequest({});
 
-        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Neither);
+        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Invalid);
         readRequest.nodesToRead.length.should.equal(0);
 
         encode_decode_round_trip_test(readRequest);
@@ -152,3 +152,16 @@ describe("Read Service", function(){
 
 
 });
+
+describe("TimestampsToReturn",function(){
+
+    it("should create an invalid timestampsToReturn", function() {
+
+        var v = bs.TimestampsToReturn.get(1000);
+        should(v).eql(null);
+        var v = bs.TimestampsToReturn.get(0x03);
+        should(v).eql(bs.TimestampsToReturn.Neither);
+
+    });
+});
+

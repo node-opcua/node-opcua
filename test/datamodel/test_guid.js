@@ -9,6 +9,8 @@ describe("GUID",function(){
         isValidGuid("zz962B91-FA75-4AE6-8D28-B404DC7DAF63").should.equal(false);
         isValidGuid("72962B-91FA75-4AE6-8D28-B404DC7DAF63").should.equal(false);
 
+        isValidGuid("111111172962B-91FA75-4AE6-8D28-B404DC7DAF63").should.equal(false);
+        isValidGuid("72962B-91FA75-4AE6-8D28-B404DC7DAF639999999").should.equal(false);
         isValidGuid(emptyGuid).should.equal(true);
 
 
