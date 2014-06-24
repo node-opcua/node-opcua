@@ -27,6 +27,8 @@ var NodeCrawler = require("../lib/client/node_crawler").NodeCrawler;
 
 describe("NodeCrawler",function(){
 
+    this.timeout(10000);
+
     var server , client,temperatureVariableId,endpointUrl ;
 
     var port = 2001;
