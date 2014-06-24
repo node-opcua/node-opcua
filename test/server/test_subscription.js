@@ -360,6 +360,13 @@ describe("Subscriptions", function () {
         subscription._get_future_sequence_number().should.equal(4);
     });
 
+    it("should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist",function(){
+
+        var subscription = new Subscription();
+        subscription.removeMonitoredItem(26).should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+
+
+    });
     it("closing a Subscription causes its MonitoredItems to be deleted. ",function(){
 
     });
