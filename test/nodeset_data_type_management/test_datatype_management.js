@@ -9,6 +9,10 @@ var _ = require("underscore");
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
+var makeNodeId = opcua.makeNodeId;
+var makeExpandedNodeId = opcua.makeExpandedNodeId;
+var Variant = opcua.Variant;
+var DataType = opcua.DataType;
 
 var nodeset = require("../../lib/address_space/convert_nodeset_to_types").nodeset;
 var makeServerStatus = require("../../lib/address_space/convert_nodeset_to_types").makeServerStatus;
@@ -40,27 +44,51 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
         done();
 
     });
-    it("should create an structure from the ServerStatus object",function(done){
 
-
+    it("should create an structure from the ServerStatus object",function() {
 
         var serverStatus = new nodeset.ServerStatus({
             startTime: new Date(),
-            buildInfo : {
-               // productUri: "qsdqs",
+            buildInfo: {
+                // productUri: "qsdqs",
                 // manufacturerName: "sqdqsd"
 
             },
             secondsTillShutdown: 100,
-            shutdownReason:{ text: "for maintenance"}
+            shutdownReason: { text: "for maintenance"}
         });
 
         assert(serverStatus._schema.name === "ServerStatus");
         serverStatus.startTime.should.be.instanceOf(Date);
         serverStatus.secondsTillShutdown.should.eql(100);
+    });
+    it("should ServerStatus object have correct encodingDefaultBinary ",function() {
+        var serverStatus = new nodeset.ServerStatus({});
+        serverStatus.encodingDefaultBinary.should.eql(makeExpandedNodeId(862,0));
+    });
 
+    it("should encode and decode a ServerStatus object",function() {
+
+        var serverStatus = new nodeset.ServerStatus({
+            startTime: new Date(),
+            buildInfo: {
+            },
+            secondsTillShutdown: 100,
+            shutdownReason: { text: "for maintenance"}
+        });
         encode_decode_round_trip_test(serverStatus);
 
-        done();
     });
+    it("should encode and decode a variant containing an extension object being a ServerStatus",function() {
+
+        var serverStatus = new nodeset.ServerStatus({});
+
+        var v = new Variant({
+            dataType: DataType.ExtensionObject,
+            value: serverStatus
+        });
+        encode_decode_round_trip_test(v);
+    });
+
+
 });

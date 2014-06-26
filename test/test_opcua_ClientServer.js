@@ -4,15 +4,16 @@ var should = require("should");
 var assert = require('better-assert');
 var async = require("async");
 var util = require("util");
-var opcua = require("../lib/nodeopcua");
+var opcua = require("../");
 
 var debugLog  = require("../lib/misc/utils").make_debugLog(__filename);
 var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
 
-var Variant = require("../lib/datamodel/variant").Variant;
-var DataType = require("../lib/datamodel/variant").DataType;
+var Variant =  opcua.Variant
+var DataType = opcua.DataType;
+var DataValue = opcua.DataValue;
 
 var _ = require("underscore");
 
@@ -426,6 +427,24 @@ describe("testing basic Client-Server communication",function() {
 
                     done();
                 });
+
+            });
+
+            it("ServerStatus object shall be accessible as a ExtensionObject",function(done){
+
+                var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
+                g_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo){
+                    var dataValue = results[0];
+
+
+                    dataValue.should.be.instanceOf(DataValue);
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+
+
+                    done();
+                });
+
 
             });
         });
