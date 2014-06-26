@@ -4,6 +4,7 @@ module.exports.structures       = require("./lib/datamodel/structures");
 module.exports.parseEndpointUrl = require("./lib/nodeopcua").parseEndpointUrl;
 module.exports.resolveNodeId    = require("./lib/datamodel/nodeid").resolveNodeId;
 module.exports.makeNodeId       = require("./lib/datamodel/nodeid").makeNodeId;
+module.exports.makeExpandedNodeId       = require("./lib/datamodel/nodeid").makeExpandedNodeId;
 module.exports.StatusCodes      = require("./lib/datamodel/opcua_status_code").StatusCodes;
 module.exports.DataType         = require("./lib/datamodel/variant").DataType;
 module.exports.DataValue        = require("./lib/datamodel/datavalue").DataValue;

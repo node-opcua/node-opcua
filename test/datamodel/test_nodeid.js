@@ -125,6 +125,21 @@ describe("testing coerceNodeId",function(){
 
     });
 
+    it("should detect empty NodeIds",function(){
+
+        var empty_nodeId = makeNodeId(0,0);
+        empty_nodeId.isEmpty().should.be.eql(true);
+
+        var empty_nodeId = makeNodeId(1,0);
+        empty_nodeId.isEmpty().should.be.eql(false);
+
+    });
+
+    it("should convert an empty NodeId to  <empty nodeid> string",function() {
+        var empty_nodeId = makeNodeId(0,0);
+        empty_nodeId.toString().should.eql("ns=0;i=0");
+    });
+
 });
 
 describe("Type coercion at construction time",function(){
@@ -181,6 +196,35 @@ describe("testing NodeId.displayText",function(){
     it("should provide a richer display text when nodeid is known",function(){
         var ref_nodeId = new NodeId(NodeIdType.NUMERIC,85,0);
         ref_nodeId.displayText().should.equal("ObjectsFolder (ns=0;i=85)");
+    });
+
+});
+
+var makeExpandedNodeId = require("../../lib/datamodel/nodeid").makeExpandedNodeId;
+describe("testing ExpandedNodeId",function(){
+
+    it("should create a ExpandedNodeId from a integer",function(){
+        var exnodeId = makeExpandedNodeId(1);
+        exnodeId.identifierType.should.eql(NodeIdType.NUMERIC);
+        exnodeId.value.should.eql(1);
+        exnodeId.namespace.should.eql(0);
+        should(exnodeId.namespaceUri).eql(null);
+        should(exnodeId.serverIndex).eql(0);
+        exnodeId.toString().should.eql("ns=0;i=1");
+    });
+
+    it("should create a ExpandedNodeId from a NodeId",function(){
+
+        var nodeId = makeNodeId("ID",2);
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+
+        var exnodeId = makeExpandedNodeId(nodeId);
+        exnodeId.identifierType.should.eql(NodeIdType.STRING);
+        exnodeId.value.should.eql("ID");
+        exnodeId.namespace.should.eql(2);
+        should(exnodeId.namespaceUri).eql(null);
+        should(exnodeId.serverIndex).eql(0);
+        exnodeId.toString().should.eql("ns=2;s=ID");
     });
 
 });
