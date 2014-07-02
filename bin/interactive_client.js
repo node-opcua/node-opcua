@@ -12,13 +12,15 @@ var util = require("util");
 
 function completer(line) {
 
-    var completions,hits;
+    var completions, hits;
     if (line.trim().indexOf("open")) {
         completions = 'localhost <port>'.split(' ');
     } else {
         completions = 'open close getEndpoints quit'.split(' ');
     }
-    hits = completions.filter(function(c) { return c.indexOf(line) === 0 });
+    hits = completions.filter(function (c) {
+        return c.indexOf(line) === 0
+    });
     return [hits.length ? hits : completions, line]
 }
 
@@ -32,24 +34,24 @@ var the_session = null;
 
 var client = new OPCUAClient();
 
-client.on("send_chunk",function(message_chunk){
-    console.log(">> " +message_chunk.length);
+client.on("send_chunk", function (message_chunk) {
+    console.log(">> " + message_chunk.length);
 });
 
-client.on("receive_chunk",function(message_chunk){
-    console.log("<< " +message_chunk.length);
+client.on("receive_chunk", function (message_chunk) {
+    console.log("<< " + message_chunk.length);
 });
 
 var dumpPacket = false;
 
-client.on("send_request",function(message){
+client.on("send_request", function (message) {
     if (dumpPacket) {
         console.log(" sending request".red);
         var analyze_object_binary_encoding = require("../lib/misc/packet_analyzer").analyze_object_binary_encoding;
         analyze_object_binary_encoding(message);
     }
 });
-client.on("receive_response",function(message){
+client.on("receive_response", function (message) {
     if (dumpPacket) {
         assert(message);
         console.log(" receive response".cyan.bold);
@@ -78,11 +80,11 @@ if (rl.history) {
 rl.prompt(">");
 rl.on('line', function (line) {
 
-    var nodes,str;
+    var nodes, str;
     var args = line.trim().split(" ");
     var cmd = args[0];
 
-    switch(cmd) {
+    switch (cmd) {
         case 'debug':
             process.env.DEBUG = "ALL";
             console.log(" Debug is ON");
@@ -96,23 +98,23 @@ rl.on('line', function (line) {
             var port = p.port;
             console.log(" open hostname " + hostname + " port : " + port);
             rl.pause();
-            client.connect(endpoint_url,function(err){
-                console.log("client connected err=",err);
+            client.connect(endpoint_url, function (err) {
+                console.log("client connected err=", err);
                 rl.resume();
                 rl.prompt();
             });
             break;
         case 'close':
             if (the_session) {
-                the_session.close(function(){
+                the_session.close(function () {
                     the_session = null;
-                    client.disconnect(function(){
+                    client.disconnect(function () {
                         rl.write("client disconnected");
                     });
 
                 });
             } else {
-                client.disconnect(function(){
+                client.disconnect(function () {
                     rl.write("client disconnected");
                 });
             }
@@ -120,10 +122,10 @@ rl.on('line', function (line) {
         case 'gep':
         case 'getEndpoints':
             rl.pause();
-            client.getEndPointRequest(function (err,endpoints){
+            client.getEndPointRequest(function (err, endpoints) {
 
                 endpoints = utils.replaceBufferWithHexDump(endpoints);
-                console.log(treeify.asTree(endpoints,true));
+                console.log(treeify.asTree(endpoints, true));
 
                 rl.prompt(">");
                 rl.resume();
@@ -132,7 +134,7 @@ rl.on('line', function (line) {
         case 'createSession':
         case 'cs':
             rl.pause();
-            client.createSession(function (err,session){
+            client.createSession(function (err, session) {
                 if (err) {
                     console.log("Error : ".red, err);
                 } else {
@@ -151,18 +153,19 @@ rl.on('line', function (line) {
 
                 nodes = [ args[1] ];
 
-                the_session.browse(nodes,function(err,nodeResults) {
+                the_session.browse(nodes, function (err, nodeResults) {
 
-                    if (err ) {
+                    if (err) {
                         console.log(err);
                         console.log(nodeResults);
                     } else {
 
                         function dumpNodeResult(node) {
-                            str = sprintf("    %-30s%s%s",node.browseName.name,(node.isForward ? "->" : "<-") ,node.nodeId.displayText()  );
+                            str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
                             console.log(str);
                         }
-                        for (var i = 0; i < nodeResults.length; i++ ) {
+
+                        for (var i = 0; i < nodeResults.length; i++) {
                             console.log("Node: ", nodes[i]);
                             console.log(" StatusCode =", nodeResults[i].statusCode.toString(16));
                             nodeResults[i].references.forEach(dumpNodeResult);
@@ -180,22 +183,22 @@ rl.on('line', function (line) {
                 rl.pause();
                 nodes = [args[1]];
 
-                the_session.readVariableValue(nodes,function(err,dataValues) {
-                    if (err ) {
+                the_session.readVariableValue(nodes, function (err, dataValues) {
+                    if (err) {
                         console.log(err);
                         console.log(dataValues);
                     } else {
-                        for (var i = 0; i < dataValues.length; i++ ) {
+                        for (var i = 0; i < dataValues.length; i++) {
                             var dataValue = dataValues[i];
                             console.log("           Node : ", (nodes[i]).cyan.bold);
                             if (dataValue.value) {
-                                 console.log("           type : ",colorize(dataValue.value.dataType.key));
-                                 console.log("           value: ",colorize(dataValue.value.value));
+                                console.log("           type : ", colorize(dataValue.value.dataType.key));
+                                console.log("           value: ", colorize(dataValue.value.value));
                             } else {
                                 console.log("           value: <null>");
                             }
-                            console.log("      statusCode: 0x", dataValue.statusCode.toString(16) );
-                            console.log(" sourceTimestamp: ",dataValue.sourceTimestamp, dataValue.sourcePicoseconds );
+                            console.log("      statusCode: 0x", dataValue.statusCode.toString(16));
+                            console.log(" sourceTimestamp: ", dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
                         }
                     }
                 });
@@ -208,19 +211,19 @@ rl.on('line', function (line) {
                 rl.pause();
                 nodes = [args[1]];
 
-                the_session.readAllAttributes(nodes,function(err,nodesToRead,dataValues/*,diagnosticInfos*/) {
+                the_session.readAllAttributes(nodes, function (err, nodesToRead, dataValues/*,diagnosticInfos*/) {
                     if (!err) {
-                        for (var i = 0; i < dataValues.length; i++ ) {
-                            console.log("           Node : ", util.inspect(nodesToRead[i],{colors:true}));
+                        for (var i = 0; i < dataValues.length; i++) {
+                            console.log("           Node : ", util.inspect(nodesToRead[i], {colors: true}));
                             var dataValue = dataValues[i];
                             if (dataValue.value) {
-                                console.log("           type : ",colorize(dataValue.value.dataType.key));
-                                console.log("           value: ",colorize(dataValue.value.value));
+                                console.log("           type : ", colorize(dataValue.value.dataType.key));
+                                console.log("           value: ", colorize(dataValue.value.value));
                             } else {
                                 console.log("           value: <null>");
                             }
-                            console.log("      statusCode: 0x", dataValue.statusCode.toString(16) );
-                            console.log(" sourceTimestamp: ",dataValue.sourceTimestamp, dataValue.sourcePicoseconds );
+                            console.log("      statusCode: 0x", dataValue.statusCode.toString(16));
+                            console.log(" sourceTimestamp: ", dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
                         }
                     }
                 });
@@ -229,12 +232,12 @@ rl.on('line', function (line) {
             break;
 
         case 'tb':
-            if (the_session){
+            if (the_session) {
 
                 var path = args[1];
-                the_session.translateBrowsePath(path,function(err,results){
-                    console.log(" Path ",path," is ");
-                    console.log(util.inspect(results,{colors:true,depth:100}));
+                the_session.translateBrowsePath(path, function (err, results) {
+                    console.log(" Path ", path, " is ");
+                    console.log(util.inspect(results, {colors: true, depth: 100}));
                 });
             }
             break;

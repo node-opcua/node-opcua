@@ -9,7 +9,6 @@ var opcua = require("../lib/nodeopcua");
 var debugLog  = require("../lib/misc/utils").make_debugLog(__filename);
 var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/services/browse_service");
-var BrowseDirection = browse_service.BrowseDirection;
 
 var Variant = require("../lib/datamodel/variant").Variant;
 var DataType = require("../lib/datamodel/variant").DataType;
@@ -22,7 +21,6 @@ var build_server_with_temperature_device = require("./helpers/build_server_with_
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 // var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-var dumpReferences = require("../lib/address_space/basenode").dumpReferences;
 var NodeCrawler = require("../lib/client/node_crawler").NodeCrawler;
 
 describe("NodeCrawler",function(){
@@ -115,7 +113,7 @@ describe("NodeCrawler",function(){
 
             var crawler = new NodeCrawler(session);
 
-            nodeId = "RootFolder";
+            var nodeId = "RootFolder";
 
             crawler.read(nodeId, function (err, obj) {
 

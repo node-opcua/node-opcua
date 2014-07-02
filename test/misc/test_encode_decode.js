@@ -144,7 +144,7 @@ describe("testing built-in type encoding", function () {
 
     it("should encode and decode a DateTime", function () {
 
-        var value = new Date(2014,0,2,15,0);
+        var value = new Date(2014, 0, 2, 15, 0);
         test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, function (buffer) {
             // todo
         });
@@ -281,8 +281,8 @@ describe("testing built-in type encoding", function () {
 
     it("should encode and decode any small numeric NodeId", function () {
 
-        for (var i = 0 ; i<=255; i++) {
-            var nodeId = ec.makeNodeId(/*value*/i,/*namespace*/ 2);
+        for (var i = 0; i <= 255; i++) {
+            var nodeId = ec.makeNodeId(/*value*/i, /*namespace*/ 2);
             test_encode_decode(
                 nodeId,
                 ec.encodeNodeId,
@@ -294,7 +294,6 @@ describe("testing built-in type encoding", function () {
     });
 
 
-
     it("should encode and decode a String NodeId", function () {
 
         var nodeId = ec.makeNodeId("SomeStuff", 2500);
@@ -304,7 +303,7 @@ describe("testing built-in type encoding", function () {
             nodeId,
             ec.encodeNodeId,
             ec.decodeNodeId,
-            4 + 9 + 2 + 1
+                4 + 9 + 2 + 1
         );
 
     });
@@ -317,7 +316,7 @@ describe("testing built-in type encoding", function () {
             nodeId,
             ec.encodeNodeId,
             ec.decodeNodeId,
-            16 + 2 + 1
+                16 + 2 + 1
         );
 
 
@@ -326,10 +325,12 @@ describe("testing built-in type encoding", function () {
     it("should encode and decode a Opaque NodeId", function () {
 
         var value = Buffer(32);
-        for(var i= 0; i< 32;i++) { value.writeUInt8(i,i); }
+        for (var i = 0; i < 32; i++) {
+            value.writeUInt8(i, i);
+        }
         var nodeId = ec.makeNodeId(value, 0x1BCD);
         nodeId.identifierType.should.equal(ec.NodeIdType.BYTESTRING);
-        var expectedLength = 1+ 2 + 4 + 32;
+        var expectedLength = 1 + 2 + 4 + 32;
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function (buffer) {
             // cod
             buffer.readUInt8(0).should.equal(0x05);
@@ -339,23 +340,23 @@ describe("testing built-in type encoding", function () {
             // size
             buffer.readUInt32LE(3).should.equal(32);
 
-            buffer.readUInt8( 7).should.equal(0x00);
-            buffer.readUInt8( 8).should.equal(0x01);
-            buffer.readUInt8( 9).should.equal(0x02);
+            buffer.readUInt8(7).should.equal(0x00);
+            buffer.readUInt8(8).should.equal(0x01);
+            buffer.readUInt8(9).should.equal(0x02);
             buffer.readUInt8(10).should.equal(0x03);
             buffer.readUInt8(11).should.equal(0x04);
             buffer.readUInt8(12).should.equal(0x05);
             // ...
-            buffer.readUInt8(38).should.equal( 31);
+            buffer.readUInt8(38).should.equal(31);
         });
     });
 
     it("should encode and decode a BYTESTRING NodeId", function () {
         var NodeId = require("./../../lib/datamodel/nodeid").NodeId;
         var NodeIdType = require("./../../lib/datamodel/nodeid").NodeIdType;
-        var crypto =require("crypto");
+        var crypto = require("crypto");
 
-        var nodeId = new NodeId(NodeIdType.BYTESTRING,crypto.randomBytes(16));
+        var nodeId = new NodeId(NodeIdType.BYTESTRING, crypto.randomBytes(16));
 
         var expectedLength = 1 + 2 + 4 + 16;
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function (buffer) {
@@ -387,7 +388,7 @@ describe("testing built-in type encoding", function () {
 
         var serverIndex = 2;
         var namespaceUri = "some:namespace:uri";
-        var expandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC,4123,4,namespaceUri,serverIndex);
+        var expandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC, 4123, 4, namespaceUri, serverIndex);
         test_encode_decode(
             expandedNodeId,
             ec.encodeExpandedNodeId,
@@ -401,52 +402,52 @@ describe("testing built-in type encoding", function () {
 
 describe("check OPCUA Date Type ", function () {
 
-    it("should convert date in 2014 ",function(){
+    it("should convert date in 2014 ", function () {
 
-        var date    = new Date(2014,0,1);
-        var nano   = ec.dateToHundredNanoSecondFrom1601(date);
-        var date2  = ec.hundredNanoSecondFrom1601ToDate(nano);
+        var date = new Date(2014, 0, 1);
+        var nano = ec.dateToHundredNanoSecondFrom1601(date);
+        var date2 = ec.hundredNanoSecondFrom1601ToDate(nano);
 
         date2.toString().should.equal(date.toString());
 
     });
-    it("dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601",function(){
+    it("dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601", function () {
 
-        var date    = new Date(Date.UTC(1601,0,1,0,0));
-        var nano   = ec.dateToHundredNanoSecondFrom1601(date);
+        var date = new Date(Date.UTC(1601, 0, 1, 0, 0));
+        var nano = ec.dateToHundredNanoSecondFrom1601(date);
         nano.should.equal(0);
     });
 
-    it("dateToHundredNanoSecondFrom1601 should return xx nanos for 2st of January 1601",function(){
+    it("dateToHundredNanoSecondFrom1601 should return xx nanos for 2st of January 1601", function () {
 
-        var date    = new Date(Date.UTC(1601,0,2,0,0));
-        var nano   = ec.dateToHundredNanoSecondFrom1601(date);
-        nano.should.equal(24*60*60*1000*10000);
+        var date = new Date(Date.UTC(1601, 0, 2, 0, 0));
+        var nano = ec.dateToHundredNanoSecondFrom1601(date);
+        nano.should.equal(24 * 60 * 60 * 1000 * 10000);
     });
 
-    it("hundredNanoSecondFrom1601ToDate and dateToHundredNanoSecondFrom1601 ",function(){
+    it("hundredNanoSecondFrom1601ToDate and dateToHundredNanoSecondFrom1601 ", function () {
 
-        var date    = new Date(1789,6,14,19,47);
-        var nano    = ec.dateToHundredNanoSecondFrom1601(date);
-        var date2   = ec.hundredNanoSecondFrom1601ToDate(nano);
+        var date = new Date(1789, 6, 14, 19, 47);
+        var nano = ec.dateToHundredNanoSecondFrom1601(date);
+        var date2 = ec.hundredNanoSecondFrom1601ToDate(nano);
 
         date2.toString().should.equal(date.toString());
 
     });
 
-    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601",function(){
+    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601", function () {
 
-        var date    = new Date(Date.UTC(1601,0,2,0,0));
-        var nano   = ec.bn_dateToHundredNanoSecondFrom1601(date);
-        var  value = 24*60*60*1000*10000;
+        var date = new Date(Date.UTC(1601, 0, 2, 0, 0));
+        var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var value = 24 * 60 * 60 * 1000 * 10000;
         nano[0].should.equal(Math.floor(value / 0xFFFFFFFF));
         nano[1].should.equal(value % 0xFFFFFFFF);
     });
 
-    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601",function(){
+    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601", function () {
 
-        var date    = new Date(Date.UTC(1601,0,1,0,0));
-        var nano   = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var date = new Date(Date.UTC(1601, 0, 1, 0, 0));
+        var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
         nano[0].should.equal(0);
         nano[1].should.equal(0);
     });
@@ -465,7 +466,7 @@ describe("check OPCUA Date Type ", function () {
         var date = ec.decodeDateTime(stream);
 
         stream.rewind();
-        ec.encodeDateTime(new Date(2013,11,12,9,36,9),stream);
+        ec.encodeDateTime(new Date(2013, 11, 12, 9, 36, 9), stream);
 
     });
     //
@@ -474,7 +475,7 @@ describe("check OPCUA Date Type ", function () {
 
 describe("check isValid and random for various types", function () {
 
-    it( "should test isValid on UInt16",function(){
+    it("should test isValid on UInt16", function () {
 
         ec.isValidUInt16(0).should.eql(true);
         ec.isValidUInt16(0xFFFFFF).should.eql(false);
@@ -496,22 +497,22 @@ describe("check isValid and random for various types", function () {
         "Guid",
         "DateTime",
         "NodeId",
-        "ByteString",
+        "ByteString"
 //xx            "Int64"
 //xx            "UInt64"
     ];
 
-    types.forEach(function(type){
+    types.forEach(function (type) {
 
-        it("should have a random and isValid method for type "+ type,function(){
+        it("should have a random and isValid method for type " + type, function () {
 
-            var randomFunc = ec["random"+type];
-            var isValidFunc = ec["isValid"+type];
+            var randomFunc = ec["random" + type];
+            var isValidFunc = ec["isValid" + type];
 
-            ec.should.have.property("encode"+type);
-            ec.should.have.property("decode"+type);
-            ec.should.have.property("random"+type);
-            ec.should.have.property("isValid"+type);
+            ec.should.have.property("encode" + type);
+            ec.should.have.property("decode" + type);
+            ec.should.have.property("random" + type);
+            ec.should.have.property("isValid" + type);
 
             var random_value = randomFunc();
             isValidFunc(random_value).should.eql(true);

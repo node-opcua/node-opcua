@@ -14,7 +14,8 @@ var ClientSubscription = opcua.ClientSubscription;
  *   - closes the session
  *   - disconnects the client
  *   - finally call the final **callback** (done_func)
- *
+ * @param client
+ * @param endpointUrl  {String}
  * @param {Function} func
  * @param func.session  {Session} the done callback to call when operation is completed
  * @param func.done  {Function} the done callback to call when operation is completed
@@ -22,7 +23,7 @@ var ClientSubscription = opcua.ClientSubscription;
  * @param {Function} done_func
  * @param [done_func.err]  {Error} an optional error to pass if the function has failed
  */
-function perform_operation_on_client_session(client,endpointUrl,func,done_func) {
+function perform_operation_on_client_session(client, endpointUrl, func, done_func) {
 
     assert(_.isFunction(func));
     assert(_.isFunction(done_func));
@@ -31,11 +32,13 @@ function perform_operation_on_client_session(client,endpointUrl,func,done_func) 
     async.series([
 
         // connect
-        function(callback) { client.connect(endpointUrl,callback); },
+        function (callback) {
+            client.connect(endpointUrl, callback);
+        },
 
         // create session
-        function(callback) {
-            client.createSession(function (err,session){
+        function (callback) {
+            client.createSession(function (err, session) {
                 if (!err) {
                     the_session = session;
                 }
@@ -44,17 +47,26 @@ function perform_operation_on_client_session(client,endpointUrl,func,done_func) 
         },
 
         // call the user provided func
-        function(callback) { func(the_session,callback); },
+        function (callback) {
+            func(the_session, callback);
+        },
 
         // closing session
-        function(callback) { the_session.close(function(err){ callback(err); }); },
+        function (callback) {
+            the_session.close(function (err) {
+                callback(err);
+            });
+        },
 
         // disconnect
-        function(callback) { client.disconnect(function() { callback(); }); }
-    ],done_func);
+        function (callback) {
+            client.disconnect(function () {
+                callback();
+            });
+        }
+    ], done_func);
 }
 exports.perform_operation_on_client_session = perform_operation_on_client_session;
-
 
 
 /**
@@ -68,6 +80,7 @@ exports.perform_operation_on_client_session = perform_operation_on_client_sessio
  *  - finally call the final **callback** (done_func)
  *
  * @param client {OPCUAClientBase}
+ * @param endpointUrl {String}
  * @param {Function} do_func
  * @param do_func.session  {Session} the done callback to call when operation is completed
  * @param do_func.done  {Function} the done callback to call when operation is completed
@@ -76,38 +89,40 @@ exports.perform_operation_on_client_session = perform_operation_on_client_sessio
  * @param {Error} [done_func.err]
  */
 // callback function(session, subscriptionId,done)
-function perform_operation_on_subscription(client,endpointUrl,do_func,done_func){
+function perform_operation_on_subscription(client, endpointUrl, do_func, done_func) {
 
-    perform_operation_on_client_session(client,endpointUrl,function(session,done){
+    perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
         var subscription;
         async.series([
 
-            function(callback) {
-                subscription = new ClientSubscription(session,{
+            function (callback) {
+                subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100,
-                    requestedLifetimeCount:      10 * 60 ,
-                    requestedMaxKeepAliveCount:  5,
-                    maxNotificationsPerPublish:  2,
-                    publishingEnabled:           true,
-                    priority:                    6
+                    requestedLifetimeCount: 10 * 60,
+                    requestedMaxKeepAliveCount: 5,
+                    maxNotificationsPerPublish: 2,
+                    publishingEnabled: true,
+                    priority: 6
                 });
-                subscription.on("started",function(){ callback();  });
+                subscription.on("started", function () {
+                    callback();
+                });
             },
 
-            function(callback) {
-                do_func(session,subscription,callback);
+            function (callback) {
+                do_func(session, subscription, callback);
             },
 
-            function(callback) {
-                subscription.on("terminated",callback);
+            function (callback) {
+                subscription.on("terminated", callback);
                 subscription.terminate();
             }
-        ], function(err) {
-            done(err) ;
+        ], function (err) {
+            done(err);
         });
 
-    },done_func)
+    }, done_func)
 }
 
 exports.perform_operation_on_subscription = perform_operation_on_subscription;

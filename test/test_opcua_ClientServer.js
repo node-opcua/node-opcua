@@ -11,7 +11,7 @@ var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
 
-var Variant =  opcua.Variant
+var Variant =  opcua.Variant ;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 
@@ -329,7 +329,7 @@ describe("testing basic Client-Server communication",function() {
 
         it("should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function(done) {
 
-            nodesToRead = [
+            var nodesToRead = [
                 {
                     nodeId: "RootFolder",
                     attributeId: 13

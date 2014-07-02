@@ -1006,7 +1006,7 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value,
                     indexRange: "2",     // <<<<<<<<<<<<<<<<<<<<<<<<<<
                     dataEncoding: null /* */
-                },
+                }
             ]
         });
         var dataValues = engine.read(readRequest);
@@ -1030,7 +1030,7 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value,
                     indexRange: "2:5",    // <<<<<<<<<<<<<<<<<<<<<<<<<<
                     dataEncoding: null /* */
-                },
+                }
             ]
         });
         var dataValues = engine.read(readRequest);
@@ -1052,7 +1052,7 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value,
                     indexRange: "2:1000",    // <<<<<<<<<<<<<<<<<<<<<<<<<<
                     dataEncoding: null /* */
-                },
+                }
             ]
         });
         var dataValues = engine.read(readRequest);

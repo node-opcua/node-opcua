@@ -21,44 +21,40 @@ var endpointUrl = argv.endpoint;
 
 var monitored_node = argv.node || "ns=1;s=Temperature";
 
-console.log(" monitoring node id ",monitored_node );
+console.log(" monitoring node id ", monitored_node);
 
 if (!endpointUrl) {
     console.log(" node bin/simple_client.js --endpoint <endpointUrl> --node <node_id_to_monitor>");
     return;
 }
 var the_session = null;
-var the_subscription= null;
+var the_subscription = null;
 
-var AttributeNameById = opcua.AttributeNameById;
 var AttributeIds = opcua.AttributeIds;
-
 
 
 var NodeCrawler = opcua.NodeCrawler;
 
 
-
-
 async.series([
-    function(callback) {
+    function (callback) {
         console.log(" connecting to ", endpointUrl.cyan.bold);
-        client.connect(endpointUrl,callback);
+        client.connect(endpointUrl, callback);
     },
 
-    function(callback) {
-        client.getEndPointRequest(function (err,endpoints) {
+    function (callback) {
+        client.getEndPointRequest(function (err, endpoints) {
 
             endpoints = utils.replaceBufferWithHexDump(endpoints);
 
             if (argv.d) {
-                var f = fs.writeFile("tmp/endpoints.log",JSON.stringify(endpoints,null," "));
-                console.log(treeify.asTree(endpoints,true));
+                var f = fs.writeFile("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));
+                console.log(treeify.asTree(endpoints, true));
             }
 
-            var table= new Table();
+            var table = new Table();
             if (!err) {
-                endpoints.forEach(function(endpoint){
+                endpoints.forEach(function (endpoint) {
                     table.cell('endpoint', endpoint.endpointUrl);
                     table.cell('Application URI', endpoint.server.applicationUri);
                     table.cell('Security Mode', endpoint.securityMode);
@@ -77,19 +73,19 @@ async.series([
         });
     },
     //------------------------------------------
-    function(callback) {
+    function (callback) {
         client.disconnect(callback);
     },
 
     // reconnect using the correct end point URL now
-    function(callback) {
+    function (callback) {
         console.log(" reconnecting to ", endpointUrl.cyan.bold);
-        client.connect(endpointUrl,callback);
+        client.connect(endpointUrl, callback);
     },
 
     //------------------------------------------
-    function(callback) {
-        client.createSession(function (err,session){
+    function (callback) {
+        client.createSession(function (err, session) {
             if (!err) {
                 the_session = session;
                 console.log(" session created".yellow);
@@ -99,7 +95,7 @@ async.series([
     },
 
     //------------------------------------------
-    function(callback) {
+    function (callback) {
 
         assert(_.isObject(the_session));
         var crawler = new NodeCrawler(the_session);
@@ -108,7 +104,7 @@ async.series([
 
         crawler.read(nodeId, function (err, obj) {
             if (!err) {
-                console.log(treeify.asTree(obj,true));
+                console.log(treeify.asTree(obj, true));
             }
             callback(err);
         });
@@ -117,11 +113,11 @@ async.series([
     },
     // ----------------------------------------
     // display namespace array
-    function(callback) {
+    function (callback) {
 
-        var server_NamespaceArray_Id =  opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
+        var server_NamespaceArray_Id = opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
 
-        the_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo) {
+        the_session.readVariableValue(server_NamespaceArray_Id, function (err, results, diagnosticsInfo) {
             var dataValue = results[0];
 
             console.log(" --- NAMESPACE ARRAY ---");
@@ -137,8 +133,8 @@ async.series([
     },
     // -----------------------------------------
     // create subscription
-    function(callback) {
-        the_subscription=new opcua.ClientSubscription(the_session,{
+    function (callback) {
+        the_subscription = new opcua.ClientSubscription(the_session, {
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100,
             requestedMaxKeepAliveCount: 200,
@@ -146,57 +142,60 @@ async.series([
             publishingEnabled: true,
             priority: 10
         });
-        the_subscription.on("started",function(){
-            console.log("started",the_subscription);
-        }).on("keepalive",function(){
+        the_subscription.on("started", function () {
+            console.log("started", the_subscription);
+        }).on("keepalive", function () {
             console.log("keepalive");
-        }).on("terminated",function(){
+        }).on("terminated", function () {
             callback();
         });
         var monitoredItem = the_subscription.monitor(
             {   nodeId: monitored_node, attributeId: 13    },
             {
-                   clientHandle: 13,
-                   samplingInterval: 500,
-                   //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
-                   queueSize: 1,
-                   discardOldest: true
+                clientHandle: 13,
+                samplingInterval: 500,
+                //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
+                queueSize: 1,
+                discardOldest: true
             }
         );
-        monitoredItem.on("initialized",function(){
+        monitoredItem.on("initialized", function () {
             console.log("monitoredItem initialized");
         });
-        monitoredItem.on("changed",function(dataValue){
-            console.log(monitored_node," value has changed to " + dataValue.value.value);
+        monitoredItem.on("changed", function (dataValue) {
+            console.log(monitored_node, " value has changed to " + dataValue.value.value);
         });
 
-        setTimeout(function(){
+        setTimeout(function () {
             the_subscription.terminate();
-        },10000);
+        }, 10000);
     },
-    function(callback) {
+    function (callback) {
         console.log(" closing session");
-        the_session.close(function(err){
+        the_session.close(function (err) {
 
             console.log(" session closed");
             callback();
         });
     },
 
-    function(callback) {
+    function (callback) {
         console.log(" Calling disconnect");
         client.disconnect(callback);
     }
-],function(err){
+], function (err) {
     if (err) {
         console.log(" client : process terminated with an error");
-        console.log(" error" , err) ;
-        console.log(err.stack) ;
+        console.log(" error", err);
+        console.log(err.stack);
     } else {
         console.log("success !!   ");
     }
     // force disconnection
-    if (client) {  client.disconnect(function(){}); }
+    if (client) {
+        client.disconnect(function () {
+        });
+    }
 });
 
 

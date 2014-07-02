@@ -143,6 +143,7 @@ function BinaryStreamReader(buf,opt) {
     this._buffer = buf;
 }
 util.inherits(BinaryStreamReader, Readable);
+
 BinaryStreamReader.prototype._read = function() {
     this.push(this._buffer);
     this._buffer = null;

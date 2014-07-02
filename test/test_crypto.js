@@ -1,6 +1,5 @@
-
 var crypto = require("crypto");
-var fs= require("fs");
+var fs = require("fs");
 var should = require("should");
 
 var hexy = require("hexy");
@@ -22,13 +21,13 @@ var doDebug = false;
 // doDebug = true;
 function debugLog() {
     if (doDebug) {
-        console.log.apply(console,arguments);
+        console.log.apply(console, arguments);
     }
 }
 
-describe("testing and exploring the NodeJS crypto api",function(){
+describe("testing and exploring the NodeJS crypto api", function () {
 
-    it("should know how to sign and verify a message",function(){
+    it("should know how to sign and verify a message", function () {
 
         // ------------------- this is Alice
         //
@@ -62,36 +61,37 @@ describe("testing and exploring the NodeJS crypto api",function(){
 
         var verify = crypto.createVerify("RSA-SHA256");
         verify.update("HelloWorld");
-        verify.verify(public_key,signature).should.equal(true);
+        verify.verify(public_key, signature).should.equal(true);
 
         // -------------------------
         verify = crypto.createVerify("RSA-SHA256");
         verify.update("Hello**HACK**World");
-        verify.verify(public_key,signature).should.equal(false);
+        verify.verify(public_key, signature).should.equal(false);
 
     });
 
 
-    function encrypt_buffer(buffer,algorithm,key) {
+    function encrypt_buffer(buffer, algorithm, key) {
         var crypto = require('crypto');
         var cipher = crypto.createCipher(algorithm, key);
-        var encrypted_chunks= [];
+        var encrypted_chunks = [];
         encrypted_chunks.push(cipher.update(buffer));
         encrypted_chunks.push(cipher.final());
 
         return Buffer.concat(encrypted_chunks);
-    };
+    }
 
-    function decrypt_buffer(buffer,algorithm,key) {
+    function decrypt_buffer(buffer, algorithm, key) {
         var crypto = require('crypto');
         var decipher = crypto.createDecipher('aes-256-cbc', key);
-        var decrypted_chunks= [];
+        var decrypted_chunks = [];
         decrypted_chunks.push(decipher.update(buffer));
         decrypted_chunks.push(decipher.final());
         return Buffer.concat(decrypted_chunks);
     }
+
     // encrypt_buffer(buffer,'aes-256-cbc',key);
-    it("should encrypt a message",function() {
+    it("should encrypt a message", function () {
 
 
 
@@ -104,47 +104,44 @@ describe("testing and exploring the NodeJS crypto api",function(){
         // var pubkey = ursa.createPublicKey(public_k ey);
 
         var buf = new Buffer(16);
-        buf.writeDoubleLE(3.14,0);
-        buf.writeDoubleLE(3.14,8);
+        buf.writeDoubleLE(3.14, 0);
+        buf.writeDoubleLE(3.14, 8);
 
-        var encryptedBuf = encrypt_buffer(buf,'aes-256-cbc',public_key);
+        var encryptedBuf = encrypt_buffer(buf, 'aes-256-cbc', public_key);
 
-        var s = fs.createWriteStream("output2.bin","ascii");
+        var s = fs.createWriteStream("output2.bin", "ascii");
         s.write(encryptedBuf.toString("hex"));
         s.end();
 
 
-
-
     });
 
-    var loremIpsum= "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam " +
-                    "nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat "+
-                    "volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation "+
-                    "ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat."+
-                    "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse "+
-                    "molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros "+
-                    "et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit "+
-                    "augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis "+
-                    "eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim "+
-                    "assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum "+
-                    "claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt"+
-                    "saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium "+
-                    "lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, "+
-                    "anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta "+
-                    "decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
+    var loremIpsum = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam " +
+        "nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat " +
+        "volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation " +
+        "ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat." +
+        "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse " +
+        "molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros " +
+        "et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit " +
+        "augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis " +
+        "eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim " +
+        "assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum " +
+        "claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt" +
+        "saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium " +
+        "lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, " +
+        "anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta " +
+        "decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
 
 
-    it("exploring crypto api",function(){
+    it("exploring crypto api", function () {
 
         var crypto = require('crypto')
             , key = 'salt_from_the_user_document'
             , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum);
 
 
-
-        var encrypted_buff =encrypt_buffer(buffer,'aes-256-cbc',key);
-        var decrypted_buff = decrypt_buffer(encrypted_buff,'aes-256-cbc',key);
+        var encrypted_buff = encrypt_buffer(buffer, 'aes-256-cbc', key);
+        var decrypted_buff = decrypt_buffer(encrypted_buff, 'aes-256-cbc', key);
 
 
         // xx console.log('encrypted  %d :', encrypted_buff.length,encrypted_buff.toString("hex"));
