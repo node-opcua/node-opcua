@@ -51,12 +51,13 @@ describe("testing ServerEngine", function () {
                                 dataType: DataType.Double,
                                 arrayType: VariantArrayType.Array,
                                 value : testArray
-                            })
+                            });
                         },
                         set: null // read only
                     }
                 }
             );
+
 
             done();
         });
@@ -1398,6 +1399,41 @@ describe("testing ServerEngine", function () {
 
         });
     });
+
+
+    describe("testing the ability to handle variable that returns a StatusCode rather than a Variant", function(){
+
+        before(function(){
+            // add a variable that fails to provide a Variant.
+            // we simulate the scenario where the variable represent a PLC value,
+            // and for some reason, the server cannot access the PLC.
+            // In this case we expect the value getter to return a StatusCode rather than a Variant
+            engine.addVariable(
+                engine.findObject("ObjectsFolder"),
+                {
+                    browseName: "FailingPLCValue",
+                    nodeId : "ns=1;s=FailingPLCValue",
+                    dataType: "Double",
+                    value: {
+                        get: function() {
+                            // we return a StatusCode here instead of a Variant
+                            // this means : "Houston ! we have a problem"
+                            return StatusCodes.BadResourceUnavailable;
+                        },
+                        set: null // read only
+                    }
+                }
+            );
+        });
+        it("should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable",function() {
+
+            var readResult = engine.readSingleNode("ns=1;s=FailingPLCValue",AttributeIds.Value);
+
+            readResult.statusCode.should.eql(StatusCodes.BadResourceUnavailable);
+
+        });
+    });
+
 });
 
 
