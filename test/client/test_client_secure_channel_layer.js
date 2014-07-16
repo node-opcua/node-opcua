@@ -117,10 +117,7 @@ describe("testing ClientSecureChannelLayer ",function(){
             err.message.should.equal("Client not connected");
             done();
         });
+
     });
-
-
-
-
 
 });
