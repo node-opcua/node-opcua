@@ -112,6 +112,43 @@ describe("Browse Service", function(){
         encode_decode_round_trip_test(browseResponse);
     });
 
+    it("should jsonify a BrowseResponse",function(){
+
+        var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+        var makeNodeId  = require("../../lib/datamodel/nodeid").makeNodeId;
+        var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
+
+
+        var ref = new bs.ReferenceDescription({
+            referenceTypeId: "ns=1;i=10",
+            isForward: true ,
+            nodeClass: NodeClass.Variable,
+            browseName: { name: "toto"}
+        });
+
+        var browseResponse = new bs.BrowseResponse({
+            results: [  {
+                statusCode: StatusCodes.Good,
+                references: [ ref ]
+            }
+            ]
+        });
+
+
+
+        var json_str = JSON.stringify(ref,null," ");
+        var b =  new bs.ReferenceDescription(JSON.parse(json_str));
+
+        console.log(require("util").inspect(ref,{colors: true,depth:15}));
+        console.log("/////");
+        console.log(json_str);
+        console.log(" --------> ");
+        console.log(require("util").inspect(b,{colors: true,depth:15}));
+
+        b.should.eql(ref);
+
+    });
+
     it("should decode a real BrowseRequest",function(done){
         redirectToFile("ws_BrowseRequest.log", function () {
             verify_multi_chunk_message([fixture_ws_browseRequest_message]);

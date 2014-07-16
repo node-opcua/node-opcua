@@ -1,3 +1,4 @@
+/*global describe,require,it */
 var should = require("should");
 
 var NumericRange = require("../../lib/datamodel/numeric_range").NumericRange;
@@ -110,7 +111,8 @@ describe("Testing numerical range", function () {
         fields: [
             { name: "title", fieldType: "UAString" },
             {
-                name: "numericRange", fieldType: "NumericRange"
+                name: "numericRange",
+                fieldType: "NumericRange"
             }
         ]
     };
@@ -128,7 +130,8 @@ describe("Testing numerical range", function () {
             should(o.numericRange.toString()).eql(null);
 
             var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+
             encode_decode_round_trip_test(o);
-        })
-    })
+        });
+    });
 });

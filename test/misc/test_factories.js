@@ -3,7 +3,7 @@ var should = require("should");
 var BinaryStream =require("../../lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 var ec = require("../../lib/misc/encode_decode");
-
+var _ = require("underscore");
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
@@ -359,6 +359,23 @@ describe("Factories: testing strong typed enums", function(){
 
     });
 
+    it("should be possible to initialize enumeration with string values",function() {
+
+        var shape  = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
+        var shape2 = new Shape({name: "yo" , shapeType: "HEXAGON" , inner_color: "RED", color: "BLUE" });
+
+        shape.should.eql(shape2);
+
+    });
+
+    it("should be possible to initialize enumeration with integer values as well",function() {
+
+        var shape  = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
+        var shape2 = new Shape({name: "yo" , shapeType: 6 , inner_color: 100, color: 200 });
+
+        shape.should.eql(shape2);
+
+    });
 });
 
 
@@ -433,49 +450,6 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     });
 
 
-    describe("ExtensionObject",function(){
-        var MetaShape_Schema = {
-            name: "metashape",
-            id: factories.next_available_id(),
-            fields: [
-                { name: "name",                     fieldType: "String"          },
-                { name: "shape",                    fieldType: "ExtensionObject" },
-                { name: "comment",                  fieldType: "String" }
-            ]
-        };
-
-        var MetaShape = factories.registerObject(MetaShape_Schema);
-
-        it("should work with some missing ExtensionObject ",function(){
-
-            var shape  = new MetaShape({
-                name: "MyCircle",
-                shape: null,
-                comment:  "this is a comment"
-            });
-            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Schema.id));
-
-            var stream = new BinaryStream(shape.binaryStoreSize());
-            shape.encode(stream);
-            encode_decode_round_trip_test(shape);
-        });
-
-        it("should work with some existing ExtensionObject ",function(){
-
-            var shape  = new MetaShape({
-                name: "MyCircle",
-                shape: new Shape({name: "circle" , shapeType:ShapeType.CIRCLE , color: Color.BLUE}),
-                comment:  "this is a comment"
-            });
-            shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Schema.id));
-
-            var stream = new BinaryStream(shape.binaryStoreSize());
-            shape.encode(stream);
-
-            encode_decode_round_trip_test(shape);
-
-        });
-    });
 
 });
 
@@ -498,6 +472,130 @@ describe("PacketAnalyzer",function(){
         redirectToFile("analyze_object_binary_encoding",function(){
             analyze_object_binary_encoding(company);
         },done);
-    })
+    });
 });
 
+
+describe("Testing that objects created by factory can be persisted as JSON string",function(){
+
+
+     it("should persist and restore a object in JSON ",function() {
+
+         var shape = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
+
+         var str = JSON.stringify(shape);
+
+         var obj = new Shape(JSON.parse(str));
+
+         obj.should.eql(shape);
+
+     });
+
+    it("should persist and restore a object in JSON when field has a special toJSON behavior",function() {
+
+        var Blob2_Schema = {
+            id: factories.next_available_id(),
+            name: "FakeBlob2",
+            fields: [
+                { name: "name",                     fieldType: "String"     },
+                { name: "buffer0",                  fieldType: "ByteString" },
+                { name: "nodeId",                   fieldType: "NodeId"     },
+                { name: "createdOn",                fieldType:"DateTime" }
+            ]
+        };
+        var Blob = factories.registerObject(Blob2_Schema);
+
+        var blob = new Blob({
+            buffer0: new Buffer("00FF00AA","hex"),
+            nodeId: "ns=1;s=toto"
+        });
+        var str = JSON.stringify(blob);
+
+
+        var obj = new Blob(JSON.parse(str));
+
+        obj.should.eql(blob);
+    });
+
+    it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior",function() {
+
+        var Blob3_Schema = {
+            id: factories.next_available_id(),
+            name: "FakeBlob3",
+            fields: [
+                { name: "name",                     fieldType: "String"     },
+                { name: "buffer0", isArray: true,   fieldType: "ByteString" },
+                { name: "nodeId",  isArray: true,   fieldType: "NodeId"     },
+            ]
+        };
+        var Blob = factories.registerObject(Blob3_Schema);
+
+        var blob = new Blob({
+            buffer0: [ new Buffer("0001020304","hex"), [0,1,2,3,4] ],
+            nodeId: [ "ns=1;s=toto", "ns=2;i=1234" ]
+        });
+        var str = JSON.stringify(blob);
+
+        console.log(str);
+        var obj = new Blob(JSON.parse(str));
+
+        obj.should.eql(blob);
+
+    });
+
+
+
+    it("should persist and restore a object in JSON when field has a null value",function() {
+
+       var QualifiedName_Schema = {
+            name: "FakeQualifiedName",
+            id: factories.next_available_id(),
+            fields: [
+                { name: "namespaceIndex", fieldType: "UInt16" , documentation: "The namespace index" },
+                { name: "name",           fieldType: "String" , defaultValue: function() { return null;} ,documentation: "The name"  }
+            ],
+
+            toString: function() {
+                return "ns="+ this.namespaceIndex + " name="+ this.name;
+            }
+        };
+        var QualifiedName = factories.registerObject(QualifiedName_Schema);
+
+
+        var qname = new QualifiedName({
+            namespaceIndex: 0
+        });
+
+        should(_.isFinite(qname.namespaceIndex)).be.equal(true);
+        qname.namespaceIndex.should.equal(0);
+
+        var str = JSON.stringify(qname);
+
+        var obj = new QualifiedName(JSON.parse(str));
+        obj.namespaceIndex.should.equal(0);
+        should(_.isFinite(obj.namespaceIndex)).be.equal(true);
+
+        obj.should.eql(qname);
+
+        encode_decode_round_trip_test(qname);
+
+    });
+
+    it("should  set a field  to null when default value is specifically null and no value has been provided",function() {
+        var Blob4_Schema = {
+            name: "Blob4",
+            id: factories.next_available_id(),
+            fields: [
+                { name: "createdOn", fieldType: "DateTime", defaultValue: null},
+            ]
+        };
+        var Blob4 = factories.registerObject(Blob4_Schema);
+
+        var blob4 = new Blob4({
+            createdOn: null
+        });
+        should(blob4.createdOn).be.eql(null);
+
+
+    });
+});

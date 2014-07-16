@@ -1,5 +1,5 @@
 var should = require("should");
-var bs = require("./../../lib/services/read_service");
+var rs = require("./../../lib/services/read_service");
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 var makebuffer = require("../../lib/misc/utils").makebuffer;
 
@@ -69,9 +69,9 @@ var fixture_ws_readResponse_message2= makebuffer(
 describe("Read Service", function(){
 
     it("should create a empty ReadRequest",function(){
-        var readRequest = new bs.ReadRequest({});
+        var readRequest = new rs.ReadRequest({});
 
-        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Invalid);
+        readRequest.timestampsToReturn.should.eql(rs.TimestampsToReturn.Invalid);
         readRequest.nodesToRead.length.should.equal(0);
 
         encode_decode_round_trip_test(readRequest);
@@ -79,21 +79,21 @@ describe("Read Service", function(){
 
     it("should create a ReadRequest and append ReadValueId to nodesToRead   ",function(){
 
-        var readRequest = new bs.ReadRequest({
-            timestampsToReturn: bs.TimestampsToReturn.Both
+        var readRequest = new rs.ReadRequest({
+            timestampsToReturn: rs.TimestampsToReturn.Both
         });
 
-        readRequest.nodesToRead.push(new bs.ReadValueId({ nodeId : "i=2255", attributeId: 13 }));
+        readRequest.nodesToRead.push(new rs.ReadValueId({ nodeId : "i=2255", attributeId: 13 }));
 
-        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Both);
+        readRequest.timestampsToReturn.should.eql(rs.TimestampsToReturn.Both);
         readRequest.nodesToRead.length.should.equal(1);
 
         encode_decode_round_trip_test(readRequest);
     });
 
     it("should create a ReadRequest",function(){
-        var readRequest = new bs.ReadRequest({
-            timestampsToReturn: bs.TimestampsToReturn.Both,
+        var readRequest = new rs.ReadRequest({
+            timestampsToReturn: rs.TimestampsToReturn.Both,
             nodesToRead: [
                 {
                     nodeId : "i=2255",
@@ -101,7 +101,7 @@ describe("Read Service", function(){
                 }
             ]
         });
-        readRequest.timestampsToReturn.should.eql(bs.TimestampsToReturn.Both);
+        readRequest.timestampsToReturn.should.eql(rs.TimestampsToReturn.Both);
         readRequest.nodesToRead.length.should.equal(1);
 
         encode_decode_round_trip_test(readRequest);
@@ -109,8 +109,8 @@ describe("Read Service", function(){
     it("should raise a exception if ReadRequest is created with a invalid attributeId",function(){
 
        should(function(){
-          var readRequest = new bs.ReadRequest({
-               timestampsToReturn: bs.TimestampsToReturn.Both,
+          var readRequest = new rs.ReadRequest({
+               timestampsToReturn: rs.TimestampsToReturn.Both,
                nodesToRead: [
                    {
                        nodeId : "i=2255",
@@ -123,7 +123,7 @@ describe("Read Service", function(){
     });
 
     it("should create a ReadResponse",function(){
-        var readResponse = new bs.ReadResponse({});
+        var readResponse = new rs.ReadResponse({});
         encode_decode_round_trip_test(readResponse);
     });
 
@@ -151,16 +151,29 @@ describe("Read Service", function(){
     });
 
 
+    it("should encode and decode a ReadRequest ",function(){
+
+        var readRequest = new rs.ReadRequest({
+            timestampsToReturn: rs.TimestampsToReturn.Both,
+            nodesToRead: [
+                {
+                    nodeId : "i=2255",
+                    attributeId: 13  //<<<<<<< INVALID ID => Should Throws !!!
+                }
+            ]
+        });
+        encode_decode_round_trip_test(readRequest);
+    });
 });
 
 describe("TimestampsToReturn",function(){
 
     it("should create an invalid timestampsToReturn", function() {
 
-        var v = bs.TimestampsToReturn.get(1000);
+        var v = rs.TimestampsToReturn.get(1000);
         should(v).eql(null);
-        var v = bs.TimestampsToReturn.get(0x03);
-        should(v).eql(bs.TimestampsToReturn.Neither);
+        var v = rs.TimestampsToReturn.get(0x03);
+        should(v).eql(rs.TimestampsToReturn.Neither);
 
     });
 });

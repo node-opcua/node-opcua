@@ -200,34 +200,6 @@ describe("testing NodeId.displayText",function(){
 
 });
 
-var makeExpandedNodeId = require("../../lib/datamodel/nodeid").makeExpandedNodeId;
-describe("testing ExpandedNodeId",function(){
-
-    it("should create a ExpandedNodeId from a integer",function(){
-        var exnodeId = makeExpandedNodeId(1);
-        exnodeId.identifierType.should.eql(NodeIdType.NUMERIC);
-        exnodeId.value.should.eql(1);
-        exnodeId.namespace.should.eql(0);
-        should(exnodeId.namespaceUri).eql(null);
-        should(exnodeId.serverIndex).eql(0);
-        exnodeId.toString().should.eql("ns=0;i=1");
-    });
-
-    it("should create a ExpandedNodeId from a NodeId",function(){
-
-        var nodeId = makeNodeId("ID",2);
-        nodeId.identifierType.should.eql(NodeIdType.STRING);
-
-        var exnodeId = makeExpandedNodeId(nodeId);
-        exnodeId.identifierType.should.eql(NodeIdType.STRING);
-        exnodeId.value.should.eql("ID");
-        exnodeId.namespace.should.eql(2);
-        should(exnodeId.namespaceUri).eql(null);
-        should(exnodeId.serverIndex).eql(0);
-        exnodeId.toString().should.eql("ns=2;s=ID");
-    });
-
-});
 
 
 

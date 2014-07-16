@@ -4,6 +4,8 @@ var constructBrowsePath = require("../lib/address_space/address_space").construc
 var AddressSpace = require("../lib/address_space/address_space").AddressSpace;
 var generate_address_space = require("../lib/address_space/load_nodeset2").generate_address_space;
 var makeNodeId = require("../lib/datamodel/nodeid").makeNodeId;
+var makeExpandedNodeId =require("../lib/datamodel/expanded_nodeid").makeExpandedNodeId;
+
 var util = require("util");
 
 describe("constructBrowsePath and simpleBrowsePath",function(){
@@ -36,7 +38,7 @@ describe("constructBrowsePath and simpleBrowsePath",function(){
     it("should browse some path",function(){
 
         var nodeId = address_space.simpleBrowsePath("/","Objects.Server");
-        nodeId.should.eql(makeNodeId(2253));
+        nodeId.should.eql(makeExpandedNodeId(2253));
         address_space.findObject(nodeId).browseName.should.eql("Server");
     });
 

@@ -1,6 +1,7 @@
+/*global describe, it, require*/
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
-var verify_single_chunk_message= require("../helpers/verify_message_chunk").verify_single_chunk_message;
+var verify_multi_chunk_message = require("../helpers/verify_message_chunk").verify_multi_chunk_message;
+var verify_single_chunk_message = require("../helpers/verify_message_chunk").verify_single_chunk_message;
 
 var makebuffer = require("../../lib/misc/utils").makebuffer;
 
@@ -13,12 +14,12 @@ var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
 var FindServersResponse = require("../../lib/services/register_server_service").FindServersResponse;
 
-var should  =require("should");
+var should = require("should");
 
-describe("OPCUA Object creation",function() {
+describe("OPCUA Object creation", function () {
 
     var s = require("../../lib/datamodel/structures");
-    it("should create a complex type with embedded type",function(){
+    it("should create a complex type with embedded type", function () {
 
         var applicationDescription = new s.ApplicationDescription({
             applicationUri: "application:uri",
@@ -29,16 +30,16 @@ describe("OPCUA Object creation",function() {
             discoveryProfileUri: undefined,
             discoveryUrls: []
         });
-        applicationDescription.applicationUri.should.equal( "application:uri");
-        applicationDescription.productUri.should.equal( "uri:product");
-        applicationDescription.applicationName.text.should.equal( "MyApplication");
-        applicationDescription.applicationType.should.equal( s.ApplicationType.CLIENT);
+        applicationDescription.applicationUri.should.equal("application:uri");
+        applicationDescription.productUri.should.equal("uri:product");
+        applicationDescription.applicationName.text.should.equal("MyApplication");
+        applicationDescription.applicationType.should.equal(s.ApplicationType.CLIENT);
         applicationDescription.discoveryUrls.length.should.equal(0);
 
 
         var request = new s.CreateSessionRequest({
             clientDescription: applicationDescription,
-            serverUri:  "serverUri",
+            serverUri: "serverUri",
             endpointUrl: "endpointUrl",
             sessionName: "sessionName",
             clientNonce: new Buffer("_clientNonce"),
@@ -47,10 +48,10 @@ describe("OPCUA Object creation",function() {
             maxResponseMessageSize: 800000
         });
 
-        request.clientDescription.applicationUri.should.equal( "application:uri");
-        request.clientDescription.productUri.should.equal( "uri:product");
-        request.clientDescription.applicationName.text.should.equal( "MyApplication");
-        request.clientDescription.applicationType.should.equal( s.ApplicationType.CLIENT);
+        request.clientDescription.applicationUri.should.equal("application:uri");
+        request.clientDescription.productUri.should.equal("uri:product");
+        request.clientDescription.applicationName.text.should.equal("MyApplication");
+        request.clientDescription.applicationType.should.equal(s.ApplicationType.CLIENT);
         request.clientDescription.discoveryUrls.length.should.equal(0);
 
 
@@ -110,7 +111,7 @@ describe("OPCUA Structure encoding and decoding", function () {
 });
 
 
-describe("testing DataValue encoding decoding",function(){
+describe("testing DataValue encoding decoding", function () {
 
     var DataValue = require("./../../lib/datamodel/datavalue").DataValue;
     var DataType = require("./../../lib/datamodel/variant").DataType;
@@ -118,17 +119,19 @@ describe("testing DataValue encoding decoding",function(){
 
     var Variant = require("../../lib/datamodel/variant").Variant;
 
-    it("should encode and decode a empty DataValue 1/3",function(done){
+    it("should encode and decode a empty DataValue 1/3", function (done) {
+
         var dataValue1 = new DataValue({
         });
-        encode_decode_round_trip_test(dataValue1,function(buf) {
+
+        encode_decode_round_trip_test(dataValue1, function (buf) {
             buf.length.should.eql(1);
         });
         done();
     });
 
 
-    it("should encode and decode a DataValue with only value field 2/3",function(done){
+    it("should encode and decode a DataValue with only value field 2/3", function (done) {
         var dataValue1 = new DataValue({
             value: {dataType: DataType.Double, value: 37.5 }
         });
@@ -136,7 +139,7 @@ describe("testing DataValue encoding decoding",function(){
         done();
     });
 
-    it("should encode and decode a DataValue with all fields 3/3",function(done){
+    it("should encode and decode a DataValue with all fields 3/3", function (done) {
         var dataValue1 = new DataValue({
             sourceTimestamp: new Date(),
             sourcePicoseconds: 100,
@@ -155,7 +158,6 @@ describe("testing DataValue encoding decoding",function(){
 });
 
 
-
 describe("checking decoding real message bodies captured with WireShark ", function () {
 
     it("should decode a real OpenSecureChannelRequest message", function (done) {
@@ -163,7 +165,7 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
         // a real OpenSecureChannelRequest captured with wireshark
         var ws_OpenSecureChannelRequest = makebuffer(
-            "4f 50 4e 46 85 00 00 00 00 00 00 00 2f 00 00 00 " + // OPNF ...
+                "4f 50 4e 46 85 00 00 00 00 00 00 00 2f 00 00 00 " + // OPNF ...
                 "68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 " +
                 "74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 " +
                 "72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 ff " +
@@ -180,11 +182,11 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
     });
 
-it("should decode a real OpenSecureChannelResponse message", function (done) {
+    it("should decode a real OpenSecureChannelResponse message", function (done) {
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_OpenSecureChannelResponse = makebuffer(
-            "4f 50 4e 46 87 00 00 00 01 00 " +                      // OPNF ...
+                "4f 50 4e 46 87 00 00 00 01 00 " +                      // OPNF ...
                 "00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 " +
                 "66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 " +
                 "41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 " +
@@ -205,7 +207,7 @@ it("should decode a real OpenSecureChannelResponse message", function (done) {
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_message = makebuffer(
-            "4d 53 47 46 60 00 00 00 01 00 " +
+                "4d 53 47 46 60 00 00 00 01 00 " +
                 "00 00 02 00 00 00 34 00 00 00 02 00 00 00 01 00 " +
                 "a6 01 00 00 62 2c 63 d3 0c f7 ce 01 01 00 00 00 " +
                 "00 00 00 00 ff ff ff ff 10 27 00 00 00 00 00 1b " +
@@ -224,7 +226,7 @@ it("should decode a real OpenSecureChannelResponse message", function (done) {
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_message = makebuffer(
-            "4d 53 47 46 b9 00 00 00 01 00 " +
+                "4d 53 47 46 b9 00 00 00 01 00 " +
                 "00 00 02 00 00 00 01 00 00 00 02 00 00 00 01 00 " +
                 "a9 01 e2 2b 63 d3 0c f7 ce 01 01 00 00 00 00 00 " +
                 "00 00 00 00 00 00 00 00 00 00 01 00 00 00 1c 00 " +
@@ -285,28 +287,28 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
     it("should handle tcp packet that have data from two messages", function (done) {
 
         // construct a tcp packet that have 2 messages
-        var buffer = new Buffer(packets.packet_sc_3_a.length+packets.packet_sc_3_b.length+packets.packet_sc_5.length);
-        packets.packet_sc_3_a.copy(buffer,0);
-        packets.packet_sc_3_b.copy(buffer,packets.packet_sc_3_a.length);
-        packets.packet_sc_5.copy(buffer,packets.packet_sc_3_a.length + packets.packet_sc_3_b.length);
+        var buffer = new Buffer(packets.packet_sc_3_a.length + packets.packet_sc_3_b.length + packets.packet_sc_5.length);
+        packets.packet_sc_3_a.copy(buffer, 0);
+        packets.packet_sc_3_b.copy(buffer, packets.packet_sc_3_a.length);
+        packets.packet_sc_5.copy(buffer, packets.packet_sc_3_a.length + packets.packet_sc_3_b.length);
 
         redirectToFile("ws_overlaping_message.log", function () {
             verify_multi_chunk_message([buffer]);
         }, done);
     });
 
-    it("should decode a real createSessionRequest message",function(done){
+    it("should decode a real createSessionRequest message", function (done) {
         redirectToFile("ws_CreateSessionRequest.log", function () {
             verify_multi_chunk_message([packets.packet_cs_6]);
         }, done);
     });
 
-    it("should decode a real ActivateSessionRequest message",function(done){
+    it("should decode a real ActivateSessionRequest message", function (done) {
         redirectToFile("ws_ActivateSessionRequest.log", function () {
             verify_multi_chunk_message([packets.packet_cs_7]);
         }, done);
     });
-    it("should decode a real ActivateSessionResponse message",function(done){
+    it("should decode a real ActivateSessionResponse message", function (done) {
         redirectToFile("ws_ActivateSessionResponse.log", function () {
             verify_multi_chunk_message([packets.packet_sc_7]);
         }, done);
@@ -318,7 +320,7 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
         var packet2 = require("./../fixtures/fixture_CreateSessionResponse.js").packet_CreateSessionResponse_2;
 
         redirectToFile("ws_CreateSessionResponse.log", function () {
-            verify_multi_chunk_message([packet1,packet2]);
+            verify_multi_chunk_message([packet1, packet2]);
         }, done);
     });
 

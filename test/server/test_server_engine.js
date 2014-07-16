@@ -1,5 +1,5 @@
 /* jslint */
-/* global require */
+/*global require,describe, it, before, after */
 var should = require("should");
 var server_engine = require("../../lib/server/server_engine");
 var resolveNodeId = require("../../lib/datamodel/nodeid").resolveNodeId;
@@ -10,6 +10,7 @@ var read_service = require("../../lib/services/read_service");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 var util = require("util");
 var NodeId = require("../../lib/datamodel/nodeid").NodeId;
+var makeExpandedNodeId = require("../../lib/datamodel/expanded_nodeid").makeExpandedNodeId;
 var assert = require('better-assert');
 var AttributeIds = read_service.AttributeIds;
 
@@ -24,11 +25,14 @@ var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); /
 
 describe("testing ServerEngine", function () {
 
-    var engine,FolderTypeId,BaseDataVariableTypeId,ref_Organizes_Id;
+    var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
-    before(function(done){
+    before(function (done) {
+
         engine = new server_engine.ServerEngine();
-        engine.initialize(null,function(){
+
+        engine.initialize(null, function () {
+
             FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;
             ref_Organizes_Id = engine.address_space.findReferenceType("Organizes").nodeId;
@@ -130,7 +134,7 @@ describe("testing ServerEngine", function () {
 
     it("should have a rootFolder ", function () {
 
-        engine.rootFolder.hasTypeDefinition.should.eql(FolderTypeId);
+        engine.rootFolder.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
 
     });
 
@@ -138,7 +142,7 @@ describe("testing ServerEngine", function () {
 
         var browseNode = engine.findObject("RootFolder");
 
-        browseNode.hasTypeDefinition.should.eql(FolderTypeId);
+        browseNode.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         browseNode.should.equal(engine.rootFolder);
 
     });
@@ -147,7 +151,7 @@ describe("testing ServerEngine", function () {
 
         var browseNode = engine.findObject("i=84");
 
-        browseNode.hasTypeDefinition.should.eql(FolderTypeId);
+        browseNode.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         browseNode.should.equal(engine.rootFolder);
 
     });
@@ -167,7 +171,7 @@ describe("testing ServerEngine", function () {
 
         var serverObject = engine.findObjectByBrowseName("Server");
         var objectFolder = engine.findObjectByBrowseName("Objects");
-        objectFolder.hasTypeDefinition.should.eql(FolderTypeId);
+        objectFolder.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         assert(serverObject !== null);
         serverObject.parent.should.eql(objectFolder.nodeId);
 
@@ -338,7 +342,7 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].browseName.name.should.equal("Root");
         browseResult.references [0].nodeId.toString().should.equal("ns=0;i=84");
         //xx browseResult.references[0].displayName.text.should.equal("Root");
-        browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
 
 
@@ -369,20 +373,20 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
         browseResult.references[0].displayName.text.should.equal("Objects");
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
-        browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[1].isForward.should.equal(true);
         browseResult.references[1].browseName.name.should.equal("Types");
         browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
-        browseResult.references[1].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[1].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
         browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[2].isForward.should.equal(true);
         browseResult.references[2].browseName.name.should.equal("Views");
         browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
-        browseResult.references[2].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[2].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });
@@ -435,20 +439,20 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
         browseResult.references[0].displayName.text.should.equal("Objects");
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
-        browseResult.references[0].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[1].isForward.should.equal(true);
         browseResult.references[1].browseName.name.should.equal("Types");
         browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
-        browseResult.references[1].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[1].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
         browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[2].isForward.should.equal(true);
         browseResult.references[2].browseName.name.should.equal("Views");
         browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
-        browseResult.references[2].typeDefinition.should.eql(resolveNodeId("FolderType"));
+        browseResult.references[2].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });
@@ -1187,7 +1191,7 @@ describe("testing ServerEngine", function () {
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.Good);
             browsePathResult.targets.length.should.eql(1);
-            browsePathResult.targets[0].targetId.should.eql(nodeid.makeNodeId(85));
+            browsePathResult.targets[0].targetId.should.eql(makeExpandedNodeId(85));
             var UInt32_MaxValue = 0xFFFFFFFF;
             browsePathResult.targets[0].remainingPathIndex.should.equal(UInt32_MaxValue);
         });
