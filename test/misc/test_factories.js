@@ -531,7 +531,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         var Blob = factories.registerObject(Blob3_Schema);
 
         var blob = new Blob({
-            buffer0: [ new Buffer("0001020304","hex"), [0,1,2,3,4] ],
+            buffer0: [ [2,3,4,5], [0,1,2,3,4] ],
             nodeId: [ "ns=1;s=toto", "ns=2;i=1234" ]
         });
         var str = JSON.stringify(blob);

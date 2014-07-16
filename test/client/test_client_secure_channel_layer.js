@@ -106,6 +106,9 @@ describe("testing ClientSecureChannelLayer ",function(){
                 done(err);
             });
         });
+
+
+
     });
 
     it("should callback with an error if performMessageTransaction is called before connection",function(done){
