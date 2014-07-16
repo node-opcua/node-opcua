@@ -544,7 +544,11 @@ describe("Testing that objects created by factory can be persisted as JSON strin
 
         var obj = new Blob(JSON.parse(str));
 
+        obj.buffer0[0].should.eql(blob.buffer0[0]);
+        obj.buffer0[1].should.eql(blob.buffer0[1]);
         obj.should.eql(blob);
+
+
 
     });
 
