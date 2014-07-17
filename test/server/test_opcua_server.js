@@ -11,7 +11,7 @@ describe("OPCUAServer",function() {
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists
-        // (session and subscriptions
+        // (session and subscriptions )
         var session = server.createSession();
 
         server.engine.currentSessionCount.should.equal(1);

@@ -35,13 +35,13 @@ function build_client_server_session(done){
         assert(server.engine.currentSessionCount >= 1);
 
         // disconnect client abruptly
-        client.disconnect(function(){
+        client.disconnect( function (){
 
             //xx // disconnecting the client should have cause the server to discard the subscriptions
             //xx assert(server.engine.currentSessionCount === 0);
 
             // OK, it  is now time to shutdown the server.
-            server.shutdown(function() {
+            server.shutdown( function () {
 
                 // let's perform some more verification
                 assert(server.engine.currentSessionCount === 0);
