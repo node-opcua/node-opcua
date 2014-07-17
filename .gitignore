@@ -18,5 +18,5 @@ documentation/worldweatheronline.key
 *.tgz
 npm-debug.log
 output2.bin
-VagrantFile
+Vagrantfile
 .vagrant
