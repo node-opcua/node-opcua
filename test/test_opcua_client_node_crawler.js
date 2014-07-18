@@ -119,10 +119,11 @@ describe("NodeCrawler",function(){
 
                 if (!err) {
                     obj.browseName.should.equal("Root");
-                    obj.references.length.should.equal(4);
-                    obj.references[0].referenceType.should.eql('HasTypeDefinition (ns=0;i=40)');
-                    obj.references[0].object.browseName.should.equal("FolderType");
-                    //xx console.log(treeify.asTree(obj,true));
+                    obj.organizes.length.should.equal(3);
+                    obj.organizes[0].browseName.should.eql("Objects");
+                    obj.organizes[1].browseName.should.eql("Types");
+                    obj.organizes[2].browseName.should.eql("Views");
+                    obj.hasTypeDefinition.should.eql("FolderType");
                 }
                 done(err);
             });

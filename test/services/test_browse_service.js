@@ -112,12 +112,38 @@ describe("Browse Service", function(){
         encode_decode_round_trip_test(browseResponse);
     });
 
-    it("should jsonify a BrowseResponse",function(){
+    it("should jsonify a ReferenceDescription",function(){
 
         var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
         var makeNodeId  = require("../../lib/datamodel/nodeid").makeNodeId;
         var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
 
+
+        var ref = new bs.ReferenceDescription({
+            referenceTypeId: "ns=1;i=10",
+            isForward: true ,
+            nodeClass: NodeClass.Variable,
+            browseName: { name: "toto"}
+        });
+
+
+        var json_str = JSON.stringify(ref,null," ");
+        var b =  new bs.ReferenceDescription(JSON.parse(json_str));
+
+        console.log(require("util").inspect(ref,{colors: true,depth:15}));
+        console.log("/////");
+        console.log(json_str);
+        console.log(" --------> ");
+        console.log(require("util").inspect(b,{colors: true,depth:15}));
+
+        b.should.eql(ref);
+
+    });
+
+    it("should jsonify a BrowseResponse",function() {
+        var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+        var makeNodeId  = require("../../lib/datamodel/nodeid").makeNodeId;
+        var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
 
         var ref = new bs.ReferenceDescription({
             referenceTypeId: "ns=1;i=10",
@@ -133,21 +159,23 @@ describe("Browse Service", function(){
             }
             ]
         });
+        var object = browseResponse;
 
+        var json_str = JSON.stringify(object,null," ");
 
-
-        var json_str = JSON.stringify(ref,null," ");
-        var b =  new bs.ReferenceDescription(JSON.parse(json_str));
-
-        console.log(require("util").inspect(ref,{colors: true,depth:15}));
-        console.log("/////");
+        console.log(require("util").inspect(object,{colors: true,depth:15}));
+        console.log("/////".yellow.bold);
         console.log(json_str);
+
+        var b =  new bs.BrowseResponse(JSON.parse(json_str));
+
         console.log(" --------> ");
         console.log(require("util").inspect(b,{colors: true,depth:15}));
 
-        b.should.eql(ref);
+        b.should.eql(object);
 
     });
+
 
     it("should decode a real BrowseRequest",function(done){
         redirectToFile("ws_BrowseRequest.log", function () {

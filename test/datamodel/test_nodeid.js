@@ -189,6 +189,17 @@ describe("testing resolveNodeId",function(){
     });
 });
 
+describe("testing NodeId coercing bug ",function(){
+
+
+    it("should handle strange string nodeId ",function(){
+
+        // coerceNodeId("ns=S7:;s=S7_Connection_1.db1.0,x0").should.eql(makeNodeId(1234,2));
+        coerceNodeId("ns=2;s=S7_Connection_1.db1.0,x0").should.eql(makeNodeId("S7_Connection_1.db1.0,x0",2));
+
+    });
+
+});
 
 
 describe("testing NodeId.displayText",function(){

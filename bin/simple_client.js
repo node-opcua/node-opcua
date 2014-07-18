@@ -9,7 +9,7 @@ var utils = require('../lib/misc/utils');
 
 
 var argv = require('optimist')
-    .usage('Usage: $0 -d')
+    .usage('Usage: $0 -d --endpoint <endpointUrl> --node <node_id_to_monitor>')
     .argv;
 
 var opcua = require("../");
@@ -93,24 +93,14 @@ async.series([
             callback(err);
         });
     },
-
     //------------------------------------------
     function (callback) {
 
-        assert(_.isObject(the_session));
-        var crawler = new NodeCrawler(the_session);
+        // dump namespace array
 
-        var nodeId = "ObjectsFolder";
-
-        crawler.read(nodeId, function (err, obj) {
-            if (!err) {
-                console.log(treeify.asTree(obj, true));
-            }
-            callback(err);
-        });
-
-
+        callback();
     },
+
     // ----------------------------------------
     // display namespace array
     function (callback) {
@@ -128,9 +118,32 @@ async.series([
                 }
             }
             console.log(" -----------------------");
-            callback(err)
+            callback(err);
         });
     },
+
+    //------------------------------------------
+    function (callback) {
+
+        assert(_.isObject(the_session));
+        var crawler = new NodeCrawler(the_session);
+
+
+        var nodeId = "ObjectsFolder";
+        crawler.read(nodeId, function (err, obj) {
+            if (!err) {
+                // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
+                //xx console.log(treeify.asTree(obj, true));
+                treeify.asLines(obj, true, true, function (line) {
+                    console.log(line);
+                });
+            }
+            callback(err);
+        });
+
+
+    },
+
     // -----------------------------------------
     // create subscription
     function (callback) {

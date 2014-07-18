@@ -605,6 +605,14 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         });
         should(blob4.createdOn).be.eql(null);
 
+    });
+
+    it("should help JSON.stringify",function(){
+
+        var someArray = [ new Person({}) ];
+
+        var str = JSON.stringify({ stuff: someArray },null," ");
+        console.log("xxxx str =",str);
 
     });
 });
