@@ -90,18 +90,15 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 nb_keep_alive_received += 1;
             });
             subscription.on("terminated", function () {
-                console.log(" subscription has received ", nb_keep_alive_received, " keep-alive event(s)")
+                console.log(" subscription has received ", nb_keep_alive_received, " keep-alive event(s)");
                 nb_keep_alive_received.should.be.greaterThan(0);
                 done();
             });
         }, done);
     });
 
-    it("a ClientSubscription should survive longer than the life time", function (done) {
-        // todo
-        done();
-    });
-    it("client should be able to create subscription to monitor the temperature variable and received notification of change", function (done) {
+
+    xit("a ClientSubscription should survive longer than the life time", function (done) {
         // todo
         done();
     });
@@ -317,5 +314,65 @@ describe("testing server and subscription", function () {
         }, done);
 
     });
+
+    it("A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
+
+
+        var TimestampsToReturn = require("../lib/services/read_service").TimestampsToReturn;
+
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var monitoredItem = subscription.monitor(
+                {
+                    nodeId: resolveNodeId("ns=0;i=2258"),
+                    attributeId: 13
+                },
+                {samplingInterval: 100, discardOldest: true, queueSize: 1 },
+
+                TimestampsToReturn.Invalid
+            );
+
+            var err_counter = 0;
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItem.on("initialized", function () {
+            });
+
+            monitoredItem.on("changed", function (value) {
+
+            });
+            monitoredItem.on("err", function (value) {
+                err_counter ++;
+            });
+            monitoredItem.on("terminated", function () {
+                err_counter.should.eql(1);
+                callback();
+            });
+
+        }, done);
+    });
+
+    it("A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        var TimestampsToReturn = require("../lib/services/read_service").TimestampsToReturn;
+
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var monitoredItem = subscription.monitor(
+                {
+                    nodeId: resolveNodeId("ns=0;i=2258"),
+                    attributeId: 13
+                },
+                {samplingInterval: 100, discardOldest: true, queueSize: 1 },
+
+                TimestampsToReturn.Invalid, function (err) {
+
+                    should(err).be.instanceOf(Error);
+                    callback(!err);
+                }
+            );
+
+
+        }, done);
+    });
+
 
 });

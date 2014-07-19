@@ -27,7 +27,7 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
 
     assert(_.isFunction(func));
     assert(_.isFunction(done_func));
-    var the_session;
+    var the_session = null;
 
     async.series([
 
@@ -122,7 +122,7 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
             done(err);
         });
 
-    }, done_func)
+    }, done_func);
 }
 
 exports.perform_operation_on_subscription = perform_operation_on_subscription;
