@@ -130,6 +130,37 @@ describe("NodeCrawler",function(){
         },done);
     });
 
-    //xx it("shuld",function(done){        async.mapSeries([],function(){},done);    });
+
+    it("should crawl faster the second time",function(done){
+
+        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+
+            assert(_.isFunction(done));
+
+            var crawler = new NodeCrawler(session);
+
+            var nodeId = "RootFolder";
+
+            var startTime = Date.now();
+
+            crawler.read(nodeId, function (err, obj) {
+
+                var intermediateTime1 = Date.now();
+                var duration1 = intermediateTime1 - startTime;
+
+
+                crawler.read(nodeId, function (err, obj) {
+                    var intermediateTime2 = Date.now();
+                    var duration2 = intermediateTime2 - intermediateTime1;
+
+                    duration1.should.be.greaterThan(duration2);
+
+                    done(err);
+                });
+
+            });
+        },done);
+    });
+
 
 });
