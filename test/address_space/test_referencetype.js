@@ -234,5 +234,16 @@ describe("testing ReferenceType",function(){
 
     });
 
+    it("ReferenceType should have a toString (HierarchicalReferences)",function() {
+        var hr =  address_space.findReferenceType("HierarchicalReferences");
+
+        hr.toString().should.eql("A  HierarchicalReferences/HierarchicalReferences ns=0;i=33");
+    });
+
+    it("ReferenceType should have a toString (Organizes)",function() {
+        var hr =  address_space.findReferenceType("Organizes");
+
+        hr.toString().should.eql("   Organizes/OrganizedBy ns=0;i=35");
+    });
 
 });
