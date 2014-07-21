@@ -47,7 +47,7 @@ server.on("post_initialize", function () {
             dataType: "Double",
             value: {
                 get: function () {
-                    var pump_speed = 200 + Math.random();
+                    var pump_speed = 200 + 100*Math.sin(Date.now()/10000);
                     return new Variant({dataType: DataType.Double, value: pump_speed});
                 },
                 set: function (variant) {
