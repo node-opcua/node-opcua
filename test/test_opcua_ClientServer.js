@@ -43,7 +43,7 @@ describe("testing basic Client-Server communication",function() {
     });
 
     afterEach(function(done){
-       client = null;
+
        done();
     });
 
@@ -53,7 +53,7 @@ describe("testing basic Client-Server communication",function() {
 
     it("should start a server and accept a connection",function(done){
 
-        server.connected_client_count.should.equal(0);
+        server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 1;
 
@@ -71,7 +71,7 @@ describe("testing basic Client-Server communication",function() {
     it("Server should not accept connection, if protocol version is incompatible",function(done){
 
         client.protocolVersion = 55555; // set a invalid protocol version
-        server.connected_client_count.should.equal(0);
+        server.currentChannelCount.should.equal(0);
 
         async.series([
             function(callback) {
@@ -83,7 +83,7 @@ describe("testing basic Client-Server communication",function() {
                 });
             }
         ],function(err) {
-            server.connected_client_count.should.equal(0);
+            server.currentChannelCount.should.equal(0);
             debugLog(" error : ", err);
             done();
         });
@@ -92,7 +92,7 @@ describe("testing basic Client-Server communication",function() {
 
     it("Client shall be able to create a session with a anonymous token",function(done){
 
-        server.connected_client_count.should.equal(0);
+        server.currentChannelCount.should.equal(0);
 
         var g_session ;
         async.series([
@@ -119,11 +119,19 @@ describe("testing basic Client-Server communication",function() {
             function(callback) {
                 debugLog("Disconnecting client");
                 client.disconnect(callback);
+            },
+            function(callback) {
+                // relax a little bit so that server can complete pending operations
+                setImmediate(callback);
+            },
+            function(callback) {
+                // relax a little bit so that server can complete pending operations
+                setImmediate(callback);
             }
         ],function(err) {
 
             debugLog("finally");
-            server.connected_client_count.should.equal(0);
+            server.currentChannelCount.should.equal(0);
             debugLog(" error : ", err);
             done();
         });
@@ -132,7 +140,7 @@ describe("testing basic Client-Server communication",function() {
 
     it("client shall be able to reconnect if first connection failed",function(done){
 
-        server.connected_client_count.should.equal(0);
+        server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 1;
 
@@ -161,24 +169,29 @@ describe("testing basic Client-Server communication",function() {
 
     it("client shall be able to connect & disconnect multiple times",function(done){
 
-        server.connected_client_count.should.equal(0);
+        server.currentChannelCount.should.equal(0);
 
+        function relax_for_a_little_while(callback) { setImmediate(callback); }
         async.series([
 
             function(callback) { client.connect(endpointUrl,callback);  },
-            function(callback) { client.disconnect(callback);           },
-
+            function(callback) { server.currentChannelCount.should.equal(1);   callback();  },
+            function(callback) { client.disconnect(callback);},
+            relax_for_a_little_while,
+            function(callback) { server.currentChannelCount.should.equal(0);   callback();  },
 
             function(callback) { client.connect(endpointUrl,callback);  },
-            function(callback) { client.disconnect(callback);           },
+            function(callback) { server.currentChannelCount.should.equal(1);   callback();  },
+            function(callback) { client.disconnect(callback);},
+            relax_for_a_little_while,
+            function(callback) { server.currentChannelCount.should.equal(0);   callback();  },
 
             function(callback) { client.connect(endpointUrl,callback);  },
-            function(callback) { client.disconnect(callback);           },
+            function(callback) { server.currentChannelCount.should.equal(1);   callback();  },
+            function(callback) { client.disconnect(callback);},
+            relax_for_a_little_while,
+            function(callback) { server.currentChannelCount.should.equal(0);   callback();  },
 
-            function(callback) {
-                server.connected_client_count.should.equal(0);
-                callback();
-            }
         ],done);
 
     });
@@ -211,7 +224,7 @@ describe("testing basic Client-Server communication",function() {
     });
 
     it("calling connect on the client twice shall return a error the second time",function(done){
-        server.connected_client_count.should.equal(0);
+        server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 1;
 
@@ -346,6 +359,7 @@ describe("testing basic Client-Server communication",function() {
                 }
             });
         });
+
         it("should read the TemperatureTarget value", function(done) {
 
             g_session.readVariableValue(temperatureVariableId.nodeId,function(err,dataValues,diagnosticInfos){
@@ -376,7 +390,6 @@ describe("testing basic Client-Server communication",function() {
                     done(err);
                 });
         });
-
 
 
         describe("Accessing the Server object in the Root folder",function(){
@@ -452,5 +465,95 @@ describe("testing basic Client-Server communication",function() {
 
 });
 
+describe("testing ability for client to reconnect when server close connection",function() {
 
+    it("should be possible to reconnect client after the server closed the connection",function(done){
+
+        // todo:
+        // start demo server
+        // start client and create a session on server
+        // shutdown server
+        // verify that client has received a notification that connection has been closed
+        // restart server
+        // reuse the same client to reconnect to server
+        // verify that client is connected
+        // cleanup:
+        //   - disconnect client
+        //   - disconnect server
+        //---------------------------------------------------------------
+
+
+        var server = null;
+        var endpointUrl = null;
+        var temperatureVariableId = null;
+
+
+        function start_demo_server(done) {
+            server = build_server_with_temperature_device({ port:port},function() {
+                endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+                temperatureVariableId = server.temperatureVariableId;
+                done();
+            });
+        }
+
+        var client = null;
+        var client_has_received_close_event;
+
+        function create_client_and_create_a_connection_to_server(done) {
+            client = new OPCUAClient();
+            client.connect(endpointUrl,done);
+
+            client_has_received_close_event = 0;
+            client.on("close",function(err){
+
+                console.log(" client has received close event");
+                client_has_received_close_event+=1;
+            });
+        }
+
+        function shutdown_server(done){
+
+            server.shutdown(function(err) {
+                server = null;
+                done(err);
+            });
+        }
+
+        function verify_that_client_has_received_close_event(done) {
+            client_has_received_close_event.should.eql(1);
+            done();
+        }
+        function restart_server(done) {
+            start_demo_server(done);
+        }
+
+        function reuse_same_client_to_reconnect_to_server(done) {
+            client.connect(endpointUrl,done);
+        }
+        function verify_that_client_is_connected(done) {
+            // to do : do something usefull here
+            done();
+        }
+        function disconnect_client(done) {
+            client.disconnect(done);
+        }
+
+
+        async.series([
+            start_demo_server,
+            create_client_and_create_a_connection_to_server,
+            shutdown_server,
+            verify_that_client_has_received_close_event,
+            restart_server,
+            reuse_same_client_to_reconnect_to_server,
+            verify_that_client_is_connected,
+            disconnect_client,
+            shutdown_server
+
+        ],function(err) {
+            done(err);
+        })
+    });
+
+});
 
