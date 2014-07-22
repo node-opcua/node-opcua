@@ -497,9 +497,9 @@ describe("check isValid and random for various types", function () {
         "Guid",
         "DateTime",
         "NodeId",
-        "ByteString"
-//xx            "Int64"
-//xx            "UInt64"
+        "ByteString",
+        "Int64",
+        "UInt64"
     ];
 
     types.forEach(function (type) {
@@ -523,3 +523,94 @@ describe("check isValid and random for various types", function () {
     });
 
 });
+describe("check coerce various types", function () {
+
+//
+//        "String",
+//        "Boolean",
+//        "Double",
+//        "Float",
+//        "Guid",
+//        "DateTime",
+//        "NodeId",
+//        "ByteString",
+
+    it("should have a coerce method for boolean",function() {
+
+        ec.coerceBoolean("false").should.equal(false);
+        ec.coerceBoolean("true").should.equal(true);
+
+        ec.coerceBoolean(0).should.equal(false);
+        ec.coerceBoolean(1).should.equal(true);
+
+        ec.coerceBoolean(false).should.equal(false);
+        ec.coerceBoolean(true).should.equal(true);
+
+        ec.coerceBoolean("0").should.equal(false);
+        ec.coerceBoolean("1").should.equal(true);
+
+    });
+
+
+    var types = [
+        "Byte",
+        "SByte",
+        "UInt8",
+        "UInt16",
+        "UInt32",
+        "Int8",
+        "Int16",
+        "Int32",
+        "Float",
+        "Double",
+        "Int64",
+        "UInt64"
+    ];
+
+    types.forEach(function (type) {
+
+        it("should have a coerce method for " + type, function () {
+
+            var coerceFunc = ec["coerce" + type];
+            var randomFunc = ec["random" + type];
+            var isValidFunc = ec["isValid" + type];
+
+            ec.should.have.property("coerce" + type);
+            ec.should.have.property("random" + type);
+            ec.should.have.property("isValid" + type);
+
+            var random_value = randomFunc();
+
+            var value1 = coerceFunc(random_value);
+            value1.should.eql(random_value);
+
+            var value2 = coerceFunc(random_value.toString());
+            value2.should.eql(random_value);
+
+        });
+    });
+
+    function w(str,l) {
+        return(str+ "                        ").substring(0,l);
+    }
+    types.forEach(function (type) {
+
+        it("coerce" + w(type,8) + " should preserves null or undefined values ", function () {
+
+            var coerceFunc = ec["coerce" + type];
+
+            ec.should.have.property("coerce" + type);
+
+
+            var value1 = coerceFunc(null);
+            should(value1).be.equal(null);
+
+
+            var value2 = coerceFunc();
+            should(value2).be.equal(undefined);
+
+
+        });
+    });
+});
+
