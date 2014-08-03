@@ -17,6 +17,10 @@ var hexy = require("hexy");
 //
 // If you have .pfx certificates you can convert them to .pem using openssl:
 //openssl pkcs12 -in  cert.pfx -out cert.pem
+
+// refs:
+//  http://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html 
+
 var doDebug = false;
 // doDebug = true;
 function debugLog() {
