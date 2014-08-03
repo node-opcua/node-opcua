@@ -41,11 +41,10 @@ By default, the server will search for a certificate named **cert.pem** in the *
 Then, answer the question requested by openssl (organizational  name , address and so on )
 The server private key is key.pem.
 
-The certificate file contains also a public key. The public key can be extracted from the certificate
-file with the following command
+The public key can be extracted with the following command
 
 ``` shell
-    $ openssl rsa -in certificates/cert.pem -pubout > certificates/public_key.pub
+    $ openssl rsa -in certificates/key.pem -pubout > certificates/public_key.pub
 ```
 
 
