@@ -39,6 +39,9 @@ describe("testing NodeSet XML file loading",function(){
 
     it("should load a large nodeset xml file",function(done){
 
+
+        this.timeout(10000);
+
         var xml_file = __dirname + "/../../nodesets/Opc.Ua.NodeSet2.xml";
         require("fs").existsSync(xml_file).should.be.eql(true);
 
