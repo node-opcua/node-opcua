@@ -54,7 +54,7 @@ Contributing
 Supporting the project
 ======================
 
-If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://github.com/node-opcua/node-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software).
+If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://node-opcua.github.io&title=Node-OPCUA&language=nodejs&tags=github&category=software).
 This will give us full of motivation to carry on and keep working on the roadmap.
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
