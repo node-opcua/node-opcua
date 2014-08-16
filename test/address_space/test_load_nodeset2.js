@@ -39,8 +39,8 @@ describe("testing NodeSet XML file loading",function(){
 
     it("should load a large nodeset xml file",function(done){
 
-
-        this.timeout(10000);
+        // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
+        this.timeout(400000);
 
         var xml_file = __dirname + "/../../nodesets/Opc.Ua.NodeSet2.xml";
         require("fs").existsSync(xml_file).should.be.eql(true);

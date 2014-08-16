@@ -25,8 +25,11 @@ var NodeCrawler = require("../lib/client/node_crawler").NodeCrawler;
 
 describe("NodeCrawler",function(){
 
-    this.timeout(10000);
-
+    // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
+    // so we set a big enough timeout 
+    if (process.arch === 'arm' ) {
+       this.timeout(400000);
+    }
     var server , client,temperatureVariableId,endpointUrl ;
 
     var port = 2001;

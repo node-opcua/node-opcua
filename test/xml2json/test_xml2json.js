@@ -55,6 +55,12 @@ describe("XMLToJSON",function(){
 
     });
     it("should parse a UTF8 encoded xml file with a BOM",function(done) {
+
+        // accomodate for slow RPI
+	if ( process.arch === "arm" ) {
+           this.timeout(40000);
+           this.slow(20000);
+        }
         var xml_file = __dirname + "/../../nodesets/Opc.Ua.NodeSet2.xml";
         var parser = new Xml2Json({});
         parser.parse(xml_file,function(err) {
