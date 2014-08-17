@@ -123,4 +123,41 @@ describe("testing ClientSecureChannelLayer ",function(){
 
     });
 
+    it("should expose the total number of bytes read and written",function(done){
+
+        var mock = new MockTransport([
+            // ---------------------------------------------------- Transaction 1
+            // Client will send a HEl_message
+            // Server will reply with this :
+            opcua.packTcpMessage("ACK", fake_AcknowledgeMessage),
+
+            // ---------------------------------------------------- Transaction 2
+            // client will send a "OPN" OpenSecureChannelRequest
+            // Server will reply with this:
+            require("../fixtures/fixture_full_tcp_packets").packet_sc_2,
+
+            // ---------------------------------------------------- Transaction 3
+            // client will send a "CLO" CloseSecureChannelRequest
+            // Server will close the socket, without sending a response
+            function() { this.fake_socket.server.end(); }
+
+        ],done);
+
+        require("../../lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
+        var secureChannel = new ClientSecureChannelLayer();
+
+        secureChannel.bytesRead.should.equal(0);
+        secureChannel.bytesWritten.should.equal(0);
+
+        secureChannel.create("fake://localhost:2033/SomeAddress",function(err){
+
+            secureChannel.bytesRead.should.be.greaterThan(0);
+            secureChannel.bytesWritten.should.be.greaterThan(0);
+
+            secureChannel.close(function(err){
+                done(err);
+            });
+        });
+
+    });
 });
