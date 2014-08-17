@@ -123,6 +123,11 @@ describe("testing ServerTCP_transport", function () {
 
         transport.on("message", function (messageChunk) {
             utils.compare_buffers(messageChunk, openChannelRequest);
+
+            // it should provide bytesRead and bytesWritten
+            transport.bytesRead.should.be.greaterThan(0);
+            transport.bytesWritten.should.be.greaterThan(20);
+
             done();
         });
 
@@ -131,6 +136,10 @@ describe("testing ServerTCP_transport", function () {
             counter++;
 
         });
+
+
+        transport.bytesRead.should.equal(0);
+        transport.bytesWritten.should.equal(0);
 
         fake_socket.client.write(helloMessage);
 
