@@ -19,7 +19,7 @@ var client = new opcua.OPCUAClient();
 
 var endpointUrl = argv.endpoint;
 
-var monitored_node = argv.node || "ns=1;s=Temperature";
+var monitored_node = argv.node || "ns=2;s=PumpSpeed"; //"ns=1;s=Temperature";
 
 console.log(" monitoring node id ", monitored_node);
 
@@ -128,8 +128,23 @@ async.series([
         assert(_.isObject(the_session));
         var crawler = new NodeCrawler(the_session);
 
+        var t = Date.now();
+        var t1;
+        client.on("send_request",function(){
+            t1 = Date.now();
+        });
+        client.on("receive_response",function(){
+            var t2 = Date.now();
+            console.log("R=", client.bytesRead, "W=",client.bytesWritten, "T=", client.transactionsPerformed, "t=",t2-t1);
+        });
+
+        var t = Date.now();
+        crawler.on("browsed",function(element){
+            console.log("->",element.browseName.name,element.nodeId.toString());
+        });
 
         var nodeId = "ObjectsFolder";
+        console.log("now crawling object folder ...please wait...");
         crawler.read(nodeId, function (err, obj) {
             if (!err) {
                 // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
