@@ -135,7 +135,9 @@ async.series([
         });
         client.on("receive_response",function(){
             var t2 = Date.now();
-            console.log("R=", client.bytesRead, "W=",client.bytesWritten, "T=", client.transactionsPerformed, "t=",t2-t1);
+            var util = require("util");
+            var str =  util.format("R= %d W= %d T=%d t= %d", client.bytesRead,client.bytesWritten,client.transactionsPerformed ,(t2-t1));
+            console.log(str.yellow.bold);
         });
 
         var t = Date.now();
