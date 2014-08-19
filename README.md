@@ -13,7 +13,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 [![OPC UA](http://b.repl.ca/v1/OPC-UA-blue.png)](http://opcfoundation.org/)
 
 
-[![Gitter chat](https://badges.gitter.im/node-opcua.png)](https://gitter.im/node-opcua)
+[![Gitter chat](https://badges.gitter.im/node-opcua/node-opcua.png)](https://gitter.im/node-opcua/node-opcua)
 
 Node-opcua is an full OPC-UA stack written in NodeJS.
 
