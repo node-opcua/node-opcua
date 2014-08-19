@@ -171,7 +171,9 @@ describe("testing basic Client-Server communication",function() {
 
         server.currentChannelCount.should.equal(0);
 
-        function relax_for_a_little_while(callback) { setImmediate(callback); }
+        function relax_for_a_little_while(callback) {
+            setTimeout(callback,20);
+        }
         async.series([
 
             function(callback) { client.connect(endpointUrl,callback);  },
@@ -519,6 +521,10 @@ describe("testing ability for client to reconnect when server close connection",
             });
         }
 
+        function wait_a_little_while(done){
+            setTimeout(done,20);
+        }
+
         function verify_that_client_has_received_close_event(done) {
             client_has_received_close_event.should.eql(1);
             done();
@@ -543,6 +549,7 @@ describe("testing ability for client to reconnect when server close connection",
             start_demo_server,
             create_client_and_create_a_connection_to_server,
             shutdown_server,
+            wait_a_little_while,
             verify_that_client_has_received_close_event,
             restart_server,
             reuse_same_client_to_reconnect_to_server,
