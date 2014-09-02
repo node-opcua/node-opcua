@@ -30,22 +30,23 @@
   },
   "devDependencies": {
     "autodoc": "^0.6.2",
+    "benchmark": "^1.0.0",
+    "coveralls": "*",
     "csv": "~0.4.0",
+    "eyes": "~0.1.8",
     "jsdoc": "^3.3.0-alpha9",
-    "literate-programming": "^0.8.1",
+    "literate-programming": "^0.8.2",
     "mocha": "*",
     "mocha-lcov-reporter": "0.0.1",
+    "mustache": "~0.8.2",
     "node-xml": "~1.0.2",
+    "progress": "~1.1.8",
+    "request": "~2.40.0",
     "should": "*",
     "sinon": "1.10.3",
-    "yuidoc-bootstrap-theme": "^1.0.2",
-    "coveralls": "*",
-    "progress": "~1.1.8",
-    "eyes": "~0.1.8",
     "tmp": "0.0.24",
     "tracer": "~0.7.1",
-    "request": "~2.40.0",
-    "mustache": "~0.8.2",
+    "yuidoc-bootstrap-theme": "^1.0.2",
     "yuidocjs": "^0.3.50"
   },
   "dependencies": {
@@ -62,8 +63,8 @@
     "optimist": "*",
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
-    "through2": "^1.1.1",
+    "through2": "^0.6.1",
     "treeify": "~1.0.1",
-    "underscore": "~1.6.0"
+    "underscore": "~1.7.0"
   }
 }

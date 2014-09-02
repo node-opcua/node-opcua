@@ -102,7 +102,7 @@ describe("Browse Service", function(){
         // timestamp shall be minDate( 01/01/1601) to satisfy the .NET server
         // implementation.
         var ec = require("../../lib/misc/encode_decode");
-        ec.dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql(0);
+        ec.bn_dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql([0,0]);
     });
 
 
