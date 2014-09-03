@@ -52,9 +52,10 @@ Benchmarker.prototype.measure_perf = function(name,func,options) {
 
 Benchmarker.prototype.run = function(options) {
 
-    options |= {};
+    options = options || {};
     options.max_time  |= 0.5;
     options.min_count |= 5;
+
 
     var self = this;
     _.each(this._suite,function(test){

@@ -131,12 +131,8 @@ var Benchmarker = require("../helpers/benchmarker").Benchmarker;
 
 describe("Benchmarking Date conversion routines",function(){
 
-    // http://monsur.hossa.in/2012/12/11/benchmarkjs.html
-
-    // var Benchmark = require('benchmark');
-    // Benchmark.options.maxTime = 0.5;
-
     it("should check that slow and fast method produce same result",function() {
+
         var date = new Date(2014, 0, 1);
         var nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
         var nano2 = ec.bn_dateToHundredNanoSecondFrom1601(date);
@@ -152,8 +148,8 @@ describe("Benchmarking Date conversion routines",function(){
             var date = new Date(2014, 0, 1);
             var nano = bn_dateToHundredNanoSecondFrom1601_big_number(date);
 
-
-        }).add('bn_dateToHundredNanoSecondFrom1601_fast', function() {
+        })
+        .add('bn_dateToHundredNanoSecondFrom1601_fast', function() {
 
             var date = new Date(2014, 0, 1);
             var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
@@ -169,7 +165,7 @@ describe("Benchmarking Date conversion routines",function(){
             this.fastest.name.should.eql("bn_dateToHundredNanoSecondFrom1601_fast");
             done();
         })
-        .run({ 'async': false });
+        .run();
     });
 
     it("should ensure that fast method (bn_hundredNanoSecondFrom1601ToDate) is faster than slow method",function(done) {
@@ -182,7 +178,8 @@ describe("Benchmarking Date conversion routines",function(){
         bench.add('bn_hundredNanoSecondFrom1601ToDate_safe', function() {
             bn_hundredNanoSecondFrom1601ToDate_big_number(nano[0],nano[1]);
 
-        }).add('bn_hundredNanoSecondFrom1601ToDate_fast', function() {
+        })
+        .add('bn_hundredNanoSecondFrom1601ToDate_fast', function() {
             ec.bn_hundredNanoSecondFrom1601ToDate(nano[0],nano[1]);
         })
         .on('cycle', function(message) {
@@ -195,7 +192,7 @@ describe("Benchmarking Date conversion routines",function(){
             this.fastest.name.should.eql("bn_hundredNanoSecondFrom1601ToDate_fast");
             done();
         })
-        .run({ 'async': true });
+        .run();
 
     });
 });
