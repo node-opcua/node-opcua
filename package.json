@@ -63,7 +63,7 @@
     "optimist": "*",
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
-    "through2": "^0.6.1",
+    "through2": "^1.1.1",
     "treeify": "~1.0.1",
     "underscore": "~1.7.0"
   }
