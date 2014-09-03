@@ -247,3 +247,90 @@ describe("testing ReferenceType",function(){
     });
 
 });
+
+
+describe(" improving performance of isSubtypeOf",function() {
+    var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
+    //  References i=31
+    //  +->(hasSubtype) NoHierarchicalReferences
+    //                  +->(hasSubtype) HasTypeDefinition
+    //  +->(hasSubtype) HierarchicalReferences
+    //                  +->(hasSubtype) HasChild/ChildOf
+    //                                  +->(hasSubtype) Aggregates/AggregatedBy
+    //                                                  +-> HasProperty/PropertyOf
+    //                                                  +-> HasComponent/ComponentOf
+    //                                                  +-> HasHistoricalConfiguration/HistoricalConfigurationOf
+    //                                 +->(hasSubtype) HasSubtype/HasSupertype
+    //                  +->(hasSubtype) Organizes/OrganizedBy
+    //                  +->(hasSubtype) HasEventSource/EventSourceOf
+    var Benchmarker = require("../helpers/benchmarker").Benchmarker;
+    var bench = new Benchmarker();
+
+    var nodeset_filename = __dirname + "/../../lib/server/mini.Node.Set2.xml";
+    var address_space = new AddressSpace();
+
+    var referenceTypeNames = Object.keys(require("../../lib/opcua_node_ids").ReferenceTypeIds);
+
+    var referenceTypes = [];
+    before(function (done) {
+        generate_address_space(address_space, nodeset_filename, function () {
+
+            referenceTypes = referenceTypeNames.map(function (referenceTypeName) {
+                return address_space.findReferenceType(referenceTypeName);
+            });
+            referenceTypes = referenceTypes.filter(function (e) {
+                return e != undefined;
+            });
+
+            assert(referenceTypes[0].nodeClass === NodeClass.ReferenceType);
+            done();
+        });
+    });
+
+
+    it("should ensure that optimized version of isSubtypeOf produce same result as brute force version",function(done){
+
+        referenceTypes.forEach(function(referenceType){
+            var flags1 = referenceTypes.map(function(refType) { return referenceType.isSubtypeOf(refType); });
+            var flags2 = referenceTypes.map(function(refType) { return referenceType._slow_isSubtypeOf(refType); });
+
+            //xx console.log( referenceType.browseName,flags1.map(function(f){return f ? 1 :0;}).join(" - "));
+            //xx console.log( referenceType.browseName,flags2.map(function(f){return f ? 1 :0;}).join(" - "));
+            flags1.should.eql(flags2);
+
+        });
+        done();
+    });
+    it("should ensure that optimized version of isSubtypeOf is really faster that brute force version", function(done) {
+
+        //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
+        bench.add('isSubtypeOf slow', function() {
+
+            referenceTypes.forEach(function(referenceType){
+                var flags = referenceTypes.map(function(refType) { return referenceType._slow_isSubtypeOf(refType); });
+            });
+
+        })
+        .add('isSubtypeOf fast', function() {
+
+                referenceTypes.forEach(function(referenceType){
+                    var flags = referenceTypes.map(function(refType) { return referenceType.isSubtypeOf(refType); });
+                });
+        })
+        .on('cycle', function(message) {
+            console.log(message);
+        })
+        .on('complete', function() {
+
+            console.log(' Fastest is ' + this.fastest.name);
+            console.log(' Speed Up : x', this.speedUp);
+            this.fastest.name.should.eql("isSubtypeOf fast");
+
+            this.speedUp.should.be.greaterThan(10);
+
+            done();
+        })
+        .run();
+
+    });
+});
