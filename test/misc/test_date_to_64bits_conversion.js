@@ -195,4 +195,38 @@ describe("Benchmarking Date conversion routines",function(){
         .run();
 
     });
+
+    it("should convert any random date",function(){
+
+
+        var dates_to_check =[
+            new Date(1,1,1601),
+            new Date(14,7,1789),
+            new Date(14,4,1929),
+            new Date(14,4,1968),
+            new Date(14,4,1972),
+            new Date(14,4,2172)
+        ];
+        for(var i=0;i<100;i++) {
+            dates_to_check.push(ec.randomDateTime());
+        }
+        var date,check_date;
+        var bs = new BinaryStream();
+        for(var i=0;i<dates_to_check.length;i++) {
+            date = dates_to_check[i];
+            var hl  = ec.bn_dateToHundredNanoSecondFrom1601(date);
+            var hl_bn = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+
+            check_date    = ec.bn_hundredNanoSecondFrom1601ToDate(hl[0],hl[1]);
+            check_date_bn = bn_hundredNanoSecondFrom1601ToDate_big_number(hl[0],hl[1]);
+
+            check_date.should.eql(date);
+
+            ec.isValidUInt32(hl[0]).should.eql(true);
+            ec.isValidUInt32(hl[1]).should.eql(true);
+            ec.encodeDateTime(date,bs);
+            bs.rewind();
+        }
+    });
+
 });
