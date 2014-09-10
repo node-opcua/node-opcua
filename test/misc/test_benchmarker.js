@@ -10,7 +10,7 @@ describe("Testing ",function(){
        var bench = new Benchmarker();
 
        var values = [];
-       for (var i=0;i<1000000;i++) { values[i] = Math.random(); }
+       for (var i=0;i<10000;i++) { values[i] = Math.random(); }
 
        bench
        .add('for simple loop', function() {
