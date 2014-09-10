@@ -1327,12 +1327,56 @@ describe("testing ServerEngine", function () {
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
-            //xx console.log('xxxxxx',dataValues[0].value.value);
 
             dataValues[0].value.value.should.be.instanceOf(Object);
 
+            var serverStatus =  dataValues[0].value.value;
+
+            serverStatus.state.key.should.eql("Running");
+            serverStatus.state.value.should.eql(0);
+            serverStatus.shutdownReason.text.should.eql("");
+
+            serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
+            serverStatus.buildInfo.softwareVersion.should.equal("1.0");
+            serverStatus.buildInfo.manufacturerName.should.equal("<Manufacturer>");
+            serverStatus.buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+
         });
     });
+
+
+    describe("Accessing BuildInfo as a single composite object",function(){
+
+        it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure",function(){
+
+            var readRequest = new read_service.ReadRequest({
+                timestampsToReturn : read_service.TimestampsToReturn.Neither,
+                nodesToRead: [{
+                    nodeId:  VariableIds.Server_ServerStatus_BuildInfo,
+                    attributeId: AttributeIds.Value
+                }]
+            });
+
+            var dataValues = engine.read(readRequest);
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
+
+            console.log('buildInfo',dataValues[0].value.value);
+            dataValues[0].value.value.should.be.instanceOf(Object);
+
+            var buildInfo= dataValues[0].value.value;
+
+            buildInfo.productName.should.equal("NODEOPCUA-SERVER");
+            buildInfo.softwareVersion.should.equal("1.0");
+            buildInfo.manufacturerName.should.equal("<Manufacturer>");
+            buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+
+
+        });
+    });
+
+
 
     describe("writing nodes ",function(){
 
