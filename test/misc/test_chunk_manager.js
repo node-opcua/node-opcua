@@ -2,7 +2,6 @@ var should = require("should");
 var ChunkManager = require("../../lib/misc/chunk_manager").ChunkManager;
 var MessageChunkManager = require("../../lib/misc/chunk_manager").MessageChunkManager;
 
-var ChunkStream = require("../../lib/misc/chunk_manager").chunkStream;
 
 var util = require("util");
 
@@ -159,6 +158,22 @@ function message_body_fixture() {
 }
 
 
+var through = require("through2");
+
+var chunkStream = function (chunkManager) {
+
+    var cm = chunkManager;
+    var tr = through(function (chunk, enc, next) {
+        cm.write(chunk, chunk.length);
+        next();
+    }, function () {
+        cm.end();
+    });
+    cm.on("chunk", function (chunk) {
+        tr.push(chunk);
+    });
+    return tr;
+};
 
 describe("using ChunkManager as stream with chunkStream",function(){
     //
@@ -171,7 +186,7 @@ describe("using ChunkManager as stream with chunkStream",function(){
 
 
         var counter = 0;
-        r.pipe(ChunkStream(new ChunkManager(10))).on("data",function(data) {
+        r.pipe(chunkStream(new ChunkManager(10))).on("data",function(data) {
             data.length.should.be.lessThan(10+1);
             if (counter < 7) {
                 data.toString("ascii").should.eql("0123456789");
@@ -193,7 +208,7 @@ describe("using ChunkManager as stream with chunkStream",function(){
         r.push(null);
 
         var counter = 0;
-        r.pipe(ChunkStream(new MessageChunkManager(20,"HEL",0xBEEF))).on("data",function(data) {
+        r.pipe(chunkStream(new MessageChunkManager(20,"HEL",0xBEEF))).on("data",function(data) {
             // console.log(" ",counter, " " , data.toString("ascii"));
             data.length.should.lessThan(20+1);
             counter +=1;
@@ -218,7 +233,7 @@ describe("using ChunkManager as stream with chunkStream",function(){
         var counter = 0;
         var r = new BinaryStreamReader(original_message_body);
 
-        r.pipe(ChunkStream(new MessageChunkManager(block_size,"HEL",0xBEEF))).on("data",function(data) {
+        r.pipe(chunkStream(new MessageChunkManager(block_size,"HEL",0xBEEF))).on("data",function(data) {
 
             data.length.should.lessThan(block_size+1);
             counter +=data.length;
