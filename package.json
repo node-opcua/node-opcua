@@ -65,6 +65,7 @@
     "sprintf": "~0.1.4",
     "through2": "^1.1.1",
     "treeify": "~1.0.1",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "usage": "^0.4.13"
   }
 }

@@ -55,6 +55,34 @@ server.on("post_initialize", function () {
                 }
             }
         });
+
+
+    var usage_result = { memory : 0 , cpu: 100};
+    
+    var usage = require('usage');
+
+    var pid = process.pid // you can use any valid PID instead
+    var options = { keepHistory: true }
+    setInterval(function() {
+        usage.lookup(pid, options, function(err, result) {
+          usage_result  = result;
+          console.log("result", result);
+        })
+    },1000);
+
+    server.engine.addVariableInFolder(myDevices, {
+            browseName: "CPU%",
+            nodeId: "ns=2;s=CPU",
+            dataType: "Double",
+            value: { get: function () { return new Variant({dataType: DataType.Double, value: usage_result.cpu}); } }
+        });
+
+    server.engine.addVariableInFolder(myDevices, {
+            browseName: "CPU%",
+            nodeId: "ns=2;s=Memory",
+            dataType: "Number",
+            value: { get: function () { return new Variant({dataType: DataType.UInt32, value: usage_result.memory}); } }
+        });
 });
 
 server.start(function () {
