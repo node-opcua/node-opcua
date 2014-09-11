@@ -1,4 +1,4 @@
-var path = "../../../../";
+var path = "../../../";
 var opcua = require(path);
 var makeNodeId = opcua.makeNodeId;
 var DataValue = opcua.DataValue;

@@ -1,5 +1,5 @@
-var path = "../../";
-require(path+"test/compliance_tests/helpers");
+var path = "../";
+require(path+"test_compliance/helpers");
 
 var build_server_with_temperature_device = require(path + "test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 

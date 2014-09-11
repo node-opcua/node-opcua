@@ -1,4 +1,4 @@
-var path = "../../";
+var path = "../";
 var opcua = require(path);
 global.makeNodeId = opcua.makeNodeId;
 global.DataValue = opcua.DataValue;
@@ -17,11 +17,12 @@ var perform_operation_on_client_session = require(path + "test/helpers/perform_o
 
 var supportedType = [
     "Boolean", "Byte", "SByte", "Int16", "UInt16", "Int32", "UInt32",
+    "Int64" , "UInt64",
     "Number", "Double", "Float",
     "Integer",
     "NodeId",
     "String", "Guid" , "LocaleId"// ,"Toto"
-    // "Variant" , "Int64" , "UInt64"
+    // "Variant" ,
 ];
 
 var ns = 411;

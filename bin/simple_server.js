@@ -35,7 +35,65 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
     }
 });
 
+
+/**
+ * optionally install a CPU Usage and Memory Usage node
+ * ( condition : running on linux and require("usage")
+ */
+function install_optional_cpu_and_memory_usage_node(server) {
+
+    var usage;
+    try {
+        usage = require('usage');
+    } catch(err) {
+        console.log("skipping installation of cpu_usage and memory_usage nodes")
+        return;
+    }
+
+    var folder = server.engine.findObjectByBrowseName("VendorServerInfo");
+
+    var usage_result = { memory : 0 , cpu: 100};
+
+    var pid = process.pid;
+    var options = { keepHistory: true };
+
+    setInterval(function() {
+            usage.lookup(pid, options, function(err, result) {
+            usage_result  = result;
+            console.log("result", result);
+        })
+    },1000);
+
+    server.engine.addVariableInFolder(folder, {
+        browseName: "CPUUsage",
+        description: "Current CPU usage of the server process",
+        nodeId: "ns=2;s=CPUUsage",
+        dataType: "Double",
+        value: { get: function () {
+            if (!usage_result) {
+                return opcua.StatusCodes.BadResourceUnavailable;
+            }
+            return new Variant({dataType: DataType.Double, value: usage_result.cpu});
+        } }
+    });
+
+    server.engine.addVariableInFolder(folder, {
+        browseName: "MemoryUsage",
+        nodeId: "ns=2;s=MemoryUsage",
+        description: "Current CPU usage of the server process",
+        dataType: "Number",
+        value: { get: function () {
+            if (!usage_result) {
+                return opcua.StatusCodes.BadResourceUnavailable;
+            }
+            return new Variant({dataType: DataType.UInt32, value: usage_result.memory});
+        } }
+    });
+
+}
+
 server.on("post_initialize", function () {
+
     build_address_space_for_conformance_testing(server.engine);
 
     var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
@@ -56,40 +114,17 @@ server.on("post_initialize", function () {
             }
         });
 
+    install_optional_cpu_and_memory_usage_node(server);
 
-    var usage_result = { memory : 0 , cpu: 100};
-    
-    var usage = require('usage');
-
-    var pid = process.pid // you can use any valid PID instead
-    var options = { keepHistory: true }
-    setInterval(function() {
-        usage.lookup(pid, options, function(err, result) {
-          usage_result  = result;
-          console.log("result", result);
-        })
-    },1000);
-
-    server.engine.addVariableInFolder(myDevices, {
-            browseName: "CPU%",
-            nodeId: "ns=2;s=CPU",
-            dataType: "Double",
-            value: { get: function () { return new Variant({dataType: DataType.Double, value: usage_result.cpu}); } }
-        });
-
-    server.engine.addVariableInFolder(myDevices, {
-            browseName: "CPU%",
-            nodeId: "ns=2;s=Memory",
-            dataType: "Number",
-            value: { get: function () { return new Variant({dataType: DataType.UInt32, value: usage_result.memory}); } }
-        });
 });
 
 server.start(function () {
-    console.log("  server on port", server.endpoints[0].port);
-    console.log("  server now waiting for connections. CTRL+C to stop");
-    console.log("  endpointUrl = ", endpointUrl);
+    console.log("  server on port".yellow, server.endpoints[0].port.toString().cyan);
+    console.log("  server now waiting for connections. CTRL+C to stop".yellow);
+    console.log("  endpointUrl = ".yellow, endpointUrl.cyan);
 });
+
+
 server.on("request", function (request) {
     console.log(request._schema.name);
     switch (request._schema.name) {
