@@ -31,4 +31,8 @@ describe("Crypto utils", function () {
 
     });
 
+    it("should sign a message",function() {
+
+    });
+
 });

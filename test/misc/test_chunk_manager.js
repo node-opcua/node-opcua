@@ -8,7 +8,7 @@ var util = require("util");
 
 describe("Chunk manager",function(){
 
-    it("should create a chunk_manager and decompose a large single write in small chunks",function(){
+    it("should decompose a large single write in small chunks",function(){
 
         var chunkManager = new ChunkManager(48);
         chunkManager.chunk_size.should.equal(48);
@@ -39,9 +39,7 @@ describe("Chunk manager",function(){
         chunk_counter.should.equal(3);
 
     });
-
-
-    it("should create a chunk_manager and decompose many small writes in small chunks",function(){
+    it("should decompose many small writes in small chunks",function(){
 
         var chunkManager = new ChunkManager(48);
         chunkManager.chunk_size.should.equal(48);
@@ -73,6 +71,60 @@ describe("Chunk manager",function(){
         chunk_counter.should.equal(3);
 
     });
+
+
+
+});
+xdescribe("Chunk Manager Padding (chunk size 32 bytes, padding 8 bytes)\n",function(){
+
+
+    var chunkManager;
+
+    beforeEach(function(){
+        chunkManager= new ChunkManager(32,8);
+        chunkManager.chunk_size.should.equal(32);
+    });
+
+    function  perform_test(packet_length,expected_chunk_lengths,done) {
+
+        var chunk_counter =0;
+        chunkManager.on("chunk",function(chunk){
+
+            should(chunk).not.eql(null);
+
+            console.log("chunk",chunk.toString("hex"),expected_chunk_lengths[chunk_counter]);
+            chunk_counter.should.not.be.greaterThan(expected_chunk_lengths.length);
+            chunk.length.should.eql(expected_chunk_lengths[chunk_counter]);
+
+            chunk_counter+=1;
+            if (chunk_counter === expected_chunk_lengths.length) {
+                done();
+            }
+        });
+
+        var buf = new Buffer(packet_length);
+        buf.length.should.eql(packet_length);
+        chunkManager.write(buf);
+        chunkManager.end();
+
+    }
+
+    it("should transform a 32 bytes message into a single chunk of 32 bytes",function(done) {
+        perform_test(32, [32],done);
+    });
+    it("should transform a 10 bytes message into a single chunk of 16 bytes",function(done) {
+        perform_test(10, [16],done);
+    });
+    it("should transform a 16 bytes message into a single chunk of 16 bytes",function(done) {
+        perform_test(16, [16],done);
+    });
+    it("should transform a 17 bytes message into a single chunk of 8*3 bytes",function(done) {
+        perform_test(17, [24],done);
+    });
+    it("should transform a 35 bytes message into a  chunk of 32 bytes followed by a chunk of 8 bytes",function(done) {
+        perform_test(35,[32,8]);
+    });
+
 });
 
 
