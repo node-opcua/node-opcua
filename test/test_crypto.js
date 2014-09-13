@@ -72,6 +72,19 @@ describe("testing and exploring the NodeJS crypto api", function () {
         verify.update("Hello**HACK**World");
         verify.verify(public_key, signature).should.equal(false);
 
+
+        // The keys are assymetrical, this means that Bob cannot sign
+        // a message using alice public key.
+        should(function() {
+            var bob_sign = crypto.createSign("RSA-SHA256");
+            bob_sign.update("HelloWorld");
+            var signature = sign.sign(public_key);
+            console.log("buffer length= ", signature.length);
+            console.log("buffer= ", signature.toString("hex"));
+        }).throwError();
+
+
+
     });
 
 

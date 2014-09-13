@@ -5,10 +5,8 @@ var verify_single_chunk_message = require("../helpers/verify_message_chunk").ver
 
 var makebuffer = require("../../lib/misc/utils").makebuffer;
 
-var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var s = require("../../lib/services/secure_channel_service");
-var messageHeaderToString = require("../../lib/misc/packet_analyzer").messageHeaderToString;
 
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 

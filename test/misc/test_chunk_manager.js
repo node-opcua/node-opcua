@@ -1,7 +1,5 @@
 var should = require("should");
 var ChunkManager = require("../../lib/misc/chunk_manager").ChunkManager;
-var MessageChunkManager = require("../../lib/misc/chunk_manager").MessageChunkManager;
-
 
 var util = require("util");
 
@@ -39,6 +37,7 @@ describe("Chunk manager",function(){
         chunk_counter.should.equal(3);
 
     });
+
     it("should decompose many small writes in small chunks",function(){
 
         var chunkManager = new ChunkManager(48);
@@ -72,11 +71,38 @@ describe("Chunk manager",function(){
 
     });
 
-
-
 });
-xdescribe("Chunk Manager Padding (chunk size 32 bytes, padding 8 bytes)\n",function(){
 
+function  perform_test(chunkManager,packet_length,expected_chunk_lengths,done) {
+
+    var chunk_counter =0;
+    chunkManager.on("chunk",function(chunk,is_last){
+
+        should(chunk).not.eql(null);
+
+        chunk_counter.should.not.be.greaterThan(expected_chunk_lengths.length);
+
+        chunk.length.should.eql(expected_chunk_lengths[chunk_counter]," testing chunk " + chunk_counter);
+
+        chunk_counter+=1;
+        if (chunk_counter === expected_chunk_lengths.length) {
+            is_last.should.equal(true);
+            done();
+        } else {
+            is_last.should.equal(false);
+        }
+    });
+
+    var buf = new Buffer(packet_length);
+    buf.length.should.eql(packet_length);
+    for (var i=0;i<buf.length;i++) { buf.writeUInt8(i,i%256); }
+    chunkManager.write(buf);
+    chunkManager.end();
+
+}
+
+
+describe("Chunk Manager Padding (chunk size 32 bytes, padding 8 bytes)\n",function(){
 
     var chunkManager;
 
@@ -85,215 +111,71 @@ xdescribe("Chunk Manager Padding (chunk size 32 bytes, padding 8 bytes)\n",funct
         chunkManager.chunk_size.should.equal(32);
     });
 
-    function  perform_test(packet_length,expected_chunk_lengths,done) {
-
-        var chunk_counter =0;
-        chunkManager.on("chunk",function(chunk){
-
-            should(chunk).not.eql(null);
-
-            console.log("chunk",chunk.toString("hex"),expected_chunk_lengths[chunk_counter]);
-            chunk_counter.should.not.be.greaterThan(expected_chunk_lengths.length);
-            chunk.length.should.eql(expected_chunk_lengths[chunk_counter]);
-
-            chunk_counter+=1;
-            if (chunk_counter === expected_chunk_lengths.length) {
-                done();
-            }
-        });
-
-        var buf = new Buffer(packet_length);
-        buf.length.should.eql(packet_length);
-        chunkManager.write(buf);
-        chunkManager.end();
-
-    }
-
     it("should transform a 32 bytes message into a single chunk of 32 bytes",function(done) {
-        perform_test(32, [32],done);
+        perform_test(chunkManager,32, [32],done);
+    });
+    it("should transform a 64 bytes message into a two chunks of 32 bytes",function(done) {
+        perform_test(chunkManager,64, [32,32],done);
     });
     it("should transform a 10 bytes message into a single chunk of 16 bytes",function(done) {
-        perform_test(10, [16],done);
+        perform_test(chunkManager,10, [16],done);
     });
     it("should transform a 16 bytes message into a single chunk of 16 bytes",function(done) {
-        perform_test(16, [16],done);
+        perform_test(chunkManager,16, [16],done);
     });
     it("should transform a 17 bytes message into a single chunk of 8*3 bytes",function(done) {
-        perform_test(17, [24],done);
+        perform_test(chunkManager,17, [24],done);
     });
     it("should transform a 35 bytes message into a  chunk of 32 bytes followed by a chunk of 8 bytes",function(done) {
-        perform_test(35,[32,8]);
+        perform_test(chunkManager,35,[32,8],done);
     });
 
 });
 
+describe("Chunk Manager Padding (chunk size 32 bytes, padding 8 bytes and header_size of 10 bytes)\n",function(){
 
-describe("MessageChunkManager",function() {
+    var chunkManager;
 
-
-   it("should split a message in chunk and produce a header.",function()
-   {
-       var chunk_size  = 48;
-       var header_size = 12;
-       var body_size   = chunk_size -header_size;
-
-
-       var msgChunkManager = new MessageChunkManager(chunk_size);
-
-       var chunks = [];
-
-       var chunk_counter = 0;
-
-       msgChunkManager.on("chunk",function(chunk){
-
-           // keep a copy ..
-           var copy_chunk = new Buffer(chunk.length);
-           chunk.copy(copy_chunk,0,0,chunk.length);
-           chunks.push(copy_chunk);
-           if (chunk_counter < 4 ) {
-               // all packets shall be 'chunk_size'  byte long, except last
-               chunk.length.should.equal(chunk_size);
-           } else {
-               // last packet is smaller
-               chunk.length.should.equal(12+header_size);
-           }
-           chunk_counter+=1;
-       });
-
-       // feed chunk-manager on byte at a time
-
-       var n =body_size*4+12;
-
-       var buf = new Buffer(1);
-       for (var i=0;i<n;i+=1) {
-           buf.writeUInt8(i%256,0);
-           msgChunkManager.write(buf,1);
-       }
-
-       // write this single buffer
-       msgChunkManager.end();
-
-       chunks.length.should.equal(5);
-
-       // checking final flags ...
-       chunks[0].readUInt8(3).should.equal("C".charCodeAt(0));
-       chunks[1].readUInt8(3).should.equal("C".charCodeAt(0));
-       chunks[2].readUInt8(3).should.equal("C".charCodeAt(0));
-       chunks[3].readUInt8(3).should.equal("C".charCodeAt(0));
-       chunks[4].readUInt8(3).should.equal("F".charCodeAt(0));
-
-   });
-
-});
-
-var MessageBuilderBase = require("../../lib/misc/message_builder_base").MessageBuilderBase;
-var compare_buffers = require("../../lib/misc/utils").compare_buffers;
-var Readable = require("stream").Readable;
-function BinaryStreamReader(buf,opt) {
-    Readable.call(this, opt);
-    this._buffer = buf;
-}
-util.inherits(BinaryStreamReader, Readable);
-
-BinaryStreamReader.prototype._read = function() {
-    this.push(this._buffer);
-    this._buffer = null;
-};
-
-
-function message_body_fixture() {
-    var original_message_body = new Buffer(8 * 256);
-    for (var i = 0; i < original_message_body.length; i += 4) {
-        original_message_body.writeUInt32LE(i / 4, i);
-    }
-    return original_message_body;
-}
-
-
-var through = require("through2");
-
-var chunkStream = function (chunkManager) {
-
-    var cm = chunkManager;
-    var tr = through(function (chunk, enc, next) {
-        cm.write(chunk, chunk.length);
-        next();
-    }, function () {
-        cm.end();
-    });
-    cm.on("chunk", function (chunk) {
-        tr.push(chunk);
-    });
-    return tr;
-};
-
-describe("using ChunkManager as stream with chunkStream",function(){
-    //
-    //
-    it("should pipe over a ChunkManager with chunkStream",function(done){
-
-        var r = require("stream").Readable();
-        r.push("01234567890123456789012345678901234567890123456789012345678901234567890123");
-        r.push(null);
-
-
-        var counter = 0;
-        r.pipe(chunkStream(new ChunkManager(10))).on("data",function(data) {
-            data.length.should.be.lessThan(10+1);
-            if (counter < 7) {
-                data.toString("ascii").should.eql("0123456789");
-            } else {
-                data.slice(0,4).toString("ascii").should.eql("0123");
-            }
-            counter +=1;
-        }).on("finish",function(){
-            counter.should.equal(8);
-            done();
-        });
-    });
-    //
-    //
-    it("should pipe over a  MessageChunkManager with chunkStream",function(done){
-
-        var r = require("stream").Readable();
-        r.push("01234567890123456789012345678901234567890123456789012345678901234567890123");
-        r.push(null);
-
-        var counter = 0;
-        r.pipe(chunkStream(new MessageChunkManager(20,"HEL",0xBEEF))).on("data",function(data) {
-            // console.log(" ",counter, " " , data.toString("ascii"));
-            data.length.should.lessThan(20+1);
-            counter +=1;
-        }).on("finish",function(){
-            counter.should.equal(10);
-            done();
-        });
+    beforeEach(function(){
+        chunkManager= new ChunkManager(32, 8, 8 );
+        chunkManager.chunk_size.should.equal(24);
     });
 
-    it("should not alter a very large binary block",function(done){
-
-        var original_message_body = message_body_fixture();
-
-        var builder = new MessageBuilderBase();
-
-        builder.on("full_message_body",function(full_message_body) {
-            compare_buffers(full_message_body,original_message_body,original_message_body.length);
-            done();
-        });
-
-        var block_size = 80;
-        var counter = 0;
-        var r = new BinaryStreamReader(original_message_body);
-
-        r.pipe(chunkStream(new MessageChunkManager(block_size,"HEL",0xBEEF))).on("data",function(data) {
-
-            data.length.should.lessThan(block_size+1);
-            counter +=data.length;
-            builder.feed(data);
-
-        }).on("finish",function(){
-                // counter.should.equal(buf.length+block_size-(buf.length)%block_size);
-        });
+    it("should transform a 32 bytes message into a 32 byte chunk and 16 byte chunk ",function(done) {
+        // 8 + 24 = 32  ( reste 8)
+        // 8 + 8  = 16
+        perform_test(chunkManager,32, [32,16],done);
     });
+
+    it("should transform a 64 bytes message into a two 32 byte chunks and a 24 byte chunk",function(done) {
+        // 8 + 24 = 32   | 24 40
+        // 8 + 24 = 32   | 24 16
+        // 8 + 16 = 24   | 16
+        //                 ---
+        //                 64
+        perform_test(chunkManager,64, [32,32,24],done);
+    });
+
+    it("should transform a 10 bytes message into a single chunk of 16 bytes",function(done) {
+        // 8 + 2 = 10 => %8 => 16
+        perform_test(chunkManager,2, [16],done);
+    });
+
+
+    it("should transform a 10 bytes message into a single 24 byte chunk  ",function(done) {
+        // 8 + 10 = 18 => %8 => 24
+        perform_test(chunkManager,10, [24],done);
+    });
+
+    it("should transform a 16 bytes message into a single 16 byte chunk",function(done) {
+        // 8 + 16 = 24
+        perform_test(chunkManager,16, [24],done);
+    });
+
+    it("should transform a 17 bytes message into a single 24 byte chunk ",function(done) {
+        // 8 + 17 = 25 -> 32
+        perform_test(chunkManager,17, [32],done);
+    });
+
 });
 

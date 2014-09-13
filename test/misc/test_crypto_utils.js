@@ -1,11 +1,11 @@
 var hexy = require("hexy");
 var should = require("should");
-var  read_certificate = require("../../lib/misc/crypto_utils").read_certificate;
+var  readCertificate = require("../../lib/misc/crypto_utils").readCertificate;
 
 describe("Crypto utils", function () {
     it("should read a PEM file",function(){
 
-    var certificate = read_certificate('certificates/cert.pem');
+    var certificate = readCertificate('certificates/cert.pem');
 
     if (false) {
         console.log(certificate.toString("hex"));
