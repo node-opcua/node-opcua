@@ -21,7 +21,7 @@ describe("end-to-end testing of a write operation between a client and a server"
 
     before(function(done){
         server = build_server_with_temperature_device({ port:port},function() {
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });

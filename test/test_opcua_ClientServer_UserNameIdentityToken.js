@@ -17,7 +17,7 @@ describe("testing Client-Server with UserName/Password identity token",function(
         // no left over in the tcp pipe that could generate an error
         port+=1;
         server = build_server_with_temperature_device({ port:port},function() {
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });

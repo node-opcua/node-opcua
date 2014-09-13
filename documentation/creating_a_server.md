@@ -248,7 +248,7 @@ server.start(function() {
 Once the server has been created and configured, it is possible to retrieve the endpoint url.
 
 ```javascript
-var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 console.log(" the primary server endpoint url is ", endpointUrl );
 ```
 

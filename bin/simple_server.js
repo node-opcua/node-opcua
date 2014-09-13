@@ -17,7 +17,7 @@ console.log(" node set ", default_xmlFile);
 
 var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
 
-var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 var hostname = require("os").hostname().toLowerCase();
 
 var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";

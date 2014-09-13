@@ -20,7 +20,7 @@ describe("Testing Server and Client diagnostic facilities",function() {
         // no left over in the tcp pipe that could generate an error
         port += 1;
         server = build_server_with_temperature_device({ port: port}, function () {
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });
@@ -41,10 +41,10 @@ describe("Testing Server and Client diagnostic facilities",function() {
     });
 
     function extract_server_channel() {
-        var ep = server.endpoints[0];
-        var ckey = Object.keys(ep._channels);
+        var cp = server.endpoints[0];
+        var ckey = Object.keys(cp._channels);
         assert(ckey.length === 1);
-        var channel = ep._channels[ckey[0]];;
+        var channel = cp._channels[ckey[0]];;
         //assert(channel instanceof ServerSecureChannelLayer);
         return channel;
     }

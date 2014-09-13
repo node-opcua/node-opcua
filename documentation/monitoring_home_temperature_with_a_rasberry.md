@@ -125,7 +125,7 @@ server.initialize(post_initialize);
 server.start(function() {
     console.log("Server is now listening ... ( press CTRL+C to stop)");
     console.log("port ", server.endpoints[0].port);
-    var endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+    var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
     console.log(" the primary server endpoint url is ", endpointUrl );
 });
 }

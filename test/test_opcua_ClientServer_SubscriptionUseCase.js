@@ -21,7 +21,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         // no left over in the tcp pipe that could generate an error
         port += 1;
         server = build_server_with_temperature_device({ port: port}, function () {
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });
@@ -147,7 +147,7 @@ describe("testing server and subscription", function () {
     before(function (done) {
         console.log(" Creating Server");
         server = build_server_with_temperature_device({ port: port}, function () {
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });

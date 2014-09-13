@@ -10,7 +10,7 @@ function build_client_server_session(done){
 
     server = new OPCUAServer();
     // we will connect to first server end point
-    endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+    endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
     debugLog("endpointUrl",endpointUrl);
     opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 

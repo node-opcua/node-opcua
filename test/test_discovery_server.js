@@ -8,7 +8,7 @@ var assert = require('better-assert');
 var debugLog = require("../lib/misc/utils").make_debugLog(__filename);
 
 var s = require("../lib/datamodel/structures");
-var OPCUAServerEndPoint = require("../lib/server/server_endpoint").OPCUAServerEndPoint;
+var OPCUAServerEndPoint = require("../lib/server/server_end_point").OPCUAServerEndPoint;
 var RegisterServerRequest  = require("../lib/services/register_server_service").RegisterServerRequest;
 var RegisterServerResponse = require("../lib/services/register_server_service").RegisterServerResponse;
 var FindServersRequest = require("../lib/services/register_server_service").FindServersRequest;
@@ -17,13 +17,8 @@ var FindServersResponse = require("../lib/services/register_server_service").Fin
 // add the tcp/ip endpoint with no security
 
 var OPCUADiscoveryServer =  require("../lib/server/opcua_discovery_server").OPCUADiscoveryServer;
-assert(OPCUADiscoveryServer);
-
-
 
 var perform_findServersRequest = require("../lib/findservers").perform_findServersRequest;
-
-
 
 
 describe("Discovery server",function(){
@@ -32,7 +27,7 @@ describe("Discovery server",function(){
 
     beforeEach(function(done){
         discovery_server = new OPCUADiscoveryServer({ port: 1235 });
-        discovery_server_endpointUrl = discovery_server.endpoints[0].endpointDescription().endpointUrl;
+        discovery_server_endpointUrl = discovery_server._get_endpoints()[0].endpointUrl;
         discovery_server.start(done);
     });
     afterEach(function(done){

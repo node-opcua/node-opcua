@@ -31,7 +31,7 @@ describe("testing basic Client-Server communication", function () {
         // no left over in the tcp pipe that could generate an error
 //xx        port+=1;
         server = build_server_with_temperature_device({ port: port}, function () {
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });
@@ -84,6 +84,8 @@ describe("testing basic Client-Server communication", function () {
 });
 
 
+
+
 describe("testing Client-Server : client behavior upon server disconnection", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
@@ -95,7 +97,7 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
 
         server = build_server_with_temperature_device({ port: port}, function () {
 
-            endpointUrl = server.endpoints[0].endpointDescription().endpointUrl;
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
 

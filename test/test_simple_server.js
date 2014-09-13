@@ -12,9 +12,9 @@ describe("Testing a simple server from Server side",function(){
 
         server.endpoints.length.should.be.greaterThan(0);
 
-        var endpoint = server.endpoints[0];
+        var endPoint = server.endpoints[0];
 
-        var e = opcua.parseEndpointUrl(endpoint.endpointDescription().endpointUrl);
+        var e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
 
         e.hostname.should.be.equal(require("os").hostname().toLowerCase());
         e.port.should.be.greaterThan(500);
