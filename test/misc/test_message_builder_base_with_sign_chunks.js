@@ -15,6 +15,9 @@ var MessageBuilderBase = require("../../lib/misc/message_builder_base").MessageB
 
 describe("MessageBuilderBase with SIGN support", function () {
 
+    var lorem_ipsum_buffer  = make_lorem_ipsum_buffer();
+
+
     it("should not emit  bad_signature event if chunks have valid signature", function (done) {
 
         var options = {
@@ -36,7 +39,7 @@ describe("MessageBuilderBase with SIGN support", function () {
                 done(new Error(" we are not expecting a bad_signature event in this case"));
             });
 
-        iterate_on_signed_message_chunks(make_lorem_ipsum_buffer(),function(err,chunk) {
+        iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
             messageBuilderBase.feed(chunk.slice(0, 20));
             messageBuilderBase.feed(chunk.slice(20));
         });
@@ -51,7 +54,6 @@ describe("MessageBuilderBase with SIGN support", function () {
             signatureSize: 128
         };
 
-        var lorem_ipsum_buffer  = make_lorem_ipsum_buffer();
 
 
         var messageBuilderBase = new MessageBuilderBase(options);
@@ -104,18 +106,13 @@ describe("MessageBuilderBase with SIGN support", function () {
                 done();
             });
 
-        iterate_on_signed_message_chunks(make_lorem_ipsum_buffer(),function(err,chunk) {
+        iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
 
-            // alter artificially one single bit of the chunk
-            // this will damage the chunk
+            // alter artificially the chunk
+            // this will damage the chunk signature
 
             chunk.write("####*** TEMPERED ***#####",57);
-            //xx var offset = 0x40 -12;
-            //xx var arobas = 64;
-            //xx chunk.writeUInt8(arobas,offset);
-            //xx chunk.writeUInt8(arobas,offset+1);
-            //xx chunk.writeUInt8(arobas,offset+2);
-            //xx chunk.writeUInt8(arobas,offset+3);
+
 
             messageBuilderBase.feed(chunk.slice(0, 20));
             messageBuilderBase.feed(chunk.slice(20));
