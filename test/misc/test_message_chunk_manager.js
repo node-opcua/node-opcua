@@ -90,41 +90,14 @@ describe("MessageChunkManager",function() {
 
     it("should split a message in chunk and produce a header (  SIGN & NO ENCRYPT).",function(){
 
-        var fs = require("fs");
-        var assert = require("assert");
-        var publicKey = fs.readFileSync('certificates/public_key.pub');
-        publicKey = publicKey.toString('ascii');
 
-        var verify_chunk_signature = require("../../lib/misc/crypto_utils").verifyChunkSignature;
-
-        function verifyChunk(chunk) {
-            assert(chunk instanceof Buffer);
-            var options = {
-                algorithm : "RSA-SHA256",
-                signatureLength: 128,
-                publicKey: publicKey
-            };
-            verify_chunk_signature(chunk,options).should.eql(true);
-        }
-
-        var private_key_pem = fs.readFileSync('certificates/key.pem');
-        var private_key = private_key_pem.toString('ascii');
-
-        var makeMessageChunkSignature = require("../../lib/misc/crypto_utils").makeMessageChunkSignature;
-
-        function my_makeMessageChunkSignature(chunk) {
-            var options = {
-                algorithm : "RSA-SHA256",
-                signatureLength: 128,
-                privateKey: private_key
-            };
-            return makeMessageChunkSignature(chunk,options); // Buffer
-        }
+        var makeMessageChunkSignatureForTest = require("../helpers/signature_helpers").makeMessageChunkSignatureForTest;
+        var verifyMessageChunkSignatureForTest = require("../helpers/signature_helpers").verifyMessageChunkSignatureForTest;
 
         var options = {
             footerSize: 128,
-            signingFunc: my_makeMessageChunkSignature,
-            verifyChunk:  verifyChunk
+            signingFunc: makeMessageChunkSignatureForTest,
+            verifyChunk: verifyMessageChunkSignatureForTest
         };
 
         performMessageChunkManagerTest(options);

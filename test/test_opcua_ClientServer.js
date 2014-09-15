@@ -1,21 +1,24 @@
-var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
+
 var should = require("should");
 var assert = require('better-assert');
 var async = require("async");
 var util = require("util");
+var _ = require("underscore");
+
 var opcua = require("../");
 
-var debugLog  = require("../lib/misc/utils").make_debugLog(__filename);
-var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
-var browse_service = require("../lib/services/browse_service");
-var BrowseDirection = browse_service.BrowseDirection;
-
+var OPCUAServer = opcua.OPCUAServer;
+var OPCUAClient = opcua.OPCUAClient;
+var StatusCodes = opcua.StatusCodes;
 var Variant =  opcua.Variant ;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 
-var _ = require("underscore");
+var BrowseDirection = opcua.browse_service.BrowseDirection;
+var debugLog  = opcua.utils.make_debugLog(__filename);
+
+
+
 
 var port = 2000;
 
@@ -27,9 +30,7 @@ describe("testing basic Client-Server communication",function() {
     var server , client,temperatureVariableId,endpointUrl ;
 
     before(function(done){
-        // we use a different port for each tests to make sure that there is
-        // no left over in the tcp pipe that could generate an error
-//xx        port+=1;
+
         server = build_server_with_temperature_device({ port:port},function() {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -51,7 +52,7 @@ describe("testing basic Client-Server communication",function() {
         server.shutdown(done);
     });
 
-    it("should start a server and accept a connection",function(done){
+    it("a client should connect to a server and disconnect ",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -68,7 +69,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("Server should not accept connection, if protocol version is incompatible",function(done){
+    it("a server should not accept a connection when the protocol version is incompatible",function(done){
 
         client.protocolVersion = 55555; // set a invalid protocol version
         server.currentChannelCount.should.equal(0);
@@ -90,7 +91,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("Client shall be able to create a session with a anonymous token",function(done){
+    it("a client shall be able to create a session with a anonymous token",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -138,7 +139,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("client shall be able to reconnect if first connection failed",function(done){
+    it("a client shall be able to reconnect if the first connection has failed",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -167,7 +168,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("client shall be able to connect & disconnect multiple times",function(done){
+    it("a client shall be able to connect & disconnect many times",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -198,7 +199,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("client shall raise an error when trying to create a session on an invalid endpoint",function(done){
+    it("a client shall raise an error when trying to create a session on an invalid endpoint",function(done){
 
         // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
         //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName

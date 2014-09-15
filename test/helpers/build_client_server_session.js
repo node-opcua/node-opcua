@@ -8,7 +8,11 @@ function build_client_server_session(done){
     var server , client;
     var endpointUrl ;
 
-    server = new OPCUAServer();
+    var options = {
+        port: 2001
+    };
+
+    server = new OPCUAServer(options);
     // we will connect to first server end point
     endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
     debugLog("endpointUrl",endpointUrl);

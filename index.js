@@ -13,8 +13,12 @@ module.exports.Variant          = require("./lib/datamodel/variant").Variant;
 module.exports.NodeId           = require("./lib/datamodel/nodeid").NodeId;
 module.exports.NumericRange     = require("./lib/datamodel/numeric_range").NumericRange;
 module.exports.AccessLevelFlag  = require("./lib/datamodel/access_level").AccessLevelFlag;
+
+// services
 module.exports.browse_service   = require("./lib/services/browse_service");
 module.exports.read_service     = require("./lib/services/read_service");
+module.exports.utils     = require("./lib/misc/utils");
+
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
 module.exports.AttributeNameById= module.exports.read_service.AttributeNameById;
 module.exports.VariableIds      = require("./lib/opcua_node_ids").VariableIds;
@@ -28,3 +32,6 @@ module.exports.ClientSubscription = require("./lib/client/client_subscription").
 module.exports.OPCUAServer      = require("./lib/server/opcua_server").OPCUAServer;
 module.exports.generate_address_space = require("./lib/address_space/load_nodeset2").generate_address_space;
 module.exports.AddressSpace     = require("./lib/address_space/address_space").AddressSpace;
+
+//
+module.exports.MessageSecurityMode = require("./lib/datamodel/structures").MessageSecurityMode;

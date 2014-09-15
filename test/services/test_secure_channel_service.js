@@ -8,11 +8,12 @@ var util = require("util");
 
 
 var compare_buffers = require("./../../lib/misc/utils").compare_buffers;
-
+var clone_buffer = require("./../../lib/misc/utils").clone_buffer;
+var hexDump =  require("../../lib/misc/utils").hexDump;
 
 var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
 
-var clone_buffer = secure_channel.clone_buffer;
+
 var MessageChunker = secure_channel.MessageChunker;
 
 describe("SecureMessageChunkManager", function () {
@@ -107,21 +108,25 @@ describe("SecureMessageChunkManager", function () {
 
     });
 
-    it("should receive an ERR message", function (done) {
+    it("should receive and handle an ERR message", function (done) {
 
 
         var messageBuilder = new MessageBuilder();
 
         messageBuilder.on("full_message_body", function (full_message_body) {
             debugLog(" On raw Buffer \n");
-            debugLog(require("../../lib/misc/utils").hexDump(full_message_body));
+            debugLog(hexDump(full_message_body));
 
         }).on("message", function (message) {
             debugLog(" message ", message);
+
+            message.responseHeader.serviceResult.value.should.eql(0x80820000);
+
             done();
         }).on("error", function (errCode) {
             debugLog(" errCode ", errCode);
-            done();
+            should.fail();
+            done(new Error("Unexpected error event received"));
         });
 
         var makebuffer_from_trace = require("../helpers/makebuffer_from_trace").makebuffer_from_trace;
