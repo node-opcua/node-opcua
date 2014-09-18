@@ -44,9 +44,11 @@
     "request": "~2.40.0",
     "should": "*",
     "sinon": "1.10.3",
+    "ssh-key-to-pem": "^0.11.0",
+    "through2": "*",
     "tmp": "0.0.24",
     "tracer": "~0.7.1",
-    "through2":"*",
+    "ursa": "^0.8.0",
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
   },
@@ -64,6 +66,7 @@
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
     "treeify": "~1.0.1",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "ursa": "^0.8.0"
   }
 }
