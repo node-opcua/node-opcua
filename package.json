@@ -48,7 +48,6 @@
     "through2": "*",
     "tmp": "0.0.24",
     "tracer": "~0.7.1",
-    "ursa": "^0.8.0",
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
   },
