@@ -65,7 +65,6 @@
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
     "treeify": "~1.0.1",
-    "underscore": "~1.7.0",
-    "ursa": "^0.8.0"
+    "underscore": "~1.7.0"
   }
 }
