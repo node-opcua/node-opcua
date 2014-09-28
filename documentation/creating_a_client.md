@@ -73,11 +73,16 @@ async.series([
        _"browsing the root folder"
     },
 
-    // step 4 : read a variable
+    // step 4 : read a variable with readVariableValue
     function(callback) {
-       _"read a variable"
+       _"read a variable with readVariableValue"
     },
-
+    
+    // step 4' : read a variable with read
+    function(callback) {
+       _"read a variable with read"
+    },
+    
     // step 5: install a subscription and install a monitored item for 10 seconds
     function(callback) {
        _"install a subscription"
@@ -149,7 +154,24 @@ the_session.browse("RootFolder", function(err,browse_result){
 ```
 
 
-### read a variable
+### read a variable with read
+
+```javascript
+var max_age = 0;
+var nodes_to_read = [
+   { nodeId: "ns=4;s=free_memory", attributeId: 13} 
+];
+the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) {
+    if (!err) {
+        console.log(" free mem % = " , dataValues[0]);
+    }
+    callback(err);
+});
+
+
+```
+
+### read a variable with readVariableValue
 
 ```javascript
 the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues) {
@@ -158,6 +180,8 @@ the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues) {
     }
     callback(err);
 });
+
+
 ```
 
 ### finding the nodeId of a node by Browse name
@@ -199,7 +223,9 @@ var monitoredItem  = the_subscription.monitor({
     samplingInterval: 100,
     discardOldest: true,
     queueSize: 10
-});
+},
+opcua.read_service.TimestampsToReturn.Both
+);
 console.log("-------------------------------------");
 
 monitoredItem.on("changed",function(dataValue){

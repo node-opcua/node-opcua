@@ -43,7 +43,7 @@ async.series([
        });
     },
 
-    // step 4 : read a variable
+    // step 4 : read a variable with readVariableValue
     function(callback) {
        the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues) {
            if (!err) {
@@ -52,7 +52,21 @@ async.series([
            callback(err);
        });
     },
-
+    
+    // step 4' : read a variable with read
+    function(callback) {
+       var max_age = 0;
+       var nodes_to_read = [
+          { nodeId: "ns=4;s=free_memory", attributeId: 13} 
+       ];
+       the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) {
+           if (!err) {
+               console.log(" free mem % = " , dataValues[0]);
+           }
+           callback(err);
+       });
+    },
+    
     // step 5: install a subscription and install a monitored item for 10 seconds
     function(callback) {
        the_subscription=new opcua.ClientSubscription(the_session,{
@@ -85,7 +99,9 @@ async.series([
            samplingInterval: 100,
            discardOldest: true,
            queueSize: 10
-       });
+       },
+       opcua.read_service.TimestampsToReturn.Both
+       );
        console.log("-------------------------------------");
        
        monitoredItem.on("changed",function(dataValue){
