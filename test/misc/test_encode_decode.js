@@ -400,6 +400,34 @@ describe("testing built-in type encoding", function () {
 });
 
 
+describe("encoding and decoding arrays", function () {
+
+
+    it("should encode and decode an array of integer",function(){
+
+        function encode_array_float(arr,stream) {
+            ec.encodeArray(arr,stream,ec.encodeFloat);
+        }
+        function decode_array_float(stream) {
+            return ec.decodeArray(stream,ec.decodeFloat);
+        }
+        test_encode_decode([10,20,30,40],encode_array_float,decode_array_float, 4*3 + 8);
+    });
+
+    it("should encode and decode an array of strings",function(){
+
+        function encode_array_string(arr,stream) {
+            ec.encodeArray(arr,stream,ec.encodeString);
+        }
+        function decode_array_string(stream) {
+            return ec.decodeArray(stream,ec.decodeString);
+        }
+        test_encode_decode(["Hoo","Hello","World","Lorem Ipsum"],encode_array_string,decode_array_string, 44);
+    });
+
+});
+
+
 describe("check isValid and random for various types", function () {
 
     it("should test isValid on UInt16", function () {
