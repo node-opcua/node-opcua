@@ -17,6 +17,9 @@ describe("testing ExpandedNodeId", function () {
         exnodeId.toString().should.eql("ns=0;i=1");
     });
 
+
+
+
     it("should create a ExpandedNodeId from a NodeId", function () {
 
         var nodeId = makeNodeId("some_text", 2);
