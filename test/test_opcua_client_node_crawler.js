@@ -6,6 +6,7 @@ var async = require("async");
 var util = require("util");
 var opcua = require("../lib/nodeopcua");
 
+var redirectToFile = require("../lib/misc/utils").redirectToFile;
 var debugLog  = require("../lib/misc/utils").make_debugLog(__filename);
 var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
 var browse_service = require("../lib/services/browse_service");
@@ -79,32 +80,37 @@ describe("NodeCrawler",function(){
 
     it("should crawl for a complete tree",function(done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done){
+        redirectToFile("NodeCrawler_complete_tree.log", function (done) {
 
-            var crawler = new NodeCrawler(session);
+            perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            var data = {};
-            crawler.on("browsed",function(nodeElement,data) {
+                var crawler = new NodeCrawler(session);
 
-                console.log("nodeElement ".yellow, nodeElement.browseName, nodeElement.nodeId.displayText());
-                var objectIndex = {  findObject: function(nodeId){ return null; }};
-                MyDumpReferences(objectIndex,nodeElement.references);
+                var data = {};
+                crawler.on("browsed", function (nodeElement, data) {
 
-            }).on("end",function(){
-                console.log("Data ",data);
-            }).on("error",function(err) {
-                done(err);
-            });
+                    console.log("nodeElement ".yellow, nodeElement.browseName, nodeElement.nodeId.displayText());
+                    var objectIndex = {  findObject: function (nodeId) {
+                        return null;
+                    }};
+                    MyDumpReferences(objectIndex, nodeElement.references);
 
-            crawler.crawl("RootFolder",data,function(err){
-
-                crawler.crawl("RootFolder",data,function(err){
-                    done();
+                }).on("end", function () {
+                    console.log("Data ", data);
+                }).on("error", function (err) {
+                    done(err);
                 });
 
-            });
+                crawler.crawl("RootFolder", data, function (err) {
+
+                    crawler.crawl("RootFolder", data, function (err) {
+                        done();
+                    });
+
+                });
 
 
+            }, done);
         },done);
     });
 
