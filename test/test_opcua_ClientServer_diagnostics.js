@@ -8,7 +8,7 @@ var AttributeIds = require("../lib/services/read_service").AttributeIds;
 var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
 
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-
+var redirectToFile = require("../lib/misc/utils").redirectToFile;
 
 describe("Testing Server and Client diagnostic facilities",function() {
 
@@ -51,26 +51,28 @@ describe("Testing Server and Client diagnostic facilities",function() {
     it("Server should keep track of transaction statistics",function(done){
 
 
-        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+        redirectToFile("transaction_statistics.log",function(done){
+            perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
 
-            var server_channel = extract_server_channel();
+                var server_channel = extract_server_channel();
 
-            var transaction_done_counter =0;
-            server_channel.on("transaction_done",function(){
-                transaction_done_counter++;
-                server_channel._dump_transaction_statistics();
+                var transaction_done_counter =0;
+                server_channel.on("transaction_done",function(){
+                    transaction_done_counter++;
+                    server_channel._dump_transaction_statistics();
 
-                console.log(" Server bytes read : ", server_channel.bytesRead," bytes written : ", server_channel.bytesWritten);
-                console.log(" Client bytes read : ", client.bytesRead," bytes written : ", client.bytesWritten);
-                if (transaction_done_counter === 1 ) {
-                    done();
-                }
-            });
+                    console.log(" Server bytes read : ", server_channel.bytesRead," bytes written : ", server_channel.bytesWritten);
+                    console.log(" Client bytes read : ", client.bytesRead," bytes written : ", client.bytesWritten);
+                    if (transaction_done_counter === 1 ) {
+                        done();
+                    }
+                });
 
-            session.browse("RootFolder",function(err,browseResults,diagnosticInfos){ });
+                session.browse("RootFolder",function(err,browseResults,diagnosticInfos){ });
 
 
-        }, done);
+            }, done);
+        },done);
     });
 });

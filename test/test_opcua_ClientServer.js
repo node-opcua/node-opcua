@@ -509,7 +509,7 @@ describe("testing ability for client to reconnect when server close connection",
             client_has_received_close_event = 0;
             client.on("close",function(err){
 
-                console.log(" client has received close event");
+                //xx console.log(" client has received close event");
                 client_has_received_close_event+=1;
             });
         }

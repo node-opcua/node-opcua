@@ -27,7 +27,7 @@ describe("OPCUA-CLIENT",function(){
             // transaction 3 ( getEndPointResponses)
             opcua.packTcpMessage("MSG", m.fake_GetEndpointsResponse),
 
-            // transaction 4 ( CloseChannelResponse )
+            // transaction 4 ( CloseSecureChannelResponse )
             opcua.packTcpMessage("CLO",m.fake_CloseSecureChannelResponse)
 
 
@@ -70,7 +70,7 @@ describe("OPCUA-CLIENT",function(){
             opcua.packTcpMessage("MSG", m.fake_ActivateSessionResponse),
 
 
-            // transaction 4 ( CloseChannelResponse )
+            // transaction 4 ( CloseSecureChannelResponse )
             opcua.packTcpMessage("CLO",m.fake_CloseSecureChannelResponse)
 
         ],done);

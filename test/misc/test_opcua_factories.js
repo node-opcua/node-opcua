@@ -158,7 +158,7 @@ describe("testing DataValue encoding decoding", function () {
 
 describe("checking decoding real message bodies captured with WireShark ", function () {
 
-    it("should decode a real OpenSecureChannelRequest message", function (done) {
+    it("should decode a real OpenSecureChannelRequest message (1)", function (done) {
 
 
         // a real OpenSecureChannelRequest captured with wireshark
@@ -174,13 +174,13 @@ describe("checking decoding real message bodies captured with WireShark ", funct
                 "00 e0 93 04 00"
         );
 
-        redirectToFile("OpenSecureChannelResponse.log", function () {
+        redirectToFile("OpenSecureChannelResponse1.log", function () {
             verify_single_chunk_message(ws_OpenSecureChannelRequest);
         }, done);
 
     });
 
-    it("should decode a real OpenSecureChannelResponse message", function (done) {
+    it("should decode a real OpenSecureChannelResponse message (2)", function (done) {
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_OpenSecureChannelResponse = makebuffer(
@@ -195,7 +195,7 @@ describe("checking decoding real message bodies captured with WireShark ", funct
                 "d3 0c f7 ce 01 60 ea 00 00 ff ff ff ff"
         );
 
-        redirectToFile("OpenSecureChannelResponse.log", function () {
+        redirectToFile("OpenSecureChannelResponse2.log", function () {
             verify_single_chunk_message(ws_OpenSecureChannelResponse);
         }, done);
 
@@ -257,12 +257,14 @@ describe("checking decoding real messageChunks captured with WireShark ", functi
             verify_multi_chunk_message([packets.packet_cs_2]);
         }, done);
     });
-    it("should decode a real OpenSecureChannelResponse message", function (done) {
 
-        redirectToFile("ws_OpenSecureChannelResponse.log", function () {
+    it("should decode a real OpenSecureChannelResponse message (3)", function (done) {
+
+        redirectToFile("ws_OpenSecureChannelResponse3.log", function () {
             verify_multi_chunk_message([packets.packet_sc_2]);
         }, done);
     });
+
     it("should decode a real GetEndPointRequest message", function (done) {
 
         redirectToFile("ws_GetEndPointRequest.log", function () {
