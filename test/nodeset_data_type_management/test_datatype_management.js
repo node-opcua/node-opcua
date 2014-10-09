@@ -3,7 +3,6 @@ var opcua = require("../../");
 var AddressSpace = opcua.AddressSpace;
 var should = require("should");
 
-var factories = require("../../lib/misc/factories");
 var _ = require("underscore");
 
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -62,9 +61,13 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
         serverStatus.startTime.should.be.instanceOf(Date);
         serverStatus.secondsTillShutdown.should.eql(100);
     });
+
+
     it("should ServerStatus object have correct encodingDefaultBinary ",function() {
+
         var serverStatus = new nodeset.ServerStatus({});
-        serverStatus.encodingDefaultBinary.should.eql(makeExpandedNodeId(862,0));
+        serverStatus.encodingDefaultBinary.should.eql(makeExpandedNodeId(864,0));
+
     });
 
     it("should encode and decode a ServerStatus object",function() {
@@ -79,6 +82,7 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
         encode_decode_round_trip_test(serverStatus);
 
     });
+
     it("should encode and decode a variant containing an extension object being a ServerStatus",function() {
 
         var serverStatus = new nodeset.ServerStatus({});

@@ -4,8 +4,14 @@ var BinaryStream =require("../../lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 var ec = require("../../lib/misc/encode_decode");
 var _ = require("underscore");
+
+var redirectToFile = require("../../lib/misc/utils").redirectToFile;
+
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
+var QualifiedName   = require("../../lib/datamodel/qualified_name").QualifiedName;
+var LocalizedText   = require("../../lib/datamodel/localized_text").LocalizedText;
+var Variant         = require("../../lib/datamodel/variant").Variant;
 
 var Person_Schema = {
     id: factories.next_available_id(),
@@ -16,7 +22,7 @@ var Person_Schema = {
         { name: "age"      , fieldType: "Int32"  , defaultValue:  25  }
     ]
 };
-
+exports.Person_Schema = Person_Schema;
 var Role_Schema = {
     id: factories.next_available_id(),
     name: "Role",
@@ -25,6 +31,7 @@ var Role_Schema = {
         { name: "description"  , fieldType: "UAString" }
     ]
 };
+exports.Role_Schema = Role_Schema;
 
 var Employee_Schema = {
     id: factories.next_available_id(),
@@ -36,6 +43,7 @@ var Employee_Schema = {
         { name: "salary",  fieldType: "Double", defaultValue: 1000.00  }
     ]
 };
+exports.Employee_Schema = Employee_Schema;
 
 var Company_Schema = {
     id: factories.next_available_id(),
@@ -46,13 +54,14 @@ var Company_Schema = {
         { name: "company_values", isArray: true, fieldType: "String" }
     ]
 };
+exports.Company_Schema = Company_Schema;
 
 
 
-var Person   = factories.registerObject(Person_Schema);
-var Role     = factories.registerObject(Role_Schema);
-var Employee = factories.registerObject(Employee_Schema);
-var Company  = factories.registerObject(Company_Schema);
+var Person   = factories.registerObject(Person_Schema,"tmp");
+var Role     = factories.registerObject(Role_Schema,"tmp");
+var Employee = factories.registerObject(Employee_Schema,"tmp");
+var Company  = factories.registerObject(Company_Schema,"tmp");
 
 
 
@@ -74,26 +83,25 @@ var Color = factories.registerEnumeration( {
     }
 });
 
-var Shape = factories.registerObject({
+exports.Shape_Schema = {
     id: factories.next_available_id(),
     name: "Shape",
     fields: [
-        { name:"name",              fieldType: "String" , defaultValue: function() { return "my shape";} },
+        { name:"name",             fieldType: "String" , defaultValue: function() { return "my shape";} },
         { name:"shapeType",        fieldType: "EnumShapeType" },
         { name:"color",            fieldType: "EnumColor", defaultValue: Color.GREEN },
         { name:"inner_color",      fieldType: "EnumColor", defaultValue: function() { return Color.BLUE; }}
     ]
-});
-
-
+};
+var Shape = factories.registerObject(exports.Shape_Schema,"tmp");
 
 
 describe("Factories: construction",function() {
 
     it("a schema should provide a list of possible fields",function() {
 
-        Person.possibleFields().should.eql(["lastName","address","age"]);
-        Employee.possibleFields().should.eql(["lastName","address","age","role","service","salary"]);
+        Person.possibleFields.should.eql(["lastName","address","age"]);
+        Employee.possibleFields.should.eql(["lastName","address","age","role","service","salary"]);
     });
 });
 
@@ -101,6 +109,14 @@ describe("Factories: construction",function() {
 
 describe("Factories: testing object factory", function () {
 
+    after(function() {
+        try {
+            factories.unregisterType("MyInteger");
+        }
+        catch(err) {
+
+        }
+    })
     it("should construct a new object from a simple Class Description", function () {
 
         var person = new Person();
@@ -231,36 +247,47 @@ describe("Factories: testing object factory", function () {
 
         factories.registerBasicType({
             name: "MyInteger",
-            subtype: "Integer"
+            subtype: "Integer",
+            defaultValue: 0
         });
 
         should.exist(factories.findSimpleType("MyInteger"));
 
-        var MyStruct = factories.registerObject( {
+        exports.MyStruct_Schema = {
             name: "MyStruct",
             id: factories.next_available_id(),
             fields: [
                 { name: "value", fieldType: "MyInteger" }
             ]
-        });
+        };
+        factories.unregisterObject(exports.MyStruct_Schema,"tmp");
+        var MyStruct = factories.registerObject(exports.MyStruct_Schema,"tmp");
 
         var s = new MyStruct();
         s.should.have.property("value");
         s.value.should.equal(0);
+
+        factories.unregisterObject(exports.MyStruct_Schema,"tmp");
+
     });
 
     it("should handle StatusCode ",function(){
 
         var StatusCode = require("../../lib/datamodel/opcua_status_code").StatusCode;
         var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-        var MyStruct2 = factories.registerObject( {
+
+
+        exports.MyStruct2_Schema = {
             name: "MyStruct2",
             id: factories.next_available_id(),
             fields: [
                 { name: "value",      fieldType: "MyInteger" },
                 { name: "statusCode", fieldType: "StatusCode" }
             ]
-        });
+        };
+        factories.unregisterObject(exports.MyStruct2_Schema,"tmp");
+
+        var MyStruct2 = factories.registerObject(exports.MyStruct2_Schema,"tmp");
 
         var s = new MyStruct2();
         s.should.have.property("value");
@@ -269,7 +296,7 @@ describe("Factories: testing object factory", function () {
         s.statusCode.value.should.equal(0);
         s.statusCode.should.eql(StatusCodes.Good);
         // should.eql(StatusCode.Good);
-
+        factories.unregisterObject(exports.MyStruct2_Schema,"tmp");
 
     });
 
@@ -333,29 +360,18 @@ describe("Factories: testing object factory", function () {
 
 describe("Factories: testing strong typed enums", function(){
 
-    it('installEnumProp should append a member as a strong typed enum',function(){
-
-        var ShapeType = factories.registerEnumeration( {
-            name: "EnumShapeType-2",
-            enumValues: {
-                CIRCLE: 1,
-                SQUARE: 2,
-                RECTANGLE: 3
-            }
-        });
-        var obj = { };
-        factories.installEnumProp(obj,"shapeType",ShapeType);
-        obj.shapeType.value.should.equal(1);
-
-        (function() {
-            obj.shapeType = "toto";
-        }).should.throw();
-
-        var value = ShapeType.CIRCLE;
+    it("should throw if a invalid argument is passed for an enum",function() {
 
         ShapeType.CIRCLE.key.should.equal("CIRCLE");
-
+        var value = ShapeType.CIRCLE;
         value.should.equal(ShapeType.CIRCLE);
+
+        var shape  = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
+
+        (function() {
+            shape.shapeType = "toto";
+        }).should.throw();
+
 
     });
 
@@ -395,7 +411,6 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     it("a factory object should have a encodingDefaultBinary",function(){
 
         var company = new Company({name: "ACME"});
-
         company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(Company_Schema.id));
 
     });
@@ -417,7 +432,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
     it("should encode and decode a Object containing ByteString",function(done){
 
-        var Blob_Schema = {
+        exports.FakeBlob_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob",
             fields: [
@@ -426,26 +441,33 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
                 { name: "buffer1",                  fieldType: "ByteString" }
             ]
         };
+        factories.unregisterObject(exports.FakeBlob_Schema,"tmp");
 
-        var Blob = factories.registerObject(Blob_Schema);
+        var Blob = factories.registerObject(exports.FakeBlob_Schema,"tmp");
 
         var blob = new Blob({ buffer0: new Buffer(0), buffer1: new Buffer(1024) });
 
         encode_decode_round_trip_test(blob);
+
+        factories.unregisterObject(exports.FakeBlob_Schema,"tmp");
+
 
         done();
 
     });
     it("should pretty print an object ",function(){
 
-        var company  = new Company({name: "ACME" });
-        var employee = new Employee({lastName: "John", service: "R&D" });
-        company.employees.push(employee);
-        company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
+        redirectToFile("pretty_print.log",function() {
+            var company  = new Company({name: "ACME" });
+            var employee = new Employee({lastName: "John", service: "R&D" });
+            company.employees.push(employee);
+            company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
 
-        var str = company.explore();
+            var str = company.explore();
 
-        // console.log(str);
+            console.log(str);
+
+        });
 
     });
 
@@ -454,6 +476,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 });
 
 describe("PacketAnalyzer",function(){
+
     it("should analyse a encoded object",function(done){
         var analyze_object_binary_encoding = require("../../lib/misc/packet_analyzer").analyze_object_binary_encoding;
 
@@ -476,62 +499,64 @@ describe("PacketAnalyzer",function(){
 });
 
 
-describe("Testing that objects created by factory can be persisted as JSON string",function(){
+describe("Testing that objects created by factory can be persisted as JSON string",function() {
 
 
-     it("should persist and restore a object in JSON ",function() {
+    it("should persist and restore a object in JSON ", function () {
 
-         var shape = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
 
-         var str = JSON.stringify(shape);
+        var str = JSON.stringify(shape);
 
-         var obj = new Shape(JSON.parse(str));
+        var obj = new Shape(JSON.parse(str));
 
-         obj.should.eql(shape);
+        obj.should.eql(shape);
 
-     });
+    });
 
-    it("should persist and restore a object in JSON when field has a special toJSON behavior",function() {
+    it("should persist and restore a object in JSON when field has a special toJSON behavior", function () {
 
-        var Blob2_Schema = {
+        exports.FakeBlob2_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob2",
             fields: [
-                { name: "name",                     fieldType: "String"     },
-                { name: "buffer0",                  fieldType: "ByteString" },
-                { name: "nodeId",                   fieldType: "NodeId"     },
-                { name: "createdOn",                fieldType:"DateTime" }
+                { name: "name", fieldType: "String"     },
+                { name: "buffer0", fieldType: "ByteString" },
+                { name: "nodeId", fieldType: "NodeId"     },
+                { name: "createdOn", fieldType: "DateTime" }
             ]
         };
-        var Blob = factories.registerObject(Blob2_Schema);
+        factories.unregisterObject(exports.FakeBlob2_Schema,"tmp");
+        var Blob = factories.registerObject(exports.FakeBlob2_Schema,"tmp");
 
         var blob = new Blob({
-            buffer0: new Buffer("00FF00AA","hex"),
+            buffer0: new Buffer("00FF00AA", "hex"),
             nodeId: "ns=1;s=toto"
         });
         var str = JSON.stringify(blob);
 
-
         var obj = new Blob(JSON.parse(str));
 
         obj.should.eql(blob);
+        factories.unregisterObject(exports.FakeBlob2_Schema,"tmp");
     });
 
-    it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior",function() {
+    it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior", function () {
 
-        var Blob3_Schema = {
+        exports.FakeBlob3_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob3",
             fields: [
-                { name: "name",                     fieldType: "String"     },
-                { name: "buffer0", isArray: true,   fieldType: "ByteString" },
-                { name: "nodeId",  isArray: true,   fieldType: "NodeId"     },
+                { name: "name", fieldType: "String"     },
+                { name: "buffer0", isArray: true, fieldType: "ByteString" },
+                { name: "nodeId", isArray: true, fieldType: "NodeId"     },
             ]
         };
-        var Blob = factories.registerObject(Blob3_Schema);
+        factories.unregisterObject(exports.FakeBlob3_Schema,"tmp");
+        var Blob = factories.registerObject(exports.FakeBlob3_Schema,"tmp");
 
         var blob = new Blob({
-            buffer0: [ new Buffer("01020304","hex"), [0,1,2,3,4] ],
+            buffer0: [ new Buffer("01020304", "hex"), [0, 1, 2, 3, 4] ],
             nodeId: [ "ns=1;s=toto", "ns=2;i=1234" ]
         });
 
@@ -540,7 +565,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
 
         var str = JSON.stringify(blob);
 
-        console.log("JSON string".yellow,str.cyan);
+        console.log("JSON string".yellow, str.cyan);
 
         var obj = new Blob(JSON.parse(str));
 
@@ -548,37 +573,43 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         obj.buffer0[1].should.eql(blob.buffer0[1]);
         obj.should.eql(blob);
 
-
+        factories.unregisterObject(exports.FakeBlob3_Schema,"tmp");
 
     });
 
 
+    it("should persist and restore a object in JSON when field has a null value", function () {
 
-    it("should persist and restore a object in JSON when field has a null value",function() {
-
-       var QualifiedName_Schema = {
+        exports.FakeQualifiedName_Schema = {
             name: "FakeQualifiedName",
             id: factories.next_available_id(),
             fields: [
-                { name: "namespaceIndex", fieldType: "UInt16" , documentation: "The namespace index" },
-                { name: "name",           fieldType: "String" , defaultValue: function() { return null;} ,documentation: "The name"  }
+                { name: "namespaceIndex", fieldType: "UInt16", documentation: "The namespace index" },
+                { name: "name", fieldType: "String", defaultValue: function () {
+                    return null;
+                }, documentation: "The name"  }
             ],
 
-            toString: function() {
-                return "ns="+ this.namespaceIndex + " name="+ this.name;
+            toString: function () {
+                return "ns=" + this.namespaceIndex + " name=" + this.name;
             }
         };
-        var QualifiedName = factories.registerObject(QualifiedName_Schema);
+        factories.unregisterObject(exports.FakeQualifiedName_Schema,"tmp");
+
+        var QualifiedName = factories.registerObject(exports.FakeQualifiedName_Schema,"tmp");
 
 
         var qname = new QualifiedName({
             namespaceIndex: 0
         });
 
+        qname.toString().should.eql("ns=0 name=null");
+
         should(_.isFinite(qname.namespaceIndex)).be.equal(true);
         qname.namespaceIndex.should.equal(0);
 
         var str = JSON.stringify(qname);
+        str.should.eql("{\"namespaceIndex\":0,\"name\":null}");
 
         var obj = new QualifiedName(JSON.parse(str));
         obj.namespaceIndex.should.equal(0);
@@ -588,23 +619,83 @@ describe("Testing that objects created by factory can be persisted as JSON strin
 
         encode_decode_round_trip_test(qname);
 
+        factories.unregisterObject(exports.FakeQualifiedName_Schema,"tmp");
     });
+});
+describe("factories testing advanced cases",function(){
 
-    it("should  set a field  to null when default value is specifically null and no value has been provided",function() {
-        var Blob4_Schema = {
+    it("should set a field to null when default value is specifically null and no value has been provided",function() {
+
+        exports.Blob4_Schema = {
             name: "Blob4",
             id: factories.next_available_id(),
             fields: [
                 { name: "createdOn", fieldType: "DateTime", defaultValue: null},
             ]
         };
-        var Blob4 = factories.registerObject(Blob4_Schema);
+        factories.unregisterObject(exports.Blob4_Schema,"tmp");
+        var Blob4 = factories.registerObject(exports.Blob4_Schema,"tmp");
 
         var blob4 = new Blob4({
             createdOn: null
         });
         should(blob4.createdOn).be.eql(null);
+        factories.unregisterObject(exports.Blob4_Schema,"tmp");
 
+    });
+
+    it("should accept all basic types as field scalar or field arrays",function() {
+
+        var utils = require("../../lib/misc/utils");
+        var fs = require("fs");
+        // delete existing file if any
+        var filename = utils.getTempFilename("_auto_generated_Blob6.js");
+        fs.unlinkSync(filename);
+
+        require("../../lib/misc/extension_object").ExtensionObject;
+
+        exports.Blob6_Schema = {
+            name: "Blob6",
+            id: factories.next_available_id(),
+            fields: [
+
+            ]
+        };
+
+        var _defaultTypeMap = require("../../lib/misc/factories_builtin_types")._defaultTypeMap;
+        var findBuiltInType = require("../../lib/misc/factories_builtin_types").findBuiltInType;
+
+        Object.keys(_defaultTypeMap).forEach(function(key){
+            if (key === "Any") return;
+
+            exports.Blob6_Schema.fields.push({ name: "value_"+key , fieldType: key});
+            exports.Blob6_Schema.fields.push({ name: "array_"+key , fieldType: key ,isArray: true});
+        });
+
+
+        var options = {};
+        Object.keys(_defaultTypeMap).forEach(function(key) {
+            if (key === "Any" || key==="Null") return;
+            var type = findBuiltInType(key);
+            var random  =ec["random"+ type.name];
+
+            if (_.isFunction(random)) {
+                options["value_"+key] =  random();
+                options["array_"+key] =  [ random(), random()];
+                //xx console.log("xxxxxxxxx setting value_"+key ,options["value_"+key]);
+                //xx console.log("xxxxxxxxx setting array_"+key ,options["array_"+key]);
+
+            }
+        });
+        //xx console.log(options);
+
+        var Blob6 = factories.registerObject(exports.Blob6_Schema,"tmp");
+
+        var blob = new Blob6(options);
+        //xx console.log(blob);
+        encode_decode_round_trip_test(blob);
+
+        factories.unregisterObject(exports.Blob6_Schema,"tmp");
     });
 
     it("should help JSON.stringify",function(){
@@ -612,7 +703,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         var someArray = [ new Person({}) ];
 
         var str = JSON.stringify({ stuff: someArray },null," ");
-        console.log("xxxx str =",str);
+        //xx console.log("xxxx str =",str);
 
     });
 });

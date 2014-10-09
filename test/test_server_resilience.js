@@ -20,13 +20,16 @@ var factories = require("../lib/misc/factories");
 
 // a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
+var ObjectIds = require("./../lib/opcua_node_ids").ObjectIds;
 var ServerSideUnimplementedRequest_Schema = {
-    name: "Annotation",
+    name: "ServerSideUnimplementedRequest",
+    id: ObjectIds.Annotation_Encoding_DefaultXml,
     fields: [
         { name: "requestHeader" ,              fieldType:"RequestHeader" }
     ]
 };
-var ServerSideUnimplementedRequest = factories.registerObject(ServerSideUnimplementedRequest_Schema);
+exports.ServerSideUnimplementedRequest_Schema = ServerSideUnimplementedRequest_Schema;
+var ServerSideUnimplementedRequest = factories.registerObject(ServerSideUnimplementedRequest_Schema,"tmp");
 
 describe("testing Server resilience to unsupported request",function(){
     var server , client;
@@ -65,6 +68,7 @@ describe("testing Server resilience to unsupported request",function(){
 
     it("server should return a ServiceFault if receiving a unsupported MessageType",function(done){
         var s = require("../lib/datamodel/structures");
+
         var bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
 
         g_session.performMessageTransaction(bad_request,function(err,response){

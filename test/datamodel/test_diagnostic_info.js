@@ -1,21 +1,22 @@
 
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-var s = require("./../../lib/datamodel/structures");
+var DiagnosticInfo = require("./../../lib/datamodel/diagnostic_info").DiagnosticInfo;
+
 var StatusCodes = require("./../../lib/datamodel/opcua_status_code").StatusCodes;
 
 describe("DiagnosticInfo",function(){
 
-    it("should have encodingDefaultBinary = 25",function(){
-
-        var diag = new s.DiagnosticInfo();
-        diag.encodingDefaultBinary.value.should.equal(25);
-
-    });
+    //xx it("should have encodingDefaultBinary = 25",function(){
+    //xx
+    //xx     var diag = new DiagnosticInfo();
+    //xx     diag.encodingDefaultBinary.value.should.equal(25);
+    //xx
+    //xx });
 
     it("should encode default DiagnosticInfo in a single byte",function(){
 
-        var diag = new s.DiagnosticInfo();
+        var diag = new DiagnosticInfo();
 
         encode_decode_round_trip_test(diag,function(buffer,id){
             buffer.length.should.equal(1);
@@ -24,8 +25,8 @@ describe("DiagnosticInfo",function(){
     });
     it("should encode default DiagnosticInfo with only symbolicId in 5-bytes",function(){
 
-        var diag = new s.DiagnosticInfo({
-            identifier: { symbolicId: 120 }
+        var diag = new DiagnosticInfo({
+             symbolicId: 120
         });
 
         encode_decode_round_trip_test(diag,function(buffer,id){
@@ -36,8 +37,9 @@ describe("DiagnosticInfo",function(){
 
     it("should encode DiagnosticInfo with symbolicId and locale in 9-bytes",function(){
 
-        var diag = new s.DiagnosticInfo({
-            identifier: { symbolicId: 120 , locale:128 }
+        var diag = new DiagnosticInfo({
+            symbolicId: 120 ,
+            locale:128
         });
 
         encode_decode_round_trip_test(diag,function(buffer,id){
@@ -48,8 +50,9 @@ describe("DiagnosticInfo",function(){
 
     it("should encode DiagnosticInfo with InnerStatusCode in 5-bytes",function(){
 
-        var diag = new s.DiagnosticInfo({
-            identifier: { symbolicId: 120 , locale:128 },
+        var diag = new DiagnosticInfo({
+            symbolicId: 120 ,
+            locale:128 ,
             innerStatusCode: StatusCodes.BadCertificateRevocationUnknown
         });
 
@@ -61,8 +64,8 @@ describe("DiagnosticInfo",function(){
 
     it("should encode DiagnosticInfo with a default innerDiagnosticInfo in 2-bytes",function(){
 
-        var diag = new s.DiagnosticInfo({
-            innerDiagnosticInfo: new s.DiagnosticInfo({ })
+        var diag = new DiagnosticInfo({
+            innerDiagnosticInfo: new DiagnosticInfo({ })
         });
 
         encode_decode_round_trip_test(diag,function(buffer,id){
@@ -72,8 +75,8 @@ describe("DiagnosticInfo",function(){
 
     it("should encode default DiagnosticInfo with an innerDiagnosticInfo  containing a 5 car string in 11-bytes",function(){
 
-        var diag = new s.DiagnosticInfo({
-            innerDiagnosticInfo: new s.DiagnosticInfo({ additionalInfo : "Hello"})
+        var diag = new DiagnosticInfo({
+            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo : "Hello"})
         });
 
         encode_decode_round_trip_test(diag,function(buffer,id){

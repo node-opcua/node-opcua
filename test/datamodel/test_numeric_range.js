@@ -4,6 +4,23 @@ var should = require("should");
 var NumericRange = require("../../lib/datamodel/numeric_range").NumericRange;
 var NumericRangeType = NumericRange.NumericRangeType;
 
+
+var factories = require("../../lib/misc/factories");
+var ObjWithNumericRange_Schema = {
+
+    id: factories.next_available_id(),
+    name: "ObjWithNumericRange",
+    fields: [
+        { name: "title", fieldType: "UAString" },
+        {
+            name: "numericRange",
+            fieldType: "NumericRange"
+        }
+    ]
+};
+exports.ObjWithNumericRange_Schema = ObjWithNumericRange_Schema;
+
+
 describe("Testing numerical range", function () {
 
     it("should construct an empty NumericRange", function () {
@@ -103,24 +120,18 @@ describe("Testing numerical range", function () {
 
     });
 
-    var factories = require("../../lib/misc/factories");
-    var ObjWithNumericRange_Schema = {
 
-        id: factories.next_available_id(),
-        name: "ObjWithNumericRange",
-        fields: [
-            { name: "title", fieldType: "UAString" },
-            {
-                name: "numericRange",
-                fieldType: "NumericRange"
-            }
-        ]
-    };
 
-    var ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema);
 
     describe(" encoding / decoding", function () {
 
+        var ObjWithNumericRange;
+        before(function(){
+            ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema);
+        });
+        after(function(){
+            factories.unregisterObject(ObjWithNumericRange_Schema);
+        });
         it("should persist an object with a numeric range", function () {
 
             var o = new ObjWithNumericRange({

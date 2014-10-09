@@ -1,7 +1,7 @@
 
 var s = require("../../lib/datamodel/structures");
 var should = require("should");
-
+var assert = require("better-assert");
 
 exports.fixture1 = (function(){
     // empty  GetEndpointsResponse
@@ -48,8 +48,9 @@ exports.makeEndPoint = function(){
         transportProfileUri: "",
         securityLevel:    36
     };
-
-    return new s.EndpointDescription(data);
+    var value =  new s.EndpointDescription(data);
+    assert(value.server);
+    return value;
 };
 
 

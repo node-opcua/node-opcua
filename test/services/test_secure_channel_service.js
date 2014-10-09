@@ -142,6 +142,11 @@ describe("SecureMessageChunkManager", function () {
         messageBuilder.feed(packet);
 
     });
+    it("should test CloseSecureChannelResponse", function () {
+        var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+        var response = new s.CloseSecureChannelResponse({});
+        encode_decode_round_trip_test(response);
 
+    });
 
 });

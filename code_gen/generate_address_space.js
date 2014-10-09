@@ -65,7 +65,8 @@ function  {{className}}(options) {
 util.inherits({{className}},{{baseClassName}});
 {{className}}.prototype.typeDefinition = resolveNodeId("{{classNameType}}");
 
- */}
+ */};
+
 var Mustache = require("mustache");
 function inlineText(f) {
     return f.toString().
@@ -83,7 +84,9 @@ function filterReference(object,strReference,isForward) {
     return f;
 }
 
-var done = {}
+var done = {};
+
+
 function dumpObjectType(objectType)
 {
     if (done  in objectType) {
@@ -170,7 +173,7 @@ function constructObjectFromTypeDefinition(nodeId , options)  {
     var typeDefinition =map[nodeId.toString()];
     console.log(" constructing a object of type : "  +typeDefinition.browseName);
     console.log(" with parameters ,",options)
-};
+}
 
 function dumpObject(obj) {
 
@@ -186,7 +189,7 @@ function dumpObject(obj) {
     console.log(util.inspect(parent,{colors:true}));
 
 
-};
+}
 
 //xx var folderType =findObjectByBrowseName("FolderType");
 //xx dumpObjectType(folderType);

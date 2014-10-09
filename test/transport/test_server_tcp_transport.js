@@ -1,6 +1,6 @@
 var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
 var should = require("should");
-var opcua = require("../../lib/nodeopcua");
+var opcua = require("../../lib/opcua");
 var assert = require('assert');
 var utils = require("../../lib/misc/utils");
 var color = require("colors");

@@ -6,8 +6,14 @@ var sprintf = require("sprintf").sprintf;
 // see OPC-UA Part 6 , A2
 var codeMap= {};
 
+var parser = csv.parse({delimiter: ','}, function(err, data){
+    convert(data);
+});
 
-csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(function(data)
+fs.createReadStream(__dirname+'/NodeIds.csv').pipe(parser);
+
+
+function convert(data)
 {
     //xx console.log(data);
     var name,id,type,codeName,value,typeName;
@@ -15,24 +21,27 @@ csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(functi
 
     };
 
-    data.forEach(function(e) {
+    data.forEach(function(row) {
 
-        codeName = e[0];
-        value    = e[1];
-        type     = e[2];
+
+        codeName = row[0];
+        value    = row[1];
+        type     = row[2];
 
         if (!metaMap.hasOwnProperty(type)) {
             metaMap[type]= {};
         }
 
-        codeMap[codeName] = e;
-        metaMap[type][codeName]= e;
+        codeMap[codeName] = row;
+        metaMap[type][codeName]= row;
 
 
     });
     var outFile = fs.createWriteStream("lib/opcua_node_ids.js");
     outFile.write("// this file has been automatically generated\n");
+    outFile.write("// using code_gen/generate_node_ids.js\n");
 
+    var e;
     if (false) {
         outFile.write(" exports.NodeIds = { \n");
         for(name in codeMap) {
@@ -77,4 +86,4 @@ csv().from.stream(fs.createReadStream(__dirname+'/NodeIds.csv')).to.array(functi
 
 
 
-});
+}

@@ -1,6 +1,6 @@
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
-var messageHeaderToString = require("../../lib/misc/packet_analyzer").messageHeaderToString;
+var messageHeaderToString = require("../../lib/misc/message_header").messageHeaderToString;
 var sprintf = require("sprintf");
 /**
  *

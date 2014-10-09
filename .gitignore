@@ -22,3 +22,4 @@ Vagrantfile
 .vagrant
 .c9
 output2.bin
+_generated_

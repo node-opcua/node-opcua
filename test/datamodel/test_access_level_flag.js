@@ -2,7 +2,10 @@
 var AccessLevelFlag = require("../../lib/datamodel/access_level").AccessLevelFlag;
 var makeAccessLevel = require("../../lib/datamodel/access_level").makeAccessLevel;
 var should = require("should");
+var findBuiltInType = require("../../lib/misc/factories_builtin_types").findBuiltInType;
+var assert = require("assert");
 var factories = require("../../lib/misc/factories");
+
 var _ = require("underscore");
 
 var ObjWithAccessLevel_Schema = {
@@ -16,9 +19,9 @@ var ObjWithAccessLevel_Schema = {
         }
     ]
 };
-
-var ObjWithAccessLevel  = factories.registerObject(ObjWithAccessLevel_Schema);
-
+exports.ObjWithAccessLevel_Schema = ObjWithAccessLevel_Schema;
+var ObjWithAccessLevel  = factories.registerObject(ObjWithAccessLevel_Schema,"tmp");
+assert(_.isFunction(ObjWithAccessLevel));
 
 describe("Testing AccessLevelFlag",function() {
 
@@ -38,7 +41,7 @@ describe("Testing AccessLevelFlag",function() {
         makeAccessLevel(makeAccessLevel("CurrentRead")).value.should.equal(0x01);
     });
     it("should have a accessLevel Flag Basic Type",function() {
-        _.isObject(factories.findBuiltInType("AccessLevelFlag")).should.equal(true);
+        _.isObject(findBuiltInType("AccessLevelFlag")).should.equal(true);
     });
     it("should create an object with access_level",function() {
         var o = new ObjWithAccessLevel();

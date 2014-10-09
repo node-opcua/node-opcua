@@ -21,7 +21,7 @@ describe("testing address space for conformance testing",function() {
 
     var engine;
 
-    this.timeout(10000);
+    this.timeout(40000);
 
     beforeEach(function() {
 

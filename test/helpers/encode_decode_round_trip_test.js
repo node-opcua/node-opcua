@@ -1,7 +1,7 @@
 
 var should =require("should");
 var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
-var factories = require("../../lib/misc/factories");
+var factories = require("../../lib/misc/factories_factories");
 var hexDump = require("../../lib/misc/utils").hexDump;
 
 
@@ -24,7 +24,7 @@ function encode_decode_round_trip_test(obj,callback_buffer) {
 
     should(obj).not.be.null;
 
-    var expandedId = obj.encodingDefaultBinary;
+    var expandedNodeId = obj.encodingDefaultBinary;
 
     var size = obj.binaryStoreSize();
 
@@ -36,10 +36,20 @@ function encode_decode_round_trip_test(obj,callback_buffer) {
 
     stream.rewind();
 
-    var obj_reloaded = factories.constructObject(expandedId);
+    var obj_reloaded = factories.constructObject(expandedNodeId);
     obj_reloaded.decode(stream);
 
-    JSON.stringify(obj_reloaded).should.eql(JSON.stringify(obj));
+    Object.keys(obj_reloaded).forEach(function(p) {
+
+        try {
+            JSON.stringify(obj_reloaded[p]).should.eql(JSON.stringify(obj[p]));
+        } catch(err) {
+            console.log(" key ",p);
+            console.log(" expected ",obj[p]);
+            console.log(" actual   ",obj_reloaded[p]);
+        }
+
+    });
 
     return obj_reloaded;
 }

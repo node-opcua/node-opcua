@@ -486,6 +486,16 @@
     </Definition>
   </UADataType>
 
+  <UAObject NodeId="i=864" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">i=862</Reference>
+      <Reference ReferenceType="HasDescription">i=8217</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+
+
   <UAVariable NodeId="i=3077" BrowseName="BuildInfo" ParentNodeId="i=2007" DataType="i=338">
     <DisplayName>BuildInfo</DisplayName>
     <References>

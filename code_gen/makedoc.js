@@ -29,7 +29,7 @@ function dumpClass(schema) {
     var className = schema.name;
 
     var documentation = schema.documentation;
-    console.log("/**")
+    console.log("/**");
     console.log(" * " + documentation);
     console.log(" * @class ", className);
     console.log(" * @extends ", "BaseObject");

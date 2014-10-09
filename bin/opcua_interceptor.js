@@ -9,7 +9,7 @@ var MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
 var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
 var packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
-var messageHeaderToString = require("../lib/misc/packet_analyzer").messageHeaderToString;
+var messageHeaderToString = require("../lib/misc/message_header").messageHeaderToString;
 
 var s = require("../lib/datamodel/structures");
 

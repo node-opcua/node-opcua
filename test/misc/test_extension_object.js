@@ -13,8 +13,8 @@ var ExtensionObject = require("../../lib/misc/extension_object").ExtensionObject
 
 describe("ExtensionObject", function () {
 
-    var MetaShape_Schema = {
-        name: "metashape",
+    exports.MetaShapeForUnitTest_Schema = {
+        name: "MetaShapeForUnitTest",
         id: factories.next_available_id(),
         fields: [
             { name: "name", fieldType: "String"          },
@@ -23,10 +23,10 @@ describe("ExtensionObject", function () {
         ]
     };
 
-    var MetaShape = factories.registerObject(MetaShape_Schema);
+    var MetaShape = factories.registerObject(exports.MetaShapeForUnitTest_Schema,"tmp");
 
 
-    var Potato_Schema = {
+    exports.Potato_Schema = {
         name: "Potato",
         id: factories.next_available_id(),
         fields: [
@@ -35,16 +35,16 @@ describe("ExtensionObject", function () {
 
         ]
     };
-    var Potato = factories.registerObject(Potato_Schema);
+    var Potato = factories.registerObject(exports.Potato_Schema,"tmp");
 
     it("should work with some missing ExtensionObject ", function () {
 
         var shape = new MetaShape({
-            name: "My Potato",
+            name: "MyPotato",
             shape: null,
             comment: "this is a comment"
         });
-        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Schema.id));
+        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(exports.MetaShapeForUnitTest_Schema.id));
 
         var stream = new BinaryStream(shape.binaryStoreSize());
         shape.encode(stream);
@@ -58,7 +58,7 @@ describe("ExtensionObject", function () {
             shape: new Potato({length: 10.0, radius: 5.0}),
             comment: "this is a comment"
         });
-        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(MetaShape_Schema.id));
+        shape.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(exports.MetaShapeForUnitTest_Schema.id));
 
         var stream = new BinaryStream(shape.binaryStoreSize());
         shape.encode(stream);

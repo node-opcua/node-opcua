@@ -4,6 +4,8 @@ var DataType = require("../../lib/datamodel/variant").DataType;
 var VariantArrayType = require("../../lib/datamodel/variant").VariantArrayType;
 var s = require("./../../lib/datamodel/structures");
 
+var QualifiedName   = require("../../lib/datamodel/qualified_name").QualifiedName;
+var LocalizedText   = require("../../lib/datamodel/localized_text").LocalizedText;
 var should = require("should");
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
@@ -36,7 +38,7 @@ describe("Variant",function(){
     it("should create a Scalar LocalizedText Variant 1/2",function(){
         var var1 = new Variant({
             dataType: DataType.LocalizedText,
-            value: new s.LocalizedText({ text: "Hello" , locale: "en" })
+            value: new LocalizedText({ text: "Hello" , locale: "en" })
         });
 
         var1.dataType.should.eql(DataType.LocalizedText);
@@ -68,7 +70,7 @@ describe("Variant",function(){
     it("should create a Scalar QualifiedName Variant 1/2",function(){
         var var1 = new Variant({
             dataType: DataType.QualifiedName,
-            value: new s.QualifiedName({ name: "Hello" , namespaceIndex: 0 })
+            value: new QualifiedName({ name: "Hello" , namespaceIndex: 0 })
         });
 
         var1.dataType.should.eql(DataType.QualifiedName);
