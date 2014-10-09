@@ -650,7 +650,9 @@ describe("factories testing advanced cases",function(){
         var fs = require("fs");
         // delete existing file if any
         var filename = utils.getTempFilename("_auto_generated_Blob6.js");
-        fs.unlinkSync(filename);
+        if( fs.existsSync(filename)) {
+            fs.unlinkSync(filename);
+        }
 
         require("../../lib/misc/extension_object").ExtensionObject;
 
@@ -675,7 +677,7 @@ describe("factories testing advanced cases",function(){
 
         var options = {};
         Object.keys(_defaultTypeMap).forEach(function(key) {
-            if (key === "Any" || key==="Null") return;
+            if (key === "Any" || key==="Null" || key==="AccessLevel") return;
             var type = findBuiltInType(key);
             var random  =ec["random"+ type.name];
 

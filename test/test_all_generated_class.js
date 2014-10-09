@@ -29,7 +29,10 @@ var folder_for_generated_file= require("../lib/misc/factory_code_generator").fol
 
 var services_folder = __dirname + "/../lib/services";
 
-require("../_generated_/_auto_generated_SCHEMA_ServerState");
+if (fs.existsSync("../_generated_/_auto_generated_SCHEMA_ServerState")) {
+    require("../_generated_/_auto_generated_SCHEMA_ServerState");
+}
+
 describe("testing all auto_generated Class",function(){
 
   var services_javascript_source = getFiles(services_folder);
