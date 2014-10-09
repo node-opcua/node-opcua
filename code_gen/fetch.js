@@ -2,6 +2,7 @@ var request = require("request");
 var fs = require("fs");
 var ProgressBar = require('progress');
 var _ = require("underscore");
+var url =require("url");
 
 function wget2(url) {
 
@@ -22,24 +23,29 @@ function wget2(url) {
 var force = true;
 
 
-function wget(url) {
+function wget(file_url) {
 
     var https = require('https');
     var http  = require('http');
-    if (url.substr(0,5)==="https") {  http = https;   }
+    if (file_url.substr(0,5)==="https") {  http = https;   }
 
     var path = require("path");
-    var filename = path.basename(url); // + path.extname(url);
+    var filename = path.basename(file_url); // + path.extname(url);
 
     if (fs.existsSync(filename) && !force)  {
-        console.log("  " + filename +" already downloaded " + url);
+        console.log("  " + filename +" already downloaded " + file_url);
         return;
     }
-    console.log(" downloading " + filename + " from " + url);
+    console.log(" downloading " + filename + " from " + file_url);
 
     var stream = fs.createWriteStream(filename,"w");
 
-    var req = http.get(url, function(response) {
+    var request_options = url.parse(file_url);
+
+    request_options.headers=  {'user-agent': 'Mozilla/5.0'};
+
+    // Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.101 Safari/537.36
+    var req = http.get(request_options, function(response) {
         // handle the response
         var res_data = '';
         // console.log(response);
@@ -47,7 +53,7 @@ function wget(url) {
         if (!_.isFinite(fileBytes)) {
             fileBytes = 10000;
         }
-        var bar = new ProgressBar('  downloading ' + url + '[:bar] :percent :etas', {
+        var bar = new ProgressBar('  downloading ' + file_url + '[:bar] :percent :etas', {
             complete: '='
             , incomplete: ' '
             , width: 20
@@ -113,7 +119,7 @@ OPC UA NodeIds	                      The numeric identifier for all NodeIds defi
 wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd.xml");
 wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.StatusCodes.csv");
 
-if(0) {
+if(1) {
 
 
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
