@@ -29,7 +29,7 @@ var loremIpsum = require("./helpers/lorem_ipsum").loremIpsum;
 //
 
 // refs: https://github.com/dominictarr/ssh-key-to-pem
-//
+//       http://pki-tutorial.readthedocs.org/en/latest/simple/index.html
 var doDebug = false;
 doDebug = true;
 function debugLog() {
@@ -75,6 +75,7 @@ function display_public_key_Encryption_missing_message() {
 // if the value you're encrypting is smaller). So the highest number of bits you can encrypt with a 1024-bit
 // key is 936 bits because of this (unless you disable the padding by adding the OPENSSL_NO_PADDING flag,
 // in which case you can go up to 1023-1024 bits). With a 2048-bit key it's 1960 bits instead.
+
 
 var ursa = null;
 try {
