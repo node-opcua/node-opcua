@@ -21,8 +21,10 @@ function getFiles(dir,files_){
 }
 
 require("../lib/datamodel/variant");
+require("../lib/datamodel/buildinfo");
 require("../lib/services/browse_service");
 require("../lib/services/historizing_service");
+
 var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 var folder_for_generated_file= require("../lib/misc/factory_code_generator").folder_for_generated_file;

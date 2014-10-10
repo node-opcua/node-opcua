@@ -609,7 +609,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         qname.namespaceIndex.should.equal(0);
 
         var str = JSON.stringify(qname);
-        str.should.eql("{\"namespaceIndex\":0,\"name\":null}");
+        str.should.eql("{\"namespaceIndex\":0}");
 
         var obj = new QualifiedName(JSON.parse(str));
         obj.namespaceIndex.should.equal(0);
