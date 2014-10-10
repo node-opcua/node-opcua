@@ -677,7 +677,7 @@ describe("factories testing advanced cases",function(){
 
         var options = {};
         Object.keys(_defaultTypeMap).forEach(function(key) {
-            if (key === "Any" || key==="Null" || key==="AccessLevel") return;
+            if (key === "Any" || key==="Null" || key==="AccessLevelFlag") return;
             var type = findBuiltInType(key);
             var random  =ec["random"+ type.name];
 
