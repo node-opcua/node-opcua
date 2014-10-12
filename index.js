@@ -25,8 +25,9 @@ module.exports.VariableIds      = require("./lib/opcua_node_ids").VariableIds;
 
 // client services
 module.exports.OPCUAClient      = require("./lib/client/opcua_client").OPCUAClient;
-module.exports.NodeCrawler      = require("./lib/client/node_crawler").NodeCrawler;
+module.exports.NodeCrawler        = require("./lib/client/node_crawler").NodeCrawler;
 module.exports.ClientSubscription = require("./lib/client/client_subscription").ClientSubscription;
+module.exports.OPCUASession       = require("./lib/client/opcua_client").OPCUASession;
 
 // Server services
 module.exports.OPCUAServer      = require("./lib/server/opcua_server").OPCUAServer;

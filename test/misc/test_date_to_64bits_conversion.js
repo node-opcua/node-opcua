@@ -82,7 +82,7 @@ describe("check OPCUA Date conversion version 2", function () {
         nano[1].should.equal(0);
     });
 
-    it("should decode 92c253d3 0cf7ce01 DateTime as  Dec 12, 2013 08:36:09.747317000 ", function () {
+    it("should decode 92c253d3 0cf7ce01 DateTime as  Dec 12, 2013 08:36:09.747317000(GMT+1) or 2013-12-12T07:36:06.713Z", function () {
 
         var buf = new Buffer(8);
         buf.writeUInt32BE(0x92c253d3, 0);
@@ -95,8 +95,12 @@ describe("check OPCUA Date conversion version 2", function () {
         var stream = new BinaryStream(buf);
         var date = ec.decodeDateTime(stream);
 
+        console.log(date.toISOString());
+
         stream.rewind();
         ec.encodeDateTime(new Date(2013, 11, 12, 9, 36, 9), stream);
+
+
 
     });
     //

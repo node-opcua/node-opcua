@@ -269,7 +269,10 @@ describe("testing basic Client-Server communication",function() {
         });
 
         afterEach(function(done){
-            client.disconnect(done);
+            g_session.close(function(){
+
+                client.disconnect(done);
+            });
         });
 
         it("should browse RootFolder",function(done){

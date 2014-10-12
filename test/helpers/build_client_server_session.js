@@ -38,21 +38,25 @@ function build_client_server_session(done){
         // let's verify that the server has got at least one session active (the one we created above)
         assert(server.engine.currentSessionCount >= 1);
 
-        // disconnect client abruptly
-        client.disconnect( function (){
+        client_server.g_session.close(function(){
 
-            //xx // disconnecting the client should have cause the server to discard the subscriptions
-            //xx assert(server.engine.currentSessionCount === 0);
+            // disconnect client abruptly
+            client.disconnect( function (){
 
-            // OK, it  is now time to shutdown the server.
-            server.shutdown( function () {
+                //xx // disconnecting the client should have cause the server to discard the subscriptions
+                //xx assert(server.engine.currentSessionCount === 0);
 
-                // let's perform some more verification
-                assert(server.engine.currentSessionCount === 0);
-                //xx assert(server.engine.currentSubscriptionCount === 0);
-                //xx assert(server.engine.cumulatedSessionCount>=1);
-                done();
+                // OK, it  is now time to shutdown the server.
+                server.shutdown( function () {
+
+                    // let's perform some more verification
+                    assert(server.engine.currentSessionCount === 0);
+                    //xx assert(server.engine.currentSubscriptionCount === 0);
+                    //xx assert(server.engine.cumulatedSessionCount>=1);
+                    done();
+                });
             });
+
         });
     }
 

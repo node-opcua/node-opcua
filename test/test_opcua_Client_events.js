@@ -27,14 +27,13 @@ describe("testing basic Client-Server communication", function () {
     var server, client, temperatureVariableId, endpointUrl;
 
     before(function (done) {
-        // we use a different port for each tests to make sure that there is
-        // no left over in the tcp pipe that could generate an error
-//xx        port+=1;
+
         server = build_server_with_temperature_device({ port: port}, function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
         });
+
     });
 
     beforeEach(function (done) {

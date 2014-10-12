@@ -65,6 +65,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             });
         }, done);
     });
+
     it("a ClientSubscription should receive keep-alive events from the server", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
@@ -96,7 +97,6 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             });
         }, done);
     });
-
 
     xit("a ClientSubscription should survive longer than the life time", function (done) {
         // todo
@@ -139,6 +139,75 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
         }, done);
     });
+
+
+    it("should terminate any pending subscription when the client is disconnected",function(done){
+
+
+        var the_session;
+
+        async.series([
+
+        // connect
+        function (callback) {
+            client.connect(endpointUrl, callback);
+        },
+
+        // create session
+        function (callback) {
+            client.createSession(function (err, session) {
+                assert(session instanceof OPCUASession);
+                if (!err) {
+                    the_session = session;
+                }
+                callback(err);
+            });
+        },
+
+        // create subscription
+        function (callback) {
+
+            var subscription = new ClientSubscription(the_session, {
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 100 * 60 * 10,
+                requestedMaxKeepAliveCount: 5,
+                maxNotificationsPerPublish: 5,
+                publishingEnabled: true,
+                priority: 6
+            });
+            subscription.on("started", function () {
+
+                var monitoredItem = subscription.monitor(
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: 13
+                    },
+                    {samplingInterval: 100, discardOldest: true, queueSize: 1 });
+
+                callback();
+
+            });
+
+        },
+        // wait a little bit
+        function (callback) {
+            setTimeout(function() {
+                // client.disconnect(done);
+                callback();
+            },100);
+        },
+
+        // now disconnect the client , without closing the subscription first
+        function (callback) {
+            client.disconnect(callback);
+        }
+
+        ] , function(err) {
+            done(err);
+        });
+
+    });
+
 });
 
 describe("testing server and subscription", function () {
@@ -299,11 +368,14 @@ describe("testing server and subscription", function () {
                 },
                 {samplingInterval: 100, discardOldest: true, queueSize: 1 });
 
-            // subscription.on("item_added",function(monitoredItem){
             monitoredItem.on("initialized", function () {
             });
 
             monitoredItem.on("changed", function (value) {
+
+                // the changed event has been received !
+
+                // lets stop monitoring this item
                 monitoredItem.terminate(function () {
                 });
             });
@@ -352,6 +424,7 @@ describe("testing server and subscription", function () {
     });
 
     it("A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+
         var TimestampsToReturn = require("../lib/services/read_service").TimestampsToReturn;
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
@@ -363,7 +436,10 @@ describe("testing server and subscription", function () {
                 },
                 {samplingInterval: 100, discardOldest: true, queueSize: 1 },
 
-                TimestampsToReturn.Invalid, function (err) {
+
+                TimestampsToReturn.Invalid, // <= A invalid  TimestampsToReturn
+
+                function (err) {
 
                     should(err).be.instanceOf(Error);
                     callback(!err);

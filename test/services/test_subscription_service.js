@@ -275,7 +275,9 @@ describe("testing basic Client Server dealing with subscription at low level",fu
 
     });
 
-    after(function(done){ client_server.shutdown(done); });
+    after(function(done){
+        client_server.shutdown(done);
+    });
 
     it("server should create a subscription (CreateSubscriptionRequest)",function(done){
         var s = require("../../lib/datamodel/structures");

@@ -659,6 +659,15 @@
         </Definition>
     </UADataType>
 
+    <UAObject NodeId="i=864" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+      <DisplayName>Default Binary</DisplayName>
+      <References>
+        <Reference ReferenceType="HasEncoding" IsForward="false">i=862</Reference>
+        <Reference ReferenceType="HasDescription">i=8217</Reference>
+        <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+      </References>
+    </UAObject>
+
 
   <UAVariable NodeId="i=2285" BrowseName="CurrentSubscriptionCount" ParentNodeId="i=2275" DataType="UInt32">
     <DisplayName>CurrentSubscriptionCount</DisplayName>
