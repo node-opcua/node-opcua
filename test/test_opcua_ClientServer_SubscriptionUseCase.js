@@ -103,7 +103,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         done();
     });
 
-    it("should be possible to monitor an item with a ClientSubscription", function (done) {
+    it("should be possible to monitor an nodeId value with a ClientSubscription", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -140,6 +140,56 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         }, done);
     });
 
+    it("should be possible to monitor several nodeId value with a single client subscription",function(done){
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+            assert(session instanceof OPCUASession);
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 10 * 60 * 10,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 2,
+                publishingEnabled: true,
+                priority: 6
+            });
+
+
+
+            var currentTime_changes = 0;
+            var monitoredItemCurrentTime = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItemCurrentTime.on("changed", function (dataValue) {
+
+                console.log(" current time",dataValue.value.value);
+                currentTime_changes++;
+            });
+
+            var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+            var monitoredItemPumpSpeed = subscription.monitor(
+                {nodeId: resolveNodeId(pumpSpeedId), attributeId: AttributeIds.Value},
+                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+
+            var pumpSpeed_changes = 0;
+            monitoredItemPumpSpeed.on("changed", function (dataValue) {
+                console.log(" pump speed ",dataValue.value.value);
+                pumpSpeed_changes++;
+
+            });
+
+            setTimeout(function(){
+
+                pumpSpeed_changes.should.be.greaterThan(1);
+                currentTime_changes.should.be.greaterThan(1);
+                done();
+            },200);
+
+        }, done);
+    });
 
     it("should terminate any pending subscription when the client is disconnected",function(done){
 
