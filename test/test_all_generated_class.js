@@ -24,6 +24,8 @@ require("../lib/datamodel/variant");
 require("../lib/datamodel/buildinfo");
 require("../lib/services/browse_service");
 require("../lib/services/historizing_service");
+require("../lib/datamodel/opcua_status_code");
+
 
 var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 

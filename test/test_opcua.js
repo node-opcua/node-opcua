@@ -75,7 +75,7 @@ describe("Testing ChannelSecurityToken", function(){
         setTimeout(function(){
             (channelSecurityToken.expired).should.equal(true);
             done();
-        },10);
+        },12);
     });
 
 

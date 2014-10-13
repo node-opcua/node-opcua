@@ -22,15 +22,16 @@ var resolveNodeId = opcua.resolveNodeId;
 var AttributeIds = opcua.AttributeIds;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
-var debugLog  = opcua.utils.make_debugLog(__filename);
 
+//xx opcua.utils.setDebugFlag(__filename,true);
+var debugLog  = opcua.utils.make_debugLog(__filename);
 
 var port = 2000;
 
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
-describe("Functional test : one server with 10 concurrent clients",function() {
+describe("Functional test : one server with many concurrent clients",function() {
 
     var server , temperatureVariableId, endpointUrl;
 
@@ -60,6 +61,8 @@ describe("Functional test : one server with 10 concurrent clients",function() {
         });
     });
 
+    var expectedSubscriptionCount = 0;
+
     function construct_client_scenario(data) {
 
         var client = new OPCUAClient();
@@ -70,101 +73,110 @@ describe("Functional test : one server with 10 concurrent clients",function() {
         var name = data.name;
 
         debugLog(" configuring ",data.name);
-        var tasks = [];
-
-        tasks.push(function(callback) {setTimeout(callback,Math.ceil(Math.random()*1000)); });
-
-        tasks.push(function(callback) {
-            client.connect(endpointUrl,function(err) {
-                debugLog(" Connecting client ", name);
-                callback(err);
-            });
-        });
-
-        tasks.push(function(callback) {setTimeout(callback,Math.ceil(Math.random()*100)); });
-
-        tasks.push(function(callback) {
-            client.createSession(function(err,session){
-                debugLog(" session created for " , name);
-                data.session = session;
-                debugLog(" Error =".yellow.bold,err);
-                callback(err);
-            });
-
-        });
-
-        tasks.push(function(callback) {setTimeout(callback,Math.ceil(Math.random()*100)); });
-
-        tasks.push(function(callback) {
-
-            debugLog(" Creating monitored Item for client",name);
-            var session = data.session;
-            assert(session instanceof OPCUASession);
 
 
-            var subscription = new ClientSubscription(session, {
-                requestedPublishingInterval: 10,
-                requestedLifetimeCount: 10 * 60 * 10,
-                requestedMaxKeepAliveCount: 10,
-                maxNotificationsPerPublish: 2,
-                publishingEnabled: true,
-                priority: 6
-            });
+        var tasks = [
+
+            // wait randomly up to 100 ms
+            function(callback) {setTimeout(callback,Math.ceil(Math.random()*100)); },
+
+            // connect the client
+            function(callback) {
+                client.connect(endpointUrl,function(err) {
+                    debugLog(" Connecting client ", name);
+                    callback(err);
+                });
+            },
+
+            // wait randomly up to 100 ms
+            function(callback) {setTimeout(callback,Math.ceil(Math.random()*100)); },
+
+            // create the session
+            function(callback) {
+                client.createSession(function(err,session){
+                    debugLog(" session created for " , name);
+                    data.session = session;
+                    debugLog(" Error =".yellow.bold,err);
+                    callback(err);
 
 
-            subscription.on("started", function () {
-                debugLog("subscription started",name);
-                callback();
-            });
+                });
 
-            subscription.on("terminated", function () {
-                debugLog("terminated started",name);
-            });
+            },
 
-            var monitoredItem = subscription.monitor(
-                {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
-                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+            // wait randomly up to 100 ms
+            function(callback) {setTimeout(callback,Math.ceil(Math.random()*100)); },
 
-            // subscription.on("item_added",function(monitoredItem){
-            monitoredItem.on("initialized", function () {
-            });
-            monitoredItem.on("changed", function (dataValue) {
-                debugLog(" client ", name," received value change ",dataValue.value.value);
-                data.nb_received_changed_event += 1;
-            });
-        });
+            // create a monitor item
+            function(callback) {
 
-        tasks.push(function(callback) {
-            setTimeout(callback,800);
-        });
+                debugLog(" Creating monitored Item for client",name);
+                var session = data.session;
+                assert(session instanceof OPCUASession);
 
 
-        // closing  session
-        tasks.push(function (callback) {
+                var subscription = new ClientSubscription(session, {
+                    requestedPublishingInterval: 10,
+                    requestedLifetimeCount: 10 * 60 * 10,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 2,
+                    publishingEnabled: true,
+                    priority: 6
+                });
 
-            data.session.close(function (err) {
-                debugLog(" closing session for  ", name);
-                callback(err);
-            });
 
-        });
+                subscription.on("started", function () {
+                    debugLog("subscription started".yellow.bold,name.cyan,expectedSubscriptionCount,server.currentSubscriptionCount);
+                    callback();
+                });
 
-        tasks.push(function(callback) {
+                subscription.on("terminated", function () {
+                    console.log("subscription terminated".red.bold,name);
+                });
 
-            client.disconnect(function(err){
-                debugLog(" client ",name, " disconnected");
-                callback(err);
-            });
+                var monitoredItem = subscription.monitor(
+                    {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                    {samplingInterval: 10, discardOldest: true, queueSize: 1 });
 
-        });
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItem.on("initialized", function () {
+                });
+                monitoredItem.on("changed", function (dataValue) {
+                    debugLog(" client ", name," received value change ",dataValue.value.value);
+                    data.nb_received_changed_event += 1;
+                });
+            },
 
+            // let the client work for 800 ms
+            function(callback) {   setTimeout(callback,800);  },
+
+
+            // closing  session
+            function (callback) {
+
+                data.session.close(function (err) {
+                    debugLog(" closing session for  ", name);
+                    callback(err);
+                });
+
+            },
+
+            // disconnect the client
+            function(callback) {
+                client.disconnect(function(err){
+                    debugLog(" client ",name, " disconnected");
+                    callback(err);
+                });
+
+            }
+        ];
         return tasks;
     }
 
 
-    it("it should allow many clients to connect and concurrently monitor some nodeId",function(done) {
+    it("it should allow 50 clients to connect and concurrently monitor some nodeId",function(done) {
 
-        var nb_clients = 20;
+        var nb_clients = 50;
         var clients = [];
 
         for (var i =0 ; i<nb_clients; i++ ) {
@@ -186,6 +198,8 @@ describe("Functional test : one server with 10 concurrent clients",function() {
                 nb_received_changed_event.should.be.greaterThan(1);
             });
 
+            // also check that server has properly closed all subscriptions
+            server.currentSubscriptionCount.should.eql(0);
             done(err);
         });
     });
