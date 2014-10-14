@@ -61,7 +61,8 @@ describe("check OPCUA Date conversion version 0", function () {
 });
 
 
-
+// reference:
+// http://stackoverflow.com/questions/10849717/what-is-the-significance-of-january-1-1601
 
 describe("check OPCUA Date conversion version 2", function () {
 
@@ -71,6 +72,7 @@ describe("check OPCUA Date conversion version 2", function () {
         var first_of_jan_1970_UTC = new Date(Date.UTC(1970, january-1, 1, 0, 0, 0));
         console.log("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
         console.log(" Local Time",first_of_jan_1970_UTC.toString());
+        console.log(" Iso Date",first_of_jan_1970_UTC.toISOString());
 
         first_of_jan_1970_UTC.getTime().should.eql(0);
         first_of_jan_1970_UTC.toUTCString().should.eql("Thu, 01 Jan 1970 00:00:00 GMT");
@@ -107,12 +109,17 @@ describe("check OPCUA Date conversion version 2", function () {
         var stream = new BinaryStream(buf);
         var date = ec.decodeDateTime(stream);
 
+
         console.log(date.toISOString());
+        date.toISOString().should.eql("2013-12-12T07:36:06.713Z");
 
         stream.rewind();
-        ec.encodeDateTime(new Date(2013, 11, 12, 9, 36, 9), stream);
+        ec.encodeDateTime(new Date(Date.UTC(2013, 11, 12, 7, 36, 6)), stream);
+        console.log(buf.readUInt32BE(0).toString(16)); //0x92c253d3,
+        console.log(buf.readUInt32BE(4).toString(16)); //0x0cf7ce01,
 
-
+        // only check high order word
+        buf.readUInt32BE(4).should.eql(0x0cf7ce01);
 
     });
     //
