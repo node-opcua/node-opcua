@@ -174,9 +174,9 @@ describe("Functional test : one server with many concurrent clients",function() 
     }
 
 
-    it("it should allow 50 clients to connect and concurrently monitor some nodeId",function(done) {
+    it("it should allow 10 clients to connect and concurrently monitor some nodeId",function(done) {
 
-        var nb_clients = 50;
+        var nb_clients = 10;
         var clients = [];
 
         for (var i =0 ; i<nb_clients; i++ ) {
@@ -194,8 +194,9 @@ describe("Functional test : one server with many concurrent clients",function() 
 
         }, function(err,results){
 
-            results.forEach(function(nb_received_changed_event){
-                nb_received_changed_event.should.be.greaterThan(1);
+            results.forEach(function(nb_received_changed_event,index,array){
+                nb_received_changed_event.should.be.greaterThan(1 ,
+                        'client ' + index + ' has received ' + nb_received_changed_event + ' events ( expecting at least 2)' );
             });
 
             // also check that server has properly closed all subscriptions
