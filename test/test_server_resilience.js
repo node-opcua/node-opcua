@@ -37,7 +37,7 @@ describe("testing Server resilience to unsupported request",function(){
 
     before(function(done){
 
-        server = new OPCUAServer();
+        server = new OPCUAServer({port : 2000});
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         debugLog("endpointUrl",endpointUrl);
