@@ -9,6 +9,7 @@ var path = require("path");
 var address_space_for_conformance_testing = require("../lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
+var humanize = require("humanize");
 
 var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
 
@@ -27,11 +28,10 @@ console.log(" registering server to " + discovery_server_endpointUrl);
 
 server.registerServer(discovery_server_endpointUrl, function (err) {
     if (err) {
-        //
         // cannot register server in discovery
         console.log(" warning : cannot register server into registry server");
     } else {
-        console.log(" registering server: done.");
+        console.log(" registering server to the discovery server : done.");
     }
 });
 
@@ -46,7 +46,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
     try {
         usage = require('usage');
     } catch(err) {
-        console.log("skipping installation of cpu_usage and memory_usage nodes")
+        console.log("skipping installation of cpu_usage and memory_usage nodes");
         return;
     }
 
@@ -60,7 +60,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
     setInterval(function() {
             usage.lookup(pid, options, function(err, result) {
             usage_result  = result;
-            console.log("result", result);
+            console.log("result Used Memory: ", humanize.filesize(result), " CPU ",Math.round(result.cpu) ," %"  );
         })
     },1000);
 

@@ -93,13 +93,6 @@ async.series([
             callback(err);
         });
     },
-    //------------------------------------------
-    function (callback) {
-
-        // dump namespace array
-
-        callback();
-    },
 
     // ----------------------------------------
     // display namespace array
