@@ -61,6 +61,7 @@
     "enum": "~0.2.6",
     "ersatz-node-expat": "*",
     "hexy": "~0.2.6",
+    "humanize": "0.0.9",
     "optimist": "*",
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
