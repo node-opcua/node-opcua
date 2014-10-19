@@ -500,5 +500,25 @@ describe("testing server and subscription", function () {
         }, done);
     });
 
+    it("A Server should be able to revise publish interval to avoid trashing if client specify a very small or zero requestedPublishingInterval",function(done){
 
+        // from spec 1.02  Part 4 $5.13.2.2 : requestedPublishingInterval:
+        // The negotiated value for this parameter returned in the response is used as the
+        // default sampling interval for MonitoredItems assigned to this Subscription.
+        // If the requested value is 0 or negative, the server shall revise with the fastest
+        // supported publishing interval.
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            session.createSubscription({
+                requestedPublishingInterval: -1
+            },function(err,createSubscriptionResponse){
+
+                createSubscriptionResponse.revisedPublishingInterval.should.be.greaterThan(10);
+
+                inner_done(err);
+            });
+        },done);
+
+
+    });
 });
