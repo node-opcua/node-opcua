@@ -2,7 +2,9 @@ var should = require("should");
 var ec = require("../../lib/misc/encode_decode");
 var assert = require("assert");
 var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
-var offset_factor_1601 = ec.offset_factor_1601;
+
+var date_time = require("../../lib/misc/date_time");
+var offset_factor_1601 = date_time.offset_factor_1601;
 var offset = offset_factor_1601[0];
 var factor = offset_factor_1601[1];
 
@@ -82,7 +84,7 @@ describe("check OPCUA Date conversion version 2", function () {
     it("bn_dateToHundredNanoSecondFrom1601 should return n=(number of nanosecond in a single day) for January, 2nd 1601 00:00:00 UTC", function () {
 
         var date = new Date(Date.UTC(1601, 0, 2, 0, 0, 0 ));
-        var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         var value = 24 * 60 * 60 * 1000 * 10000; // number of nanosecond in a single day
         nano[0].should.equal(Math.floor(value / 0xFFFFFFFF));
         nano[1].should.equal(value % 0xFFFFFFFF);
@@ -91,16 +93,31 @@ describe("check OPCUA Date conversion version 2", function () {
     it("bn_dateToHundredNanoSecondFrom1601 should return 0 for January, 1st 1601 00:00:00 UTC", function () {
 
         var date = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-        var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         nano[0].should.equal(0);
         nano[1].should.equal(0);
     });
 
-    it("should decode 92c253d3 0cf7ce01 DateTime as  Dec 12, 2013 08:36:09.747317000(GMT+1) or 2013-12-12T07:36:06.713Z", function () {
+    it("qqqq",function(){
+       //new Date(2014, 9, 13, 8, 40, 0)
+       var date = new Date(Date.UTC(2014, 9, 13, 8, 40, 0));
+       var qa = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+
+       var date2  =date_time.bn_hundredNanoSecondFrom1601ToDate(qa[0],qa[1]);
+       var qb = date_time.bn_dateToHundredNanoSecondFrom1601(date2);
+       console.log(date.toISOString());
+       console.log(date2.toISOString());
+
+       var date3  =date_time.bn_hundredNanoSecondFrom1601ToDate(qb[0],qb[1]);
+       console.log(date3.toISOString());
+
+    });
+    it("should decode 0xd353c292 0x01cef70c DateTime as 2013-12-12T07:36:06.713Z", function () {
 
         var buf = new Buffer(8);
-        buf.writeUInt32BE(0x92c253d3, 0);
-        buf.writeUInt32BE(0x0cf7ce01, 4);
+        buf.writeUInt32LE(0xd353c292, 0);
+        buf.writeUInt32LE(0x01cef70c, 4);
+
         buf.readUInt8(0).should.equal(0x92);
         buf.readUInt8(1).should.equal(0xc2);
         buf.readUInt8(2).should.equal(0x53);
@@ -108,18 +125,26 @@ describe("check OPCUA Date conversion version 2", function () {
 
         var stream = new BinaryStream(buf);
         var date = ec.decodeDateTime(stream);
-
-
-        console.log(date.toISOString());
         date.toISOString().should.eql("2013-12-12T07:36:06.713Z");
+    });
 
-        stream.rewind();
-        ec.encodeDateTime(new Date(Date.UTC(2013, 11, 12, 7, 36, 6)), stream);
-        console.log(buf.readUInt32BE(0).toString(16)); //0x92c253d3,
-        console.log(buf.readUInt32BE(4).toString(16)); //0x0cf7ce01,
+    it("should handle 100 nanoseconds", function () {
 
-        // only check high order word
-        buf.readUInt32BE(4).should.eql(0x0cf7ce01);
+        var date1 = new Date(Date.UTC(2013, 11, 12, 7, 36, 6));
+        date1.toISOString().should.eql("2013-12-12T07:36:06.000Z");
+        var t1 = date1.getTime();
+        var q1 = date_time.bn_dateToHundredNanoSecondFrom1601(date1);
+
+        // construct the same date with 713 millisecond more ...
+        var date2 = new Date(Date.UTC(2013, 11, 12, 7, 36, 6));
+        date2.setMilliseconds(713);
+        date2.toISOString().should.eql("2013-12-12T07:36:06.713Z");
+        var t2 = date2.getTime();
+        var q2 = date_time.bn_dateToHundredNanoSecondFrom1601(date2);
+
+        (t2 - t1).should.eql(713," there must be a difference of 713 milliseconds");
+
+        (q2[1] - q1[1]).should.eql(7130000,"there must be a difference of 7130000 nanseconds");
 
     });
     //
@@ -158,7 +183,7 @@ describe("Benchmarking Date conversion routines",function(){
 
         var date = new Date(2014, 0, 1);
         var nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
-        var nano2 = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var nano2 = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         nano1.should.eql(nano2);
     });
 
@@ -175,7 +200,7 @@ describe("Benchmarking Date conversion routines",function(){
         .add('bn_dateToHundredNanoSecondFrom1601_fast', function() {
 
             var date = new Date(2014, 0, 1);
-            var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
+            var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
 
         })
         .on('cycle', function(message) {
@@ -195,7 +220,7 @@ describe("Benchmarking Date conversion routines",function(){
 
 
         var date = new Date(2014, 0, 1);
-        var nano = ec.bn_dateToHundredNanoSecondFrom1601(date);
+        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
 
         var bench = new Benchmarker();
         bench.add('bn_hundredNanoSecondFrom1601ToDate_safe', function() {
@@ -203,7 +228,7 @@ describe("Benchmarking Date conversion routines",function(){
 
         })
         .add('bn_hundredNanoSecondFrom1601ToDate_fast', function() {
-            ec.bn_hundredNanoSecondFrom1601ToDate(nano[0],nano[1]);
+                date_time.bn_hundredNanoSecondFrom1601ToDate(nano[0],nano[1]);
         })
         .on('cycle', function(message) {
             console.log(message);
@@ -237,10 +262,10 @@ describe("Benchmarking Date conversion routines",function(){
         var bs = new BinaryStream();
         for(var i=0;i<dates_to_check.length;i++) {
             date = dates_to_check[i];
-            var hl  = ec.bn_dateToHundredNanoSecondFrom1601(date);
+            var hl  = date_time.bn_dateToHundredNanoSecondFrom1601(date);
             var hl_bn = bn_dateToHundredNanoSecondFrom1601_big_number(date);
 
-            check_date    = ec.bn_hundredNanoSecondFrom1601ToDate(hl[0],hl[1]);
+            check_date    = date_time.bn_hundredNanoSecondFrom1601ToDate(hl[0],hl[1]);
             check_date_bn = bn_hundredNanoSecondFrom1601ToDate_big_number(hl[0],hl[1]);
 
             check_date.should.eql(date);
