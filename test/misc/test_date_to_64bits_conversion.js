@@ -72,9 +72,10 @@ describe("check OPCUA Date conversion version 2", function () {
 
         var january = 1;
         var first_of_jan_1970_UTC = new Date(Date.UTC(1970, january-1, 1, 0, 0, 0));
-        console.log("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
-        console.log(" Local Time",first_of_jan_1970_UTC.toString());
-        console.log(" Iso Date",first_of_jan_1970_UTC.toISOString());
+
+        //xx console.log("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
+        //xx console.log(" Local Time",first_of_jan_1970_UTC.toString());
+        //xx console.log(" Iso Date",first_of_jan_1970_UTC.toISOString());
 
         first_of_jan_1970_UTC.getTime().should.eql(0);
         first_of_jan_1970_UTC.toUTCString().should.eql("Thu, 01 Jan 1970 00:00:00 GMT");
@@ -82,37 +83,14 @@ describe("check OPCUA Date conversion version 2", function () {
     });
 
     it("bn_dateToHundredNanoSecondFrom1601 should return n=(number of nanosecond in a single day) for January, 2nd 1601 00:00:00 UTC", function () {
-
         var date = new Date(Date.UTC(1601, 0, 2, 0, 0, 0 ));
         var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         var value = 24 * 60 * 60 * 1000 * 10000; // number of nanosecond in a single day
-        nano[0].should.equal(Math.floor(value / 0xFFFFFFFF));
-        nano[1].should.equal(value % 0xFFFFFFFF);
+        nano[0].should.equal(Math.floor(value / 0x100000000));
+        nano[1].should.equal(value % 0x100000000);
     });
 
-    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for January, 1st 1601 00:00:00 UTC", function () {
-
-        var date = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
-        nano[0].should.equal(0);
-        nano[1].should.equal(0);
-    });
-
-    it("qqqq",function(){
-       //new Date(2014, 9, 13, 8, 40, 0)
-       var date = new Date(Date.UTC(2014, 9, 13, 8, 40, 0));
-       var qa = date_time.bn_dateToHundredNanoSecondFrom1601(date);
-
-       var date2  =date_time.bn_hundredNanoSecondFrom1601ToDate(qa[0],qa[1]);
-       var qb = date_time.bn_dateToHundredNanoSecondFrom1601(date2);
-       console.log(date.toISOString());
-       console.log(date2.toISOString());
-
-       var date3  =date_time.bn_hundredNanoSecondFrom1601ToDate(qb[0],qb[1]);
-       console.log(date3.toISOString());
-
-    });
-    it("should decode 0xd353c292 0x01cef70c DateTime as 2013-12-12T07:36:06.713Z", function () {
+    it("should decode 0xd353c292 0x01cef70c DateTime as 2013-12-12T07:36:09.747Z", function () {
 
         var buf = new Buffer(8);
         buf.writeUInt32LE(0xd353c292, 0);
@@ -125,7 +103,8 @@ describe("check OPCUA Date conversion version 2", function () {
 
         var stream = new BinaryStream(buf);
         var date = ec.decodeDateTime(stream);
-        date.toISOString().should.eql("2013-12-12T07:36:06.713Z");
+        //xx console.log("DDD = ",date.toUTCString(), " ms=", date.getMilliseconds());
+        date.toISOString().should.eql("2013-12-12T07:36:09.747Z");
     });
 
     it("should handle 100 nanoseconds", function () {
@@ -161,15 +140,15 @@ function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     var t = date.getTime(); // number of milliseconds since 1/1/70
 
     var bn_value = new BigNumber(t).plus(offset).times(factor);
-    var high = bn_value.div(0xFFFFFFFF).floor();
-    var low = bn_value.mod(0xFFFFFFFF);
+    var high = bn_value.div(0x100000000).floor();
+    var low = bn_value.mod(0x100000000);
     return [ parseInt(high.toS(), 10), parseInt(low.toS(), 10)];
 }
 
 function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
     var offset = offset_factor_1601[0];
     var factor = offset_factor_1601[1];
-    var value = new BigNumber(high).times(0xFFFFFFFF).plus(low).div(factor).minus(offset);
+    var value = new BigNumber(high).times(0x100000000).plus(low).div(factor).minus(offset);
     value = parseInt(value, 10);
     return new Date(value);
 }
@@ -246,7 +225,6 @@ describe("Benchmarking Date conversion routines",function(){
 
     it("should convert any random date",function(){
 
-
         var dates_to_check =[
             new Date(1,1,1601),
             new Date(14,7,1789),
@@ -277,4 +255,87 @@ describe("Benchmarking Date conversion routines",function(){
         }
     });
 
+    it("bn_dateToHundredNanoSecondFrom1601 should return 0 for January, 1st 1601 00:00:00 UTC", function () {
+        var date = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        nano[0].should.equal(0);
+        nano[1].should.equal(0);
+    });
+
+    it("bn_dateToHundredNanoSecondFrom1601 should return 0x019DB1DE-D53E8000 = 116444736000000000 for January, 1st 1970 00:00:00 UTC", function () {
+
+        var date = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
+        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        var verif = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+        //xx console.log(date.toUTCString(), "0x0"+nano[0].toString(16),"0x"+nano[1].toString(16),nano,verif[0].toString(16),verif[1].toString(16));
+        nano[0].should.equal(0x019DB1DE); // hi
+        nano[1].should.equal(0xD53E8000); // lo
+
+    });
+
+
+});
+
+describe("understanding Javascript date",function(){
+
+    it("should check that javascript doesn't deal with leap seconds.",function() {
+
+        // http://en.wikipedia.org/wiki/Leap_second
+        // http://blog.synyx.de/2012/11/properly-calculating-time-differences-in-javascript/
+        // https://news.ycombinator.com/item?id=4744595
+        // http://www.csgnetwork.com/timetaidispcalc.html
+        //
+        // http://www.ucolick.org/~sla/leapsecs/epochtime.html
+
+        // http://stackoverflow.com/questions/130573/does-the-windows-filetime-structure-include-leap-seconds
+        // http://stackoverflow.com/a/1518159/406458
+
+        // http://stackoverflow.com/questions/6161776/convert-windows-filetime-to-second-in-unix-linux
+
+        // ** http://www.codeproject.com/Articles/144159/Time-Format-Conversion-Made-Easy
+
+        // http://mcturra2000.wordpress.com/2012/05/05/for-linux-lovers-microsoft-file-time-utter-bilge/
+
+        // http://en.wikipedia.org/wiki/Unix_time:
+        // Unix time (a.k.a. POSIX time or Epoch time) is a system for describing instants in time, defined as the
+        // number of seconds that have elapsed since 00:00:00 Coordinated Universal Time (UTC), Thursday, 1 January 1970,
+        // not counting leap seconds.
+
+        var date1 = new Date(Date.UTC(2010,2,25));
+        var date2 = new Date(Date.UTC(2011,2,25));
+
+        // number of millisecond , not adjusted
+        var nms = 1000*60*60*24*365;
+
+        var diff1 = date2.getTime() - date1.getTime();
+
+        // according to http://en.wikipedia.org/wiki/Leap_second
+        // a leap second should have been introduced on 2012, June the 30th,
+        // causing this year to be (1000*60*60*24*365 + 1000) milliseconds long
+        var date3 = new Date(Date.UTC(2012,2,25));
+        var date4 = new Date(Date.UTC(2013,2,25));
+        var diff2 = date4.getTime() - date3.getTime();
+        (diff2 - nms).should.eql(0,"I though Javascript used a simplified version of UTC time , that ignore leap seconds");
+
+    });
+    it("should have a expected number of millisecond in a year span (without leap seconds)",function(){
+
+        var n_leap    = 366 * 24*60*60 ;
+        var n_no_leap = 365 * 24*60*60 ;
+
+        function inner_test(year) {
+
+            var date1 = new Date(Date.UTC(year,   1, 25)); // year February 25th
+            var date2 = new Date(Date.UTC(year+1, 1, 25)); // year February 25th
+
+            var n = ((year % 4 ) === 0) ? n_leap : n_no_leap;
+
+            var d = (date2.getTime()-date1.getTime()) / 1000;
+            (d -n).should.eql(0);
+            // console.log("year = ", year, date1.toUTCString(), " => ",d,n,d -n);
+        }
+        for (var y=1970 ; y< 2020; y++) {
+            inner_test(y);
+        }
+    })
 });

@@ -113,7 +113,19 @@ server.on("post_initialize", function () {
                 }
             }
         });
-
+ 
+    server.engine.addVariableInFolder(myDevices,
+       {
+              browseName: "SomeDate",
+              nodeId: "ns=2;s=SomeDate",
+              dataType: "DateTime",
+              value : {
+                 get : function() {
+                   return new Variant({dataType: DataType.DateTime , value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0) )});
+                   //return new Variant({dataType: DataType.DateTime , value: new Date(Date.UTC(1970,0,1,0,00,00))});
+                 }
+              }
+       });
     install_optional_cpu_and_memory_usage_node(server);
 
 });
