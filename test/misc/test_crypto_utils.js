@@ -1,11 +1,12 @@
 var hexy = require("hexy");
 var should = require("should");
-var  readCertificate = require("../../lib/misc/crypto_utils").readCertificate;
-var makeSHA1Thumbprint = require("../../lib/misc/crypto_utils").makeSHA1Thumbprint;
+
+var crypto_utils = require("../../lib/misc/crypto_utils");
+
 describe("Crypto utils", function () {
     it("should read a PEM file",function(){
 
-        var certificate = readCertificate('certificates/cert.pem');
+        var certificate = crypto_utils.readCertificate('certificates/cert.pem');
 
         if (false) {
             console.log(certificate.toString("hex"));
@@ -42,7 +43,7 @@ describe("Crypto utils", function () {
 
         var buf= make_lorem_ipsum_buffer();
 
-        var digest = makeSHA1Thumbprint(buf);
+        var digest = crypto_utils.makeSHA1Thumbprint(buf);
 
         digest.should.be.instanceOf(Buffer);
 

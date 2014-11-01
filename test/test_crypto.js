@@ -6,20 +6,43 @@ var assert = require("assert");
 
 var loremIpsum = require("./helpers/lorem_ipsum").loremIpsum;
 
+var crypto_utils = require("../lib/misc/crypto_utils");
+
+
+var old_store = null;
+function switch_to_test_certificate_store() {
+    assert(old_store === null);
+    old_store = crypto_utils.setCertificateStore(__dirname+"/helpers/");
+}
+function restore_default_certificate_store() {
+    assert(old_store !== null);
+    crypto_utils.setCertificateStore(old_store);
+    old_store = null;
+
+}
 // generate a self-signed key
-// openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem
-// generate public key from private.key
-// openssl rsa -in key.pem -pubout > public_key.pub will extract the public key and print that out.
+// ---------------------------
+//      openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem
 //
-// converting der to pem files:
-// openssl x509 -inform DER -outform PEM -text -in der-certificate-file -out pem-certificate-file
+// generate public key from private.key
+// ------------------------------------
+//      openssl rsa -in key.pem -pubout > public_key.pub will extract the public key and print that out.
+//
+// converting der to pem files
+// ----------------------------
+//      openssl x509 -inform DER -outform PEM -text -in der-certificate-file -out pem-certificate-file
 //
 // converting pem to der files:
-// openssl rsa -inform DER -outform PEM -in der-rsa-key-file -out pem-rsa-key-file
+// ----------------------------
+//      openssl rsa -inform DER -outform PEM -in der-rsa-key-file -out pem-rsa-key-file
 //
 // If you have .pfx certificates you can convert them to .pem using openssl:
-//openssl pkcs12 -in  cert.pfx -out cert.pem
-
+//      openssl pkcs12 -in  cert.pfx -out cert.pem
+//
+// convert a pem public key to pub ssh-rsa (- ?)
+//      http://stackoverflow.com/questions/1011572/convert-pem-key-to-ssh-rsa-format
+//      ssh-keygen -f pub1key.pub -i
+//
 // refs:
 //  http://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html 
 //
@@ -30,8 +53,13 @@ var loremIpsum = require("./helpers/lorem_ipsum").loremIpsum;
 
 // refs: https://github.com/dominictarr/ssh-key-to-pem
 //       http://pki-tutorial.readthedocs.org/en/latest/simple/index.html
+//
+// ref:
+//   https://security.stackexchange.com/questions/42268/how-do-i-get-the-rsa-bit-length-with-the-pubkey-and-openssl
+//   https://serverfault.com/questions/325467/i-have-a-keypair-how-do-i-determine-the-key-length
+
 var doDebug = false;
-doDebug = true;
+//Xx doDebug = true;
 function debugLog() {
     if (doDebug) {
         console.log.apply(console, arguments);
@@ -61,107 +89,10 @@ function decrypt_buffer(buffer, algorithm, key) {
 
 
 
-function display_public_key_Encryption_missing_message() {
-    console.warn("\n Warning : your version of node doesn't provide crypto.publicEncrypt yet ".yellow,process.version);
-    console.warn("           This should be sorted out in node > 0.12".cyan);
-    console.warn("           require('ursa') doesn't seem to be installed either or is not compatible".yellow);
-}
-
-// Basically when you encrypt something using an RSA key (whether public or private), the encrypted value must
-// be smaller than the key (due to the maths used to do the actual encryption). So if you have a 1024-bit key,
-// in theory you could encrypt any 1023-bit value (or a 1024-bit value smaller than the key) with that key.
-// However, the PKCS#1 standard, which OpenSSL uses, specifies a padding scheme (so you can encrypt smaller
-// quantities without losing security), and that padding scheme takes a minimum of 11 bytes (it will be longer
-// if the value you're encrypting is smaller). So the highest number of bits you can encrypt with a 1024-bit
-// key is 936 bits because of this (unless you disable the padding by adding the OPENSSL_NO_PADDING flag,
-// in which case you can go up to 1023-1024 bits). With a 2048-bit key it's 1960 bits instead.
 
 
-var ursa = null;
-try {
-ursa = require("ursa");
-}
-catch(err) {
-    ursa = null;
-}
-
-// publicEncrypt and  privateDecrypt only work with
-// small buffer that depends of the key size.
-function publicEncrypt_native(buffer,public_key) {
-    assert(buffer instanceof Buffer,"Expecting a buffer");
-    return crypto.publicEncrypt(public_key,buffer);
-}
-function publicEncrypt_ursa(buffer,public_key) {
-    assert(ursa);
-    var crt = ursa.createPublicKey(public_key);
-    buffer = crt.encrypt(buffer);
-    return buffer;
-}
-
-function privateDecrypt_native(buffer,private_key) {
-    assert(buffer instanceof Buffer,"Expecting a buffer");
-    return crypto.privateDecrypt(private_key,buffer);
-}
-
-function privateDecrypt_ursa(buffer,private_key) {
-    assert(ursa);
-    var key = ursa.createPrivateKey(private_key);
-    buffer = key.decrypt(buffer);
-    return buffer;
-}
-
-function publicEncrypt_long(buffer,key,block_size,padding) {
-
-    var chunk_size = block_size - padding;
-    var nbBlocks = Math.ceil(buffer.length / (chunk_size));
-
-    var outputBuffer = new Buffer(nbBlocks * block_size);
-    for (var i = 0; i < nbBlocks; i++) {
-        var currentBlock  = buffer.slice(chunk_size*i,chunk_size*(i+1));
-        var encrypted_chunk = publicEncrypt(currentBlock,key);
-        encrypted_chunk.copy(outputBuffer,i*block_size);
-    }
-    return outputBuffer;
-}
-
-function privateDecrypt_long(buffer,key,block_size,padding) {
-
-    var chunk_size = block_size - padding;
-    var nbBlocks = Math.ceil(buffer.length / (block_size));
-
-    var outputBuffer = new Buffer(nbBlocks * chunk_size);
-
-    var total_length = 0;
-    for (var i = 0; i < nbBlocks; i++) {
-        var currentBlock  = buffer.slice(block_size*i,block_size*(i+1));
-        var decrypted_buf = privateDecrypt(currentBlock,key);
-        total_length+= decrypted_buf.length;
-        decrypted_buf.copy(outputBuffer,i*chunk_size);
-    }
-    return outputBuffer.slice(0,total_length);
-
-}
-var publicEncrypt = null;
-var privateDecrypt = null;
-if (!ursa && !crypto.hasOwnProperty("publicEncrypt") ) {
-    display_public_key_Encryption_missing_message();
-} else {
-    publicEncrypt =  crypto.hasOwnProperty("publicEncrypt") ?   publicEncrypt_native : publicEncrypt_ursa;
-    privateDecrypt=  crypto.hasOwnProperty("publicEncrypt") ?   privateDecrypt_native : privateDecrypt_ursa;
-}
-
-
-var sshKeyToPEM = require('ssh-key-to-pem');
-var  __certificate_store = __dirname + "/helpers/";
-function read_sshkey_as_pem(filename) {
-    var key = fs.readFileSync( __certificate_store + filename,"ascii");
-    key = sshKeyToPEM(key);
-    return key;
-}
-function read_private_rsa_key(filename) {
-    var key = fs.readFileSync( __certificate_store + filename,"ascii");
-    return key;
-}
+var read_sshkey_as_pem = crypto_utils.read_sshkey_as_pem;
+var read_private_rsa_key = crypto_utils.read_private_rsa_key;
 
 
 //  ursa only work with node version <= 0.10
@@ -204,6 +135,10 @@ function read_private_rsa_key(filename) {
 
 
 describe("testing and exploring the NodeJS crypto api", function () {
+
+
+    beforeEach(function(done){switch_to_test_certificate_store();done();});
+    afterEach(function(done){restore_default_certificate_store();done();});
 
 
     it("should be possible to sign a message and verify the signature of a message", function () {
@@ -251,8 +186,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
             var bob_sign = crypto.createSign("RSA-SHA256");
             bob_sign.update("HelloWorld");
             var signature = sign.sign(alice_public_key);
-            console.log("buffer length= ", signature.length);
-            console.log("buffer= ", signature.toString("hex"));
+            //xx console.log("buffer length= ", signature.length);
+            //xx console.log("buffer= ", signature.toString("hex"));
         }).throwError();
 
 
@@ -260,59 +195,78 @@ describe("testing and exploring the NodeJS crypto api", function () {
     });
 
 
-    if (publicEncrypt !== null) {
+    if (crypto_utils.publicEncrypt !== null) {
+
+        it("should check that bob rsa key is 2048bit long (256 bytes)",function() {
+
+            var key = crypto_utils.read_sshkey_as_pem('bob_id_rsa.pub');
+            crypto_utils.rsa_length(key).should.equal(256);
+
+        });
+
+        it("should check that john rsa key is 1024bit long (128 bytes)",function() {
+
+            var key = crypto_utils.read_sshkey_as_pem('john_id_rsa.pub');
+            crypto_utils.rsa_length(key).should.equal(128);
+
+        });
 
         it("verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function(){
 
+            //
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
+            debugLog('bob_public_key',bob_public_key);
             var encryptedBuffer;
 
-            // Padding is 41 and added at the start of the buffer
-            // so the max length of the input buffer sent to RSA_public_encrypt() is 256 - 41 = 215
+            // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
+            // Padding is 41 or 11 and added at the start of the buffer
+            // so the max length of the input buffer sent to RSA_public_encrypt() is:
+            //      256 - 41 = 215 with RSA_PKCS1_OAEP_PADDING
+            //      256 - 11 = 249 with RSA_PKCS1_PADDING
 
-            encryptedBuffer = publicEncrypt(new Buffer(1),bob_public_key);
-            console.log(" encryptedBuffer length = ",encryptedBuffer.length);
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(1),bob_public_key);
+            debugLog(" A encryptedBuffer length = ",encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
 
-            encryptedBuffer = publicEncrypt(new Buffer(214),bob_public_key);
-            console.log(" encryptedBuffer length = ",encryptedBuffer.length);
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(214),bob_public_key);
+            debugLog(" B encryptedBuffer length = ",encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
             should(function(){
-                encryptedBuffer = publicEncrypt(new Buffer(215),bob_public_key);
-                console.log(" encryptedBuffer length = ",encryptedBuffer.length);
-                encryptedBuffer.length.should.eql(256);
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(249),bob_public_key);
+                debugLog(" C encryptedBuffer length = ",encryptedBuffer.length);
+                //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
             should(function(){
-                encryptedBuffer = publicEncrypt(new Buffer(215),bob_public_key);
-                console.log(" encryptedBuffer length = ",encryptedBuffer.length);
-                encryptedBuffer.length.should.eql(256);
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(259),bob_public_key);
+                console.log(" D encryptedBuffer length = ",encryptedBuffer.length);
+                //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
         });
 
         it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes",function() {
 
-            var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
+            var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub'); // 2048bit long key
 
             var initialBuffer = new Buffer(loremIpsum.substr(0,256));
-            var encryptedBuffer = publicEncrypt_long(initialBuffer,bob_public_key,256,42);
+            var encryptedBuffer = crypto_utils.publicEncrypt_long(initialBuffer,bob_public_key,256,42);
             encryptedBuffer.length.should.eql(256*2);
 
             var bob_private_key = read_private_rsa_key('bob_id_rsa');
 
-            var decryptedBuffer = privateDecrypt_long(encryptedBuffer,bob_private_key,256,42);
+            var decryptedBuffer = crypto_utils.privateDecrypt_long(encryptedBuffer,bob_private_key,256,42);
 
             decryptedBuffer.toString("ascii").should.eql(initialBuffer.toString("ascii"));
         });
 
 
-        it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 512 bytes",function() {
+        it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 1280 bytes",function() {
 
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
-            var encryptedBuffer = publicEncrypt_long(new Buffer(1024),bob_public_key,256,42);
+            var encryptedBuffer = crypto_utils.publicEncrypt_long(new Buffer(1024),bob_public_key,256,42);
             encryptedBuffer.length.should.eql(256*5);
 
         });
@@ -343,7 +297,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
             debugLog(bob_public_key);
 
-            var encryptedMessage = publicEncrypt_long(new Buffer(message),bob_public_key,256,42);
+            var encryptedMessage = crypto_utils.publicEncrypt_long(new Buffer(message),bob_public_key,256,42);
 
             debugLog("encrypted message=", encryptedMessage.toString("hex"));
 
@@ -359,7 +313,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
             //xx encryptedMessage += "q";
 
-            var decryptedMessage = privateDecrypt_long(encryptedMessage,bob_private_key,256,42).toString();
+            var decryptedMessage = crypto_utils.privateDecrypt_long(encryptedMessage,bob_private_key,256,42).toString();
             debugLog("decrypted message=", decryptedMessage.toString());
 
             // then Bob must also verify that the signature is matching
@@ -405,7 +359,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
-        var public_key = fs.readFileSync('certificates/public_key.pub');
+        var public_key = fs.readFileSync(__dirname + '/../certificates/public_key.pub');
         public_key = public_key.toString('ascii');
 
 
@@ -458,7 +412,7 @@ describe("exploring symmetric signing",function() {
 
         hash = new Buffer(crypto.createHmac('sha1', key).update(text).digest('binary'),'binary');
 
-        console.log(hash.toString("hex"), hash.length);
+        //xx console.log(hash.toString("hex"), hash.length);
 
         hash.length.should.eql(20);
     });
@@ -469,6 +423,13 @@ describe("exploring symmetric signing",function() {
 
 /// -------------------------------------------------------------
 
+var ursa = null;
+try {
+    ursa = require("ursa");
+}
+catch(err) {
+    ursa = null;
+}
 
 if (ursa) {
 
@@ -482,11 +443,20 @@ if (ursa) {
     // https://github.com/coolaj86/node-ssl-root-cas
     // https://github.com/coolaj86/bitcrypt
 
-    var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
-    var bob_private_key = read_private_rsa_key('bob_id_rsa');
 
 
     describe("Testing public key encryption with URSA", function () {
+
+
+        var bob_public_key,bob_private_key;
+        beforeEach(function(done){
+
+            switch_to_test_certificate_store();
+            bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
+            bob_private_key = read_private_rsa_key('bob_id_rsa');
+            done();
+        });
+        afterEach(function(done){restore_default_certificate_store();done();});
 
         it("should encrypt with a public_key and decrypt with the private key a fairly small message", function () {
 
@@ -495,35 +465,67 @@ if (ursa) {
 
             var messageToEncrypt = new Buffer("Everything is going to be 200 OK ");
 
-            console.log('Encrypt with Public'.yellow);
+            //xx console.log('Encrypt with Public'.yellow);
             var encryptedMessage = crt.encrypt(messageToEncrypt);
-            console.log('encrypted'.yellow, encryptedMessage.toString("base64"), '\n');
+            //xx console.log('encrypted'.yellow, encryptedMessage.toString("base64"), '\n');
 
-            console.log('Decrypt with Private'.cyan.bold);
+            //xx console.log('Decrypt with Private'.cyan.bold);
             var decryptedMessage = key.decrypt(encryptedMessage);
             assert(decryptedMessage instanceof Buffer);
-            console.log('decrypted'.yellow, decryptedMessage.toString("ascii"), '\n');
+            //xx console.log('decrypted'.yellow, decryptedMessage.toString("ascii"), '\n');
 
             decryptedMessage.should.eql(messageToEncrypt);
         });
 
         it("REVERSE : should encrypt with a private_key and decrypt with the public key a small message", function () {
 
-
             var crt = ursa.createPrivateKey(bob_private_key);
             var key = ursa.createPublicKey(bob_public_key);
 
             var messageToEncrypt = new Buffer("Everything is going to be 200 OK ");
 
-            console.log('Encrypt with Private (called public)'.yellow);
+            //xx console.log('Encrypt with Private (called public)'.yellow);
             var encryptedMessage = key.encrypt(messageToEncrypt);
-            console.log('encrypted'.yellow, encryptedMessage.toString("hex"), '\n');
+            //xx console.log('encrypted'.yellow, encryptedMessage.toString("hex"), '\n');
 
-            console.log('Decrypt with Public (called private)');
+            //xx console.log('Decrypt with Public (called private)');
             var decryptedMessage = crt.decrypt(encryptedMessage);
-            console.log('decrypted'.yellow, decryptedMessage.toString("ascii"), '\n');
+            //xx console.log('decrypted'.yellow, decryptedMessage.toString("ascii"), '\n');
 
             decryptedMessage.should.eql(messageToEncrypt);
         });
     });
+
+    describe("Testing OPCUA key encryption/decryption with URSA", function () {
+
+        var server_public_key,server_private_key;
+        beforeEach(function(done){
+
+            //xx switch_to_test_certificate_store();
+
+            // let use our default 1024 RSA key pair
+            server_public_key = crypto_utils.read_public_rsa_key('public_key.pub');
+            server_private_key = crypto_utils.read_private_rsa_key('key.pem');
+            done();
+        });
+        afterEach(function(done){
+            //xxrestore_default_certificate_store();
+            done();
+        });
+
+        it("should encrypt a message with the  server public key and decrypt it (1024bits RSA)",function() {
+
+            var messageToEncrypt = new Buffer(require("./helpers/lorem_ipsum").loremIpsum);
+
+            var encryptedBuf = crypto_utils.publicEncrypt_long(messageToEncrypt,server_public_key,128,41);
+
+            var decryptedBuf  = crypto_utils.privateDecrypt_long(encryptedBuf,server_private_key,128,41);
+
+            decryptedBuf.toString("ascii").should.eql(messageToEncrypt.toString("ascii"));
+            //Xx console.log("decryptedBuf",decryptedBuf.toString("ascii"));
+        });
+    });
+
 }
+
+
