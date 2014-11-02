@@ -8,23 +8,23 @@ describe("testing ServerSecureChannelLayer ",function(){
 
     it("should create a ServerSecureChannelLayer",function(){
 
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout.should.be.greaterThan(100);
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout.should.be.greaterThan(100);
 
     });
 
     it("should end with a timeout if no message is received from client",function(done){
 
         var node = new DirectTransport();
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout = 50;
-        server_scl.init(node.server,function(err){
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout = 50;
+        server_secure_channel.init(node.server,function(err){
 
             err.message.should.match(/Timeout/);
             done();
         });
 
-        server_scl.on("abort",function(){
+        server_secure_channel.on("abort",function(){
 
         });
     });
@@ -34,15 +34,19 @@ describe("testing ServerSecureChannelLayer ",function(){
         var node = new DirectTransport();
 
         var server_has_emitted_the_abort_message = false;
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout = 50;
-        server_scl.init(node.server,function(err){
+
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout = 50;
+
+        server_secure_channel.init(node.server, function(err){
+
             err.message.should.match(/Timeout waiting for OpenChannelRequest/);
-            server_has_emitted_the_abort_message.should.equal(false);
+            server_has_emitted_the_abort_message.should.eql(true);
             done();
+
         });
 
-        server_scl.on("abort",function(){
+        server_secure_channel.on("abort",function(){
             server_has_emitted_the_abort_message = true;
         });
 
@@ -57,15 +61,15 @@ describe("testing ServerSecureChannelLayer ",function(){
         var node = new DirectTransport();
 
         var server_has_emitted_the_abort_message = false;
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout = 50;
-        server_scl.init(node.server,function(err){
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout = 50;
+        server_secure_channel.init(node.server,function(err){
             err.message.should.match(/Expecting OpenSecureChannelRequest/);
             server_has_emitted_the_abort_message.should.equal(true);
             done();
         });
 
-        server_scl.on("abort",function(){
+        server_secure_channel.on("abort",function(){
             server_has_emitted_the_abort_message = true;
         });
         var fake_HelloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
@@ -79,9 +83,9 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         var node = new DirectTransport();
 
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout = 50;
-        server_scl.init(node.server,function(err){
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout = 50;
+        server_secure_channel.init(node.server,function(err){
             should(err).not.exist;
             done();
         });
@@ -98,12 +102,12 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         var node = new DirectTransport();
 
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout = 50;
-        server_scl.init(node.server,function(err){
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout = 50;
+        server_secure_channel.init(node.server,function(err){
 
         });
-        server_scl.on("message",function(message){
+        server_secure_channel.on("message",function(message){
             message.request._schema.name.should.equal("GetEndpointsRequest");
             done();
         });
@@ -123,13 +127,13 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         var node = new DirectTransport();
 
-        var server_scl = new ServerSecureChannelLayer();
-        server_scl.timeout = 50;
-        server_scl.init(node.server,function(err){
+        var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.timeout = 50;
+        server_secure_channel.init(node.server,function(err){
         });
 
         var nb_on_message_calls = 0;
-        server_scl.on("message",function(message){
+        server_secure_channel.on("message",function(message){
 
             message.request._schema.name.should.not.equal("CloseSecureChannelRequest");
             nb_on_message_calls.should.equal(0);
@@ -138,7 +142,7 @@ describe("testing ServerSecureChannelLayer ",function(){
             message.request._schema.name.should.equal("GetEndpointsRequest");
         });
 
-        server_scl.on("abort",function(){
+        server_secure_channel.on("abort",function(){
             done();
         });
 
