@@ -15,6 +15,7 @@ var assert = require('better-assert');
 var AttributeIds = read_service.AttributeIds;
 
 var DataType = require("../../lib/datamodel/variant").DataType;
+var DataValue = require("../../lib/datamodel/datavalue").DataValue;
 var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
 var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
 var VariableIds = require("../../lib/opcua_node_ids").VariableIds;
@@ -288,7 +289,7 @@ describe("testing ServerEngine", function () {
     it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
         //xx var rootFolder = engine.findObject("ObjectsFolder");
-        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+        engine.createFolder("ObjectsFolder", "MyNewFolder");
 
         var newVariable = engine.addVariableInFolder("MyNewFolder",
             {
@@ -309,6 +310,36 @@ describe("testing ServerEngine", function () {
 
         newVariable.nodeId.toString().should.eql("ns=4;b=01020304ffaa");
 
+
+    });
+
+    it("should be possible to create a variable in a folder that returns a timestamped value", function () {
+
+        engine.createFolder("ObjectsFolder", "MyNewFolder");
+
+        var temperature = {
+            value:  new Variant({dataType: DataType.Double , value: 10.0}),
+            sourceTimestamp: new Date(Date.UTC(1999,9,9)),
+            sourcePicoseconds : 10
+        };
+
+        var newVariable = engine.addVariableInFolder("MyNewFolder",
+            {
+                browseName: "TemperatureWithSourceTimestamps",
+                dataType: "Double",
+                value: {
+                    timestamped_get: function(){
+                        return temperature;
+                    }
+                }
+            });
+
+
+        var dataValue = newVariable.readAttribute(AttributeIds.Value,undefined,undefined);
+        dataValue.should.be.instanceOf(DataValue);
+
+        dataValue.sourceTimestamp.should.eql(new Date(Date.UTC(1999,9,9)));
+        dataValue.sourcePicoseconds.should.eql(10);
 
     });
 

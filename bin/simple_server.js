@@ -98,22 +98,31 @@ server.on("post_initialize", function () {
 
     var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
 
+
+    /**
+     * variation 1:
+     * Add a variable in folder using a single get function
+     *
+     */
     server.engine.addVariableInFolder(myDevices,
         {
             browseName: "PumpSpeed",
             nodeId: "ns=2;s=PumpSpeed",
             dataType: "Double",
             value: {
+                /**
+                 * returns the  current value as a Variant
+                 * @method get
+                 * @returns {Variant}
+                 */
                 get: function () {
                     var pump_speed = 200 + 100*Math.sin(Date.now()/10000);
                     return new Variant({dataType: DataType.Double, value: pump_speed});
-                },
-                set: function (variant) {
-                    return StatusCodes.BadNotWritable;
                 }
             }
         });
- 
+
+
     server.engine.addVariableInFolder(myDevices,
        {
               browseName: "SomeDate",
@@ -122,10 +131,38 @@ server.on("post_initialize", function () {
               value : {
                  get : function() {
                    return new Variant({dataType: DataType.DateTime , value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0) )});
-                   //return new Variant({dataType: DataType.DateTime , value: new Date(Date.UTC(1970,0,1,0,00,00))});
                  }
               }
        });
+
+
+
+    /**
+     * variation 2:
+     * Add a variable in folder using a single function returning a timestamped value
+     *
+     */
+    var external_value_with_sourceTimestamp = {
+        value: new Variant({dataType: DataType.Double , value: 10.0}),
+        sourceTimestamp : null,
+        sourcePicoseconds: 0
+    };
+    setInterval(function() {
+        external_value_with_sourceTimestamp.value.value = Math.random();
+        external_value_with_sourceTimestamp.sourceTimestamp = new Date();
+    },10000);
+
+    server.engine.addVariableInFolder(myDevices,
+        {
+            browseName: "Pressure",
+            nodeId: "ns=2;s=Pressure",
+            dataType: "Double",
+            value : {
+                timestamped_get : function() { return external_value_with_sourceTimestamp;}
+            }
+        });
+
+
     install_optional_cpu_and_memory_usage_node(server);
 
 });
