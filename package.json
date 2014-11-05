@@ -65,6 +65,7 @@
     "optimist": "*",
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
+    "ssh-key-to-pem": "^0.11.0",
     "treeify": "~1.0.1",
     "underscore": "~1.7.0"
   }
