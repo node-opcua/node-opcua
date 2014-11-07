@@ -22,8 +22,9 @@ var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 var hostname = require("os").hostname().toLowerCase();
 
 var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
-console.log(" endpointUrl = ", endpointUrl);
 
+console.log(" endpointUrl = ", endpointUrl);
+console.log(" server URI   = ", server.engine.buildInfo.productUri);
 console.log(" registering server to " + discovery_server_endpointUrl);
 
 server.registerServer(discovery_server_endpointUrl, function (err) {

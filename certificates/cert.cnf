@@ -1,0 +1,44 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+x509_extensions = v3_req
+default_bits=1024
+
+[v3_req]
+# Extensions to add to a certificate request
+# see https://www.openssl.org/docs/apps/x509v3_config.html
+
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyCertSign
+extendedKeyUsage=critical,serverAuth,clientAuth
+subjectAltName = @alt_names
+subjectKeyIdentifier= FE:02:11
+authorityKeyIdentifier=keyid,issuer
+[alt_names]
+IP=127.0.0.1
+URI=urn:NodeOPCUA-Server
+DNS.1 = localhost
+DNS.2 = 127.0.0.1
+DNS.3 = www.yourdomain.tld
+[req_distinguished_name]
+
+countryName = Country Name (2 letter code)
+countryName_default = FR
+stateOrProvinceName = State or Province Name (full name)
+stateOrProvinceName_default = IDF
+localityName =  Locality Name (eg, city)
+localityName_default = Paris
+
+organisationName = Organisation
+organisationName_default = ACME
+
+organizationalUnitName	= Organizational Unit Name (eg, section)
+organizationalUnitName_default	= ACME/LABO
+
+commonName = Common Name
+commonName_default = NodeOPCUA/UAServer
+commonName_max	= 64
+
+emailAddress = Email address
+emailAddress_max 	= 40
+emailAddress_default = info@acme.com

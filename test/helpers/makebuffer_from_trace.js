@@ -31,4 +31,5 @@ var hexString = function(str) {
 function makebuffer_from_trace(func) {
     return makebuffer(hexString(inlineText(func)));
 }
+exports.inlineText = inlineText;
 exports.makebuffer_from_trace = makebuffer_from_trace;

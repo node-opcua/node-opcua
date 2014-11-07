@@ -2,21 +2,19 @@
 
 var assert = require("assert");
 var fs = require("fs");
+var crypto_utils = require("../../lib/misc/crypto_utils");
 
 function construct_makeMessageChunkSignatureForTest() {
 
-    var private_key_pem = fs.readFileSync('certificates/key.pem');
-    var private_key = private_key_pem.toString('ascii');
-
-    var makeMessageChunkSignature = require("../../lib/misc/crypto_utils").makeMessageChunkSignature;
+    var privateKey = fs.readFileSync('certificates/key.pem').toString('ascii');
 
     return function (chunk) {
         var options = {
             algorithm : "RSA-SHA256",
             signatureLength: 128,
-            privateKey: private_key
+            privateKey: privateKey
         };
-        return makeMessageChunkSignature(chunk,options); // Buffer
+        return crypto_utils.makeMessageChunkSignature(chunk,options); // Buffer
     };
 }
 exports.makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureForTest();
@@ -24,10 +22,7 @@ exports.makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureFo
 
 function construct_verifyMessageChunkSignatureForTest() {
 
-    var publicKey = fs.readFileSync('certificates/public_key.pub');
-    publicKey = publicKey.toString('ascii');
-
-    var verify_chunk_signature = require("../../lib/misc/crypto_utils").verifyChunkSignature;
+    var publicKey = fs.readFileSync('certificates/public_key.pub').toString('ascii');
 
     return function(chunk) {
         assert(chunk instanceof Buffer);
@@ -36,7 +31,7 @@ function construct_verifyMessageChunkSignatureForTest() {
             signatureLength: 128,
             publicKey: publicKey
         };
-        return verify_chunk_signature(chunk,options);
+        return crypto_utils.verifyChunkSignature(chunk,options);
     };
 
 }

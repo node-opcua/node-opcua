@@ -4,6 +4,7 @@ var should = require("should");
 var colors = require("colors");
 var assert = require("assert");
 
+var utils = require("../lib/misc/utils");
 var loremIpsum = require("./helpers/lorem_ipsum").loremIpsum;
 
 var crypto_utils = require("../lib/misc/crypto_utils");
@@ -20,43 +21,6 @@ function restore_default_certificate_store() {
     old_store = null;
 
 }
-// generate a self-signed key
-// ---------------------------
-//      openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem
-//
-// generate public key from private.key
-// ------------------------------------
-//      openssl rsa -in key.pem -pubout > public_key.pub will extract the public key and print that out.
-//
-// converting der to pem files
-// ----------------------------
-//      openssl x509 -inform DER -outform PEM -text -in der-certificate-file -out pem-certificate-file
-//
-// converting pem to der files:
-// ----------------------------
-//      openssl rsa -inform DER -outform PEM -in der-rsa-key-file -out pem-rsa-key-file
-//
-// If you have .pfx certificates you can convert them to .pem using openssl:
-//      openssl pkcs12 -in  cert.pfx -out cert.pem
-//
-// convert a pem public key to pub ssh-rsa (- ?)
-//      http://stackoverflow.com/questions/1011572/convert-pem-key-to-ssh-rsa-format
-//      ssh-keygen -f pub1key.pub -i
-//
-// refs:
-//  http://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html 
-//
-// Create a set of  key pair
-//   -  ssh-keygen -t rsa -C "Bob" -f bob_id_rsa -q -N ""
-//   -  ssh-keygen -t rsa -b 2048 -C "Alice" -f alice_id_rsa -q -N ""
-//
-
-// refs: https://github.com/dominictarr/ssh-key-to-pem
-//       http://pki-tutorial.readthedocs.org/en/latest/simple/index.html
-//
-// ref:
-//   https://security.stackexchange.com/questions/42268/how-do-i-get-the-rsa-bit-length-with-the-pubkey-and-openssl
-//   https://serverfault.com/questions/325467/i-have-a-keypair-how-do-i-determine-the-key-length
 
 var doDebug = false;
 //Xx doDebug = true;
@@ -96,7 +60,7 @@ var read_private_rsa_key = crypto_utils.read_private_rsa_key;
 
 
 //  ursa only work with node version <= 0.10
-//  however crypto.publicEncryp only appear in node > 0.11.14
+//  however crypto.publicEncrypt only appear in node > 0.11.14
 //describe("testing publicEncrypt / privateDecrypt native and ursa",function(){
 //
 //    it("publicEncrypt_native and  privateDecrypt_native" ,function(){
@@ -252,13 +216,11 @@ describe("testing and exploring the NodeJS crypto api", function () {
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub'); // 2048bit long key
 
             var initialBuffer = new Buffer(loremIpsum.substr(0,256));
-            var encryptedBuffer = crypto_utils.publicEncrypt_long(initialBuffer,bob_public_key,256,42);
+            var encryptedBuffer = crypto_utils.publicEncrypt_long(initialBuffer,bob_public_key,256,11);
             encryptedBuffer.length.should.eql(256*2);
 
             var bob_private_key = read_private_rsa_key('bob_id_rsa');
-
-            var decryptedBuffer = crypto_utils.privateDecrypt_long(encryptedBuffer,bob_private_key,256,42);
-
+            var decryptedBuffer = crypto_utils.privateDecrypt_long(encryptedBuffer,bob_private_key,256);
             decryptedBuffer.toString("ascii").should.eql(initialBuffer.toString("ascii"));
         });
 
@@ -266,8 +228,15 @@ describe("testing and exploring the NodeJS crypto api", function () {
         it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 1280 bytes",function() {
 
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
-            var encryptedBuffer = crypto_utils.publicEncrypt_long(new Buffer(1024),bob_public_key,256,42);
+
+            var initialBuffer = new Buffer(loremIpsum.substr(0,1024));
+            var encryptedBuffer = crypto_utils.publicEncrypt_long(initialBuffer,bob_public_key,256,11);
             encryptedBuffer.length.should.eql(256*5);
+
+            var bob_private_key = read_private_rsa_key('bob_id_rsa');
+            var decryptedBuffer = crypto_utils.privateDecrypt_long(encryptedBuffer,bob_private_key,256);
+            decryptedBuffer.length.should.equal(initialBuffer.length);
+            decryptedBuffer.toString("ascii").should.eql(initialBuffer.toString("ascii"));
 
         });
 
@@ -313,7 +282,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
             //xx encryptedMessage += "q";
 
-            var decryptedMessage = crypto_utils.privateDecrypt_long(encryptedMessage,bob_private_key,256,42).toString();
+            var decryptedMessage = crypto_utils.privateDecrypt_long(encryptedMessage,bob_private_key,256,11).toString();
             debugLog("decrypted message=", decryptedMessage.toString());
 
             // then Bob must also verify that the signature is matching
@@ -431,7 +400,9 @@ catch(err) {
     ursa = null;
 }
 
-if (ursa) {
+if (!ursa) {
+    console.log(" WARNING : SKIPPING TEST WITH ursa".red);
+}else {
 
     var fs = require('fs');
     // openssl genrsa -out certs/server/my-server.key.pem 2048
@@ -443,6 +414,115 @@ if (ursa) {
     // https://github.com/coolaj86/node-ssl-root-cas
     // https://github.com/coolaj86/bitcrypt
 
+
+    describe("Testing AsymmetricSignatureAlgorithm",function() {
+
+        var chunk = new Buffer(loremIpsum);
+
+
+        //xx crypto.getHashes().forEach(function(a){ make_suite(a,128); });
+        make_suite("RSA-SHA384",128);
+        make_suite("RSA-SHA512",128);
+        make_suite("RSA-SHA256",128);
+        make_suite("RSA-SHA1",128);
+        make_suite("RSA-MD4",128);
+        make_suite("sha224WithRSAEncryption",128);
+        make_suite("shaWithRSAEncryption",128);
+
+
+        function make_suite(algorithm,length) {
+
+            it("should sign with a private key and verify with the public key (ASCII) - " + algorithm,function(){
+
+                var alice_private_key = fs.readFileSync('certificates/key.pem').toString('ascii');
+                var options1 = {
+                    algorithm : algorithm,
+                    signatureLength: length,
+                    privateKey: alice_private_key
+                };
+                var signature =  new Buffer(crypto_utils.makeMessageChunkSignature(chunk,options1),"binary"); // Buffer
+
+                //xx console.log("signature =".yellow,"\n");
+                //xx console.log(utils.hexDump(signature));
+
+                console.log("SIGNATURE = ".yellow.bold,new Buffer(signature).toString("base64"));
+                signature.should.be.instanceOf(Buffer);
+                signature.length.should.eql(options1.signatureLength);
+
+                var alice_public_key = fs.readFileSync('certificates/public_key.pub').toString('ascii');
+                var options2 = {
+                    algorithm : algorithm,
+                    signatureLength: length,
+                    publicKey: alice_public_key
+                };
+                var signVerif = crypto_utils.verifyMessageChunkSignature(chunk,signature,options2);
+                signVerif.should.eql(true);
+
+
+            });
+
+            it("should sign with a private key and verify with the certificate (ASCII) - " + algorithm,function(){
+
+                var alice_private_key = fs.readFileSync('certificates/key.pem').toString('ascii');
+                var options1 = {
+                    algorithm : algorithm,
+                    signatureLength: length,
+                    privateKey: alice_private_key
+                };
+                var signature =  new Buffer(crypto_utils.makeMessageChunkSignature(chunk,options1),"binary"); // Buffer
+
+                //xx console.log("signature =".yellow,"\n");
+                //xx console.log(utils.hexDump(signature));
+
+                signature.should.be.instanceOf(Buffer);
+                signature.length.should.eql(options1.signatureLength);
+
+
+                var alice_certificate = fs.readFileSync('certificates/cert.pem').toString('ascii');
+
+                var options2 = {
+                    algorithm : algorithm,
+                    signatureLength: length,
+                    publicKey: alice_certificate
+                };
+                var signVerif = crypto_utils.verifyMessageChunkSignature(chunk,signature,options2);
+                signVerif.should.eql(true);
+
+
+            });
+
+            it("should sign with a private key and verify with the certificate (DER) - " + algorithm,function(){
+
+                var alice_private_key = crypto_utils.readKey('certificates/key.pem');
+                var options1 = {
+                    algorithm : algorithm,
+                    signatureLength: length,
+                    privateKey: crypto_utils.toPem(alice_private_key,"RSA PRIVATE KEY")
+                };
+                var signature =  new Buffer(crypto_utils.makeMessageChunkSignature(chunk,options1),"binary"); // Buffer
+
+                //xx console.log("signature =".yellow,"\n");
+                //xx console.log(utils.hexDump(signature));
+
+                signature.should.be.instanceOf(Buffer);
+                signature.length.should.eql(options1.signatureLength);
+
+
+                var alice_certificate = crypto_utils.readKey('certificates/cert.pem');
+
+                var options2 = {
+                    algorithm : algorithm,
+                    signatureLength: length,
+                    publicKey: crypto_utils.toPem(alice_certificate,"CERTIFICATE")
+                };
+                var signVerif = crypto_utils.verifyMessageChunkSignature(chunk,signature,options2);
+                signVerif.should.eql(true);
+
+
+            });
+
+        }
+    });
 
 
     describe("Testing public key encryption with URSA", function () {
@@ -517,9 +597,9 @@ if (ursa) {
 
             var messageToEncrypt = new Buffer(require("./helpers/lorem_ipsum").loremIpsum);
 
-            var encryptedBuf = crypto_utils.publicEncrypt_long(messageToEncrypt,server_public_key,128,41);
+            var encryptedBuf = crypto_utils.publicEncrypt_long(messageToEncrypt,server_public_key,128,11);
 
-            var decryptedBuf  = crypto_utils.privateDecrypt_long(encryptedBuf,server_private_key,128,41);
+            var decryptedBuf  = crypto_utils.privateDecrypt_long(encryptedBuf,server_private_key,128);
 
             decryptedBuf.toString("ascii").should.eql(messageToEncrypt.toString("ascii"));
             //Xx console.log("decryptedBuf",decryptedBuf.toString("ascii"));
