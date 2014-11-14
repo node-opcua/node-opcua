@@ -14,7 +14,9 @@ function construct_makeMessageChunkSignatureForTest() {
             signatureLength: 128,
             privateKey: privateKey
         };
-        return crypto_utils.makeMessageChunkSignature(chunk,options); // Buffer
+        var buf =  crypto_utils.makeMessageChunkSignature(chunk,options); // Buffer
+        assert(buf instanceof Buffer,"expecting a Buffer");
+        return buf;
     };
 }
 exports.makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureForTest();

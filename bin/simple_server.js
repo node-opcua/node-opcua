@@ -168,7 +168,11 @@ server.on("post_initialize", function () {
 
 });
 
-server.start(function () {
+server.start(function (err) {
+    if (err) {
+        console.log(" Server failed to start ... exiting");
+        process.exit(-3);
+    }
     console.log("  server on port".yellow, server.endpoints[0].port.toString().cyan);
     console.log("  server now waiting for connections. CTRL+C to stop".yellow);
     console.log("  endpointUrl = ".yellow, endpointUrl.cyan);
@@ -190,4 +194,13 @@ server.on("request", function (request) {
             break;
     }
     // console.log(util.inspect(request,{colors:true,depth:10}));
+});
+
+process.on('SIGINT', function() {
+    // only work on linux apparently
+    console.log(" Received server interruption from user ".red.bold)
+    console.log(" shutting down ".red.bold);
+    server.shutdown(function () {
+        console.log(" done ".red.bold);
+    });
 });

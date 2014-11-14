@@ -1,18 +1,33 @@
 var should = require("should");
-var MessageChunkManager = require("../../lib/misc/message_chunk_manager").MessageChunkManager;
-
+//xx var MessageChunkManager = require("../../lib/misc/message_chunk_manager").MessageChunkManager;
+//var ServerSecureChannelLayer = require("../../lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
+var SecureMessageChunkManager = require("../../lib/services/secure_channel_service").SecureMessageChunkManager;
+var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
+var SymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").SymmetricAlgorithmSecurityHeader;
+var utils = require("../../lib/misc/utils");
 
 function performMessageChunkManagerTest(options) {
 
     options = options || {};
+    var securityHeader = new SymmetricAlgorithmSecurityHeader();
 
-    var footerSize = options.footerSize ||0 ;   // 128 bytes for signature
+    var bodySize = 32;
+    var headerSize = 12 + securityHeader.binaryStoreSize();
 
-    var chunk_size  = 32;    // 32 useful bytes
-    var header_size = 12;    // 12 bytes for
-    var body_size   = chunk_size  + header_size + footerSize;
+    options.signatureSize = options.signatureSize || 0 ;   // 128 bytes for signature
+    options.chunkSize  = bodySize + options.signatureSize + headerSize + 8;    // bodySize useful bytes
 
-    var msgChunkManager = new MessageChunkManager(body_size,"HEL",0xDEADBEEF,options);
+    options.requestId =  1;
+
+    var sequenceNumberGenerator = new SequenceNumberGenerator();
+
+
+    var msgChunkManager = new SecureMessageChunkManager(
+        "HEL",options,securityHeader,sequenceNumberGenerator
+    );
+
+    //xxoptions.chunkManager.maxBodySize;
+    // new MessageChunkManager(body_size,"HEL",0xDEADBEEF,options);
 
     var chunks = [];
 
@@ -27,28 +42,26 @@ function performMessageChunkManagerTest(options) {
     }
     msgChunkManager.on("chunk",function(chunk,final){
 
+        //xx console.log(utils.hexDump(chunk));
         collect_chunk(chunk);
 
         chunk_counter+=1;
         if (!final) {
-            // all packets shall be 'chunk_size'  byte long, except last
-            chunk.length.should.equal(body_size);
+            // all packets shall be 'chunkSize'  byte long, except last
+            chunk.length.should.equal(options.chunkSize);
 
         } else {
             // last packet is smaller
-            chunk.length.should.equal(  12 +/*padding*/  header_size + footerSize);
+            //xx chunk.length.should.equal(  20 +/*padding*/  options.headerSize + options.signatureSize);
             chunk_counter.should.eql(5);
         }
     });
 
     // feed chunk-manager on byte at a time
-    var n =(chunk_size)*4+12;
+    var n =(bodySize)*4+12;
 
     var buf = new Buffer(1);
-    for (var i=0;i<n;i+=1) {
-        buf.writeUInt8(i%256,0);
-        msgChunkManager.write(buf,1);
-    }
+    for (var i=0;i<n;i+=1) {  buf.writeUInt8(i%256,0);   msgChunkManager.write(buf,1);}
 
     // write this single buffer
     msgChunkManager.end();
@@ -59,18 +72,18 @@ function performMessageChunkManagerTest(options) {
     chunks.forEach(function(chunk) { chunk.slice(0,3).toString().should.eql("HEL"); });
 
     // check length
-    chunks[0].slice(4,8).readUInt32LE(0).should.eql(body_size);
-    chunks[1].slice(4,8).readUInt32LE(0).should.eql(body_size);
-    chunks[2].slice(4,8).readUInt32LE(0).should.eql(body_size);
-    chunks[3].slice(4,8).readUInt32LE(0).should.eql(body_size);
-    chunks[4].slice(4,8).readUInt32LE(0).should.eql(12  + header_size + footerSize);
+    chunks[0].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[1].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[2].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[3].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[chunks.length-1].slice(4,8).readUInt32LE(0).should.eql(12 +  options.signatureSize + headerSize + 8);
 
     // check final car
     chunks[0].readUInt8(3).should.equal("C".charCodeAt(0));
     chunks[1].readUInt8(3).should.equal("C".charCodeAt(0));
     chunks[2].readUInt8(3).should.equal("C".charCodeAt(0));
     chunks[3].readUInt8(3).should.equal("C".charCodeAt(0));
-    chunks[4].readUInt8(3).should.equal("F".charCodeAt(0));
+    chunks[chunks.length-1].readUInt8(3).should.equal("F".charCodeAt(0));
 
     if (options.verifyChunk) {
         chunks.forEach(options.verifyChunk);
@@ -95,7 +108,7 @@ describe("MessageChunkManager",function() {
         var verifyMessageChunkSignatureForTest = require("../helpers/signature_helpers").verifyMessageChunkSignatureForTest;
 
         var options = {
-            footerSize: 128,
+            signatureSize: 128,
             signingFunc: makeMessageChunkSignatureForTest,
             verifyChunk: verifyMessageChunkSignatureForTest
         };

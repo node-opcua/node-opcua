@@ -1,65 +1,53 @@
 var should = require("should");
-var MessageBuilderBase = require("../../lib/misc/message_builder_base").MessageBuilderBase;
 var compare_buffers = require("../../lib/misc/utils").compare_buffers;
 var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
 var hexDump = require("../../lib/misc/utils").hexDump;
 
-
 var make_lorem_ipsum_buffer = require("../helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
+
 var iterate_on_signed_message_chunks = require("../helpers/fake_message_chunk_factory").iterate_on_signed_message_chunks;
-var verifyMessageChunkSignatureForTest = require("../helpers/signature_helpers").verifyMessageChunkSignatureForTest;
 
-var MessageBuilderBase = require("../../lib/misc/message_builder_base").MessageBuilderBase;
+var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 
-describe("MessageBuilderBase with SIGN support", function () {
+describe("MessageBuilder with SIGN support", function () {
 
     var lorem_ipsum_buffer  = make_lorem_ipsum_buffer();
 
+    it("should not emit an error event if chunks have valid signature", function (done) {
 
-    it("should not emit  bad_signature event if chunks have valid signature", function (done) {
+        var options = {};
 
-        var options = {
-            verifySignatureFunc: verifyMessageChunkSignatureForTest,
-            signatureSize: 128
-        };
+        var messageBuilder = new MessageBuilder(options);
+        messageBuilder._decode_message_body = false;
 
-        var messageBuilderBase = new MessageBuilderBase(options);
-
-        messageBuilderBase
+        messageBuilder
             .on("full_message_body",function(message) {
                 done();
             })
             .on("message",function(message){
 
             })
-            .on("bad_signature", function (chunk) {
-
-                done(new Error(" we are not expecting a bad_signature event in this case"));
+            .on("error", function (error) {
+                done(error);
             });
 
         iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
-            messageBuilderBase.feed(chunk.slice(0, 20));
-            messageBuilderBase.feed(chunk.slice(20));
+            messageBuilder.feed(chunk.slice(0, 20));
+            messageBuilder.feed(chunk.slice(20));
         });
-
 
     });
 
     it("should reconstruct a full message made of many signed chunks", function (done) {
 
-        var options = {
-            verifySignatureFunc: verifyMessageChunkSignatureForTest,
-            signatureSize: 128
-        };
+        var options = {};
 
+        var messageBuilder = new MessageBuilder(options);
+        messageBuilder._decode_message_body = false;
 
-
-        var messageBuilderBase = new MessageBuilderBase(options);
-
-        messageBuilderBase
-            .on("full_message_body",function(message) {
+        messageBuilder.on("full_message_body",function(message) {
 
                 debugLog(message.toString());
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
@@ -72,37 +60,36 @@ describe("MessageBuilderBase with SIGN support", function () {
             .on("message",function(message){
                 // debugLog(hexDump(message));
             })
-            .on("bad_signature", function (chunk) {
+            .on("error", function (err) {
 
-                done(new Error(" we are not expecting a bad_signature event in this case"));
+                done(new Error(" we are not expecting a error event in this case"+err));
             });
 
         iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
-            messageBuilderBase.feed(chunk.slice(0, 20));
-            messageBuilderBase.feed(chunk.slice(20));
+            messageBuilder.feed(chunk.slice(0, 20));
+            messageBuilder.feed(chunk.slice(20));
         });
 
 
     });
     it("should emit an bad_signature event if chunk has been tempered", function (done) {
 
-        var options = {
-            verifySignatureFunc: verifyMessageChunkSignatureForTest,
-            signatureSize: 128
-        };
+        var options = { };
 
-        var messageBuilderBase = new MessageBuilderBase(options);
+        var messageBuilder = new MessageBuilder(options);
+        messageBuilder._decode_message_body = false;
 
-        messageBuilderBase
+        messageBuilder
             .on("full_message_body",function(message) {
                 done(new Error("it should not emmit a message event if a signature is invalid or missing"));
             })
             .on("message",function(message){
                 done(new Error("it should not emmit a message event if a signature is invalid or missing"));
             })
-            .on("bad_signature", function (chunk) {
+            .on("error", function (err) {
+                debugLog(err);
                 debugLog("this chunk has a altered body ( signature verification failed)".yellow);
-                debugLog(hexDump(chunk));
+                //xx debugLog(hexDump(chunk));
                 done();
             });
 
@@ -111,11 +98,11 @@ describe("MessageBuilderBase with SIGN support", function () {
             // alter artificially the chunk
             // this will damage the chunk signature
 
-            chunk.write("####*** TEMPERED ***#####",57);
+            chunk.write("####*** TEMPERED ***#####",0x3a0);
 
 
-            messageBuilderBase.feed(chunk.slice(0, 20));
-            messageBuilderBase.feed(chunk.slice(20));
+            messageBuilder.feed(chunk.slice(0, 20));
+            messageBuilder.feed(chunk.slice(20));
         });
 
     });

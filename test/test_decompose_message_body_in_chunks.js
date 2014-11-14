@@ -8,15 +8,15 @@ var SecureMessageChunkManager = require("../lib/services/secure_channel_service"
  *
  * @param message_body
  * @param msgType
- * @param chunk_size
+ * @param chunkSize
  * @return {Array}
  *
  * wrap a message body into one or more message_chunks
  * (  use this method to build fake data blocks in tests)
  */
-function decompose_message_body_in_chunks(message_body,msgType,chunk_size) {
+function decompose_message_body_in_chunks(message_body,msgType,chunkSize) {
 
-    assert(chunk_size>24,"expecting chunk_size");
+    assert(chunkSize>24,"expecting chunkSize");
     assert(msgType.length===3," invalid msgType "+ msgType);
     assert(message_body instanceof Buffer && message_body.length >0 , " invalid buffer");
 

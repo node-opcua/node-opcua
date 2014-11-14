@@ -9,10 +9,10 @@ function make_lorem_ipsum_buffer() {
 exports.make_lorem_ipsum_buffer = make_lorem_ipsum_buffer;
 
 
-function make_simple_buffer(chunk_size) {
+function make_simple_buffer(chunkSize) {
 
     // feed chunk-manager on byte at a time
-    var n = (chunk_size) * 4 + 12;
+    var n = (chunkSize) * 4 + 12;
 
     var buf = new Buffer(n);
     for (var i = 0; i < n; i += 1) {

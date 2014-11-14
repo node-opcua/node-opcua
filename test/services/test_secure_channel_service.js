@@ -51,6 +51,9 @@ describe("SecureMessageChunkManager", function () {
             },
 
             function (callback) {
+
+                chunk_stack.length.should.be.greaterThan(0);
+
                 // let verify that each intermediate chunk is marked with "C" and final chunk is marked with "F"
                 for (var i = 0; i < chunk_stack.length - 1; i++) {
                     String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("C");

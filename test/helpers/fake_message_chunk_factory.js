@@ -1,8 +1,19 @@
+var hexDump = require("../../lib/misc/utils").hexDump;
 
+var SecureMessageChunkManager = require("../../lib/services/secure_channel_service").SecureMessageChunkManager;
+var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
 
-// todo : move to helpers
+var AsymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").AsymmetricAlgorithmSecurityHeader;
 
-var MessageChunkManager = require("../../lib/misc/message_chunk_manager").MessageChunkManager;
+var crypto_utils = require("../../lib/misc/crypto_utils");
+var path = require("path");
+var folder = path.resolve(__dirname);
+
+var senderCertificate =  crypto_utils.readCertificate(folder + "/../../certificates/client_cert.pem");
+var senderPrivateKey  = crypto_utils.readKeyPem(folder + "/../../certificates/client_key.pem");
+
+var receiverCertificate = crypto_utils.readCertificate(folder + "/../../certificates/cert.pem");
+var receiverCertificateThumbprint = crypto_utils.makeSHA1Thumbprint(receiverCertificate);
 
 /**
  * @method iterate_on_signed_message_chunks
@@ -11,41 +22,36 @@ var MessageChunkManager = require("../../lib/misc/message_chunk_manager").Messag
  * @param callback.chunks  {Array<Buffer>}
  *
  */
-
-
-var makeMessageChunkSignatureForTest = require("../helpers/signature_helpers").makeMessageChunkSignatureForTest;
-
-
 function iterate_on_signed_message_chunks(buffer,callback) {
 
-    var body_size = 512;
-    var chunk_size = body_size - 12 - 128;
+    var params = {signatureLength: 128,algorithm:  "RSA-SHA1",  privateKey:senderPrivateKey };
 
     var options = {
-        footerSize: 128,
-        signingFunc: makeMessageChunkSignatureForTest
+        requestId: 10,
+        chunkSize: 2048,
+        signatureSize: 128,
+        signingFunc: function(chunk) {
+            return crypto_utils.makeMessageChunkSignature(chunk,params);
+        }
     };
-    var msgChunkManager = new MessageChunkManager(body_size, "MSG", 0xDEADBEEF, options);
 
-    var chunks = [];
+    var securityHeader = new AsymmetricAlgorithmSecurityHeader({
+        securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
+        senderCertificate: senderCertificate,
+        receiverCertificateThumbprint: null // null == no encryption ...receiverCertificateThumbprint
+    });
 
-    function collect_chunk(chunk) {
-        var copy_chunk = new Buffer(chunk.length);
-        chunk.copy(copy_chunk, 0, 0, chunk.length);
+    var sequenceNumberGenerator =  new SequenceNumberGenerator();
 
-        // append the copy to our chunk collection
-        chunks.push(copy_chunk);
-    }
+    var msgChunkManager = new SecureMessageChunkManager("OPN",options,securityHeader,sequenceNumberGenerator);
+
 
     msgChunkManager.on("chunk", function (chunk, final) {
-        collect_chunk(chunk);
+        // full block
         callback(null,chunk);
-        if (final) {
-        }
     });
 
     msgChunkManager.write(buffer, buffer.length);
-    // write this single buffer
     msgChunkManager.end();
 }
 exports.iterate_on_signed_message_chunks = iterate_on_signed_message_chunks;

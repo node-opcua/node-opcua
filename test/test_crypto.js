@@ -440,7 +440,7 @@ if (!ursa) {
                     signatureLength: length,
                     privateKey: alice_private_key
                 };
-                var signature =  new Buffer(crypto_utils.makeMessageChunkSignature(chunk,options1),"binary"); // Buffer
+                var signature =  crypto_utils.makeMessageChunkSignature(chunk,options1);
 
                 //xx console.log("signature =".yellow,"\n");
                 //xx console.log(utils.hexDump(signature));
