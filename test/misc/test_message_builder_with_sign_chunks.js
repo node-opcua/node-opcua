@@ -8,6 +8,7 @@ var hexDump = require("../../lib/misc/utils").hexDump;
 var make_lorem_ipsum_buffer = require("../helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
 
 var iterate_on_signed_message_chunks = require("../helpers/fake_message_chunk_factory").iterate_on_signed_message_chunks;
+var iterate_on_signed_and_encrypted_message_chunks = require("../helpers/fake_message_chunk_factory").iterate_on_signed_and_encrypted_message_chunks;
 
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 
@@ -58,7 +59,7 @@ describe("MessageBuilder with SIGN support", function () {
                 debugLog(hexDump(chunk));
             })
             .on("message",function(message){
-                // debugLog(hexDump(message));
+                debugLog(hexDump(message));
             })
             .on("error", function (err) {
 
@@ -107,4 +108,37 @@ describe("MessageBuilder with SIGN support", function () {
 
     });
 
+});
+
+
+describe("MessageBuilder with SIGN & ENCRYPT support", function () {
+
+    var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
+
+    it("should not emit an error event with valid SIGN & ENCRYPT chunks", function (done) {
+
+        var options = {};
+
+        var messageBuilder = new MessageBuilder(options);
+        messageBuilder._decode_message_body = false;
+
+        messageBuilder
+            .on("full_message_body", function (message) {
+                message.toString().should.eql(lorem_ipsum_buffer.toString());
+                done();
+            })
+            .on("message", function (message) {
+
+            })
+            .on("error", function (error) {
+                done(error);
+            });
+
+        iterate_on_signed_and_encrypted_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
+            //xx console.log(hexDump(chunk));
+            messageBuilder.feed(chunk.slice(0, 20));
+            messageBuilder.feed(chunk.slice(20));
+        });
+
+    });
 });
