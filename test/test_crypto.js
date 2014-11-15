@@ -379,11 +379,14 @@ describe("exploring symmetric signing",function() {
             key = crypto.randomBytes(32),
             hash;
 
-        hash = new Buffer(crypto.createHmac('sha1', key).update(text).digest('binary'),'binary');
+        var hash = crypto.createHmac('sha1', key).update(text).digest();
 
+        assert(hash instanceof Buffer);
         //xx console.log(hash.toString("hex"), hash.length);
 
         hash.length.should.eql(20);
+        // TO DO : to be completed.
+
     });
 
 });
@@ -608,4 +611,27 @@ if (!ursa) {
 
 }
 
+var hexDump = require("../lib/misc/utils").hexDump;
+describe("extractPublicKeyFromCertificate",function() {
+
+    it("should extract a public key from a certificate",function(done){
+
+        var  certificate = fs.readFileSync('certificates/cert.pem').toString('ascii');
+
+        var  certificate2 = crypto_utils.readCertificate('certificates/cert.pem');
+        console.log(" certificate");
+        console.log(hexDump(certificate2));
+        var  publickey2 = crypto_utils.readKey('certificates/public_key.pub');
+        console.log(" publickey2");
+        console.log(hexDump(publickey2));
+
+
+        crypto_utils.extractPublicKeyFromCertificate(certificate,function(err,publicKey){
+
+            var encrypted = crypto_utils.publicEncrypt(new Buffer(10),publicKey);
+            done();
+        });
+
+    });
+});
 

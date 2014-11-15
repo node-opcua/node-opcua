@@ -202,5 +202,6 @@ process.on('SIGINT', function() {
     console.log(" shutting down ".red.bold);
     server.shutdown(function () {
         console.log(" done ".red.bold);
+        process.exit(-1);
     });
 });

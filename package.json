@@ -63,6 +63,7 @@
     "hexy": "~0.2.6",
     "humanize": "0.0.9",
     "optimist": "*",
+    "pem": "^1.4.1",
     "prettyjson": "~1.0.0",
     "sprintf": "~0.1.4",
     "ssh-key-to-pem": "^0.11.0",

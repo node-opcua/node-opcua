@@ -45,6 +45,9 @@ create a root certificate
 -------------------------
     $ openssl req -new -x509 -extensions v3_ca -keyout private/cakey.key -out cacert.crt -days 365 -config ./openssl.cnf
 
+extract the public key from certificate
+----------------------------------------
+    $  openssl x509 -inform pem -in certificate.pem -pubkey -noout > publickey.pem
 
 convert a pem public key to pub ssh-rsa (- ?)
 ---------------------------------------------
