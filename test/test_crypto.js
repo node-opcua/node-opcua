@@ -619,16 +619,16 @@ describe("extractPublicKeyFromCertificate",function() {
         var  certificate = fs.readFileSync('certificates/cert.pem').toString('ascii');
 
         var  certificate2 = crypto_utils.readCertificate('certificates/cert.pem');
-        console.log(" certificate");
-        console.log(hexDump(certificate2));
+        //xx console.log(" certificate");
+        //xx console.log(hexDump(certificate2));
         var  publickey2 = crypto_utils.readKey('certificates/public_key.pub');
-        console.log(" publickey2");
-        console.log(hexDump(publickey2));
-
+        //xx console.log(" publickey2");
+        //xx console.log(hexDump(publickey2));
 
         crypto_utils.extractPublicKeyFromCertificate(certificate,function(err,publicKey){
 
             var encrypted = crypto_utils.publicEncrypt(new Buffer(10),publicKey);
+
             done();
         });
 

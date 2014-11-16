@@ -64,7 +64,7 @@ describe("test derived key making",function() {
         var min_length = 256;
         var buf = crypto_utils.makePseudoRandomBuffer(secret,seed,min_length);
         buf.length.should.be.equal(min_length);
-        console.log(hexDump(buf));
+        //xx console.log(hexDump(buf));
     });
 
     it('Should compute key using keysize, client and server keys.', function(done) {
@@ -82,6 +82,7 @@ describe("test derived key making",function() {
             signingKeyLength: 128,
             encryptingKeyLength: 16,
             encryptingBlockSize: 16,
+            signatureLength: 20
         };
         var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 
@@ -94,12 +95,13 @@ describe("test derived key making",function() {
 
 
 
-    it("demonstrating how to use derived key",function(done) {
+    it("demonstrating how to use derived keys for encryption",function(done) {
 
         var options = {
             signingKeyLength: 128,
             encryptingKeyLength: 16,
             encryptingBlockSize: 16,
+            signatureLength: 20
         };
         var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 
@@ -107,8 +109,8 @@ describe("test derived key making",function() {
 
         var encrypted_message = crypto_utils.encryptBufferWithDerivedKeys(clear_message,derivedKeys);
 
-        console.log(hexDump(encrypted_message));
-        console.log(clear_message.length,encrypted_message.length);
+        //xx console.log(hexDump(encrypted_message));
+        //xx console.log(clear_message.length,encrypted_message.length);
 
         var reconstructed_message = crypto_utils.decryptBufferWithDerivedKeys(encrypted_message,derivedKeys);
 
@@ -117,6 +119,40 @@ describe("test derived key making",function() {
         reconstructed_message.toString("ascii").should.eql(clear_message.toString("ascii"));
 
         done();
+
+    });
+
+    it("should produce a smaller buffer (reduceLength)",function() {
+
+        var buffer = new Buffer("Hello World","ascii");
+        var reduced = crypto_utils.reduceLength(buffer,6);
+        reduced.toString("ascii").should.equal("Hello");
+
+    });
+
+    it("demonstrating how to use derived keys for signature",function() {
+
+        var options = {
+            signingKeyLength: 128,
+            encryptingKeyLength: 16,
+            encryptingBlockSize: 16,
+            signatureLength: 20
+        };
+        var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
+
+        var clear_message = make_lorem_ipsum_buffer();
+
+        var signature = crypto_utils.makeMessageChunkSignatureWithDerivedKeys(clear_message,derivedKeys);
+
+        signature.length.should.eql(20);
+
+        var signed_message = Buffer.concat([clear_message,signature]);
+
+        crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message,derivedKeys).should.equal(true);
+
+        // tampered message
+        signed_message.write("HELLO",0x50);
+        crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message,derivedKeys).should.equal(false);
 
     });
 });

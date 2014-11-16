@@ -213,7 +213,7 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes)\n",fu
     });
 
 });
-describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signatureSize: 4 )\n",function() {
+describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signatureLength: 4 )\n",function() {
 
     var chunkManager;
 
@@ -224,13 +224,13 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signa
             sequenceHeaderSize: 8,
             writeSequenceHeaderFunc: write_fake_sequence_header,
 
-            signatureSize: 4,
+            signatureLength: 4,
             compute_signature: compute_fake_signature
 
         });
         chunkManager.chunkSize.should.equal(32);
         chunkManager.sequenceHeaderSize.should.equal(8);
-        chunkManager.signatureSize.should.equal(4);
+        chunkManager.signatureLength.should.equal(4);
         chunkManager.maxBodySize.should.equal(20);
     });
 
@@ -272,7 +272,7 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 8 bytes ,ci
             sequenceHeaderSize: 2,
             writeSequenceHeaderFunc: write_fake_sequence_header,
 
-            signatureSize: 4,
+            signatureLength: 4,
             compute_signature: compute_fake_signature
         });
         chunkManager.chunkSize.should.equal(32);
@@ -397,7 +397,7 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,ci
             cipherBlockSize: 8,
             encrypt_block: fake_encrypt_block,
 
-            signatureSize: 4,
+            signatureLength: 4,
             compute_signature: compute_fake_signature
         });
         chunkManager.chunkSize.should.equal(64);

@@ -34,7 +34,7 @@ function iterate_on_signed_message_chunks(buffer,callback) {
     var options = {
         requestId: 10,
         chunkSize: 2048,
-        signatureSize: 128,
+        signatureLength: 128,
         signingFunc: function(chunk) {
             return crypto_utils.makeMessageChunkSignature(chunk,params);
         }
@@ -61,7 +61,7 @@ function iterate_on_signed_and_encrypted_message_chunks(buffer,callback) {
     var options = {
         requestId: 10,
         chunkSize: 2048,
-        signatureSize: 128,
+        signatureLength: 128,
         signingFunc: function (chunk) {
             return crypto_utils.makeMessageChunkSignature(chunk, params);
         },

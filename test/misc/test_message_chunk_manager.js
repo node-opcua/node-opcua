@@ -14,8 +14,8 @@ function performMessageChunkManagerTest(options) {
     var bodySize = 32;
     var headerSize = 12 + securityHeader.binaryStoreSize();
 
-    options.signatureSize = options.signatureSize || 0 ;   // 128 bytes for signature
-    options.chunkSize  = bodySize + options.signatureSize + headerSize + 8;    // bodySize useful bytes
+    options.signatureLength = options.signatureLength || 0 ;   // 128 bytes for signature
+    options.chunkSize  = bodySize + options.signatureLength + headerSize + 8;    // bodySize useful bytes
 
     options.requestId =  1;
 
@@ -52,7 +52,7 @@ function performMessageChunkManagerTest(options) {
 
         } else {
             // last packet is smaller
-            //xx chunk.length.should.equal(  20 +/*padding*/  options.headerSize + options.signatureSize);
+            //xx chunk.length.should.equal(  20 +/*padding*/  options.headerSize + options.signatureLength);
             chunk_counter.should.eql(5);
         }
     });
@@ -76,7 +76,7 @@ function performMessageChunkManagerTest(options) {
     chunks[1].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
     chunks[2].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
     chunks[3].slice(4,8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[chunks.length-1].slice(4,8).readUInt32LE(0).should.eql(12 +  options.signatureSize + headerSize + 8);
+    chunks[chunks.length-1].slice(4,8).readUInt32LE(0).should.eql(12 +  options.signatureLength + headerSize + 8);
 
     // check final car
     chunks[0].readUInt8(3).should.equal("C".charCodeAt(0));
@@ -108,7 +108,7 @@ describe("MessageChunkManager",function() {
         var verifyMessageChunkSignatureForTest = require("../helpers/signature_helpers").verifyMessageChunkSignatureForTest;
 
         var options = {
-            signatureSize: 128,
+            signatureLength: 128,
             signingFunc: makeMessageChunkSignatureForTest,
             verifyChunk: verifyMessageChunkSignatureForTest
         };
