@@ -4,6 +4,7 @@ var ChunkManager = require("../../lib/misc/chunk_manager").ChunkManager;
 var util = require("util");
 var hexDump= require("../../lib/misc/utils").hexDump;
 var assert = require("better-assert");
+var _ = require("underscore");
 
 function make_packet(packet_length) {
     var buf = new Buffer(packet_length);
@@ -48,6 +49,27 @@ function fake_encrypt_block(block) {
     encrypted_block.writeUInt8(0xDF,block.length+1);
     return encrypted_block;
 }
+
+function fake_encrypt_buffer(buffer) {
+
+    this.encrypt_block = fake_encrypt_block;
+
+    assert(_.isFunction(this.encrypt_block));
+
+    var nbBlocks = Math.ceil(buffer.length / (this.plainBlockSize));
+
+    var outputBuffer = new Buffer(nbBlocks * this.cipherBlockSize);
+
+    for (var i = 0; i < nbBlocks; i++) {
+        var currentBlock = buffer.slice(this.plainBlockSize * i, this.plainBlockSize * (i + 1));
+
+        var encrypted_chunk = this.encrypt_block(currentBlock);
+
+        assert(encrypted_chunk.length === this.cipherBlockSize);
+        encrypted_chunk.copy(outputBuffer, i * this.cipherBlockSize);
+    }
+    return outputBuffer;
+};
 
 function no_encrypt_block(block) {
 
@@ -264,7 +286,7 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 8 bytes ,ci
 
             plainBlockSize:  8,
             cipherBlockSize: 8,
-            encrypt_block: no_encrypt_block,
+            encrypt_buffer: no_encrypt_block,
 
             headerSize:4,
             writeHeaderFunc: write_fake_header,
@@ -395,7 +417,7 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,ci
 
             plainBlockSize:  6,
             cipherBlockSize: 8,
-            encrypt_block: fake_encrypt_block,
+            encrypt_buffer: fake_encrypt_buffer,
 
             signatureLength: 4,
             compute_signature: compute_fake_signature

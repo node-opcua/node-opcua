@@ -106,11 +106,20 @@ describe("test derived key making",function() {
         var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 
         var clear_message = make_lorem_ipsum_buffer();
+        //xx Buffer.concat([make_lorem_ipsum_buffer(),make_lorem_ipsum_buffer(),make_lorem_ipsum_buffer()]);
+        //xx clear_message = Buffer.concat([clear_message,clear_message,clear_message,clear_message,clear_message]);
 
-        var encrypted_message = crypto_utils.encryptBufferWithDerivedKeys(clear_message,derivedKeys);
 
-        //xx console.log(hexDump(encrypted_message));
-        //xx console.log(clear_message.length,encrypted_message.length);
+        // append padding
+        var footer = crypto_utils.computePaddingFooter(clear_message,derivedKeys);
+        var clear_message_with_padding = Buffer.concat([clear_message,footer]);
+
+        var  msg= "clear_message length " +clear_message_with_padding.length   + " shall be a multiple of block size="+options.encryptingBlockSize;
+        ( clear_message_with_padding.length % options.encryptingBlockSize).should.equal(0,msg);
+
+        var encrypted_message = crypto_utils.encryptBufferWithDerivedKeys(clear_message_with_padding,derivedKeys);
+
+        clear_message_with_padding.length.should.equal(encrypted_message.length );
 
         var reconstructed_message = crypto_utils.decryptBufferWithDerivedKeys(encrypted_message,derivedKeys);
 

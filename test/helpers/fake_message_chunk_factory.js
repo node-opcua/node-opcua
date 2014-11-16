@@ -4,6 +4,7 @@ var SecureMessageChunkManager = require("../../lib/services/secure_channel_servi
 var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
 
 var AsymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").AsymmetricAlgorithmSecurityHeader;
+var SymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").SymmetricAlgorithmSecurityHeader;
 
 var crypto_utils = require("../../lib/misc/crypto_utils");
 var fs = require("fs");
@@ -68,8 +69,8 @@ function iterate_on_signed_and_encrypted_message_chunks(buffer,callback) {
 
         plainBlockSize: 128-11,
         cipherBlockSize: 128,
-        encrypt_block: function (chunk) {
-            return crypto_utils.publicEncrypt(chunk, receiverPublicKey);
+        encrypt_buffer: function (chunk) {
+            return crypto_utils.publicEncrypt_long(chunk, receiverPublicKey , 128, 11);
         }
     };
 
@@ -85,3 +86,43 @@ function iterate_on_signed_and_encrypted_message_chunks(buffer,callback) {
     msgChunkManager.end();
 }
 exports.iterate_on_signed_and_encrypted_message_chunks = iterate_on_signed_and_encrypted_message_chunks;
+
+
+var secret = new Buffer("My Little Secret");
+var seed   = new Buffer("My Little Seed");
+var options = {
+    signingKeyLength: 16,
+    encryptingKeyLength: 16,
+    encryptingBlockSize: 16,
+    signatureLength: 20
+};
+var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
+exports.derivedKeys  = derivedKeys;
+
+function iterate_on_symmetric_encrypted_chunk(buffer,callback) {
+
+    var options = {
+        requestId: 10,
+        chunkSize: 1024
+    };
+
+    options.signatureLength = derivedKeys.signatureLength;
+    options.signingFunc= function(chunk) {
+        return crypto_utils.makeMessageChunkSignatureWithDerivedKeys(chunk,derivedKeys);
+    };
+    options.plainBlockSize = derivedKeys.encryptingBlockSize;
+    options.cipherBlockSize= derivedKeys.encryptingBlockSize;
+    options.encrypt_buffer = function (chunk) {
+        return crypto_utils.encryptBufferWithDerivedKeys(chunk,derivedKeys);
+    };
+
+    var securityHeader = new SymmetricAlgorithmSecurityHeader({
+        tokenId:10
+    });
+
+    var msgChunkManager = new SecureMessageChunkManager("MSG", options, securityHeader, sequenceNumberGenerator);
+    msgChunkManager.on("chunk", function (chunk, final) { callback(null, chunk);  });
+    msgChunkManager.write(buffer, buffer.length);
+    msgChunkManager.end();
+}
+exports.iterate_on_symmetric_encrypted_chunk = iterate_on_symmetric_encrypted_chunk;

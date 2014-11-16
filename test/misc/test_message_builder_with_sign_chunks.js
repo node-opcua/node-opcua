@@ -7,8 +7,7 @@ var hexDump = require("../../lib/misc/utils").hexDump;
 
 var make_lorem_ipsum_buffer = require("../helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
 
-var iterate_on_signed_message_chunks = require("../helpers/fake_message_chunk_factory").iterate_on_signed_message_chunks;
-var iterate_on_signed_and_encrypted_message_chunks = require("../helpers/fake_message_chunk_factory").iterate_on_signed_and_encrypted_message_chunks;
+var fake_message_chunk_factory = require("../helpers/fake_message_chunk_factory");
 
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 
@@ -34,7 +33,7 @@ describe("MessageBuilder with SIGN support", function () {
                 done(error);
             });
 
-        iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
+        fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
         });
@@ -66,7 +65,7 @@ describe("MessageBuilder with SIGN support", function () {
                 done(new Error(" we are not expecting a error event in this case"+err));
             });
 
-        iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
+        fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
         });
@@ -94,13 +93,11 @@ describe("MessageBuilder with SIGN support", function () {
                 done();
             });
 
-        iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
+        fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer,function(err,chunk) {
 
             // alter artificially the chunk
             // this will damage the chunk signature
-
             chunk.write("####*** TEMPERED ***#####",0x3a0);
-
 
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
@@ -111,7 +108,7 @@ describe("MessageBuilder with SIGN support", function () {
 });
 
 
-describe("MessageBuilder with SIGN & ENCRYPT support", function () {
+describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
 
     var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
 
@@ -134,7 +131,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support", function () {
                 done(error);
             });
 
-        iterate_on_signed_and_encrypted_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
+        fake_message_chunk_factory.iterate_on_signed_and_encrypted_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
             //xx console.log(hexDump(chunk));
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
@@ -142,3 +139,37 @@ describe("MessageBuilder with SIGN & ENCRYPT support", function () {
 
     });
 });
+var SecurityPolicy = require("../../lib/misc/security_policy").SecurityPolicy;
+describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
+
+    var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
+
+    it("should process a signed and encrypted message",function( done){
+        var options = {};
+        var messageBuilder = new MessageBuilder(options);
+        messageBuilder._decode_message_body = false;
+
+        messageBuilder.securityPolicy = SecurityPolicy.Basic128Rsa15;
+        messageBuilder.derivedKeys = fake_message_chunk_factory.derivedKeys;
+
+        messageBuilder
+            .on("full_message_body", function (message) {
+                console.log(hexDump(message));
+                message.toString().should.eql(lorem_ipsum_buffer.toString());
+                done();
+            })
+            .on("message", function (message) {
+
+            })
+            .on("error", function (error) {
+                done(error);
+            });
+
+
+        fake_message_chunk_factory.iterate_on_symmetric_encrypted_chunk(lorem_ipsum_buffer, function (err, chunk) {
+
+            messageBuilder.feed(chunk);
+        });
+    });
+});
+
