@@ -10,6 +10,8 @@ var make_lorem_ipsum_buffer = require("../helpers/make_lorem_ipsum_buffer").make
 var fake_message_chunk_factory = require("../helpers/fake_message_chunk_factory");
 
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
+var SecurityPolicy = require("../../lib/misc/security_policy").SecurityPolicy;
+var crypto_utils = require("../../lib/misc/crypto_utils");
 
 describe("MessageBuilder with SIGN support", function () {
 
@@ -20,6 +22,7 @@ describe("MessageBuilder with SIGN support", function () {
         var options = {};
 
         var messageBuilder = new MessageBuilder(options);
+        messageBuilder.privateKey = crypto_utils.read_private_rsa_key("key.pem");
         messageBuilder._decode_message_body = false;
 
         messageBuilder
@@ -117,6 +120,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
         var options = {};
 
         var messageBuilder = new MessageBuilder(options);
+        messageBuilder.privateKey = crypto_utils.read_private_rsa_key("key.pem");
         messageBuilder._decode_message_body = false;
 
         messageBuilder
@@ -139,7 +143,8 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
 
     });
 });
-var SecurityPolicy = require("../../lib/misc/security_policy").SecurityPolicy;
+
+
 describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
 
     var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
@@ -150,11 +155,14 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
         messageBuilder._decode_message_body = false;
 
         messageBuilder.securityPolicy = SecurityPolicy.Basic128Rsa15;
+
+        messageBuilder.privateKey = crypto_utils.read_private_rsa_key("key.pem");
+
         messageBuilder.derivedKeys = fake_message_chunk_factory.derivedKeys;
 
         messageBuilder
             .on("full_message_body", function (message) {
-                console.log(hexDump(message));
+                //xx console.log(hexDump(message));
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })

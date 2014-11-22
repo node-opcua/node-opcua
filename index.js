@@ -34,5 +34,7 @@ module.exports.OPCUAServer      = require("./lib/server/opcua_server").OPCUAServ
 module.exports.generate_address_space = require("./lib/address_space/load_nodeset2").generate_address_space;
 module.exports.AddressSpace     = require("./lib/address_space/address_space").AddressSpace;
 
+module.exports.SecurityPolicy = require("./lib/misc/security_policy").SecurityPolicy;
+
 //
 module.exports.MessageSecurityMode = require("./lib/datamodel/structures").MessageSecurityMode;
