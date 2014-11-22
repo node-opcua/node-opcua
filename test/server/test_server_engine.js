@@ -908,14 +908,14 @@ describe("testing ServerEngine", function () {
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
             dataValues[2].should.be.instanceOf(DataValue);
-            should(dataValues[0].serverTimeStamp).be.eql(null);
-            should(dataValues[0].sourceTimeStamp).be.eql(null);
-            should(dataValues[0].serverPicoseconds).be.eql(0);
-            should(dataValues[0].sourcePicoseconds).be.eql(0);
-            should(dataValues[1].serverTimeStamp).be.eql(null);
-            should(dataValues[1].sourceTimeStamp).be.eql(null);
-            should(dataValues[1].serverPicoseconds).be.eql(0);
-            should(dataValues[1].sourcePicoseconds).be.eql(0);
+            should(dataValues[0].serverTimeStamp).eql(undefined);
+            should(dataValues[0].sourceTimeStamp).eql(undefined);
+            should(dataValues[0].serverPicoseconds).eql(0);
+            should(dataValues[0].sourcePicoseconds).eql(0);
+            should(dataValues[1].serverTimeStamp).eql(undefined);
+            should(dataValues[1].sourceTimeStamp).eql(undefined);
+            should(dataValues[1].serverPicoseconds).eql(0);
+            should(dataValues[1].sourcePicoseconds).eql(0);
 
         });
 
@@ -1134,6 +1134,8 @@ describe("testing ServerEngine", function () {
         var dataValues = engine.read(readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
+
+        console.log("xxxxxxxxx =  dataValues[0].value.value",typeof( dataValues[0].value.value), dataValues[0].value.value);
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
 
     });

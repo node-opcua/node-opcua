@@ -7,6 +7,7 @@ before_script:
   - npm install -g istanbul coveralls
   - npm install -g mocha
   - npm install -g codeclimate-test-reporter
+  - npm install ursa
   - npm install
 
 after_success:
