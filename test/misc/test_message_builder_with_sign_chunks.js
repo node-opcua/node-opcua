@@ -1,10 +1,10 @@
 var should = require("should");
+var colors = require("colors");
 var compare_buffers = require("../../lib/misc/utils").compare_buffers;
 var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
 var hexDump = require("../../lib/misc/utils").hexDump;
-
 var make_lorem_ipsum_buffer = require("../helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
 
 var fake_message_chunk_factory = require("../helpers/fake_message_chunk_factory");
@@ -12,6 +12,12 @@ var fake_message_chunk_factory = require("../helpers/fake_message_chunk_factory"
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var SecurityPolicy = require("../../lib/misc/security_policy").SecurityPolicy;
 var crypto_utils = require("../../lib/misc/crypto_utils");
+
+if (!crypto_utils.isFullySupported()) {
+
+   console.log(" skipping tests");
+
+} else {
 
 describe("MessageBuilder with SIGN support", function () {
 
@@ -180,4 +186,5 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
         });
     });
 });
+}
 

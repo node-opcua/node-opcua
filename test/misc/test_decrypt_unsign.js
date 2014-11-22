@@ -62,7 +62,10 @@ function(){
 });
 
 
-describe("testing message decryption",function(){
+if (!crypto_utils.isFullySupported()) {
+} else {
+
+  describe("testing message decryption",function(){
 
     it("should decrypt an OPN packet and verify that the signature is correct",function(){
 
@@ -95,6 +98,7 @@ describe("testing message decryption",function(){
         boolSignatureIsOK.should.eql(true);
     });
 
-});
+  });
+}
 
 

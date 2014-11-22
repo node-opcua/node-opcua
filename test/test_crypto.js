@@ -627,7 +627,7 @@ describe("extractPublicKeyFromCertificate",function() {
 
         crypto_utils.extractPublicKeyFromCertificate(certificate,function(err,publicKey){
 
-            var encrypted = crypto_utils.publicEncrypt(new Buffer(10),publicKey);
+//            var encrypted = crypto_utils.publicEncrypt(new Buffer(10),publicKey);
 
             done();
         });
