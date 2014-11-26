@@ -173,6 +173,7 @@ server.start(function (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
+    console.log("  server PID    ".yellow, process.pid);
     console.log("  server on port".yellow, server.endpoints[0].port.toString().cyan);
     console.log("  server now waiting for connections. CTRL+C to stop".yellow);
     console.log("  endpointUrl = ".yellow, endpointUrl.cyan);

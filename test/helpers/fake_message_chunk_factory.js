@@ -117,7 +117,7 @@ function iterate_on_symmetric_encrypted_chunk(buffer,callback) {
     };
 
     var securityHeader = new SymmetricAlgorithmSecurityHeader({
-        tokenId:10
+        tokenId: 10
     });
 
     var msgChunkManager = new SecureMessageChunkManager("MSG", options, securityHeader, sequenceNumberGenerator);

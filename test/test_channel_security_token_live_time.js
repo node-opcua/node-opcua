@@ -14,10 +14,13 @@ var BrowseDirection = browse_service.BrowseDirection;
 var os =require("os");
 var _ = require("underscore");
 
-var port = 3000;
+var port = 4000;
 
 
 describe("Testing ChannelSecurityToken lifetime",function(){
+
+    this.timeout(100000);
+
     var server , client;
     var endpointUrl ;
 
@@ -51,7 +54,7 @@ describe("Testing ChannelSecurityToken lifetime",function(){
 
     });
 
-    it("A secure channel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
+    it("ZZ A secure channel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
 
         client.connect(endpointUrl,function(err){
             should(err).equal(undefined);

@@ -50,8 +50,8 @@ describe("Testing Server and Client diagnostic facilities",function() {
     }
     it("Server should keep track of transaction statistics",function(done){
 
+        redirectToFile("transaction_statistics.log",function(done) {
 
-        redirectToFile("transaction_statistics.log",function(done){
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
 
@@ -70,7 +70,6 @@ describe("Testing Server and Client diagnostic facilities",function() {
                 });
 
                 session.browse("RootFolder",function(err,browseResults,diagnosticInfos){ });
-
 
             }, done);
         },done);

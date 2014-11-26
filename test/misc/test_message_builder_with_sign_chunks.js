@@ -12,6 +12,7 @@ var fake_message_chunk_factory = require("../helpers/fake_message_chunk_factory"
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 var SecurityPolicy = require("../../lib/misc/security_policy").SecurityPolicy;
 var crypto_utils = require("../../lib/misc/crypto_utils");
+var opcua = require("../..");
 
 if (!crypto_utils.isFullySupported()) {
 
@@ -164,7 +165,9 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
 
         messageBuilder.privateKey = crypto_utils.read_private_rsa_key("key.pem");
 
-        messageBuilder.derivedKeys = fake_message_chunk_factory.derivedKeys;
+        messageBuilder.securityMode = opcua.MessageSecurityMode.SIGNANDENCRYPT;
+
+        messageBuilder.pushNewToken({ tokenId: 10 }, fake_message_chunk_factory.derivedKeys);
 
         messageBuilder
             .on("full_message_body", function (message) {

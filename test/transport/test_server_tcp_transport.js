@@ -30,7 +30,6 @@ describe("testing ServerTCP_transport", function () {
         var transport = new ServerTCP_transport();
 
         transport.init(fake_socket.server, function (err) {
-            console.log("xxxx err =",err);
             assert(err);
             err.message.should.match(/Expecting \'HEL\' message/);
         });

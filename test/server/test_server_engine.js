@@ -1135,7 +1135,7 @@ describe("testing ServerEngine", function () {
         dataValues.length.should.equal(1);
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
-        console.log("xxxxxxxxx =  dataValues[0].value.value",typeof( dataValues[0].value.value), dataValues[0].value.value);
+       //xx console.log("xxxxxxxxx =  dataValues[0].value.value",typeof( dataValues[0].value.value), dataValues[0].value.value);
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
 
     });
