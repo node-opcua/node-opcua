@@ -1,7 +1,7 @@
 var colors = require("colors");
 var crypto_utils = require("../../lib/misc/crypto_utils");
 var path = require("path");
-
+var _ = require("underscore");
 /**
  *
  * @param callback {Function}
@@ -17,8 +17,11 @@ function start_simple_server(callback) {
     var spawn = require('child_process').spawn;
 
     var options = {
-        env: process.env
+        env: {}
     };
+
+    _.extend(options.env,process.env);
+
     options.env.DEBUG = "ALL";
 
     var server_exec  = spawn('node', ['./bin/simple_server'],options);

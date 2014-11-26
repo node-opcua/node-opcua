@@ -9,7 +9,7 @@ describe("testing external server operations",function() {
 
     this.timeout(10000);
 
-    xit("should start and stop a external server",function(done) {
+    it("should start and stop a external server",function(done) {
 
         var serverHandle = null;
         start_simple_server(function(err,data){
