@@ -3,12 +3,12 @@ generate a new private key and Certificate Signing Request
 ----------------------------------------------------------
     
      $ openssl req  -out CSR.csr -new -newkey rsa:1024 -nodes -keyout privateKey.key
-    
 
 generate a self-signed key
 --------------------------
 
     $ openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout private_key.pem -out certificate.pem
+
 
 verify PEM certificate
 ----------------------
@@ -37,7 +37,7 @@ converting pem to der files:
     $ openssl x509 -inform PEM -outform DER  -in pem-certificate-file -out der-certificate-file
     $ openssl rsa -inform PEM -outform DER   -in  pem-rsa-key-file    -out der-rsa-key-file
 
-sconverting .pfx certificates to .pem
+converting .pfx certificates to .pem
 ------------------------------------
     $ openssl pkcs12 -in  cert.pfx -out cert.pem
 
@@ -83,11 +83,14 @@ Setting up X509 extension on certificate
 
 see ```cert.cnf``` configuration file
   
-  $ openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem -config cert.cnf
-  $ openssl req -text -noout -in server.csr
-  $ openssl req -text -noout -in cert.pem
+    $ openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem -config cert.cnf
+    $ openssl req -text -noout -in server.csr
+    $ openssl req -text -noout -in cert.pem
 
+    $ openssl req -x509 -days 100000 -nodes -newkey rsa:2048 -keyout server_key256.pem -out server_cert256.pem -config cert.cnf
   
+    $ openssl req  -out server_key256.csr -new -newkey rsa:2048 -nodes -keyout server_key256.pem  -config cert.cnf
+
 ### refs:
  
   * http://apetec.com/support/GenerateSAN-CSR.htm

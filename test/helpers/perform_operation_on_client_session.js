@@ -32,14 +32,21 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
     async.series([
 
         // connect
+
         function (callback) {
-            client.connect(endpointUrl, callback);
+            //xx console.log("xxxxx connecting to server ...");
+            client.connect(endpointUrl, function(err) {
+                //xx console.log("xxxxx connection OK");
+                callback(err);
+            });
         },
 
         // create session
         function (callback) {
+            //xx console.log("xxxxx creating session ...");
             client.createSession(function (err, session) {
                 if (!err) {
+                    //xx console.log("xxxxx session  created ...");
                     the_session = session;
                 }
                 callback(err);

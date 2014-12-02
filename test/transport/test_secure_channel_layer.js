@@ -60,8 +60,8 @@ describe("Testing ClientSecureChannel 2", function () {
     var serverChannel = null;
     var server_socket = null;
 
-    function simulate_server_abrut_shutdown() {
-        if (serverChannel) {
+    function simulate_server_abrupt_shutdown() {
+        if (serverChannel && serverChannel.transport._socket) {
             serverChannel.transport._socket.end();
         }
 
@@ -86,7 +86,7 @@ describe("Testing ClientSecureChannel 2", function () {
 
     });
     afterEach(function (done) {
-        simulate_server_abrut_shutdown();
+        simulate_server_abrupt_shutdown();
         server_socket.close(done);
         serverChannel = null;
         server_socket = null;

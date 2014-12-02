@@ -29,7 +29,7 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
  */
 function build_server_with_temperature_device(options,done) {
 
-    assert(_.isFunction(done));
+    assert(_.isFunction(done,"expecting a callback function"));
 
     var server = new OPCUAServer(options);
     // we will connect to first server end point
