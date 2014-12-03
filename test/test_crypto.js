@@ -22,7 +22,7 @@ function restore_default_certificate_store() {
 
 }
 
-var doDebug = false;
+var doDebug = true;
 //Xx doDebug = true;
 function debugLog() {
     if (doDebug) {
@@ -211,6 +211,43 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         });
 
+        it("RSA_PKCS1_OAEP_PADDING verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function(){
+
+            //
+            var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
+            debugLog('bob_public_key',bob_public_key);
+            var encryptedBuffer;
+
+            // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
+            // Padding is 41 or 11 and added at the start of the buffer
+            // so the max length of the input buffer sent to RSA_public_encrypt() is:
+            //      256 - 41 = 215 with RSA_PKCS1_OAEP_PADDING
+            //      256 - 11 = 249 with RSA_PKCS1_PADDING
+
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(1),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+            debugLog(" A encryptedBuffer length = ",encryptedBuffer.length);
+            encryptedBuffer.length.should.eql(256);
+
+
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(214),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+            debugLog(" B encryptedBuffer length = ",encryptedBuffer.length);
+            encryptedBuffer.length.should.eql(256);
+
+            should(function(){
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(249),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+                debugLog(" C encryptedBuffer length = ",encryptedBuffer.length);
+                //xx encryptedBuffer.length.should.eql(128);
+            }).throwError();
+
+            should(function(){
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(259),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+                console.log(" D encryptedBuffer length = ",encryptedBuffer.length);
+                //xx encryptedBuffer.length.should.eql(128);
+            }).throwError();
+
+        });
+
+
         it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes",function() {
 
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub'); // 2048bit long key
@@ -282,7 +319,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
             //xx encryptedMessage += "q";
 
-            var decryptedMessage = crypto_utils.privateDecrypt_long(encryptedMessage,bob_private_key,256,11).toString();
+            var decryptedMessage = crypto_utils.privateDecrypt_long(encryptedMessage,bob_private_key,256).toString();
             debugLog("decrypted message=", decryptedMessage.toString());
 
             // then Bob must also verify that the signature is matching
@@ -376,8 +413,7 @@ describe("exploring symmetric signing",function() {
 
         var crypto = require('crypto'),
             text = 'I love cupcakes',
-            key = crypto.randomBytes(32),
-            hash;
+            key = crypto.randomBytes(32);
 
         var hash = crypto.createHmac('sha1', key).update(text).digest();
 

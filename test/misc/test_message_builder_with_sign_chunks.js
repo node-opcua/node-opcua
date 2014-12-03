@@ -55,6 +55,8 @@ describe("MessageBuilder with SIGN support", function () {
         var options = {};
 
         var messageBuilder = new MessageBuilder(options);
+        messageBuilder.setSecurity('SIGN','Basic128Rsa15');
+
         messageBuilder._decode_message_body = false;
 
         messageBuilder.on("full_message_body",function(message) {

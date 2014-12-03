@@ -78,7 +78,7 @@ function start_server(callback) {
         if (err) {
             return callback(err,null);
         }
-        endpointUrl = data.endpointUrl
+        endpointUrl = data.endpointUrl;
         serverCertificate = data.serverCertificate;
         temperatureVariableId = data.temperatureVariableId;
         callback(null,data);
@@ -245,6 +245,28 @@ function common_test(securityPolicy,securityMode,done ) {
     });
 }
 
+function check_open_secure_channel_fails(securityPolicy,securityMode,done) {
+
+    var options ={
+        securityMode:      opcua.MessageSecurityMode.get(securityMode),
+        securityPolicy:    opcua.SecurityPolicy.get(securityPolicy),
+        serverCertificate: serverCertificate,
+        defaultSecureTokenLifetime: 200
+    };
+    var client = new OPCUAClient(options);
+    client.connect(endpointUrl, function(err){
+
+        if (err) {
+            console.log("Error = ",err.message);
+            done();
+        } else {
+            client.disconnect(function () {
+                done(new Error("The connection succedeed, but was expected to fail!"));
+            });
+        }
+    });
+}
+
 function common_test_expected_server_initiated_disconnection(securityPolicy,securityMode,done) {
 
 
@@ -349,44 +371,29 @@ describe("testing various Security Policy",function(){
         common_test("Basic128Rsa15","SIGNANDENCRYPT",done);
     });
 
-    it('Basic256 with Sign',function(done) {
-        common_test("Basic256","SIGN",done);
+    xit('Basic256 with Sign',function(done) {
+        check_open_secure_channel_fails("Basic256","SIGN",done);
     });
 
-    it('Basic256 with SignAndEncrypt',function(done) {
-        common_test("Basic256","SIGNANDENCRYPT",done);
+    xit('Basic256 with SignAndEncrypt',function(done) {
+        check_open_secure_channel_fails("Basic256","SIGNANDENCRYPT",done);
     });
 
     it('Basic256Rsa15 with Sign',function(done) {
-        common_test("Basic256","SIGN",done);
+        check_open_secure_channel_fails("Basic256Rsa15","SIGN",done);
     });
 
     it('Basic256Rsa15 with SignAndEncrypt',function(done) {
-        common_test("Basic256","SIGNANDENCRYPT",done);
+        check_open_secure_channel_fails("Basic256Rsa15","SIGNANDENCRYPT",done);
     });
 
     it("AA connection should fail if security mode requested by client is not supported by server",function(done) {
 
         var securityMode   = "SIGN";
         var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
-        var options ={
-            securityMode:      opcua.MessageSecurityMode.get(securityMode),
-            securityPolicy:    opcua.SecurityPolicy.get(securityPolicy),
-            serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 200
-        };
-        var client = new OPCUAClient(options);
-        client.connect(endpointUrl, function(err){
 
-            if (err) {
-                console.log("Error = ",err.message);
-                done();
-            } else {
-                client.disconnect(function () {
-                    done(new Error("The connection succedeed, but was expected to fail!"));
-                });
-            }
-        });
+        check_open_secure_channel_fails(securityPolicy,securityMode,done);
+
 
     });
 

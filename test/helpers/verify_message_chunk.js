@@ -8,16 +8,18 @@ var sprintf = require("sprintf");
  */
 function verify_multi_chunk_message(packets) {
 
-    var messageBuild = new MessageBuilder();
-    messageBuild.on("full_message_body", function (full_message_body) {
+    var messageBuilder = new MessageBuilder();
+    messageBuilder.setSecurity('NONE','None');
+
+    messageBuilder.on("full_message_body", function (full_message_body) {
         console.log("full_message_body received:");
         packet_analyzer(full_message_body);
     });
-    messageBuild.on("start_chunk", function (info,data) {
+    messageBuilder.on("start_chunk", function (info,data) {
         console.log(" starting new chunk ",info.messageHeader);
     });
 
-    messageBuild.on("chunk", function (messageChunk) {
+    messageBuilder.on("chunk", function (messageChunk) {
         console.log(messageHeaderToString(messageChunk));
     });
 
@@ -28,7 +30,7 @@ function verify_multi_chunk_message(packets) {
         }
         total_length+=packet.length;
         console.log(sprintf(" adding packet size : %5d l=%d", packet.length,total_length));
-        messageBuild.feed(packet);
+        messageBuilder.feed(packet);
     });
 }
 
