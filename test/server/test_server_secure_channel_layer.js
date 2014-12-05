@@ -9,6 +9,7 @@ describe("testing ServerSecureChannelLayer ",function(){
     it("should create a ServerSecureChannelLayer",function(){
 
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
         server_secure_channel.timeout.should.be.greaterThan(100);
 
     });
@@ -17,6 +18,7 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         var node = new DirectTransport();
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server,function(err){
 
@@ -36,6 +38,7 @@ describe("testing ServerSecureChannelLayer ",function(){
         var server_has_emitted_the_abort_message = false;
 
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
         server_secure_channel.timeout = 50;
 
         server_secure_channel.init(node.server, function(err){
@@ -62,6 +65,8 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         var server_has_emitted_the_abort_message = false;
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
+
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server,function(err){
             err.message.should.match(/Expecting OpenSecureChannelRequest/);
@@ -84,6 +89,7 @@ describe("testing ServerSecureChannelLayer ",function(){
         var node = new DirectTransport();
 
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server,function(err){
             should(err).not.exist;
@@ -103,6 +109,7 @@ describe("testing ServerSecureChannelLayer ",function(){
         var node = new DirectTransport();
 
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server,function(err){
 
@@ -128,6 +135,7 @@ describe("testing ServerSecureChannelLayer ",function(){
         var node = new DirectTransport();
 
         var server_secure_channel = new ServerSecureChannelLayer();
+        server_secure_channel.setSecurity("NONE","None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server,function(err){
         });
