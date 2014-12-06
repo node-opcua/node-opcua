@@ -94,7 +94,8 @@ var options = {
     signingKeyLength: 16,
     encryptingKeyLength: 16,
     encryptingBlockSize: 16,
-    signatureLength: 20
+    signatureLength: 20,
+    algorithm: "aes-128-cbc"
 };
 var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 exports.derivedKeys  = derivedKeys;

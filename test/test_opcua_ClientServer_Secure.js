@@ -371,12 +371,12 @@ describe("testing various Security Policy",function(){
         common_test("Basic128Rsa15","SIGNANDENCRYPT",done);
     });
 
-    xit('Basic256 with Sign',function(done) {
-        check_open_secure_channel_fails("Basic256","SIGN",done);
+    it('Basic256 with Sign',function(done) {
+        common_test("Basic256","SIGN",done);
     });
 
-    xit('Basic256 with SignAndEncrypt',function(done) {
-        check_open_secure_channel_fails("Basic256","SIGNANDENCRYPT",done);
+    it('Basic256 with SignAndEncrypt',function(done) {
+        common_test("Basic256","SIGNANDENCRYPT",done);
     });
 
     it('Basic256Rsa15 with Sign',function(done) {
@@ -387,7 +387,7 @@ describe("testing various Security Policy",function(){
         check_open_secure_channel_fails("Basic256Rsa15","SIGNANDENCRYPT",done);
     });
 
-    it("AA connection should fail if security mode requested by client is not supported by server",function(done) {
+    it("connection should fail if security mode requested by client is not supported by server",function(done) {
 
         var securityMode   = "SIGN";
         var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!

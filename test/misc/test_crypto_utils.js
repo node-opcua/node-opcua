@@ -59,6 +59,20 @@ describe("test derived key making",function() {
     var secret = new Buffer("my secret");
     var seed   = new Buffer("my seed");
 
+    var options_AES_128_CBC = {
+        signingKeyLength: 128,
+        encryptingKeyLength: 16,
+        encryptingBlockSize: 16,
+        signatureLength: 20,
+        algorithm:  "aes-128-cbc",
+    };
+    var options_AES_256_CBC = {
+        signingKeyLength: 256,
+        encryptingKeyLength: 32,
+        encryptingBlockSize: 16,
+        signatureLength: 24,
+        algorithm:  "aes-256-cbc"
+    };
     it("should create a large enough p_SHA buffer (makePseudoRandomBuffer)",function() {
 
         var min_length = 256;
@@ -78,12 +92,7 @@ describe("test derived key making",function() {
 
     it("should create derived keys (computeDerivedKeys)",function(){
 
-        var options = {
-            signingKeyLength: 128,
-            encryptingKeyLength: 16,
-            encryptingBlockSize: 16,
-            signatureLength: 20
-        };
+        var options = options_AES_128_CBC;
         var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 
         derivedKeys.signingKey.length.should.eql(options.signingKeyLength);
@@ -94,15 +103,8 @@ describe("test derived key making",function() {
     });
 
 
+    function perform_symmetric_encryption_test(options,done) {
 
-    it("demonstrating how to use derived keys for encryption",function(done) {
-
-        var options = {
-            signingKeyLength: 128,
-            encryptingKeyLength: 16,
-            encryptingBlockSize: 16,
-            signatureLength: 20
-        };
         var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 
         var clear_message = make_lorem_ipsum_buffer();
@@ -129,6 +131,17 @@ describe("test derived key making",function() {
 
         done();
 
+    }
+    it("demonstrating how to use derived keys for symmetric encryption (aes-128-cbc)" ,function(done) {
+
+
+        perform_symmetric_encryption_test(options_AES_128_CBC,done);
+
+    });
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc)" ,function(done) {
+
+        perform_symmetric_encryption_test(options_AES_256_CBC,done);
+
     });
 
     it("should produce a smaller buffer (reduceLength)",function() {
@@ -141,12 +154,8 @@ describe("test derived key making",function() {
 
     it("demonstrating how to use derived keys for signature",function() {
 
-        var options = {
-            signingKeyLength: 128,
-            encryptingKeyLength: 16,
-            encryptingBlockSize: 16,
-            signatureLength: 20
-        };
+        var options = options_AES_128_CBC;
+
         var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
 
         var clear_message = make_lorem_ipsum_buffer();
@@ -159,8 +168,10 @@ describe("test derived key making",function() {
 
         crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message,derivedKeys).should.equal(true);
 
-        // tampered message
+        // let's corrupt the message ...
         signed_message.write("HELLO",0x50);
+
+        // ... and verify that signature verification returns a failure
         crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message,derivedKeys).should.equal(false);
 
     });

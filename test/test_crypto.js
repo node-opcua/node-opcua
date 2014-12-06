@@ -174,8 +174,40 @@ describe("testing and exploring the NodeJS crypto api", function () {
             crypto_utils.rsa_length(key).should.equal(128);
 
         });
+        it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function() {
 
-        it("verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function(){
+            var john_public_key = read_sshkey_as_pem('john_id_rsa.pub'); // 1024 bit RSA
+            debugLog('john_public_key',john_public_key);
+            var encryptedBuffer;
+
+            // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
+            // Padding is 41 or 11 and added at the start of the buffer
+            // so the max length of the input buffer sent to RSA_public_encrypt() is:
+            //      128 - 42 = 215 with RSA_PKCS1_OAEP_PADDING
+
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(1),john_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+            debugLog(" A encryptedBuffer length = ",encryptedBuffer.length);
+            encryptedBuffer.length.should.eql(128);
+
+
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(128-42),john_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+            debugLog(" B encryptedBuffer length = ",encryptedBuffer.length);
+            encryptedBuffer.length.should.eql(128);
+
+            should(function(){
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(128-42+1),john_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+                debugLog(" C encryptedBuffer length = ",encryptedBuffer.length);
+                //xx encryptedBuffer.length.should.eql(128);
+            }).throwError();
+
+            should(function(){
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(128),john_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+                console.log(" D encryptedBuffer length = ",encryptedBuffer.length);
+                //xx encryptedBuffer.length.should.eql(128);
+            }).throwError();
+        });
+
+        it("RSA_PKCS1_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function(){
 
             //
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
@@ -185,33 +217,33 @@ describe("testing and exploring the NodeJS crypto api", function () {
             // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
             // Padding is 41 or 11 and added at the start of the buffer
             // so the max length of the input buffer sent to RSA_public_encrypt() is:
-            //      256 - 41 = 215 with RSA_PKCS1_OAEP_PADDING
-            //      256 - 11 = 249 with RSA_PKCS1_PADDING
+            //      256 - 42 = 214 with RSA_PKCS1_OAEP_PADDING
+            //      256 - 11 = 245 with RSA_PKCS1_PADDING
 
-            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(1),bob_public_key);
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(1),bob_public_key,crypto_utils.RSA_PKCS1_PADDING);
             debugLog(" A encryptedBuffer length = ",encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
 
-            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(214),bob_public_key);
+            encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(245),bob_public_key,crypto_utils.RSA_PKCS1_PADDING);
             debugLog(" B encryptedBuffer length = ",encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
             should(function(){
-                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(249),bob_public_key);
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(246),bob_public_key,crypto_utils.RSA_PKCS1_PADDING);
                 debugLog(" C encryptedBuffer length = ",encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
             should(function(){
-                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(259),bob_public_key);
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(259),bob_public_key,crypto_utils.RSA_PKCS1_PADDING);
                 console.log(" D encryptedBuffer length = ",encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
         });
 
-        it("RSA_PKCS1_OAEP_PADDING verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function(){
+        it("RSA_PKCS1_OAEP_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding",function(){
 
             //
             var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
@@ -221,20 +253,19 @@ describe("testing and exploring the NodeJS crypto api", function () {
             // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
             // Padding is 41 or 11 and added at the start of the buffer
             // so the max length of the input buffer sent to RSA_public_encrypt() is:
-            //      256 - 41 = 215 with RSA_PKCS1_OAEP_PADDING
-            //      256 - 11 = 249 with RSA_PKCS1_PADDING
+            //      256 - 42 = 214 with RSA_PKCS1_OAEP_PADDING
+            //      256 - 11 = 245 with RSA_PKCS1_PADDING
 
             encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(1),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
             debugLog(" A encryptedBuffer length = ",encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
-
 
             encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(214),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
             debugLog(" B encryptedBuffer length = ",encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
             should(function(){
-                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(249),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
+                encryptedBuffer = crypto_utils.publicEncrypt(new Buffer(215),bob_public_key,crypto_utils.RSA_PKCS1_OAEP_PADDING);
                 debugLog(" C encryptedBuffer length = ",encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
