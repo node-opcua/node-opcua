@@ -32,6 +32,7 @@
   "devDependencies": {
     "autodoc": "^0.6.2",
     "benchmark": "^1.0.0",
+    "bignumber.js": "~1.5.0",
     "coveralls": "*",
     "csv": "~0.4.1",
     "eyes": "~0.1.8",
@@ -55,7 +56,6 @@
   "dependencies": {
     "async": "~0.9.0",
     "better-assert": "~1.0.2",
-    "bignumber.js": "~1.5.0",
     "bomstrip": "^0.1.4",
     "colors": "~1.0.3",
     "easy-table": "~0.3.0",
