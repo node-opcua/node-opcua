@@ -9,7 +9,7 @@
     "test": "test"
   },
   "scripts": {
-    "preinstall": "npm i browserify -g",
+    "_x_preinstall": "npm i browserify -g",
     "test": "mocha test -R spec --recursive --timeout 20000",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
@@ -70,6 +70,7 @@
     "sprintf": "~0.1.4",
     "ssh-key-to-pem": "^0.11.0",
     "treeify": "~1.0.1",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "x509": "^0.1.4"
   }
 }
