@@ -176,3 +176,24 @@ describe("test derived key making",function() {
 
     });
 });
+
+describe("exploreCertificate",function(){
+
+    it("should explore a 1024 bits RSA certificate",function(){
+
+        var certificate = crypto_utils.readCertificate('certificates/cert.pem');
+        var data  = crypto_utils.exploreCertificate(certificate);
+        data.publicKeyLength.should.eql(128);
+        data.notAfter.should.be.instanceOf(Date);
+        data.notBefore.should.be.instanceOf(Date);
+
+    });
+    it("should explore a 2048 bits RSA certificate",function() {
+        var certificate = crypto_utils.readCertificate('certificates/server_cert256.pem');
+        var data  = crypto_utils.exploreCertificate(certificate);
+        data.publicKeyLength.should.eql(256);
+        data.notAfter.should.be.instanceOf(Date);
+        data.notBefore.should.be.instanceOf(Date);
+
+    });
+});
