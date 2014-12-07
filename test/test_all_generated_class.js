@@ -87,7 +87,7 @@ describe("testing all auto_generated Class",function(){
           encode_decode_round_trip_test(obj);
           obj.explore();
 
-
+          var txt = obj.toString();
 
       });
 
