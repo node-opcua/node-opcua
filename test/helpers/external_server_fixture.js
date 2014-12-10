@@ -4,6 +4,7 @@ var path = require("path");
 var _ = require("underscore");
 /**
  *
+ * @param options
  * @param callback {Function}
  * @param callback.error {Error|Null}
  * @param callback.data
@@ -12,7 +13,13 @@ var _ = require("underscore");
  * @param callback.data.serverCertificate
  *
  */
-function start_simple_server(callback) {
+function start_simple_server(options,callback) {
+
+    if (_.isFunction(options)){
+        callback=options; options = null;
+    }
+
+    options = options||{};
 
     var spawn = require('child_process').spawn;
 

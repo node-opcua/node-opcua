@@ -34,9 +34,13 @@ var stop_simple_server = require("./helpers/external_server_fixture").stop_simpl
 
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
-function start_inner_server_local(callback) {
+function start_inner_server_local(options,callback) {
     // Given a server that have a signed end point
-    server = build_server_with_temperature_device({ port: port}, function () {
+
+    options = options || {};
+    options.port = options.port || port;
+
+    server = build_server_with_temperature_device(options, function () {
 
         var data = {};
         data.endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
@@ -54,9 +58,9 @@ function stop_inner_server_local(data, callback) {
 }
 
 
-function start_server1(callback) {
+function start_server1(options,callback) {
     // Given a server that have a signed end point
-    start_simple_server(function (err, data) {
+    start_simple_server(options,function (err, data) {
         if (err) {
             return callback(err, null);
         }
@@ -71,9 +75,12 @@ function stop_server1(data, callback) {
     stop_simple_server(data, callback);
 }
 
-function start_server(callback) {
+function start_server(options,callback) {
+    if (_.isFunction(options) && !callback) {
+        callback = options; options =null;
+    }
     // Given a server that have a signed end point
-    start_inner_server_local(function (err, data) {
+    start_inner_server_local(options,function (err, data) {
         if (err) {
             return callback(err, null);
         }
@@ -83,6 +90,26 @@ function start_server(callback) {
         callback(null, data);
     });
 }
+
+var start_server_with_1024bits_certificate = function(callback) {
+    start_server(callback);
+};
+
+var start_server_with_2048bits_certificate = function(callback) {
+
+    var path = require("path");
+    var server_certificate256_pem_file = path.join(__dirname,"helpers/demo_client_cert256.pem");
+    var server_certificate256_privatekey_file = path.join(__dirname,"helpers/demo_client_key256.pem");
+
+    var options = {
+        certificateFile: server_certificate256_pem_file,
+        privateKeyFile:  server_certificate256_privatekey_file
+    };
+    start_server(function(err) {
+        callback(err);
+    })
+};
+
 
 function stop_server(data, callback) {
     stop_inner_server_local(data, callback);
@@ -212,19 +239,20 @@ if (!crypto_utils.isFullySupported()) {
 
     var ClientSecureChannelLayer = require("../lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
-    function common_test(securityPolicy, securityMode, done) {
+    function common_test(securityPolicy, securityMode, options,done) {
 
         //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
         opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
 
 
-        var options = {
+        options = options|| {};
+        options = _.extend(options,{
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 100
-        };
+        });
 
         var token_change = 0;
         var client = new OPCUAClient(options);
@@ -248,14 +276,15 @@ if (!crypto_utils.isFullySupported()) {
         });
     }
 
-    function check_open_secure_channel_fails(securityPolicy, securityMode, done) {
+    function check_open_secure_channel_fails(securityPolicy, securityMode, options,done) {
 
-        var options = {
+        options = options|| {};
+        options = _.extend(options,{
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 200
-        };
+        });
         var client = new OPCUAClient(options);
         client.connect(endpointUrl, function (err) {
 
@@ -348,15 +377,61 @@ if (!crypto_utils.isFullySupported()) {
     });
 
 
-    describe("testing various Security Policy", function () {
+    function perform_collection_of_test_with_client_configuration(message,options) {
 
+        it('Basic128Rsa15 with Sign  ' + message, function (done) {
+            common_test("Basic128Rsa15", "SIGN", options,done);
+        });
+
+        it('Basic128Rsa15 with Sign ' + message, function (done) {
+            common_test("Basic128Rsa15", "SIGN", options,done);
+        });
+
+        it('Basic128Rsa15 with SignAndEncrypt ' + message, function (done) {
+            common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+        });
+
+        it('Basic256 with Sign ' + message, function (done) {
+            common_test("Basic256", "SIGN",  options,done);
+        });
+
+        it('Basic256 with SignAndEncrypt ' + message, function (done) {
+            common_test("Basic256", "SIGNANDENCRYPT", options, done);
+        });
+
+        it('Basic256Rsa15 with Sign ' + message, function (done) {
+            check_open_secure_channel_fails("Basic256Rsa15", "SIGN",  options,done);
+        });
+
+        it('Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
+            check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT",  options,done);
+        });
+    }
+
+    function perform_collection_of_test_with_various_client_configuration() {
+
+        var path = require("path");
+        var client_certificate256_pem_file = path.join(__dirname,"helpers/demo_client_cert256.pem");
+        var client_certificate256_privatekey_file = path.join(__dirname,"helpers/demo_client_key256.pem");
+
+        var options = {
+            certificateFile: client_certificate256_pem_file,
+            privateKeyFile:  client_certificate256_privatekey_file
+        };
+        perform_collection_of_test_with_client_configuration("( 2048 bits certificate on client)",options);
+        perform_collection_of_test_with_client_configuration("( 1024 bits certificate on client)",null);
+
+
+    }
+
+    describe("testing Security Policy with a valid 1024 bit certificate on server", function () {
 
         this.timeout(10000);
 
         var serverHandle;
 
         before(function (done) {
-            start_server(function (err, handle) {
+            start_server_with_1024bits_certificate(function (err, handle) {
                 serverHandle = handle;
                 done(err);
             })
@@ -367,40 +442,43 @@ if (!crypto_utils.isFullySupported()) {
             });
         });
 
-
-        it('Basic128Rsa15 with Sign', function (done) {
-            common_test("Basic128Rsa15", "SIGN", done);
-        });
-
-        it('Basic128Rsa15 with SignAndEncrypt', function (done) {
-            common_test("Basic128Rsa15", "SIGNANDENCRYPT", done);
-        });
-
-        it('Basic256 with Sign', function (done) {
-            common_test("Basic256", "SIGN", done);
-        });
-
-        it('Basic256 with SignAndEncrypt', function (done) {
-            common_test("Basic256", "SIGNANDENCRYPT", done);
-        });
-
-        it('Basic256Rsa15 with Sign', function (done) {
-            check_open_secure_channel_fails("Basic256Rsa15", "SIGN", done);
-        });
-
-        it('Basic256Rsa15 with SignAndEncrypt', function (done) {
-            check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", done);
-        });
+        perform_collection_of_test_with_various_client_configuration();
 
         it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
             var securityMode = "SIGN";
             var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
-
-            check_open_secure_channel_fails(securityPolicy, securityMode, done);
-
+            check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
 
         });
+    });
 
+    describe("testing Security Policy with a valid 1024 bit certificate on server", function () {
+
+        this.timeout(10000);
+
+        var serverHandle;
+
+        before(function (done) {
+            start_server_with_2048bits_certificate(function (err, handle) {
+                serverHandle = handle;
+                done(err);
+            })
+        });
+        after(function (done) {
+            stop_server(serverHandle, function () {
+                done();
+            });
+        });
+
+        perform_collection_of_test_with_various_client_configuration();
+
+        it("connection should fail if security mode requested by client is not supported by server", function (done) {
+
+            var securityMode = "SIGN";
+            var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+            check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
+
+        });
     });
 }
