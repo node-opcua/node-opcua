@@ -6,6 +6,7 @@ var should = require("should");
 var assert = require('better-assert');
 var async = require("async");
 var util = require("util");
+var path = require("path");
 
 var utils = opcua.utils;
 
@@ -250,8 +251,9 @@ if (!crypto_utils.isFullySupported()) {
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 100
         });
+
+        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 200;
 
         var token_change = 0;
         var client = new OPCUAClient(options);
@@ -407,9 +409,9 @@ if (!crypto_utils.isFullySupported()) {
         });
     }
 
-    function perform_collection_of_test_with_various_client_configuration() {
+    function perform_collection_of_test_with_various_client_configuration(prefix) {
 
-        var path = require("path");
+        prefix = prefix || "" ;
         var client_certificate256_pem_file = path.join(__dirname,"helpers/demo_client_cert256.pem");
         var client_certificate256_privatekey_file = path.join(__dirname,"helpers/demo_client_key256.pem");
 
@@ -417,8 +419,8 @@ if (!crypto_utils.isFullySupported()) {
             certificateFile: client_certificate256_pem_file,
             privateKeyFile:  client_certificate256_privatekey_file
         };
-        perform_collection_of_test_with_client_configuration("( 2048 bits certificate on client)",options);
-        perform_collection_of_test_with_client_configuration("( 1024 bits certificate on client)",null);
+        perform_collection_of_test_with_client_configuration(prefix +"(2048 bits certificate on client)",options);
+        perform_collection_of_test_with_client_configuration(prefix +"(1024 bits certificate on client)",null);
 
 
     }
@@ -452,9 +454,9 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    xdescribe("testing Security Policy with a valid 2048 bit certificate on server", function () {
+    describe("testing Security Policy with a valid 2048 bit certificate on server", function () {
 
-        this.timeout(10000);
+        this.timeout(20000);
 
         var serverHandle;
 
@@ -470,9 +472,10 @@ if (!crypto_utils.isFullySupported()) {
             });
         });
 
-        perform_collection_of_test_with_various_client_configuration();
 
-        it("connection should fail if security mode requested by client is not supported by server", function (done) {
+        perform_collection_of_test_with_various_client_configuration("ddd");
+
+        xit("connection should fail if security mode requested by client is not supported by server", function (done) {
 
             var securityMode = "SIGN";
             var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
