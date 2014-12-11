@@ -92,7 +92,8 @@ function start_server(options,callback) {
 }
 
 var start_server_with_1024bits_certificate = function(callback) {
-    start_server(callback);
+    var options = {};
+    start_server(options,callback);
 };
 
 var start_server_with_2048bits_certificate = function(callback) {
@@ -105,9 +106,7 @@ var start_server_with_2048bits_certificate = function(callback) {
         certificateFile: server_certificate256_pem_file,
         privateKeyFile:  server_certificate256_privatekey_file
     };
-    start_server(function(err) {
-        callback(err);
-    })
+    start_server(options,callback);
 };
 
 
@@ -453,7 +452,7 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    describe("testing Security Policy with a valid 1024 bit certificate on server", function () {
+    xdescribe("testing Security Policy with a valid 2048 bit certificate on server", function () {
 
         this.timeout(10000);
 
