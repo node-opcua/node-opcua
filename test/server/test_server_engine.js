@@ -21,6 +21,7 @@ var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
 var VariableIds = require("../../lib/opcua_node_ids").VariableIds;
 var Variant = require("../../lib/datamodel/variant").Variant;
 var VariantArrayType =  require("../../lib/datamodel/variant").VariantArrayType;
+var WriteValue = require("../../lib/services/write_service").WriteValue;
 
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
@@ -287,6 +288,73 @@ describe("testing ServerEngine", function () {
         newVariable.parent.should.equal(newFolder.nodeId);
 
     });
+
+    it("should be possible to asynchronously read a variable", function () {
+
+        var rootFolder = engine.findObject("ObjectsFolder");
+        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+
+        var newVariable = engine.addVariableInFolder("MyNewFolder",
+            {
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    getAsync: function(callback){
+                        callback(new Variant({dataType: DataType.Float , value: 20.0}));
+                    },
+                    setAsync: function(value,callback){
+                        callback();
+                    }
+                }
+
+            });
+
+        newVariable.readAttribute(AttributeIds.Value,function(dataValue){
+            dataValue.value.value.should.equal(20.0);
+        });
+
+    });
+    
+    it("should be possible to asynchronously write a variable", function () {
+
+        var rootFolder = engine.findObject("ObjectsFolder");
+        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+        var valueHolder = 20.0;
+        var newVariable = engine.addVariableInFolder("MyNewFolder",
+            {
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    getAsync: function(callback){
+                        callback(new Variant({dataType: DataType.Float , value: valueHolder}));
+                    },
+                    setAsync: function(value,callback){
+                        value.value.should.equal(30.0);
+                        valueHolder = value.value;
+                        callback();
+                    }
+                }
+            });
+        var writeValue = new WriteValue({
+            nodeId: makeNodeId(0,2254),
+            attributeId: AttributeIds.Value,
+            indexRange: null,
+            value: {
+                value: {
+                    dataType: DataType.Float,
+                    value: 30.0
+                }
+            }
+        });
+
+        newVariable.writeAttribute(AttributeIds.Value,
+            writeValue.value,function(dataValue){
+        newVariable.readAttribute(AttributeIds.Value,function(dataValue){
+            dataValue.value.value.should.equal(30.0);
+        });
+        });
+    });
+    
 
     it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
