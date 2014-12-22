@@ -21,6 +21,7 @@ var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
 var VariableIds = require("../../lib/opcua_node_ids").VariableIds;
 var Variant = require("../../lib/datamodel/variant").Variant;
 var VariantArrayType =  require("../../lib/datamodel/variant").VariantArrayType;
+var WriteValue = require("../../lib/services/write_service").WriteValue;
 
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
@@ -278,13 +279,82 @@ describe("testing ServerEngine", function () {
 
             });
 
-        newVariable.value.should.be.instanceOf(Variant);
-        newVariable.value.value.should.equal(10.0);
+        newVariable.readAttribute(AttributeIds.Value,function(dataValue){
+            dataValue.value.should.be.instanceOf(Variant);
+            dataValue.value.value.should.equal(10.0);
+        });
 
         newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.should.equal(newFolder.nodeId);
 
     });
+
+    it("should be possible to asynchronously read a variable", function () {
+
+        var rootFolder = engine.findObject("ObjectsFolder");
+        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+
+        var newVariable = engine.addVariableInFolder("MyNewFolder",
+            {
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    getAsync: function(callback){
+                        callback(new Variant({dataType: DataType.Float , value: 20.0}));
+                    },
+                    setAsync: function(value,callback){
+                        callback();
+                    }
+                }
+
+            });
+
+        newVariable.readAttribute(AttributeIds.Value,function(dataValue){
+            dataValue.value.value.should.equal(20.0);
+        });
+
+    });
+    
+    it("should be possible to asynchronously write a variable", function () {
+
+        var rootFolder = engine.findObject("ObjectsFolder");
+        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+        var valueHolder = 20.0;
+        var newVariable = engine.addVariableInFolder("MyNewFolder",
+            {
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    getAsync: function(callback){
+                        callback(new Variant({dataType: DataType.Float , value: valueHolder}));
+                    },
+                    setAsync: function(value,callback){
+                        value.value.should.equal(30.0);
+                        valueHolder = value.value;
+                        callback();
+                    }
+                }
+            });
+        var writeValue = new WriteValue({
+            nodeId: makeNodeId(0,2254),
+            attributeId: AttributeIds.Value,
+            indexRange: null,
+            value: {
+                value: {
+                    dataType: DataType.Float,
+                    value: 30.0
+                }
+            }
+        });
+
+        newVariable.writeAttribute(AttributeIds.Value,
+            writeValue.value,function(dataValue){
+        newVariable.readAttribute(AttributeIds.Value,function(dataValue){
+            dataValue.value.value.should.equal(30.0);
+        });
+        });
+    });
+    
 
     it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
@@ -335,11 +405,12 @@ describe("testing ServerEngine", function () {
             });
 
 
-        var dataValue = newVariable.readAttribute(AttributeIds.Value,undefined,undefined);
-        dataValue.should.be.instanceOf(DataValue);
+        newVariable.readAttribute(AttributeIds.Value,function(dataValue){
+            dataValue.should.be.instanceOf(DataValue);
 
-        dataValue.sourceTimestamp.should.eql(new Date(Date.UTC(1999,9,9)));
-        dataValue.sourcePicoseconds.should.eql(10);
+            dataValue.sourceTimestamp.should.eql(new Date(Date.UTC(1999,9,9)));
+            dataValue.sourcePicoseconds.should.eql(10);
+        });
 
     });
 
@@ -550,74 +621,83 @@ describe("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - BrowseName",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.BrowseName);
+            engine.readSingleNode("RootFolder",AttributeIds.BrowseName,null,function(readResult){
 
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.QualifiedName);
-            readResult.value.value.name.should.equal("Root");
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.QualifiedName);
+                readResult.value.value.name.should.equal("Root");
+            });
         });
 
         it("should handle a readSingleNode - NodeClass",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.NodeClass);
+            engine.readSingleNode("RootFolder",AttributeIds.NodeClass,null,function(readResult){
 
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.Int32);
-            readResult.value.value.should.equal(NodeClass.Object.value);
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.Int32);
+                readResult.value.value.should.equal(NodeClass.Object.value);
+            });
         });
 
         it("should handle a readSingleNode - NodeId",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.NodeId);
+            engine.readSingleNode("RootFolder",AttributeIds.NodeId,null,function(readResult){
 
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.NodeId);
-            readResult.value.value.toString().should.equal("ns=0;i=84");
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.NodeId);
+                readResult.value.value.toString().should.equal("ns=0;i=84");
+            });
         });
 
         it("should handle a readSingleNode - DisplayName",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.DisplayName);
+            engine.readSingleNode("RootFolder",AttributeIds.DisplayName,null,function(readResult){
 
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.LocalizedText);
-            readResult.value.value.text.toString().should.equal("Root");
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.LocalizedText);
+                readResult.value.value.text.toString().should.equal("Root");
+            });
         });
 
         it("should handle a readSingleNode - Description",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.Description);
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.LocalizedText);
-            readResult.value.value.text.toString().should.equal("");
+            engine.readSingleNode("RootFolder",AttributeIds.Description,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.LocalizedText);
+                readResult.value.value.text.toString().should.equal("");
+            });
         });
 
         it("should handle a readSingleNode - WriteMask",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.WriteMask);
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.UInt32);
-            readResult.value.value.should.equal(0);
+            engine.readSingleNode("RootFolder",AttributeIds.WriteMask,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.UInt32);
+                readResult.value.value.should.equal(0);
+            });
         });
 
         it("should handle a readSingleNode - UserWriteMask",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.UserWriteMask);
-            readResult.value.dataType.should.eql(DataType.UInt32);
-            readResult.value.value.should.equal(0);
+            engine.readSingleNode("RootFolder",AttributeIds.UserWriteMask,null,function(readResult){
+                readResult.value.dataType.should.eql(DataType.UInt32);
+                readResult.value.value.should.equal(0);
+            });
         });
         it("should handle a readSingleNode - EventNotifier",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.EventNotifier);
-            readResult.value.dataType.should.eql(DataType.Byte);
-            readResult.value.value.should.equal(0   );
+            engine.readSingleNode("RootFolder",AttributeIds.EventNotifier,null,function(readResult){
+                readResult.value.dataType.should.eql(DataType.Byte);
+                readResult.value.value.should.equal(0   );
+            });
         });
 
         it("should return BadAttributeIdInvalid  - readSingleNode - for bad attribute    ",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops);
-            readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
-            assert(readResult.value === null);
+            engine.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops,null,function(readResult){
+                readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
+                assert(readResult.value === null);
+            });
         });
     });
 
@@ -631,41 +711,46 @@ describe("testing ServerEngine", function () {
         //  --- on reference Type ....
         it("should handle a readSingleNode - IsAbstract",function() {
 
-            var readResult = engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.IsAbstract);
-            readResult.value.dataType.should.eql(DataType.Boolean);
-            readResult.value.value.should.equal(false);
-            readResult.statusCode.should.eql(StatusCodes.Good);
+            engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.IsAbstract,null,function(readResult){
+                readResult.value.dataType.should.eql(DataType.Boolean);
+                readResult.value.value.should.equal(false);
+                readResult.statusCode.should.eql(StatusCodes.Good);
+            });
         });
 
         it("should handle a readSingleNode - Symmetric",function() {
 
-            var readResult = engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.Symmetric);
-            readResult.statusCode.should.eql(StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.Boolean);
-            readResult.value.value.should.equal(false);
+            engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.Symmetric,null,function(readResult){
+                readResult.statusCode.should.eql(StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.Boolean);
+                readResult.value.value.should.equal(false);
+            });
         });
 
         it("should handle a readSingleNode - InverseName",function() {
 
-            var readResult = engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.InverseName);
-            readResult.statusCode.should.eql(StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.LocalizedText);
-            //xx readResult.value.value.should.equal(false);
+            engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.InverseName,null,function(readResult){
+                readResult.statusCode.should.eql(StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.LocalizedText);
+                //xx readResult.value.value.should.equal(false);
+            });
         });
 
         it("should handle a readSingleNode - BrowseName",function() {
 
-            var readResult = engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.BrowseName);
-            readResult.statusCode.should.eql(StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.QualifiedName);
-            readResult.value.value.name.should.eql("Organizes");
-            //xx readResult.value.value.should.equal(false);
+            engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.BrowseName,null,function(readResult){
+                readResult.statusCode.should.eql(StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.QualifiedName);
+                readResult.value.value.name.should.eql("Organizes");
+                //xx readResult.value.value.should.equal(false);
+            });
         });
         it("should return BadAttributeIdInvalid on EventNotifier",function() {
 
-            var readResult = engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.EventNotifier);
-            readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
-            assert(readResult.value === null);
+            engine.readSingleNode(ref_Organizes_nodeId,AttributeIds.EventNotifier,null,function(readResult){
+                readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
+                assert(readResult.value === null);
+            });
         });
     });
 
@@ -673,37 +758,43 @@ describe("testing ServerEngine", function () {
         //
         it("should handle a readSingleNode - BrowseName",function() {
 
-            var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.BrowseName);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode("DataTypeDescriptionType",AttributeIds.BrowseName,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - IsAbstract",function() {
 
-            var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.IsAbstract);
+            engine.readSingleNode("DataTypeDescriptionType",AttributeIds.IsAbstract,null,function(readResult){
 
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.dataType.should.eql(DataType.Boolean);
-            readResult.value.value.should.equal(false);
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.dataType.should.eql(DataType.Boolean);
+                readResult.value.value.should.equal(false);
+            });
         });
         it("should handle a readSingleNode - Value",function() {
 
-            var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.Value);
-            readResult.statusCode.should.eql( StatusCodes.BadAttributeIdInvalid);
+            engine.readSingleNode("DataTypeDescriptionType",AttributeIds.Value,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.BadAttributeIdInvalid);
+            });
         });
 
         it("should handle a readSingleNode - DataType",function() {
 
-            var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.DataType);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode("DataTypeDescriptionType",AttributeIds.DataType,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - ValueRank",function() {
 
-            var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.ValueRank);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode("DataTypeDescriptionType",AttributeIds.ValueRank,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - ArrayDimensions",function() {
 
-            var readResult = engine.readSingleNode("DataTypeDescriptionType",AttributeIds.ArrayDimensions);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode("DataTypeDescriptionType",AttributeIds.ArrayDimensions,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
     });
 
@@ -711,35 +802,41 @@ describe("testing ServerEngine", function () {
         var productUri_id = makeNodeId(2262,0);
         it("should handle a readSingleNode - BrowseName",function() {
 
-            var readResult = engine.readSingleNode(productUri_id,AttributeIds.BrowseName);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode(productUri_id,AttributeIds.BrowseName,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - ArrayDimensions",function() {
 
-            var readResult = engine.readSingleNode(productUri_id,AttributeIds.ArrayDimensions);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode(productUri_id,AttributeIds.ArrayDimensions,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - AccessLevel",function() {
 
-            var readResult = engine.readSingleNode(productUri_id,AttributeIds.AccessLevel);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode(productUri_id,AttributeIds.AccessLevel,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - UserAccessLevel",function() {
 
-            var readResult = engine.readSingleNode(productUri_id,AttributeIds.UserAccessLevel);
-            readResult.statusCode.should.eql( StatusCodes.Good);
+            engine.readSingleNode(productUri_id,AttributeIds.UserAccessLevel,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+            });
         });
         it("should handle a readSingleNode - MinimumSamplingInterval",function() {
 
-            var readResult = engine.readSingleNode(productUri_id,AttributeIds.MinimumSamplingInterval);
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.value.should.eql(1000);
+            engine.readSingleNode(productUri_id,AttributeIds.MinimumSamplingInterval,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.value.should.eql(1000);
+            });
         });
         it("should handle a readSingleNode - Historizing",function() {
 
-            var readResult = engine.readSingleNode(productUri_id,AttributeIds.Historizing);
-            readResult.statusCode.should.eql( StatusCodes.Good);
-            readResult.value.value.should.eql(false);
+            engine.readSingleNode(productUri_id,AttributeIds.Historizing,null,function(readResult){
+                readResult.statusCode.should.eql( StatusCodes.Good);
+                readResult.value.value.should.eql(false);
+            });
         });
     });
 
@@ -748,9 +845,10 @@ describe("testing ServerEngine", function () {
         // for views
         xit("should handle a readSingleNode - ContainsNoLoops",function() {
 
-            var readResult = engine.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops);
-            readResult.value.dataType.should.eql(DataType.Boolean);
-            readResult.value.value.should.equal(true);
+            engine.readSingleNode("RootFolder",AttributeIds.ContainsNoLoops,null,function(readResult){
+                readResult.value.dataType.should.eql(DataType.Boolean);
+                readResult.value.value.should.equal(true);
+            });
         });
     });
 
@@ -765,16 +863,18 @@ describe("testing ServerEngine", function () {
 
             var obj =engine.address_space.findDataType("ServerStatusDataType");
             var serverStatusDataType_id = obj.nodeId;
-            var readResult = engine.readSingleNode(serverStatusDataType_id,AttributeIds.BrowseName);
-            readResult.value.dataType.should.eql(DataType.QualifiedName);
-            readResult.value.value.name.should.equal("ServerStatusDataType");
+            engine.readSingleNode(serverStatusDataType_id,AttributeIds.BrowseName,null,function(readResult){
+                readResult.value.dataType.should.eql(DataType.QualifiedName);
+                readResult.value.value.name.should.equal("ServerStatusDataType");
+            });
         });
     });
 
     it("should return BadNodeIdUnknown  - readSingleNode - with unknown object",function() {
 
-        var readResult = engine.readSingleNode("**UNKNOWN**",AttributeIds.DisplayName);
-        readResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
+        engine.readSingleNode("**UNKNOWN**",AttributeIds.DisplayName,null,function(readResult){
+            readResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
+        });
     });
 
     it("should read the display name of RootFolder",function() {
@@ -791,8 +891,9 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(1);
+        });
 
     });
 
@@ -839,10 +940,11 @@ describe("testing ServerEngine", function () {
                     }
                 ]
             });
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.eql(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
-            done();
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.eql(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+                done();
+            });
         }
         var attributes = ["AccessLevel", "BrowseName", "DataType", "DisplayName", "Historizing", "NodeClass", "NodeId", "UserAccessLevel", "ValueRank"];
         attributes.forEach(function(attribute) {
@@ -866,9 +968,10 @@ describe("testing ServerEngine", function () {
                     }
                 ]
             });
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.eql(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.eql(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
+            });
         });
     });
 
@@ -903,19 +1006,20 @@ describe("testing ServerEngine", function () {
                 timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: nodesToRead
             });
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(3);
-            dataValues[0].should.be.instanceOf(DataValue);
-            dataValues[1].should.be.instanceOf(DataValue);
-            dataValues[2].should.be.instanceOf(DataValue);
-            should(dataValues[0].serverTimeStamp).eql(undefined);
-            should(dataValues[0].sourceTimeStamp).eql(undefined);
-            should(dataValues[0].serverPicoseconds).eql(0);
-            should(dataValues[0].sourcePicoseconds).eql(0);
-            should(dataValues[1].serverTimeStamp).eql(undefined);
-            should(dataValues[1].sourceTimeStamp).eql(undefined);
-            should(dataValues[1].serverPicoseconds).eql(0);
-            should(dataValues[1].sourcePicoseconds).eql(0);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(3);
+                dataValues[0].should.be.instanceOf(DataValue);
+                dataValues[1].should.be.instanceOf(DataValue);
+                dataValues[2].should.be.instanceOf(DataValue);
+                should(dataValues[0].serverTimeStamp).eql(undefined);
+                should(dataValues[0].sourceTimeStamp).eql(undefined);
+                should(dataValues[0].serverPicoseconds).eql(0);
+                should(dataValues[0].sourcePicoseconds).eql(0);
+                should(dataValues[1].serverTimeStamp).eql(undefined);
+                should(dataValues[1].sourceTimeStamp).eql(undefined);
+                should(dataValues[1].serverPicoseconds).eql(0);
+                should(dataValues[1].sourcePicoseconds).eql(0);
+            });
 
         });
 
@@ -927,20 +1031,21 @@ describe("testing ServerEngine", function () {
                 timestampsToReturn: TimestampsToReturn.Server,
                 nodesToRead: nodesToRead
             });
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(3);
-            dataValues[0].should.be.instanceOf(DataValue);
-            dataValues[1].should.be.instanceOf(DataValue);
-            dataValues[2].should.be.instanceOf(DataValue);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(3);
+                dataValues[0].should.be.instanceOf(DataValue);
+                dataValues[1].should.be.instanceOf(DataValue);
+                dataValues[2].should.be.instanceOf(DataValue);
 
-            should(dataValues[0].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[0].sourceTimestamp).be.eql(null);
-            should(dataValues[0].serverPicoseconds).be.eql(0);
-            should(dataValues[0].sourcePicoseconds).be.eql(0);
-            should(dataValues[1].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[1].sourceTimestamp).be.eql(null);
-            should(dataValues[1].serverPicoseconds).be.eql(0);
-            should(dataValues[1].sourcePicoseconds).be.eql(0);
+                should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+                should(dataValues[0].sourceTimestamp).be.eql(null);
+                should(dataValues[0].serverPicoseconds).be.eql(0);
+                should(dataValues[0].sourcePicoseconds).be.eql(0);
+                should(dataValues[1].serverTimestamp).be.instanceOf(Date);
+                should(dataValues[1].sourceTimestamp).be.eql(null);
+                should(dataValues[1].serverPicoseconds).be.eql(0);
+                should(dataValues[1].sourcePicoseconds).be.eql(0);
+            });
 
         });
 
@@ -953,24 +1058,25 @@ describe("testing ServerEngine", function () {
                 nodesToRead: nodesToRead
             });
 
-            var dataValues = engine.read(readRequest);
+            engine.read(readRequest,function(dataValues){
 
-            dataValues.length.should.equal(3);
-            dataValues[0].should.be.instanceOf(DataValue);
-            dataValues[1].should.be.instanceOf(DataValue);
-            dataValues[2].should.be.instanceOf(DataValue);
+                dataValues.length.should.equal(3);
+                dataValues[0].should.be.instanceOf(DataValue);
+                dataValues[1].should.be.instanceOf(DataValue);
+                dataValues[2].should.be.instanceOf(DataValue);
 
-            should(dataValues[0].serverTimestamp).be.eql(null);
-            should(dataValues[0].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
-            should(dataValues[0].serverPicoseconds).be.eql(0);
-            should(dataValues[0].sourcePicoseconds).be.eql(0);
+                should(dataValues[0].serverTimestamp).be.eql(null);
+                should(dataValues[0].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
+                should(dataValues[0].serverPicoseconds).be.eql(0);
+                should(dataValues[0].sourcePicoseconds).be.eql(0);
 
-            should(dataValues[1].serverTimestamp).be.eql(null);
-            should(dataValues[1].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
-            should(dataValues[1].serverPicoseconds).be.eql(0);
-            should(dataValues[1].sourcePicoseconds).be.eql(0);
+                should(dataValues[1].serverTimestamp).be.eql(null);
+                should(dataValues[1].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
+                should(dataValues[1].serverPicoseconds).be.eql(0);
+                should(dataValues[1].sourcePicoseconds).be.eql(0);
 
-            should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
+                should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
+            });
 
         });
 
@@ -982,24 +1088,25 @@ describe("testing ServerEngine", function () {
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: nodesToRead
             });
-            var dataValues = engine.read(readRequest);
+            engine.read(readRequest,function(dataValues){
 
-            dataValues.length.should.equal(3);
-            dataValues[0].should.be.instanceOf(DataValue);
-            dataValues[1].should.be.instanceOf(DataValue);
-            dataValues[2].should.be.instanceOf(DataValue);
+                dataValues.length.should.equal(3);
+                dataValues[0].should.be.instanceOf(DataValue);
+                dataValues[1].should.be.instanceOf(DataValue);
+                dataValues[2].should.be.instanceOf(DataValue);
 
-            should(dataValues[0].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[0].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
-            should(dataValues[0].serverPicoseconds).be.eql(0);
-            should(dataValues[0].sourcePicoseconds).be.eql(0);
+                should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+                should(dataValues[0].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
+                should(dataValues[0].serverPicoseconds).be.eql(0);
+                should(dataValues[0].sourcePicoseconds).be.eql(0);
 
-            should(dataValues[1].serverTimestamp).be.instanceOf(Date);
-            should(dataValues[1].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
-            should(dataValues[1].serverPicoseconds).be.eql(0);
-            should(dataValues[1].sourcePicoseconds).be.eql(0);
+                should(dataValues[1].serverTimestamp).be.instanceOf(Date);
+                should(dataValues[1].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
+                should(dataValues[1].serverPicoseconds).be.eql(0);
+                should(dataValues[1].sourcePicoseconds).be.eql(0);
 
-            should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
+                should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
+            });
 
         });
 
@@ -1024,11 +1131,12 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(2);
-        dataValues[0].value.value.text.should.eql("NamespaceArray");
-        dataValues[1].value.value.should.be.instanceOf(Array);
-        dataValues[1].value.value.length.should.be.eql(2);
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(2);
+            dataValues[0].value.value.text.should.eql("NamespaceArray");
+            dataValues[1].value.value.should.be.instanceOf(Array);
+            dataValues[1].value.value.length.should.be.eql(2);
+        });
     });
 
     it("should handle indexRange with individual value",function() {
@@ -1045,13 +1153,14 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.Good);
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
-        dataValues[0].value.value.should.be.instanceOf(Array);
-        dataValues[0].value.value.length.should.be.eql(1);
-        dataValues[0].value.value[0].should.be.eql(2.0);
+            dataValues[0].value.value.should.be.instanceOf(Array);
+            dataValues[0].value.value.length.should.be.eql(1);
+            dataValues[0].value.value[0].should.be.eql(2.0);
+        });
 
     });
 
@@ -1069,12 +1178,13 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.Good);
-        dataValues[0].value.value.should.be.instanceOf(Array);
-        dataValues[0].value.value.length.should.be.eql(4);
-        dataValues[0].value.value.should.be.eql([ 2.0 , 3.0 , 4.0, 5.0]);
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[0].value.value.should.be.instanceOf(Array);
+            dataValues[0].value.value.length.should.be.eql(4);
+            dataValues[0].value.value.should.be.eql([ 2.0 , 3.0 , 4.0, 5.0]);
+        });
 
     });
     it("should receive BadIndexRangeNoData when indexRange try to access outside boundary",function() {
@@ -1091,9 +1201,10 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+        });
 
     });
 
@@ -1110,10 +1221,11 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].value.dataType.should.eql(DataType.NodeId);
-        dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(1);
+            dataValues[0].value.dataType.should.eql(DataType.NodeId);
+            dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
+        });
     });
 
     it("should read Server_NamespaceArray ValueRank",function() {
@@ -1131,12 +1243,13 @@ describe("testing ServerEngine", function () {
             ]
         });
 
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.Good);
+        engine.read(readRequest,function(dataValues){
+            dataValues.length.should.equal(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
-       //xx console.log("xxxxxxxxx =  dataValues[0].value.value",typeof( dataValues[0].value.value), dataValues[0].value.value);
-        dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
+           //xx console.log("xxxxxxxxx =  dataValues[0].value.value",typeof( dataValues[0].value.value), dataValues[0].value.value);
+            dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
+        });
 
     });
 
@@ -1244,11 +1357,11 @@ describe("testing ServerEngine", function () {
                 }]
             });
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.DateTime);
-            dataValues[0].value.value.should.be.instanceOf(Date);
+            engine.read(readRequest,function(dataValues){
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                dataValues[0].value.dataType.should.eql(DataType.DateTime);
+                dataValues[0].value.value.should.be.instanceOf(Date);
+            });
 
         });
 
@@ -1262,11 +1375,12 @@ describe("testing ServerEngine", function () {
                 }]
             });
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.DateTime);
-            dataValues[0].value.value.should.be.instanceOf(Date);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                dataValues[0].value.dataType.should.eql(DataType.DateTime);
+                dataValues[0].value.value.should.be.instanceOf(Date);
+            });
 
         });
 
@@ -1282,11 +1396,12 @@ describe("testing ServerEngine", function () {
                 }]
             });
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.String);
-            dataValues[0].value.value.should.eql("1234")
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                dataValues[0].value.dataType.should.eql(DataType.String);
+                dataValues[0].value.value.should.eql("1234");
+            });
 
         });
 
@@ -1298,11 +1413,11 @@ describe("testing ServerEngine", function () {
             var node = engine.findObject(nodeid);
             should(node).not.equal(null);
 
-            var dataValue = node.readAttribute(13);
-
-            dataValue.statusCode.should.eql(StatusCodes.Good);
-            dataValue.value.dataType.should.eql(DataType.String);
-            dataValue.value.value.should.eql("1234");
+            node.readAttribute(13,function(dataValue){
+                dataValue.statusCode.should.eql(StatusCodes.Good);
+                dataValue.value.dataType.should.eql(DataType.String);
+                dataValue.value.value.should.eql("1234");
+            });
 
         });
 
@@ -1314,11 +1429,12 @@ describe("testing ServerEngine", function () {
             assert(node!=null);
             should(node).not.eql(null);
 
-            var dataValue = node.readAttribute(13);
+            node.readAttribute(13,function(dataValue){
 
-            dataValue.statusCode.should.eql(StatusCodes.Good);
-            dataValue.value.dataType.should.eql(DataType.UInt32);
-            dataValue.value.value.should.eql(0);
+                dataValue.statusCode.should.eql(StatusCodes.Good);
+                dataValue.value.dataType.should.eql(DataType.UInt32);
+                dataValue.value.value.should.eql(0);
+            });
 
         });
 
@@ -1334,11 +1450,12 @@ describe("testing ServerEngine", function () {
                 })
             });
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(15);
-            dataValues[7].statusCode.should.eql(StatusCodes.Good);
-            dataValues[7].value.dataType.should.eql(DataType.DateTime);
-            dataValues[7].value.value.should.be.instanceOf(Date);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(15);
+                dataValues[7].statusCode.should.eql(StatusCodes.Good);
+                dataValues[7].value.dataType.should.eql(DataType.DateTime);
+                dataValues[7].value.value.should.be.instanceOf(Date);
+            });
 
         });
     });
@@ -1355,24 +1472,25 @@ describe("testing ServerEngine", function () {
                 }]
             });
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
 
-            dataValues[0].value.value.should.be.instanceOf(Object);
+                dataValues[0].value.value.should.be.instanceOf(Object);
 
-            var serverStatus =  dataValues[0].value.value;
+                var serverStatus =  dataValues[0].value.value;
 
-            serverStatus.state.key.should.eql("Running");
-            serverStatus.state.value.should.eql(0);
-            serverStatus.shutdownReason.text.should.eql("");
+                serverStatus.state.key.should.eql("Running");
+                serverStatus.state.value.should.eql(0);
+                serverStatus.shutdownReason.text.should.eql("");
 
-            serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
-            serverStatus.buildInfo.softwareVersion.should.equal("1.0");
-            serverStatus.buildInfo.manufacturerName.should.equal("<Manufacturer>");
-            serverStatus.buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+                serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
+                serverStatus.buildInfo.softwareVersion.should.equal("1.0");
+                serverStatus.buildInfo.manufacturerName.should.equal("<Manufacturer>");
+                serverStatus.buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+            });
 
         });
     });
@@ -1390,21 +1508,21 @@ describe("testing ServerEngine", function () {
                 }]
             });
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
+            engine.read(readRequest,function(dataValues){
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
-            console.log('buildInfo',dataValues[0].value.value);
-            dataValues[0].value.value.should.be.instanceOf(Object);
+                console.log('buildInfo',dataValues[0].value.value);
+                dataValues[0].value.value.should.be.instanceOf(Object);
 
-            var buildInfo= dataValues[0].value.value;
+                var buildInfo= dataValues[0].value.value;
 
-            buildInfo.productName.should.equal("NODEOPCUA-SERVER");
-            buildInfo.softwareVersion.should.equal("1.0");
-            buildInfo.manufacturerName.should.equal("<Manufacturer>");
-            buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
-
+                buildInfo.productName.should.equal("NODEOPCUA-SERVER");
+                buildInfo.softwareVersion.should.equal("1.0");
+                buildInfo.manufacturerName.should.equal("<Manufacturer>");
+                buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+            });
 
         });
     });
@@ -1427,8 +1545,9 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            engine.writeSingleNode(nodeToWrite);
-            done();
+            engine.writeSingleNode(nodeToWrite,function(){
+                done();
+            });
         });
 
         it("should return BadNotWritable when trying to write a Executable attribute",function(done){
@@ -1443,9 +1562,10 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            var result = engine.writeSingleNode(nodeToWrite);
-            assert(result.should.eql(StatusCodes.BadNotWritable));
-            done();
+            engine.writeSingleNode(nodeToWrite,function(result){
+                assert(result.should.eql(StatusCodes.BadNotWritable));
+                done();
+            });
 
         });
 
@@ -1475,8 +1595,9 @@ describe("testing ServerEngine", function () {
                     }
                 })
             ];
-            engine.write(nodesToWrite);
-            done();
+            engine.write(nodesToWrite,function(){
+                done();
+            });
 
         });
     });
@@ -1508,9 +1629,9 @@ describe("testing ServerEngine", function () {
         });
         it("should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable",function() {
 
-            var readResult = engine.readSingleNode("ns=1;s=FailingPLCValue",AttributeIds.Value);
-
-            readResult.statusCode.should.eql(StatusCodes.BadResourceUnavailable);
+            engine.readSingleNode("ns=1;s=FailingPLCValue",function(readResult){
+                readResult.statusCode.should.eql(StatusCodes.BadResourceUnavailable);
+            },AttributeIds.Value);
 
         });
     });

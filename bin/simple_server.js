@@ -119,6 +119,11 @@ server.on("post_initialize", function () {
                 get: function () {
                     var pump_speed = 200 + 100*Math.sin(Date.now()/10000);
                     return new Variant({dataType: DataType.Double, value: pump_speed});
+                },
+                getAsync: function(callback){
+                    var pump_speed = 200 + 100*Math.sin(Date.now()/10000);
+                    var test = new Variant({dataType: DataType.Double, value: pump_speed});
+                    callback(test);
                 }
             }
         });

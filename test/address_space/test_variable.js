@@ -23,42 +23,49 @@ describe("testing Variables ",function(){
 
         var value ;
 
-        value = v.readAttribute(AttributeIds.AccessLevel);
-        value.value.dataType.should.eql(DataType.Byte);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.AccessLevel,function(value){
+            value.value.dataType.should.eql(DataType.Byte);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.UserAccessLevel);
-        value.value.dataType.should.eql(DataType.Byte);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.UserAccessLevel,function(value){
+            value.value.dataType.should.eql(DataType.Byte);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.ValueRank);
-        value.value.dataType.should.eql(DataType.Int32);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.ValueRank,function(value){
+            value.value.dataType.should.eql(DataType.Int32);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.Historizing);
-        value.value.dataType.should.eql(DataType.Boolean);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.Historizing,function(value){
+            value.value.dataType.should.eql(DataType.Boolean);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.BrowseName);
-        value.value.dataType.should.eql(DataType.QualifiedName);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.BrowseName,function(value){
+            value.value.dataType.should.eql(DataType.QualifiedName);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.DisplayName);
-        value.value.dataType.should.eql(DataType.LocalizedText);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.DisplayName,function(value){
+            value.value.dataType.should.eql(DataType.LocalizedText);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.MinimumSamplingInterval);
-        value.value.dataType.should.eql(DataType.UInt32);
-        value.statusCode.should.eql(StatusCodes.Good);
+        v.readAttribute(AttributeIds.MinimumSamplingInterval,function(value){
+            value.value.dataType.should.eql(DataType.UInt32);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
 
-        value = v.readAttribute(AttributeIds.IsAbstract);
-        value.statusCode.name.should.eql("BadAttributeIdInvalid");
+        v.readAttribute(AttributeIds.IsAbstract,function(value){
+            value.statusCode.name.should.eql("BadAttributeIdInvalid");
+        });
 
-        value = v.readAttribute(AttributeIds.NodeClass);
-        value.value.dataType.should.eql(DataType.Int32);
-        value.value.value.should.eql(NodeClass.Variable.value);
-        value.statusCode.should.eql(StatusCodes.Good);
-
+        v.readAttribute(AttributeIds.NodeClass,function(value){
+            value.value.dataType.should.eql(DataType.Int32);
+            value.value.value.should.eql(NodeClass.Variable.value);
+            value.statusCode.should.eql(StatusCodes.Good);
+        });
     });
-
 });
