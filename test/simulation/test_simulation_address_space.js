@@ -53,9 +53,7 @@ describe("testing address space for conformance testing",function() {
                         value: 1000
                     }
                 }
-            }));
-
-
+            }),function(){});
 
 
             // address space variable change for conformance testing are changing randomly
@@ -86,7 +84,7 @@ describe("testing address space for conformance testing",function() {
                        value: 250
                    }
                 }
-            }));
+            }),function(){});
             // set enable to true
             var enabledNodeId = makeNodeId("Scalar_Simulation_Enabled", namespaceIndex);
             engine.writeSingleNode(new WriteValue({
@@ -98,7 +96,7 @@ describe("testing address space for conformance testing",function() {
                         value: true
                     }
                 }
-            }));
+            }),function(){});
 
             // address space variable change for conformance testing are changing randomly
             // let wait a little bit to make sure variables have changed at least once
