@@ -163,7 +163,10 @@ var DiagnosticInfo_Schema = {
         }
         // read inner status code
         if (check_flag(encoding_mask, DiagnosticInfo_EncodingByte.InnerDiagnosticInfo)) {
-            diagnosticInfo.innerDiagnosticInfo = new exports.DiagnosticInfo({});
+            var DiagnosticInfo = require("../_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
+
+            diagnosticInfo.innerDiagnosticInfo = new DiagnosticInfo({});
+
             diagnosticInfo.innerDiagnosticInfo.decode_debug(stream, options);
             tracer.trace("member", "innerDiagnosticInfo", diagnosticInfo.innerDiagnosticInfo, cursor_before, stream.length, "DiagnosticInfo");
         }
