@@ -8,24 +8,14 @@ var factories = require("../../lib/misc/factories");
 
 var _ = require("underscore");
 
-var ObjWithAccessLevel_Schema = {
 
-    id: factories.next_available_id(),
-    name: "ObjWithAccessLevel",
-    fields: [
-        { name: "title" ,        fieldType: "UAString" },
-        {
-            name: "accessLevel"  , fieldType: "AccessLevelFlag"
-        }
-    ]
-};
-exports.ObjWithAccessLevel_Schema = ObjWithAccessLevel_Schema;
-var ObjWithAccessLevel  = factories.registerObject(ObjWithAccessLevel_Schema,"tmp");
+var ObjWithAccessLevel  = factories.registerObject("test/fixtures/schemas|ObjWithAccessLevel","tmp");
+
 assert(_.isFunction(ObjWithAccessLevel));
 
 describe("Testing AccessLevelFlag",function() {
 
-    it("should create a acess level flags from a string",function() {
+    it("should create a access level flags from a string",function() {
 
         makeAccessLevel("CurrentRead").value.should.equal(0x01);
         makeAccessLevel("CurrentWrite").value.should.equal(0x02);
@@ -37,17 +27,19 @@ describe("Testing AccessLevelFlag",function() {
         AccessLevelFlag.get(0x2).key.should.eql("CurrentWrite");
         AccessLevelFlag.get(0x3).key.should.eql("CurrentRead | CurrentWrite");
 
-
         makeAccessLevel(makeAccessLevel("CurrentRead")).value.should.equal(0x01);
     });
+
     it("should have a accessLevel Flag Basic Type",function() {
         _.isObject(findBuiltInType("AccessLevelFlag")).should.equal(true);
     });
+
     it("should create an object with access_level",function() {
         var o = new ObjWithAccessLevel();
         o.should.have.property("accessLevel");
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
     });
+
     it("should create an object with access_level defined as a 'string'",function() {
 
         var o = new ObjWithAccessLevel({

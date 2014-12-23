@@ -1,3 +1,7 @@
+/**
+ * utility to generate source file ./lib/raw_status_codes.js from  Opc.Ua.StatusCodes.csv
+ *
+ */
 var util = require('util');
 var xml = require("ersatz-node-expat");
 var fs = require("fs");

@@ -66,6 +66,31 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         }, done);
     });
 
+    it("should dump statistics ", function (done) {
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+            assert(session instanceof OPCUASession);
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 100 * 60 * 10,
+                requestedMaxKeepAliveCount: 5,
+                maxNotificationsPerPublish: 5,
+                publishingEnabled: true,
+                priority: 6
+            });
+            subscription.on("started", function () {
+                setTimeout(function () {
+                    subscription.terminate();
+                }, 200);
+            });
+            subscription.on("terminated", function () {
+                done();
+            });
+        }, done);
+    });
+
     it("a ClientSubscription should receive keep-alive events from the server", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {

@@ -5,19 +5,8 @@ var factories = require("../../lib/misc/factories");
 var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var _ = require("underscore");
 
-var ObjWithIntegerId_Schema = {
 
-    id: factories.next_available_id(),
-    name: "ObjWithIntegerId",
-    fields: [
-        { name: "title" ,        fieldType: "UAString" },
-        {
-            name: "requestHandle"  , fieldType: "IntegerId"
-        }
-    ]
-};
-exports.ObjWithIntegerId_Schema = ObjWithIntegerId_Schema;
-var ObjWithIntegerId  = factories.registerObject(ObjWithIntegerId_Schema,"tmp");
+var ObjWithIntegerId  = factories.registerObject("test/fixtures/schemas|ObjWithIntegerId","tmp");
 
 
 describe("Testing IntegerId",function() {

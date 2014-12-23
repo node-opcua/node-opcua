@@ -96,6 +96,10 @@ describe("Testing ClientSecureChannel 2", function () {
 
         var secureChannel = new ClientSecureChannelLayer();
 
+        secureChannel.on_transaction_completed = function(transaction_stat) {
+            transaction_stat.dump();
+        };
+
         secureChannel.on("close", function (err) {
             should(err).be.eql(null, "expecting no error here, as secure channel has been closed normally");
             //xx console.log("secure channel has ended", err);

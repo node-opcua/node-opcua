@@ -30,13 +30,24 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         opcua.generate_address_space(address_space,xml_file,function(err) {
+
             makeServerStatus(address_space);
+
             done(err);
         });
     });
 
-    it("should create an enumeration from the  ServerState object",function(done){
+    it("a DataType should provide a DefaultBinary Encoding object",function(){
 
+
+        var serverStatusType = address_space.findDataType("ServerStatusDataType");
+
+        serverStatusType.getEncodingNodeId("Default Binary").nodeId.toString().should.eql("ns=0;i=864");
+
+    });
+
+
+    it("should create an enumeration from the  ServerState object",function(done){
 
         var test_value = nodeset.ServerState.NoConfiguration;
 
@@ -50,9 +61,6 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
         var serverStatus = new nodeset.ServerStatus({
             startTime: new Date(),
             buildInfo: {
-                // productUri: "qsdqs",
-                // manufacturerName: "sqdqsd"
-
             },
             secondsTillShutdown: 100,
             shutdownReason: { text: "for maintenance"}

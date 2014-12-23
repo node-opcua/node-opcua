@@ -154,6 +154,9 @@ describe("testing ClientSecureChannelLayer ",function(){
             secureChannel.bytesRead.should.be.greaterThan(0);
             secureChannel.bytesWritten.should.be.greaterThan(0);
 
+            secureChannel.isTransactionInProgress().should.eql(false);
+
+
             secureChannel.close(function(err){
                 done(err);
             });

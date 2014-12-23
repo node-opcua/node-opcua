@@ -443,7 +443,7 @@ if (!crypto_utils.isFullySupported()) {
             });
         });
 
-        perform_collection_of_test_with_various_client_configuration();
+        perform_collection_of_test_with_various_client_configuration(" (1024 bits certificate on server)");
 
         it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
@@ -473,7 +473,7 @@ if (!crypto_utils.isFullySupported()) {
         });
 
 
-        perform_collection_of_test_with_various_client_configuration("ddd");
+        perform_collection_of_test_with_various_client_configuration(" (2048 bits certificate on server)");
 
         xit("connection should fail if security mode requested by client is not supported by server", function (done) {
 

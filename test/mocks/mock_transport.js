@@ -7,6 +7,8 @@ var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
 var assert = require('better-assert');
 var display_trace_from_this_projet_only = require("../../lib/misc/utils").display_trace_from_this_projet_only;
 
+var opcua = require("../../lib/opcua");
+
 var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({
     protocolVersion:      1,
     receiveBufferSize:    8192,

@@ -6,6 +6,8 @@ var NumericRangeType = NumericRange.NumericRangeType;
 
 
 var factories = require("../../lib/misc/factories");
+
+
 var ObjWithNumericRange_Schema = {
 
     id: factories.next_available_id(),
@@ -127,7 +129,7 @@ describe("Testing numerical range", function () {
 
         var ObjWithNumericRange;
         before(function(){
-            ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema);
+            ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema,"tmp");
         });
         after(function(){
             factories.unregisterObject(ObjWithNumericRange_Schema);
