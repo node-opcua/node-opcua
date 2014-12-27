@@ -7,6 +7,9 @@ var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
 var MockTransport           = require("../mocks/mock_transport").MockTransport;
 var fake_AcknowledgeMessage = require("../mocks/mock_transport").fake_AcknowledgeMessage;
 
+var endpoints_service = require("../../lib/services/get_endpoints_service");
+var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
+
 
 
 describe("testing ClientSecureChannelLayer ",function(){
@@ -115,7 +118,7 @@ describe("testing ClientSecureChannelLayer ",function(){
 
         var secureChannel = new ClientSecureChannelLayer();
         var s = require("../../lib/datamodel/structures");
-        var message = new s.GetEndpointsRequest();
+        var message = new GetEndpointsRequest();
         secureChannel.performMessageTransaction(message,function(err/*, response*/){
             err.message.should.equal("Client not connected");
             done();

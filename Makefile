@@ -28,3 +28,6 @@ build_tools:
 
 build:
 	browserify  bin\simple_server.js --exclude usage --exclude node-expat --exclude ursa --exclude x509 | minifyjs -m -o simple_server.min.js
+
+ug:
+	node -e 'var NodeUglifier= require("node-uglifier");(new NodeUglifier("bin/simple_server.js")).uglify().exportToFile("a.js");'

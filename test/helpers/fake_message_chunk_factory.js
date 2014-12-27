@@ -1,6 +1,6 @@
 var hexDump = require("../../lib/misc/utils").hexDump;
 
-var SecureMessageChunkManager = require("../../lib/services/secure_channel_service").SecureMessageChunkManager;
+var SecureMessageChunkManager = require("../../lib/misc/secure_message_chunk_manager").SecureMessageChunkManager;
 var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
 
 var AsymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").AsymmetricAlgorithmSecurityHeader;

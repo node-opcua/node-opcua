@@ -6,11 +6,20 @@ var verify_single_chunk_message = require("../helpers/verify_message_chunk").ver
 var makebuffer = require("../../lib/misc/utils").makebuffer;
 
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
-var s = require("../../lib/services/secure_channel_service");
+
+var session_service = require("../../lib/services/session_service");
+var CreateSessionRequest = session_service.CreateSessionRequest;
+
+var get_endpoints_service = require("../../lib/services/get_endpoints_service");
+var ApplicationType = get_endpoints_service.ApplicationType;
+var ApplicationDescription = get_endpoints_service.ApplicationDescription;
+
 
 var redirectToFile = require("../../lib/misc/utils").redirectToFile;
 
-var FindServersResponse = require("../../lib/services/register_server_service").FindServersResponse;
+
+var register_server_service = require("../../lib/services/register_server_service");
+var FindServersResponse = register_server_service.FindServersResponse;
 
 var should = require("should");
 
@@ -19,11 +28,11 @@ describe("OPCUA Object creation", function () {
     var s = require("../../lib/datamodel/structures");
     it("should create a complex type with embedded type", function () {
 
-        var applicationDescription = new s.ApplicationDescription({
+        var applicationDescription = new ApplicationDescription({
             applicationUri: "application:uri",
             productUri: "uri:product",
             applicationName: { text: "MyApplication"},
-            applicationType: s.ApplicationType.CLIENT,
+            applicationType: ApplicationType.CLIENT,
             gatewayServerUri: undefined,
             discoveryProfileUri: undefined,
             discoveryUrls: []
@@ -35,7 +44,7 @@ describe("OPCUA Object creation", function () {
         applicationDescription.discoveryUrls.length.should.equal(0);
 
 
-        var request = new s.CreateSessionRequest({
+        var request = new CreateSessionRequest({
             clientDescription: applicationDescription,
             serverUri: "serverUri",
             endpointUrl: "endpointUrl",

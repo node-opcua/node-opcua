@@ -1,11 +1,18 @@
 
-var s = require("../../lib/datamodel/structures");
+var endpoints_service =  require("../../lib/services/get_endpoints_service"); 
+
+var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
+var EndpointDescription  = endpoints_service.EndpointDescription;
+var ApplicationType      = endpoints_service.ApplicationType;
+var MessageSecurityMode  = endpoints_service.MessageSecurityMode;
+var UserIdentityTokenType= endpoints_service.UserIdentityTokenType;
+
 var should = require("should");
 var assert = require("better-assert");
 
 exports.fixture1 = (function(){
     // empty  GetEndpointsResponse
-    return new s.GetEndpointsResponse();
+    return new GetEndpointsResponse();
 
 })();
 
@@ -19,7 +26,7 @@ exports.makeEndPoint = function(){
             applicationUri :  "OPCUA  node-js",
             productUri:       "some product uri",
             applicationName:  { text: "Localised application name"},
-            applicationType:   s.ApplicationType.CLIENTANDSERVER,
+            applicationType:   ApplicationType.CLIENTANDSERVER,
             gatewayServerUri:  "gatewayServerUri",
             discoveryProfileUri: "discoveryProfileUri",
             discoveryUrls: [
@@ -33,13 +40,13 @@ exports.makeEndPoint = function(){
 
         serverCertificate: new Buffer(256),
 
-        securityMode: s.MessageSecurityMode.NONE,
+        securityMode: MessageSecurityMode.NONE,
 
         securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
         userIdentityTokens: [
             {
                 policyId: "policyId",
-                tokenType: s.UserIdentityTokenType.ANONYMOUS,
+                tokenType: UserIdentityTokenType.ANONYMOUS,
                 issuedTokenType: "issuedTokenType",
                 issuerEndpointUrl: "qdqsdq",
                 securityPolicyUri: "String"
@@ -48,7 +55,7 @@ exports.makeEndPoint = function(){
         transportProfileUri: "",
         securityLevel:    36
     };
-    var value =  new s.EndpointDescription(data);
+    var value =  new EndpointDescription(data);
     assert(value.server);
     return value;
 };
@@ -57,14 +64,14 @@ exports.makeEndPoint = function(){
 exports.fixture2 = (function(){
 
 
-    var endPointResponse = new s.GetEndpointsResponse();
+    var endPointResponse = new GetEndpointsResponse();
     endPointResponse.endpoints.length.should.equal(0);
 
     endPointResponse.endpoints.push(exports.makeEndPoint());
     endPointResponse.endpoints.length.should.equal(1);
 
     endPointResponse.endpoints[0].server.gatewayServerUri.should.eql("gatewayServerUri");
-    endPointResponse.endpoints[0].securityMode.should.eql(s.MessageSecurityMode.NONE);
+    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.NONE);
 
 
     return endPointResponse;
@@ -74,7 +81,7 @@ exports.fixture2 = (function(){
 exports.fixture3 = (function(){
 
 
-    var endPointResponse = new s.GetEndpointsResponse();
+    var endPointResponse = new GetEndpointsResponse();
     endPointResponse.endpoints.length.should.equal(0);
 
     endPointResponse.endpoints.push(exports.makeEndPoint());
@@ -83,7 +90,7 @@ exports.fixture3 = (function(){
     endPointResponse.endpoints.length.should.equal(3);
 
     endPointResponse.endpoints[0].server.gatewayServerUri.should.eql("gatewayServerUri");
-    endPointResponse.endpoints[0].securityMode.should.eql(s.MessageSecurityMode.NONE);
+    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.NONE);
 
 
     return endPointResponse;
@@ -94,7 +101,7 @@ exports.fixture3 = (function(){
 exports.fixture4 = (function(){
 
 
-    var endPointResponse = new s.GetEndpointsResponse();
+    var endPointResponse = new GetEndpointsResponse();
     endPointResponse.endpoints.length.should.equal(0);
 
     endPointResponse.endpoints.push(exports.makeEndPoint());
@@ -120,7 +127,7 @@ exports.fixture4 = (function(){
     endPointResponse.endpoints.length.should.equal(20);
 
     endPointResponse.endpoints[0].server.gatewayServerUri.should.eql("gatewayServerUri");
-    endPointResponse.endpoints[0].securityMode.should.eql(s.MessageSecurityMode.NONE);
+    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.NONE);
 
 
     return endPointResponse;

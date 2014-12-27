@@ -7,6 +7,9 @@ var build_server_with_temperature_device = require("./helpers/build_server_with_
 
 var s = require("../lib/datamodel/structures");
 
+var session_service = require("../lib/services/session_service");
+var UserNameIdentityToken = session_service.UserNameIdentityToken;
+
 
 describe("testing Client-Server with UserName/Password identity token",function() {
     var server , client,temperatureVariableId,endpointUrl ;
@@ -51,7 +54,7 @@ describe("testing Client-Server with UserName/Password identity token",function(
             // create session
             function(callback) {
 
-                var userIdentityToken = new s.UserNameIdentityToken({
+                var userIdentityToken = new UserNameIdentityToken({
                     policyId: "...",
                     userName: username,
                     password: password,

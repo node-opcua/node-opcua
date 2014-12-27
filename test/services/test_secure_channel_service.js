@@ -1,10 +1,12 @@
+/* global describe,it*/
 var should = require("should");
+
 var secure_channel = require("../../lib/services/secure_channel_service");
+var CloseSecureChannelResponse = secure_channel.CloseSecureChannelResponse;
+
 var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
 
-var s = require("../../lib/datamodel/structures");
 var async = require("async");
-var util = require("util");
 
 
 var compare_buffers = require("./../../lib/misc/utils").compare_buffers;
@@ -14,7 +16,7 @@ var hexDump =  require("../../lib/misc/utils").hexDump;
 var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
 
 
-var MessageChunker = secure_channel.MessageChunker;
+var MessageChunker = require("../../lib/misc/message_chunker").MessageChunker;
 
 describe("SecureMessageChunkManager", function () {
 
@@ -94,7 +96,7 @@ describe("SecureMessageChunkManager", function () {
                 chunk_stack.forEach(function (chunk) {
 
                     // let simulate a real TCP communication
-                    // where our messageChunk would be split into several packages....
+                    // where our messageChunk would be split into several packages ...
 
                     var l1 = Math.round(chunk.length / 3); // arbitrarily split into 2 packets : 1/3 and 2/3
 
@@ -147,7 +149,7 @@ describe("SecureMessageChunkManager", function () {
     });
     it("should test CloseSecureChannelResponse", function () {
         var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-        var response = new s.CloseSecureChannelResponse({});
+        var response = new CloseSecureChannelResponse({});
         encode_decode_round_trip_test(response);
 
     });

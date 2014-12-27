@@ -8,6 +8,11 @@ var assert = require('better-assert');
 var display_trace_from_this_projet_only = require("../../lib/misc/utils").display_trace_from_this_projet_only;
 
 var opcua = require("../../lib/opcua");
+var CloseSecureChannelResponse = opcua.secure_channel_service.CloseSecureChannelResponse;
+var OpenSecureChannelResponse = opcua.secure_channel_service.OpenSecureChannelResponse;
+
+
+var GetEndpointsResponse =opcua.endpoints_service.GetEndpointsResponse;
 
 var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({
     protocolVersion:      1,
@@ -17,12 +22,12 @@ var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({
     maxChunkCount:      600000
 });
 
-var fake_CloseSecureChannelResponse = new s.CloseSecureChannelResponse({
+var fake_CloseSecureChannelResponse = new CloseSecureChannelResponse({
 
 });
 
 
-var fake_OpenSecureChannelResponse = new s.OpenSecureChannelResponse({
+var fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
     serverProtocolVersion: 1,
     securityToken: {
         secureChannelId: 23,
@@ -33,7 +38,7 @@ var fake_OpenSecureChannelResponse = new s.OpenSecureChannelResponse({
     serverNonce:  new Buffer("qwerty")
 });
 
-var fake_GetEndpointsResponse = new s.GetEndpointsResponse({
+var fake_GetEndpointsResponse = new GetEndpointsResponse({
     endpoints: [
         {
             endpointUrl: "fake://localhost:2033/SomeAddress"

@@ -1,10 +1,8 @@
 var should = require("should");
-//xx var MessageChunkManager = require("../../lib/misc/message_chunk_manager").MessageChunkManager;
-//var ServerSecureChannelLayer = require("../../lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
-var SecureMessageChunkManager = require("../../lib/services/secure_channel_service").SecureMessageChunkManager;
+var SecureMessageChunkManager = require("../../lib/misc/secure_message_chunk_manager").SecureMessageChunkManager;
 var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
 var SymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").SymmetricAlgorithmSecurityHeader;
-var utils = require("../../lib/misc/utils");
+
 
 function performMessageChunkManagerTest(options) {
 

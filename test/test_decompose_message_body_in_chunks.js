@@ -1,7 +1,7 @@
 var should = require("should");
 var assert = require("better-assert");
 var SequenceNumberGenerator = require("../lib/misc/sequence_number_generator").SequenceNumberGenerator;
-var SecureMessageChunkManager = require("../lib/services/secure_channel_service").SecureMessageChunkManager;
+var SecureMessageChunkManager = require("../lib/misc/secure_message_chunk_manager").SecureMessageChunkManager;
 
 /**
  * @method decompose_message_body_in_chunks
