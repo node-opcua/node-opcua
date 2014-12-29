@@ -102,46 +102,49 @@ server.on("post_initialize", function () {
 
     /**
      * variation 1:
-     * Add a variable in folder using a single get function
+     * ------------
+     *
+     * Add a variable in folder using a single get function witch returns the up to date variable value in Variant.
+     * The server will set the timestamps automatically for us.
      *
      */
-    server.engine.addVariableInFolder(myDevices,
-        {
-            browseName: "PumpSpeed",
-            nodeId: "ns=2;s=PumpSpeed",
-            dataType: "Double",
-            value: {
-                /**
-                 * returns the  current value as a Variant
-                 * @method get
-                 * @returns {Variant}
-                 */
-                get: function () {
-                    var pump_speed = 200 + 100*Math.sin(Date.now()/10000);
-                    return new Variant({dataType: DataType.Double, value: pump_speed});
-                }
+    server.engine.addVariableInFolder(myDevices, {
+        browseName: "PumpSpeed",
+        nodeId: "ns=2;s=PumpSpeed",
+        dataType: "Double",
+        value: {
+            /**
+             * returns the  current value as a Variant
+             * @method get
+             * @return {Variant}
+             */
+            get: function () {
+                var pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
+                return new Variant({dataType: DataType.Double, value: pump_speed});
             }
-        });
+        }
+    });
 
-
-    server.engine.addVariableInFolder(myDevices,
-       {
-              browseName: "SomeDate",
-              nodeId: "ns=2;s=SomeDate",
-              dataType: "DateTime",
-              value : {
-                 get : function() {
-                   return new Variant({dataType: DataType.DateTime , value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0) )});
-                 }
-              }
-       });
+    server.engine.addVariableInFolder(myDevices, {
+        browseName: "SomeDate",
+        nodeId: "ns=2;s=SomeDate",
+        dataType: "DateTime",
+        value: {
+            get: function () {
+                return new Variant({dataType: DataType.DateTime, value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0))});
+            }
+        }
+    });
 
 
 
     /**
      * variation 2:
-     * Add a variable in folder using a single function returning a timestamped value
+     * ------------
      *
+     * Add a variable in folder. This variable gets its value and source timestamps from the provided function.
+     * The value and source timestamps are held in a external object.
+     * The value and source timestamps are updated on a regular basis using a timer function.
      */
     var external_value_with_sourceTimestamp = {
         value: new Variant({dataType: DataType.Double , value: 10.0}),
@@ -151,17 +154,49 @@ server.on("post_initialize", function () {
     setInterval(function() {
         external_value_with_sourceTimestamp.value.value = Math.random();
         external_value_with_sourceTimestamp.sourceTimestamp = new Date();
-    },10000);
+    },1000);
 
-    server.engine.addVariableInFolder(myDevices,
-        {
-            browseName: "Pressure",
-            nodeId: "ns=2;s=Pressure",
-            dataType: "Double",
-            value : {
-                timestamped_get : function() { return external_value_with_sourceTimestamp;}
+    server.engine.addVariableInFolder(myDevices, {
+        browseName: "Pressure",
+        nodeId: "ns=2;s=Pressure",
+        dataType: "Double",
+        value: {
+            timestamped_get: function () {
+                return external_value_with_sourceTimestamp;
             }
-        });
+        }
+    });
+
+
+    /**
+     * variation 3:
+     * ------------
+     *
+     * Add a variable in a folder. This variable gets its value  and source timestamps from the provided asynchronous
+     * function.
+     * The asynchronous function is called only when needed by the opcua Server read services and monitored item services
+     *
+     */
+
+    server.engine.addVariableInFolder(myDevices, {
+        browseName: "Temperature",
+        nodeId: "ns=2;s=Temperature",
+        dataType: "Double",
+
+        value: {
+            refreshFunc: function (callback) {
+
+                var temperature = 20 + 10 * Math.sin(Date.now() / 10000);
+                var value = new Variant({dataType: DataType.Double, value: temperature});
+                var sourceTimestamp = new Date();
+
+                // simulate a asynchronous behaviour
+                setTimeout(function () {
+                    callback(null, value, sourceTimestamp);
+                }, 100);
+            }
+        }
+    });
 
 
     install_optional_cpu_and_memory_usage_node(server);
