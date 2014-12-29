@@ -9,7 +9,7 @@ var key = fs.readFileSync("worldweatheronline.key");
 
 function getCityWeather(city,callback) {
 
-    var api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
+    var api_url="http://api.worldweatheronline.com/free/v1/weather.ashx?q="+city+"+&format=json&key="+ key;
 
     var options = {
         url: api_url,
