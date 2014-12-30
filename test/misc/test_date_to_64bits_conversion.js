@@ -143,7 +143,7 @@ function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     var bn_value = new BigNumber(t).plus(offset).times(factor);
     var high = bn_value.div(0x100000000).floor();
     var low = bn_value.mod(0x100000000);
-    return [ parseInt(high.toS(), 10), parseInt(low.toS(), 10)];
+    return [ parseInt(high.toString(), 10), parseInt(low.toString(), 10)];
 }
 
 function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
