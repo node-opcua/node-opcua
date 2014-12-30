@@ -97,6 +97,8 @@ describe("Testing ClientSecureChannel 2", function () {
 
         var secureChannel = new ClientSecureChannelLayer();
 
+        secureChannel.protocolVersion.should.equal(0);
+
         secureChannel.on_transaction_completed = function(transaction_stat) {
             transaction_stat.dump();
         };
@@ -109,6 +111,7 @@ describe("Testing ClientSecureChannel 2", function () {
             }
         });
         secureChannel.create("opc.tcp://localhost:1234/UA/Sample", function (err) {
+
             should(err).be.eql(null, "connection expected to succeed");
 
             secureChannel.close(function () {

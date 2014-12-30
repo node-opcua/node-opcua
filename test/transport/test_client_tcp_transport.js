@@ -28,7 +28,7 @@ describe("testing ClientTCP_transport", function () {
     });
 
     var fake_AcknowledgeMessage = new opcua.AcknowledgeMessage({
-        protocolVersion: 1,
+        protocolVersion: 0,
         receiveBufferSize: 8192,
         sendBufferSize: 8192,
         maxMessageSize: 100000,

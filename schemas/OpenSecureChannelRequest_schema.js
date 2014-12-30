@@ -1,6 +1,8 @@
 var factories = require("../lib/misc/factories");
 
+var MessageSecurityMode =  require("./MessageSecurityMode_enum").MessageSecurityMode;
 var SecurityTokenRequestType = require("./SecurityTokenRequestType_enum").SecurityTokenRequestType;
+
 // see OPCUA.Part4. page 22
 var OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
     name: "OpenSecureChannelRequest",

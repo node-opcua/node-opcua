@@ -57,7 +57,7 @@ describe("testing basic Client-Server communication",function() {
 
         server.currentChannelCount.should.equal(0);
 
-        client.protocolVersion = 1;
+        client.protocolVersion = 0;
 
         async.series([
             function(callback) {
@@ -144,7 +144,7 @@ describe("testing basic Client-Server communication",function() {
 
         server.currentChannelCount.should.equal(0);
 
-        client.protocolVersion = 1;
+        client.protocolVersion = 0;
 
         var unused_port = 8909;
         var bad_endpointUrl = "opc.tcp://localhost:"+unused_port;
@@ -230,7 +230,7 @@ describe("testing basic Client-Server communication",function() {
     it("calling connect on the client twice shall return a error the second time",function(done){
         server.currentChannelCount.should.equal(0);
 
-        client.protocolVersion = 1;
+        client.protocolVersion = 0;
 
         async.series([
             function(callback) {

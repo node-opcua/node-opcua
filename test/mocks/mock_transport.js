@@ -16,7 +16,7 @@ var OpenSecureChannelResponse = opcua.secure_channel_service.OpenSecureChannelRe
 var GetEndpointsResponse =opcua.endpoints_service.GetEndpointsResponse;
 
 var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({
-    protocolVersion:      1,
+    protocolVersion:      0,
     receiveBufferSize:    8192,
     sendBufferSize:       8192,
     maxMessageSize:     100000,
@@ -29,7 +29,7 @@ var fake_CloseSecureChannelResponse = new CloseSecureChannelResponse({
 
 
 var fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
-    serverProtocolVersion: 1,
+    serverProtocolVersion: 0,
     securityToken: {
         secureChannelId: 23,
         tokenId:         1,
