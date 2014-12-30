@@ -44,7 +44,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
             requestedParameters: {
                 queueSize: 10,
-                samplingInterval: 10
+                samplingInterval: 100
             }
         });
 
@@ -58,13 +58,12 @@ describe("Subscriptions and MonitoredItems", function () {
         monitoredItemCreateResult.should.be.instanceOf(subscription_service.MonitoredItemCreateResult);
 
         monitoredItemCreateResult.monitoredItemId.should.eql(1);
-        monitoredItemCreateResult.revisedSamplingInterval.should.eql(10);
-
+        monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
 
         subscription.on("terminated",function(){
-            done();
             // monitored Item shall be deleted at this stage
             subscription.monitoredItemCount.should.eql(0);
+            done();
         });
         subscription.terminate();
 

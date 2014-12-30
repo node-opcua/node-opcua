@@ -4,8 +4,10 @@ var sinon = require("sinon");
 
 var subscription_service = require("lib/services/subscription_service");
 var NotificationMessage = subscription_service.NotificationMessage;
+
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var Subscription = require("lib/server/subscription").Subscription;
+var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
 describe("Subscriptions", function () {
     beforeEach(function () {
@@ -368,9 +370,57 @@ describe("Subscriptions", function () {
 
 
     });
-    it("closing a Subscription causes its MonitoredItems to be deleted. ",function(){
+    xit("closing a Subscription causes its MonitoredItems to be deleted. ",function(){
 
     });
 
+
 });
 
+describe("Subscription#adjustSamplingInterval",function() {
+
+    it("should have a minimum sampling interval, with a stricly positive value ( which is the fastest possible rate)",function() {
+        MonitoredItem.minimumSamplingInterval.should.be.greaterThan(4);
+    });
+
+    it("should have a default sampling interval , greater than minimumSamplingInterval ",function() {
+        MonitoredItem.defaultSamplingInterval.should.be.greaterThan(MonitoredItem.minimumSamplingInterval);
+    });
+
+    it("should have a maximum sampling interval , greater than defaultSamplingInterval ",function() {
+        MonitoredItem.maximumSamplingInterval.should.be.greaterThan(MonitoredItem.defaultSamplingInterval);
+    });
+
+    it("should adjust sampling interval to subscription publish interval when requested sampling interval === -1",function() {
+        var subscription = new Subscription({publishingInterval: 1234 });
+        subscription.adjustSamplingInterval(-1).should.eql(subscription.publishingInterval);
+    });
+    it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value != -1",function() {
+        var subscription = new Subscription({publishingInterval: 1234 });
+        subscription.adjustSamplingInterval(-2).should.eql(subscription.publishingInterval);
+        subscription.adjustSamplingInterval(-0.02).should.eql(subscription.publishingInterval);
+    });
+
+    it("should adjust sampling interval to minimum when requested sampling interval === 0",function() {
+        var subscription = new Subscription({publishingInterval: 1234 });
+        subscription.adjustSamplingInterval(0).should.eql(MonitoredItem.minimumSamplingInterval);
+    });
+
+    it("should adjust sampling interval to maximum when requested sampling interval is too high",function() {
+        var subscription = new Subscription({publishingInterval: 1234 });
+        subscription.adjustSamplingInterval(1E10).should.eql(MonitoredItem.maximumSamplingInterval);
+    });
+
+    it("should return an unmodified sampling interval when requested sampling is in valid range",function() {
+        var subscription = new Subscription({publishingInterval: 1234 });
+        var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval)/2.0;
+        subscription.adjustSamplingInterval(someValidSamplingInterval).should.eql(someValidSamplingInterval);
+    });
+
+    it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low",function() {
+        var subscription = new Subscription({publishingInterval: 1234 });
+        var someVeryLowSamplingInterval = 1;
+        subscription.adjustSamplingInterval(someVeryLowSamplingInterval).should.eql(MonitoredItem.minimumSamplingInterval);
+    });
+
+});
