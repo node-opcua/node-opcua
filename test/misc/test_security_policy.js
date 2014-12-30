@@ -1,7 +1,8 @@
+require("requirish")._(module);
 
 var should = require("should");
 
-var SecurityPolicy = require("../../lib/misc/security_policy").SecurityPolicy;
+var SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
 
 
 describe("Security Policy",function(){

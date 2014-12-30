@@ -1,4 +1,5 @@
-var utils  =require("../../lib/misc/utils");
+require("requirish")._(module);
+var utils  =require("lib/misc/utils");
 var should = require("should");
 
 

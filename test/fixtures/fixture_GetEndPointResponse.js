@@ -1,5 +1,6 @@
+require("requirish")._(module);
 
-var endpoints_service =  require("../../lib/services/get_endpoints_service"); 
+var endpoints_service =  require("lib/services/get_endpoints_service");
 
 var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
 var EndpointDescription  = endpoints_service.EndpointDescription;

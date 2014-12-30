@@ -1,25 +1,26 @@
+require("requirish")._(module);
 
 
-var OPCUAClient = require("../../lib/client/opcua_client").OPCUAClient;
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 var should = require("should");
-var assert = require('better-assert');
+var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
-var opcua = require("../../lib/nodeopcua");
+var opcua = require("lib/nodeopcua");
 
-var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
-var read_service= require("../../lib/services/read_service");
-var browse_service = require("../../lib/services/browse_service");
-var subscription_service = require("../../lib/services/subscription_service");
+var read_service= require("lib/services/read_service");
+var browse_service = require("lib/services/browse_service");
+var subscription_service = require("lib/services/subscription_service");
 
-var s = require("../../lib/datamodel/structures");
-var ec = require("../../lib/misc/encode_decode");
-var hexDump = require("../../lib/misc/utils").hexDump;
+var s = require("lib/datamodel/structures");
+var ec = require("lib/misc/encode_decode");
+var hexDump = require("lib/misc/utils").hexDump;
 
 describe("testing subscription objects",function(){
-    var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+    var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
     it("should encode and decode a CreateSubscriptionRequest",function(done){
         var request = new subscription_service.CreateSubscriptionRequest({
@@ -67,9 +68,9 @@ describe("testing subscription objects",function(){
 
     describe("testing subscription services data structure from the field", function() {
 
-        var makebuffer = require("../../lib/misc/utils").makebuffer;
-        var redirectToFile = require("../../lib/misc/utils").redirectToFile;
-        var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
+        var makebuffer = require("lib/misc/utils").makebuffer;
+        var redirectToFile = require("lib/misc/utils").redirectToFile;
+        var verify_multi_chunk_message= require("test/helpers/verify_message_chunk").verify_multi_chunk_message;
         it("should decode a real CreateMonitoredItemsRequest ",function(done){
 
           // a real OpenSecureChannelRequest message chunk
@@ -259,7 +260,7 @@ describe("testing subscription objects",function(){
 });
 
 var _ = require("underscore");
-var build_client_server_session = require("../helpers/build_client_server_session").build_client_server_session;
+var build_client_server_session = require("test/helpers/build_client_server_session").build_client_server_session;
 
 describe("testing basic Client Server dealing with subscription at low level",function(){
     var g_session ;
@@ -280,7 +281,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
     });
 
     it("server should create a subscription (CreateSubscriptionRequest)",function(done){
-        var s = require("../../lib/datamodel/structures");
+        var s = require("lib/datamodel/structures");
 
         // CreateSubscriptionRequest
         var request = new subscription_service.CreateSubscriptionRequest({
@@ -301,7 +302,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
     });
     it("server should create a monitored item  (CreateMonitoredItems)",function(done){
 
-        var VariableIds =require("../../lib/opcua_node_ids").VariableIds;
+        var VariableIds =require("lib/opcua_node_ids").VariableIds;
 
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateMonitoredItemsRequest({

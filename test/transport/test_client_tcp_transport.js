@@ -1,18 +1,19 @@
-var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
+require("requirish")._(module);
+var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
 var should = require("should");
-var opcua = require("../../lib/nodeopcua");
-var assert = require('assert');
-var utils = require("../../lib/misc/utils");
+var opcua = require("lib/nodeopcua");
+var assert = require("assert");
+var utils = require("lib/misc/utils");
 var color = require("colors");
-var s = require("../../lib/datamodel/structures");
-var StatusCode = require("../../lib/datamodel/opcua_status_code").StatusCode;
+var s = require("lib/datamodel/structures");
+var StatusCode = require("lib/datamodel/opcua_status_code").StatusCode;
 
-var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 
 describe("testing ClientTCP_transport", function () {
 
-    var ClientTCP_transport = require("../../lib/transport/client_tcp_transport").ClientTCP_transport;
+    var ClientTCP_transport = require("lib/transport/client_tcp_transport").ClientTCP_transport;
 
     var transport;
     beforeEach(function (done) {
@@ -50,7 +51,7 @@ describe("testing ClientTCP_transport", function () {
         });
 
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
         transport.connect("fake://localhost:2033/SomeAddress", function (err) {
             done(err);
@@ -67,7 +68,7 @@ describe("testing ClientTCP_transport", function () {
             // DO NOTHING !!
         });
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_no_responding_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_no_responding_socket.client);
 
         transport.timeout = 10; // very short timeout;
 
@@ -93,7 +94,7 @@ describe("testing ClientTCP_transport", function () {
             // Pretend the message is malformed or that the server crashed for some reason : abort now !
             fake_socket.server.end();
         });
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
         transport.timeout = 10; // very short timeout;
 
@@ -116,7 +117,7 @@ describe("testing ClientTCP_transport", function () {
     it("should report an error if the server reports a protocol version mismatch", function (done) {
 
         var fake_socket = new DirectTransport();
-        var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+        var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
         fake_socket.server.on("data", function (data) {
             // received Fake HEL Message
@@ -130,7 +131,7 @@ describe("testing ClientTCP_transport", function () {
                 fake_socket.server.end();
             });
         });
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
         transport.timeout = 10; // very short timeout;
 
@@ -180,7 +181,7 @@ describe("testing ClientTCP_transport", function () {
             counter.should.be.lessThan(4);
         });
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
         transport.timeout = 10; // very short timeout;
 
@@ -224,7 +225,7 @@ describe("testing ClientTCP_transport", function () {
             server_confirms_that_server_socket_has_been_closed = true;
         });
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
         transport.timeout = 10; // very short timeout;
 
@@ -280,7 +281,7 @@ describe("testing ClientTCP_transport", function () {
             server_confirms_that_server_socket_has_been_closed = true;
         });
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
         transport.timeout = 10; // very short timeout;
         transport.on("close", function (err) {

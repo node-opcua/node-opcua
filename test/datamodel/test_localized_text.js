@@ -1,7 +1,8 @@
+require("requirish")._(module);
 var should = require("should");
 var util = require("util");
-var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
-var LocalizedText = require("../../lib/datamodel/localized_text").LocalizedText;
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
 
 describe("LocalizedText",function() {
 

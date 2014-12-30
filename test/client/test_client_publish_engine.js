@@ -1,14 +1,15 @@
+require("requirish")._(module);
 
-var subscription_service = require("../../lib/services/subscription_service");
-var s = require("../../lib/datamodel/structures");
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+var subscription_service = require("lib/services/subscription_service");
+var s = require("lib/datamodel/structures");
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var assert = require("better-assert");
 var should = require("should");
 var _ = require("underscore");
 var NotificationMessage = subscription_service.NotificationMessage;
 var sinon = require("sinon");
 
-var ClientSidePublishEngine = require("../../lib/client/client_publish_engine").ClientSidePublishEngine
+var ClientSidePublishEngine = require("lib/client/client_publish_engine").ClientSidePublishEngine
 
 
 
@@ -51,7 +52,7 @@ describe("Testing the client publish engine", function () {
 
     it("a client should keep sending a new publish request to the server after receiving a notification, when a subscription is active", function () {
 
-        var PublishResponse = require("../../lib/services/subscription_service").PublishResponse;
+        var PublishResponse = require("lib/services/subscription_service").PublishResponse;
         var fake_session = { publish: function (request, callback) {
             assert(request._schema.name === "PublishRequest");
             // let simulate a server sending a PublishResponse for subscription:1
@@ -85,7 +86,7 @@ describe("Testing the client publish engine", function () {
 
     });
     it("a client should stop sending publish request to the server after receiving a notification, when subscription has been unregistered", function () {
-        var PublishResponse = require("../../lib/services/subscription_service").PublishResponse;
+        var PublishResponse = require("lib/services/subscription_service").PublishResponse;
         var fake_session = { publish: function (request, callback) {
             assert(request._schema.name === "PublishRequest");
             // let simulate a server sending a PublishResponse for subscription:1

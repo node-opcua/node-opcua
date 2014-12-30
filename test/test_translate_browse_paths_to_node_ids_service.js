@@ -1,6 +1,7 @@
-var translate_service = require("../lib/services/translate_browse_paths_to_node_ids_service");
-var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
-var ec = require("../lib/misc/encode_decode");
+require("requirish")._(module);
+var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var ec = require("lib/misc/encode_decode");
 
 describe("TranslateBrowsePathsToNodeIds service",function(){
     var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -65,7 +66,7 @@ describe("TranslateBrowsePathsToNodeIds service",function(){
 
 
 var _ = require("underscore");
-var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 
 var opcua = require("../");
@@ -85,7 +86,7 @@ describe("testing Client Server dealing with translate browse path",function(){
 
     it("server should translate a single browse path to a node id",function(done){
 
-        var s = require("../lib/datamodel/structures");
+        var s = require("lib/datamodel/structures");
 
         var browsePath = new translate_service.BrowsePath({
             startingNode : ec.makeNodeId(12),

@@ -1,15 +1,16 @@
-var OPCUAServer = require("../../lib/server/opcua_server").OPCUAServer;
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-var opcua = require("../../lib/nodeopcua");
-var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
-var Variant = require("../../lib/datamodel/variant").Variant;
-var DataType = require("../../lib/datamodel/variant").DataType;
+require("requirish")._(module);
+var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var opcua = require("lib/nodeopcua");
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var Variant = require("lib/datamodel/variant").Variant;
+var DataType = require("lib/datamodel/variant").DataType;
 
 var _ = require("underscore");
-var assert = require('better-assert');
-var should = require('should');
+var assert = require("better-assert");
+var should = require("should");
 
-var address_space_for_conformance_testing  = require("../../lib/simulation/address_space_for_conformance_testing");
+var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 /**
@@ -23,7 +24,7 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
  *    the 'temperatureVariableId' of the server object.
  *
  * @param options {options}
- * @param [options.add_simulation = false] {Boolean} add the simulation node in the server
+ * @param [options.add_simulation = false] {Boolean} add the simulation nodes in the server
  * @param done {callback}
  * @return {OPCUAServer}
  */

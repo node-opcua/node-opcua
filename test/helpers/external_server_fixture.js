@@ -1,5 +1,6 @@
+require("requirish")._(module);
 var colors = require("colors");
-var crypto_utils = require("../../lib/misc/crypto_utils");
+var crypto_utils = require("lib/misc/crypto_utils");
 var path = require("path");
 var _ = require("underscore");
 /**
@@ -21,7 +22,7 @@ function start_simple_server(options,callback) {
 
     options = options||{};
 
-    var spawn = require('child_process').spawn;
+    var spawn = require("child_process").spawn;
 
     var options = {
         env: {}

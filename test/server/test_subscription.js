@@ -1,10 +1,11 @@
+require("requirish")._(module);
 var should =require("should");
 var sinon = require("sinon");
 
-var subscription_service = require("../../lib/services/subscription_service");
+var subscription_service = require("lib/services/subscription_service");
 var NotificationMessage = subscription_service.NotificationMessage;
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-var Subscription = require("../../lib/server/subscription").Subscription;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var Subscription = require("lib/server/subscription").Subscription;
 
 describe("Subscriptions", function () {
     beforeEach(function () {

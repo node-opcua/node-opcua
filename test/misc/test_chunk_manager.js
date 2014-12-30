@@ -1,8 +1,9 @@
+require("requirish")._(module);
 var should = require("should");
-var ChunkManager = require("../../lib/misc/chunk_manager").ChunkManager;
+var ChunkManager = require("lib/misc/chunk_manager").ChunkManager;
 
 var util = require("util");
-var hexDump= require("../../lib/misc/utils").hexDump;
+var hexDump= require("lib/misc/utils").hexDump;
 var assert = require("better-assert");
 var _ = require("underscore");
 

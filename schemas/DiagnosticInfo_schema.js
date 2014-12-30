@@ -1,12 +1,12 @@
 /**
  * @module opcua.datamodel
  */
-var factories = require("./../lib/misc/factories");
-var ec = require("./../lib/misc/encode_decode");
+var factories = require("../lib/misc/factories");
+var ec = require("../lib/misc/encode_decode");
 var assert = require('better-assert');
 
-var QualifiedName   = require("./../lib/datamodel/qualified_name").QualifiedName;
-var LocalizedText   = require("./../lib/datamodel/localized_text").LocalizedText;
+var QualifiedName   = require("../lib/datamodel/qualified_name").QualifiedName;
+var LocalizedText   = require("../lib/datamodel/localized_text").LocalizedText;
 
 assert(QualifiedName, " expecting QualifiedName here to be defined");
 assert(LocalizedText, " expecting Localized Text here to be defined");
@@ -57,8 +57,8 @@ function getDiagnosticInfoEncodingByte(diagnosticInfo) {
     return encoding_mask;
 }
 
-var set_flag = require("./../lib/misc/utils").set_flag;
-var check_flag = require("./../lib/misc/utils").check_flag;
+var set_flag = require("../lib/misc/utils").set_flag;
+var check_flag = require("../lib/misc/utils").check_flag;
 
 
 var DiagnosticInfo_Schema = {

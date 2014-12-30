@@ -1,5 +1,6 @@
+require("requirish")._(module);
 
-var PacketAssembler = require("../../lib/transport/packet_assembler").PacketAssembler;
+var PacketAssembler = require("lib/transport/packet_assembler").PacketAssembler;
 var should = require("should");
 
 

@@ -1,9 +1,10 @@
-var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
-var should = require('should');
-var packets = require("./../fixtures/fixture_full_tcp_packets");
+require("requirish")._(module);
+var MessageBuilder = require("lib/misc/message_builder").MessageBuilder;
+var should = require("should");
+var packets = require("test/fixtures/fixture_full_tcp_packets");
 
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
-var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
+var redirectToFile = require("lib/misc/utils").redirectToFile;
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 
 describe("MessageBuilder", function () {

@@ -1,14 +1,15 @@
-var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
-var OPCUASession = require("../lib/client/opcua_client").OPCUASession;
-var assert = require('better-assert');
+require("requirish")._(module);
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+var OPCUASession = require("lib/client/opcua_client").OPCUASession;
+var assert = require("better-assert");
 var async = require("async");
-var should = require('should');
+var should = require("should");
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var AttributeIds = require("../lib/services/read_service").AttributeIds;
-var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
+var AttributeIds = require("lib/services/read_service").AttributeIds;
+var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var redirectToFile = require("../lib/misc/utils").redirectToFile;
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 describe("Testing Server and Client diagnostic facilities",function() {
 

@@ -1,10 +1,11 @@
+require("requirish")._(module);
 
-var AccessLevelFlag = require("../../lib/datamodel/access_level").AccessLevelFlag;
-var makeAccessLevel = require("../../lib/datamodel/access_level").makeAccessLevel;
+var AccessLevelFlag = require("lib/datamodel/access_level").AccessLevelFlag;
+var makeAccessLevel = require("lib/datamodel/access_level").makeAccessLevel;
 var should = require("should");
-var findBuiltInType = require("../../lib/misc/factories_builtin_types").findBuiltInType;
+var findBuiltInType = require("lib/misc/factories_builtin_types").findBuiltInType;
 var assert = require("assert");
-var factories = require("../../lib/misc/factories");
+var factories = require("lib/misc/factories");
 
 var _ = require("underscore");
 
@@ -66,7 +67,7 @@ describe("Testing AccessLevelFlag",function() {
         });
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
 
-        var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+        var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
         encode_decode_round_trip_test(o);
 
 

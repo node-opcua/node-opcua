@@ -1,13 +1,14 @@
+require("requirish")._(module);
 
-var Variant = require("../../lib/datamodel/variant").Variant;
-var DataType = require("../../lib/datamodel/variant").DataType;
-var VariantArrayType = require("../../lib/datamodel/variant").VariantArrayType;
-var s = require("./../../lib/datamodel/structures");
-var ec = require("../../lib/misc/encode_decode");
-var QualifiedName   = require("../../lib/datamodel/qualified_name").QualifiedName;
-var LocalizedText   = require("../../lib/datamodel/localized_text").LocalizedText;
+var Variant = require("lib/datamodel/variant").Variant;
+var DataType = require("lib/datamodel/variant").DataType;
+var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
+var s = require("lib/datamodel/structures");
+var ec = require("lib/misc/encode_decode");
+var QualifiedName   = require("lib/datamodel/qualified_name").QualifiedName;
+var LocalizedText   = require("lib/datamodel/localized_text").LocalizedText;
 var should = require("should");
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 describe("Variant",function() {
@@ -201,11 +202,11 @@ describe("Variant",function() {
     });
 });
 
-var analyze_object_binary_encoding = require("../../lib/misc/packet_analyzer").analyze_object_binary_encoding;
+var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
 
 describe("Variant - Analyser",function(){
 
-    var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
+    var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
     var various_variants = [
         new Variant({  dataType: DataType.UInt32,       arrayType: VariantArrayType.Array,  value: [  2,3,4,5 ]   }),

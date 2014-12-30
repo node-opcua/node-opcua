@@ -1,10 +1,11 @@
+require("requirish")._(module);
 var opcua = require("../../");
 var AddressSpace = opcua.AddressSpace;
 var should = require("should");
 
 var _ = require("underscore");
 
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 var makeNodeId = opcua.makeNodeId;
@@ -12,10 +13,10 @@ var makeExpandedNodeId = opcua.makeExpandedNodeId;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 
-var nodeset = require("../../lib/address_space/convert_nodeset_to_types").nodeset;
-var makeServerStatus = require("../../lib/address_space/convert_nodeset_to_types").makeServerStatus;
+var nodeset = require("lib/address_space/convert_nodeset_to_types").nodeset;
+var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
 
-require("../../lib/datamodel/buildinfo");
+require("lib/datamodel/buildinfo");
 
 
 describe("ComplexType read from XML NodeSET file shall be binary Encodable",function(){

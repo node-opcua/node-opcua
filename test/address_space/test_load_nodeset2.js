@@ -1,5 +1,6 @@
-var generate_address_space = require("../../lib/address_space/load_nodeset2").generate_address_space;
-var AddressSpace = require("../../lib/address_space/address_space").AddressSpace;
+require("requirish")._(module);
+var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
+var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var should = require("should");
 
 describe("testing NodeSet XML file loading",function(){

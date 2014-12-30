@@ -1,14 +1,15 @@
+require("requirish")._(module);
 
-var address_space = require("../../lib/address_space/address_space");
-var generate_address_space = require("../../lib/address_space/load_nodeset2").generate_address_space;
+var address_space = require("lib/address_space/address_space");
+var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var AddressSpace = address_space.AddressSpace;
 var should  = require("should");
-var nodeid = require("../../lib/datamodel/nodeid");
+var nodeid = require("lib/datamodel/nodeid");
 var ReferenceType = address_space.ReferenceType;
 
 var _ = require("underscore");
 var assert = require("better-assert");
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 
 
@@ -65,7 +66,7 @@ describe("testing ReferenceType",function(){
 
 
     it("should return 4 refs for browseNode on RootFolder ,  referenceTypeId=null,!includeSubtypes  ",function(){
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
@@ -80,7 +81,7 @@ describe("testing ReferenceType",function(){
     });
 
     it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ",function(){
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
@@ -94,7 +95,7 @@ describe("testing ReferenceType",function(){
         references.length.should.equal(1);
     });
     it("should return 3 refs for browseNode on RootFolder , Organizes ,!includeSubtypes  ",function(){
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
@@ -109,7 +110,7 @@ describe("testing ReferenceType",function(){
     });
 
     it("should return 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ",function(){
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
@@ -127,7 +128,7 @@ describe("testing ReferenceType",function(){
 
 
     it("should return 3 refs for browseNode on RootFolder , HierarchicalReferences , includeSubtypes  ",function(){
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var rootFolder = address_space.findObjectByBrowseName("Root");
         rootFolder.browseName.should.equal("Root");
 
@@ -143,7 +144,7 @@ describe("testing ReferenceType",function(){
 
     it("should return 6 refs for browseNode on ServerStatus (BrowseDirection.Forward)",function() {
 
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
         serverStatus.browseName.should.equal("ServerStatus");
 
@@ -165,7 +166,7 @@ describe("testing ReferenceType",function(){
     });
     it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)",function(done){
 
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
         serverStatus.browseName.should.equal("ServerStatus");
 
@@ -184,14 +185,14 @@ describe("testing ReferenceType",function(){
 
         redirectToFile("ReferenceDescription",function(){
             assert(_.isArray(references));
-            var dump = require("../../lib/address_space/basenode").dumpReferenceDescriptions;
+            var dump = require("lib/address_space/basenode").dumpReferenceDescriptions;
             dump(address_space,references);
         },done)
     });
 
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)",function(){
 
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var serverStatus = address_space.findObjectByBrowseName("ServerStatus");
         serverStatus.browseName.should.equal("ServerStatus");
 
@@ -211,7 +212,7 @@ describe("testing ReferenceType",function(){
 
     it("should return 1 refs for browseNode on Server (BrowseDirection.Forward) and NodeClass set to Method",function() {
 
-        var browse_service = require("../../lib/services/browse_service");
+        var browse_service = require("lib/services/browse_service");
         var mask = browse_service.makeNodeClassMask("Method");
 
         var server = address_space.findObjectByBrowseName("Server");
@@ -250,7 +251,7 @@ describe("testing ReferenceType",function(){
 
 
 describe(" improving performance of isSubtypeOf",function() {
-    var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
+    var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
     //  References i=31
     //  +->(hasSubtype) NoHierarchicalReferences
     //                  +->(hasSubtype) HasTypeDefinition
@@ -263,13 +264,13 @@ describe(" improving performance of isSubtypeOf",function() {
     //                                 +->(hasSubtype) HasSubtype/HasSupertype
     //                  +->(hasSubtype) Organizes/OrganizedBy
     //                  +->(hasSubtype) HasEventSource/EventSourceOf
-    var Benchmarker = require("../helpers/benchmarker").Benchmarker;
+    var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
     var bench = new Benchmarker();
 
     var nodeset_filename = __dirname + "/../../lib/server/mini.Node.Set2.xml";
     var address_space = new AddressSpace();
 
-    var referenceTypeNames = Object.keys(require("../../lib/opcua_node_ids").ReferenceTypeIds);
+    var referenceTypeNames = Object.keys(require("lib/opcua_node_ids").ReferenceTypeIds);
 
     var referenceTypes = [];
     before(function (done) {

@@ -1,5 +1,5 @@
 
-var factories = require("./../lib/misc/factories");
+var factories = require("../lib/misc/factories");
 
 var BuildInfo_Schema = {
     name:"BuildInfo",

@@ -1,13 +1,14 @@
-var hexDump = require("../../lib/misc/utils").hexDump;
-var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
-var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
+require("requirish")._(module);
+var hexDump = require("lib/misc/utils").hexDump;
+var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 var _ = require("underscore");
-var s  = require("../../lib/datamodel/structures");
-var packet_analyzer = require("../../lib/misc/packet_analyzer").packet_analyzer;
-var assert = require('better-assert');
-var display_trace_from_this_projet_only = require("../../lib/misc/utils").display_trace_from_this_projet_only;
+var s  = require("lib/datamodel/structures");
+var packet_analyzer = require("lib/misc/packet_analyzer").packet_analyzer;
+var assert = require("better-assert");
+var display_trace_from_this_projet_only = require("lib/misc/utils").display_trace_from_this_projet_only;
 
-var opcua = require("../../lib/opcua");
+var opcua = require("lib/opcua");
 var CloseSecureChannelResponse = opcua.secure_channel_service.CloseSecureChannelResponse;
 var OpenSecureChannelResponse = opcua.secure_channel_service.OpenSecureChannelResponse;
 
@@ -46,9 +47,9 @@ var fake_GetEndpointsResponse = new GetEndpointsResponse({
     ]
 });
 
-var CreateSessionResponse = require("../../lib/services/session_service").CreateSessionResponse;
+var CreateSessionResponse = require("lib/services/session_service").CreateSessionResponse;
 var fake_CreateSessionResponse = new CreateSessionResponse();
-var ActivateSessionResponse = require("../../lib/services/session_service").ActivateSessionResponse;
+var ActivateSessionResponse = require("lib/services/session_service").ActivateSessionResponse;
 var fake_ActivateSessionResponse = new ActivateSessionResponse();
 
 

@@ -1,10 +1,11 @@
+require("requirish")._(module);
 
-var coerceNodeId = require("../../lib/datamodel/nodeid").coerceNodeId;
-var resolveNodeId = require("../../lib/datamodel/nodeid").resolveNodeId;
+var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
+var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
-var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
-var NodeIdType = require("../../lib/datamodel/nodeid").NodeIdType;
-var NodeId = require("../../lib/datamodel/nodeid").NodeId;
+var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+var NodeIdType = require("lib/datamodel/nodeid").NodeIdType;
+var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 var should = require("should");
 var assert = require("assert");
@@ -144,7 +145,7 @@ describe("testing coerceNodeId",function(){
 
 describe("Type coercion at construction time",function(){
 
-    var bs = require("./../../lib/services/read_service");
+    var bs = require("lib/services/read_service");
     it( "should coerce a nodeId at construction ",function(){
         var readValue = new bs.ReadValueId({ nodeId : "i=2255", attributeId: 13 });
         readValue.nodeId.should.eql(makeNodeId(2255));

@@ -1,5 +1,6 @@
+require("requirish")._(module);
 var should = require("should");
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("Code Generator",function(){
 
@@ -84,7 +85,7 @@ describe("Code Generator",function(){
         should(foo.inner.inner.inner).eql(null);
 
         // var foo_reloaded = encode_decode_round_trip_test(foo);
-        var factories = require("../../lib/misc/factories");
+        var factories = require("lib/misc/factories");
         factories.unregisterObject(require(schema_file2).FooWithRecursion_Schema);
 
     });

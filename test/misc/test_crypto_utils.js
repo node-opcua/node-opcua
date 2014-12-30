@@ -1,8 +1,9 @@
+require("requirish")._(module);
 var hexy = require("hexy");
 var should = require("should");
 
-var crypto_utils = require("../../lib/misc/crypto_utils");
-var make_lorem_ipsum_buffer = require("../helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
+var crypto_utils = require("lib/misc/crypto_utils");
+var make_lorem_ipsum_buffer = require("test/helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
 
 describe("Crypto utils", function () {
     it("should read a PEM file",function(){
@@ -55,7 +56,7 @@ describe("Crypto utils", function () {
 describe("test derived key making",function() {
 
     var crypto = require("crypto");
-    var hexDump = require("./../../lib/misc/utils").hexDump;
+    var hexDump = require("lib/misc/utils").hexDump;
     var secret = new Buffer("my secret");
     var seed   = new Buffer("my seed");
 

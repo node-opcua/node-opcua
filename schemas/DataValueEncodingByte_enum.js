@@ -1,4 +1,4 @@
-var factories = require("./../lib/misc/factories");
+var factories = require("../lib/misc/factories");
 var DataValueEncodingByte_Schema = {
     name:"DataValue_EncodingByte",
     enumValues: {

@@ -1,6 +1,7 @@
-var registerObject = require("../../lib/misc/factories").registerObject;
-var registerEnumeration = require("../../lib/misc/factories").registerEnumeration;
-var next_available_id = require("../../lib/misc/factories").next_available_id;
+require("requirish")._(module);
+var registerObject = require("lib/misc/factories").registerObject;
+var registerEnumeration = require("lib/misc/factories").registerEnumeration;
+var next_available_id = require("lib/misc/factories").next_available_id;
 
 
 var SomeEnumeration = registerEnumeration( {

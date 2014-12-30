@@ -1,5 +1,6 @@
+require("requirish")._(module);
 
-var Benchmarker = require("../helpers/benchmarker").Benchmarker;
+var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 
 
 describe("Testing ",function(){

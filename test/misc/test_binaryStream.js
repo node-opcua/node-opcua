@@ -1,5 +1,6 @@
-var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
-var BinaryStreamSizeCalculator = require("../../lib/misc/binaryStream").BinaryStreamSizeCalculator;
+require("requirish")._(module);
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+var BinaryStreamSizeCalculator = require("lib/misc/binaryStream").BinaryStreamSizeCalculator;
 var should = require("should");
 
 

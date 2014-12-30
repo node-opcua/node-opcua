@@ -1,3 +1,4 @@
+require("requirish")._(module);
 
 
 

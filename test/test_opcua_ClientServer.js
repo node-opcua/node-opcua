@@ -1,11 +1,12 @@
+require("requirish")._(module);
 
 var should = require("should");
-var assert = require('better-assert');
+var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
 var _ = require("underscore");
 
-var opcua = require("../");
+var opcua = require("index");
 
 var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
@@ -383,8 +384,8 @@ describe("testing basic Client-Server communication",function() {
 
         it("should write the TemperatureTarget value", function(done) {
 
-            var Variant = require("../lib/datamodel/variant").Variant;
-            var DataType = require("../lib/datamodel/variant").DataType;
+            var Variant = require("lib/datamodel/variant").Variant;
+            var DataType = require("lib/datamodel/variant").DataType;
             // write a single value
             g_session.writeSingleNode(
                 temperatureVariableId.nodeId,
@@ -399,9 +400,9 @@ describe("testing basic Client-Server communication",function() {
 
 
         describe("Accessing the Server object in the Root folder",function(){
-            var makeNodeId = require("../lib/datamodel/nodeid").makeNodeId;
-            var ReferenceTypeIds = require("../lib/opcua_node_ids").ReferenceTypeIds;
-            var VariableIds = require("../lib/opcua_node_ids").VariableIds;
+            var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+            var ReferenceTypeIds = require("lib/opcua_node_ids").ReferenceTypeIds;
+            var VariableIds = require("lib/opcua_node_ids").VariableIds;
 
             it("Server should expose a 'Server' object in the 'Objects' folder",function(done){
 
@@ -429,10 +430,10 @@ describe("testing basic Client-Server communication",function() {
             });
 
             it("Server should expose 'Server_NamespaceArray' variable ",function(done){
-                var DataValue = require("../lib/datamodel/datavalue").DataValue;
-                var DataType = require("../lib/datamodel/variant").DataType;
-                var VariantArrayType = require("../lib/datamodel/variant").VariantArrayType;
-                var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
+                var DataValue = require("lib/datamodel/datavalue").DataValue;
+                var DataType = require("lib/datamodel/variant").DataType;
+                var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
+                var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
                 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
                 g_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo){
                     var dataValue = results[0];

@@ -1,5 +1,6 @@
-var factories = require("../lib/misc/factories");
-var _defaultTypeMap = require("../lib/misc/factories_builtin_types")._defaultTypeMap;
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
+var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMap;
 
 var fs = require("fs");
 var _ = require("underscore");
@@ -20,16 +21,16 @@ function getFiles(dir,files_){
     return files_;
 }
 
-require("../lib/datamodel/variant");
-require("../lib/datamodel/buildinfo");
-require("../lib/services/browse_service");
-require("../lib/services/historizing_service");
-require("../lib/datamodel/opcua_status_code");
+require("lib/datamodel/variant");
+require("lib/datamodel/buildinfo");
+require("lib/services/browse_service");
+require("lib/services/historizing_service");
+require("lib/datamodel/opcua_status_code");
 
 
 var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-var folder_for_generated_file= require("../lib/misc/factory_code_generator").folder_for_generated_file;
+var folder_for_generated_file= require("lib/misc/factory_code_generator").folder_for_generated_file;
 
 var services_folder = __dirname + "/../lib/services";
 

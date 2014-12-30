@@ -1,29 +1,30 @@
+require("requirish")._(module);
 /* global describe,it*/
 var should = require("should");
 
-var secure_channel = require("../../lib/services/secure_channel_service");
+var secure_channel = require("lib/services/secure_channel_service");
 var CloseSecureChannelResponse = secure_channel.CloseSecureChannelResponse;
 
-var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
+var MessageBuilder = require("lib/misc/message_builder").MessageBuilder;
 
 var async = require("async");
 
 
-var compare_buffers = require("./../../lib/misc/utils").compare_buffers;
-var clone_buffer = require("./../../lib/misc/utils").clone_buffer;
-var hexDump =  require("../../lib/misc/utils").hexDump;
+var compare_buffers = require("lib/misc/utils").compare_buffers;
+var clone_buffer = require("lib/misc/utils").clone_buffer;
+var hexDump =  require("lib/misc/utils").hexDump;
 
-var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 
-var MessageChunker = require("../../lib/misc/message_chunker").MessageChunker;
+var MessageChunker = require("lib/misc/message_chunker").MessageChunker;
 
 describe("SecureMessageChunkManager", function () {
 
     it("should reconstruct a valid message when message is received in multiple chunks", function (done) {
 
         // a very large endPointResponse spanning on multiple chunks ...
-        var endPointResponse = require("./../fixtures/fixture_GetEndPointResponse").fixture2;
+        var endPointResponse = require("test/fixtures/fixture_GetEndPointResponse").fixture2;
 
         var requestId = 0x1000;
 
@@ -134,7 +135,7 @@ describe("SecureMessageChunkManager", function () {
             done(new Error("Unexpected error event received"));
         });
 
-        var makebuffer_from_trace = require("../helpers/makebuffer_from_trace").makebuffer_from_trace;
+        var makebuffer_from_trace = require("test/helpers/makebuffer_from_trace").makebuffer_from_trace;
 
         var packet = makebuffer_from_trace(function () {
             /*
@@ -148,7 +149,7 @@ describe("SecureMessageChunkManager", function () {
 
     });
     it("should test CloseSecureChannelResponse", function () {
-        var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+        var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
         var response = new CloseSecureChannelResponse({});
         encode_decode_round_trip_test(response);
 

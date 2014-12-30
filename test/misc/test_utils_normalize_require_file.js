@@ -1,7 +1,8 @@
+require("requirish")._(module);
 
 
 var should = require("should");
-var normalize_require_file = require("../../lib/misc/utils").normalize_require_file;
+var normalize_require_file = require("lib/misc/utils").normalize_require_file;
 
 describe("normalize_require_file",function(){
 

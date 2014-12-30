@@ -1,13 +1,15 @@
+"use strict";
+require("requirish")._(module);
 var crypto = require("crypto");
 var fs = require("fs");
 var should = require("should");
 var colors = require("colors");
 var assert = require("assert");
 
-var utils = require("../lib/misc/utils");
+var utils = require("lib/misc/utils");
 var loremIpsum = require("./helpers/lorem_ipsum").loremIpsum;
 
-var crypto_utils = require("../lib/misc/crypto_utils");
+var crypto_utils = require("lib/misc/crypto_utils");
 
 
 var old_store = null;
@@ -33,7 +35,7 @@ function debugLog() {
 
 // symmetric encryption and decryption
 function encrypt_buffer(buffer, algorithm, key) {
-    var crypto = require('crypto');
+    var crypto = require("crypto");
     var cipher = crypto.createCipher(algorithm, key);
     var encrypted_chunks = [];
     encrypted_chunks.push(cipher.update(buffer));
@@ -43,7 +45,7 @@ function encrypt_buffer(buffer, algorithm, key) {
 }
 
 function decrypt_buffer(buffer, algorithm, key) {
-    var crypto = require('crypto');
+    var crypto = require("crypto");
     var decipher = crypto.createDecipher(algorithm, key);
     var decrypted_chunks = [];
     decrypted_chunks.push(decipher.update(buffer));
@@ -369,7 +371,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
     it("explore DiffieHellman encryption (generating keys)",function() {
 
-        var crypto = require('crypto');
+        var crypto = require("crypto");
 
 
         var alice = crypto.getDiffieHellman('modp5');
@@ -421,7 +423,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
     it("exploring crypto api with symmetrical encryption/decryption", function () {
 
-        var crypto = require('crypto')
+        var crypto = require("crypto")
             , key = 'salt_from_the_user_document'
             , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum);
 
@@ -442,7 +444,7 @@ describe("exploring symmetric signing",function() {
 
     it("should sign and verify",function() {
 
-        var crypto = require('crypto'),
+        var crypto = require("crypto"),
             text = 'I love cupcakes',
             key = crypto.randomBytes(32);
 
@@ -474,7 +476,7 @@ if (!ursa) {
     console.log(" WARNING : SKIPPING TEST WITH ursa".red);
 }else {
 
-    var fs = require('fs');
+    var fs = require("fs");
     // openssl genrsa -out certs/server/my-server.key.pem 2048
     // openssl rsa -in certs/server/my-server.key.pem -pubout -out certs/client/my-server.pub
 
@@ -678,7 +680,7 @@ if (!ursa) {
 
 }
 
-var hexDump = require("../lib/misc/utils").hexDump;
+var hexDump = require("lib/misc/utils").hexDump;
 describe("extractPublicKeyFromCertificate",function() {
 
     it("should extract a public key from a certificate",function(done){

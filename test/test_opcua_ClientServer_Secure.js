@@ -1,9 +1,11 @@
+require("requirish")._(module);
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 
 
-var opcua = require("../");
+var opcua = require(".");
+
 var should = require("should");
-var assert = require('better-assert');
+var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
 var path = require("path");
@@ -149,7 +151,7 @@ function keep_monitoring_some_variable(session, nodeIdToMonitor, duration, done)
     });
 }
 
-var crypto_utils = require("../lib/misc/crypto_utils");
+var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
        console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
 } else {
@@ -237,7 +239,7 @@ if (!crypto_utils.isFullySupported()) {
     });
 
 
-    var ClientSecureChannelLayer = require("../lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
+    var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
     function common_test(securityPolicy, securityMode, options,done) {
 

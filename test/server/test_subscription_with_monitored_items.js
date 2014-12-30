@@ -1,20 +1,21 @@
+require("requirish")._(module);
 var should =require("should");
 var sinon = require("sinon");
 
-var subscription_service = require("../../lib/services/subscription_service");
+var subscription_service = require("lib/services/subscription_service");
 var NotificationMessage = subscription_service.NotificationMessage;
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-var Subscription = require("../../lib/server/subscription").Subscription;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var Subscription = require("lib/server/subscription").Subscription;
 
-var TimestampsToReturn = require("../../lib/services/read_service").TimestampsToReturn;
-var MonitoredItem = require("../../lib/server/monitored_item").MonitoredItem;
+var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
+var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
 var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 
-var DataType = require("../../lib/datamodel/variant").DataType;
-var DataValue = require("../../lib/datamodel/datavalue").DataValue;
-var Variant = require("../../lib/datamodel/variant").Variant;
-var dump = require("../../lib/misc/utils").dump;
+var DataType = require("lib/datamodel/variant").DataType;
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+var Variant = require("lib/datamodel/variant").Variant;
+var dump = require("lib/misc/utils").dump;
 
 
 

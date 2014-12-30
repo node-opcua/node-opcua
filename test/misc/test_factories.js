@@ -1,17 +1,18 @@
-var factories = require("../../lib/misc/factories");
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 var should = require("should");
-var BinaryStream =require("../../lib/misc/binaryStream").BinaryStream;
+var BinaryStream =require("lib/misc/binaryStream").BinaryStream;
 var util = require("util");
-var ec = require("../../lib/misc/encode_decode");
+var ec = require("lib/misc/encode_decode");
 var _ = require("underscore");
 
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-var QualifiedName   = require("../../lib/datamodel/qualified_name").QualifiedName;
-var LocalizedText   = require("../../lib/datamodel/localized_text").LocalizedText;
-var Variant         = require("../../lib/datamodel/variant").Variant;
+var QualifiedName   = require("lib/datamodel/qualified_name").QualifiedName;
+var LocalizedText   = require("lib/datamodel/localized_text").LocalizedText;
+var Variant         = require("lib/datamodel/variant").Variant;
 
 var Person_Schema = {
     id: factories.next_available_id(),
@@ -273,8 +274,8 @@ describe("Factories: testing object factory", function () {
 
     it("should handle StatusCode ",function(){
 
-        var StatusCode = require("../../lib/datamodel/opcua_status_code").StatusCode;
-        var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+        var StatusCode = require("lib/datamodel/opcua_status_code").StatusCode;
+        var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 
         exports.MyStruct2_Schema = {
@@ -417,7 +418,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 
     it("should create a object from a encodingDefaultBinaryId", function() {
 
-        var getObjectClassName = require("../../lib/misc/utils").getObjectClassName;
+        var getObjectClassName = require("lib/misc/utils").getObjectClassName;
 
         var obj = factories.constructObject(ec.makeExpandedNodeId(Company_Schema.id));
 
@@ -478,9 +479,9 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
 describe("PacketAnalyzer",function(){
 
     it("should analyse a encoded object",function(done){
-        var analyze_object_binary_encoding = require("../../lib/misc/packet_analyzer").analyze_object_binary_encoding;
+        var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
 
-        var redirectToFile = require("../../lib/misc/utils").redirectToFile;
+        var redirectToFile = require("lib/misc/utils").redirectToFile;
 
         var company  = new Company({
             name: "ACME",
@@ -646,7 +647,7 @@ describe("factories testing advanced cases",function(){
 
     it("should accept all basic types as field scalar or field arrays",function() {
 
-        var utils = require("../../lib/misc/utils");
+        var utils = require("lib/misc/utils");
         var fs = require("fs");
         // delete existing file if any
         var filename = utils.getTempFilename("_auto_generated_Blob6.js");
@@ -654,7 +655,7 @@ describe("factories testing advanced cases",function(){
             fs.unlinkSync(filename);
         }
 
-        require("../../lib/misc/extension_object").ExtensionObject;
+        require("lib/misc/extension_object").ExtensionObject;
 
         exports.Blob6_Schema = {
             name: "Blob6",
@@ -664,8 +665,8 @@ describe("factories testing advanced cases",function(){
             ]
         };
 
-        var _defaultTypeMap = require("../../lib/misc/factories_builtin_types")._defaultTypeMap;
-        var findBuiltInType = require("../../lib/misc/factories_builtin_types").findBuiltInType;
+        var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMap;
+        var findBuiltInType = require("lib/misc/factories_builtin_types").findBuiltInType;
 
         Object.keys(_defaultTypeMap).forEach(function(key){
             if (key === "Any") return;

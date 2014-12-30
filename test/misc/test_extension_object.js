@@ -1,15 +1,16 @@
+require("requirish")._(module);
 /*global describe, require, it*/
 
-var factories = require("../../lib/misc/factories");
+var factories = require("lib/misc/factories");
 var should = require("should");
-var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var util = require("util");
-var ec = require("../../lib/misc/encode_decode");
+var ec = require("lib/misc/encode_decode");
 
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
-var ExtensionObject = require("../../lib/misc/extension_object").ExtensionObject;
+var ExtensionObject = require("lib/misc/extension_object").ExtensionObject;
 
 describe("ExtensionObject", function () {
 

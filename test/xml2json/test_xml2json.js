@@ -1,5 +1,6 @@
-
-var Xml2Json = require("../../lib/xml2json/lib").Xml2Json;
+"use strict";
+require("requirish")._(module);
+var Xml2Json = require("lib/xml2json/lib").Xml2Json;
 var should = require("should");
 
 describe("XMLToJSON",function(){

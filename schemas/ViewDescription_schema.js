@@ -1,5 +1,5 @@
 
-var factories = require("./../lib/misc/factories");
+var factories = require("../lib/misc/factories");
 
 var ViewDescription_Schema = {
     name: "ViewDescription",

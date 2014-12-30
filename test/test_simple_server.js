@@ -1,7 +1,8 @@
+require("requirish")._(module);
 
-var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
+var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
 var should = require("should");
-var opcua = require("../lib/nodeopcua");
+var opcua = require("lib/nodeopcua");
 
 describe("Testing a simple server from Server side",function(){
 

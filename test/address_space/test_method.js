@@ -1,10 +1,11 @@
 /* global describe,it,before*/
+require("requirish")._(module);
 var should = require("should");
-var Method = require("../../lib/address_space/method").Method;
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-var DataType = require("../../lib/datamodel/variant").DataType;
-var AttributeIds = require("../../lib/services/read_service").AttributeIds;
-var address_space = require("../../lib/address_space/address_space");
+var Method = require("lib/address_space/method").Method;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var DataType = require("lib/datamodel/variant").DataType;
+var AttributeIds = require("lib/services/read_service").AttributeIds;
+var address_space = require("lib/address_space/address_space");
 
 describe("testing ObjectType",function() {
 

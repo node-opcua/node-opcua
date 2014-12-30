@@ -1,6 +1,7 @@
+require("requirish")._(module);
 
-var s = require("../../lib/datamodel/structures");
-var sc= require("../../lib/services/secure_channel_service");
+var s = require("lib/datamodel/structures");
+var sc= require("lib/services/secure_channel_service");
 
 exports.fixture1 = (function(){
 

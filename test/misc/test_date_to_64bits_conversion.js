@@ -1,9 +1,10 @@
+require("requirish")._(module);
 var should = require("should");
-var ec = require("../../lib/misc/encode_decode");
+var ec = require("lib/misc/encode_decode");
 var assert = require("assert");
-var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 
-var date_time = require("../../lib/misc/date_time");
+var date_time = require("lib/misc/date_time");
 var offset_factor_1601 = date_time.offset_factor_1601;
 var offset = offset_factor_1601[0];
 var factor = offset_factor_1601[1];
@@ -133,7 +134,7 @@ describe("check OPCUA Date conversion version 2", function () {
 
 
 
-var BigNumber = require('bignumber.js');
+var BigNumber = require("bignumber.js");
 
 function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     assert(date instanceof Date);
@@ -154,7 +155,7 @@ function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
 }
 
 
-var Benchmarker = require("../helpers/benchmarker").Benchmarker;
+var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 
 describe("Benchmarking Date conversion routines",function(){
 

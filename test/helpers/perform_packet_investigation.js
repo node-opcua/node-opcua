@@ -1,11 +1,12 @@
+require("requirish")._(module);
 
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 
 
 var perform_packet_investigation = function(packet,done) {
 
-    var MessageBuilder = require("../../lib/misc/message_builder").MessageBuilder;
+    var MessageBuilder = require("lib/misc/message_builder").MessageBuilder;
     var messageBuilder = new MessageBuilder();
 
     var full_message_body_event_received = false;

@@ -1,10 +1,11 @@
-var makebuffer = require("../lib/misc/utils").makebuffer;
-var packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
-var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
-var redirectToFile = require("../lib/misc/utils").redirectToFile;
-var s = require("./../lib/datamodel/structures");
-var ec = require("./../lib/misc/encode_decode");
-var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
+require("requirish")._(module);
+var makebuffer = require("lib/misc/utils").makebuffer;
+var packet_analyzer = require("lib/misc/packet_analyzer").packet_analyzer;
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+var redirectToFile = require("lib/misc/utils").redirectToFile;
+var s = require("lib/datamodel/structures");
+var ec = require("lib/misc/encode_decode");
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var should = require("should");
 
 describe("ServiceFault",function() {

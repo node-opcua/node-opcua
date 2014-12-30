@@ -1,4 +1,4 @@
-var factories = require("./../lib/misc/factories");
+var factories = require("../lib/misc/factories");
 var MonitoringMode_Schema = {
     name: "MonitoringMode",
     enumValues: {

@@ -1,12 +1,13 @@
-var DataValue = require("../../lib/datamodel/datavalue").DataValue;
-var Variant = require("../../lib/datamodel/variant").Variant;
-var DataType = require("../../lib/datamodel/variant").DataType;
+require("requirish")._(module);
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+var Variant = require("lib/datamodel/variant").Variant;
+var DataType = require("lib/datamodel/variant").DataType;
 
-var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 var should = require("should");
 
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("DataValue", function () {
 

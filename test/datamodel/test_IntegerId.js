@@ -1,8 +1,9 @@
+require("requirish")._(module);
 
-var AccessLevelFlag = require("../../lib/datamodel/access_level").AccessLevelFlag;
+var AccessLevelFlag = require("lib/datamodel/access_level").AccessLevelFlag;
 var should = require("should");
-var factories = require("../../lib/misc/factories");
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var factories = require("lib/misc/factories");
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var _ = require("underscore");
 
 

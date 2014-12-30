@@ -1,13 +1,14 @@
-var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
+require("requirish")._(module);
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 
-var assert = require('better-assert');
+var assert = require("better-assert");
 var async = require("async");
-var should = require('should');
+var should = require("should");
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var s = require("../lib/datamodel/structures");
+var s = require("lib/datamodel/structures");
 
-var session_service = require("../lib/services/session_service");
+var session_service = require("lib/services/session_service");
 var UserNameIdentityToken = session_service.UserNameIdentityToken;
 
 

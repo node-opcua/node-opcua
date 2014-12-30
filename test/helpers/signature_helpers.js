@@ -1,8 +1,9 @@
+require("requirish")._(module);
 
 
 var assert = require("assert");
 var fs = require("fs");
-var crypto_utils = require("../../lib/misc/crypto_utils");
+var crypto_utils = require("lib/misc/crypto_utils");
 
 function construct_makeMessageChunkSignatureForTest() {
 

@@ -1,6 +1,7 @@
+require("requirish")._(module);
 var should = require("should");
-var isValidGuid = require("../../lib/datamodel/guid").isValidGuid;
-var emptyGuid = require("../../lib/datamodel/guid").emptyGuid;
+var isValidGuid = require("lib/datamodel/guid").isValidGuid;
+var emptyGuid = require("lib/datamodel/guid").emptyGuid;
 describe("GUID",function(){
 
     it("should detect strings that looks like GUID",function(){

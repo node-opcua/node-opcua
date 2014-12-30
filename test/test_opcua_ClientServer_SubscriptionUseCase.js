@@ -1,12 +1,13 @@
-var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
-var OPCUASession = require("../lib/client/opcua_client").OPCUASession;
-var ClientSubscription = require("../lib/client/client_subscription").ClientSubscription;
-var assert = require('better-assert');
+require("requirish")._(module);
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+var OPCUASession = require("lib/client/opcua_client").OPCUASession;
+var ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
+var assert = require("better-assert");
 var async = require("async");
-var should = require('should');
+var should = require("should");
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var AttributeIds = require("../lib/services/read_service").AttributeIds;
-var resolveNodeId = require("../lib/datamodel/nodeid").resolveNodeId;
+var AttributeIds = require("lib/services/read_service").AttributeIds;
+var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
@@ -465,7 +466,7 @@ describe("testing server and subscription", function () {
     it("A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
 
 
-        var TimestampsToReturn = require("../lib/services/read_service").TimestampsToReturn;
+        var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -500,7 +501,7 @@ describe("testing server and subscription", function () {
 
     it("A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
 
-        var TimestampsToReturn = require("../lib/services/read_service").TimestampsToReturn;
+        var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 

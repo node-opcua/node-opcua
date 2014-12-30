@@ -1,7 +1,8 @@
+require("requirish")._(module);
 var should = require("should");
-var SecureMessageChunkManager = require("../../lib/misc/secure_message_chunk_manager").SecureMessageChunkManager;
-var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
-var SymmetricAlgorithmSecurityHeader = require("../../lib/services/secure_channel_service").SymmetricAlgorithmSecurityHeader;
+var SecureMessageChunkManager = require("lib/misc/secure_message_chunk_manager").SecureMessageChunkManager;
+var SequenceNumberGenerator = require("lib/misc/sequence_number_generator").SequenceNumberGenerator;
+var SymmetricAlgorithmSecurityHeader = require("lib/services/secure_channel_service").SymmetricAlgorithmSecurityHeader;
 
 
 function performMessageChunkManagerTest(options) {
@@ -102,8 +103,8 @@ describe("MessageChunkManager",function() {
     it("should split a message in chunk and produce a header (  SIGN & NO ENCRYPT).",function(){
 
 
-        var makeMessageChunkSignatureForTest = require("../helpers/signature_helpers").makeMessageChunkSignatureForTest;
-        var verifyMessageChunkSignatureForTest = require("../helpers/signature_helpers").verifyMessageChunkSignatureForTest;
+        var makeMessageChunkSignatureForTest = require("test/helpers/signature_helpers").makeMessageChunkSignatureForTest;
+        var verifyMessageChunkSignatureForTest = require("test/helpers/signature_helpers").verifyMessageChunkSignatureForTest;
 
         var options = {
             signatureLength: 128,

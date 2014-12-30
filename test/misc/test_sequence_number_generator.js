@@ -1,5 +1,6 @@
+require("requirish")._(module);
 var should =require("should");
-var SequenceNumberGenerator = require("../../lib/misc/sequence_number_generator").SequenceNumberGenerator;
+var SequenceNumberGenerator = require("lib/misc/sequence_number_generator").SequenceNumberGenerator;
 
 describe("SequenceNumberGenerator",function() {
 

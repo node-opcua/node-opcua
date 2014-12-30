@@ -1,9 +1,10 @@
 /*global require,describe,it*/
+require("requirish")._(module);
 var should = require("should");
 
-var QualifiedName = require("../../lib/datamodel/qualified_name").QualifiedName;
+var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
-var coerceQualifiedName = require("../../lib/datamodel/qualified_name").coerceQualifyName;
+var coerceQualifiedName = require("lib/datamodel/qualified_name").coerceQualifyName;
 
 describe("QualifedName",function() {
 

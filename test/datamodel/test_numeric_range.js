@@ -1,11 +1,12 @@
 /*global describe,require,it */
+require("requirish")._(module);
 var should = require("should");
 
-var NumericRange = require("../../lib/datamodel/numeric_range").NumericRange;
+var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 var NumericRangeType = NumericRange.NumericRangeType;
 
 
-var factories = require("../../lib/misc/factories");
+var factories = require("lib/misc/factories");
 
 
 var ObjWithNumericRange_Schema = {
@@ -142,7 +143,7 @@ describe("Testing numerical range", function () {
 
             should(o.numericRange.toString()).eql(null);
 
-            var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+            var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
             encode_decode_round_trip_test(o);
         });

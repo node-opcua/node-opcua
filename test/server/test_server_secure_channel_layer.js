@@ -1,7 +1,8 @@
-var ServerSecureChannelLayer = require("../../lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
+require("requirish")._(module);
+var ServerSecureChannelLayer = require("lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
 var should  = require("should");
-var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
-var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
 
 
 describe("testing ServerSecureChannelLayer ",function(){
@@ -54,7 +55,7 @@ describe("testing ServerSecureChannelLayer ",function(){
         });
 
         // now
-        var fake_HelloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        var fake_HelloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
     });
@@ -77,10 +78,10 @@ describe("testing ServerSecureChannelLayer ",function(){
         server_secure_channel.on("abort",function(){
             server_has_emitted_the_abort_message = true;
         });
-        var fake_HelloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        var fake_HelloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_NotAOpenSecureChannelMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_3; // GEP
+        var fake_NotAOpenSecureChannelMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_3; // GEP
         node.client.write(fake_NotAOpenSecureChannelMessage);
     });
 
@@ -96,10 +97,10 @@ describe("testing ServerSecureChannelLayer ",function(){
             done();
         });
 
-        var fake_HelloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        var fake_HelloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_OpenSecureChannelRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
+        var fake_OpenSecureChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
     });
@@ -119,13 +120,13 @@ describe("testing ServerSecureChannelLayer ",function(){
             done();
         });
 
-        var fake_HelloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        var fake_HelloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_OpenSecureChannelRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
+        var fake_OpenSecureChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        var fake_GetEndpointsRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndPoints
+        var fake_GetEndpointsRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndPoints
         node.client.write(fake_GetEndpointsRequest);
 
     });
@@ -154,16 +155,16 @@ describe("testing ServerSecureChannelLayer ",function(){
             done();
         });
 
-        var fake_HelloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        var fake_HelloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_OpenSecureChannelRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
+        var fake_OpenSecureChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        var fake_GetEndpointsRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_3; // GEP
+        var fake_GetEndpointsRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_3; // GEP
         node.client.write(fake_GetEndpointsRequest);
 
-        var fake_CloseSecureChannelRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_4; // CLO
+        var fake_CloseSecureChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_4; // CLO
         node.client.write(fake_CloseSecureChannelRequest);
 
     });

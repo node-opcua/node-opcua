@@ -1,5 +1,6 @@
+require("requirish")._(module);
 var async = require("async");
-var should = require('should');
+var should = require("should");
 var _ = require("underscore");
 
 var opcua = require("../../");

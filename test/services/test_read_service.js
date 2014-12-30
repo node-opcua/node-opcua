@@ -1,11 +1,12 @@
+require("requirish")._(module);
 var should = require("should");
-var rs = require("./../../lib/services/read_service");
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
-var makebuffer = require("../../lib/misc/utils").makebuffer;
+var rs = require("lib/services/read_service");
+var redirectToFile = require("lib/misc/utils").redirectToFile;
+var makebuffer = require("lib/misc/utils").makebuffer;
 
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
-var verify_single_chunk_message= require("../helpers/verify_message_chunk").verify_single_chunk_message;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var verify_multi_chunk_message= require("test/helpers/verify_message_chunk").verify_multi_chunk_message;
+var verify_single_chunk_message= require("test/helpers/verify_message_chunk").verify_single_chunk_message;
 
 /* a real readRequest (with two nodeIds) captured with ws*/
 var fixture_ws_readRequest_message= makebuffer(

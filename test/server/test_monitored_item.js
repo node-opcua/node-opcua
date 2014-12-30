@@ -1,8 +1,9 @@
+require("requirish")._(module);
 
-var MonitoredItem = require("../../lib/server/monitored_item").MonitoredItem;
-var DataType = require("../../lib/datamodel/variant").DataType;
-var DataValue = require("../../lib/datamodel/datavalue").DataValue;
-var Variant = require("../../lib/datamodel/variant").Variant;
+var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
+var DataType = require("lib/datamodel/variant").DataType;
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+var Variant = require("lib/datamodel/variant").Variant;
 
 var sinon = require("sinon");
 var should = require("should");

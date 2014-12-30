@@ -1,7 +1,8 @@
-var MessageBuilderBase = require("../../lib/misc/message_builder_base").MessageBuilderBase;
-var compare_buffers = require("../../lib/misc/utils").compare_buffers;
-var writeTCPMessageHeader = require("../../lib/nodeopcua").writeTCPMessageHeader;
-var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
+require("requirish")._(module);
+var MessageBuilderBase = require("lib/misc/message_builder_base").MessageBuilderBase;
+var compare_buffers = require("lib/misc/utils").compare_buffers;
+var writeTCPMessageHeader = require("lib/nodeopcua").writeTCPMessageHeader;
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 
 

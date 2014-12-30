@@ -1,17 +1,17 @@
+require("requirish")._(module);
 
-
-var address_space = require("../../lib/address_space/address_space");
+var address_space = require("lib/address_space/address_space");
 var AddressSpace = address_space.AddressSpace;
 var ReferenceType = address_space.ReferenceType;
-var generate_address_space = require("../../lib/address_space/load_nodeset2").generate_address_space;
+var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
 var should  = require("should");
-var nodeid = require("../../lib/datamodel/nodeid");
+var nodeid = require("lib/datamodel/nodeid");
 
-var dumpReferences = require("../../lib/address_space/basenode").dumpReferences;
-var dumpBrowseDescription = require("../../lib/address_space/basenode").dumpBrowseDescription;
-var browse_service = require("../../lib/services/browse_service");
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
+var dumpReferences = require("lib/address_space/basenode").dumpReferences;
+var dumpBrowseDescription = require("lib/address_space/basenode").dumpBrowseDescription;
+var browse_service = require("lib/services/browse_service");
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 describe("testing dump browseDescriptions",function(){
 

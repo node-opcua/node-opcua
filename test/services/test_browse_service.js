@@ -1,9 +1,10 @@
-var encode_decode_round_trip_test = require("../helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var verify_multi_chunk_message= require("../helpers/verify_message_chunk").verify_multi_chunk_message;
+require("requirish")._(module);
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var verify_multi_chunk_message= require("test/helpers/verify_message_chunk").verify_multi_chunk_message;
 
-var bs = require("./../../lib/services/browse_service");
-var redirectToFile = require("../../lib/misc/utils").redirectToFile;
-var makebuffer = require("../../lib/misc/utils").makebuffer;
+var bs = require("lib/services/browse_service");
+var redirectToFile = require("lib/misc/utils").redirectToFile;
+var makebuffer = require("lib/misc/utils").makebuffer;
 
 
 var fixture_ws_browseRequest_message= makebuffer(
@@ -65,7 +66,7 @@ describe("Browse Service", function(){
 
     it("should construct a BrowseDescription",function(){
 
-        var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
+        var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
         var browseDescription = new bs.BrowseDescription({
             browseDirection: bs.BrowseDirection.Both,
@@ -101,7 +102,7 @@ describe("Browse Service", function(){
 
         // timestamp shall be minDate( 01/01/1601) to satisfy the .NET server
         // implementation.
-        var date_time = require("../../lib/misc/date_time");
+        var date_time = require("lib/misc/date_time");
         date_time.bn_dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql([0,0]);
     });
 
@@ -116,9 +117,9 @@ describe("Browse Service", function(){
 
         redirectToFile('ReferenceDescription_to_json.log',function() {
 
-            var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-            var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
-            var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
+            var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+            var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+            var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 
             var ref = new bs.ReferenceDescription({
@@ -148,9 +149,9 @@ describe("Browse Service", function(){
 
         redirectToFile('BrowseResponse_to_json.log',function(){
 
-            var StatusCodes = require("../../lib/datamodel/opcua_status_code").StatusCodes;
-            var makeNodeId  = require("../../lib/datamodel/nodeid").makeNodeId;
-            var NodeClass = require("../../lib/datamodel/nodeclass").NodeClass;
+            var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+            var makeNodeId  = require("lib/datamodel/nodeid").makeNodeId;
+            var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
             var ref = new bs.ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",

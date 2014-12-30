@@ -1,6 +1,7 @@
-var s = require("../../lib/datamodel/structures");
+require("requirish")._(module);
+var s = require("lib/datamodel/structures");
 
-var secure_channel_service = require("../../lib/services/secure_channel_service");
+var secure_channel_service = require("lib/services/secure_channel_service");
 var OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
 
 var should = require("should");

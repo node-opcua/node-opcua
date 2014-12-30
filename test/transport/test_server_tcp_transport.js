@@ -1,20 +1,21 @@
-var DirectTransport = require("../../lib/transport/fake_socket").DirectTransport;
+require("requirish")._(module);
+var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
 var should = require("should");
-var opcua = require("../../lib/opcua");
-var assert = require('assert');
-var utils = require("../../lib/misc/utils");
+var opcua = require("lib/opcua");
+var assert = require("assert");
+var utils = require("lib/misc/utils");
 var color = require("colors");
-var s = require("../../lib/datamodel/structures");
-var BinaryStream = require("../../lib/misc/binaryStream").BinaryStream;
+var s = require("lib/datamodel/structures");
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 
 
-var debugLog = require("../../lib/misc/utils").make_debugLog(__filename);
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 
 describe("testing ServerTCP_transport", function () {
 
 
-    var ServerTCP_transport = require("../../lib/transport/server_tcp_transport").ServerTCP_transport;
+    var ServerTCP_transport = require("lib/transport/server_tcp_transport").ServerTCP_transport;
 
     var fake_socket;
     beforeEach(function (done) {
@@ -34,7 +35,7 @@ describe("testing ServerTCP_transport", function () {
             err.message.should.match(/Expecting \'HEL\' message/);
         });
 
-        var not_an_helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_3;
+        var not_an_helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_3;
 
         fake_socket.client.on("data", function (data) {
             var stream = new BinaryStream(data);
@@ -59,7 +60,7 @@ describe("testing ServerTCP_transport", function () {
 
         // simulate client send HEL
 
-        var helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1;
+        var helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1;
 
         fake_socket.client.on("data", function (data) {
             var stream = new BinaryStream(data);
@@ -101,7 +102,7 @@ describe("testing ServerTCP_transport", function () {
             var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
             response._schema.name.should.equal("TCPErrorMessage");
 
-            console.log(require("../../lib/misc/utils").hexDump(data));
+            console.log(require("lib/misc/utils").hexDump(data));
 
             done();
         });
@@ -117,8 +118,8 @@ describe("testing ServerTCP_transport", function () {
             assert(!err);
         });
 
-        var helloMessage = require("../fixtures/fixture_full_tcp_packets").packet_cs_1;
-        var openChannelRequest = require("../fixtures/fixture_full_tcp_packets").packet_cs_2;
+        var helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1;
+        var openChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2;
 
         transport.on("message", function (messageChunk) {
             utils.compare_buffers(messageChunk, openChannelRequest);

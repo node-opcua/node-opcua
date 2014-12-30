@@ -1,13 +1,14 @@
-var ClientSecureChannelLayer = require("../../lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
+require("requirish")._(module);
+var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 var should  = require("should");
-var assert = require('better-assert');
+var assert = require("better-assert");
 
-var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 
-var MockTransport           = require("../mocks/mock_transport").MockTransport;
-var fake_AcknowledgeMessage = require("../mocks/mock_transport").fake_AcknowledgeMessage;
+var MockTransport           = require("test/mocks/mock_transport").MockTransport;
+var fake_AcknowledgeMessage = require("test/mocks/mock_transport").fake_AcknowledgeMessage;
 
-var endpoints_service = require("../../lib/services/get_endpoints_service");
+var endpoints_service = require("lib/services/get_endpoints_service");
 var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
 
 
@@ -21,11 +22,11 @@ describe("testing ClientSecureChannelLayer ",function(){
             //
             opcua.packTcpMessage("ACK", fake_AcknowledgeMessage),
 
-            require("../fixtures/fixture_full_tcp_packets").packet_sc_2 // OpenChannelResponse
+            require("test/fixtures/fixture_full_tcp_packets").packet_sc_2 // OpenChannelResponse
 
         ],done);
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
@@ -46,7 +47,7 @@ describe("testing ClientSecureChannelLayer ",function(){
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("../fixtures/fixture_full_tcp_packets").packet_sc_2, // OpenChannelResponse
+            require("test/fixtures/fixture_full_tcp_packets").packet_sc_2, // OpenChannelResponse
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
@@ -57,7 +58,7 @@ describe("testing ClientSecureChannelLayer ",function(){
 
         ],done);
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
@@ -80,7 +81,7 @@ describe("testing ClientSecureChannelLayer ",function(){
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("../fixtures/fixture_full_tcp_packets").packet_sc_2,
+            require("test/fixtures/fixture_full_tcp_packets").packet_sc_2,
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
@@ -89,7 +90,7 @@ describe("testing ClientSecureChannelLayer ",function(){
 
         ],done);
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
@@ -117,7 +118,7 @@ describe("testing ClientSecureChannelLayer ",function(){
     it("should callback with an error if performMessageTransaction is called before connection",function(done){
 
         var secureChannel = new ClientSecureChannelLayer();
-        var s = require("../../lib/datamodel/structures");
+        var s = require("lib/datamodel/structures");
         var message = new GetEndpointsRequest();
         secureChannel.performMessageTransaction(message,function(err/*, response*/){
             err.message.should.equal("Client not connected");
@@ -137,7 +138,7 @@ describe("testing ClientSecureChannelLayer ",function(){
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("../fixtures/fixture_full_tcp_packets").packet_sc_2,
+            require("test/fixtures/fixture_full_tcp_packets").packet_sc_2,
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
@@ -146,7 +147,7 @@ describe("testing ClientSecureChannelLayer ",function(){
 
         ],done);
 
-        require("../../lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
+        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
         var secureChannel = new ClientSecureChannelLayer();
 
         secureChannel.bytesRead.should.equal(0);

@@ -1,6 +1,7 @@
+require("requirish")._(module);
 
 
-var makebuffer_from_trace = require("../helpers/makebuffer_from_trace").makebuffer_from_trace;
+var makebuffer_from_trace = require("test/helpers/makebuffer_from_trace").makebuffer_from_trace;
 
 
 exports.packet_cs_1 = makebuffer_from_trace(function(){

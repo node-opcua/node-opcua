@@ -1,3 +1,4 @@
+require("requirish")._(module);
 
 var deprecated_trim  = function(str) {
     return str.replace(/^\s+|\s+$/g, "");
@@ -8,7 +9,7 @@ function inlineText(f) {
         replace(/^[^\/]+\/\*!?/, '').
         replace(/\*\/[^\/]+$/, '');
 }
-var makebuffer = require("../../lib/misc/utils").makebuffer;
+var makebuffer = require("lib/misc/utils").makebuffer;
 
 var hexString = function(str) {
 

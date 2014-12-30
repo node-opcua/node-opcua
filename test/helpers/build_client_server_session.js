@@ -1,7 +1,8 @@
-var OPCUAServer = require("../../lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("../../lib/client/opcua_client").OPCUAClient;
-var opcua = require("../../lib/nodeopcua");
-var debugLog  = require("../../lib/misc/utils").make_debugLog(__filename);
+require("requirish")._(module);
+var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+var opcua = require("lib/nodeopcua");
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 var assert = require("better-assert");
 
 

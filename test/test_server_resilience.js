@@ -1,26 +1,27 @@
+require("requirish")._(module);
 
 
-var OPCUAServer = require("../lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("../lib/client/opcua_client").OPCUAClient;
+var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
+var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 var should = require("should");
-var assert = require('better-assert');
+var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
-var opcua = require("../lib/nodeopcua");
+var opcua = require("lib/nodeopcua");
 
-var debugLog  = require("../lib/misc/utils").make_debugLog(__filename);
-var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
-var browse_service = require("../lib/services/browse_service");
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var browse_service = require("lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
 
 var _ = require("underscore");
 
 
-var factories = require("../lib/misc/factories");
+var factories = require("lib/misc/factories");
 
 // a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
-var ObjectIds = require("./../lib/opcua_node_ids").ObjectIds;
+var ObjectIds = require("lib/opcua_node_ids").ObjectIds;
 var ServerSideUnimplementedRequest_Schema = {
     name: "ServerSideUnimplementedRequest",
     id: ObjectIds.Annotation_Encoding_DefaultXml,
@@ -67,7 +68,7 @@ describe("testing Server resilience to unsupported request",function(){
     });
 
     it("server should return a ServiceFault if receiving a unsupported MessageType",function(done){
-        var s = require("../lib/datamodel/structures");
+        var s = require("lib/datamodel/structures");
 
         var bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
 

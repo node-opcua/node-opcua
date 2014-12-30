@@ -1,8 +1,9 @@
 /*global describe, it, require*/
-var makeExpandedNodeId = require("../../lib/datamodel/expanded_nodeid").makeExpandedNodeId;
-var coerceExpandedNodeId = require("../../lib/datamodel/expanded_nodeid").coerceExpandedNodeId;
-var makeNodeId = require("../../lib/datamodel/nodeid").makeNodeId;
-var NodeIdType = require("../../lib/datamodel/nodeid").NodeIdType;
+require("requirish")._(module);
+var makeExpandedNodeId = require("lib/datamodel/expanded_nodeid").makeExpandedNodeId;
+var coerceExpandedNodeId = require("lib/datamodel/expanded_nodeid").coerceExpandedNodeId;
+var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+var NodeIdType = require("lib/datamodel/nodeid").NodeIdType;
 var should = require("should");
 
 describe("testing ExpandedNodeId", function () {
