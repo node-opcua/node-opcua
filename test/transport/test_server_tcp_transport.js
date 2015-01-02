@@ -17,6 +17,9 @@ describe("testing ServerTCP_transport", function () {
 
     var ServerTCP_transport = require("lib/transport/server_tcp_transport").ServerTCP_transport;
 
+    var helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1;
+    var openChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2;
+
     var fake_socket;
     beforeEach(function (done) {
         fake_socket = new DirectTransport(done);
@@ -111,17 +114,18 @@ describe("testing ServerTCP_transport", function () {
 
     });
 
-    it("should bind a socket, process the HEL message and forward subsequent messageChunk", function (done) {
+    function perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done) {
 
         var transport = new ServerTCP_transport();
+
         transport.init(fake_socket.server, function (err) {
             assert(!err);
         });
 
-        var helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1;
-        var openChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2;
+
 
         transport.on("message", function (messageChunk) {
+
             utils.compare_buffers(messageChunk, openChannelRequest);
 
             // it should provide bytesRead and bytesWritten
@@ -140,6 +144,13 @@ describe("testing ServerTCP_transport", function () {
 
         transport.bytesRead.should.equal(0);
         transport.bytesWritten.should.equal(0);
+
+    }
+
+    it("should bind a socket, process the HEL message and forward subsequent messageChunk", function (done) {
+
+
+        perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
         fake_socket.client.write(helloMessage);
 
@@ -148,40 +159,12 @@ describe("testing ServerTCP_transport", function () {
 
     });
 
-    it("should handle broken HEL message (bug#36)",function(done) {
 
-        var HelloMessage =  opcua.HelloMessage;
-        var hel = new HelloMessage();
-        var minHelloMessageSize = hel.binaryStoreSize();
-        console.log("minHelloMessageSize=",minHelloMessageSize);
 
-        var transport = new ServerTCP_transport();
-        transport.init(fake_socket.server, function (err) {
-            assert(!err);
-        });
 
-        var helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1;
-        var openChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2;
+    it("should handle HEL message broken in two chunks (bug#36)",function(done) {
 
-        transport.on("message", function (messageChunk) {
-            utils.compare_buffers(messageChunk, openChannelRequest);
-
-            // it should provide bytesRead and bytesWritten
-            transport.bytesRead.should.be.greaterThan(0);
-            transport.bytesWritten.should.be.greaterThan(20);
-
-            done();
-        });
-
-        var counter = 1;
-        fake_socket.client.on("data", function (data) {
-            counter++;
-
-        });
-
-        transport.bytesRead.should.equal(0);
-        transport.bytesWritten.should.equal(0);
-
+        perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
         var helloMessage_part1 = helloMessage.slice(0,10);
         var helloMessage_part2 = helloMessage.slice(10);
@@ -193,5 +176,31 @@ describe("testing ServerTCP_transport", function () {
 
     });
 
+    it("should handle broken HEL message in three chunks (bug#36)",function(done) {
 
+        perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
+
+        var helloMessage_part1 = helloMessage.slice(0,10);
+        var helloMessage_part2 = helloMessage.slice(10,25);
+        var helloMessage_part3 = helloMessage.slice(25);
+
+        fake_socket.client.write(helloMessage_part1);
+        fake_socket.client.write(helloMessage_part2);
+        fake_socket.client.write(helloMessage_part3);
+
+        fake_socket.client.write(openChannelRequest);
+
+    });
+
+    it("should handle broken HEL message in many small chunks (bug#36)",function(done) {
+
+        perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
+        for (var i=0;i<helloMessage.length;i++) {
+            var single_byte_chunk = helloMessage.slice(i,i+1);
+            fake_socket.client.write(single_byte_chunk);
+        }
+
+        fake_socket.client.write(openChannelRequest);
+
+    });
 });
