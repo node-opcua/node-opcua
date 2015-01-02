@@ -33,7 +33,7 @@ var MonitoringParameters_Schema = {
          * is an extensible parameter type specified in 7.16. It specifies the types of filters that
          * can be used.
          */
-        { name: "filter", fieldType: "ExtensibleParameterAdditionalHeader" },
+         { name: "filter", fieldType: "ExtensionObject" },
 
         /**
          * The requested size of the MonitoredItem queue.

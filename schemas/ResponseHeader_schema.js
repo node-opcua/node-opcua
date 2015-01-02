@@ -22,7 +22,7 @@ var ResponseHeader_Schema = {
         { name: "stringTable", isArray: true, fieldType: 'String'                     },
 
         // Reserved for future use.
-        { name: "additionalHeader", fieldType: "ExtensibleParameterAdditionalHeader" }
+        { name: "additionalHeader", fieldType: "ExtensionObject" }
 
     ]
 };

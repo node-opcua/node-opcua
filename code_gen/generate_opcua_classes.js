@@ -7,13 +7,13 @@ GLOBAL.require = function(name) {
     require(name);
 };
 
+
+var ExtensionObject = require("../lib/misc/extension_object").ExtensionObject;
+
 var  registerObject = require("../lib/misc/factories").registerObject;
 
 registerObject("TCPErrorMessage");
-registerObject("ExtensibleParameter");
 
-
-registerObject("ExtensibleParameterAdditionalHeader");
 registerObject("QualifiedName");
 registerObject("LocalizedText");
 registerObject("DiagnosticInfo");
@@ -129,11 +129,43 @@ registerObject("HistoryReadResponse");
 registerObject("HistoryReadDetails");
 registerObject("MonitoringFilter");
 
+
+// translate_browse_path_to_node_is
+registerObject("RelativePathElement");
+registerObject("RelativePath");
+registerObject("BrowsePath");
+registerObject("TranslateBrowsePathsToNodeIdsRequest");
+registerObject("BrowsePathTarget");
+registerObject("BrowsePathResult");
+registerObject("TranslateBrowsePathsToNodeIdsResponse");
+
+
+// BaseDataType
+registerObject("BaseDataType");
+
+
+// ContentFilter
+registerObject("FilterOperand");
+
+
+registerObject("SimpleAttributeOperand");
+registerObject("ElementOperand");
+registerObject("LiteralOperand");
+registerObject("AttributeOperand");
+registerObject("ContentFilterElement");
+registerObject("ContentFilter");
+
 registerObject("EventFilter");
 registerObject("ReadEventDetails");
 registerObject("ReadRawModifiedDetails");
 registerObject("ReadProcessedDetails");
 registerObject("ReadAtTimeDetails");
+
+// Call service
+//xx registerObject("CallMethodRequest");
+//xx registerObject("CallMethodResult");
+//xx registerObject("CallRequest");
+//xx registerObject("CallResponse");
 
 
 // Register Server Service
@@ -145,14 +177,6 @@ registerObject("RegisterServerResponse");
 registerObject("FindServersRequest");
 registerObject("FindServersResponse");
 
-// translate_browse_path_to_node_is
-registerObject("RelativePathElement");
-registerObject("RelativePath");
-registerObject("BrowsePath");
-registerObject("TranslateBrowsePathsToNodeIdsRequest");
-registerObject("BrowsePathTarget");
-registerObject("BrowsePathResult");
-registerObject("TranslateBrowsePathsToNodeIdsResponse");
 
 // write
 registerObject("WriteValue");
