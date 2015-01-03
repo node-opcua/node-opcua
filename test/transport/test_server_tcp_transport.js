@@ -105,8 +105,6 @@ describe("testing ServerTCP_transport", function () {
             var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
             response._schema.name.should.equal("TCPErrorMessage");
 
-            console.log(require("lib/misc/utils").hexDump(data));
-
             done();
         });
 
@@ -141,7 +139,6 @@ describe("testing ServerTCP_transport", function () {
 
         });
 
-
         transport.bytesRead.should.equal(0);
         transport.bytesWritten.should.equal(0);
 
@@ -153,14 +150,9 @@ describe("testing ServerTCP_transport", function () {
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
         fake_socket.client.write(helloMessage);
-
         fake_socket.client.write(openChannelRequest);
 
-
     });
-
-
-
 
     it("should handle HEL message broken in two chunks (bug#36)",function(done) {
 
@@ -199,7 +191,6 @@ describe("testing ServerTCP_transport", function () {
             var single_byte_chunk = helloMessage.slice(i,i+1);
             fake_socket.client.write(single_byte_chunk);
         }
-
         fake_socket.client.write(openChannelRequest);
 
     });

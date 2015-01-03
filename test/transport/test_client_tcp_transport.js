@@ -11,9 +11,10 @@ var StatusCode = require("lib/datamodel/opcua_status_code").StatusCode;
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 
+var ClientTCP_transport = require("lib/transport/client_tcp_transport").ClientTCP_transport;
+
 describe("testing ClientTCP_transport", function () {
 
-    var ClientTCP_transport = require("lib/transport/client_tcp_transport").ClientTCP_transport;
 
     var transport;
     beforeEach(function (done) {
@@ -22,17 +23,16 @@ describe("testing ClientTCP_transport", function () {
     });
     afterEach(function (done) {
         transport.disconnect(function (err) {
-            assert(!err);
-            done();
-        })
+            done(err);
+        });
     });
 
     var fake_AcknowledgeMessage = new opcua.AcknowledgeMessage({
-        protocolVersion: 0,
-        receiveBufferSize: 8192,
-        sendBufferSize: 8192,
-        maxMessageSize: 100000,
-        maxChunkCount: 600000
+        protocolVersion:    0,
+        receiveBufferSize:  8192,
+        sendBufferSize:     8192,
+        maxMessageSize:     100000,
+        maxChunkCount:      600000
     });
 
     it("should create and connect to a client TCP", function (done) {
@@ -148,6 +148,7 @@ describe("testing ClientTCP_transport", function () {
 
     it("should connect and forward subsequent message chunks after a valid HEL/ACK transaction", function (done) {
 
+        // lets build the subsequent message
         var message1 = new Buffer(10);
         message1.writeUInt32BE(0xDEADBEEF, 0);
         message1.writeUInt32BE(0xFEFEFEFE, 4);
@@ -294,7 +295,9 @@ describe("testing ClientTCP_transport", function () {
 
             should(err).be.instanceOf(Error,
                 "the close event should pass a valid Error object because disconnection is caused by external event");
+
             done();
+
         });
 
         transport.connect("fake://localhost:2033/SomeAddress", function (err) {
