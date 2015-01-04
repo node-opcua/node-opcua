@@ -92,7 +92,7 @@ describe("OPCUAServerEndpoint#get_endpoint_for_security_mode_and_policy",functio
 
 
 
-    it("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.None",function() {
+    it_with_crypto("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.Basic128",function() {
 
         server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN,SecurityPolicy.Basic128);
         server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN,SecurityPolicy.Basic256);
