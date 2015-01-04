@@ -62,7 +62,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
             usage.lookup(pid, options, function(err, result) {
             usage_result  = result;
             console.log("result Used Memory: ", humanize.filesize(result), " CPU ",Math.round(result.cpu) ," %"  );
-        })
+        });
     },1000);
 
     server.engine.addVariableInFolder(folder, {

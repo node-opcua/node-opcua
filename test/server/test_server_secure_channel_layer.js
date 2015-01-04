@@ -131,7 +131,7 @@ describe("testing ServerSecureChannelLayer ",function(){
 
     });
 
-    it("should handle a CloseSecureChannelRequest directly and emmit a abort event",function(done){
+    it("should handle a CloseSecureChannelRequest directly and emit a abort event",function(done){
 
         var node = new DirectTransport();
 

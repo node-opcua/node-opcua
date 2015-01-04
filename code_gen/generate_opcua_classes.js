@@ -196,11 +196,11 @@ var generate_address_space = require("../lib/address_space/load_nodeset2").gener
 var makeServerStatus = require("../lib/address_space/convert_nodeset_to_types").makeServerStatus;
 
 
-var address_space = new AddressSpace();
+var aspace = new AddressSpace();
 
-generate_address_space(address_space,filename,function() {
+generate_address_space(aspace,filename,function() {
 
-    makeServerStatus(address_space);
+    makeServerStatus(aspace);
 
 });
 

@@ -94,10 +94,10 @@ describe("MessageBuilder with SIGN support", function () {
 
         messageBuilder
             .on("full_message_body",function(message) {
-                done(new Error("it should not emmit a message event if a signature is invalid or missing"));
+                done(new Error("it should not emit a message event if a signature is invalid or missing"));
             })
             .on("message",function(message){
-                done(new Error("it should not emmit a message event if a signature is invalid or missing"));
+                done(new Error("it should not emit a message event if a signature is invalid or missing"));
             })
             .on("error", function (err) {
                 debugLog(err);
