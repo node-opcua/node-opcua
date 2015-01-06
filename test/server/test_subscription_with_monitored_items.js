@@ -179,4 +179,36 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.terminate();
 
     });
+
+
+    it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)",function(done){
+
+        var subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20
+        });
+
+        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            itemToMonitor: {
+            },
+            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            requestedParameters: {
+                clientHandle: 123,
+                queueSize: 10,
+                samplingInterval: 100
+            }
+        });
+
+        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both,monitoredItemCreateRequest);
+
+        var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+        var result = subscription.getMonitoredItems({});
+        result.statusCode.should.eql(StatusCodes.Good);
+        result.serverHandles.map(parseInt).should.eql([monitoredItem.monitoredItemId]);
+        result.clientHandles.map(parseInt).should.eql([monitoredItem.clientHandle]);
+
+        done();
+    });
+
 });

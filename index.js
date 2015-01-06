@@ -17,6 +17,8 @@ module.exports.AccessLevelFlag  = require("./lib/datamodel/access_level").Access
 // services
 module.exports.browse_service   = require("./lib/services/browse_service");
 module.exports.read_service     = require("./lib/services/read_service");
+module.exports.method_service   = require("./lib/services/method_service");
+
 module.exports.utils     = require("./lib/misc/utils");
 
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;

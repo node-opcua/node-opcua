@@ -547,4 +547,10 @@ describe("testing server and subscription", function () {
 
 
     });
+
+    it("A client should be able to call the GetMonitoredItems standard OPCUA command",function(){
+
+
+    }) ;
+
 });

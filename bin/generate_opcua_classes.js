@@ -162,10 +162,10 @@ registerObject("ReadProcessedDetails");
 registerObject("ReadAtTimeDetails");
 
 // Call service
-//xx registerObject("CallMethodRequest");
-//xx registerObject("CallMethodResult");
-//xx registerObject("CallRequest");
-//xx registerObject("CallResponse");
+registerObject("CallMethodRequest");
+registerObject("CallMethodResult");
+registerObject("CallRequest");
+registerObject("CallResponse");
 
 
 // Register Server Service

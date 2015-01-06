@@ -24,7 +24,10 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 1000,
             discardOldest: true,
-            queueSize: 100
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
+
         });
 
         monitoredItem.clientHandle.should.eql(1);
@@ -32,7 +35,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.discardOldest.should.eql(true);
         monitoredItem.queueSize.should.eql(100);
         monitoredItem.queue.should.eql([]);
-
+        monitoredItem.monitoredItemId.should.eql(50);
         done();
     });
 
@@ -42,7 +45,9 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 100
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
         });
 
         monitoredItem.oldValue = new Variant({dataType: DataType.UInt32, value: 42});
@@ -61,7 +66,9 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 100
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
         });
 
         monitoredItem.queue.length.should.eql(0);
@@ -78,7 +85,9 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true, // <= discard oldest !
-            queueSize: 2         // <=== only 2 values in queue
+            queueSize: 2,         // <=== only 2 values in queue
+            // added by the server:
+            monitoredItemId: 50
         });
 
         monitoredItem.queue.length.should.eql(0);
@@ -110,7 +119,9 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: false, // <= discard oldest !
-            queueSize: 2         // <=== only 2 values in queue
+            queueSize: 2,         // <=== only 2 values in queue
+            // added by the server:
+            monitoredItemId: 50
         });
 
         monitoredItem.queue.length.should.eql(0);
@@ -137,13 +148,15 @@ describe("Server Side MonitoredItem",function(){
     });
 
 
-    it("should set timestamp to the recorded value", function(done){
+    it("should set timestamp to the recorded value without timestamp (variation 1)", function(done){
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 2  // <=== only 2 values in queue
+            queueSize: 2,  // <=== only 2 values in queue
+            // added by the server:
+            monitoredItemId: 50
         });
 
         this.clock.tick(100);
@@ -158,6 +171,35 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
+    // #21
+    it("should set timestamp to the recorded value with a given sourceTimestamp (variation 2)", function(done) {
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 2,  // <=== only 2 values in queue
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+        this.clock.tick(100);
+        var now = new Date();
+
+        var sourceTimestamp = new Date(Date.UTC(2000,0,1));
+        sourceTimestamp.setMilliseconds(100);
+        var picoSeconds = 456;
+        monitoredItem.recordValue(new Variant({dataType: DataType.UInt32, value: 1000 }), sourceTimestamp , picoSeconds);
+
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.queue[0].serverTimestamp.should.eql(now);
+
+        monitoredItem.queue[0].sourceTimestamp.should.eql(sourceTimestamp);
+
+        done();
+
+    });
+
 
     it("a MonitoredItem should trigger a read event according to sampling interval",function(done){
 
@@ -165,7 +207,9 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 100
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
         });
 
         var sample_value = 1;
@@ -188,7 +232,9 @@ describe("Server Side MonitoredItem",function(){
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 100
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
         });
 
         var spy_samplingEventCall = new sinon.spy();
