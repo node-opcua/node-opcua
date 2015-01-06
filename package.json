@@ -60,7 +60,7 @@
     "bomstrip": "^0.1.4",
     "colors": "~1.0.3",
     "easy-table": "~0.3.0",
-    "enum": "~0.2.6",
+    "enum": "0.2.6",
     "ersatz-node-expat": "*",
     "hexy": "~0.2.7",
     "humanize": "0.0.9",
