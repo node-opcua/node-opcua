@@ -10,7 +10,7 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "postinstall": "node code_gen/generate_opcua_classes.js",
+    "postinstall": "node bin/generate_opcua_classes.js",
     "test": "mocha test -R spec --recursive --timeout 20000",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
