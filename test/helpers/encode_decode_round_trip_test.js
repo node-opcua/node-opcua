@@ -45,9 +45,13 @@ function encode_decode_round_trip_test(obj,callback_buffer) {
         try {
             JSON.stringify(obj_reloaded[p]).should.eql(JSON.stringify(obj[p]));
         } catch(err) {
-            console.log(" key ",p);
-            console.log(" expected ",obj[p]);
-            console.log(" actual   ",obj_reloaded[p]);
+            console.log(" ---------------------------------- error in encode_decode_round_trip_test".yellow);
+            console.log(" key ".red,      p);
+            console.log(" expected ".red, JSON.stringify(obj[p]));
+            console.log(" actual   ".cyan,JSON.stringify(obj_reloaded[p]));
+
+            // re throw exception
+            throw err;
         }
 
     });
