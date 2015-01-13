@@ -263,10 +263,9 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder", function () {
 
-        var rootFolder = engine.findObject("ObjectsFolder");
-        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder1");
 
-        var newVariable = engine.addVariableInFolder("MyNewFolder",
+        var newVariable = engine.addVariableInFolder("MyNewFolder1",
             {
                 browseName: "Temperature",
                 dataType: "Float",
@@ -291,10 +290,9 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
-        //xx var rootFolder = engine.findObject("ObjectsFolder");
-        engine.createFolder("ObjectsFolder", "MyNewFolder");
+        engine.createFolder("ObjectsFolder", "MyNewFolder3");
 
-        var newVariable = engine.addVariableInFolder("MyNewFolder",
+        var newVariable = engine.addVariableInFolder("MyNewFolder3",
             {
                 nodeId: "ns=4;b=01020304ffaa",  // << fancy node id here !
                 browseName: "Temperature",
@@ -318,7 +316,7 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder that returns a timestamped value", function () {
 
-        engine.createFolder("ObjectsFolder", "MyNewFolder");
+        engine.createFolder("ObjectsFolder", "MyNewFolder4");
 
         var temperature = {
             value: new Variant({dataType: DataType.Double, value: 10.0}),
@@ -326,7 +324,7 @@ describe("testing ServerEngine", function () {
             sourcePicoseconds: 10
         };
 
-        var newVariable = engine.addVariableInFolder("MyNewFolder",
+        var newVariable = engine.addVariableInFolder("MyNewFolder4",
             {
                 browseName: "TemperatureWithSourceTimestamps",
                 dataType: "Double",

@@ -4,6 +4,7 @@ module.exports.structures       = require("./lib/datamodel/structures");
 module.exports.parseEndpointUrl = require("./lib/nodeopcua").parseEndpointUrl;
 module.exports.resolveNodeId    = require("./lib/datamodel/nodeid").resolveNodeId;
 module.exports.makeNodeId       = require("./lib/datamodel/nodeid").makeNodeId;
+module.exports.coerceNodeId     = require("./lib/datamodel/nodeid").coerceNodeId;
 module.exports.makeExpandedNodeId       = require("./lib/datamodel/expanded_nodeid").makeExpandedNodeId;
 module.exports.coerceExpandedNodeId     = require("./lib/datamodel/expanded_nodeid").coerceExpandedNodeId;
 module.exports.StatusCodes      = require("./lib/datamodel/opcua_status_code").StatusCodes;
@@ -17,13 +18,14 @@ module.exports.AccessLevelFlag  = require("./lib/datamodel/access_level").Access
 // services
 module.exports.browse_service   = require("./lib/services/browse_service");
 module.exports.read_service     = require("./lib/services/read_service");
-module.exports.method_service   = require("./lib/services/method_service");
+module.exports.call_service     = require("./lib/services/call_service");
 
 module.exports.utils     = require("./lib/misc/utils");
 
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
 module.exports.AttributeNameById= module.exports.read_service.AttributeNameById;
 module.exports.VariableIds      = require("./lib/opcua_node_ids").VariableIds;
+module.exports.MethodIds        = require("./lib/opcua_node_ids").MethodIds;
 
 // client services
 module.exports.OPCUAClient        = require("./lib/client/opcua_client").OPCUAClient;

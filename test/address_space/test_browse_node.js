@@ -1,9 +1,6 @@
 require("requirish")._(module);
 
 var address_space = require("lib/address_space/address_space");
-var AddressSpace = address_space.AddressSpace;
-var ReferenceType = address_space.ReferenceType;
-var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
 var should  = require("should");
 var nodeid = require("lib/datamodel/nodeid");
@@ -13,24 +10,17 @@ var dumpBrowseDescription = require("lib/address_space/basenode").dumpBrowseDesc
 var browse_service = require("lib/services/browse_service");
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 
-describe("testing dump browseDescriptions",function(){
+var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
+var util = require("util");
 
 
-    var util = require("util");
-    var nodeset_filename = __dirname+ "/../../lib/server/mini.Node.Set2.xml";
-    var address_space = new AddressSpace();
+
+
+describe("testing address space",function(){
+
+    var address_space = null;
     before(function(done){
-        generate_address_space(address_space, nodeset_filename,function(){
-            done();
-        });
-    });
-
-
-    it("should provide a service to build NodeClassMask easily",function(){
-
-        var mask = browse_service.makeNodeClassMask("Object | ObjectType");
-        mask.should.eql(1 + (1<<3));
-
+        get_mini_address_space(function(err,data) { address_space = data;  done(err); });
     });
 
     it("should dump references",function(done) {
@@ -38,7 +28,7 @@ describe("testing dump browseDescriptions",function(){
         var hr =  address_space.findReferenceType("HierarchicalReferences");
 
         redirectToFile("dumpReferences.log",function() {
-            dumpReferences(address_space,hr.references);
+            dumpReferences(address_space,hr._references);
         },done);
 
     });
@@ -64,6 +54,18 @@ describe("testing dump browseDescriptions",function(){
         var obj = address_space.findObject("Server_ServerStatus_BuildInfo");
         obj.full_name().should.eql("Server.ServerStatus.BuildInfo");
 
+    });
+});
+describe("testing dump browseDescriptions",function(){
+
+
+    var address_space = null;
+    before(function(done){
+        get_mini_address_space(function(err,data) { address_space = data;  done(err); });
+    });
+
+    it("should provide a way to find a Method object by nodeId",function(){
+        should(address_space.findMethod("ns=0;i=11489")).not.eql(null);
     });
 });
 

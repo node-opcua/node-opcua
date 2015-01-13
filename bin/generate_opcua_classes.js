@@ -1,12 +1,5 @@
 
 Error.stackTraceLimit = Infinity;
-var tmp = require;
-
-GLOBAL.require = function(name) {
-    console.log(" Including : ",name);
-    require(name);
-};
-
 
 var ExtensionObject = require("../lib/misc/extension_object").ExtensionObject;
 
@@ -141,12 +134,11 @@ registerObject("TranslateBrowsePathsToNodeIdsResponse");
 
 
 // BaseDataType
-registerObject("BaseDataType");
-
+registerObject("Argument");
+//xx registerObject("BaseDataType");
 
 // ContentFilter
 registerObject("FilterOperand");
-
 
 registerObject("SimpleAttributeOperand");
 registerObject("ElementOperand");

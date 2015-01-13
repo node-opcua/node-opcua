@@ -7,9 +7,9 @@ var Table = require('easy-table');
 var async = require("async");
 var utils = require('../lib/misc/utils');
 
-
+//node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 var argv = require('optimist')
-    .usage('Usage: $0 -d --endpoint <endpointUrl> --node <node_id_to_monitor>')
+    .usage('Usage: $0 -d --endpoint <endpointUrl> --node <node_id_to_monitor> --crawl')
     .argv;
 
 var opcua = require("../");
@@ -34,7 +34,7 @@ var AttributeIds = opcua.AttributeIds;
 
 
 var NodeCrawler = opcua.NodeCrawler;
-
+var doCrawling = argv.crawl ? true: false;
 
 async.series([
     function (callback) {
@@ -55,11 +55,11 @@ async.series([
             var table = new Table();
             if (!err) {
                 endpoints.forEach(function (endpoint) {
-                    table.cell('endpoint', endpoint.endpointUrl);
-                    table.cell('Application URI', endpoint.server.applicationUri);
-                    table.cell('Security Mode', endpoint.securityMode);
-                    table.cell('securityPolicyUri', endpoint.securityPolicyUri);
-                    table.cell('Type', endpoint.server.applicationType.key);
+                    table.cell('endpoint',           endpoint.endpointUrl);
+                    table.cell('Application URI',    endpoint.server.applicationUri);
+                    table.cell('Security Mode',      endpoint.securityMode);
+                    table.cell('securityPolicyUri',  endpoint.securityPolicyUri);
+                    table.cell('Type',               endpoint.server.applicationType.key);
                     table.cell('certificate', "..." /*endpoint.serverCertificate*/);
                     table.newRow();
                 });
@@ -118,38 +118,43 @@ async.series([
     //------------------------------------------
     function (callback) {
 
-        assert(_.isObject(the_session));
-        var crawler = new NodeCrawler(the_session);
+        if(doCrawling) {
+            assert(_.isObject(the_session));
+            var crawler = new NodeCrawler(the_session);
 
-        var t = Date.now();
-        var t1;
-        client.on("send_request",function(){
-            t1 = Date.now();
-        });
-        client.on("receive_response",function(){
-            var t2 = Date.now();
-            var util = require("util");
-            var str =  util.format("R= %d W= %d T=%d t= %d", client.bytesRead,client.bytesWritten,client.transactionsPerformed ,(t2-t1));
-            console.log(str.yellow.bold);
-        });
+            var t = Date.now();
+            var t1;
+            client.on("send_request",function(){
+                t1 = Date.now();
+            });
+            client.on("receive_response",function(){
+                var t2 = Date.now();
+                var util = require("util");
+                var str =  util.format("R= %d W= %d T=%d t= %d", client.bytesRead,client.bytesWritten,client.transactionsPerformed ,(t2-t1));
+                console.log(str.yellow.bold);
+            });
 
-        var t = Date.now();
-        crawler.on("browsed",function(element){
-            console.log("->",element.browseName.name,element.nodeId.toString());
-        });
+            var t = Date.now();
+            crawler.on("browsed",function(element){
+                console.log("->",element.browseName.name,element.nodeId.toString());
+            });
 
-        var nodeId = "ObjectsFolder";
-        console.log("now crawling object folder ...please wait...");
-        crawler.read(nodeId, function (err, obj) {
-            if (!err) {
-                // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
-                //xx console.log(treeify.asTree(obj, true));
-                treeify.asLines(obj, true, true, function (line) {
-                    console.log(line);
-                });
-            }
-            callback(err);
-        });
+            var nodeId = "ObjectsFolder";
+            console.log("now crawling object folder ...please wait...");
+            crawler.read(nodeId, function (err, obj) {
+                if (!err) {
+                    // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
+                    //xx console.log(treeify.asTree(obj, true));
+                    treeify.asLines(obj, true, true, function (line) {
+                        console.log(line);
+                    });
+                }
+                callback(err);
+            });
+
+        } else {
+            callback();
+        }
 
 
     },
@@ -167,6 +172,17 @@ async.series([
         });
         the_subscription.on("started", function () {
             console.log("started", the_subscription);
+
+            the_session.getMonitoredItems(the_subscription.subscriptionId,function(err,results){
+                if( !err) {
+                    console.log("MonitoredItems clientHandles" , results.clientHandles);
+                    console.log("MonitoredItems serverHandles" , results.serverHandles);
+                } else {
+                    console.log(" getMonitoredItems ERROR ".red,err.message.cyan);
+                }
+            });
+
+
         }).on("keepalive", function () {
             console.log("keepalive");
         }).on("terminated", function () {

@@ -54,6 +54,7 @@ describe("testing NodeSet XML file loading",function(){
             Object.keys(address_space._referenceTypeMap).length.should.be.greaterThan(10);
             Object.keys(address_space._dataTypeMap).length.should.be.greaterThan(10);
             Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(10);
+
             done(err);
         })
     });

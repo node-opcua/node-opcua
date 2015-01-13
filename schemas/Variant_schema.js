@@ -9,11 +9,9 @@ var LocalizedText   = require("../lib/datamodel/localized_text").LocalizedText;
 var DataType         = require("./DataType_enum").DataType;
 var VariantArrayType = require("./VariantArrayType_enum").VariantArrayType;
 
-
 var Variant_ArrayMask            = 0x80;
 var Variant_ArrayDimensionsMask  = 0x40;
 var Variant_TypeMask             = 0x3F;
-
 
 
 function coerceVariantType(dataType, value)
@@ -23,12 +21,12 @@ function coerceVariantType(dataType, value)
             value = null;
             break;
         case DataType.LocalizedText:
-            if (value._schema !== LocalizedText.prototype._schema) {
+            if (!value || !value._schema || value._schema !== LocalizedText.prototype._schema) {
                 value = new LocalizedText(value);
             }
             break;
         case DataType.QualifiedName:
-            if (value._schema !== QualifiedName.prototype._schema) {
+            if (!value || !value._schema || value._schema !== QualifiedName.prototype._schema) {
                 value = new QualifiedName(value);
             }
             break;

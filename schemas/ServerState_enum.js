@@ -1,4 +1,4 @@
-// --------- This code has been automatically generated !!! Tue Jan 06 2015 11:31:30 GMT+0100 (CET)
+// --------- This code has been automatically generated !!! Thu Jan 15 2015 23:57:31 GMT+0100 (CET)
 var factories  = require("../lib/misc/factories");
 var makeNodeId = require("../lib/datamodel/nodeid").makeNodeId;
 var ServerState_Schema = {

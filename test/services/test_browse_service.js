@@ -2,7 +2,7 @@ require("requirish")._(module);
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var verify_multi_chunk_message= require("test/helpers/verify_message_chunk").verify_multi_chunk_message;
 
-var bs = require("lib/services/browse_service");
+var browse_service = require("lib/services/browse_service");
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 var makebuffer = require("lib/misc/utils").makebuffer;
 
@@ -68,21 +68,21 @@ describe("Browse Service", function(){
 
         var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
-        var browseDescription = new bs.BrowseDescription({
-            browseDirection: bs.BrowseDirection.Both,
+        var browseDescription = new browse_service.BrowseDescription({
+            browseDirection: browse_service.BrowseDirection.Both,
             referenceTypeId: makeNodeId(12),
             includeSubtypes: true,
             nodeClassMask: 25,
             resultMask: 32
         });
-        browseDescription.browseDirection.should.eql(bs.BrowseDirection.Both);
+        browseDescription.browseDirection.should.eql(browse_service.BrowseDirection.Both);
         browseDescription.referenceTypeId.value.should.eql(12);
         browseDescription.includeSubtypes.should.equal(true);
         encode_decode_round_trip_test(browseDescription);
     });
 
     it("should create a BrowseRequest",function(){
-       var browseRequest = new bs.BrowseRequest({
+       var browseRequest = new browse_service.BrowseRequest({
            view: {},
            requestedMaxReferencesPerNode: 1,
            nodesToBrowse: [ { }]
@@ -91,7 +91,7 @@ describe("Browse Service", function(){
     });
 
     it("should create a BrowseRequest with correct default value in  viewDescription",function() {
-        var browseRequest = new bs.BrowseRequest({
+        var browseRequest = new browse_service.BrowseRequest({
             view: {},
             requestedMaxReferencesPerNode: 1,
             nodesToBrowse: [ { }]
@@ -109,7 +109,7 @@ describe("Browse Service", function(){
 
 
     it("should create a BrowseResponse",function(){
-        var browseResponse = new bs.BrowseResponse({});
+        var browseResponse = new browse_service.BrowseResponse({});
         encode_decode_round_trip_test(browseResponse);
     });
 
@@ -122,7 +122,7 @@ describe("Browse Service", function(){
             var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 
-            var ref = new bs.ReferenceDescription({
+            var ref = new browse_service.ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",
                 isForward: true,
                 nodeClass: NodeClass.Variable,
@@ -131,7 +131,7 @@ describe("Browse Service", function(){
 
 
             var json_str = JSON.stringify(ref, null, " ");
-            var b = new bs.ReferenceDescription(JSON.parse(json_str));
+            var b = new browse_service.ReferenceDescription(JSON.parse(json_str));
 
             console.log(require("util").inspect(ref, {colors: true, depth: 15}));
             console.log("/////");
@@ -153,14 +153,14 @@ describe("Browse Service", function(){
             var makeNodeId  = require("lib/datamodel/nodeid").makeNodeId;
             var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
-            var ref = new bs.ReferenceDescription({
+            var ref = new browse_service.ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",
                 isForward: true ,
                 nodeClass: NodeClass.Variable,
                 browseName: { name: "toto"}
             });
 
-            var browseResponse = new bs.BrowseResponse({
+            var browseResponse = new browse_service.BrowseResponse({
                 results: [  {
                     statusCode: StatusCodes.Good,
                     references: [ ref ]
@@ -175,7 +175,7 @@ describe("Browse Service", function(){
             console.log("/////".yellow.bold);
             console.log(json_str);
 
-            var b =  new bs.BrowseResponse(JSON.parse(json_str));
+            var b =  new browse_service.BrowseResponse(JSON.parse(json_str));
 
             console.log(" --------> ");
             console.log(require("util").inspect(b,{colors: true,depth:15}));
@@ -205,4 +205,14 @@ describe("Browse Service", function(){
     });
 
 
+});
+
+describe("testing makeNodeClassMask",function(){
+
+    it("should provide a way to build a NodeClassMask easily",function(){
+
+        var mask = browse_service.makeNodeClassMask("Object | ObjectType");
+        mask.should.eql(1 + (1<<3));
+
+    });
 });

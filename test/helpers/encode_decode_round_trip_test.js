@@ -5,21 +5,33 @@ var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var factories = require("lib/misc/factories_factories");
 var hexDump = require("lib/misc/utils").hexDump;
 
+var _ = require("underscore");
 
 var packet_analyzer = require("lib/misc/packet_analyzer").packet_analyzer;
 
 //xx process.argv.push("DEBUG");
 
-function dump_block_in_debug_mode(buffer,id) {
+function dump_block_in_debug_mode(buffer,id,options) {
 
     if ( process.env.DEBUG )  {
         console.log(hexDump(buffer));
-        packet_analyzer(buffer,id);
+        packet_analyzer(buffer,id,0,0,options);
 
     }
 }
-function encode_decode_round_trip_test(obj,callback_buffer) {
+/**
+ *
+ * @param obj {Object} : object to test ( the object must provide a binaryStoreSize,encode,decode method
+ * @param [options]
+ * @param callback_buffer
+ * @returns {*}
+ */
+function encode_decode_round_trip_test(obj,options, callback_buffer) {
 
+    if (!callback_buffer && _.isFunction(options) ) {
+        callback_buffer = options;
+        options = {};
+    }
 
     callback_buffer = callback_buffer || dump_block_in_debug_mode;
 
@@ -27,18 +39,18 @@ function encode_decode_round_trip_test(obj,callback_buffer) {
 
     var expandedNodeId = obj.encodingDefaultBinary;
 
-    var size = obj.binaryStoreSize();
+    var size = obj.binaryStoreSize(options);
 
     var stream  = new BinaryStream(size);
 
-    obj.encode(stream);
+    obj.encode(stream,options);
 
-    callback_buffer(stream._buffer,obj.encodingDefaultBinary);
+    callback_buffer(stream._buffer,obj.encodingDefaultBinary,options);
 
     stream.rewind();
 
     var obj_reloaded = factories.constructObject(expandedNodeId);
-    obj_reloaded.decode(stream);
+    obj_reloaded.decode(stream,options);
 
     Object.keys(obj_reloaded).forEach(function(p) {
 

@@ -1,3 +1,8 @@
+require("requirish")._(module);
+var _ = require("underscore");
+var assert = require("better-assert");
+
+var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 /**
  * results []
@@ -39,7 +44,7 @@ CallMethodResult_Schema = {
      */
         { name: "inputArgumentDiagnosticInfos" , fieldType:"DiagnosticInfo", isArray:true,documentation: "The list of diagnostic information corresponding to the inputArguments." },
     /**
-     * outputArguments []               BaseDataType
+     * outputArguments []               BaseDataType (ANY)
      *
      *                                  List of output argument values. An empty list indicates that there
      *                                  are no output arguments. The size and order of this list matches
@@ -50,7 +55,9 @@ CallMethodResult_Schema = {
      *                                  methods OutputArguments Property.
      *
      */
-        { name: "outputArguments" , fieldType:"BaseDataType", isArray:true, documentation: "The list of output argument values. " },
+        // todo : the spec is not very clear about the fact that the  outputArguments is a array of Variant ..
+        //        => Open a ticket issue at the foundation.
+        { name: "outputArguments" , fieldType:"Variant", isArray:true, documentation: "The list of output argument values. " },
 
     /**
      * diagnosticInfos []               DiagnosticInfo
