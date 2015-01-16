@@ -65,6 +65,7 @@ describe("Testing Server and Client diagnostic facilities",function() {
 
                     console.log(" Server bytes read : ", server_channel.bytesRead," bytes written : ", server_channel.bytesWritten);
                     console.log(" Client bytes read : ", client.bytesRead," bytes written : ", client.bytesWritten);
+                    console.log(" transaction count : ", client.transactionsPerformed);
                     if (transaction_done_counter === 1 ) {
                         done();
                     }
