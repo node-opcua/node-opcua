@@ -235,6 +235,24 @@ var Variant_Schema = {
     },
     isValid: function(self) {
         return isValidVariant(self.arrayType,self.dataType,self.value);
+    },
+    toString: function() {
+
+        var self = this;
+
+        function f(value) {
+            return (value === null)? "<null>" : value.toString();
+        }
+
+        var data = self.arrayType.toString();
+        if (self.arrayType === VariantArrayType.Scalar) {
+            data += ", value: " + f(self.value);
+        } else if (self.arrayType === VariantArrayType.Array) {
+            assert(_.isArray(self.value));
+            data +=", l= "+ self.value.length + ", value=[" + self.value.map(f).join(",") + "]";
+        } else {
+        }
+        return "Variant(" + data + ")";
     }
 
 };
