@@ -10,8 +10,8 @@ var decode_NodeId = _defaultTypeMap.NodeId.decode;
 assert(_.isFunction(encode_NodeId));
 assert(_.isFunction(decode_NodeId));
 
-var ArgumentList_decode = require("lib/datamodel/argument_list").ArgumentList_decode;
-var ArgumentList_encode = require("lib/datamodel/argument_list").ArgumentList_encode;
+var decode_ArgumentList = require("lib/datamodel/argument_list").decode_ArgumentList;
+var encode_ArgumentList = require("lib/datamodel/argument_list").encode_ArgumentList;
 
 var CallMethodRequest_Schema = {
     name: "CallMethodRequest",
