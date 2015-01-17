@@ -11,9 +11,9 @@ var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
-var ArgumentList_getMethodDeclaration = require("lib/datamodel/argument_list").ArgumentList_getMethodDeclaration;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var Argument =require("lib/datamodel/argument_list").Argument;
+//xx var getMethodDeclaration_ArgumentList = require("lib/datamodel/argument_list").getMethodDeclaration_ArgumentList;
+//xx var Argument =require("lib/datamodel/argument_list").Argument;
 
 
 var should = require("should");

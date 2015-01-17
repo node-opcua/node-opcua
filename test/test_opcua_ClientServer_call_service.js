@@ -216,8 +216,6 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             session.call(methodToCalls,function(err,results){
                 should(err).equal(null);
                 results.length.should.eql(1);
-
-                console.log(" XXXXXXXXXXXXxx ".red ,results[0].statusCode);
                 results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
 
                 inner_done();
@@ -248,7 +246,6 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             session.call(methodToCalls,function(err,results){
                 if (!err) {
                     results.length.should.eql(1);
-                    console.log(" XXXXXXXXXXXXxx ".red ,results[0].statusCode);
                     results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
                 }
 
