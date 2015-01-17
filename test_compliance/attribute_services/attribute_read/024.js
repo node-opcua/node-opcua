@@ -102,7 +102,7 @@ function test_24_on_node(session,nodeId,callback) {
  *
  * @param title
  * @param callback {Funtion}
- * @param callback.options.session {OPCUASession}
+ * @param callback.options.session {ClientSession}
  */
 
 exports.register_test = function (options) {

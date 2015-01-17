@@ -1,6 +1,6 @@
 require("requirish")._(module);
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
-var OPCUASession = require("lib/client/opcua_client").OPCUASession;
+var ClientSession = require("lib/client/opcua_client").ClientSession;
 var ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
 var assert = require("better-assert");
 var async = require("async");
@@ -46,7 +46,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            assert(session instanceof OPCUASession);
+            assert(session instanceof ClientSession);
 
             var subscription = new ClientSubscription(session, {
                 requestedPublishingInterval: 100,
@@ -71,7 +71,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            assert(session instanceof OPCUASession);
+            assert(session instanceof ClientSession);
 
             var subscription = new ClientSubscription(session, {
                 requestedPublishingInterval: 100,
@@ -96,7 +96,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            assert(session instanceof OPCUASession);
+            assert(session instanceof ClientSession);
 
             var nb_keep_alive_received = 0;
 
@@ -133,7 +133,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            assert(session instanceof OPCUASession);
+            assert(session instanceof ClientSession);
 
             var subscription = new ClientSubscription(session, {
                 requestedPublishingInterval: 150,
@@ -170,7 +170,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            assert(session instanceof OPCUASession);
+            assert(session instanceof ClientSession);
 
             var subscription = new ClientSubscription(session, {
                 requestedPublishingInterval: 10,
@@ -232,7 +232,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         // create session
         function (callback) {
             client.createSession(function (err, session) {
-                assert(session instanceof OPCUASession);
+                assert(session instanceof ClientSession);
                 if (!err) {
                     the_session = session;
                 }

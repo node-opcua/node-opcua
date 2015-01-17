@@ -8,8 +8,8 @@ var _ = require("underscore");
 
 var opcua = require("../");
 
-var OPCUASession = opcua.OPCUASession;
-assert(_.isFunction(OPCUASession));
+var ClientSession = opcua.ClientSession;
+assert(_.isFunction(ClientSession));
 
 var ClientSubscription = opcua.ClientSubscription;
 
@@ -113,7 +113,7 @@ describe("Functional test : one server with many concurrent clients",function() 
 
                 debugLog(" Creating monitored Item for client",name);
                 var session = data.session;
-                assert(session instanceof OPCUASession);
+                assert(session instanceof ClientSession);
 
 
                 var subscription = new ClientSubscription(session, {

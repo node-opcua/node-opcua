@@ -119,12 +119,12 @@ function stop_server(data, callback) {
 //xx start_server=start_server1;
 //xx stop_server=stop_server1;
 
-var OPCUASession = opcua.OPCUASession;
+var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
 
 function keep_monitoring_some_variable(session, nodeIdToMonitor, duration, done) {
 
-    assert(session instanceof OPCUASession);
+    assert(session instanceof ClientSession);
 
     var subscription = new ClientSubscription(session, {
         requestedPublishingInterval: 1000,

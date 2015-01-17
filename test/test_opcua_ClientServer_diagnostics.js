@@ -1,6 +1,6 @@
 require("requirish")._(module);
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
-var OPCUASession = require("lib/client/opcua_client").OPCUASession;
+var ClientSession = require("lib/client/opcua_client").ClientSession;
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");

@@ -1,7 +1,7 @@
 /*global describe, it, require*/
 require("requirish")._(module);
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
-//var OPCUASession = require("lib/client/opcua_client").OPCUASession;
+//var ClientSession = require("lib/client/opcua_client").ClientSession;
 //var ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
 //var AttributeIds = require("lib/services/read_service").AttributeIds;
 //var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
@@ -275,7 +275,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             },done);
 
         });
-        it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId",function(done){
+        it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId , but no monitored Item",function(done){
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
@@ -284,7 +284,9 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 session.getMonitoredItems(subscriptionId,function(err,monitoredItems){
                     if (!err) {
                         should(monitoredItems).be.instanceOf(Array);
+                        should.monitoredItems
                     }
+
                     inner_done(err);
                 });
             },done);

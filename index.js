@@ -31,7 +31,7 @@ module.exports.MethodIds        = require("./lib/opcua_node_ids").MethodIds;
 module.exports.OPCUAClient        = require("./lib/client/opcua_client").OPCUAClient;
 module.exports.NodeCrawler        = require("./lib/client/node_crawler").NodeCrawler;
 module.exports.ClientSubscription = require("./lib/client/client_subscription").ClientSubscription;
-module.exports.OPCUASession       = require("./lib/client/opcua_client").OPCUASession;
+module.exports.ClientSession       = require("./lib/client/opcua_client").ClientSession;
 
 // Server services
 module.exports.OPCUAServer      = require("./lib/server/opcua_server").OPCUAServer;
