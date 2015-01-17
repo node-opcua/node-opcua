@@ -3,8 +3,8 @@ require("requirish")._(module);
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 //var ClientSession = require("lib/client/opcua_client").ClientSession;
 //var ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
-//var AttributeIds = require("lib/services/read_service").AttributeIds;
-//var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
+var AttributeIds = require("lib/services/read_service").AttributeIds;
+var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
@@ -275,20 +275,61 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             },done);
 
         });
-        it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId , but no monitored Item",function(done){
+        it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and no monitored Item",function(done){
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
                 var subscriptionId = subscription.subscriptionId ;
 
-                session.getMonitoredItems(subscriptionId,function(err,monitoredItems){
+                session.getMonitoredItems(subscriptionId,function(err,result){
                     if (!err) {
-                        should(monitoredItems).be.instanceOf(Array);
-                        should.monitoredItems
+                        should(result.serverHandles).be.instanceOf(Array);
+                        should(result.clientHandles).be.instanceOf(Array);
+                        result.serverHandles.length.should.eql(0);
+                        result.clientHandles.length.should.eql(0);
                     }
-
                     inner_done(err);
                 });
+            },done);
+
+        });
+
+        it("T3 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and one monitored Item",function(done){
+
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+
+                var subscriptionId = subscription.subscriptionId ;
+
+                var monitoredItem = subscription.monitor(
+                    {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                    {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItem.on("initialized", function () {
+
+                });
+                monitoredItem.on("changed", function (value) {
+
+
+                    session.getMonitoredItems(subscriptionId,function(err,result){
+
+                        if (!err) {
+                            should(result.serverHandles).be.instanceOf(Array);
+                            should(result.clientHandles).be.instanceOf(Array);
+                            result.serverHandles.length.should.eql(1);
+                            result.clientHandles.length.should.eql(1);
+                        }
+                        //xx console.log("serverHandles = ",result.serverHandles);
+                        //xx console.log("clientHandles = ",result.clientHandles);
+                        inner_done(err);
+                    });
+
+                    // lets stop monitoring this item
+                    monitoredItem.terminate(function () {
+                    });
+                });
+
+
             },done);
 
         });
