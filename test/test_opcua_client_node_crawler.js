@@ -114,9 +114,47 @@ describe("NodeCrawler",function(){
             }, done);
         },done);
     });
+    it("should crawl for a complete tree with limited node per browse and read request",function(done) {
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+            // crawler 1 has no limit in the number of node inside Browse or Read request
+            var crawler1 = new NodeCrawler(session);
+            assert(crawler1.maxNodesPerRead === 0);
+            assert(crawler1.maxNodesPerBrowse === 0);
+
+            // crawler 2 has a limit of 3 nodes inside Browse or Read request
+            var crawler2 = new NodeCrawler(session);
+            crawler2.maxNodesPerRead = 3;
+            crawler2.maxNodesPerBrowse = 3;
+
+            var browsed_node1 = 0;
+            var browsed_node2 = 0;
+            crawler1.on("browsed", function (nodeElement, data) {
+                browsed_node1++;
+            });
+            crawler2.on("browsed", function (nodeElement, data) {
+                browsed_node2++;
+            });
+            var data1= {};
+            crawler1.crawl("RootFolder", data1, function (err) {
+                browsed_node1.should.be.greaterThan(10);
+                browsed_node2.should.equal(0);
+
+                console.log("-----------------------------");
+                var data2= {};
+                crawler2.crawl("RootFolder", data2, function (err) {
+                    browsed_node2.should.be.greaterThan(10);
+
+                    browsed_node1.should.eql(browsed_node2,"crawler1 and crawler2 should browse the same number of node");
+                    done();
+                });
+            });
+        },done);
+    });
 
     it("should crawl one at a time",function(done){
-        var treeify = require("treeify");
+
         perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
             assert(_.isFunction(done));
@@ -153,13 +191,16 @@ describe("NodeCrawler",function(){
 
             var startTime = Date.now();
 
+            console.log("----------------------");
             crawler.read(nodeId, function (err, obj) {
 
                 var intermediateTime1 = Date.now();
                 var duration1 = intermediateTime1 - startTime;
 
 
+                console.log("----------------------");
                 crawler.read(nodeId, function (err, obj) {
+                    console.log("----------------------");
                     var intermediateTime2 = Date.now();
                     var duration2 = intermediateTime2 - intermediateTime1;
 
