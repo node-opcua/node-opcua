@@ -12,8 +12,9 @@ function remove_files_in_folder(dirPath, removeSelf) {
     if (removeSelf === undefined) {
         removeSelf = true;
     }
+    var files;
     try {
-        var files = fs.readdirSync(dirPath);
+        files = fs.readdirSync(dirPath);
     }
     catch (e) {
         return;
@@ -53,8 +54,8 @@ if (argv.verbose) {
     require("../lib/misc/factories").verbose = true;
 }
 
-
-var ExtensionObject = require("../lib/misc/extension_object").ExtensionObject;
+// make sure ExtensionObject is defined
+require("../lib/misc/extension_object");
 
 var registerObject = require("../lib/misc/factories").registerObject;
 
