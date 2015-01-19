@@ -1,9 +1,62 @@
+var argv = require('optimist')
+    .usage('Usage: $0 --clear --verbose ')
+    .argv;
+
+var path = require("path");
+var fs = require("fs");
+
+function remove_files_in_folder(dirPath, removeSelf) {
+
+    console.log(" removing files in ", dirPath);
+
+    if (removeSelf === undefined) {
+        removeSelf = true;
+    }
+    try {
+        var files = fs.readdirSync(dirPath);
+    }
+    catch (e) {
+        return;
+    }
+    if (files.length > 0) {
+        for (var i = 0; i < files.length; i++) {
+            var filePath = dirPath + '/' + files[i];
+            if (fs.statSync(filePath).isFile()) {
+
+                console.log(" .... deleting  ",filePath);
+                fs.unlinkSync(filePath);
+            } else {
+                remove_files_in_folder(filePath);
+            }
+
+        }
+    }
+    if (removeSelf) {
+        fs.rmdirSync(dirPath);
+    }
+}
 
 Error.stackTraceLimit = Infinity;
+//
+// options :
+//   --clear : delete all files in _generated_ folder first
+//   --verbose:
+if (argv.clear) {
+
+    console.log(" cleaning _generated_ folder");
+
+    remove_files_in_folder(path.normalize(path.join(__dirname, "../_generated_")), false);
+
+
+}
+if (argv.verbose) {
+    require("../lib/misc/factories").verbose = true;
+}
+
 
 var ExtensionObject = require("../lib/misc/extension_object").ExtensionObject;
 
-var  registerObject = require("../lib/misc/factories").registerObject;
+var registerObject = require("../lib/misc/factories").registerObject;
 
 registerObject("TCPErrorMessage");
 
@@ -178,7 +231,7 @@ registerObject("WriteResponse");
 
 // -------------------------------------------------------------------------
 var path = require("path");
-var filename = path.join(__dirname,"../nodesets/Opc.Ua.NodeSet2.xml");
+var filename = path.join(__dirname, "../nodesets/Opc.Ua.NodeSet2.xml");
 
 var address_space = require("../lib/address_space/address_space");
 var AddressSpace = address_space.AddressSpace;
@@ -190,7 +243,7 @@ var makeServerStatus = require("../lib/address_space/convert_nodeset_to_types").
 
 var aspace = new AddressSpace();
 
-generate_address_space(aspace,filename,function() {
+generate_address_space(aspace, filename, function () {
 
     makeServerStatus(aspace);
 
