@@ -73,7 +73,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call([],function(err,results){
+            session.call([],function(err){
 
                 should(err).not.equal(null);
                 err.should.be.instanceOf(Error);
@@ -202,21 +202,25 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
     });
     it("Q8 should succeed and return BadTypeMismatch when CallRequest is GetMonitoredItem and has the argument with a wrong dataType ", function (done) {
 
-        var subscriptionId = 100;
         var methodToCalls = [{
             objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
             methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
             inputArguments: [
-                { dataType: DataType.QualifiedName } // intentionaly a wrong dataType here
+                { dataType: DataType.QualifiedName } // intentionally a wrong dataType here
             ]
         }];
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             session.call(methodToCalls,function(err,results){
+
                 should(err).equal(null);
                 results.length.should.eql(1);
                 results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
+
+                results[0].inputArgumentResults.should.be.instanceOf(Array);
+                results[0].inputArgumentResults.length.should.eql(1);
+                results[0].inputArgumentResults[0].should.eql(StatusCodes.BadTypeMismatch);
 
                 inner_done();
             });
