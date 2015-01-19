@@ -170,8 +170,14 @@ async.series([
             publishingEnabled: true,
             priority: 10
         });
+
+        var timerId = setTimeout(function () {
+            the_subscription.terminate();
+        }, 10000);
+
         the_subscription.on("started", function () {
-            console.log("started", the_subscription);
+
+            console.log("started subscription :", the_subscription.subscriptionId);
 
             the_session.getMonitoredItems(the_subscription.subscriptionId,function(err,results){
                 if( !err) {
@@ -181,6 +187,12 @@ async.series([
                     console.log(" getMonitoredItems ERROR ".red,err.message.cyan);
                 }
             });
+
+
+        }).on("internal_error", function (err) {
+            console.log(" received internal error",err.message);
+            clearTimeout(timerId);
+            callback(err);
 
 
         }).on("keepalive", function () {
@@ -205,9 +217,7 @@ async.series([
             console.log(monitored_node, " value has changed to " + dataValue.value.value);
         });
 
-        setTimeout(function () {
-            the_subscription.terminate();
-        }, 10000);
+
     },
     function (callback) {
         console.log(" closing session");
@@ -223,16 +233,17 @@ async.series([
         client.disconnect(callback);
     }
 ], function (err) {
+
     if (err) {
-        console.log(" client : process terminated with an error");
+        console.log(" client : process terminated with an error".red.bold);
         console.log(" error", err);
-        console.log(err.stack);
     } else {
         console.log("success !!   ");
     }
     // force disconnection
     if (client) {
         client.disconnect(function () {
+            process.exit()
         });
     }
 });
