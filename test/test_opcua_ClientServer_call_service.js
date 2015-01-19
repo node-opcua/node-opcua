@@ -272,6 +272,8 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             },done);
 
         });
+
+
         it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and no monitored Item",function(done){
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
@@ -291,6 +293,8 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
         });
 
+
+
         it("T3 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and one monitored Item",function(done){
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
@@ -306,7 +310,6 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 });
                 monitoredItem.on("changed", function (value) {
-
 
                     session.getMonitoredItems(subscriptionId,function(err,result){
 
@@ -329,6 +332,35 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
             },done);
 
+        });
+        it("T4 GetMonitoredItem must have the Executable attribute set",function(done) {
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                var nodesToRead = [
+                    {
+                        nodeId: "ns=0;i=11492",
+                        attributeId: AttributeIds.Executable
+                    },
+                    {
+                        nodeId: "ns=0;i=11492",
+                        attributeId: AttributeIds.UserExecutable
+                    }
+                ];
+
+                session.read(nodesToRead, function(err,unused,dataValues,diagnosticInfos) {
+                    if (!err) {
+                        dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                        dataValues[0].value.dataType.should.eql(DataType.Boolean);
+                        dataValues[0].value.value.should.eql(true);
+                        dataValues[1].statusCode.should.eql(StatusCodes.Good);
+                        dataValues[1].value.dataType.should.eql(DataType.Boolean);
+                        dataValues[1].value.value.should.eql(true);
+                    }
+                    inner_done(err);
+                })
+
+            },done);
         });
     });
 

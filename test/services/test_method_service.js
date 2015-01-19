@@ -80,9 +80,7 @@ describe("CallMethodRequest with address space", function () {
             ],
             inputArgumentDiagnosticInfos: [],
             outputArguments: [{dataType: DataType.UInt32,value: 10}],
-            diagnosticInfos: []
         });
-
 
         encode_decode_round_trip_test(callMethodResult);
     });
