@@ -850,7 +850,7 @@ describe("testing ServerEngine", function () {
         var attributes = ["AccessLevel", "BrowseName", "DataType", "DisplayName", "Historizing", "NodeClass", "NodeId", "UserAccessLevel", "ValueRank"];
         attributes.forEach(function (attribute) {
 
-            it("shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeIt = " + attribute + " ", function (done) {
+            it("shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeId = " + attribute + " ", function (done) {
                 read_shall_get_BadIndexRangeNoData(AttributeIds[attribute], done);
             });
 
