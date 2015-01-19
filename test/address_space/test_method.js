@@ -10,34 +10,56 @@ var address_space = require("lib/address_space/address_space");
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 var _ = require("underscore");
 
-describe("testing Method", function () {
+describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
     var the_address_space;
     before(function () {
         the_address_space = new address_space.AddressSpace();
     });
 
-    it("should read Attribute UserExecutable & Executable on Method ", function () {
+    it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
-        var objType = new Method({
+        var method = new Method({
             address_space: the_address_space,
             userExecutable: false,
             executable: true
         });
 
         var value;
-        value = objType.readAttribute(AttributeIds.UserExecutable);
-        value.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
-        //xx value.value.dataType.should.eql(DataType.Boolean);
-        //xx value.value.value.should.equal(false);
+        value = method.readAttribute(AttributeIds.UserExecutable);
+        value.statusCode.should.eql(StatusCodes.Good);
+        value.value.dataType.should.eql(DataType.Boolean);
+        value.value.value.should.equal(false);
 
-        value = objType.readAttribute(AttributeIds.Executable);
-        value.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
-        //xx value.value.dataType.should.eql(DataType.Boolean);
-        //xx value.value.value.should.equal(true);
+        value = method.readAttribute(AttributeIds.Executable);
+        value.statusCode.should.eql(StatusCodes.Good);
+        value.value.dataType.should.eql(DataType.Boolean);
+        value.value.value.should.equal(false);
 
     });
+    it("should return Executable= true and UserExecutable=true if method is  bound ", function () {
 
+        var method = new Method({
+            address_space: the_address_space,
+            userExecutable: false,
+            executable: true
+        });
+
+        function fakeMethod(){};
+        method.bindMethod(fakeMethod);
+
+        var value;
+        value = method.readAttribute(AttributeIds.UserExecutable);
+        value.statusCode.should.eql(StatusCodes.Good);
+        value.value.dataType.should.eql(DataType.Boolean);
+        value.value.value.should.equal(true);
+
+        value = method.readAttribute(AttributeIds.Executable);
+        value.statusCode.should.eql(StatusCodes.Good);
+        value.value.dataType.should.eql(DataType.Boolean);
+        value.value.value.should.equal(true);
+
+    });
 
 });
 
