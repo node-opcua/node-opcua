@@ -5,7 +5,9 @@ var address_space = require("lib/address_space/address_space");
 var AddressSpace = address_space.AddressSpace;
 var should = require("should");
 var nodeid = require("lib/datamodel/nodeid");
-var ReferenceType = address_space.ReferenceType;
+var AttributeIds =  require("lib/datamodel/attributeIds").AttributeIds;
+var DataType = require("lib/datamodel/variant").DataType;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 var _ = require("underscore");
 var assert = require("better-assert");
@@ -39,6 +41,23 @@ describe("testing ReferenceType", function () {
         hr.browseName.should.equal("HierarchicalReferences");
         hr.nodeId.should.eql(nodeid.makeNodeId(33));
 
+    });
+    it("HierarchicalReferences should have an Abstract attribute set to true ",function() {
+
+        var hr = address_space.findReferenceType("HierarchicalReferences");
+        var v = hr.readAttribute(AttributeIds.IsAbstract);
+        v.statusCode.should.eql(StatusCodes.Good);
+        v.value.dataType.should.eql(DataType.Boolean);
+        v.value.value.should.eql(true);
+
+    });
+    it("Organizes should have an Abstract attribute set to true ",function() {
+
+        var hr = address_space.findReferenceType("Organizes");
+        var v = hr.readAttribute(AttributeIds.IsAbstract);
+        v.statusCode.should.eql(StatusCodes.Good);
+        v.value.dataType.should.eql(DataType.Boolean);
+        v.value.value.should.eql(false);
     });
 
     it("should find 'Organizes'", function () {
@@ -193,7 +212,7 @@ describe("testing ReferenceType", function () {
     });
 
 
-    it("XX should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", function (done) {
+    it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", function (done) {
 
         var serverStatus = rootFolder.objects.server.serverStatus;
 
@@ -223,7 +242,7 @@ describe("testing ReferenceType", function () {
 
 
 
-    it("XX should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)", function (done) {
+    it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)", function (done) {
 
         var serverStatus = rootFolder.objects.server.serverStatus;
 
