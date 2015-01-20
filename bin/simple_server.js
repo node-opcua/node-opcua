@@ -5,6 +5,7 @@ var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 
+
 var path = require("path");
 var address_space_for_conformance_testing = require("../lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -36,6 +37,7 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
     }
 });
 
+var os = require("os");
 
 /**
  * optionally install a CPU Usage and Memory Usage node
@@ -47,49 +49,109 @@ function install_optional_cpu_and_memory_usage_node(server) {
     try {
         usage = require('usage');
     } catch(err) {
-        console.log("skipping installation of cpu_usage and memory_usage nodes");
-        return;
+
+        //xx return;
     }
 
-    var folder = server.engine.findObjectByBrowseName("VendorServerInfo");
+    var folder = server.engine.findObject(opcua.ObjectIds.Server_VendorServerInfo);
 
     var usage_result = { memory : 0 , cpu: 100};
 
     var pid = process.pid;
     var options = { keepHistory: true };
+    var os = require('os');
 
-    setInterval(function() {
+    if (usage) {
+
+        setInterval(function() {
             usage.lookup(pid, options, function(err, result) {
             usage_result  = result;
-            console.log("result Used Memory: ", humanize.filesize(result), " CPU ",Math.round(result.cpu) ," %"  );
+                console.log("result Used Memory: ", humanize.filesize(result.memory), " CPU ",Math.round(result.cpu) ," %"  );
+            });
+        },1000);
+
+        server.engine.addVariableInFolder(folder, {
+            browseName: "CPUUsage",
+            description: "Current CPU usage of the server process",
+            nodeId: "ns=2;s=CPUUsage",
+            dataType: "Double",
+            value: { get: function () {
+                if (!usage_result) {
+                    return opcua.StatusCodes.BadResourceUnavailable;
+                }
+                return new Variant({dataType: DataType.Double, value: usage_result.cpu});
+            } }
         });
-    },1000);
+
+        server.engine.addVariableInFolder(folder, {
+            browseName: "MemoryUsage",
+            nodeId: "ns=2;s=MemoryUsage",
+            description: "Current CPU usage of the server process",
+            dataType: "Number",
+            value: { get: function () {
+                if (!usage_result) {
+                    return opcua.StatusCodes.BadResourceUnavailable;
+                }
+                return new Variant({dataType: DataType.UInt32, value: usage_result.memory});
+            } }
+        });
+
+    } else {
+        console.log("skipping installation of cpu_usage and memory_usage nodes");
+    }
 
     server.engine.addVariableInFolder(folder, {
-        browseName: "CPUUsage",
-        description: "Current CPU usage of the server process",
-        nodeId: "ns=2;s=CPUUsage",
-        dataType: "Double",
-        value: { get: function () {
-            if (!usage_result) {
-                return opcua.StatusCodes.BadResourceUnavailable;
-            }
-            return new Variant({dataType: DataType.Double, value: usage_result.cpu});
-        } }
-    });
-
-    server.engine.addVariableInFolder(folder, {
-        browseName: "MemoryUsage",
-        nodeId: "ns=2;s=MemoryUsage",
-        description: "Current CPU usage of the server process",
+        browseName: "PercentageMemoryUsed",
+        description: "% of  memory used by the server",
+        nodeId: "ns=2;s=PercentageMemoryUsed",
         dataType: "Number",
         value: { get: function () {
-            if (!usage_result) {
-                return opcua.StatusCodes.BadResourceUnavailable;
-            }
-            return new Variant({dataType: DataType.UInt32, value: usage_result.memory});
+            var percent_used = Math.round((os.totalmem() - os.freemem())/os.totalmem() *100,1);
+            return new Variant({dataType: DataType.Double, value: percent_used});
         } }
     });
+    server.engine.addVariableInFolder(folder, {
+        browseName: "SystemMemoryTotal",
+        description: "Total Memory usage of the server in MB",
+        nodeId: "ns=2;s=SystemMemoryTotal",
+        dataType: "Number",
+        value: { get: function () {
+            var memory = os.totalmem()/1024/1024;
+            return new Variant({dataType: DataType.Double, value: memory});
+        } }
+    });
+
+    server.engine.addVariableInFolder(folder, {
+        browseName: "SystemMemoryFree",
+        description: "Free Memory usage of the server in MB",
+        nodeId: "ns=2;s=SystemMemoryFree",
+        dataType: "Number",
+        value: { get: function () {
+            var memory = os.freemem()/1024/1024;
+            return new Variant({dataType: DataType.Double, value: memory});
+        } }
+    });
+
+    server.engine.addVariableInFolder(folder, {
+        browseName: "NumberOfCPUs",
+        description: "Number of cpus on the server",
+        nodeId: "ns=2;s=NumberOfCPUs",
+        dataType: "Number",
+        value: { get: function () {
+            return new Variant({dataType: DataType.UInt32, value: os.cpus().length});
+        } }
+    });
+    server.engine.addVariableInFolder(folder, {
+        browseName: "Arch",
+        description: "ServerArchitecture",
+        nodeId: "ns=2;s=ServerArchitecture",
+        dataType: "String",
+        value: { get: function () {
+            return new Variant({dataType: DataType.String, value: os.type()});
+        } }
+    });
+
+
 
 }
 

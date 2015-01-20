@@ -26,6 +26,7 @@ module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
 module.exports.AttributeNameById= module.exports.read_service.AttributeNameById;
 module.exports.VariableIds      = require("./lib/opcua_node_ids").VariableIds;
 module.exports.MethodIds        = require("./lib/opcua_node_ids").MethodIds;
+module.exports.ObjectIds        =require("./lib/opcua_node_ids").ObjectIds;
 
 // client services
 module.exports.OPCUAClient        = require("./lib/client/opcua_client").OPCUAClient;
