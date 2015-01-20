@@ -592,7 +592,7 @@ describe("testing ServerEngine", function () {
             var readResult = engine.readSingleNode("RootFolder", AttributeIds.Description);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
-            readResult.value.value.text.toString().should.equal("");
+            readResult.value.value.text.toString().should.equal("The root of the server address space.");
         });
 
         it("should handle a readSingleNode - WriteMask", function () {
@@ -771,6 +771,15 @@ describe("testing ServerEngine", function () {
             var readResult = engine.readSingleNode(serverStatusDataType_id, AttributeIds.BrowseName);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
             readResult.value.value.name.should.equal("ServerStatusDataType");
+        });
+
+        it("should handle a readSingleNode - ServerStatusDataType - Description", function () {
+
+            var obj = engine.address_space.findDataType("ServerStatusDataType");
+            var serverStatusDataType_id = obj.nodeId;
+            var readResult = engine.readSingleNode(serverStatusDataType_id, AttributeIds.Description);
+            readResult.value.dataType.should.eql(DataType.LocalizedText);
+
         });
     });
 
