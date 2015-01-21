@@ -250,3 +250,5 @@ generate_address_space(aspace, filename, function () {
 
 });
 
+registerObject("lib/data_access/schemas|Range");
+registerObject("lib/data_access/schemas|EUInformation");

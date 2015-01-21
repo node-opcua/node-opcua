@@ -119,7 +119,9 @@ OPC UA NodeIds	                      The numeric identifier for all NodeIds defi
 wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd.xml");
 wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.StatusCodes.csv");
 
-if(1) {
+wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part8.xml");
+
+if(0) {
 
 
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
@@ -137,7 +139,7 @@ if(1) {
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part3.xml");
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part4.xml");
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part5.xml");
-    wget("https://opcfoundation.org/UA/schemas/Opc.Ua.NodeSet2.Part8.xml");
+    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part8.xml");
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part9.xml");
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part10.xml");
     wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part11.xml");
