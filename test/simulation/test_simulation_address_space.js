@@ -34,9 +34,7 @@ describe("testing address space for conformance testing",function() {
 
     it("should build an address space for conformance testing",function(done) {
 
-        var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
 
-        require("fs").existsSync(xml_file).should.be.eql(true);
         engine.initialize(null,function(){
             build_address_space_for_conformance_testing(engine);
 
@@ -68,9 +66,6 @@ describe("testing address space for conformance testing",function() {
 
     it("should build an address space for conformance testing with options.mass_variables",function(done) {
 
-        var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
-
-        require("fs").existsSync(xml_file).should.be.eql(true);
         engine.initialize(null,function(){
             build_address_space_for_conformance_testing(engine,{ mass_variables: true});
 
@@ -104,7 +99,7 @@ describe("testing address space for conformance testing",function() {
             // address space variable change for conformance testing are changing randomly
             // let wait a little bit to make sure variables have changed at least once
             setTimeout(done,500);
-            // done();
+
         });
     });
 });
