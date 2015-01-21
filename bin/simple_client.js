@@ -43,7 +43,7 @@ async.series([
     },
 
     function (callback) {
-        client.getEndPointRequest(function (err, endpoints) {
+        client.getEndpointsRequest(function (err, endpoints) {
 
             endpoints = utils.replaceBufferWithHexDump(endpoints);
 
@@ -66,8 +66,6 @@ async.series([
             }
             console.log(table.toString());
 
-            //xx // store the endpointUrl so we can reopen the connection
-            //xx endpointUrl =endpoints[0].endpointUrl;
 
             callback(err);
         });
@@ -163,9 +161,9 @@ async.series([
     // create subscription
     function (callback) {
         the_subscription = new opcua.ClientSubscription(the_session, {
-            requestedPublishingInterval: 100,
-            requestedLifetimeCount: 100,
-            requestedMaxKeepAliveCount: 200,
+            requestedPublishingInterval: 10,
+            requestedLifetimeCount: 1000,
+            requestedMaxKeepAliveCount: 12,
             maxNotificationsPerPublish: 10,
             publishingEnabled: true,
             priority: 10
@@ -173,7 +171,7 @@ async.series([
 
         var timerId = setTimeout(function () {
             the_subscription.terminate();
-        }, 10000);
+        }, 20000);
 
         the_subscription.on("started", function () {
 

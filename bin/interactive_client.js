@@ -72,6 +72,7 @@ if (rl.history) {
     rl.history.push("open opc.tcp://" + hostname + ":4841");
     rl.history.push("open opc.tcp://" + "localhost" + ":51210/UA/SampleServer");
     rl.history.push("open opc.tcp://" + hostname + ":6543/UA/SampleServer");
+    rl.history.push("open opc.tcp://" + hostname + ":53530/OPCUA/SimulationServer");
     rl.history.push("b ObjectsFolder");
     rl.history.push("r ns=2;s=Furnace_1.Temperature");
 
@@ -122,7 +123,7 @@ rl.on('line', function (line) {
         case 'gep':
         case 'getEndpoints':
             rl.pause();
-            client.getEndPointRequest(function (err, endpoints) {
+            client.getEndpointsRequest(function (err, endpoints) {
 
                 endpoints = utils.replaceBufferWithHexDump(endpoints);
                 console.log(treeify.asTree(endpoints, true));
