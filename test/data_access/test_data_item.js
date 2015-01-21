@@ -109,6 +109,9 @@ describe("DataAccess", function () {
         range.browseName.should.eql("Range");
     });
 
+    it("should coerce property Type to a nodeId",function() {
+
+    });
    var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 
     it("should create a analogItemType",function() {
@@ -118,17 +121,25 @@ describe("DataAccess", function () {
         var rootFolder = address_space.findObject("ObjectsFolder");
         rootFolder.browseName.should.eql("Objects");
 
+
+        var fakeValue = 1;
+
         var analogItem = addAnalogDataItem(rootFolder,{
               browseName: "TemperatureSensor",
               definition: "(tempA -25) + tempB",
               valuePrecision: 0.5,
               engineeringUnitsRange: { low: 100 , high: 200},
               instrumentRange: { low: -100 , high: +200},
-              engineeringUnits: "Celsius"
+              engineeringUnits: "Celsius",
+
+              dataType: "Double",
+              value: { get: function(){return new Variant({dataType: DataType.Double , value: fakeValue}); }
+              }
+
         });
 
         //xx console.log(JSON.stringify(analogItem,null," "));
-        analogItem.dataType.should.eql(address_space.findVariableType("AnalogItemType").nodeId);
+        // analogItem.dataType.should.eql(address_space.findVariableType("AnalogItemType").nodeId);
         analogItem.definition.browseName.should.eql("Definition");
         analogItem.valuePrecision.browseName.should.eql("ValuePrecision");
         analogItem.eURange.browseName.should.eql("EURange");
@@ -147,11 +158,31 @@ describe("DataAccess", function () {
         dataValue.value.dataType.should.eql(DataType.ExtensionObject);
         dataValue.value.value.should.be.instanceOf(Range);
         dataValue.value.value.low.should.eql(-100);
+        dataValue.value.value.high.should.eql(200);
 
-        it("should bhal",function(){
-            dataValue.value.value.high.should.eql(200);
+        // browsing variable
+        var browseDescription = {
+            nodeClassMask: 0, // 0 = all nodes
+            referenceTypeId: 0,
+            resultMask: 0x3F
+        };
+        var browseResult = engine.browseSingleNode(analogItem.nodeId, browseDescription);
+        browseResult.references.length.should.eql(6);
 
-        })
+
+        var dataValue = engine.readSingleNode(analogItem.nodeId,AttributeIds.Value);
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+        dataValue.value.dataType.should.eql(DataType.Double);
+        dataValue.value.value.should.eql(fakeValue);
+
+        fakeValue = 2.0;
+
+        // do it again, to see if value is changing accordingly , to proof that the binding is correct
+        var dataValue = engine.readSingleNode(analogItem.nodeId,AttributeIds.Value);
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+        dataValue.value.dataType.should.eql(DataType.Double);
+        dataValue.value.value.should.eql(fakeValue);
+
 
     })
 });
