@@ -130,7 +130,7 @@ describe("DataAccess", function () {
               valuePrecision: 0.5,
               engineeringUnitsRange: { low: 100 , high: 200},
               instrumentRange: { low: -100 , high: +200},
-              engineeringUnits: "Celsius",
+              engineeringUnits: { displayName: { text: "Celsius"}  },
 
               dataType: "Double",
               value: { get: function(){return new Variant({dataType: DataType.Double , value: fakeValue}); }
