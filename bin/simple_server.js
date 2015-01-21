@@ -46,7 +46,7 @@ server.on("post_initialize", function () {
 
     build_address_space_for_conformance_testing(server.engine);
 
-    install_optional_cpu_and_memory_usage_node(server.engine);
+    install_optional_cpu_and_memory_usage_node(server);
 
     var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
 
