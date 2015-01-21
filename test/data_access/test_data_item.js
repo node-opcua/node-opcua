@@ -5,31 +5,29 @@ var server_engine = require("lib/server/server_engine");
 
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
-var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var DataType = require("lib/datamodel/variant").DataType;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var read_service = require("lib/services/read_service");
-var ReadRequest = read_service.ReadRequest;
 var AttributeIds = read_service.AttributeIds;
 
 var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range =  require("lib/data_access/Range").Range;
 
 
-var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
-var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
+var path = require("path");
 
 describe("DataAccess", function () {
 
+    var engine;
     before(function (done) {
 
         engine = new server_engine.ServerEngine();
 
         var xmlFiles = [
-            __dirname + "../../../lib/server/mini.Node.Set2.xml",
-            __dirname + "../../../nodesets/Opc.Ua.NodeSet2.Part8.xml",
+            path.join(__dirname,"../../lib/server/mini.Node.Set2.xml"),
+            path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.Part8.xml")
         ] ;
         var options = { nodeset_filename: xmlFiles };
 

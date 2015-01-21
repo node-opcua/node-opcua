@@ -24,3 +24,6 @@ Vagrantfile
 output2.bin
 _generated_
 pending_*
+schemas/ServerState_enum.js
+schemas/ServerStatus_schema.js
+schemas/ServerStatus.js
