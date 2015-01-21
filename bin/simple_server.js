@@ -39,125 +39,14 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
 
 var os = require("os");
 
-/**
- * optionally install a CPU Usage and Memory Usage node
- * ( condition : running on linux and require("usage")
- */
-function install_optional_cpu_and_memory_usage_node(server) {
+var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
 
-    var usage;
-    try {
-        usage = require('usage');
-    } catch(err) {
-
-        //xx return;
-    }
-
-    var folder = server.engine.findObject(opcua.ObjectIds.Server_VendorServerInfo);
-
-    var usage_result = { memory : 0 , cpu: 100};
-
-    var pid = process.pid;
-    var options = { keepHistory: true };
-    var os = require('os');
-
-    if (usage) {
-
-        setInterval(function() {
-            usage.lookup(pid, options, function(err, result) {
-            usage_result  = result;
-                console.log("result Used Memory: ", humanize.filesize(result.memory), " CPU ",Math.round(result.cpu) ," %"  );
-            });
-        },1000);
-
-        server.engine.addVariableInFolder(folder, {
-            browseName: "CPUUsage",
-            description: "Current CPU usage of the server process",
-            nodeId: "ns=2;s=CPUUsage",
-            dataType: "Double",
-            value: { get: function () {
-                if (!usage_result) {
-                    return opcua.StatusCodes.BadResourceUnavailable;
-                }
-                return new Variant({dataType: DataType.Double, value: usage_result.cpu});
-            } }
-        });
-
-        server.engine.addVariableInFolder(folder, {
-            browseName: "MemoryUsage",
-            nodeId: "ns=2;s=MemoryUsage",
-            description: "Current CPU usage of the server process",
-            dataType: "Number",
-            value: { get: function () {
-                if (!usage_result) {
-                    return opcua.StatusCodes.BadResourceUnavailable;
-                }
-                return new Variant({dataType: DataType.UInt32, value: usage_result.memory});
-            } }
-        });
-
-    } else {
-        console.log("skipping installation of cpu_usage and memory_usage nodes");
-    }
-
-    server.engine.addVariableInFolder(folder, {
-        browseName: "PercentageMemoryUsed",
-        description: "% of  memory used by the server",
-        nodeId: "ns=2;s=PercentageMemoryUsed",
-        dataType: "Number",
-        value: { get: function () {
-            var percent_used = Math.round((os.totalmem() - os.freemem())/os.totalmem() *100,1);
-            return new Variant({dataType: DataType.Double, value: percent_used});
-        } }
-    });
-    server.engine.addVariableInFolder(folder, {
-        browseName: "SystemMemoryTotal",
-        description: "Total Memory usage of the server in MB",
-        nodeId: "ns=2;s=SystemMemoryTotal",
-        dataType: "Number",
-        value: { get: function () {
-            var memory = os.totalmem()/1024/1024;
-            return new Variant({dataType: DataType.Double, value: memory});
-        } }
-    });
-
-    server.engine.addVariableInFolder(folder, {
-        browseName: "SystemMemoryFree",
-        description: "Free Memory usage of the server in MB",
-        nodeId: "ns=2;s=SystemMemoryFree",
-        dataType: "Number",
-        value: { get: function () {
-            var memory = os.freemem()/1024/1024;
-            return new Variant({dataType: DataType.Double, value: memory});
-        } }
-    });
-
-    server.engine.addVariableInFolder(folder, {
-        browseName: "NumberOfCPUs",
-        description: "Number of cpus on the server",
-        nodeId: "ns=2;s=NumberOfCPUs",
-        dataType: "Number",
-        value: { get: function () {
-            return new Variant({dataType: DataType.UInt32, value: os.cpus().length});
-        } }
-    });
-    server.engine.addVariableInFolder(folder, {
-        browseName: "Arch",
-        description: "ServerArchitecture",
-        nodeId: "ns=2;s=ServerArchitecture",
-        dataType: "String",
-        value: { get: function () {
-            return new Variant({dataType: DataType.String, value: os.type()});
-        } }
-    });
-
-
-
-}
 
 server.on("post_initialize", function () {
 
     build_address_space_for_conformance_testing(server.engine);
+
+    install_optional_cpu_and_memory_usage_node(server.engine);
 
     var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
 
@@ -260,8 +149,6 @@ server.on("post_initialize", function () {
         }
     });
 
-
-    install_optional_cpu_and_memory_usage_node(server);
 
 });
 

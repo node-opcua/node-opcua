@@ -38,6 +38,7 @@ module.exports.ClientSession       = require("./lib/client/opcua_client").Client
 
 // Server services
 module.exports.OPCUAServer      = require("./lib/server/opcua_server").OPCUAServer;
+module.exports.ServerEngine     = require("./lib/server/server_engine").ServerEngine;
 module.exports.generate_address_space = require("./lib/address_space/load_nodeset2").generate_address_space;
 module.exports.AddressSpace     = require("./lib/address_space/address_space").AddressSpace;
 
