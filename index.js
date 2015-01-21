@@ -19,6 +19,8 @@ module.exports.AccessLevelFlag  = require("./lib/datamodel/access_level").Access
 module.exports.browse_service   = require("./lib/services/browse_service");
 module.exports.read_service     = require("./lib/services/read_service");
 module.exports.call_service     = require("./lib/services/call_service");
+module.exports.session_service  = require("./lib/services/session_service");
+module.exports.get_endpoints_service  = require("./lib/services/get_endpoints_service");
 
 module.exports.utils     = require("./lib/misc/utils");
 
@@ -42,4 +44,4 @@ module.exports.AddressSpace     = require("./lib/address_space/address_space").A
 module.exports.SecurityPolicy = require("./lib/misc/security_policy").SecurityPolicy;
 
 //
-module.exports.MessageSecurityMode = require("./lib/datamodel/structures").MessageSecurityMode;
+module.exports.MessageSecurityMode = module.exports.get_endpoints_service.MessageSecurityMode;
