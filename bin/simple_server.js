@@ -10,7 +10,7 @@ var path = require("path");
 var address_space_for_conformance_testing = require("../lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-var humanize = require("humanize");
+
 
 var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
 
