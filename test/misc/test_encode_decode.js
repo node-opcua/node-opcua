@@ -398,6 +398,26 @@ describe("testing built-in type encoding", function () {
         );
     });
 
+
+    it("should encode and decode a UInt64 EightBytes", function () {
+
+        test_encode_decode(
+            [356,234],
+            ec.encodeUInt64,
+            ec.decodeUInt64,
+            8
+        );
+    });
+
+    it("should encode and decode a Int64 EightBytes", function () {
+
+        test_encode_decode(
+            [356,234],
+            ec.encodeInt64,
+            ec.decodeInt64,
+            8
+        );
+    });
 });
 
 
@@ -570,3 +590,15 @@ describe("check coerce various types", function () {
     });
 });
 
+describe("UInt64",function(){
+
+    it("should coerce an Int32 into Int64",function(){
+        ec.coerceUInt64(0xFF1000).should.eql([0x0,0xFF1000]);
+    });
+    it("should coerce an long number into Int64",function(){
+        ec.coerceUInt64(0x1020000000).should.eql([0x10,0x20000000]);
+    });
+    it("should coerce an long number into Int64",function(){
+        ec.coerceUInt64(0x100020000000).should.eql([0x1000,0x20000000]);
+    });
+});
