@@ -40,7 +40,10 @@ describe("Functional test : one server with many concurrent clients",function() 
 
     before(function (done) {
 
-        server = build_server_with_temperature_device({ port: port}, function () {
+        server = build_server_with_temperature_device({
+            port: port,
+            maxAllowedSessionNumber: 100
+        }, function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
@@ -99,8 +102,6 @@ describe("Functional test : one server with many concurrent clients",function() 
                     data.session = session;
                     debugLog(" Error =".yellow.bold,err);
                     callback(err);
-
-
                 });
 
             },
@@ -177,7 +178,11 @@ describe("Functional test : one server with many concurrent clients",function() 
 
     it("it should allow 10 clients to connect and concurrently monitor some nodeId",function(done) {
 
-        var nb_clients = 10;
+
+        var nb_clients = server.maxAllowedSessionNumber;
+        nb_clients.should.eql(100);
+
+
         var clients = [];
 
         for (var i =0 ; i<nb_clients; i++ ) {
@@ -205,10 +210,6 @@ describe("Functional test : one server with many concurrent clients",function() 
             done(err);
         });
     });
-
-
-
-
 
 });
 
