@@ -180,7 +180,7 @@ describe("Functional test : one server with many concurrent clients",function() 
 
 
         var nb_clients = server.maxAllowedSessionNumber;
-        nb_clients.should.eql(100);
+        nb_clients.should.eql(10);
 
 
         var clients = [];
