@@ -24,17 +24,64 @@ describe("watch dog", function () {
 
     this.timeout(10000);
     var watchDog = null;
-    before(function () {
+    beforeEach(function () {
         this.clock = sinon.useFakeTimers();
         watchDog = new WatchDog();
     });
 
-    after(function () {
+    afterEach(function () {
 
         watchDog.shutdown();
         this.clock.restore();
 
     });
+
+    it("should maintain a subscriber count", function () {
+
+        watchDog.subscriberCount.should.eql(0);
+
+        var obj1 = new MyObject();
+        watchDog.addSubscriber(obj1,1000);
+
+        watchDog.subscriberCount.should.eql(1);
+
+        watchDog.removeSubscriber(obj1);
+        watchDog.subscriberCount.should.eql(0);
+
+    });
+
+    it("should not have a timer running if no subscriber", function () {
+
+        watchDog.subscriberCount.should.eql(0);
+        should(watchDog._timer).equal.null;
+    });
+
+    it("should have the internal timer running after the first subscriber has registered", function () {
+
+        should(watchDog._timer).equal.null;
+
+        var obj1 = new MyObject();
+        watchDog.addSubscriber(obj1,1000);
+
+        should(watchDog._timer).not.equal.null;
+
+        watchDog.removeSubscriber(obj1);
+    });
+
+    it("should stop the internal timer running after the last subscriber has unregistered", function () {
+
+        should(watchDog._timer).equal.null;
+
+        var obj1 = new MyObject();
+        watchDog.addSubscriber(obj1,1000);
+        watchDog.removeSubscriber(obj1);
+
+        watchDog.addSubscriber(obj1,1000);
+        watchDog.removeSubscriber(obj1);
+
+        should(watchDog._timer).equal.null;
+    });
+
     it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", function (done) {
 
         should(function(){
@@ -43,7 +90,7 @@ describe("watch dog", function () {
         done();
     });
 
-    it("the subscribing object should have a 'keepAlive' method installed by the WatchDog ", function (done) {
+    it("should install a 'keepAlive' method on  the subscribing object during addSubscriber and remove it during removeSubscriber", function (done) {
 
         var obj = new MyObject();
         should(_.isFunction(obj.keepAlive)).eql(false);
@@ -70,7 +117,7 @@ describe("watch dog", function () {
         this.clock.tick(2000);
     });
 
-    it("The WatchDog should visit subscribers on a regular basis", function (done) {
+    it("should visit subscribers on a regular basis", function (done) {
 
         var obj1 = new MyObject();
         var obj2 = new MyObject();
@@ -101,9 +148,22 @@ describe("watch dog", function () {
         setTimeout(done,15000);
         this.clock.tick(20000);
     });
+    it("should emit an event when it finds that some subscriber has reached the timeout period without sending a keepAlive signal", function (done) {
 
+        var obj1 = new MyObject();
+        watchDog.addSubscriber(obj1,1000);
 
+        watchDog.on("timeout",function(subscribers){
+            subscribers.length.should.eql(1);
+            done();
+        });
+        this.clock.tick(20000);
 
-
+    });
 
 });
+
+describe("Watch Dog",function() {
+
+
+})
