@@ -233,7 +233,7 @@ describe("testing ReferenceType", function () {
         var expectedBrowseNames = [ 'Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
-        redirectToFile("ReferenceDescription", function () {
+        redirectToFile("ReferenceDescription1.log", function () {
             assert(_.isArray(references));
             var dump = require("lib/address_space/basenode").dumpReferenceDescriptions;
             dump(address_space, references);
@@ -262,7 +262,7 @@ describe("testing ReferenceType", function () {
         var expectedBrowseNames = ['StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason', 'Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
-        redirectToFile("ReferenceDescription", function () {
+        redirectToFile("ReferenceDescription2.log", function () {
             assert(_.isArray(references));
             var dump = require("lib/address_space/basenode").dumpReferenceDescriptions;
             dump(address_space, references);
