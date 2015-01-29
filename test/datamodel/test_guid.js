@@ -32,4 +32,10 @@ describe("GUID",function(){
 
     });
 
+    it("should not detect ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32 as a GUID",function(){
+
+        isValidGuid("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32").should.equal(false);
+
+    });
+
 });
