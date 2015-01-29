@@ -18,7 +18,6 @@ var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
-var SecurityPolicy = opcua.SecurityPolicy;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
@@ -252,7 +251,7 @@ if (!crypto_utils.isFullySupported()) {
         options = _.extend(options,{
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
-            serverCertificate: serverCertificate,
+            serverCertificate: serverCertificate
         });
 
         options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 200;

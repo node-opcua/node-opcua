@@ -79,7 +79,7 @@ describe("CallMethodRequest with address space", function () {
                 StatusCodes.Good
             ],
             inputArgumentDiagnosticInfos: [],
-            outputArguments: [{dataType: DataType.UInt32,value: 10}],
+            outputArguments: [{dataType: DataType.UInt32,value: 10}]
         });
 
         encode_decode_round_trip_test(callMethodResult);
@@ -131,7 +131,7 @@ describe("CallRequest on custom method", function () {
             }]
         });
 
-        var retrieveInputArgumentsDefinition =  build_retrieveInputArgumentsDefinition(address_space)
+        var retrieveInputArgumentsDefinition =  build_retrieveInputArgumentsDefinition(address_space);
 
         //xx callRequest.factory = factory;
 

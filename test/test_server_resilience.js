@@ -73,14 +73,95 @@ describe("testing Server resilience to unsupported request",function(){
         var bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
 
         g_session.performMessageTransaction(bad_request,function(err,response){
-            assert(err instanceof Error);
-            if(err) {
-                done(null);
-            } else {
-                // console.log(JSON.stringify(response.results,null," ").yellow.bold);
-                done(null);
-            }
+            err.should.be.instanceOf(Error);
+            done();
         });
+    });
+});
+
+
+function abrupty_disconnect_client(client,callback) {
+    client._secureChannel._transport.disconnect(callback);
+
+}
+describe("testing Server resilience with bad internet connection",function(){
+    var server , client;
+    var endpointUrl,g_session ;
+
+    before(function(done){
+
+        server = new OPCUAServer({port : 2000});
+
+        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        server.start(done);
+    });
+
+    after(function(done){
+        server.shutdown(done);
+    });
+
+    it("XX server should discard session from abruptly disconnected client after the timeout has expired",function(done) {
+
+        client = new OPCUAClient({requestedSessionTimeout: 200});
+
+
+        var the_session;
+
+        async.series([
+            // assert that server has 0 session
+            function (callback) {
+                server.currentSessionCount.should.eql(0);
+                callback();
+            },
+
+            // connect
+            function (callback) {
+
+                // ask for a very short session timeout
+                client.connect(endpointUrl, function(err) { callback(err);     });
+            },
+
+            // create session
+            function (callback) {
+                client.createSession(function (err, session) {
+                    if (!err) {
+                        the_session = session;
+                        the_session.timeout.should.eql(client.requestedSessionTimeout);
+                    }
+                    callback(err);
+                });
+            },
+
+            // assert that server has 1 sessions
+            function (callback) {
+                server.currentSessionCount.should.eql(1);
+                callback();
+            },
+
+            function (callback) {
+                abrupty_disconnect_client(client,callback);
+            },
+
+            // assert that server has 1 sessions
+            function (callback) {
+                server.currentSessionCount.should.eql(1);
+                callback();
+            },
+
+            // wait for time out
+            function (callback) {
+                setTimeout(callback,1000);
+            },
+
+            // assert that server has no more session
+            function (callback) {
+
+                server.currentSessionCount.should.eql(0);
+                callback();
+            }
+
+        ], done);
+        // client.disconnect(function(){
     });
 
 });
