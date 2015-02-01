@@ -19,8 +19,6 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 
 
-
-
 describe("testing CALL SERVICE on a fake server exposing the temperature device", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
@@ -367,5 +365,59 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             },done);
         });
     });
+
+    it("should find the OutputArguments and InputArguments Properties with a translate browse path reaquest ( like UAEpxert)",function(done) {
+
+        // note : this is how UAExpert tries to figure out what are the input and output arguments definition
+        //
+        var getMonitoredItemMethodId =  coerceNodeId("ns=0;i=11492");
+
+        var hasPropertyRefId = resolveNodeId("HasProperty");/* NodeId  ns=0;i=46*/
+        var browsePath = [{
+                    startingNode: /* NodeId  */ getMonitoredItemMethodId,
+                    relativePath: /* RelativePath   */  {
+                        elements: /* RelativePathElement */ [
+                            {
+                                referenceTypeId: hasPropertyRefId,
+                                isInverse: false,
+                                includeSubtypes: false,
+                                targetName: { namespaceIndex: 0, name: "InputArguments" }
+                            }
+                        ]
+                    }
+                }, {
+                    startingNode: getMonitoredItemMethodId,
+                    relativePath: {
+                        elements: [
+                            {
+                                referenceTypeId: hasPropertyRefId,
+                                isInverse: false,
+                                includeSubtypes: false,
+                                targetName: {   name: "OutputArguments" }
+                            }
+                        ]
+                    }
+                }
+            ];
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            session.translateBrowsePath(browsePath, function(err,results) {
+
+                console.log(results[0].toString());
+                results[0].statusCode.should.eql(StatusCodes.Good);
+                results[0].targets.length.should.eql(1);
+                results[0].targets[0].targetId.toString().should.eql("ns=0;i=11493");
+
+                console.log(results[1].toString());
+                results[1].statusCode.should.eql(StatusCodes.Good);
+                results[1].targets.length.should.eql(1);
+                results[1].targets[0].targetId.toString().should.eql("ns=0;i=11494");
+
+                inner_done();
+
+            });
+        },done);
+    });
+
 
 });

@@ -3,6 +3,7 @@ var _ = require("underscore");
 var should = require("should");
 var server_engine = require("lib/server/server_engine");
 
+var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
@@ -14,6 +15,8 @@ var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
 var getMethodDeclaration_ArgumentList = require("lib/datamodel/argument_list").getMethodDeclaration_ArgumentList;
 var Method = require("lib/address_space/method").Method;
+
+var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
 
 describe("ServerEngine - addMethod", function () {
 
@@ -106,6 +109,45 @@ describe("ServerEngine - addMethod", function () {
         var inputArguments = [{ dataType: DataType.UInt32, value: 3}];
         var context = {};
 
+
+
+        // it should be possible to find the InputArguments and OutputArguments property
+        // using translate browse path
+
+        var hasPropertyRefId = resolveNodeId("HasProperty");/* NodeId  ns=0;i=46*/
+        var browsePath = [{
+            startingNode: /* NodeId  */ method.nodeId,
+            relativePath: /* RelativePath   */  {
+                elements: /* RelativePathElement */ [
+                    {
+                        referenceTypeId: hasPropertyRefId,
+                        isInverse: false,
+                        includeSubtypes: false,
+                        targetName: { namespaceIndex: 0, name: "InputArguments" }
+                    }
+                ]
+            }
+        }, {
+            startingNode: method.nodeId,
+            relativePath: {
+                elements: [
+                    {
+                        referenceTypeId: hasPropertyRefId,
+                        isInverse: false,
+                        includeSubtypes: false,
+                        targetName: {   name: "OutputArguments" }
+                    }
+                ]
+            }
+        }
+        ];
+
+        var result = engine.browsePath(new translate_service.BrowsePath(browsePath[0]));
+        result.statusCode.should.eql(StatusCodes.Good);
+
+        result = engine.browsePath(new translate_service.BrowsePath(browsePath[1]));
+        result.statusCode.should.eql(StatusCodes.Good);
+
         objectMethod.execute(inputArguments,context,function(err,callMethodResponse) {
 
             done(err);
@@ -114,6 +156,7 @@ describe("ServerEngine - addMethod", function () {
             callMethodResponse.outputArguments[0].value.should.eql(["Whaff","Whaff","Whaff"]);
             console.log(" Result = ",callMethodResponse.outputArguments[0].value);
         });
+
     });
 
 });
