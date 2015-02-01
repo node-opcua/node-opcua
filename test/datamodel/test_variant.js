@@ -213,7 +213,12 @@ describe("Variant - Analyser",function(){
         new Variant({  dataType: DataType.NodeId,       arrayType: VariantArrayType.Scalar, value: makeNodeId(1,2)}),
         new Variant({  dataType: DataType.LocalizedText,arrayType: VariantArrayType.Scalar, value: new LocalizedText({text: "Hello", locale: "en"}) }),
         new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Scalar, value: 3.14 }),
-        new Variant({  dataType: DataType.Guid   ,       arrayType: VariantArrayType.Scalar, value:  ec.randomGuid() })
+        new Variant({  dataType: DataType.Guid   ,       arrayType: VariantArrayType.Scalar, value:  ec.randomGuid() }),
+
+        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array     }),
+        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array ,value:[]   }),
+        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array ,value:[1]  }),
+        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array ,value:[1,2]})
     ];
 
     it("should analyze variant",function() {

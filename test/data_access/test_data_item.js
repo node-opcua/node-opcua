@@ -109,6 +109,21 @@ describe("DataAccess", function () {
         range.browseName.should.eql("Range");
     });
 
+    it("should have a UAVariableType XYArrayItemType",function() {
+        var xyArrayItemType = engine.address_space.findVariableType("XYArrayItemType");
+        xyArrayItemType.arrayDimensions.should.eql([0]);
+    });
+
+    it("should have a ImageItemType ",function() {
+        var xyArrayItemType = engine.address_space.findVariableType("ImageItemType");
+        xyArrayItemType.arrayDimensions.should.eql([0,0]);
+    });
+
+    it("should have a CubeItemType ",function() {
+        var xyArrayItemType = engine.address_space.findVariableType("CubeItemType");
+        xyArrayItemType.arrayDimensions.should.eql([0,0,0]);
+    });
+
     it("should coerce property Type to a nodeId",function() {
 
     });

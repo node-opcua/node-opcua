@@ -4,9 +4,11 @@ var address_space = require("lib/address_space/address_space");
 var Variable = require("lib/address_space/variable").Variable;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
+var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var should = require("should");
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
+var _ = require("underscore");
 
 describe("testing Variables ",function(){
 
@@ -19,6 +21,7 @@ describe("testing Variables ",function(){
             address_space:the_address_space,
             minimumSamplingInterval: 10,
             userAccessLevel: 0,
+            arrayDimensions : [ 1,2,3],
             accessLevel: 0
         });
 
@@ -36,6 +39,13 @@ describe("testing Variables ",function(){
         value.value.dataType.should.eql(DataType.Int32);
         value.statusCode.should.eql(StatusCodes.Good);
 
+        value = v.readAttribute(AttributeIds.ArrayDimensions);
+        value.value.arrayType.should.eql(VariantArrayType.Array);
+        value.value.value.should.eql([1,2,3]);
+        (_.isArray(value.value.value)).should.eql(true);
+        value.value.dataType.should.eql(DataType.UInt32);
+        value.statusCode.should.eql(StatusCodes.Good);
+
         value = v.readAttribute(AttributeIds.Historizing);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
@@ -49,7 +59,7 @@ describe("testing Variables ",function(){
         value.statusCode.should.eql(StatusCodes.Good);
 
         value = v.readAttribute(AttributeIds.MinimumSamplingInterval);
-        value.value.dataType.should.eql(DataType.UInt32);
+        value.value.dataType.should.eql(DataType.Int32);
         value.statusCode.should.eql(StatusCodes.Good);
 
         value = v.readAttribute(AttributeIds.IsAbstract);

@@ -220,8 +220,13 @@ var Variant_Schema = {
 
         if ( options.arrayType && options.arrayType !== VariantArrayType.Scalar) {
             if (options.arrayType === VariantArrayType.Array) {
+
+                options.value =  options.value || [];
                 assert(_.isArray( options.value));
-                options.value = options.value.map(function(e) { return coerceVariantType(options.dataType,e); });
+                options.value = options.value.map(function(val) {
+                    return coerceVariantType(options.dataType,val);
+                });
+
             } else { throw new Error("Not implemented Yet"); }
         } else {
             options.arrayType = VariantArrayType.Scalar;

@@ -109,6 +109,7 @@ var Argument_Schema = {
         {
             name: "arrayDimensions",
             fieldType: "UInt32",
+            isArray: true,
             documentation: "The number of dimensions if the argument is an array type and one or more dimensions have a fixed length."
         },
         {name: "description", fieldType: "LocalizedText", documentation: "The description for the argument."}

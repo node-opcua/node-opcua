@@ -707,6 +707,7 @@ describe("testing ServerEngine", function () {
 
             var readResult = engine.readSingleNode("DataTypeDescriptionType", AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
+            readResult.value.arrayType.should.eql(VariantArrayType.Array)
         });
     });
 
@@ -721,6 +722,7 @@ describe("testing ServerEngine", function () {
 
             var readResult = engine.readSingleNode(productUri_id, AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
+            readResult.value.arrayType.should.eql(VariantArrayType.Array)
         });
         it("should handle a readSingleNode - AccessLevel", function () {
 
