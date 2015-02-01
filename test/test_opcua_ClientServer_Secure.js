@@ -73,6 +73,25 @@ function start_server1(options,callback) {
     });
 }
 
+
+/**
+ * returns the number of security token exchange on the server
+ * since the server started, performed by any endpoints.
+ * @param server
+ * @returns {Number}
+ */
+function get_server_channel_security_token_change_count(server) {
+    var sessions = _.values(server.engine._sessions);
+    sessions.length.should.eql(1);
+
+    var count =  server.endpoints.reduce(function(accumulated,endpoint){
+        return accumulated + endpoint.securityTokenCount;
+    },0);
+
+    return count;
+
+}
+
 function stop_server1(data, callback) {
     stop_simple_server(data, callback);
 }
@@ -125,8 +144,10 @@ function keep_monitoring_some_variable(session, nodeIdToMonitor, duration, done)
 
     assert(session instanceof ClientSession);
 
+    var nbTokenId_befoore_server_side = get_server_channel_security_token_change_count(server);
+
     var subscription = new ClientSubscription(session, {
-        requestedPublishingInterval: 1000,
+        requestedPublishingInterval: 500,
         requestedLifetimeCount: 100,
         requestedMaxKeepAliveCount: 3,
         maxNotificationsPerPublish: 3,
@@ -146,6 +167,12 @@ function keep_monitoring_some_variable(session, nodeIdToMonitor, duration, done)
         the_error = err;
     });
     subscription.on("terminated", function () {
+
+        if (!the_error) {
+            var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_befoore_server_side;
+            nbTokenId.should.be.greaterThan(2);
+        }
+
         done(the_error);
     });
 }
@@ -254,7 +281,7 @@ if (!crypto_utils.isFullySupported()) {
             serverCertificate: serverCertificate
         });
 
-        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 200;
+        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 500;
 
         var token_change = 0;
         var client = new OPCUAClient(options);
