@@ -152,7 +152,7 @@ describe("testing basic Client-Server communication",function() {
         async.series([
             function(callback) {
                 client.connect(bad_endpointUrl,function(err){
-                    err.message.should.equal("connect ECONNREFUSED");
+                    err.message.should.match(/connect ECONNREFUSED/);
                     callback();
                 });
             },
