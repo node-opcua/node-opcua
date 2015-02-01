@@ -55,7 +55,7 @@ describe("Testing ChannelSecurityToken lifetime",function(){
 
     });
 
-    it("ZZ A secure channel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
+    it("A secure channel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
 
         client.connect(endpointUrl,function(err){
             should(err).equal(undefined);
