@@ -88,7 +88,8 @@ var Argument_Schema = {
         {
             name: "valueRank",
             fieldType: "Int32",
-            documentation: "Whether the argument is an array type and the rank of the array if it is."
+            documentation: "Whether the argument is an array type and the rank of the array if it is.",
+            defaultValue: -1 /* Scalar is the default value */
         },
 
     /**
