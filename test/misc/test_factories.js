@@ -550,7 +550,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
             fields: [
                 { name: "name", fieldType: "String"     },
                 { name: "buffer0", isArray: true, fieldType: "ByteString" },
-                { name: "nodeId", isArray: true, fieldType: "NodeId"     },
+                { name: "nodeId", isArray: true, fieldType: "NodeId"     }
             ]
         };
         factories.unregisterObject(exports.FakeBlob3_Schema,"tmp");

@@ -17,7 +17,7 @@ var CallResponse_Schema = {
          *                                  the request header or if no diagnostic information was
          *                                  encountered in processing of the request.
          */
-        { name: "diagnosticInfos" , fieldType:"DiagnosticInfo", isArray:true, documentation: "The List of diagnostic information for the statusCode of the results." },
+        { name: "diagnosticInfos" , fieldType:"DiagnosticInfo", isArray:true, documentation: "The List of diagnostic information for the statusCode of the results." }
     ]
 };
 exports.CallResponse_Schema = CallResponse_Schema;

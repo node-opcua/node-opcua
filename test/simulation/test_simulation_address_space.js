@@ -65,7 +65,7 @@ describe("testing address space for conformance testing",function() {
 
     });
 
-    it("XX should be able to write a array of double on Scalar_Static_Array_Double",function() {
+    it("should be able to write a array of double on Scalar_Static_Array_Double",function() {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Double", namespaceIndex);
         var value = engine.readSingleNode(nodeId,AttributeIds.Value);

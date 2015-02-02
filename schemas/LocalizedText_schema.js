@@ -35,6 +35,7 @@ var LocalizedText_Schema = {
     },
     decode_debug: function (self, stream , options) {
 
+        var cursor_before;
         var tracer = options.tracer;
         tracer.trace("start", options.name + "(" + "LocalizedText" + ")", stream.length, stream.length);
         cursor_before = stream.length;

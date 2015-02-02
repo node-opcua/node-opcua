@@ -58,6 +58,7 @@ function convert(data)
 
     }
 
+    var typeMap;
     for(typeName in metaMap) {
         if (metaMap.hasOwnProperty(typeName)) {
             typeMap = metaMap[typeName];

@@ -48,7 +48,7 @@ function parseStatusCodeXML() {
     outFile.write("  Good: { name:'Good', value: 0, description:'No Error' }\n");
 
 
-    sep=",";
+    var sep=",";
 
     code_list.forEach(function(obj){
         var s = sprintf("%1s %40s: { name: %40s , value: %6s  ,description: \"%s\"}\n",

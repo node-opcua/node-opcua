@@ -237,7 +237,7 @@ describe("Benchmarking Date conversion routines",function(){
         for(var i=0;i<100;i++) {
             dates_to_check.push(ec.randomDateTime());
         }
-        var date,check_date;
+        var date,check_date, check_date_bn;
         var bs = new BinaryStream();
         for(var i=0;i<dates_to_check.length;i++) {
             date = dates_to_check[i];

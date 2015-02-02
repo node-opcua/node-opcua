@@ -1435,7 +1435,7 @@ describe("testing ServerEngine", function () {
         it("should write a single node", function (done) {
 
             var nodeToWrite = new WriteValue({
-                nodeId: makeNodeId(0, 2254),
+                nodeId: makeNodeId(0, 2254), // Server_ServerArray
                 attributeId: AttributeIds.Value,
                 indexRange: null,
                 value: { // dataValue
