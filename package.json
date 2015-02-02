@@ -11,7 +11,7 @@
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
     "postinstall": "node bin/generate_opcua_classes.js --clear --verbose",
-    "test": "mocha test -R spec --recursive --timeout 20000",
+    "test": "mocha test -R spec --recursive --timeout 30000 --bail",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
   },
@@ -62,6 +62,7 @@
     "easy-table": "~0.3.0",
     "enum": "0.2.6",
     "ersatz-node-expat": "*",
+    "fqdn": "0.0.3",
     "hexy": "~0.2.7",
     "humanize": "0.0.9",
     "node-jsrsasign": "0.0.7",
