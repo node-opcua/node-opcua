@@ -161,6 +161,8 @@ registerObject("MonitoredItemModifyRequest");
 registerObject("MonitoredItemModifyResult");
 registerObject("ModifyMonitoredItemsRequest");
 registerObject("ModifyMonitoredItemsResponse");
+registerObject("SetMonitoringModeRequest");
+registerObject("SetMonitoringModeResponse");
 
 // secure_channel_service
 registerObject("AsymmetricAlgorithmSecurityHeader");
