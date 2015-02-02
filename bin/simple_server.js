@@ -17,7 +17,17 @@ var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
 
 console.log(" node set ", default_xmlFile);
 
-var server = new OPCUAServer({ nodeset_filename: default_xmlFile});
+var server = new OPCUAServer({
+    nodeset_filename: default_xmlFile,
+    serverInfo: {
+        applicationUri : "urn:NodeOPCUA-SimpleDemoServer",
+        productUri:      "SimpleDemoServer",
+        applicationName: {text: "applicationName"},
+        gatewayServerUri: null,
+        discoveryProfileUri: null,
+        discoveryUrls: []
+    }
+});
 
 var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 var hostname = require("os").hostname().toLowerCase();
@@ -40,7 +50,6 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
 var os = require("os");
 
 var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
-
 
 server.on("post_initialize", function () {
 

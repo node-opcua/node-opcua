@@ -100,10 +100,10 @@ describe("testing Server resilience with bad internet connection",function(){
         server.shutdown(done);
     });
 
-    it("XX server should discard session from abruptly disconnected client after the timeout has expired",function(done) {
+    it("server should discard session from abruptly disconnected client after the timeout has expired",function(done) {
 
+        // ask for a very short session timeout
         client = new OPCUAClient({requestedSessionTimeout: 200});
-
 
         var the_session;
 
@@ -117,7 +117,6 @@ describe("testing Server resilience with bad internet connection",function(){
             // connect
             function (callback) {
 
-                // ask for a very short session timeout
                 client.connect(endpointUrl, function(err) { callback(err);     });
             },
 

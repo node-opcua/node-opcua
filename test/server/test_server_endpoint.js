@@ -18,7 +18,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription",function() {
     var server_endpoint;
     beforeEach(function() {
 
-        server_endpoint = new OPCUAServerEndPoint(default_port);
+        server_endpoint = new OPCUAServerEndPoint({port: default_port,serverInfo: {},serverCertificate:""});
     });
     afterEach(function() { server_endpoint = null; });
 
@@ -58,10 +58,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescription",function(){
 
     var server_endpoint;
     beforeEach(function() {
-        server_endpoint = new OPCUAServerEndPoint(default_port,{
-            certificate: null,
-            privateKey: null
-        });
+        server_endpoint = new OPCUAServerEndPoint({port: default_port,serverInfo: {}});
         server_endpoint.addStandardEndpointDescription();
     });
     afterEach(function() { server_endpoint = null; });
@@ -86,7 +83,7 @@ describe("OPCUAServerEndpoint#get_endpoint_for_security_mode_and_policy",functio
     var server_endpoint;
     beforeEach(function() {
 
-        server_endpoint = new OPCUAServerEndPoint(default_port);
+        server_endpoint = new OPCUAServerEndPoint({port:default_port,serverInfo: {}});
     });
     afterEach(function() { server_endpoint = null; });
 
