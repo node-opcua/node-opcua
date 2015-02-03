@@ -6,6 +6,8 @@ var async = require("async");
 var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
 
+var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
+
 describe("Testing a simple server from Server side",function(){
 
 
@@ -19,7 +21,7 @@ describe("Testing a simple server from Server side",function(){
 
         var e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
 
-        var expected_hostname = require("os").hostname().toLowerCase();
+        var expected_hostname = get_fully_qualified_domain_name();
         e.hostname.should.be.match(new RegExp(expected_hostname));
 
         e.port.should.be.greaterThan(500);
