@@ -50,12 +50,15 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
 var os = require("os");
 
 var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
+var install_optional_video_node = require("../lib/server/video_frame").install_optional_video_node;
 
 server.on("post_initialize", function () {
 
     build_address_space_for_conformance_testing(server.engine);
 
     install_optional_cpu_and_memory_usage_node(server);
+
+    install_optional_video_node(server);
 
     var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
 
