@@ -62,7 +62,7 @@ var DataValue_Schema = {
                 dataValue.value = new Variant();
             }
             if (!dataValue.value.encode) {
-                console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELOP",dataValue.toString());
+                console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP",dataValue.toString());
             }
             dataValue.value.encode(stream);
         }
