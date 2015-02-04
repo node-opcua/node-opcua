@@ -72,4 +72,125 @@ describe("testing Variables ",function(){
 
     });
 
+
+});
+
+var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
+var NodeId = require("lib/datamodel/nodeid").NodeId;
+var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+describe("Address Space : add Variable :  testing various variations for specifying dataType",function() {
+
+    var nodeset_filename = __dirname+ "/../../lib/server/mini.Node.Set2.xml";
+    var the_address_space = new address_space.AddressSpace();
+    var rootFolder ;
+    before(function(done){
+        generate_address_space(the_address_space, nodeset_filename,function(){
+
+            rootFolder = the_address_space.findObject("RootFolder");
+
+            done();
+        });
+    });
+    after(function(){});
+
+    it("addVariable should accept a dataType as String",function() {
+
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable1",
+            dataType: "ImagePNG"
+        });
+        nodeVar.dataType.should.be.instanceOf(NodeId);
+        nodeVar.dataType.toString().should.eql("ns=0;i=2003");
+    });
+    it("addVariable should accept a dataType as DataTypeId value",function() {
+
+        var DataTypeIds = require("lib/opcua_node_ids").DataTypeIds;
+
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable2",
+            dataType: DataTypeIds.ImagePNG
+        });
+        nodeVar.dataType.should.be.instanceOf(NodeId);
+        nodeVar.dataType.toString().should.eql("ns=0;i=2003");
+
+    });
+    it("addVariable should accept a dataType as a NodeId object",function() {
+
+
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable3",
+            dataType: makeNodeId(2003,0)
+        });
+        nodeVar.dataType.should.be.instanceOf(NodeId);
+        nodeVar.dataType.toString().should.eql("ns=0;i=2003");
+
+    });
+    it("addVariable should accept a dataType as a NodeId string",function() {
+
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable4",
+            dataType: "ns=0;i=2003"
+        });
+        nodeVar.dataType.should.be.instanceOf(NodeId);
+        nodeVar.dataType.toString().should.eql("ns=0;i=2003");
+
+    });
+
+
+
+
+
+    it("addVariable should accept a typeDefinition as a String",function() {
+
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable5",
+            dataType: "Double",
+            typeDefinition: "PropertyType"
+        });
+        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+
+    });
+
+    it("addVariable should accept a typeDefinition as a VariableTypeId value",function() {
+
+        var VariableTypeIds = require("lib/opcua_node_ids").VariableTypeIds;
+
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable6",
+            dataType: "Double",
+            typeDefinition: VariableTypeIds.PropertyType
+        });
+        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+
+    });
+    it("addVariable should accept a typeDefinition as a NodeId object",function() {
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable7",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
+        });
+        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+    });
+    it("addVariable should accept a typeDefinition as a NodeId string",function() {
+        var nodeVar = the_address_space.addVariable(rootFolder,{
+            browseName: "SomeVariable8",
+            dataType: "Double",
+            typeDefinition: "ns=0;i=68"
+        });
+        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+    });
+    it("addVariable should throw if typeDefinition is invalid",function() {
+        should(function(){
+            var nodeVar = the_address_space.addVariable(rootFolder,{
+                browseName: "SomeVariable9",
+                dataType: "Double",
+                typeDefinition: "ns=0;i=2003" // << 2003 is a DataType not a VariableType
+            });
+        }).throwError();
+    });
+
 });
