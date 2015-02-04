@@ -29,9 +29,15 @@ describe("testing ServerEngine", function () {
 
     var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
+    var defaultBuildInfo = {
+        productName:"NODEOPCUA-SERVER",
+        softwareVersion:"1.0",
+        manufacturerName:"<Manufacturer>",
+        productUri:"URI:NODEOPCUA-SERVER"
+    };
     before(function (done) {
 
-        engine = new server_engine.ServerEngine();
+        engine = new server_engine.ServerEngine({buildInfo: defaultBuildInfo});
 
         engine.initialize(null, function () {
 
@@ -1378,7 +1384,6 @@ describe("testing ServerEngine", function () {
             dataValues.length.should.equal(1);
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
-
 
             dataValues[0].value.value.should.be.instanceOf(Object);
 

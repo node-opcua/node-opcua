@@ -1,31 +1,34 @@
 Error.stackTraceLimit = Infinity;
 
+var path = require("path");
 var opcua = require("..");
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 
 
-var path = require("path");
 var address_space_for_conformance_testing = require("../lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
+var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
 
-
-var default_xmlFile = __dirname + "/../nodesets/Opc.Ua.NodeSet2.xml";
-
-
-console.log(" node set ", default_xmlFile);
+var standard_nodeset_file = path.join(__dirname,"/../nodesets/Opc.Ua.NodeSet2.xml");
 
 var server = new OPCUAServer({
-    nodeset_filename: default_xmlFile,
+
+    port: 26543,
+
+    nodeset_filename: [ standard_nodeset_file],
+
     serverInfo: {
         applicationUri : "urn:NodeOPCUA-SimpleDemoServer",
-        productUri:      "SimpleDemoServer",
+        productUri:      "NodeOPCUA-SimpleDemoServer",
         applicationName: {text: "applicationName"},
         gatewayServerUri: null,
         discoveryProfileUri: null,
         discoveryUrls: []
+    },
+    buildInfo: {
     }
 });
 
@@ -34,22 +37,20 @@ var hostname = require("os").hostname().toLowerCase();
 
 var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
 
-console.log(" endpointUrl = ", endpointUrl);
-console.log(" server URI   = ", server.engine.buildInfo.productUri);
-console.log(" registering server to " + discovery_server_endpointUrl);
+console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
 
 server.registerServer(discovery_server_endpointUrl, function (err) {
     if (err) {
         // cannot register server in discovery
-        console.log(" warning : cannot register server into registry server");
+        console.log("     warning : cannot register server into registry server".cyan);
     } else {
-        console.log(" registering server to the discovery server : done.");
+        console.log("     registering server to the discovery server : done.".cyan);
     }
+    console.log("");
 });
 
 var os = require("os");
 
-var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
 
 server.on("post_initialize", function () {
 
@@ -57,9 +58,7 @@ server.on("post_initialize", function () {
 
     install_optional_cpu_and_memory_usage_node(server);
 
-
     var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
-
 
     /**
      * variation 1:
@@ -96,7 +95,6 @@ server.on("post_initialize", function () {
             }
         }
     });
-
 
 
     /**
@@ -162,15 +160,32 @@ server.on("post_initialize", function () {
 
 });
 
+function w(str,w) { return (str+ "                            ").substr(0,w);}
+
+function dumpObject(obj) {
+ return   _.map(obj,function(value,key) {
+     return  w("          " + key,30).green + "       : " + ((value === null)? null : value.toString());
+ }).join("\n");
+}
+
+
+
+
 server.start(function (err) {
     if (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
-    console.log("  server PID    ".yellow, process.pid);
-    console.log("  server on port".yellow, server.endpoints[0].port.toString().cyan);
-    console.log("  server now waiting for connections. CTRL+C to stop".yellow);
-    console.log("  endpointUrl = ".yellow, endpointUrl.cyan);
+    console.log("  server PID          :".yellow, process.pid);
+    console.log("  server on port      :".yellow, server.endpoints[0].port.toString().cyan);
+    console.log("  endpointUrl         :".yellow, endpointUrl.cyan);
+
+    console.log("  serverInfo          :".yellow);
+    console.log(dumpObject(server.serverInfo));
+    console.log("  buildInfo           :".yellow);
+    console.log(dumpObject(server.engine.buildInfo));
+
+    console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
 });
 
 
@@ -185,15 +200,15 @@ server.on("request", function (request) {
             console.log(str);
             break;
         case "TranslateBrowsePathsToNodeIdsRequest":
-            console.log(util.inspect(request, {colors: true, depth: 10}));
+            // do special console output
+            //xx console.log(util.inspect(request, {colors: true, depth: 10}));
             break;
     }
-    // console.log(util.inspect(request,{colors:true,depth:10}));
 });
 
 process.on('SIGINT', function() {
     // only work on linux apparently
-    console.log(" Received server interruption from user ".red.bold)
+    console.log(" Received server interruption from user ".red.bold);
     console.log(" shutting down ".red.bold);
     server.shutdown(function () {
         console.log(" done ".red.bold);
