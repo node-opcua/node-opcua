@@ -58,8 +58,6 @@ The script will be organised around the following four steps:
 
     _"server instantiation"
 
-    _"setting server info"
-
     _"server initialisation"
 
 Let visit each step in order:
@@ -69,7 +67,8 @@ Let visit each step in order:
 The node-opcua sdk is made available to the application by this 'require' statement:
 
 ```javascript
-    var opcua = require("node-opcua");
+
+var opcua = require("node-opcua");
 
 ```
 
@@ -84,6 +83,8 @@ For a simple server, you just need to specify a TCP port.
 // Let's create an instance of OPCUAServer
 var server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server
+
+    _"setting server info"
 });
 
 ```
@@ -94,9 +95,11 @@ additional information can be set at this stage such as the server *buildInfo*.
 
 ```javascript
 // we can set the buildInfo
-server.buildInfo.productName = "MySampleServer1";
-server.buildInfo.buildNumber = "7658";
-server.buildInfo.buildDate = new Date(2014,5,2);
+, buildInfo : {
+    productName = "MySampleServer1",
+    buildInfo.buildNumber: "7658",
+    buildInfo.buildDate: new Date(2014,5,2)
+}
 ```
 
 ### server initialisation

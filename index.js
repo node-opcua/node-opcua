@@ -48,3 +48,10 @@ module.exports.SecurityPolicy = require("lib/misc/security_policy").SecurityPoli
 
 //
 module.exports.MessageSecurityMode = module.exports.get_endpoints_service.MessageSecurityMode;
+
+
+// DA
+module.exports.standardUnits = require("lib/data_access/EUInformation").standardUnits;
+module.exports.makeEUInformation = require("lib/data_access/EUInformation").makeEUInformation;
+module.exports.addAnalogDataItem = require("node-opcua/lib/data_access/UAAnalogItem").addAnalogDataItem;
+

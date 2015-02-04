@@ -29,6 +29,7 @@ var server = new OPCUAServer({
         discoveryUrls: []
     },
     buildInfo: {
+        buildNumber: "1234"
     }
 });
 
