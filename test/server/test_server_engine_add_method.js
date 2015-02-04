@@ -1,6 +1,8 @@
 require("requirish")._(module);
 var _ = require("underscore");
 var should = require("should");
+
+
 var server_engine = require("lib/server/server_engine");
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
@@ -18,13 +20,14 @@ var Method = require("lib/address_space/method").Method;
 
 var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
 
+
 describe("ServerEngine - addMethod", function () {
 
     before(function (done) {
 
         engine = new server_engine.ServerEngine();
 
-        engine.initialize(null, function () {
+        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename}, function () {
 
             FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;

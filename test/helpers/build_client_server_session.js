@@ -1,9 +1,14 @@
 require("requirish")._(module);
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
-var opcua = require("lib/nodeopcua");
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 var assert = require("better-assert");
+
+var opcua = require(".");
+
+var OPCUAServer = opcua.OPCUAServer;
+var OPCUAClient = opcua.OPCUAClient;
+
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+
+var empty_nodeset_filename = require("path").join(__dirname,"../fixtures/fixture_empty_nodeset2.xml");
 
 
 function build_client_server_session(done){
@@ -11,7 +16,8 @@ function build_client_server_session(done){
     var endpointUrl ;
 
     var options = {
-        port: 2001
+        port: 2001,
+        nodeset_filename: empty_nodeset_filename
     };
 
     server = new OPCUAServer(options);

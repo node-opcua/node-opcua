@@ -1,11 +1,16 @@
 require("requirish")._(module);
-
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
 var should  = require("should");
+
+
+var empty_nodeset_filename = require("path").join(__dirname,"./fixtures/fixture_empty_nodeset2.xml");
+
+
+var opcua = require("index");
+var OPCUAServer = opcua.OPCUAServer;
 
 describe('testing 2 servers on same port ',function(){
 
-    var server1 = new OPCUAServer({ port: 12345 });
+    var server1 = new OPCUAServer({ port: 12345 , nodeset_filename: empty_nodeset_filename });
 
     before(function(done){
 
@@ -18,7 +23,7 @@ describe('testing 2 servers on same port ',function(){
     });
     it("should fail to start a second server on a busy port ",function(done){
 
-        var server2 = new OPCUAServer({ port: 12345 });
+        var server2 = new OPCUAServer({ port: 12345,nodeset_filename: empty_nodeset_filename });
 
         server2.start(function(err){
             err.should.be.instanceOf(Error);

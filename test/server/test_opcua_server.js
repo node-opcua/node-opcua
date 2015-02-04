@@ -8,7 +8,7 @@ describe("OPCUAServer",function() {
 
     it("should dismiss all existing session upon termination",function(done){
 
-        var server = new OPCUAServer();
+        var server = new OPCUAServer({});
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists

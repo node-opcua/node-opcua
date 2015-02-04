@@ -1,28 +1,29 @@
 require("requirish")._(module);
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
+var _ = require("underscore");
 
 var opcua = require("index");
 
-var debugLog = require("lib/misc/utils").make_debugLog(__filename);
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var browse_service = require("lib/services/browse_service");
-var BrowseDirection = browse_service.BrowseDirection;
-
+var OPCUAClient = opcua.OPCUAClient;
+var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 
-var _ = require("underscore");
+var browse_service = opcua.browse_service;
+var BrowseDirection = browse_service.BrowseDirection;
+
+
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
+
 
 var port = 2000;
 
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-
 
 describe("testing basic Client-Server communication", function () {
 
@@ -81,9 +82,7 @@ describe("testing basic Client-Server communication", function () {
 
     });
 
-
 });
-
 
 
 

@@ -28,7 +28,7 @@ describe("ServerEngine Subscriptions service", function () {
     var engine,session,FolderTypeId,BaseDataVariableTypeId;
     beforeEach(function(done){
         engine = new server_engine.ServerEngine();
-        engine.initialize(null,function(){
+        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
             FolderTypeId = engine.findObject("FolderType").nodeId;
             BaseDataVariableTypeId = engine.findObject("BaseDataVariableType").nodeId;
             done();

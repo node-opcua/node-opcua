@@ -12,7 +12,7 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
 
 var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
 
-var standard_nodeset_file = path.join(__dirname,"/../nodesets/Opc.Ua.NodeSet2.xml");
+var standard_nodeset_file = opcua.standard_nodeset_file;
 
 var server = new OPCUAServer({
 

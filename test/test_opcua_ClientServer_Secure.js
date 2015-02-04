@@ -12,7 +12,6 @@ var path = require("path");
 
 var utils = opcua.utils;
 
-var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
@@ -140,11 +139,11 @@ function stop_server(data, callback) {
 var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
 
-function keep_monitoring_some_variable(session, nodeIdToMonitor, duration, done) {
+function keep_monitoring_some_variable(session,  duration, done) {
 
     assert(session instanceof ClientSession);
 
-    var nbTokenId_befoore_server_side = get_server_channel_security_token_change_count(server);
+    var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
 
     var subscription = new ClientSubscription(session, {
         requestedPublishingInterval: 500,
@@ -169,13 +168,16 @@ function keep_monitoring_some_variable(session, nodeIdToMonitor, duration, done)
     subscription.on("terminated", function () {
 
         if (!the_error) {
-            var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_befoore_server_side;
+            var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
             nbTokenId.should.be.greaterThan(2);
         }
 
         done(the_error);
     });
 }
+
+
+var default_test_duration = 1200;
 
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
@@ -247,7 +249,7 @@ if (!crypto_utils.isFullySupported()) {
             client = new OPCUAClient(options);
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                keep_monitoring_some_variable(session, null, 2000, function () {
+                keep_monitoring_some_variable(session, default_test_duration, function () {
                     token_change.should.be.greaterThan(10);
                     inner_done();
                 });
@@ -281,14 +283,15 @@ if (!crypto_utils.isFullySupported()) {
             serverCertificate: serverCertificate
         });
 
-        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 500;
+        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 200;
+        // console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
         var token_change = 0;
         var client = new OPCUAClient(options);
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(session, null, options.defaultSecureTokenLifetime * 5, function (err) {
+            keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 5, function (err) {
                 token_change.should.be.greaterThan(3);
                 inner_done(err);
             });
@@ -337,7 +340,7 @@ if (!crypto_utils.isFullySupported()) {
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 200
+            defaultSecureTokenLifetime: 150
         };
 
         var token_change = 0;
@@ -345,7 +348,7 @@ if (!crypto_utils.isFullySupported()) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(session, null, 2000, function (err) {
+            keep_monitoring_some_variable(session,  default_test_duration, function (err) {
                 inner_done(err);
             });
         }, function (err) {

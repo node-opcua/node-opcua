@@ -1,19 +1,24 @@
 "use strict";
 require("requirish")._(module);
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
-var opcua = require("lib/nodeopcua");
-
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var browse_service = require("lib/services/browse_service");
-var BrowseDirection = browse_service.BrowseDirection;
 var os =require("os");
 var _ = require("underscore");
+
+var opcua = require("index");
+
+var OPCUAServer = opcua.OPCUAServer;
+var OPCUAClient = opcua.OPCUAClient;
+var StatusCodes = opcua.StatusCodes;
+var BrowseDirection = opcua.browse_service.BrowseDirection;
+
+var empty_nodeset_filename = require("path").join(__dirname,"./fixtures/fixture_empty_nodeset2.xml");
+
+
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 
 var port = 4000;
 
@@ -28,7 +33,7 @@ describe("Testing ChannelSecurityToken lifetime",function(){
     beforeEach(function(done){
 
         port+=1;
-        server = new OPCUAServer({ port: port});
+        server = new OPCUAServer({ port: port , nodeset_filename: empty_nodeset_filename});
 
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;

@@ -1,29 +1,31 @@
 require("requirish")._(module);
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");
+var _ = require("underscore");
 var util = require("util");
-var opcua = require("lib/nodeopcua");
+
+
+var opcua = require("index");
+var OPCUAClient = opcua.OPCUAClient;
+var StatusCodes = opcua.StatusCodes;
+var Variant = opcua.Variant;
+var DataType = opcua.DataType;
+var browse_service = opcua.browse_service;
+var NodeCrawler = opcua.NodeCrawler;
+
 
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var browse_service = require("lib/services/browse_service");
 
-var Variant = require("lib/datamodel/variant").Variant;
-var DataType = require("lib/datamodel/variant").DataType;
 
-var _ = require("underscore");
 
 var port = 2000;
 
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-// var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-var NodeCrawler = require("lib/client/node_crawler").NodeCrawler;
 
 describe("NodeCrawler",function(){
 
@@ -59,7 +61,6 @@ describe("NodeCrawler",function(){
     after(function(done){
         server.shutdown(done);
     });
-
 
 
     function MyDumpReference(reference) {
@@ -213,5 +214,30 @@ describe("NodeCrawler",function(){
         },done);
     });
 
+    it("should display a tree",function(done){
+        var treeify = require('treeify');
+
+        perform_operation_on_client_session(client,endpointUrl,function(the_session,callback) {
+
+            var crawler = new NodeCrawler(the_session);
+            crawler.on("browsed",function(element){
+                //xx console.log("->",element.browseName.name,element.nodeId.toString());
+            });
+            var nodeId = "ObjectsFolder";
+            console.log("now crawling object folder ...please wait...");
+            crawler.read(nodeId, function (err, obj) {
+                if (!err) {
+                    treeify.asLines(obj, true, true, function (line) {
+                        console.log(line);
+                    });
+                }
+                callback(err);
+            });
+
+        },done);
+
+
+
+    });
 
 });

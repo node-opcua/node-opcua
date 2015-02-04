@@ -14,11 +14,14 @@ var StatusCodes = opcua.StatusCodes;
 
 var port = 2000;
 
+var empty_nodeset_filename = require("path").join(__dirname,"./fixtures/fixture_empty_nodeset2.xml");
+
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)",function(){
 
 
     var server = new OPCUAServer({
         port: port,
+        nodeset_filename: empty_nodeset_filename,
         maxAllowedSessionNumber: 1
     });
 

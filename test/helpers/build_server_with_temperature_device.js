@@ -1,14 +1,16 @@
 require("requirish")._(module);
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var opcua = require("lib/nodeopcua");
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
-var Variant = require("lib/datamodel/variant").Variant;
-var DataType = require("lib/datamodel/variant").DataType;
-
 var _ = require("underscore");
 var assert = require("better-assert");
 var should = require("should");
+
+var opcua = require(".");
+
+var OPCUAServer = opcua.OPCUAServer;
+var StatusCodes = opcua.StatusCodes;
+var Variant = opcua.Variant;
+var DataType = opcua.DataType;
+
+var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 
 var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -31,6 +33,11 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
 function build_server_with_temperature_device(options,done) {
 
     assert(_.isFunction(done,"expecting a callback function"));
+
+    // console.log("xxx building server with temperature device");
+
+    // use mini_nodeset_filename for speed up if not otherwise specified
+    options.nodeset_filename = options.nodeset_filename  || opcua.mini_nodeset_filename;
 
     var server = new OPCUAServer(options);
     // we will connect to first server end point

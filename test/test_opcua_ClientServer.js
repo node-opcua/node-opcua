@@ -8,7 +8,6 @@ var _ = require("underscore");
 
 var opcua = require("index");
 
-var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
 var Variant =  opcua.Variant ;

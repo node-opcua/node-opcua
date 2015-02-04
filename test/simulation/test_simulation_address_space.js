@@ -27,7 +27,7 @@ describe("testing address space for conformance testing",function() {
     before(function(done) {
 
         engine = new server_engine.ServerEngine();
-        engine.initialize(null,function() {
+        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function() {
             build_address_space_for_conformance_testing(engine,{ mass_variables: true});
 
             // address space variable change for conformance testing are changing randomly

@@ -8,12 +8,13 @@ var OPCUAClient = opcua.OPCUAClient;
 
 var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 
+
 describe("Testing a simple server from Server side",function(){
 
 
     it("should have at least one endpoint",function(){
 
-        var server = new OPCUAServer({   port: 6789 });
+        var server = new OPCUAServer({   port: 6789 , nodeset_filename:opcua.mini_nodeset_filename});
 
         server.endpoints.length.should.be.greaterThan(0);
 
@@ -31,7 +32,7 @@ describe("Testing a simple server from Server side",function(){
 
     it("should start and shutdown",function(done){
 
-        var server = new OPCUAServer({   port: 6789 });
+        var server = new OPCUAServer({   port: 6789 , nodeset_filename: opcua.mini_nodeset_filename});
 
         server.start(function(){
             process.nextTick(function() {

@@ -39,7 +39,7 @@ describe("testing ServerEngine", function () {
 
         engine = new server_engine.ServerEngine({buildInfo: defaultBuildInfo});
 
-        engine.initialize(null, function () {
+        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename}, function () {
 
             FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;

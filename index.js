@@ -55,3 +55,11 @@ module.exports.standardUnits = require("lib/data_access/EUInformation").standard
 module.exports.makeEUInformation = require("lib/data_access/EUInformation").makeEUInformation;
 module.exports.addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 
+// version
+module.exports.version = require("./package.json").version;
+module.exports.standard_nodeset_file = require("lib/server/server_engine").standard_nodeset_file;
+
+// an incomplete but sufficient nodeset file used during testing
+module.exports.mini_nodeset_filename = require("lib/server/server_engine").mini_nodeset_filename;
+
+module.exports.is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpointUrl;

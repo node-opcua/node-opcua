@@ -2,17 +2,16 @@ require("requirish")._(module);
 
 var should = require("should");
 
+var opcua  = require(".");
+
 var OPCUAServerEndPoint = require("lib/server/server_end_point").OPCUAServerEndPoint;
-var endpoints_service = require("lib/services/get_endpoints_service");
-var MessageSecurityMode  = endpoints_service.MessageSecurityMode;
-var SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
+var MessageSecurityMode = opcua.MessageSecurityMode;
+var SecurityPolicy = opcua.SecurityPolicy;
 
 var crypto_utils = require("lib/misc/crypto_utils");
-
 var it_with_crypto =  (crypto_utils.isFullySupported())  ? it: xit;
 
 var default_port = 1234;
-
 
 describe("OPCUAServerEndpoint#addEndpointDescription",function() {
     var server_endpoint;
