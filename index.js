@@ -53,5 +53,5 @@ module.exports.MessageSecurityMode = module.exports.get_endpoints_service.Messag
 // DA
 module.exports.standardUnits = require("lib/data_access/EUInformation").standardUnits;
 module.exports.makeEUInformation = require("lib/data_access/EUInformation").makeEUInformation;
-module.exports.addAnalogDataItem = require("node-opcua/lib/data_access/UAAnalogItem").addAnalogDataItem;
+module.exports.addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 
