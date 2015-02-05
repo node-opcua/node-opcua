@@ -98,10 +98,10 @@ describe("Subscriptions and MonitoredItems", function () {
 
         // now simulate some data change
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1000});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 1000}});
 
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1001});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 1001}});
         monitoredItem.queue.length.should.eql(2);
 
         // then, collectDataChangeNotification  should collect at least 2 values
@@ -144,11 +144,11 @@ describe("Subscriptions and MonitoredItems", function () {
 
         // now simulate some data change
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1000});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 1000}});
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1001});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 1001}});
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 1002});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 1002}});
         monitoredItem.queue.length.should.eql(3);
 
         this.clock.tick(800);
@@ -159,11 +159,11 @@ describe("Subscriptions and MonitoredItems", function () {
 
         // now let the subscription send a PublishResponse to the client
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 2000});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 2000}});
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 2001});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 2001}});
         this.clock.tick(100);
-        monitoredItem.recordValue({ dataType: DataType.UInt32 , value: 2002});
+        monitoredItem.recordValue({value:{ dataType: DataType.UInt32 , value: 2002}});
         monitoredItem.queue.length.should.eql(3);
         this.clock.tick(800);
 

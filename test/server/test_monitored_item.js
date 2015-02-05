@@ -73,7 +73,7 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(2000);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1000 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
         monitoredItem.queue.length.should.eql(1);
 
         done();
@@ -92,19 +92,19 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1000 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1001 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1001 }});
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1002 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1002 }});
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1001);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -126,19 +126,19 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1000 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1001 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1001 }});
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1002 });
+        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1002 }});
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
@@ -162,7 +162,11 @@ describe("Server Side MonitoredItem",function(){
         this.clock.tick(100);
         var now = new Date();
 
-        monitoredItem.recordValue({dataType: DataType.UInt32, value: 1000 });
+        monitoredItem.recordValue(new DataValue({
+            value:{dataType: DataType.UInt32, value: 1000 },
+            serverTimestamp: now,
+            sourceTimestamp: now
+        }));
 
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.queue[0].serverTimestamp.should.eql(now);
@@ -189,7 +193,13 @@ describe("Server Side MonitoredItem",function(){
         var sourceTimestamp = new Date(Date.UTC(2000,0,1));
         sourceTimestamp.setMilliseconds(100);
         var picoSeconds = 456;
-        monitoredItem.recordValue(new Variant({dataType: DataType.UInt32, value: 1000 }), sourceTimestamp , picoSeconds);
+
+        monitoredItem.recordValue(new DataValue({
+            value: {dataType: DataType.UInt32, value: 1000},
+            sourceTimestamp: sourceTimestamp,
+            sourcePicoseconds:picoSeconds,
+            serverTimestamp: now
+        }));
 
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.queue[0].serverTimestamp.should.eql(now);
@@ -218,7 +228,7 @@ describe("Server Side MonitoredItem",function(){
             // read new value
             // check if different enough from old Value
             // if different enough : call recordValue
-            this.recordValue({ dataType: DataType.UInt32,value: sample_value });
+            this.recordValue({value:{ dataType: DataType.UInt32,value: sample_value }});
         });
 
         this.clock.tick(200);
