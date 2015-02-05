@@ -17,6 +17,9 @@ var BrowseDirection = browse_service.BrowseDirection;
 var _ = require("underscore");
 
 
+var empty_nodeset_filename = require("path").join(__dirname,"./fixtures/fixture_empty_nodeset2.xml");
+
+
 var factories = require("lib/misc/factories");
 
 // a fake request type that is supposed to be correctly decoded on server side
@@ -36,9 +39,12 @@ describe("testing Server resilience to unsupported request",function(){
     var server , client;
     var endpointUrl,g_session ;
 
+
+    this.timeout(20000);
+
     before(function(done){
 
-        server = new OPCUAServer({port : 2000});
+        server = new OPCUAServer({port : 2000,nodeset_filename:empty_nodeset_filename});
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         debugLog("endpointUrl",endpointUrl);
@@ -88,9 +94,12 @@ describe("testing Server resilience with bad internet connection",function(){
     var server , client;
     var endpointUrl,g_session ;
 
+
+    this.timeout(20000);
+
     before(function(done){
 
-        server = new OPCUAServer({port : 2000});
+        server = new OPCUAServer({port : 2000,nodeset_filename:empty_nodeset_filename});
 
         endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         server.start(done);
