@@ -4,21 +4,6 @@ var ProgressBar = require('progress');
 var _ = require("underscore");
 var url =require("url");
 
-function wget2(url) {
-
-    var bar = new ProgressBar(':bar', { total: 10 });
-    var path = require("path");
-    var filename = path.basename(url) ;
-
-
-    request(url).pipe(fs.createWriteStream(filename));
-
-    request.on("data", function(chunk){
-
-
-
-    });
-}
 
 var force = true;
 
@@ -54,10 +39,10 @@ function wget(file_url) {
             fileBytes = 10000;
         }
         var bar = new ProgressBar('  downloading ' + file_url + '[:bar] :percent :etas', {
-            complete: '='
-            , incomplete: ' '
-            , width: 20
-            , total: fileBytes
+            complete: '=',
+            incomplete: ' ',
+            width: 20,
+            total: fileBytes
         });
 
         response.on('data', function(chunk) {

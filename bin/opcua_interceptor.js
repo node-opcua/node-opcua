@@ -16,7 +16,7 @@ var s = require("../lib/datamodel/structures");
 require("colors");
 
 var remote_port = parseInt(argv.port,10) || 4841;
-var hostname = argv.hostname || "localhost" ;
+var hostname = argv.hostname || "localhost";
 
 var my_port = parseInt(argv.portServer,10) || remote_port + 1;
 

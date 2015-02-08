@@ -19,9 +19,9 @@ function completer(line) {
         completions = 'open close getEndpoints quit'.split(' ');
     }
     hits = completions.filter(function (c) {
-        return c.indexOf(line) === 0
+        return c.indexOf(line) === 0;
     });
-    return [hits.length ? hits : completions, line]
+    return [hits.length ? hits : completions, line];
 }
 
 var rl = readline.createInterface({
@@ -61,6 +61,10 @@ client.on("receive_response", function (message) {
 });
 
 
+function dumpNodeResult(node) {
+  str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
+  console.log(str);
+}
 function colorize(value) {
     return ("" + value).yellow.bold;
 }
@@ -161,10 +165,6 @@ rl.on('line', function (line) {
                         console.log(nodeResults);
                     } else {
 
-                        function dumpNodeResult(node) {
-                            str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
-                            console.log(str);
-                        }
 
                         for (var i = 0; i < nodeResults.length; i++) {
                             console.log("Node: ", nodes[i]);

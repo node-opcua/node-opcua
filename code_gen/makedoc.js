@@ -72,7 +72,7 @@ if(false) {
             var name = field.name;
             var fieldType = field.fieldType;
             var documentation = field.documentation;
-            console.log("/**")
+            console.log("/**");
             console.log(" * "+ documentation);
             console.log(" *  @property ",name);
             console.log(" *  @type ",fieldType);

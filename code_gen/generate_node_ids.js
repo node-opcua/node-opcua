@@ -1,4 +1,3 @@
-var util = require('util');
 var fs = require("fs");
 var csv = require("csv");
 var sprintf = require("sprintf").sprintf;
@@ -15,14 +14,10 @@ fs.createReadStream(__dirname+'/NodeIds.csv').pipe(parser);
 
 function convert(data)
 {
-    //xx console.log(data);
     var name,id,type,codeName,value,typeName;
-    var metaMap = {
-
-    };
+    var metaMap = { };
 
     data.forEach(function(row) {
-
 
         codeName = row[0];
         value    = row[1];

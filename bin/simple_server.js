@@ -1,7 +1,7 @@
 Error.stackTraceLimit = Infinity;
 
-var path = require("path");
 var opcua = require("..");
+var _ = require("underscore");
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
@@ -50,7 +50,6 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
     console.log("");
 });
 
-var os = require("os");
 
 
 server.on("post_initialize", function () {
