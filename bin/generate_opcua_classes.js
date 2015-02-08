@@ -185,6 +185,10 @@ registerObject("ModifyMonitoredItemsRequest");
 registerObject("ModifyMonitoredItemsResponse");
 registerObject("SetMonitoringModeRequest");
 registerObject("SetMonitoringModeResponse");
+registerObject("EventField");
+registerObject("EventNotificationList");
+registerObject("StatusChangeNotification");
+
 
 // secure_channel_service
 registerObject("AsymmetricAlgorithmSecurityHeader");
@@ -255,7 +259,6 @@ registerObject("WriteResponse");
 
 
 // -------------------------------------------------------------------------
-var path = require("path");
 var filename = path.join(__dirname, "../nodesets/Opc.Ua.NodeSet2.xml");
 
 var address_space = require("../lib/address_space/address_space");
