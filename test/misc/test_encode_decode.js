@@ -1,3 +1,4 @@
+/* global Buffer */
 require("requirish")._(module);
 var should = require("should");
 var ec = require("lib/misc/encode_decode");
@@ -6,6 +7,19 @@ var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var ExpandedNodeId = require("lib/datamodel/expanded_nodeid").ExpandedNodeId;
 var NodeIdType = require("lib/datamodel/nodeid").NodeIdType;
 
+/**
+ * @method test_encode_decode
+ *
+ * @param obj
+ * @param encode_func {Function}
+ * @param encode_func.obj {Object}
+ * @param encode_func.binaryStream {BinaryStream}
+ * @param decode_func {Function}
+ * @param decode_func.binaryStream {BinaryStream}
+ * @param expectedLength {Integer}
+ * @param [verify_buffer_func=null] {Function}
+ * @param verify_buffer_func.buffer {Buffer}
+ */
 function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
 
     var binaryStream = new BinaryStream();
@@ -44,6 +58,7 @@ describe("testing built-in type encoding", function () {
     it("should encode and decode a Int16 (2 bytes)", function () {
 
         test_encode_decode(255, ec.encodeInt16, ec.decodeInt16, 2, function (buffer) {
+            buffer.should.be.instanceOf(Buffer);
             // should be little endian
             buffer.readUInt8(0).should.equal(0xFF);
             buffer.readUInt8(1).should.equal(0x00);
@@ -55,6 +70,7 @@ describe("testing built-in type encoding", function () {
     it("should encode and decode a Int16 (2 bytes)", function () {
 
         test_encode_decode(0xFFFE, ec.encodeUInt16, ec.decodeUInt16, 2, function (buffer) {
+            buffer.should.be.instanceOf(Buffer);
             // should be little endian
             buffer.readUInt8(0).should.equal(0xFE);
             buffer.readUInt8(1).should.equal(0xFF);
@@ -549,7 +565,7 @@ describe("check coerce various types", function () {
 
             var coerceFunc = ec["coerce" + type];
             var randomFunc = ec["random" + type];
-            var isValidFunc = ec["isValid" + type];
+            //xx var isValidFunc = ec["isValid" + type];
 
             ec.should.have.property("coerce" + type);
             ec.should.have.property("random" + type);

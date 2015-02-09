@@ -62,7 +62,7 @@ client.on("receive_response", function (message) {
 
 
 function dumpNodeResult(node) {
-  str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
+  var str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
   console.log(str);
 }
 function colorize(value) {
@@ -85,7 +85,7 @@ if (rl.history) {
 rl.prompt(">");
 rl.on('line', function (line) {
 
-    var nodes, str;
+    var nodes;
     var args = line.trim().split(" ");
     var cmd = args[0];
 
