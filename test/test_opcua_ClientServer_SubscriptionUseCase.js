@@ -17,11 +17,12 @@ var build_server_with_temperature_device = require("./helpers/build_server_with_
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
+var _port = 2000;
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
 
     var server , client, temperatureVariableId, endpointUrl;
 
-    var port = 2001;
+    var port = _port +1 ;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
@@ -293,7 +294,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
 describe("testing server and subscription", function () {
     var server, client, temperatureVariableId, endpointUrl;
-    var port = 2001;
+    var port = _port +1 ;
     before(function (done) {
         console.log(" Creating Server");
         server = build_server_with_temperature_device({port: port}, function () {
@@ -559,7 +560,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     var server , client, temperatureVariableId, endpointUrl;
 
-    var port = 2001;
+    var port = _port +1 ;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
@@ -587,10 +588,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     this.timeout(10000);
 
-    it("XXX A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval",function(done){
+    it("A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval",function(done){
 
-
-        endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
+        //xx endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
 
         var nb_keep_alive_received= 0;
         // from Spec OPCUA Version 1.02 Part 4 - 5.13.1.1 Description : Page 76
