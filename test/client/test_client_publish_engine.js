@@ -6,10 +6,9 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var assert = require("better-assert");
 var should = require("should");
 var _ = require("underscore");
-var NotificationMessage = subscription_service.NotificationMessage;
 var sinon = require("sinon");
 
-var ClientSidePublishEngine = require("lib/client/client_publish_engine").ClientSidePublishEngine
+var ClientSidePublishEngine = require("lib/client/client_publish_engine").ClientSidePublishEngine;
 
 
 
@@ -26,7 +25,7 @@ describe("Testing the client publish engine", function () {
     it("a client should send a publish request to the server for every new subscription", function () {
 
         var fake_session = { publish: function (request, callback) {} };
-        var spy = sinon.spy(fake_session, "publish");
+        var publish_spy = sinon.spy(fake_session, "publish");
 
         var publish_client = new ClientSidePublishEngine(fake_session);
 
@@ -39,14 +38,14 @@ describe("Testing the client publish engine", function () {
         // now advance the time artificially by 4.5 seconds
         this.clock.tick(500 + 4 * 1000);
 
-        // publish should have been called twice only ( since no Response have been received from server)
-        spy.callCount.should.be.equal(2);
+        // publish should have been called 10 times only ( since no Response have been received from server)
+        publish_spy.callCount.should.be.equal(10);
 
         // args[0] shall be a Publish Request
-        spy.getCall(0).args[0]._schema.name.should.equal("PublishRequest");
-        assert(_.isFunction(spy.getCall(0).args[1]));
+        publish_spy.getCall(0).args[0]._schema.name.should.equal("PublishRequest");
+        assert(_.isFunction(publish_spy.getCall(0).args[1]));
 
-        spy.restore();
+        publish_spy.restore();
 
     });
 

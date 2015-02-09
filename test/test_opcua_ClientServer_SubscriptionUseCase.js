@@ -1,14 +1,19 @@
 require("requirish")._(module);
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
-var ClientSession = require("lib/client/opcua_client").ClientSession;
-var ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var AttributeIds = require("lib/services/read_service").AttributeIds;
-var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
+var sinon = require("sinon");
 
+var opcua = require(".");
+
+var OPCUAClient = opcua.OPCUAClient;
+var ClientSession = opcua.ClientSession;
+var ClientSubscription = opcua.ClientSubscription;
+var AttributeIds = opcua.AttributeIds;
+var resolveNodeId = opcua.resolveNodeId;
+var StatusCodes = opcua.StatusCodes;
+
+var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
@@ -287,11 +292,11 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 });
 
 describe("testing server and subscription", function () {
-    var server , client, temperatureVariableId, endpointUrl;
+    var server, client, temperatureVariableId, endpointUrl;
     var port = 2001;
     before(function (done) {
         console.log(" Creating Server");
-        server = build_server_with_temperature_device({ port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
@@ -318,7 +323,7 @@ describe("testing server and subscription", function () {
     });
 
     it(" a server should accept several Publish Requests from the client without sending notification immediately," +
-        " and should still be able to reply to other requests", function (done) {
+    " and should still be able to reply to other requests", function (done) {
 
         var subscriptionId;
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
@@ -421,7 +426,7 @@ describe("testing server and subscription", function () {
 
             var monitoredItem = subscription.monitor(
                 {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
-                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
             // subscription.on("item_added",function(monitoredItem){
             monitoredItem.on("initialized", function () {
@@ -440,9 +445,9 @@ describe("testing server and subscription", function () {
             var monitoredItem = subscription.monitor(
                 {
                     nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: 13
+                    attributeId: AttributeIds.Value
                 },
-                {samplingInterval: 100, discardOldest: true, queueSize: 1 });
+                {samplingInterval: 100, discardOldest: true, queueSize: 1});
 
             monitoredItem.on("initialized", function () {
             });
@@ -473,9 +478,9 @@ describe("testing server and subscription", function () {
             var monitoredItem = subscription.monitor(
                 {
                     nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: 13
+                    attributeId: AttributeIds.Value
                 },
-                {samplingInterval: 100, discardOldest: true, queueSize: 1 },
+                {samplingInterval: 100, discardOldest: true, queueSize: 1},
 
                 TimestampsToReturn.Invalid
             );
@@ -489,7 +494,7 @@ describe("testing server and subscription", function () {
 
             });
             monitoredItem.on("err", function (value) {
-                err_counter ++;
+                err_counter++;
             });
             monitoredItem.on("terminated", function () {
                 err_counter.should.eql(1);
@@ -510,7 +515,7 @@ describe("testing server and subscription", function () {
                     nodeId: resolveNodeId("ns=0;i=2258"),
                     attributeId: 13
                 },
-                {samplingInterval: 100, discardOldest: true, queueSize: 1 },
+                {samplingInterval: 100, discardOldest: true, queueSize: 1},
 
 
                 TimestampsToReturn.Invalid, // <= A invalid  TimestampsToReturn
@@ -526,9 +531,9 @@ describe("testing server and subscription", function () {
         }, done);
     });
 
-    it("A Server should be able to revise publish interval to avoid trashing if client specify a very small or zero requestedPublishingInterval",function(done){
+    it("A Server should be able to revise publish interval to avoid trashing if client specify a very small or zero requestedPublishingInterval", function (done) {
 
-        // from spec 1.02  Part 4 $5.13.2.2 : requestedPublishingInterval:
+        // from spec OPCUA Version 1.02  Part 4 $5.13.2.2 : requestedPublishingInterval:
         // The negotiated value for this parameter returned in the response is used as the
         // default sampling interval for MonitoredItems assigned to this Subscription.
         // If the requested value is 0 or negative, the server shall revise with the fastest
@@ -537,15 +542,118 @@ describe("testing server and subscription", function () {
 
             session.createSubscription({
                 requestedPublishingInterval: -1
-            },function(err,createSubscriptionResponse){
+            }, function (err, createSubscriptionResponse) {
 
                 createSubscriptionResponse.revisedPublishingInterval.should.be.greaterThan(10);
 
                 inner_done(err);
             });
-        },done);
+        }, done);
 
 
     });
 
 });
+
+describe("testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function () {
+
+    var server , client, temperatureVariableId, endpointUrl;
+
+    var port = 2001;
+    before(function (done) {
+        // we use a different port for each tests to make sure that there is
+        // no left over in the tcp pipe that could generate an error
+        port += 1;
+        server = build_server_with_temperature_device({ port: port}, function () {
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            temperatureVariableId = server.temperatureVariableId;
+            done();
+        });
+    });
+
+    beforeEach(function (done) {
+        client = new OPCUAClient();
+        done();
+    });
+
+    afterEach(function (done) {
+        client = null;
+        done();
+    });
+
+    after(function (done) {
+        server.shutdown(done);
+    });
+
+    this.timeout(10000);
+
+    it("XXX A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval",function(done){
+
+
+        endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
+
+        var nb_keep_alive_received= 0;
+        // from Spec OPCUA Version 1.02 Part 4 - 5.13.1.1 Description : Page 76
+        // h. Subscriptions have a lifetime counter that counts the number of consecutive publishing cycles in
+        //    which there have been no Publish requests available to send a Publish response for the
+        //    Subscription. Any Service call that uses the SubscriptionId or the processing of a Publish
+        //    response resets the lifetime counter of this Subscription. When this counter reaches the value
+        //    calculated for the lifetime of a Subscription based on the MaxKeepAliveCount parameter in the
+        //    CreateSubscription Service (5.13.2), the Subscription is closed. Closing the Subscription causes
+        //    its MonitoredItems to be deleted. In addition the Server shall issue a StatusChangeNotification
+        //    notificationMessage with the status code Bad_Timeout. The StatusChangeNotification
+        //    notificationMessage type is defined in 7.19.4.
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+
+            var subscription = new ClientSubscription(session, {
+
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount:     6,
+                requestedMaxKeepAliveCount: 2,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+
+
+            sinon.stub(subscription.publish_engine, "_send_publish_request", function() {});
+
+            setTimeout(function() {
+                subscription.publish_engine._send_publish_request.restore();
+                subscription.publish_engine._send_publish_request();
+                console.log(" --------------------------- ");
+            },1000);
+
+            subscription.on("keepalive", function () {
+                nb_keep_alive_received += 1;
+                console.log("timeout");
+            });
+            subscription.on("started", function () {
+
+                console.log("subscriptionId     :",subscription.subscriptionId);
+                console.log("publishingInterval :",subscription.publishingInterval);
+                console.log("lifetimeCount      :",subscription.lifetimeCount);
+                console.log("maxKeepAliveCount  :",subscription.maxKeepAliveCount);
+
+            }).on("status_changed",function(statusCode){
+
+                statusCode.should.eql(StatusCodes.BadTimeout);
+                setTimeout(function () {
+                    subscription.terminate();
+                }, 200);
+            }).on("terminated", function () {
+
+                nb_keep_alive_received.should.be.equal(0);
+                inner_done();
+            });
+
+        },done);
+
+
+    })
+});
+
+
+
+

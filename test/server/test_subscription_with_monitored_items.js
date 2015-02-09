@@ -3,20 +3,23 @@ var should =require("should");
 var sinon = require("sinon");
 
 var subscription_service = require("lib/services/subscription_service");
-var NotificationMessage = subscription_service.NotificationMessage;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var Subscription = require("lib/server/subscription").Subscription;
 
 var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
-var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
 var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 
 var DataType = require("lib/datamodel/variant").DataType;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
-var dump = require("lib/misc/utils").dump;
 
+
+var fake_publish_engine = {
+    pendingPublishRequestCount: 0,
+    send_notification_message: function() {},
+    send_keep_alive_response: function() { return true;}
+};
 
 
 describe("Subscriptions and MonitoredItems", function () {
@@ -32,7 +35,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
         });
 
 
@@ -74,7 +78,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
         });
 
 
@@ -120,7 +125,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
         });
 
         // let spy the notifications event handler
@@ -152,6 +158,7 @@ describe("Subscriptions and MonitoredItems", function () {
         monitoredItem.queue.length.should.eql(3);
 
         this.clock.tick(800);
+
         // monitoredItem values should have been harvested by subscription timer by now
         monitoredItem.queue.length.should.eql(0);
 
@@ -170,7 +177,7 @@ describe("Subscriptions and MonitoredItems", function () {
         // monitoredItem values should have been harvested by subscription timer by now
         monitoredItem.queue.length.should.eql(0);
 
-        spy_notification_event.callCount.should.be.greaterThan(3);
+        spy_notification_event.callCount.should.be.equal(2);
 
 
         subscription.on("terminated",function(){
@@ -185,7 +192,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
         });
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({

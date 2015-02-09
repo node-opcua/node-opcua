@@ -36,12 +36,15 @@
 require("requirish")._(module);
 
 var sinon = require("sinon");
+var should =require("should");
+var _ = require("underscore");
+
 var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
 var Subscription = require("lib/server/subscription").Subscription;
+var SubscriptionState = require("lib/server/subscription").SubscriptionState;
 var subscription_service = require("lib/services/subscription_service");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var NotificationMessage = subscription_service.NotificationMessage;
-var should =require("should");
+
 
 describe("Testing the server publish engine", function () {
 
@@ -61,10 +64,13 @@ describe("Testing the server publish engine", function () {
             id: 1234,
             publishingInterval: 1000,
             maxLifeTimeCount: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: publish_server
         });
 
         publish_server.add_subscription(subscription);
+        subscription.state.should.equal(SubscriptionState.CREATING);
 
         // client sends a PublishRequest to the server
         var fake_request1 = new subscription_service.PublishRequest({
@@ -96,7 +102,9 @@ describe("Testing the server publish engine", function () {
             id: 1234,
             publishingInterval: 1000,
             maxLifeTimeCount: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: publish_server
         });
 
         publish_server.add_subscription(subscription);
@@ -107,8 +115,11 @@ describe("Testing the server publish engine", function () {
         publish_server._on_PublishRequest(fake_request1);
         send_response_for_request_spy.callCount.should.equal(0);
 
+
         // server send a notification to the client
         subscription.addNotificationMessage([{}]);
+
+        this.clock.tick(subscription.publishingInterval*1.2);
 
         // server should send a response for the first publish request with the above notification
         // in this response, there should be no availableSequenceNumbers yet
@@ -124,6 +135,9 @@ describe("Testing the server publish engine", function () {
 
         // server has now some notification ready and send them to the client
         subscription.addNotificationMessage([{}]);
+        send_response_for_request_spy.callCount.should.equal(1);
+
+        this.clock.tick(subscription.publishingInterval);
 
         // server should send an response for the second publish request with a notification
         send_response_for_request_spy.callCount.should.equal(2);
@@ -157,15 +171,18 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
     });
-    it("should allow to find a subscription by id",function(){
+
+    it("it should be possible to find a subscription by id on a publish_server",function(){
         var publish_server = new ServerSidePublishEngine();
         publish_server.subscriptionCount.should.equal(0);
 
         var subscription = new Subscription({
             id: 1234,
-            publishingInterval: 1000,
-            maxLifeTimeCount: 1000,
-            maxKeepAliveCount: 20
+            publishingInterval: 1000, // 1 second
+            maxLifeTimeCount: 100,
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
         publish_server.subscriptionCount.should.equal(1);
@@ -176,7 +193,7 @@ describe("Testing the server publish engine", function () {
 
     });
 
-    it("should remove a subscription",function(){
+    it("it should be possible to remove a subscription from a publish_server",function(){
         var publish_server = new ServerSidePublishEngine();
         publish_server.subscriptionCount.should.equal(0);
 
@@ -184,7 +201,9 @@ describe("Testing the server publish engine", function () {
             id: 1234,
             publishingInterval: 1000,
             maxLifeTimeCount: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
         publish_server.subscriptionCount.should.equal(1);
@@ -203,7 +222,11 @@ describe("Testing the server publish engine", function () {
             maxPublishRequestInQueue: 5
         });
         var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
-        publish_server.add_subscription(new Subscription({id: 1}));
+
+        publish_server.add_subscription(new Subscription({
+            id: 1,
+            publishEngine: publish_server
+        }));
 
         // simulate client sending PublishRequest ,and server doing nothing
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
@@ -232,13 +255,20 @@ describe("Testing the server publish engine", function () {
             id: 1234,
             publishingInterval: 1000,
             maxLifeTimeCount: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
 
+        // --------------------------------
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+
         // server send a notification to the client
         subscription.addNotificationMessage([{}]);
+
+        this.clock.tick(subscription.publishingInterval);
+
         subscription.getAvailableSequenceNumbers().should.eql([1]);
 
         send_response_for_request_spy.callCount.should.equal(1);
@@ -247,8 +277,13 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
 
 
+        // --------------------------------
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+
         subscription.addNotificationMessage([{}]);
+
+        this.clock.tick(subscription.publishingInterval);
+
         subscription.getAvailableSequenceNumbers().should.eql([1,2]);
 
         send_response_for_request_spy.callCount.should.equal(2);
@@ -259,6 +294,7 @@ describe("Testing the server publish engine", function () {
 
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
         subscription.addNotificationMessage([{}]);
+        this.clock.tick(subscription.publishingInterval);
         subscription.getAvailableSequenceNumbers().should.eql([1,2,3]);
 
         send_response_for_request_spy.callCount.should.equal(3);
@@ -274,6 +310,7 @@ describe("Testing the server publish engine", function () {
         subscription.getAvailableSequenceNumbers().should.eql([1,3]);
 
         subscription.addNotificationMessage([{}]);
+        this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(4);
         send_response_for_request_spy.getCall(3).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -290,6 +327,8 @@ describe("Testing the server publish engine", function () {
         subscription.getAvailableSequenceNumbers().should.eql([4]);
 
         subscription.addNotificationMessage([{}]);
+        this.clock.tick(subscription.publishingInterval);
+
         send_response_for_request_spy.callCount.should.equal(5);
         send_response_for_request_spy.getCall(4).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -306,17 +345,30 @@ describe("Testing the server publish engine", function () {
             id: 1234,
             publishingInterval: 1000,
             maxLifeTimeCount: 1000,
-            maxKeepAliveCount: 20
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
 
+        // simulate a client sending a PublishRequest to the server
+        // that acknowledge on a wrong sequenceNumber
         publish_server._on_PublishRequest(new subscription_service.PublishRequest({
             subscriptionAcknowledgements: [
-                { subscriptionId: 1234 , sequenceNumber:36 }
+                {
+                    subscriptionId: 1234 ,
+                    sequenceNumber: 36   // <<< INVALID SEQUENCE NUMBER
+                }
             ]}
         ));
+
+
         // server send a notification to the client
         subscription.addNotificationMessage([{}]);
+
+
+        this.clock.tick(subscription.publishingInterval*1.2);
+
         subscription.getAvailableSequenceNumbers().should.eql([1]);
 
         send_response_for_request_spy.callCount.should.equal(1);
@@ -326,5 +378,341 @@ describe("Testing the server publish engine", function () {
 
     });
 
+    it("a subscription shall send a keep-alive message at the end of the first publishing interval, if there are no Notifications ready.",function() {
+
+        var publish_server = new ServerSidePublishEngine();
+
+
+        var send_keep_alive_response_spy = sinon.spy(publish_server,"send_keep_alive_response");
+        var send_response_for_request_spy = sinon.spy(publish_server,"send_response_for_request");
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription);
+
+        // make sure we have at least 5 PublishRequest in queue
+        publish_server.maxPublishRequestInQueue.should.be.greaterThan(5);
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server.pendingPublishRequestCount.should.eql(5);
+
+
+        subscription.maxKeepAliveCount.should.eql(20);
+        subscription.state.should.eql(SubscriptionState.CREATING);
+
+        this.clock.tick(2);
+
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+        subscription.publishIntervalCount.should.eql(0);
+        send_keep_alive_response_spy.callCount.should.equal(0);
+
+        // after one publishingCycle a keep Alive message shall be send
+        this.clock.tick(subscription.publishingInterval);
+
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+        subscription.publishIntervalCount.should.eql(1);
+        send_keep_alive_response_spy.callCount.should.equal(1);
+        send_response_for_request_spy.callCount.should.eql(1);
+
+        // after maxKeepAliveCount * publishingCycle a second keep Alive message shall be send
+        this.clock.tick(subscription.publishingInterval*20);
+
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+        subscription.publishIntervalCount.should.eql(21);
+        send_keep_alive_response_spy.callCount.should.equal(2);
+        send_response_for_request_spy.callCount.should.eql(2);
+
+
+    });
+
+    it("a Normal subscription that receives a notification shall wait for the next publish interval to send a PublishResponse ",function() {
+
+        var publish_server = new ServerSidePublishEngine();
+
+
+        var send_keep_alive_response_spy = sinon.spy(publish_server,"send_keep_alive_response");
+        var send_notification_message_spy = sinon.spy(publish_server,"send_notification_message");
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription);
+
+        // make sure we have at least 5 PublishRequest in queue
+        publish_server.maxPublishRequestInQueue.should.be.greaterThan(5);
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server.pendingPublishRequestCount.should.eql(5);
+
+
+
+        subscription.addNotificationMessage([{}]);
+
+        this.clock.tick(2);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+        subscription.publishIntervalCount.should.eql(0);
+
+        this.clock.tick(subscription.publishingInterval);
+        subscription.publishIntervalCount.should.eql(1);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+
+        send_keep_alive_response_spy.callCount.should.eql(0);
+        send_notification_message_spy.callCount.should.eql(1);
+
+
+    });
+
+    it("the subscription state shall be set to LATE, if it cannot process a notification after Publish Interval has been raised, due to a lack of PublishRequest",function() {
+
+
+        var publish_server = new ServerSidePublishEngine();
+
+        publish_server.maxPublishRequestInQueue.should.be.greaterThan(5);
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription);
+
+        publish_server.pendingPublishRequestCount.should.eql(0," No PublishRequest in queue");
+
+        this.clock.tick(2);
+        subscription.state.should.equal(SubscriptionState.NORMAL);
+
+        subscription.addNotificationMessage([{}]);
+        this.clock.tick(subscription.publishingInterval*1.2);
+
+        subscription.state.should.equal(SubscriptionState.LATE);
+        publish_server.pendingPublishRequestCount.should.eql(0," No PublishRequest in queue");
+
+    });
+
+
+    it("a subscription should provide its time to expiration so that publish engine could sort late subscriptions by order of priority",function(){
+
+        var publish_server = new ServerSidePublishEngine();
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   10,
+            maxKeepAliveCount:  2,
+            publishEngine: publish_server
+        });
+
+        subscription.maxLifeTimeCount.should.eql(10);
+        subscription.timeToExpiration.should.eql(1000*10);
+
+        this.clock.tick(subscription.publishingInterval*1.2);
+        subscription.timeToExpiration.should.eql(1000*9);
+
+        this.clock.tick(subscription.publishingInterval*1.2);
+        subscription.timeToExpiration.should.eql(1000*8);
+
+    });
+
+    it("a publish engine should be able to find out which are the most urgent late subscriptions to serve ",function() {
+
+        var publish_server = new ServerSidePublishEngine();
+        publish_server.pendingPublishRequestCount.should.eql(0," No PublishRequest in queue");
+
+
+        var subscription1 = new Subscription({
+            id: 1,
+            publishingInterval: 1000,  maxLifeTimeCount:   10, maxKeepAliveCount:  2,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription1);
+
+        var subscription2 = new Subscription({
+            id: 2,
+            publishingInterval: 100,  maxLifeTimeCount:   20, maxKeepAliveCount:  2,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription2);
+
+        var subscription3 = new Subscription({
+            id: 3,
+            publishingInterval: 50,  maxLifeTimeCount:   1000, maxKeepAliveCount:  2,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription3);
+
+        subscription1.maxLifeTimeCount.should.eql(10);
+        subscription2.maxLifeTimeCount.should.eql(20);
+        subscription3.maxLifeTimeCount.should.eql(1000);
+
+
+        subscription1.timeToExpiration.should.eql(10000);
+        subscription2.timeToExpiration.should.eql( 2000);
+        subscription3.timeToExpiration.should.eql(50000);
+
+        // let move in time so that subscriptions starts
+        this.clock.tick(10);
+
+        subscription1.state.should.eql(SubscriptionState.NORMAL);
+        subscription2.state.should.eql(SubscriptionState.NORMAL);
+        subscription3.state.should.eql(SubscriptionState.NORMAL);
+
+        publish_server.findLateSubscriptionsSortedByAge().should.eql([]);
+
+
+        // add some notification we want to process
+        subscription1.addNotificationMessage([{}]);
+        subscription2.addNotificationMessage([{}]);
+        subscription3.addNotificationMessage([{}]);
+
+
+        // let move in time so that all subscriptions get late (without expiring)
+        this.clock.tick(1100);
+        subscription1.state.should.eql(SubscriptionState.LATE);
+        subscription2.state.should.eql(SubscriptionState.LATE);
+        subscription3.state.should.eql(SubscriptionState.LATE);
+
+
+        publish_server.findLateSubscriptionsSortedByAge().map(_.property("id")).should.eql([2,1,3]);
+
+        this.clock.tick(1100);
+        subscription1.state.should.eql(SubscriptionState.LATE);
+        subscription2.state.should.eql(SubscriptionState.CLOSED);
+        subscription3.state.should.eql(SubscriptionState.LATE);
+
+        publish_server.findLateSubscriptionsSortedByAge().map(_.property("id")).should.eql([1,3]);
+
+
+    });
+
+
+    it("a LATE subscription that receives a notification shall send a PublishResponse immediately, without waiting for next publish interval",function() {
+
+        var publish_server = new ServerSidePublishEngine();
+
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription);
+
+        publish_server.pendingPublishRequestCount.should.eql(0," No PublishRequest in queue");
+
+        this.clock.tick(2);
+        subscription.state.should.equal(SubscriptionState.NORMAL);
+
+        subscription.addNotificationMessage([{}]);
+        this.clock.tick(subscription.publishingInterval*1.2);
+
+        subscription.state.should.equal(SubscriptionState.LATE);
+        publish_server.pendingPublishRequestCount.should.eql(0," No PublishRequest in queue");
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+        publish_server.pendingPublishRequestCount.should.eql(0,"starving subscription should have consumed this Request immediately");
+
+        subscription.state.should.equal(SubscriptionState.NORMAL);
+
+    });
+
+    it("LifeTimeCount, the server shall terminated the subscription if it has not received any PublishRequest after LifeTimeCount cycles",function(){
+
+        var publish_server = new ServerSidePublishEngine();
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        subscription.maxKeepAliveCount.should.eql(20);
+        subscription.state.should.eql(SubscriptionState.CREATING);
+
+        this.clock.tick(2);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+        subscription.publishIntervalCount.should.eql(0);
+
+        publish_server.add_subscription(subscription);
+
+        // server send a notification to the client
+        subscription.addNotificationMessage([{}]);
+        subscription.pendingNotificationsCount.should.eql(1);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+
+        // server send a notification to the client
+        subscription.addNotificationMessage([{}]);
+        subscription.pendingNotificationsCount.should.eql(2);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+
+        this.clock.tick(subscription.publishingInterval);
+        subscription.publishIntervalCount.should.eql(1);
+        subscription.state.should.eql(SubscriptionState.LATE);
+
+        this.clock.tick(subscription.publishingInterval * subscription.maxLifeTimeCount + 20);
+        subscription.publishIntervalCount.should.eql(subscription.maxLifeTimeCount);
+        subscription.state.should.eql(SubscriptionState.CLOSED);
+
+    });
+
+    it("LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout ",function(){
+
+        var publish_server = new ServerSidePublishEngine();
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            maxLifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        subscription.maxKeepAliveCount.should.eql(20);
+        subscription.state.should.eql(SubscriptionState.CREATING);
+        publish_server.add_subscription(subscription);
+
+        this.clock.tick(2);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+
+        this.clock.tick(subscription.publishingInterval * subscription.maxLifeTimeCount + 20);
+        subscription.state.should.eql(SubscriptionState.CLOSED);
+
+        publish_server.findFirstClosedSubscription().id.should.eql(1234);
+
+        var send_response_for_request_spy =sinon.spy(publish_server,"send_response_for_request");
+
+        // now send a late PublishRequest
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest());
+
+        // we expect this publish request to be immediately consumed
+        publish_server.pendingPublishRequestCount.should.eql(0);
+
+        send_response_for_request_spy.callCount.should.equal(1);
+        send_response_for_request_spy.firstCall.args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        send_response_for_request_spy.firstCall.args[1].subscriptionId.should.eql(1234);
+        send_response_for_request_spy.firstCall.args[1].notificationMessage.notificationData.length.should.eql(1);
+        send_response_for_request_spy.firstCall.args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+
+
+        subscription.state.should.eql(SubscriptionState.CLOSED);
+
+    });
 
 });
