@@ -141,6 +141,12 @@ describe("testing coerceNodeId",function(){
         empty_nodeId.toString().should.eql("ns=0;i=0");
     });
 
+
+    it("should coerce a string nodeid containing special characters",function() {
+        // see issue#
+        var nodeId = coerceNodeId("ns=3;s={360273AA-F2B9-4A7F-A5E3-37B7074E2529}.MechanicalDomain");
+
+    });
 });
 
 describe("Type coercion at construction time",function(){
