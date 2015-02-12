@@ -55,6 +55,11 @@ convert a pem public key to pub ssh-rsa (- ?)
      http://stackoverflow.com/questions/1011572/convert-pem-key-to-ssh-rsa-format
      ssh-keygen -f pub1key.pub -i
 
+
+display useful information on certificate such as start date and end date
+---------------------------------------------
+   $ openssl x509 -subject -dates -fingerprint -noout  -in cert.pem
+
 refs:
 =====
    http://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html
