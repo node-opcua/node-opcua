@@ -20,10 +20,11 @@
     "url": "git://github.com/node-opcua/node-opcua.git"
   },
   "keywords": [
-    "OPC UA",
     "OPCUA",
-    "M2M",
-    "IoT"
+    "m2m",
+    "iot",
+    "opc ua",
+    "internet of things"
   ],
   "author": "Etienne Rossignon",
   "license": "MIT",
