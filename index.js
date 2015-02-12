@@ -17,6 +17,8 @@ module.exports.NodeId           = require("lib/datamodel/nodeid").NodeId;
 module.exports.NumericRange     = require("lib/datamodel/numeric_range").NumericRange;
 module.exports.AccessLevelFlag  = require("lib/datamodel/access_level").AccessLevelFlag;
 
+
+
 // services
 module.exports.browse_service   = require("lib/services/browse_service");
 module.exports.read_service     = require("lib/services/read_service");
@@ -45,6 +47,8 @@ module.exports.generate_address_space = require("lib/address_space/load_nodeset2
 module.exports.AddressSpace     = require("lib/address_space/address_space").AddressSpace;
 
 module.exports.SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
+
+module.exports.AnonymousIdentityToken  =module.exports.session_service.AnonymousIdentityToken;
 
 //
 module.exports.MessageSecurityMode = module.exports.get_endpoints_service.MessageSecurityMode;
