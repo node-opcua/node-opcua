@@ -1,0 +1,1 @@
+this folder contains generated certificates for node-opcua testing
