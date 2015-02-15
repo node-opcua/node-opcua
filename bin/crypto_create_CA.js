@@ -502,24 +502,24 @@ function revoke_certificate(certificate_file, callback) {
 
     assert(_.isFunction(callback));
 
-    // var certificate = "./certs/" + index + ".pem";
-    Title("Revoking certificate  " + certificate_file);
+    var tasks =[
+        Title.bind(null,"Revoking certificate  " + certificate_file),
+        Subtitle.bind(null,"Revoke certificate"),
 
-//xx    assert_fileexists(certificate_file);
+        execute.bind(null,"openssl ca -config " +  "conf/caconfig.cnf" + " -revoke " + certificate_file),
+        // regenerate CRL (Certificate Revocation List)
+        Subtitle.bind(null,"regenerate CRL (Certificate Revocation List)"),
+        execute.bind(null,"openssl ca -gencrl -config " +  "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
 
-    Subtitle("Revoke certificate");
+        Subtitle.bind(null,"Display (Certificate Revocation List)"),
+        execute.bind(null,"openssl crl -in crl/revocation_list.crl -text -noout"),
 
-    execute("openssl ca -config " +  "conf/caconfig.cnf" + " -revoke " + certificate_file);
+        Subtitle.bind(null,"Verify  certificate "),
+        execute.bind(null,"openssl verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
 
-    // regenerate CRL (Certificate Revocation List)
-    Subtitle("regenerate CRL (Certificate Revocation List)");
-    execute("openssl ca -gencrl -config " +  "conf/caconfig.cnf" + " -out crl/revocation_list.crl");
+    ];
 
-    Subtitle("Display (Certificate Revocation List)");
-    execute("openssl crl -in crl/revocation_list.crl -text -noout");
-
-    Subtitle("Verify  certificate ");
-    execute("openssl verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file);
+    async.series(tasks,callback);
 
 }
 
