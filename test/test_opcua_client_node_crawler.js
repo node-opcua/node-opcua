@@ -31,7 +31,7 @@ describe("NodeCrawler",function(){
 
     // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
     // so we set a big enough timeout 
-    this.timeout((process.arch === 'arm' ? 400000 : 10000);
+    this.timeout((process.arch === 'arm') ? 400000 : 10000);
 
     var server , client,temperatureVariableId,endpointUrl ;
 
