@@ -1,14 +1,16 @@
-    var opcua = require("node-opcua");
+/*global require,setInterval,console */
+var opcua = require("node-opcua");
 
 // Let's create an instance of OPCUAServer
 var server = new opcua.OPCUAServer({
-    port: 4334 // the port of the listening socket of the server
-});
+    port: 4334, // the port of the listening socket of the server
 
-// we can set the buildInfo
-server.buildInfo.productName = "MySampleServer1";
-server.buildInfo.buildNumber = "7658";
-server.buildInfo.buildDate = new Date(2014,5,2);
+     buildInfo : {
+        productName: "MySampleServer1",
+        buildNumber: "7658",
+        buildDate: new Date(2014,5,2)
+    }
+});
 
 function post_initialize() {
     console.log("initialized");

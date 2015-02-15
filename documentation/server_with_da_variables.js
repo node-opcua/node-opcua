@@ -1,5 +1,6 @@
 /* global console, require */
 var opcua = require("node-opcua");
+
 opcua.standardUnits = require("node-opcua/lib/data_access/EUInformation").standardUnits;
 opcua.addAnalogDataItem = require("node-opcua/lib/data_access/UAAnalogItem").addAnalogDataItem;
 
