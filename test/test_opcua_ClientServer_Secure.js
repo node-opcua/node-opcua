@@ -119,8 +119,8 @@ var start_server_with_1024bits_certificate = function(callback) {
 var start_server_with_2048bits_certificate = function(callback) {
 
     var path = require("path");
-    var server_certificate256_pem_file = path.join(__dirname,"helpers/demo_client_cert256.pem");
-    var server_certificate256_privatekey_file = path.join(__dirname,"helpers/demo_client_key256.pem");
+    var server_certificate256_pem_file = path.join(__dirname,"fixtures/certs/demo_client_cert256.pem");
+    var server_certificate256_privatekey_file = path.join(__dirname,"fixtures/certs/demo_client_key256.pem");
 
     var options = {
         certificateFile: server_certificate256_pem_file,
@@ -443,8 +443,8 @@ if (!crypto_utils.isFullySupported()) {
     function perform_collection_of_test_with_various_client_configuration(prefix) {
 
         prefix = prefix || "" ;
-        var client_certificate256_pem_file = path.join(__dirname,"helpers/demo_client_cert256.pem");
-        var client_certificate256_privatekey_file = path.join(__dirname,"helpers/demo_client_key256.pem");
+        var client_certificate256_pem_file = path.join(__dirname,"fixtures/certs/demo_client_cert256.pem");
+        var client_certificate256_privatekey_file = path.join(__dirname,"fixtures/certs/demo_client_key256.pem");
 
         var options = {
             certificateFile: client_certificate256_pem_file,

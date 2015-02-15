@@ -2,6 +2,7 @@
 require("requirish")._(module);
 var crypto = require("crypto");
 var fs = require("fs");
+var path = require("path");
 var should = require("should");
 var colors = require("colors");
 var assert = require("assert");
@@ -15,7 +16,7 @@ var crypto_utils = require("lib/misc/crypto_utils");
 var old_store = null;
 function switch_to_test_certificate_store() {
     assert(old_store === null);
-    old_store = crypto_utils.setCertificateStore(__dirname+"/helpers/");
+    old_store = crypto_utils.setCertificateStore(__dirname+"/fixtures/certs/");
 }
 function restore_default_certificate_store() {
     assert(old_store !== null);
@@ -23,9 +24,10 @@ function restore_default_certificate_store() {
     old_store = null;
 
 }
-var alice_private_key_filename ='certificates/server_key_1024.pem';
-var alice_public_key_filename ='certificates/server_cert_1024.pem';
-var alice_certificate_filename ='certificates/server_cert_1024.pem';
+
+var alice_private_key_filename = path.join(__dirname,"./fixtures/certs/server_key_1024.pem");
+var alice_public_key_filename  = path.join(__dirname,"./fixtures/certs/server_public_key_1024.pub");
+var alice_certificate_filename = path.join(__dirname,"./fixtures/certs/server_cert_1024.pem");
 
 
 var doDebug = false;
@@ -658,15 +660,15 @@ if (!ursa) {
         var server_public_key,server_private_key;
         beforeEach(function(done){
 
-            //xx switch_to_test_certificate_store();
+            switch_to_test_certificate_store();
 
             // let use our default 1024 RSA key pair
-            server_public_key = crypto_utils.read_public_rsa_key('public_key.pub');
-            server_private_key = crypto_utils.read_private_rsa_key('key.pem');
+            server_public_key = crypto_utils.read_public_rsa_key('server_public_key_1024.pub');
+            server_private_key = crypto_utils.read_private_rsa_key('server_key_1024.pem');
             done();
         });
         afterEach(function(done){
-            //xxrestore_default_certificate_store();
+            restore_default_certificate_store();
             done();
         });
 
