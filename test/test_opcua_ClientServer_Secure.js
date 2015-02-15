@@ -514,4 +514,69 @@ if (!crypto_utils.isFullySupported()) {
 
         });
     });
+
+
+    describe("testing with various client certificates",function(){
+
+        this.timeout(2000);
+
+        var serverHandle;
+
+        before(function (done) {
+            start_server_with_1024bits_certificate(function (err, handle) {
+                serverHandle = handle;
+                done(err);
+            })
+        });
+        after(function (done) {
+            stop_server(serverHandle, function () {
+                done();
+            });
+        });
+
+        var client_privatekey_file              = path.join(__dirname,"../certificates/client_key_1024.pem");
+
+        var client_certificate_ok               = path.join(__dirname,"../certificates/client_cert_1024.pem");
+        var client_certificate_out_of_date      = path.join(__dirname,"../certificates/client_cert_1024_outofdate.pem");
+        var client_certificate_not_active_yet   = path.join(__dirname,"../certificates/client_cert_1024_not_active_yet.pem");
+        var client_certificate_revoked          = path.join(__dirname,"../certificates/client_cert_1024_revoked.pem");
+
+        it("Server should allow a client with a valid certificate to connect", function (done) {
+
+            var options = {
+                certificateFile: client_certificate_ok,
+                privateKeyFile:  client_privatekey_file
+            };
+            common_test("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+        });
+
+        it("Server should not allow a client with a out of date certificate to connect", function (done) {
+
+            var options = {
+                certificateFile: client_certificate_out_of_date,
+                privateKeyFile:  client_privatekey_file
+            };
+            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+        });
+
+        it("Server should not allow a client to connect when the certificate is not active yet", function (done) {
+
+            var options = {
+                certificateFile: client_certificate_not_active_yet,
+                privateKeyFile:  client_privatekey_file
+            };
+            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+        });
+
+        xit("Server should not allow a client to connect with a revoked certificate", function (done) {
+            // todo : implement a mechanism in server code to check certificate against CRL ( Certificate Revocation List)
+            var options = {
+                certificateFile: client_certificate_revoked,
+                privateKeyFile:  client_privatekey_file
+            };
+            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+        });
+
+
+    });
 }

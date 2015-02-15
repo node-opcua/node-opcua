@@ -23,8 +23,12 @@ function restore_default_certificate_store() {
     old_store = null;
 
 }
+var alice_private_key_filename ='certificates/server_key_1024.pem';
+var alice_public_key_filename ='certificates/server_cert_1024.pem';
+var alice_certificate_filename ='certificates/server_cert_1024.pem';
 
-var doDebug = true;
+
+var doDebug = false;
 //Xx doDebug = true;
 function debugLog() {
     if (doDebug) {
@@ -115,7 +119,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         var message = "HelloWorld";
 
         // alice will sign her message to bob with her private key.
-        var alice_private_key_pem = fs.readFileSync('certificates/key.pem');
+        var alice_private_key_pem = fs.readFileSync(alice_private_key_filename);
         var alice_private_key = alice_private_key_pem.toString('ascii');
         debugLog(alice_private_key);
 
@@ -133,7 +137,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         var message_from_alice = "HelloWorld";
 
-        var alice_public_key = fs.readFileSync('certificates/public_key.pub','ascii');
+        var alice_public_key = fs.readFileSync(alice_public_key_filename,'ascii');
 
          crypto.createVerify("RSA-SHA256")
                .update(message_from_alice)
@@ -398,7 +402,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
-        var public_key = fs.readFileSync(__dirname + '/../certificates/public_key.pub');
+        var public_key = fs.readFileSync(alice_public_key_filename);
+
         public_key = public_key.toString('ascii');
 
 
@@ -506,7 +511,7 @@ if (!ursa) {
 
             it("should sign with a private key and verify with the public key (ASCII) - " + algorithm,function(){
 
-                var alice_private_key = fs.readFileSync('certificates/key.pem').toString('ascii');
+                var alice_private_key = fs.readFileSync(alice_private_key_filename).toString('ascii');
                 var options1 = {
                     algorithm : algorithm,
                     signatureLength: length,
@@ -517,11 +522,11 @@ if (!ursa) {
                 //xx console.log("signature =".yellow,"\n");
                 //xx console.log(utils.hexDump(signature));
 
-                console.log("SIGNATURE = ".yellow.bold,new Buffer(signature).toString("base64"));
+                //xx console.log("SIGNATURE = ".yellow.bold,new Buffer(signature).toString("base64"));
                 signature.should.be.instanceOf(Buffer);
                 signature.length.should.eql(options1.signatureLength);
 
-                var alice_public_key = fs.readFileSync('certificates/public_key.pub').toString('ascii');
+                var alice_public_key = fs.readFileSync(alice_public_key_filename).toString('ascii');
                 var options2 = {
                     algorithm : algorithm,
                     signatureLength: length,
@@ -535,7 +540,7 @@ if (!ursa) {
 
             it("should sign with a private key and verify with the certificate (ASCII) - " + algorithm,function(){
 
-                var alice_private_key = fs.readFileSync('certificates/key.pem').toString('ascii');
+                var alice_private_key = fs.readFileSync(alice_private_key_filename).toString('ascii');
                 var options1 = {
                     algorithm : algorithm,
                     signatureLength: length,
@@ -550,7 +555,7 @@ if (!ursa) {
                 signature.length.should.eql(options1.signatureLength);
 
 
-                var alice_certificate = fs.readFileSync('certificates/cert.pem').toString('ascii');
+                var alice_certificate = fs.readFileSync(alice_certificate_filename).toString('ascii');
 
                 var options2 = {
                     algorithm : algorithm,
@@ -565,7 +570,7 @@ if (!ursa) {
 
             it("should sign with a private key and verify with the certificate (DER) - " + algorithm,function(){
 
-                var alice_private_key = crypto_utils.readKey('certificates/key.pem');
+                var alice_private_key = crypto_utils.readKey(alice_private_key_filename);
                 var options1 = {
                     algorithm : algorithm,
                     signatureLength: length,
@@ -580,7 +585,7 @@ if (!ursa) {
                 signature.length.should.eql(options1.signatureLength);
 
 
-                var alice_certificate = crypto_utils.readKey('certificates/cert.pem');
+                var alice_certificate = crypto_utils.readKey(alice_certificate_filename);
 
                 var options2 = {
                     algorithm : algorithm,
@@ -681,24 +686,27 @@ if (!ursa) {
 }
 
 var hexDump = require("lib/misc/utils").hexDump;
+
 describe("extractPublicKeyFromCertificate",function() {
 
     it("should extract a public key from a certificate",function(done){
 
-        var  certificate = fs.readFileSync('certificates/cert.pem').toString('ascii');
-
-        var  certificate2 = crypto_utils.readCertificate('certificates/cert.pem');
+        var  certificate = fs.readFileSync('certificates/client_cert_1024.pem').toString('ascii');
         //xx console.log(" certificate");
+
+        var  certificate2 = crypto_utils.readCertificate('certificates/client_cert_1024.pem');
         //xx console.log(hexDump(certificate2));
-        var  publickey2 = crypto_utils.readKey('certificates/public_key.pub');
-        //xx console.log(" publickey2");
+
+        var  publickey2 = crypto_utils.readKey('certificates/client_public_key_1024.pub');
         //xx console.log(hexDump(publickey2));
 
-        crypto_utils.extractPublicKeyFromCertificate(certificate,function(err,publicKey){
+        crypto_utils.extractPublicKeyFromCertificate(certificate2,function(err,publicKey){
 
-//            var encrypted = crypto_utils.publicEncrypt(new Buffer(10),publicKey);
+            var raw_public_key = crypto_utils.readPEM(publicKey);
+            //xx console.log(hexDump(raw_public_key));
 
-            done();
+            raw_public_key.toString("base64").should.eql(publickey2.toString("base64"));
+            done(err);
         });
 
     });

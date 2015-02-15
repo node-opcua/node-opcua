@@ -10,7 +10,8 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "postinstall": "node bin/generate_opcua_classes.js --clear --verbose",
+    "postinstall": "node postinstall.js",
+    "pretest": "node bin/crypto_create_CA.js --dev",
     "test": "mocha test -R spec --recursive --timeout 30000 --bail",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
@@ -58,6 +59,7 @@
     "async": "~0.9.0",
     "better-assert": "~1.0.2",
     "bomstrip": "^0.1.4",
+    "byline": "^4.2.1",
     "colors": "~1.0.3",
     "easy-table": "~0.3.0",
     "enum": "0.2.6",

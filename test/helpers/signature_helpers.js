@@ -4,10 +4,11 @@ require("requirish")._(module);
 var assert = require("assert");
 var fs = require("fs");
 var crypto_utils = require("lib/misc/crypto_utils");
+var path = require("path");
 
 function construct_makeMessageChunkSignatureForTest() {
 
-    var privateKey = fs.readFileSync('certificates/key.pem').toString('ascii');
+    var privateKey = fs.readFileSync(path.join(__dirname,'../fixtures/certs/server_key_1024.pem')).toString('ascii');
 
     return function (chunk) {
         var options = {
@@ -25,7 +26,7 @@ exports.makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureFo
 
 function construct_verifyMessageChunkSignatureForTest() {
 
-    var publicKey = fs.readFileSync('certificates/public_key.pub').toString('ascii');
+    var publicKey = fs.readFileSync(path.join(__dirname,'../fixtures/certs/server_public_key_1024.pub')).toString('ascii');
 
     return function(chunk) {
         assert(chunk instanceof Buffer);

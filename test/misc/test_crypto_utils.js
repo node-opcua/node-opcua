@@ -1,14 +1,15 @@
 require("requirish")._(module);
 var hexy = require("hexy");
 var should = require("should");
-
+var path = require("path");
 var crypto_utils = require("lib/misc/crypto_utils");
 var make_lorem_ipsum_buffer = require("test/helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
 
 describe("Crypto utils", function () {
+
     it("should read a PEM file",function(){
 
-        var certificate = crypto_utils.readCertificate('certificates/cert.pem');
+        var certificate = crypto_utils.readCertificate(path.join(__dirname,"../fixtures/certs/demo_certificate.pem"));
 
         if (false) {
             console.log(certificate.toString("hex"));
@@ -16,24 +17,34 @@ describe("Crypto utils", function () {
             console.log(hexy.hexy(certificate,{width: 32}));
         }
 
+
+
         certificate.toString("base64").should.equal(
-        "MIIDJTCCAo6gAwIBAgIJAKM/ZiaPpHuNMA0GCSqGSIb3DQEBBQUAMHoxCzAJBgNV" +
-        "BAYTAkZSMQwwCgYDVQQIEwNJREYxDjAMBgNVBAcTBVBhcmlzMRIwEAYDVQQLEwlB" +
-        "Q01FL0xBQk8xGzAZBgNVBAMTEk5vZGVPUENVQS9VQVNlcnZlcjEcMBoGCSqGSIb3"+
-        "DQEJARYNaW5mb0BhY21lLmNvbTAeFw0xNDExMDUyMDI3NTlaFw0xNTExMDUyMDI3"+
-        "NTlaMHoxCzAJBgNVBAYTAkZSMQwwCgYDVQQIEwNJREYxDjAMBgNVBAcTBVBhcmlz"+
-        "MRIwEAYDVQQLEwlBQ01FL0xBQk8xGzAZBgNVBAMTEk5vZGVPUENVQS9VQVNlcnZl"+
-        "cjEcMBoGCSqGSIb3DQEJARYNaW5mb0BhY21lLmNvbTCBnzANBgkqhkiG9w0BAQEF"+
-        "AAOBjQAwgYkCgYEA1U1fm62pomj2XNuEYZqBXS987Yl0u0BKFt6rwnw6seLQCSkm"+
-        "Vray31p5fdkYVFBVwYTYUrk3HDM4qFnsPvJbEAC95TlAAjEb5cW0Xnx9T1nMesIv"+
-        "ebBS3u+Dy4CHCOYff2uUY/Dem5wHI//BqbDFtlcJ2uJTfMZBIAytxllubXECAwEA"+
-        "AaOBsjCBrzAMBgNVHRMBAf8EAjAAMA4GA1UdDwEB/wQEAwIC9DAgBgNVHSUBAf8E"+
-        "FjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwTwYDVR0RBEgwRocEfwAAAYYUdXJuOk5v"+
-        "ZGVPUENVQS1TZXJ2ZXKCCWxvY2FsaG9zdIIJMTI3LjAuMC4xghJ3d3cueW91cmRv"+
-        "bWFpbi50bGQwDAYDVR0OBAUEA/4CETAOBgNVHSMEBzAFgAP+AhEwDQYJKoZIhvcN"+
-        "AQEFBQADgYEAtbQnMTrxpAxOo8cYfuIbpjCFPKcEfsxUf55DtX5eWjR98W9eeQxh"+
-        "3RhbrU9y9iAqLbTtDLbhpCSKcfKjU8l/maCVKl9VhOW8t8gVaLEwYGAq1BXNrj8f"+
-        "Clf72F/neh0haqvQ7BB8hEtiwUQQULxdLbTFEaXGLgA12U2rGadIRv0=");
+            "MIIEVTCCAz2gAwIBAgICEJEwDQYJKoZIhvcNAQELBQAwgY4xCzAJBgNVBAYTAkZS"+
+            "MQwwCgYDVQQIDANJREYxDjAMBgNVBAcMBVBhcmlzMUIwQAYDVQQKDDlGYWtlIE5v"+
+            "ZGVPUENVQSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAoZm9yIHRlc3Rpbmcgb25s"+
+            "eSkxHTAbBgNVBAMMFG5vZGUtb3BjdWEuZ2l0aHViLmlvMB4XDTEzMDIxNDE0Mjgx"+
+            "NVoXDTEzMDIyNDE0MjgxNVowMzESMBAGA1UEChMJTm9kZU9QQ1VBMR0wGwYDVQQD"+
+            "ExR1cm46Tm9kZU9QQ1VBLVNlcnZlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC"+
+            "AQoCggEBAJVeDuZfyHyqJYN9mIfl1TqvaepCSPf4cyU9dRpx+hxciLNzmK7paObL"+
+            "/QC8EvY41FIUJOtGMBJeAaZ7loBWNdX2kPA53ImxfJS7GfPqF2wQczdLzC+ToVFR"+
+            "fc5X5415pX2Hnjl4ecWs3yOP99QFjiz4FoK0dL80VJed1BgdLIIHcK59g3AWekcF"+
+            "nm6xBvkdOlO7w5iGjYzP0F/xxf//32OicQnDCjSTe+D1nZtGZzEGv3GD5MD7p8kc"+
+            "p8I5NRI8C+kLCKJRMO3xsZ0ve9hhpskg+PpeF+C3IsdTAyp0mCf3SpIBcuu1zhNI"+
+            "+B5ZGpmTmqqeesZE69GZWwnCLiYbzq8CAwEAAaOCARUwggERMAkGA1UdEwQCMAAw"+
+            "HQYDVR0OBBYEFHQ4/ZCx8ZBRDpxl1qqsY5683FgvMIGtBgNVHSMEgaUwgaKhgZSk"+
+            "gZEwgY4xCzAJBgNVBAYTAkZSMQwwCgYDVQQIDANJREYxDjAMBgNVBAcMBVBhcmlz"+
+            "MUIwQAYDVQQKDDlGYWtlIE5vZGVPUENVQSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0"+
+            "eSAoZm9yIHRlc3Rpbmcgb25seSkxHTAbBgNVBAMMFG5vZGUtb3BjdWEuZ2l0aHVi"+
+            "LmlvggkA3if7nVaKKTUwKgYDVR0RBCMwIYYUdXJuOk5vZGVPUENVQS1TZXJ2ZXKC"+
+            "CWxvY2FsaG9zdDAJBgNVHRIEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCIJU3XnCT9"+
+            "2MBGtWZYeGQtK4kBRIDQiEI0uiT+CDvtIkv/KbqSHBNq04jA9FcwKWwhoI+DCQvj"+
+            "yhkdfAb7i4qkd0lq8p/GI9MWpL50k9Rg0Ak/eAjwTSuDNRB1KzMlZtn/+D6fGZbR"+
+            "hupROculSJ749son0sP1rBvdJEyKN9v9jQf2nv6jo9wytJKM+VslEMCeBzGhi1n6"+
+            "FYHX/e3jaMAQAdkyq9aIQYaHyVQxOBy98B5usZclZ7ry6xf/Rb9bOOP8c61tBQ9k"+
+            "SXDGOBbNHWyWf+DqquMvwN0+Ud/n6hhDexyiShstLhKK1gMNpO6ftMZO80HdI/sm"+
+            "ynbBVHaSnuA9"
+        );
 
     });
 
@@ -182,7 +193,7 @@ describe("exploreCertificate",function(){
 
     it("should explore a 1024 bits RSA certificate",function(){
 
-        var certificate = crypto_utils.readCertificate('certificates/cert.pem');
+        var certificate = crypto_utils.readCertificate(path.join(__dirname,"../fixtures/certs/server_cert_1024.pem"));
         var data  = crypto_utils.exploreCertificate(certificate);
         data.publicKeyLength.should.eql(128);
         data.notAfter.should.be.instanceOf(Date);
@@ -190,7 +201,7 @@ describe("exploreCertificate",function(){
 
     });
     it("should explore a 2048 bits RSA certificate",function() {
-        var certificate = crypto_utils.readCertificate('certificates/server_cert256.pem');
+        var certificate = crypto_utils.readCertificate(path.join(__dirname,"../fixtures/certs/server_cert_2048.pem"));
         var data  = crypto_utils.exploreCertificate(certificate);
         data.publicKeyLength.should.eql(256);
         data.notAfter.should.be.instanceOf(Date);

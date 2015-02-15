@@ -27,3 +27,4 @@ pending_*
 schemas/ServerState_enum.js
 schemas/ServerStatus_schema.js
 schemas/ServerStatus.js
+certificates/

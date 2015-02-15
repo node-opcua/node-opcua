@@ -1,22 +1,24 @@
 require("requirish")._(module);
 var should = require("should");
-
+var path = require("path");
+var fs = require("fs");
 var crypto_utils = require("lib/misc/crypto_utils");
 var assert = require("assert");
 var hexDump = require("../../lib/misc/utils").hexDump;
 
-var readCertificate = require("../../lib/misc/crypto_read_certificate").readCertificate;
+var exploreCertificate = require("../../lib/misc/crypto_explore_certificate").exploreCertificate;
 
 
 describe(" exploring Certificates",function() {
 
-    var certificate = crypto_utils.readCertificate(__dirname+ "/../../certificates/cert.pem");
 
     this.timeout(100000);
     it("should extract the information out of a 1024-bits certificate",function() {
 
+        var certificate = crypto_utils.readCertificate(path.join(__dirname,"../fixtures/certs/server_cert_1024.pem"));
+
         //xx console.log(hexDump(certificate));
-        var certificate_info = readCertificate(certificate);
+        var certificate_info = exploreCertificate(certificate);
 
         //xx console.log(certificate_info.tbsCertificate);
         console.log(" Version                   : ",certificate_info.tbsCertificate.version);
@@ -34,13 +36,28 @@ describe(" exploring Certificates",function() {
 
     it("should extract the information out of a 2048-bits certificate ",function() {
 
-        var certificate = crypto_utils.readCertificate(__dirname+ "/../../certificates/server_cert256.pem");
+        var certificate = crypto_utils.readCertificate(path.join(__dirname,"../fixtures/certs/server_cert_2048.pem"));
+
         // console.log(hexDump(certificate))
-        var certificate_info = readCertificate(certificate);
+        var certificate_info = exploreCertificate(certificate);
 
         certificate_info.tbsCertificate.version.should.eql(2);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(256);
         certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
+
+    });
+
+    it("should read a certificate containing extra information",function() {
+
+        var filename = path.join(__dirname,"../fixtures/certs/demo_certificate.pem");
+        fs.existsSync(filename).should.equal(true);
+
+        var certificate = crypto_utils.readCertificate(filename);
+        console.log(certificate.toString("base64"));
+
+        var certificate_info = exploreCertificate(certificate);
+        console.log(certificate_info);
+        console.log(" Version                   : ",certificate_info.tbsCertificate.version);
 
     });
 });

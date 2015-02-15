@@ -34,7 +34,7 @@ function start_simple_server(options,callback) {
 
     var server_exec  = spawn('node', ['./bin/simple_server'],options);
 
-    var serverCertificateFilename = path.join(__dirname,"../../certificates/cert.pem");
+    var serverCertificateFilename = path.join(__dirname,"../../certificates/server_cert_1024.pem");
 
 
     console.log(" node ","./bin/simple_server");

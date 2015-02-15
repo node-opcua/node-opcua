@@ -10,15 +10,16 @@ var SymmetricAlgorithmSecurityHeader = require("lib/services/secure_channel_serv
 var crypto_utils = require("lib/misc/crypto_utils");
 var fs = require("fs");
 var path = require("path");
+
 var folder = path.resolve(__dirname);
 
-var senderCertificate =  crypto_utils.readCertificate(folder + "/../../certificates/client_cert.pem");
-var senderPrivateKey  = crypto_utils.readKeyPem(folder + "/../../certificates/client_key.pem");
+var senderCertificate = crypto_utils.readCertificate(path.join(folder, "../fixtures/certs/client_cert_1024.pem"));
+var senderPrivateKey  = crypto_utils.readKeyPem(path.join(folder,      "../fixtures/certs/client_key_1024.pem"));
 
-var receiverCertificate = crypto_utils.readCertificate(folder + "/../../certificates/cert.pem");
+var receiverCertificate = crypto_utils.readCertificate(path.join(folder,"../fixtures/certs/server_cert_1024.pem"));
 var receiverCertificateThumbprint = crypto_utils.makeSHA1Thumbprint(receiverCertificate);
-var receiverPublicKey   = fs.readFileSync(folder + "/../../certificates/public_key.pub");
-    //crypto_utils.readKeyPem(folder + "/../../certificates/client_public_key.pub");
+
+var receiverPublicKey   = fs.readFileSync(path.join(folder,"../fixtures/certs/server_public_key_1024.pub"));
 
 var sequenceNumberGenerator = new SequenceNumberGenerator();
 

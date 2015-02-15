@@ -62,6 +62,26 @@ function(){
  */
 });
 
+var privateKey = inlineText(
+function(){
+/*
+-----BEGIN RSA PRIVATE KEY-----
+MIICXQIBAAKBgQDVTV+bramiaPZc24RhmoFdL3ztiXS7QEoW3qvCfDqx4tAJKSZW
+trLfWnl92RhUUFXBhNhSuTccMzioWew+8lsQAL3lOUACMRvlxbRefH1PWcx6wi95
+sFLe74PLgIcI5h9/a5Rj8N6bnAcj/8GpsMW2Vwna4lN8xkEgDK3GWW5tcQIDAQAB
+AoGAAjJo0K6qN50DJJOyOlsgB/isPboTtLYFzVR/ymIDLL/cSqvc1DnPf9NruusY
+gA3PxE18+OUldynj5IAAmelfHLdDSXIsoRaSb5LQe5O4sjLu8wIrZ66dy7JpAav0
+QiPSw/Er2zvLuVzew+WvB/CAxNr/nVfr8Lr1uBwYC38aLS0CQQD2J0gmw4Vx5wZV
+e7Ma3AFyV7QbB7hPeauNiru8d7E3mg3M1prBiJHJgzjeW0y/dveEU/RTEsX7TM4v
+6fOuD2FvAkEA3dWuV9y4NtqNzX9xRvp13esgfgnZpI39Eg/JPRH2Ll4XAEmUOHRR
+p/1eomAO/e8JPwAbEr+ExLc7jpQxDJXvHwJBAJA3kZlMgpmqblaVI+l/rsVMRzRz
+AHRn57AE8VtJkSXvd1hk/8SV/DxhSmdUfJHM5NW9zm8Bl8dVR5Rg8KkxT7cCQQDE
+X6dBMiuEq35B/uIpIgh7Feyihle7GtJ/TagoPqE+NJ6J65ihTR8H5fwDI6PB2PvH
+YHGW7CE8/rNjKP4ulP+jAkAUhrdwf6Wr4KeyOqysE5V7AnHgBHgyUvi95bjJEtVm
+g9s5xs14gqCBGGf2CTN+xnJehplg562CQG6f70heivC7
+-----END RSA PRIVATE KEY-----
+*/});
+
 
 if (!crypto_utils.isFullySupported()) {
 } else {
@@ -79,7 +99,6 @@ if (!crypto_utils.isFullySupported()) {
         var encrypted_part = buffer.slice(start);
 
         // decrypt the encrypted part
-        var privateKey = crypto_utils.read_private_rsa_key("key.pem");
         var decrypted_part =crypto_utils.privateDecrypt_long(encrypted_part,privateKey,128);
 
         // recompose the buffer
