@@ -5,8 +5,8 @@ function exec(cmd,callback) {
 
     console.log("Executing " ,cmd);
     var child = child_process.exec(cmd,function(err) {
-
-        console.log("done ...")
+        console.log("done ...");
+        callback(err);
     });
 
     child.stdout.pipe(process.stdout);
@@ -16,8 +16,8 @@ function exec(cmd,callback) {
     });
 }
 
-exec("node bin/generate_opcua_classes.js --clear --verbose",function(err) {
-    exec( "node bin/crypto_create_CA.js --dev",function(err) {
+exec("node bin/generate_opcua_classes.js --clear --verbose",function() {
+    exec( "node bin/crypto_create_CA.js ",function() {
         console.log("done");
     });
 });
