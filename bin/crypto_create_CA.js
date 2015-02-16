@@ -38,16 +38,16 @@ var fs = require("fs");
 
 var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
 
-
-var certificateDir = path.normalize(path.join(__dirname,"../certificates/"))    ;
-
-if (certificateDir.indexOf(":") >=0) {
-    certificateDir = certificateDir.split(":")[1];
-    certificateDir = certificateDir.replace(/\\/g,"/");
+function make_path(folder_name,file_name) {
+    var s =  path.normalize(path.join(folder_name,file_name));
+    s = s.replace(/\\/g,"/");
+    return s;
 }
 
-var pkiDir = path.normalize(path.join(certificateDir,"PKI"));
-var rootDir = path.normalize(path.join(pkiDir,"CA"));
+var certificateDir = make_path(__dirname,"../certificates/");
+
+var pkiDir = make_path(certificateDir,"PKI");
+var rootDir = make_path(pkiDir,"CA");
 
 function configurationFile() {
 /*
@@ -560,9 +560,9 @@ function __create_default_certificates(base_name,prefix,application_URI,done) {
 
     assert(_.isFunction(done));
 
-    var key_1024 = path.join(base_name ,prefix + "key_1024.pem");
-    var public_key_1024 = path.join(base_name ,prefix + "public_key_1024.pub");
-    var key_2048 = path.join(base_name ,prefix + "key_2048.pem");
+    var key_1024 = make_path(base_name ,prefix + "key_1024.pem");
+    var public_key_1024 = make_path(base_name ,prefix + "public_key_1024.pub");
+    var key_2048 = make_path(base_name ,prefix + "key_2048.pem");
 
     var tasks1 = [
 
@@ -572,25 +572,25 @@ function __create_default_certificates(base_name,prefix,application_URI,done) {
 
         createPrivateKey.bind(null,key_2048,2048),
 
-        createCertificate.bind(null,path.join(base_name ,prefix + "cert_1024.pem"), key_1024,application_URI,yesterday,365),
+        createCertificate.bind(null,make_path(base_name ,prefix + "cert_1024.pem"), key_1024,application_URI,yesterday,365),
 
-        createCertificate.bind(null,path.join(base_name ,prefix + "cert_2048.pem"), key_2048,application_URI,yesterday,365)
+        createCertificate.bind(null,make_path(base_name ,prefix + "cert_2048.pem"), key_2048,application_URI,yesterday,365)
 
     ];
 
     if (isDevelopment) {
         var tasks2 = [
-            createCertificate.bind(null,path.join(base_name ,prefix + "cert_1024_outofdate.pem"), key_1024,application_URI,two_years_ago,365),
-            createCertificate.bind(null,path.join(base_name ,prefix + "cert_2048_outofdate.pem"), key_2048,application_URI,two_years_ago,365),
+            createCertificate.bind(null,make_path(base_name ,prefix + "cert_1024_outofdate.pem"), key_1024,application_URI,two_years_ago,365),
+            createCertificate.bind(null,make_path(base_name ,prefix + "cert_2048_outofdate.pem"), key_2048,application_URI,two_years_ago,365),
 
-            createCertificate.bind(null,path.join(base_name ,prefix + "cert_1024_not_active_yet.pem"), key_1024,application_URI,next_year,365),
-            createCertificate.bind(null,path.join(base_name ,prefix + "cert_2048_not_active_yet.pem"), key_2048,application_URI,next_year,365),
+            createCertificate.bind(null,make_path(base_name ,prefix + "cert_1024_not_active_yet.pem"), key_1024,application_URI,next_year,365),
+            createCertificate.bind(null,make_path(base_name ,prefix + "cert_2048_not_active_yet.pem"), key_2048,application_URI,next_year,365),
 
-            createCertificate.bind(null,path.join(base_name ,prefix + "cert_1024_revoked.pem"), key_1024,application_URI,yesterday,365),
-            revoke_certificate.bind(null,path.join(base_name ,prefix + "cert_1024_revoked.pem")),
+            createCertificate.bind(null,make_path(base_name ,prefix + "cert_1024_revoked.pem"), key_1024,application_URI,yesterday,365),
+            revoke_certificate.bind(null,make_path(base_name ,prefix + "cert_1024_revoked.pem")),
 
-            createCertificate.bind(null,path.join(base_name ,prefix + "cert_2048_revoked.pem"), key_2048,application_URI,yesterday,365),
-            revoke_certificate.bind(null,path.join(base_name ,prefix + "cert_2048_revoked.pem"))
+            createCertificate.bind(null,make_path(base_name ,prefix + "cert_2048_revoked.pem"), key_2048,application_URI,yesterday,365),
+            revoke_certificate.bind(null,make_path(base_name ,prefix + "cert_2048_revoked.pem"))
         ];
         tasks1 = tasks1.concat(tasks2);
     }
