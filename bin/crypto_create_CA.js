@@ -26,7 +26,7 @@ var _ =require("underscore");
 var assert =require("assert");
 var byline = require('byline');
 var argv = require('optimist')
-    .usage('Usage: $0 [--dev]')
+    .usage('Usage: $0 [--dev] [--silent]')
     .argv;
 
 var isDevelopment = argv.dev;
@@ -192,16 +192,22 @@ function mkdir(folder) {
 }
 
 function Title(str,option_callback){
-    console.log("");
-    console.log(str.yellow.bold);
-    console.log(new Array(str.length+1).join("=").yellow,"\n");
+
+    if(!argv.silent) {
+        console.log("");
+        console.log(str.yellow.bold);
+        console.log(new Array(str.length+1).join("=").yellow,"\n");
+    }
     if (option_callback) {option_callback();}
 }
 
 function Subtitle(str,option_callback){
-    console.log("");
-    console.log("    "+ str.yellow.bold);
-    console.log("    "+ new Array(str.length+1).join("-").white,"\n");
+
+    if(!argv.silent) {
+        console.log("");
+        console.log("    " + str.yellow.bold);
+        console.log("    " + new Array(str.length + 1).join("-").white, "\n");
+    }
     if (option_callback) {option_callback();}
 }
 
@@ -209,21 +215,24 @@ function Subtitle(str,option_callback){
 function execute(cmd,callback) {
 
     assert(_.isFunction(callback));
-    console.log("    " + cmd.cyan.bold  + "\n");
 
+    if(!argv.silent) {
+        console.log("    " + cmd.cyan.bold );
+    }
     var child = child_process.exec(cmd, { cwd: rootDir },function(err){
         callback(err);
     });
 
-    var stream1 = byline(child.stderr);
-    stream1.on('data', function(line) {
-        process.stdout.write("        err " + line.red+"\n");
-    });
-    var stream2 = byline(child.stdout);
-    stream2.on('data', function(line) {
-        process.stdout.write("        out " + line.white.bold+"\n");
-    });
-
+    if(!argv.silent) {
+        var stream1 = byline(child.stderr);
+        stream1.on('data', function (line) {
+            process.stdout.write("        err " + line.red + "\n");
+        });
+        var stream2 = byline(child.stdout);
+        stream2.on('data', function (line) {
+            process.stdout.write("        out " + line.white.bold + "\n");
+        });
+    }
 }
 
 

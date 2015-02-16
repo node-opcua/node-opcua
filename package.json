@@ -11,7 +11,7 @@
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
     "postinstall": "node postinstall.js",
-    "pretest": "node bin/crypto_create_CA.js --dev",
+    "pretest": "node bin/crypto_create_CA.js --dev --silent",
     "test": "mocha test -R spec --recursive --timeout 30000 --bail",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
