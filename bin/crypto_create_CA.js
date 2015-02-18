@@ -68,8 +68,8 @@ private_key = $dir/private/cakey.pem         # the CA private key
 x509_extensions = usr_cert                   #
 default_days = 3650                          # default duration : 10 years
 
-# default_md = sha1
-default_md = sha256                          # The default digest algorithm
+default_md = sha1
+# default_md = sha256                          # The default digest algorithm
 
 preserve = no
 policy = policy_match
@@ -135,23 +135,24 @@ commonName_default = $ENV::ALTNAME_URI
 #unstructuredName = An optional company name
 
 [ usr_cert ]
-basicConstraints= CA:FALSE
+basicConstraints=critical, CA:FALSE
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer:always
-
+#authorityKeyIdentifier=keyid
 subjectAltName=@alt_names
-issuerAltName=issuer:copy
-
-#nsComment = ''OpenSSL Generated Certificate''
+# issuerAltName=issuer:copy
+nsComment = ''OpenSSL Generated Certificate''
 #nsCertType = client, email, objsign for ''everything including object signing''
 #nsCaRevocationUrl = http://www.domain.dom/ca-crl.pem
 #nsBaseUrl =
 #nsRenewalUrl =
 #nsCaPolicyUrl =
 #nsSslServerName =
+keyUsage = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign
+extendedKeyUsage=critical,serverAuth ,clientAuth
 
 [ v3_req ]
-basicConstraints = CA:FALSE
+basicConstraints =critical, CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
 # subjectAltName=$ENV::ALTNAME
 subjectAltName= @alt_names
@@ -160,11 +161,11 @@ subjectAltName= @alt_names
 URI = $ENV::ALTNAME_URI
 DNS.0 = $ENV::ALTNAME_DNS
 DNS.1 = $ENV::ALTNAME_DNS_1
-DNS.2 = localhost
 
 [ v3_ca ]
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer:always
+subjectKeyIdentifier=hash
+# authorityKeyIdentifier = keyid:always,issuer:always
+authorityKeyIdentifier = keyid
 basicConstraints = CA:TRUE
 keyUsage = critical, cRLSign, keyCertSign
 nsComment = "CA root certificate"
@@ -172,6 +173,12 @@ nsComment = "CA root certificate"
 #subjectAltName=email:copy
 #issuerAltName=issuer:copy
 #obj=DER:02:03
+
+[ v3_selfsigned]
+basicConstraints =critical, CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+nsComment = "Self-signed certificate"
+subjectAltName= @alt_names
 
 [ crl_ext ]
 #issuerAltName=issuer:copy
@@ -289,6 +296,10 @@ function construct_CertificateAuthority(done) {
 
     var subject  ="/C=FR/ST=IDF/L=Paris/O=Fake NodeOPCUA Certification Authority (for testing only)/CN=node-opcua.github.io";
 
+    process.env.ALTNAME_URI = "";
+    process.env.ALTNAME_DNS = "";
+    process.env.ALTNAME_DNS_1 = "";
+
     var tasks = [
 
         Title.bind(null,"Generate the CA private Key"),
@@ -301,15 +312,25 @@ function construct_CertificateAuthority(done) {
         // The CSR is then used in one of two ways. Ideally, the CSR will be sent to a Certificate Authority, such as
         // Thawte or Verisign who will verify the identity of the requestor and issue a signed certificate.
         // The second option is to self-sign the CSR, which will be demonstrated in the next section
-        execute.bind(null,"openssl req -new -key private/cakey.pem -out private/cakey.csr -subj '" +subject + "'"),
+        execute.bind(null, "openssl req -new" +
+                            " -extensions v3_ca" +
+                            " -config " +  "conf/caconfig.cnf" +
+                            " -key private/cakey.pem "+
+                            " -out private/cakey.csr " +
+                            " -subj '" +subject + "'"),
 
         //Xx // Step 3: Remove Passphrase from Key
         //Xx execute("cp private/cakey.pem private/cakey.pem.org");
         //Xx execute("openssl rsa -in private/cakey.pem.org -out private/cakey.pem -passin pass:"+paraphrase);
 
         Title.bind(null,"Generate CA Certificate (self-signed)"),
-        execute.bind(null,"openssl x509 -req -days 3650 -in private/cakey.csr -signkey private/cakey.pem -out private/cacert.pem")
-    ]
+        execute.bind(null,"openssl x509 -req -days 3650 " +
+        " -extensions v3_ca" +
+        " -extfile " +  "conf/caconfig.cnf" +
+                          " -in private/cakey.csr " +
+                          " -signkey private/cakey.pem " +
+                          " -out private/cacert.pem")
+    ];
 
     async.series(tasks,done);
 
@@ -414,9 +435,78 @@ function renew_certificate( certificate,new_startDate,new_endDate,callback) {
 
 }
 
+///**
+// * @method createSelfSignCertificate
+// * @param certname
+// * @param private_key
+// * @param applicationUri
+// * @param startDate
+// * @param duration
+// * @param callback
+// */
+//function createSelfSignCertificate(certname,private_key,applicationUri,startDate,duration,callback) {
+//
+//    assert(_.isFunction(callback));
+//    duration = duration || 365; // one year
+//
+//    assert(typeof certname === "string");
+//    assert(typeof private_key === "string");
+//    assert(typeof applicationUri === "string");
+//    assert(startDate instanceof Date);
+//
+//    startDate = startDate || new Date();
+//
+//    var endDate = new Date(startDate.getTime());
+//    endDate.setDate(startDate.getDate()+duration);
+//
+//    startDate = x509Date(startDate);
+//    endDate = x509Date(endDate);
+//
+//
+//    var csr_file = certname + "_csr";
+//    var certificate_file = certname;
+//
+//    // ApplicationURI
+//    process.env.ALTNAME_URI = applicationUri;
+//    // the list of HostName
+//    process.env.ALTNAME_DNS   = "localhost";
+//    process.env.ALTNAME_DNS_1 = get_fully_qualified_domain_name();
+//    var tasks =[
+//
+//        Subtitle.bind(null,"- the certificate signing request"),
+//        execute.bind(null,"openssl req -config " + "conf/caconfig.cnf" + " -batch -new -key " +private_key + " -out " + csr_file),
+//
+//        Subtitle.bind(null,"- then we ask the authority to sign the certificate signing request"),
+//
+//        execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
+//        " -selfsign "+
+//        " -keyfile "+ private_key +
+//        " -startdate " + startDate +
+//        " -enddate " + endDate +
+//        " -batch -out "  + certificate_file +  " -in "+ csr_file),
+//
+//        Subtitle.bind(null,"- dump the certificate for a check"),
+//        // execute.bind(null,"openssl x509 -in " + certificate_file + "  -text -noout"),
+//        execute.bind(null,"openssl x509 -in " + certificate_file + "  -dates -noout"),
+//        //execute.bind(null,"openssl x509 -in " + certificate_file + "  -purpose -noout"),
+//
+//        // get certificate fingerprint
+//        Subtitle.bind(null,"- get certificate fingerprint"),
+//        execute.bind(null,"openssl x509 -in " + certificate_file + " -noout -fingerprint"),
+//
+//        constructCACertificateWithCRL.bind(null),
+//        Subtitle.bind(null,"- verify certificate against the root CA"),
+//
+//        execute.bind(null,"openssl verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
+//
+//    ];
+//
+//    async.series(tasks,callback);
+//}
 
 /**
- *
+ * create a certificate issued by the Certification Authority
+ * @method createCertificate
  * @param certname
  * @param private_key
  * @param applicationUri
@@ -424,11 +514,9 @@ function renew_certificate( certificate,new_startDate,new_endDate,callback) {
  * @param duration
  * @param callback
  */
-function createCertificate(certname,private_key,applicationUri,startDate,duration,callback) {
-
+function _createCertificate(self_signed,certname,private_key,applicationUri,startDate,duration,callback) {
 
     assert(_.isFunction(callback));
-
     duration = duration || 365; // one year
 
     assert(typeof certname === "string");
@@ -436,12 +524,10 @@ function createCertificate(certname,private_key,applicationUri,startDate,duratio
     assert(typeof applicationUri === "string");
     assert(startDate instanceof Date);
 
-
     startDate = startDate || new Date();
 
     var endDate = new Date(startDate.getTime());
     endDate.setDate(startDate.getDate()+duration);
-
 
     startDate = x509Date(startDate);
     endDate = x509Date(endDate);
@@ -455,17 +541,37 @@ function createCertificate(certname,private_key,applicationUri,startDate,duratio
     // the list of HostName
     process.env.ALTNAME_DNS   = "localhost";
     process.env.ALTNAME_DNS_1 = get_fully_qualified_domain_name();
+
+
+
+    var sign_certificate =  function(){};
+    if (self_signed) {
+        sign_certificate= [
+            Subtitle.bind(null,"- creating the self signed certificate"),
+            execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
+            " -selfsign "+
+            " -keyfile "+ private_key +
+            " -startdate " + startDate +
+            " -enddate " + endDate +
+            " -batch -out "  + certificate_file +  " -in "+ csr_file)
+        ];
+
+    } else {
+        sign_certificate= [
+            Subtitle.bind(null,"- then we ask the authority to sign the certificate signing request"),
+            execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
+            " -startdate " + startDate +
+            " -enddate " + endDate +
+            " -batch -out "  + certificate_file +  " -in "+ csr_file)
+        ]
+    }
     var tasks =[
 
         Subtitle.bind(null,"- the certificate signing request"),
         execute.bind(null,"openssl req -config " + "conf/caconfig.cnf" + " -batch -new -key " +private_key + " -out " + csr_file),
 
-        Subtitle.bind(null,"- then we ask the authority to sign the certificate signing request"),
-
-        execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
-                            " -startdate " + startDate +
-                            " -enddate " + endDate +
-                            " -batch -out "  + certificate_file +  " -in "+ csr_file),
+        sign_certificate[0],
+        sign_certificate[1],
 
         Subtitle.bind(null,"- dump the certificate for a check"),
         // execute.bind(null,"openssl x509 -in " + certificate_file + "  -text -noout"),
@@ -478,12 +584,17 @@ function createCertificate(certname,private_key,applicationUri,startDate,duratio
 
         constructCACertificateWithCRL.bind(null),
         Subtitle.bind(null,"- verify certificate against the root CA"),
-
         execute.bind(null,"openssl verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
     ];
 
     async.series(tasks,callback);
 
+}
+function createSelfSignCertificate(certname,private_key,applicationUri,startDate,duration,callback) {
+     _createCertificate(true,certname,private_key,applicationUri,startDate,duration,callback);
+}
+function createCertificate(certname,private_key,applicationUri,startDate,duration,callback) {
+    _createCertificate(false,certname,private_key,applicationUri,startDate,duration,callback);
 }
 
 function get_offset_date(date,nb_days) {
@@ -545,13 +656,20 @@ function create_default_certificates(done) {
 
     var base_name = certificateDir;
 
+   //xx var clientURN="urn:NodeOPCUA-Client";
+    //xx var serverURN="urn:NodeOPCUA-Server";
+
+    var hostname = get_fully_qualified_domain_name();
+
+    var clientURN="urn:" + hostname +  ":" + "NodeOPCUA-Client";
+    var serverURN="urn:" + hostname +  ":" + "NodeOPCUA-Server";
     var task1 = [
 
         Title.bind(null,"Create  Application Certificate for Server its private key"),
-        __create_default_certificates.bind(null,base_name,"client_","urn:NodeOPCUA-Client"),
+        __create_default_certificates.bind(null,base_name,"client_",clientURN),
 
         Title.bind(null,"Create  Application Certificate for Client its private key"),
-        __create_default_certificates.bind(null,base_name,"server_","urn:NodeOPCUA-Server")
+        __create_default_certificates.bind(null,base_name,"server_",serverURN)
     ];
     async.series(task1,done);
 }
@@ -573,8 +691,9 @@ function __create_default_certificates(base_name,prefix,application_URI,done) {
         createPrivateKey.bind(null,key_2048,2048),
 
         createCertificate.bind(null,make_path(base_name ,prefix + "cert_1024.pem"), key_1024,application_URI,yesterday,365),
-
-        createCertificate.bind(null,make_path(base_name ,prefix + "cert_2048.pem"), key_2048,application_URI,yesterday,365)
+        createCertificate.bind(null,make_path(base_name ,prefix + "cert_2048.pem"), key_2048,application_URI,yesterday,365),
+        createSelfSignCertificate.bind(null,make_path(base_name ,prefix + "selfsigned_cert_1024.pem"), key_1024,application_URI,yesterday,365),
+        createSelfSignCertificate.bind(null,make_path(base_name ,prefix + "selfsigned_cert_2048.pem"), key_2048,application_URI,yesterday,365)
 
     ];
 
