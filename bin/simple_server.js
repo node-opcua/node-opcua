@@ -14,6 +14,9 @@ var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_d
 
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
+var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
+var hostname = get_fully_qualified_domain_name();
+
 var server = new OPCUAServer({
 
     port: 26543,
@@ -21,7 +24,7 @@ var server = new OPCUAServer({
     nodeset_filename: [ standard_nodeset_file],
 
     serverInfo: {
-        applicationUri : "urn:NodeOPCUA-SimpleDemoServer",
+        applicationUri : "urn:"+ hostname+ ":NodeOPCUA-Server",
         productUri:      "NodeOPCUA-SimpleDemoServer",
         applicationName: {text: "applicationName"},
         gatewayServerUri: null,

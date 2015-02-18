@@ -1,21 +1,50 @@
 var fs = require("fs");
 var treeify = require('treeify');
 var _ = require("underscore");
-var color = require("colors");
+var colors = require("colors");
 var util = require("util");
 var Table = require('easy-table');
 var async = require("async");
 var utils = require('../lib/misc/utils');
 
-//node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-var argv = require('optimist')
-    .usage('Usage: $0 -d --endpoint <endpointUrl> --node <node_id_to_monitor> --crawl')
-    .argv;
-
 var opcua = require("../");
 var VariableIds = opcua.VariableIds;
 
-var client = new opcua.OPCUAClient();
+console.log("1");
+//node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
+var argv = require('yargs')
+    .wrap(132)
+    //.usage('Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl')
+
+    .demand("endpoint")
+    .string("endpoint")
+    .describe("endpoint","the end point to connect to ")
+    .alias('e','endpoint')
+
+    .string("securityMode")
+    .describe("securityMode","the security mode")
+    .alias('s','securityMode')
+
+    .string("securityPolicy")
+    .describe("securityPolicy","the policy mode")
+    .alias('p','securityPolicy')
+    .example("simple_client  --endpoint opc.tcp://localhost:49230")
+    .example("simple_client  --endpoint opc.tcp://localhost:49230 -p=Basic256 -s=SIGN")
+
+    .argv;
+
+console.log("==>",argv.securityPolicy);
+
+var securityMode   = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+var securityPolicy =  opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+
+//xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
+//xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
+
+console.log("securityMode   = ".cyan,securityMode.toString());
+console.log("securityPolicy = ".cyan,securityPolicy.toString());
+
+var client = null;
 
 var endpointUrl = argv.endpoint;
 
@@ -24,7 +53,7 @@ var monitored_node = argv.node || "ns=2;s=PumpSpeed"; //"ns=1;s=Temperature";
 console.log(" monitoring node id ", monitored_node);
 
 if (!endpointUrl) {
-    console.log(" node bin/simple_client.js --endpoint <endpointUrl> --node <node_id_to_monitor>");
+    require('optimist').showHelp();
     return;
 }
 var the_session = null;
@@ -32,12 +61,19 @@ var the_subscription = null;
 
 var AttributeIds = opcua.AttributeIds;
 
-
 var NodeCrawler = opcua.NodeCrawler;
 var doCrawling = argv.crawl ? true: false;
 
+var  serverCertificate = null;
+
+var path = require("path");
+var crypto_utils = require("../lib/misc/crypto_utils");
+
 async.series([
     function (callback) {
+
+        client = new opcua.OPCUAClient();
+
         console.log(" connecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl, callback);
     },
@@ -45,27 +81,30 @@ async.series([
     function (callback) {
         client.getEndpointsRequest(function (err, endpoints) {
 
-            endpoints = utils.replaceBufferWithHexDump(endpoints);
-
             if (argv.d) {
-                var f = fs.writeFile("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));
+                fs.writeFile("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));
                 console.log(treeify.asTree(endpoints, true));
             }
 
             var table = new Table();
             if (!err) {
-                endpoints.forEach(function (endpoint) {
+                endpoints.forEach(function (endpoint,i) {
                     table.cell('endpoint',           endpoint.endpointUrl);
                     table.cell('Application URI',    endpoint.server.applicationUri);
                     table.cell('Security Mode',      endpoint.securityMode);
                     table.cell('securityPolicyUri',  endpoint.securityPolicyUri);
                     table.cell('Type',               endpoint.server.applicationType.key);
                     table.cell('certificate', "..." /*endpoint.serverCertificate*/);
+
+                    serverCertificate = endpoint.serverCertificate;
+
+                    var certificate_filename =path.join(__dirname,"../certificates/pki/server_certificate"+ i +".pem");
+                    fs.writeFile(certificate_filename,crypto_utils.toPem(serverCertificate,"CERTIFICATE"));
+
                     table.newRow();
                 });
             }
             console.log(table.toString());
-
 
             callback(err);
         });
@@ -77,6 +116,21 @@ async.series([
 
     // reconnect using the correct end point URL now
     function (callback) {
+
+        var hexDump = require("../lib/misc/utils").hexDump;
+        console.log("Server Certificate :".cyan);
+        console.log(hexDump(serverCertificate).yellow);
+
+        var options = {
+            securityMode:   securityMode,
+            securityPolicy: securityPolicy,
+            serverCertificate: serverCertificate,
+            defaultSecureTokenLifetime: 2000
+        };
+        console.log("Options = ",options.securityMode.toString(),options.securityPolicy.toString());
+
+        client = new opcua.OPCUAClient(options);
+
         console.log(" reconnecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl, callback);
     },

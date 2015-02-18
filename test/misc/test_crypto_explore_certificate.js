@@ -61,3 +61,37 @@ describe(" exploring Certificates",function() {
 
     });
 });
+
+describe("exploring certificate chains",function() {
+
+    var combine_der = require("../../lib/misc/crypto_explore_certificate").combine_der;
+    var split_der = require("../../lib/misc/crypto_explore_certificate").split_der;
+
+    it("should combine certificates in a single block",function(){
+
+        var cert1_name = path.join(__dirname,"../fixtures/certs/client_cert_2048.pem");
+        var cert2_name = path.join(__dirname,"../fixtures/certs/server_cert_1024.pem");
+
+        var cert1 = crypto_utils.readPEM(cert1_name);
+        var cert2 = crypto_utils.readPEM(cert2_name);
+
+        var combined = combine_der([cert1,cert2]);
+        combined.toString("hex").should.equal(cert1.toString("hex")+cert2.toString("hex"));
+
+        combined.length.should.eql(cert1.length+ cert2.length);
+
+        var chain  = split_der(combined);
+
+        chain.length.should.eql(2);
+
+        console.log(chain[0].toString("hex"));
+        console.log(cert1.toString("hex"));
+        console.log("-------")
+        console.log(chain[1].toString("hex"));
+        console.log(cert2.toString("hex"));
+
+        chain[0].length.should.eql(cert1.length);
+        chain[1].length.should.eql(cert2.length);
+
+    })
+});
