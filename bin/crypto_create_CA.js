@@ -253,6 +253,7 @@ function construct_CertificateAuthority(done) {
     //  +-+> certs
     //  +-+> conf
     //
+    mkdir(certificateDir);
     mkdir(pkiDir);
     mkdir(rootDir);
     mkdir(path.join(rootDir,"private"));
@@ -434,75 +435,6 @@ function renew_certificate( certificate,new_startDate,new_endDate,callback) {
     ],callback);
 
 }
-
-///**
-// * @method createSelfSignCertificate
-// * @param certname
-// * @param private_key
-// * @param applicationUri
-// * @param startDate
-// * @param duration
-// * @param callback
-// */
-//function createSelfSignCertificate(certname,private_key,applicationUri,startDate,duration,callback) {
-//
-//    assert(_.isFunction(callback));
-//    duration = duration || 365; // one year
-//
-//    assert(typeof certname === "string");
-//    assert(typeof private_key === "string");
-//    assert(typeof applicationUri === "string");
-//    assert(startDate instanceof Date);
-//
-//    startDate = startDate || new Date();
-//
-//    var endDate = new Date(startDate.getTime());
-//    endDate.setDate(startDate.getDate()+duration);
-//
-//    startDate = x509Date(startDate);
-//    endDate = x509Date(endDate);
-//
-//
-//    var csr_file = certname + "_csr";
-//    var certificate_file = certname;
-//
-//    // ApplicationURI
-//    process.env.ALTNAME_URI = applicationUri;
-//    // the list of HostName
-//    process.env.ALTNAME_DNS   = "localhost";
-//    process.env.ALTNAME_DNS_1 = get_fully_qualified_domain_name();
-//    var tasks =[
-//
-//        Subtitle.bind(null,"- the certificate signing request"),
-//        execute.bind(null,"openssl req -config " + "conf/caconfig.cnf" + " -batch -new -key " +private_key + " -out " + csr_file),
-//
-//        Subtitle.bind(null,"- then we ask the authority to sign the certificate signing request"),
-//
-//        execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
-//        " -selfsign "+
-//        " -keyfile "+ private_key +
-//        " -startdate " + startDate +
-//        " -enddate " + endDate +
-//        " -batch -out "  + certificate_file +  " -in "+ csr_file),
-//
-//        Subtitle.bind(null,"- dump the certificate for a check"),
-//        // execute.bind(null,"openssl x509 -in " + certificate_file + "  -text -noout"),
-//        execute.bind(null,"openssl x509 -in " + certificate_file + "  -dates -noout"),
-//        //execute.bind(null,"openssl x509 -in " + certificate_file + "  -purpose -noout"),
-//
-//        // get certificate fingerprint
-//        Subtitle.bind(null,"- get certificate fingerprint"),
-//        execute.bind(null,"openssl x509 -in " + certificate_file + " -noout -fingerprint"),
-//
-//        constructCACertificateWithCRL.bind(null),
-//        Subtitle.bind(null,"- verify certificate against the root CA"),
-//
-//        execute.bind(null,"openssl verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
-//
-//    ];
-//
-//    async.series(tasks,callback);
-//}
 
 /**
  * create a certificate issued by the Certification Authority
