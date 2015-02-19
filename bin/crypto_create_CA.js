@@ -295,7 +295,7 @@ function construct_CertificateAuthority(done) {
 
     // http://www.akadia.com/services/ssh_test_certificate.html
 
-    var subject  ="/C=FR/ST=IDF/L=Paris/O=Fake NodeOPCUA Certification Authority (for testing only)/CN=node-opcua.github.io";
+    var subject  ="/C=FR/ST=IDF/L=Paris/O=Fake CA for Test/CN=NodeOPCUA";
 
     process.env.ALTNAME_URI = "";
     process.env.ALTNAME_DNS = "";
@@ -613,6 +613,8 @@ function __create_default_certificates(base_name,prefix,application_URI,done) {
     var key_1024 = make_path(base_name ,prefix + "key_1024.pem");
     var public_key_1024 = make_path(base_name ,prefix + "public_key_1024.pub");
     var key_2048 = make_path(base_name ,prefix + "key_2048.pem");
+
+    console.log(" urn = ",application_URI);
 
     var tasks1 = [
 
