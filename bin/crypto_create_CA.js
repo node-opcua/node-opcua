@@ -122,7 +122,7 @@ organizationName_default = NodeOPCUA
 # organizationalUnitName = Organizational Unit Name (department, division)
 # organizationalUnitName_default = R&D
 commonName = Common Name (hostname, FQDN, IP, or your name)
-commonName_max = 128
+commonName_max = 64
 commonName_default = $ENV::ALTNAME_URI
 # emailAddress = Email Address
 # emailAddress_max = 40
@@ -464,7 +464,6 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
     startDate = x509Date(startDate);
     endDate = x509Date(endDate);
 
-
     var csr_file = certname + "_csr";
     var certificate_file = certname;
 
@@ -473,8 +472,6 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
     // the list of HostName
     process.env.ALTNAME_DNS   = "localhost";
     process.env.ALTNAME_DNS_1 = get_fully_qualified_domain_name();
-
-
 
     var sign_certificate =  function(){};
     if (self_signed) {
@@ -591,7 +588,7 @@ function create_default_certificates(done) {
    //xx var clientURN="urn:NodeOPCUA-Client";
     //xx var serverURN="urn:NodeOPCUA-Server";
 
-    var hostname = get_fully_qualified_domain_name();
+    var hostname = get_fully_qualified_domain_name(35);
 
     var clientURN="urn:" + hostname +  ":" + "NodeOPCUA-Client";
     var serverURN="urn:" + hostname +  ":" + "NodeOPCUA-Server";
