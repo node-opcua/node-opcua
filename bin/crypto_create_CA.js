@@ -318,7 +318,7 @@ function construct_CertificateAuthority(done) {
                             " -config " +  "conf/caconfig.cnf" +
                             " -key private/cakey.pem "+
                             " -out private/cakey.csr " +
-                            " -subj '" +subject + "'"),
+                            " -subj \"" +subject + "\""),
 
         //Xx // Step 3: Remove Passphrase from Key
         //Xx execute("cp private/cakey.pem private/cakey.pem.org");
@@ -454,6 +454,7 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
     assert(typeof certname === "string");
     assert(typeof private_key === "string");
     assert(typeof applicationUri === "string");
+    assert(applicationUri.length<= 64,"Openssl doesn't support urn with length greater than 64 ");
     assert(startDate instanceof Date);
 
     startDate = startDate || new Date();
