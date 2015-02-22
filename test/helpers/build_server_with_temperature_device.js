@@ -15,6 +15,38 @@ var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
+
+var addAnalogDataItem = opcua.addAnalogDataItem;
+var standardUnits = opcua.standardUnits;
+
+
+/**
+ * add a fake analog data item for testing
+ * @method addTestUAAnalogItem
+ *
+ * @param parentNode
+ */
+function addTestUAAnalogItem(parentNode)
+{
+    // add a UAAnalogItem
+    var node = addAnalogDataItem(parentNode,{
+        nodeId:"ns=4;s=TemperatureAnalogItem",
+        browseName: "TemperatureAnalogItem",
+        definition: "(tempA -25) + tempB",
+        valuePrecision: 0.5,
+        engineeringUnitsRange: { low: 100 , high: 200},
+        instrumentRange: { low: -100 , high: +200},
+        engineeringUnits: opcua.standardUnits.degree_celsius,
+        dataType: "Double",
+        value: {
+            get: function(){
+                return new Variant({dataType: DataType.Double , value: Math.random() + 19.0});
+            }
+        }
+    });
+
+}
+
 /**
  * create and start a fake OPCUA Server that exposes a temperature set point variable.
  *
@@ -98,6 +130,10 @@ function build_server_with_temperature_device(options,done) {
             if (options.add_simulation) {
                 build_address_space_for_conformance_testing(server.engine);
             }
+
+            // add a Analog Data Item
+            addTestUAAnalogItem(myDevices);
+
             done();
 
         });
