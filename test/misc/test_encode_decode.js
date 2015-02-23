@@ -38,7 +38,6 @@ function test_encode_decode(obj, encode_func, decode_func, expectedLength, verif
 
     if (obj !== undefined) {
         obj_verif.should.eql(obj);
-
     } else {
         should.not.exists(obj_verif);
     }
@@ -436,7 +435,39 @@ describe("testing built-in type encoding", function () {
     });
 });
 
+describe("encoding and decoding string",function(){
 
+    it("should encode and decode a simple ascii String",function(){
+        test_encode_decode(
+            "hello world",
+            ec.encodeString,
+            ec.decodeString,
+            11+4
+        );
+    });
+    it("should encode and decode a utf-8 containing double bytes characters",function(){
+        test_encode_decode(
+            "°C",
+            ec.encodeString,
+            ec.decodeString,
+            3+4 // (°=2 bytes charaters + 1)
+            ,function verify_buffer_func(buffer) {
+                console.log(require("lib/misc/utils").hexDump(buffer.slice(0,7)));
+            }
+        );
+    });
+    it("should encode and decode a utf-8 containing chinesse characters",function(){
+        test_encode_decode(
+            "你好世界", // hello world
+            ec.encodeString,
+            ec.decodeString,
+            16 ,
+            function verify_buffer_func(buffer) {
+                console.log(require("lib/misc/utils").hexDump(buffer.slice(0,16)));
+            }
+        );
+    });
+});
 describe("encoding and decoding arrays", function () {
 
 
@@ -459,7 +490,7 @@ describe("encoding and decoding arrays", function () {
         function decode_array_string(stream) {
             return ec.decodeArray(stream,ec.decodeString);
         }
-        test_encode_decode(["Hoo","Hello","World","Lorem Ipsum"],encode_array_string,decode_array_string, 44);
+        test_encode_decode(["Hoo","Hello","World","你好世界","привет мир","こんにちは世界"],encode_array_string,decode_array_string, 93);
     });
 
 });
@@ -618,3 +649,4 @@ describe("UInt64",function(){
         ec.coerceUInt64(0x100020000000).should.eql([0x1000,0x20000000]);
     });
 });
+

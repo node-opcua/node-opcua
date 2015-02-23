@@ -200,11 +200,20 @@ describe("DataAccess", function () {
         dataValue.value.value.should.eql(fakeValue);
 
 
-    })
+    });
+    it("should encode and decode a string containing fancy characters",function() {
+        var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+
+        var engineeringUnits =  standardUnits.degree_celsius;
+        encode_decode_round_trip_test(engineeringUnits,function (buffer, id) {
+            buffer.length.should.equal(35);
+        })
+
+    });
 });
 
 
-var commonCodeToUInt = require("lib/data_access//EUInformation").commonCodeToUInt;
+var commonCodeToUInt = require("lib/data_access/EUInformation").commonCodeToUInt;
 
 describe("commonCodeToUInt",function() {
 
