@@ -92,7 +92,14 @@ describe("testing UAAnalogItem on client side",function() {
         });
 
     });
+    it("readUAAnalogItem should return an error if not doesn't exist", function (done) {
+        var nodeId = "ns=4;s=invalidnode";
+        client_utils.readUAAnalogItem(g_session,nodeId,function(err,data ) {
+            should(err).not.eql(null);
+            done();
+        });
 
+    });
 });
 
 
