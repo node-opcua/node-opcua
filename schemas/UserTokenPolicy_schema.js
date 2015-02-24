@@ -1,6 +1,19 @@
 
 var UserIdentityTokenType =require("./UserIdentityTokenType_enum").UserIdentityTokenType;
 
+/*
+ Release 1.02 38 OPC Unified Architecture, Part 7
+//User Token profiles
+    http://opcfoundation.org/UA-Profile/ Security/UserToken-Server/UserNamePassword
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Server/X509Certificate
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Server/IssuedToken
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Server/IssuedTokenWindows
+
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Client/UserNamePassword
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Client/X509Certificate
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Client/IssuedToken
+    http://opcfoundation.org/UA-Profile/Security/UserToken-Client/IssuedTokenWindows
+*/
 
 // OPC Unified Architecture, Part 4 $7.36 page 160
 var UserTokenPolicy_Schema = {
@@ -22,6 +35,10 @@ var UserTokenPolicy_Schema = {
 
         // The security policy to use when encrypting or signing the UserToken when it is
         // passed to the Server in the ActivateSession request. see $7.35
+        //
+        // Release 1.02 155 OPC Unified Architecture, Part 4
+        // (If this SecurityPolicy is omitted then the Client uses the SecurityPolicy in the
+        // EndpointDescription.)
         { name: "securityPolicyUri", fieldType: "String", defaultValue: null  }
     ]
 };

@@ -33,8 +33,10 @@ function build_client_server_session(done){
             setImmediate(function() {
                 client.connect(endpointUrl,function(err){
                     client.createSession(function(err,session){
-                        client_server.g_session = session;
-                        done();
+                        if (!err) {
+                            client_server.g_session = session;
+                        }
+                        done(err);
                     });
                 });
             });
@@ -45,6 +47,7 @@ function build_client_server_session(done){
 
         // let's verify that the server has got at least one session active (the one we created above)
         assert(server.engine.currentSessionCount >= 1);
+        assert(client_server.g_session);
 
         client_server.g_session.close(function(){
 

@@ -270,10 +270,11 @@ describe("testing basic Client Server dealing with subscription at low level",fu
 
     before(function(done){
 
-        client_server = build_client_server_session(function(){
-            g_session = client_server.g_session;
-            assert(g_session);
-            done();
+        client_server = build_client_server_session(function(err){
+            if (!err) {
+                g_session = client_server.g_session;
+            }
+            done(err);
         });
 
     });

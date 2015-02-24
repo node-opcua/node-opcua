@@ -26,6 +26,8 @@ module.exports.call_service     = require("lib/services/call_service");
 module.exports.session_service  = require("lib/services/session_service");
 module.exports.get_endpoints_service  = require("lib/services/get_endpoints_service");
 
+module.exports.EndpointDescription =  module.exports.get_endpoints_service.EndpointDescription;
+
 module.exports.utils     = require("lib/misc/utils");
 
 module.exports.AttributeIds     = module.exports.read_service.AttributeIds;

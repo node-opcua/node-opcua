@@ -10,6 +10,9 @@ var utils = require('../lib/misc/utils');
 var opcua = require("../");
 var VariableIds = opcua.VariableIds;
 
+//xx ar UserNameIdentityToken = opcua.session_service.UserNameIdentityToken;
+//xx var SecurityPolicy = opcua.SecurityPolicy;
+
 console.log("1");
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 var argv = require('yargs')
@@ -89,7 +92,7 @@ async.series([
             var table = new Table();
             if (!err) {
                 endpoints.forEach(function (endpoint,i) {
-                    table.cell('endpoint',           endpoint.endpointUrl);
+                    table.cell('endpoint',           endpoint.endpointUrl + "");
                     table.cell('Application URI',    endpoint.server.applicationUri);
                     table.cell('Security Mode',      endpoint.securityMode);
                     table.cell('securityPolicyUri',  endpoint.securityPolicyUri);
@@ -103,8 +106,24 @@ async.series([
 
                     table.newRow();
                 });
+                console.log(table.toString());
+
+                endpoints.forEach(function (endpoint,i) {
+                    var table2 = new Table();
+                    endpoint.userIdentityTokens.forEach(function( token) {
+                        table2.cell('policyId',           token.policyId);
+                        table2.cell('tokenType',          token.tokenType.toString());
+                        table2.cell('issuedTokenType',    token.issuedTokenType);
+                        table2.cell('issuerEndpointUrl',  token.issuerEndpointUrl);
+                        table2.cell('securityPolicyUri',  token.securityPolicyUri);
+                        table2.newRow();
+                    });
+                    console.log(table2.toString());
+                });
+
             }
-            console.log(table.toString());
+
+
 
             callback(err);
         });
@@ -137,7 +156,8 @@ async.series([
 
     //------------------------------------------
     function (callback) {
-        client.createSession(function (err, session) {
+
+        client.createSession({ userName: "username", password: "password" },function (err, session) {
             if (!err) {
                 the_session = session;
                 console.log(" session created".yellow);
@@ -273,7 +293,7 @@ async.series([
     },
     function (callback) {
         console.log(" closing session");
-        the_session.close(function (err) {
+        the_session.close(function (err)     {
 
             console.log(" session closed");
             callback();
