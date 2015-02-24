@@ -22,17 +22,27 @@ var argv = require('yargs')
     .demand("endpoint")
     .string("endpoint")
     .describe("endpoint","the end point to connect to ")
-    .alias('e','endpoint')
 
     .string("securityMode")
     .describe("securityMode","the security mode")
-    .alias('s','securityMode')
 
     .string("securityPolicy")
     .describe("securityPolicy","the policy mode")
-    .alias('p','securityPolicy')
+
+    .string("userName")
+    .describe("userName","specify the user name of a UserNameIdentityToken ")
+    .string("password")
+    .describe("password","specify the password of a UserNameIdentityToken")
+
+    .alias('e','endpoint')
+    .alias('s','securityMode')
+    .alias('P','securityPolicy')
+    .alias("u",'userName')
+    .alias("p",'password')
+
     .example("simple_client  --endpoint opc.tcp://localhost:49230")
-    .example("simple_client  --endpoint opc.tcp://localhost:49230 -p=Basic256 -s=SIGN")
+    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
+    .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
 
     .argv;
 
@@ -123,8 +133,6 @@ async.series([
 
             }
 
-
-
             callback(err);
         });
     },
@@ -157,7 +165,16 @@ async.series([
     //------------------------------------------
     function (callback) {
 
-        client.createSession({ userName: "username", password: "password" },function (err, session) {
+        var userIdentity = null; // anonymous
+        if (argv.userName && argv.password) {
+
+            userIdentity = {
+              userName:argv.userName,
+                password: argv.password
+            };
+
+        }
+        client.createSession(userIdentity,function (err, session) {
             if (!err) {
                 the_session = session;
                 console.log(" session created".yellow);
