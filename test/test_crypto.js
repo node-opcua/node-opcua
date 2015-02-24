@@ -286,6 +286,23 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         });
 
+        it("publicEncrypt  shall produce  different encrypted string if call many times with the same input",function() {
+
+//xx            var bob_public_key = crypto_utils.readCertificate('test/fixtures/certs/server_cert_1024.pem'); // 2048bit long key
+            var bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub'); // 2048bit long key
+            var bob_private_key = read_private_rsa_key('bob_id_rsa');
+
+            var initialBuffer = new Buffer(loremIpsum.substr(0,25));
+            var encryptedBuffer1 = crypto_utils.publicEncrypt_long(initialBuffer,bob_public_key,256,11);
+            var encryptedBuffer2 = crypto_utils.publicEncrypt_long(initialBuffer,bob_public_key,256,11);
+
+            encryptedBuffer1.toString("hex").should.not.equal(encryptedBuffer2.toString("hex"));
+
+            var decryptedBuffer1 = crypto_utils.privateDecrypt_long(encryptedBuffer1,bob_private_key,256);
+            var decryptedBuffer2 = crypto_utils.privateDecrypt_long(encryptedBuffer2,bob_private_key,256);
+
+            decryptedBuffer1.toString("hex").should.equal(decryptedBuffer2.toString("hex"));
+        });
 
         it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes",function() {
 
