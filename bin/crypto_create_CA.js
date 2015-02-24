@@ -26,8 +26,15 @@ var _ =require("underscore");
 var assert =require("assert");
 var byline = require('byline');
 var argv = require('optimist')
-    .usage('Usage: $0 [--dev] [--silent]')
+    .usage('Usage: $0 [--dev] [--silent] [--force]')
+    .boolean("force")
+    .boolean("dev")
+    .boolean("silent")
     .argv;
+
+
+var force = argv.force;
+console.log(" force = ",force);
 
 var isDevelopment = argv.dev;
 
@@ -37,6 +44,8 @@ var path = require("path");
 var fs = require("fs");
 
 var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
+var hostname =require("os").hostname();
+
 
 function make_path(folder_name,file_name) {
     var s =  path.normalize(path.join(folder_name,file_name));
@@ -277,6 +286,13 @@ function construct_CertificateAuthority(done) {
     if (!fs.existsSync(index_file)) {
         fs.writeFileSync(index_file,"");
     }
+
+    if (fs.existsSync(path.join(rootDir,"private/cakey.pem")) && !force) {
+        // certificate already exists => do not overwrite
+        console.log("CA private key already exists ... skipping");
+        return done();
+    }
+
     Title("Create Certificate Authority (CA)");
 
     var index_file_attr =path.join(rootDir,"index.txt.attr");
@@ -290,6 +306,7 @@ function construct_CertificateAuthority(done) {
         data = data.replace(/%%ROOT_FOLDER%%/,rootDir);
         fs.writeFileSync(ca_conf,data);
     }
+
 
     console.log(" ROOT =",rootDir);
 
@@ -361,7 +378,7 @@ function constructCACertificateWithCRL(callback) {
 
     var cacert_with_crl = path.join(rootDir,caCertificate_With_CRL);
 
-    // note : in order to check if the certificat is revoked,
+    // note : in order to check if the certificate is revoked,
     // you need to specify -crl_check and have both the CA cert and the (applicable) CRL in your truststore.
     // There are two ways to do that:
     // 1. concatenate cacert.pem and crl.pem into one file and use that for -CAfile.
@@ -389,6 +406,10 @@ function constructCACertificateWithCRL(callback) {
  */
 function createPrivateKey(private_key_filename,key_length,callback) {
 
+    if (fs.existsSync(private_key_filename) && !force) {
+        console.log("private key ",private_key_filename," already exists ");
+        return callback();
+    }
     assert([1024, 2048, 4096].indexOf(key_length) >= 0);
     execute("openssl genrsa -out " + private_key_filename + " " + key_length,callback);
 }
@@ -467,6 +488,13 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
 
     var csr_file = certname + "_csr";
     var certificate_file = certname;
+
+    if (fs.existsSync(certificate_file) && !force) {
+        //
+        console.log("certificate " + certificate_file+ "already exists => do not overwrite");
+        return callback();
+    }
+
 
     // ApplicationURI
     process.env.ALTNAME_URI = applicationUri;
