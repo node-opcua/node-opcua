@@ -4,7 +4,7 @@ node_js:
   - "0.10"
   - "0.11"
   - "0.12"
-    # - iojs
+  - "iojs"
 
 before_script:
   - npm install -g istanbul coveralls
