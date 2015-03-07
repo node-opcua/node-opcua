@@ -69,3 +69,5 @@ module.exports.standard_nodeset_file = require("lib/server/server_engine").stand
 module.exports.mini_nodeset_filename = require("lib/server/server_engine").mini_nodeset_filename;
 
 module.exports.is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpointUrl;
+
+module.exports.client_utils = require("lib/client/client_utils");
