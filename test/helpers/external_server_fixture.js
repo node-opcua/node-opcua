@@ -66,7 +66,7 @@ function start_simple_server(options,callback) {
     server_exec.on('close', detect_early_termination);
 
     server_exec.on("error",function(err){
-        console.log('XXXXX child process terminated due to receipt of signal ');
+        //xx console.log('XXXXX child process terminated due to receipt of signal ');
     });
 
 
@@ -101,18 +101,10 @@ function stop_simple_server(serverHandle,callback) {
     console.log(" SHUTTING DOWN : ",serverHandle.process.killed,serverHandle.process.pid);
 
     serverHandle.process.on("close",function(err){
-        console.log('XXXXX child process terminated due to receipt of signal ');
+        //xx  console.log('XXXXX child process terminated due to receipt of signal ');
         setTimeout(callback,100);
     });
-    //serverHandle.process.on("error",function(err) {
-    //    console.log('XXXXX child process terminated due to receipt of error ');
-    //    setTimeout(callback,100);
-    //});
-    //setTimeout(function(){
-    //    if (serverHandle.process.killed) {
-    //        callback(err);
-    //    }
-    //});
+
     process.kill(serverHandle.process.pid,'SIGKILL');
 
 

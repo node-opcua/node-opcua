@@ -141,7 +141,6 @@ describe("NodeCrawler",function(){
                 browsed_node1.should.be.greaterThan(10);
                 browsed_node2.should.equal(0);
 
-                console.log("-----------------------------");
                 var data2= {};
                 crawler2.crawl("RootFolder", data2, function (err) {
                     browsed_node2.should.be.greaterThan(10);
@@ -191,16 +190,13 @@ describe("NodeCrawler",function(){
 
             var startTime = Date.now();
 
-            console.log("----------------------");
             crawler.read(nodeId, function (err, obj) {
 
                 var intermediateTime1 = Date.now();
                 var duration1 = intermediateTime1 - startTime;
 
 
-                console.log("----------------------");
                 crawler.read(nodeId, function (err, obj) {
-                    console.log("----------------------");
                     var intermediateTime2 = Date.now();
                     var duration2 = intermediateTime2 - intermediateTime1;
 
@@ -214,28 +210,32 @@ describe("NodeCrawler",function(){
     });
 
     it("should display a tree",function(done){
-        var treeify = require('treeify');
 
-        perform_operation_on_client_session(client,endpointUrl,function(the_session,callback) {
+        var redirectToFile = require("lib/misc/utils").redirectToFile;
 
-            var crawler = new NodeCrawler(the_session);
-            crawler.on("browsed",function(element){
-                //xx console.log("->",element.browseName.name,element.nodeId.toString());
-            });
-            var nodeId = "ObjectsFolder";
-            console.log("now crawling object folder ...please wait...");
-            crawler.read(nodeId, function (err, obj) {
-                if (!err) {
-                    treeify.asLines(obj, true, true, function (line) {
-                        console.log(line);
-                    });
-                }
-                callback(err);
-            });
+        redirectToFile("crawler_display_tree.log",function(inner_callback){
 
+            var treeify = require('treeify');
+
+            perform_operation_on_client_session(client,endpointUrl,function(the_session,callback) {
+
+                var crawler = new NodeCrawler(the_session);
+
+                crawler.on("browsed",function(element){ });
+
+                var nodeId = "ObjectsFolder";
+                console.log("now crawling object folder ...please wait...");
+                crawler.read(nodeId, function (err, obj) {
+                    if (!err) {
+                        treeify.asLines(obj, true, true, function (line) {
+                            console.log(line);
+                        });
+                    }
+                    callback(err);
+                });
+
+            },inner_callback);
         },done);
-
-
 
     });
 

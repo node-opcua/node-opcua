@@ -39,7 +39,7 @@ describe("testing ArgumentList special encode/decode process",function() {
 
     it("should raise an error when trying to **encode** a ArgumentList without a definition", function () {
 
-        var stream = new BinaryStream(10);
+        var stream = new BinaryStream();
         (function () {
             var arguments = [100];
             var definition = null;
@@ -50,7 +50,7 @@ describe("testing ArgumentList special encode/decode process",function() {
 
     it("should raise an error when trying to **decode** a ArgumentList without a definition", function () {
 
-        var stream = new BinaryStream(10);
+        var stream = new BinaryStream();
         (function () {
             var definition = null;
             var arguments = decode_ArgumentList(definition,stream);

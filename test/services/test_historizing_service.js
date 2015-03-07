@@ -3,8 +3,7 @@ var read_service = require("lib/services/read_service");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 
 var hs = require("lib/services/historizing_service");
-var redirectToFile = require("lib/misc/utils").redirectToFile;
-var makebuffer = require("lib/misc/utils").makebuffer;
+
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 

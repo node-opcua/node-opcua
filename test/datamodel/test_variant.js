@@ -9,7 +9,7 @@ var QualifiedName   = require("lib/datamodel/qualified_name").QualifiedName;
 var LocalizedText   = require("lib/datamodel/localized_text").LocalizedText;
 var should = require("should");
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 describe("Variant",function() {
 
@@ -223,8 +223,10 @@ describe("Variant - Analyser",function(){
 
     it("should analyze variant",function() {
 
-        various_variants.forEach(function(v){
-            analyze_object_binary_encoding(v);
+        redirectToFile("variant_analyze.log",function() {
+            various_variants.forEach(function(v){
+                analyze_object_binary_encoding(v);
+            });
         });
     });
 

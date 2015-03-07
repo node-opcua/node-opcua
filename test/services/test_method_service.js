@@ -7,7 +7,6 @@ var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var opcua = require("../../");
 var DataType = opcua.DataType;
 var utils = require("lib/misc/utils");
-var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;

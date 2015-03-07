@@ -41,7 +41,7 @@ function encode_decode_round_trip_test(obj,options, callback_buffer) {
 
     var size = obj.binaryStoreSize(options);
 
-    var stream  = new BinaryStream(size);
+    var stream  = new BinaryStream(new Buffer(size));
 
     obj.encode(stream,options);
 

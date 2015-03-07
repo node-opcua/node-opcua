@@ -120,8 +120,6 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
 
         function on_close_func(err) {
 
-            console.log(" xxx received close event from client".yellow,err);
-
             close_counter++;
             if (the_pending_callback) {
                 close_counter.should.eql(1);

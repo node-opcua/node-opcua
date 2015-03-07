@@ -432,7 +432,6 @@ describe("CreateMonitoredItemsRequest with EventFilter parameters",function() {
 00000180: 00 00 00 03 00 00 00 00 00 00 00 00 40 8f 40 00 00 00 01 00 00 00 00                               ............@.@........
 */
         });
-        verify_multi_chunk_message([ws_CreateMonitoredItemsRequest]);
         redirectToFile("CreateMonitoredItemsRequest2.log", function () {
             verify_multi_chunk_message([ws_CreateMonitoredItemsRequest]);
         }, done);
