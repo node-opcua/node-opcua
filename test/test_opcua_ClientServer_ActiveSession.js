@@ -95,7 +95,7 @@ if (!crypto_utils.isFullySupported()) {
 
         });
 
-        it("xxx Server shall reject a secure client connection if ActiveSession.clientSignature has the wrong algorithm", function (done) {
+        it("Server shall reject a secure client connection if ActiveSession.clientSignature has the wrong algorithm", function (done) {
 
             var client = new OPCUAClient(options);
             var old_computeClientSignature = client.computeClientSignature;
@@ -150,6 +150,18 @@ if (!crypto_utils.isFullySupported()) {
 
         });
 
+        xit("GGG Client shall deny server session if server nonce is too small", function (done) {
+
+            var crypto = require("crypto");
+            server.makeServerNonce = function() {
+                return crypto.randomBytes(31); //<< instead of 32  !!!
+            };
+            var client = new OPCUAClient(options);
+            test_connection(client, function (err) {
+                err.message.should.match(/Invalid server Nonce/);
+            }, done);
+
+        });
 
     });
 }

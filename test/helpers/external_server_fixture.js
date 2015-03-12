@@ -41,7 +41,7 @@ function start_simple_server(options,callback) {
 
     function detect_early_termination(code,signal) {
         console.log('child process terminated due to receipt of signal '+signal);
-        callback(new Error("Process has terminated unexepecdidally with code="+code+" signal="+signal));
+        callback(new Error("Process has terminated unexpectedaly with code="+code+" signal="+signal));
     }
     var callback_called = false;
 
@@ -49,10 +49,10 @@ function start_simple_server(options,callback) {
         if (!callback_called) {
 
             if ( /server now waiting for connections./.test(data))  {
+
                 setTimeout(function(){
 
                     server_exec.removeListener("close",detect_early_termination);
-
                     callback(null,{
                         process: server_exec,
                         endpointUrl: "opc.tcp://localhost:26543/UA/SampleServer",
@@ -98,13 +98,13 @@ function stop_simple_server(serverHandle,callback) {
     if(!serverHandle) {
         return  callback(null);
     }
-    console.log(" SHUTTING DOWN : ",serverHandle.process.killed,serverHandle.process.pid);
+    console.log(" SHUTTING DOWN : killed = ",serverHandle.process.killed, " pid = ",serverHandle.process.pid);
 
     serverHandle.process.on("close",function(err){
-        //xx  console.log('XXXXX child process terminated due to receipt of signal ');
+        //xx console.log('XXXXX child process terminated due to receipt of signal ');
         setTimeout(callback,100);
     });
-
+    //xx serverHandle.process.kill();
     process.kill(serverHandle.process.pid,'SIGKILL');
 
 

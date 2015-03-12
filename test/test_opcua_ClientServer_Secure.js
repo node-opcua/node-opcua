@@ -250,7 +250,7 @@ if (!crypto_utils.isFullySupported()) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 keep_monitoring_some_variable(session, default_test_duration, function () {
-                    token_change.should.be.greaterThan(10);
+                    token_change.should.be.greaterThan(8);
                     inner_done();
                 });
             }, done);
