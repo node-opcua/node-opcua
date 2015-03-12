@@ -76,6 +76,8 @@
     "ssh-key-to-pem": "0.11.0",
     "treeify": "1.0.1",
     "underscore": "~1.7.0",
+    "unzip": "^0.1.11",
+    "wget-improved": "^1.0.1",
     "yargs": "3.4.5"
   }
 }

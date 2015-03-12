@@ -34,7 +34,8 @@ var argv = require('optimist')
 
 
 var force = argv.force;
-console.log(" force = ",force);
+
+var openssl_path = "openssl";
 
 var isDevelopment = argv.dev;
 
@@ -323,14 +324,14 @@ function construct_CertificateAuthority(done) {
         Title.bind(null,"Generate the CA private Key"),
         // The first step is to create your RSA Private Key. This key is a 2048 bit RSA key which is encrypted using
         // Triple-DES and stored in a PEM format so that it is readable as ASCII text.
-        execute.bind(null,"openssl genrsa -out private/cakey.pem 2048"),
+        execute.bind(null,openssl_path + " genrsa -out private/cakey.pem 2048"),
 
         Title.bind(null,"Generate a certificate request for the CA key"),
         // Once the private key is generated a Certificate Signing Request can be generated.
         // The CSR is then used in one of two ways. Ideally, the CSR will be sent to a Certificate Authority, such as
         // Thawte or Verisign who will verify the identity of the requestor and issue a signed certificate.
         // The second option is to self-sign the CSR, which will be demonstrated in the next section
-        execute.bind(null, "openssl req -new" +
+        execute.bind(null, openssl_path + " req -new" +
                             " -extensions v3_ca" +
                             " -config " +  "conf/caconfig.cnf" +
                             " -key private/cakey.pem "+
@@ -339,10 +340,10 @@ function construct_CertificateAuthority(done) {
 
         //Xx // Step 3: Remove Passphrase from Key
         //Xx execute("cp private/cakey.pem private/cakey.pem.org");
-        //Xx execute("openssl rsa -in private/cakey.pem.org -out private/cakey.pem -passin pass:"+paraphrase);
+        //Xx execute(openssl_path + " rsa -in private/cakey.pem.org -out private/cakey.pem -passin pass:"+paraphrase);
 
         Title.bind(null,"Generate CA Certificate (self-signed)"),
-        execute.bind(null,"openssl x509 -req -days 3650 " +
+        execute.bind(null,openssl_path + " x509 -req -days 3650 " +
         " -extensions v3_ca" +
         " -extfile " +  "conf/caconfig.cnf" +
                           " -in private/cakey.csr " +
@@ -411,7 +412,7 @@ function createPrivateKey(private_key_filename,key_length,callback) {
         return callback();
     }
     assert([1024, 2048, 4096].indexOf(key_length) >= 0);
-    execute("openssl genrsa -out " + private_key_filename + " " + key_length,callback);
+    execute(openssl_path + " genrsa -out " + private_key_filename + " " + key_length,callback);
 }
 
 
@@ -425,7 +426,7 @@ function createPrivateKey(private_key_filename,key_length,callback) {
  * @param callback
  */
 function getPublicKeyFromPrivateKey(private_key_filename,public_key_filename,callback) {
-    execute("openssl rsa -pubout -in " + private_key_filename + " > "+ public_key_filename,callback);
+    execute(openssl_path + " rsa -pubout -in " + private_key_filename + " > "+ public_key_filename,callback);
 }
 
 /**
@@ -438,7 +439,7 @@ function getPublicKeyFromPrivateKey(private_key_filename,public_key_filename,cal
  * @param callback
  */
 function getPublicKeyFromCertificate(certificate_filename,public_key_filename,callback) {
-    execute("openssl x509 -pubkey -in" +  certificate_filename + " -notext  > " +public_key_filename,callback);
+    execute(openssl_path + " x509 -pubkey -in" +  certificate_filename + " -notext  > " +public_key_filename,callback);
 }
 
 
@@ -447,7 +448,7 @@ function renew_certificate( certificate,new_startDate,new_endDate,callback) {
     async.series([
         Subtitle.bind(null,"renew_certificate"),
 
-        execute.bind(null,"openssl ca -config " +  "conf/caconfig.cnf" +
+        execute.bind(null,openssl_path + " ca -config " +  "conf/caconfig.cnf" +
                             " -policy policy_anything " +
                             " -out newcert.pem "+
                             " -infiles newreq.pem "+
@@ -506,7 +507,7 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
     if (self_signed) {
         sign_certificate= [
             Subtitle.bind(null,"- creating the self signed certificate"),
-            execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
+            execute.bind(null,openssl_path + " ca -config " + "conf/caconfig.cnf" +
             " -selfsign "+
             " -keyfile "+ private_key +
             " -startdate " + startDate +
@@ -517,7 +518,7 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
     } else {
         sign_certificate= [
             Subtitle.bind(null,"- then we ask the authority to sign the certificate signing request"),
-            execute.bind(null,"openssl ca -config " + "conf/caconfig.cnf" +
+            execute.bind(null,openssl_path + " ca -config " + "conf/caconfig.cnf" +
             " -startdate " + startDate +
             " -enddate " + endDate +
             " -batch -out "  + certificate_file +  " -in "+ csr_file)
@@ -526,23 +527,23 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
     var tasks =[
 
         Subtitle.bind(null,"- the certificate signing request"),
-        execute.bind(null,"openssl req -config " + "conf/caconfig.cnf" + " -batch -new -key " +private_key + " -out " + csr_file),
+        execute.bind(null,openssl_path + " req -config " + "conf/caconfig.cnf" + " -batch -new -key " +private_key + " -out " + csr_file),
 
         sign_certificate[0],
         sign_certificate[1],
 
         Subtitle.bind(null,"- dump the certificate for a check"),
-        // execute.bind(null,"openssl x509 -in " + certificate_file + "  -text -noout"),
-        execute.bind(null,"openssl x509 -in " + certificate_file + "  -dates -noout"),
-        //execute.bind(null,"openssl x509 -in " + certificate_file + "  -purpose -noout"),
+        // execute.bind(null,openssl_path + " x509 -in " + certificate_file + "  -text -noout"),
+        execute.bind(null,openssl_path + " x509 -in " + certificate_file + "  -dates -noout"),
+        //execute.bind(null,openssl_path + " x509 -in " + certificate_file + "  -purpose -noout"),
 
         // get certificate fingerprint
         Subtitle.bind(null,"- get certificate fingerprint"),
-        execute.bind(null,"openssl x509 -in " + certificate_file + " -noout -fingerprint"),
+        execute.bind(null,openssl_path + " x509 -in " + certificate_file + " -noout -fingerprint"),
 
         constructCACertificateWithCRL.bind(null),
         Subtitle.bind(null,"- verify certificate against the root CA"),
-        execute.bind(null,"openssl verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
+        execute.bind(null,openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
     ];
 
     async.series(tasks,callback);
@@ -584,16 +585,16 @@ function revoke_certificate(certificate_file, callback) {
         Title.bind(null,"Revoking certificate  " + certificate_file),
         Subtitle.bind(null,"Revoke certificate"),
 
-        execute.bind(null,"openssl ca -config " +  "conf/caconfig.cnf" + " -revoke " + certificate_file),
+        execute.bind(null,openssl_path + " ca -config " +  "conf/caconfig.cnf" + " -revoke " + certificate_file),
         // regenerate CRL (Certificate Revocation List)
         Subtitle.bind(null,"regenerate CRL (Certificate Revocation List)"),
-        execute.bind(null,"openssl ca -gencrl -config " +  "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
+        execute.bind(null,openssl_path + " ca -gencrl -config " +  "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
 
         Subtitle.bind(null,"Display (Certificate Revocation List)"),
-        execute.bind(null,"openssl crl -in crl/revocation_list.crl -text -noout"),
+        execute.bind(null,openssl_path + " crl -in crl/revocation_list.crl -text -noout"),
 
         Subtitle.bind(null,"Verify  certificate "),
-        execute.bind(null,"openssl verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
+        execute.bind(null,openssl_path + " verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
 
     ];
 
@@ -679,10 +680,22 @@ function __create_default_certificates(base_name,prefix,application_URI,done) {
 
 }
 
+var install_prerequisite = require("./install_prerequisite").install_prerequisite;
 
+
+function find_openssl(callback) {
+
+    if (process.platform === "win32") {
+        openssl_path = path.join(__dirname, "./openssl/openssl.exe");
+    }
+    callback(null);
+
+}
 function main() {
 
     async.series([
+        install_prerequisite.bind(null),
+        find_openssl.bind(null),
         construct_CertificateAuthority.bind(null),
         create_default_certificates.bind(null)
     ]);
