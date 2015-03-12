@@ -59,11 +59,8 @@ var wget = require("wget-improved");
 
 function download_openssl(callback) {
 
-    var url    = "http://indy.fulgan.com/SSL/openssl-1.0.2-i386-win32.zip"
+    var url    = "http://indy.fulgan.com/SSL/openssl-1.0.2-x64_86-win64.zip"
     var output_filename = path.basename(url);
-    //xx var url    = "https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20141217/Git-1.9.5-preview20141217.exe"
-    //xx var url = "http://slproweb.com/download/Win32OpenSSL_Light-1_0_2.exe"
-    // url = "https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20141217/msysGit-netinstall-1.9.5-preview20141217.exe"
 
     console.log("downloading " + url.yellow);
     if (fs.existsSync(output_filename)) {
