@@ -32,6 +32,12 @@ var server = new OPCUAServer({
     },
     buildInfo: {
         buildNumber: "1234"
+    },
+    serverCapabilities: {
+        operationLimits: {
+            maxNodesPerRead: 10,
+            maxNodesPerBrowse: 2
+        }
     }
 });
 

@@ -111,7 +111,7 @@ async.series([
 
                     serverCertificate = endpoint.serverCertificate;
 
-                    var certificate_filename =path.join(__dirname,"../certificates/pki/server_certificate"+ i +".pem");
+                    var certificate_filename =path.join(__dirname,"../certificates/PKI/server_certificate"+ i +".pem");
                     fs.writeFile(certificate_filename,crypto_utils.toPem(serverCertificate,"CERTIFICATE"));
 
                     table.newRow();
@@ -332,7 +332,8 @@ async.series([
     // force disconnection
     if (client) {
         client.disconnect(function () {
-            process.exit()
+            var exit = require("exit");
+            exit()
         });
     }
 });
