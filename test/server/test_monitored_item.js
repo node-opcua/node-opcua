@@ -51,7 +51,7 @@ describe("Server Side MonitoredItem",function(){
         });
 
         monitoredItem.oldValue = new Variant({dataType: DataType.UInt32, value: 42});
-        var spy_samplingEventCall = new sinon.spy();
+        var spy_samplingEventCall = sinon.spy();
         monitoredItem.on("samplingEvent",spy_samplingEventCall);
 
         this.clock.tick(2000);
@@ -247,7 +247,7 @@ describe("Server Side MonitoredItem",function(){
             monitoredItemId: 50
         });
 
-        var spy_samplingEventCall = new sinon.spy();
+        var spy_samplingEventCall = sinon.spy();
         monitoredItem.on("samplingEvent",spy_samplingEventCall);
 
         this.clock.tick(2000);

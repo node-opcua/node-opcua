@@ -130,7 +130,7 @@ describe("Subscriptions and MonitoredItems", function () {
         });
 
         // let spy the notifications event handler
-        var spy_notification_event = new sinon.spy();
+        var spy_notification_event = sinon.spy();
         subscription.on("notification",spy_notification_event);
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({

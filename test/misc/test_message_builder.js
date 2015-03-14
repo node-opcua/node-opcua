@@ -109,7 +109,7 @@ describe("MessageBuilder", function () {
 
     it('should raise an error if the embedded object id is not known', function (done) {
 
-        var bad_packet = Buffer(packets.packet_cs_2);
+        var bad_packet = new Buffer(packets.packet_cs_2);
 
         // alter the packet id to scrap the message ID
         // this will cause the message builder not to find the embedded object constructor.
@@ -123,7 +123,7 @@ describe("MessageBuilder", function () {
 
     it('should raise an error if the embedded object failed to be decoded', function (done) {
 
-        var bad_packet = Buffer(packets.packet_cs_2);
+        var bad_packet = new Buffer(packets.packet_cs_2);
 
         // alter the packet id  to scrap the inner data
         // this will cause the decode function to fail and raise an exception

@@ -53,24 +53,24 @@ describe("watch dog", function () {
     it("should not have a timer running if no subscriber", function () {
 
         watchDog.subscriberCount.should.eql(0);
-        should(watchDog._timer).equal.null;
+        should(watchDog._timer).equal(null);
     });
 
     it("should have the internal timer running after the first subscriber has registered", function () {
 
-        should(watchDog._timer).equal.null;
+        should(watchDog._timer).equal(null);
 
         var obj1 = new MyObject();
         watchDog.addSubscriber(obj1,1000);
 
-        should(watchDog._timer).not.equal.null;
+        should(watchDog._timer).not.equal(null);
 
         watchDog.removeSubscriber(obj1);
     });
 
     it("should stop the internal timer running after the last subscriber has unregistered", function () {
 
-        should(watchDog._timer).equal.null;
+        should(watchDog._timer).equal(null);
 
         var obj1 = new MyObject();
         watchDog.addSubscriber(obj1,1000);
@@ -79,7 +79,7 @@ describe("watch dog", function () {
         watchDog.addSubscriber(obj1,1000);
         watchDog.removeSubscriber(obj1);
 
-        should(watchDog._timer).equal.null;
+        should(watchDog._timer).equal(null);
     });
 
     it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", function (done) {

@@ -24,9 +24,7 @@ function start_simple_server(options,callback) {
 
     var spawn = require("child_process").spawn;
 
-    var options = {
-        env: {}
-    };
+    options.env = options.env ||{};
 
     _.extend(options.env,process.env);
 

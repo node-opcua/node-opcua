@@ -57,7 +57,7 @@ CallMethodResult_Schema = {
      */
         // todo : the spec is not very clear about the fact that the  outputArguments is a array of Variant ..
         //        => Open a ticket issue at the foundation.
-        { name: "outputArguments" , fieldType:"Variant", isArray:true, documentation: "The list of output argument values. " },
+        { name: "outputArguments" , fieldType:"Variant", isArray:true, documentation: "The list of output argument values. " }
 
 
     ]

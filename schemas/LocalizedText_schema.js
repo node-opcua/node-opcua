@@ -54,7 +54,7 @@ var LocalizedText_Schema = {
         if ((encoding_mask & 0x02) === 0x02) {
             self.text = ec.decodeString(stream);
             tracer.trace("member", "text", self.text, cursor_before, stream.length, "text");
-            cursor_before = stream.length;
+            //cursor_before = stream.length;
         } else {
             self.text = null;
         }

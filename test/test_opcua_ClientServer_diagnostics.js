@@ -45,7 +45,7 @@ describe("Testing Server and Client diagnostic facilities",function() {
         var cp = server.endpoints[0];
         var ckey = Object.keys(cp._channels);
         assert(ckey.length === 1);
-        var channel = cp._channels[ckey[0]];;
+        var channel = cp._channels[ckey[0]];
         //assert(channel instanceof ServerSecureChannelLayer);
         return channel;
     }

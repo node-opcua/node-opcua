@@ -88,7 +88,7 @@ function download_openssl(callback) {
     });
 }
 function install_openssl(filename,callback) {
-    dirPath = 'bin/openssl';
+    var dirPath = 'bin/openssl';
 
     var unzip = require("unzip");
     var stream = fs.createReadStream(filename);

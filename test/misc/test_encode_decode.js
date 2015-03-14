@@ -340,7 +340,7 @@ describe("testing built-in type encoding", function () {
 
     it("should encode and decode a Opaque NodeId", function () {
 
-        var value = Buffer(32);
+        var value = new Buffer(32);
         for (var i = 0; i < 32; i++) {
             value.writeUInt8(i, i);
         }

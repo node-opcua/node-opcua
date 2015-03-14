@@ -12,7 +12,7 @@ describe("QualifedName",function() {
     it("should construct a qualified name", function () {
         var qn = new QualifiedName({});
         qn.namespaceIndex.should.eql(0);
-        should(qn.name === null).be.true;
+        should(qn.name === null).be.equal(true);
     });
     it("testing qualified name toString", function () {
         var qn = new QualifiedName({name: "Hello"});

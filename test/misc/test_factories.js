@@ -631,7 +631,7 @@ describe("factories testing advanced cases",function(){
             name: "Blob4",
             id: factories.next_available_id(),
             fields: [
-                { name: "createdOn", fieldType: "DateTime", defaultValue: null},
+                { name: "createdOn", fieldType: "DateTime", defaultValue: null}
             ]
         };
         factories.unregisterObject(exports.Blob4_Schema,"tmp");

@@ -22,7 +22,7 @@ var FooBar_Schema = {
 
     id: next_available_id(),
     fields: [
-        {name: "name",        fieldType: "String",  documentation: "The name."},
+        {name: "name",        fieldType: "String",  documentation: "The name."}
     ]
 };
 exports.FooBar_Schema =FooBar_Schema;

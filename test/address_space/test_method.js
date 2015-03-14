@@ -45,7 +45,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
             executable: true
         });
 
-        function fakeMethod(){};
+        function fakeMethod(){}
         method.bindMethod(fakeMethod);
 
         var value;

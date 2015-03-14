@@ -70,7 +70,7 @@ function fake_encrypt_buffer(buffer) {
         encrypted_chunk.copy(outputBuffer, i * this.cipherBlockSize);
     }
     return outputBuffer;
-};
+}
 
 function no_encrypt_block(block) {
 

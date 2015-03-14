@@ -404,6 +404,7 @@ function constructCACertificateWithCRL(callback) {
  *
  * @param private_key_filename
  * @param key_length
+ * @param callback {Function}
  */
 function createPrivateKey(private_key_filename,key_length,callback) {
 
@@ -423,7 +424,7 @@ function createPrivateKey(private_key_filename,key_length,callback) {
  * @method getPublicKeyFromPrivateKey
  * @param private_key_filename
  * @param public_key_filename
- * @param callback
+ * @param callback  {Function}
  */
 function getPublicKeyFromPrivateKey(private_key_filename,public_key_filename,callback) {
     execute(openssl_path + " rsa -pubout -in " + private_key_filename + " > "+ public_key_filename,callback);
@@ -434,7 +435,7 @@ function getPublicKeyFromPrivateKey(private_key_filename,public_key_filename,cal
  *   openssl x509 -pubkey -in certificate.pem -nottext
  *
  * @method getPublicKeyFromCertificate
- * @param private_key_filename
+ * @param certificate_filename
  * @param public_key_filename
  * @param callback
  */
@@ -461,6 +462,7 @@ function renew_certificate( certificate,new_startDate,new_endDate,callback) {
 /**
  * create a certificate issued by the Certification Authority
  * @method createCertificate
+ * @param self_signed
  * @param certname
  * @param private_key
  * @param applicationUri
@@ -576,6 +578,8 @@ function assert_fileexists(filename) {
  *
  *
  * @param certificate_file
+ * @param callback
+ * @async
  */
 function revoke_certificate(certificate_file, callback) {
 

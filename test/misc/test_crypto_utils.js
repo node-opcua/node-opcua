@@ -76,7 +76,7 @@ describe("test derived key making",function() {
         encryptingKeyLength: 16,
         encryptingBlockSize: 16,
         signatureLength: 20,
-        algorithm:  "aes-128-cbc",
+        algorithm:  "aes-128-cbc"
     };
     var options_AES_256_CBC = {
         signingKeyLength: 256,

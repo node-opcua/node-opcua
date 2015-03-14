@@ -25,6 +25,7 @@ var sequenceNumberGenerator = new SequenceNumberGenerator();
 
 /**
  * @method iterate_on_signed_message_chunks
+ * @param buffer
  * @param callback {Function}
  * @param callback.err  {Error}
  * @param callback.chunks  {Array<Buffer>}
