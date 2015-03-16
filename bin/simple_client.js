@@ -225,7 +225,7 @@ async.series([
 
             var t = Date.now();
             crawler.on("browsed",function(element){
-                console.log("->",element.browseName.name,element.nodeId.toString());
+                // console.log("->",element.browseName.name,element.nodeId.toString());
             });
 
             var nodeId = "ObjectsFolder";
