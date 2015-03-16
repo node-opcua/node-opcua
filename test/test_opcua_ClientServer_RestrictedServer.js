@@ -15,83 +15,89 @@ var build_server_with_temperature_device = require("./helpers/build_server_with_
 var session_service = require("lib/services/session_service");
 var UserNameIdentityToken = session_service.UserNameIdentityToken;
 
-describe("testing server with restricted securityModes - Given a server with a single end point SIGNANDENCRYPT/Basic128Rsa15",function() {
+var crypto_utils = require("lib/misc/crypto_utils");
+if (!crypto_utils.isFullySupported()) {
+    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
+} else {
 
-    var server , client,temperatureVariableId,endpointUrl,serverCertificate ;
+    describe("testing server with restricted securityModes - Given a server with a single end point SIGNANDENCRYPT/Basic128Rsa15", function () {
 
-    var port = 2001;
-    before(function(done){
-        // we use a different port for each tests to make sure that there is
-        // no left over in the tcp pipe that could generate an error
-        port+=1;
+        var server, client, temperatureVariableId, endpointUrl, serverCertificate;
 
-        var options = {
-            port:port,
-            securityPolicies: [ SecurityPolicy.Basic128Rsa15 ],
-            securityModes: [ MessageSecurityMode.SIGNANDENCRYPT ]
-        }
-        server = build_server_with_temperature_device(options,function() {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
-            serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
+        var port = 2001;
+        before(function (done) {
+            // we use a different port for each tests to make sure that there is
+            // no left over in the tcp pipe that could generate an error
+            port += 1;
+
+            var options = {
+                port: port,
+                securityPolicies: [SecurityPolicy.Basic128Rsa15],
+                securityModes: [MessageSecurityMode.SIGNANDENCRYPT]
+            }
+            server = build_server_with_temperature_device(options, function () {
+                endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                temperatureVariableId = server.temperatureVariableId;
+                serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
+                done();
+            });
+        });
+
+        beforeEach(function (done) {
+            client = null;
             done();
         });
-    });
 
-    beforeEach(function(done){
-        client = null;
-        done();
-    });
+        afterEach(function (done) {
+            client = null;
+            done();
+        });
 
-    afterEach(function(done){
-        client = null;
-        done();
-    });
+        after(function (done) {
+            server.shutdown(done);
+        });
+        it("should not connect with SecurityMode==NONE", function (done) {
 
-    after(function(done){
-        server.shutdown(done);
-    });
-    it("should not connect with SecurityMode==NONE",function(done){
+            client = new OPCUAClient();
+            client.connect(endpointUrl, function (err) {
+                should(err).not.be.eql(null);
+                done(null);
+            });
+        });
+        it("should not connect with SecurityMode==SIGN", function (done) {
 
-        client = new OPCUAClient();
-        client.connect(endpointUrl,function(err){
-            should(err).not.be.eql(null);
-            done(null);
+            client = new OPCUAClient({
+                securityMode: MessageSecurityMode.SIGN,
+                securityPolicy: SecurityPolicy.Basic128Rsa15,
+                serverCertificate: serverCertificate
+            });
+            client.connect(endpointUrl, function (err) {
+                should(err).not.be.eql(null);
+                done(null);
+            });
         });
-    });
-    it("should not connect with SecurityMode==SIGN",function(done){
+        it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256 ", function (done) {
+            client = new OPCUAClient({
+                securityMode: MessageSecurityMode.SIGN,
+                securityPolicy: SecurityPolicy.Basic256,
+                serverCertificate: serverCertificate
+            });
+            client.connect(endpointUrl, function (err) {
+                should(err).not.be.eql(null);
+                done(null);
+            });
+        });
+        it("should connect with  SecurityMode SIGNANDENCRYPT / Basic128Rsa15 ", function (done) {
 
-        client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGN,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
-            serverCertificate: serverCertificate
-        });
-        client.connect(endpointUrl,function(err){
-            should(err).not.be.eql(null);
-            done(null);
-        });
-    });
-    it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256 ",function(done) {
-        client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGN,
-            securityPolicy: SecurityPolicy.Basic256,
-            serverCertificate: serverCertificate
-        });
-        client.connect(endpointUrl,function(err){
-            should(err).not.be.eql(null);
-            done(null);
+            client = new OPCUAClient({
+                securityMode: MessageSecurityMode.SIGNANDENCRYPT,
+                securityPolicy: SecurityPolicy.Basic128Rsa15,
+                serverCertificate: serverCertificate
+            });
+            client.connect(endpointUrl, function (err) {
+                should(err).be.eql(undefined);
+                client.disconnect(done);
+            });
         });
     });
-    it("should connect with  SecurityMode SIGNANDENCRYPT / Basic128Rsa15 ",function(done){
-
-        client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGNANDENCRYPT,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
-            serverCertificate: serverCertificate
-        });
-        client.connect(endpointUrl,function(err){
-            should(err).be.eql(undefined);
-            client.disconnect(done);
-        });
-    });
-});
+}

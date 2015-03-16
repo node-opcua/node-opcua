@@ -11,6 +11,11 @@ platform:
   - x86
   - x64
 
+# fix lineendings in Windows
+init:
+  - git config --global core.autocrlf input
+
+
 # Install scripts. (runs after repo cloning)
 install:
   # Get the latest stable version of Node.js or io.js
