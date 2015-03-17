@@ -11,6 +11,10 @@ platform:
   - x86
   - x64
 
+matrix:
+  allow_failures:
+    - nodejs_version: "0.10"
+
 # fix lineendings in Windows
 init:
   - git config --global core.autocrlf input
