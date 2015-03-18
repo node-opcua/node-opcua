@@ -30,3 +30,4 @@ schemas/ServerStatus.js
 certificates/
 bin/openssl/
 openssl-1.0.2-i386-win32.zip
+CTT/
