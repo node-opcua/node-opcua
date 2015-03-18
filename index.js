@@ -1,3 +1,5 @@
+"use strict";
+
 require("requirish")._(module);
 
 // common services
@@ -28,36 +30,36 @@ module.exports.get_endpoints_service  = require("lib/services/get_endpoints_serv
 
 module.exports.EndpointDescription =  module.exports.get_endpoints_service.EndpointDescription;
 
-module.exports.utils     = require("lib/misc/utils");
+module.exports.utils              = require("lib/misc/utils");
 
-module.exports.AttributeIds     = module.exports.read_service.AttributeIds;
-module.exports.AttributeNameById= module.exports.read_service.AttributeNameById;
-module.exports.VariableIds      = require("lib/opcua_node_ids").VariableIds;
-module.exports.MethodIds        = require("lib/opcua_node_ids").MethodIds;
-module.exports.ObjectIds        =require("lib/opcua_node_ids").ObjectIds;
+module.exports.AttributeIds       = module.exports.read_service.AttributeIds;
+module.exports.AttributeNameById  = module.exports.read_service.AttributeNameById;
+module.exports.VariableIds        = require("lib/opcua_node_ids").VariableIds;
+module.exports.MethodIds          = require("lib/opcua_node_ids").MethodIds;
+module.exports.ObjectIds          = require("lib/opcua_node_ids").ObjectIds;
 
 // client services
 module.exports.OPCUAClient        = require("lib/client/opcua_client").OPCUAClient;
 module.exports.NodeCrawler        = require("lib/client/node_crawler").NodeCrawler;
 module.exports.ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
-module.exports.ClientSession       = require("lib/client/opcua_client").ClientSession;
+module.exports.ClientSession      = require("lib/client/opcua_client").ClientSession;
 
 // Server services
-module.exports.OPCUAServer      = require("lib/server/opcua_server").OPCUAServer;
-module.exports.ServerEngine     = require("lib/server/server_engine").ServerEngine;
+module.exports.OPCUAServer        = require("lib/server/opcua_server").OPCUAServer;
+module.exports.ServerEngine       = require("lib/server/server_engine").ServerEngine;
 module.exports.generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
-module.exports.AddressSpace     = require("lib/address_space/address_space").AddressSpace;
+module.exports.AddressSpace       = require("lib/address_space/address_space").AddressSpace;
 
 module.exports.SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
 
-module.exports.AnonymousIdentityToken  =module.exports.session_service.AnonymousIdentityToken;
+module.exports.AnonymousIdentityToken = module.exports.session_service.AnonymousIdentityToken;
 
 //
 module.exports.MessageSecurityMode = module.exports.get_endpoints_service.MessageSecurityMode;
 
 
 // DA
-module.exports.standardUnits = require("lib/data_access/EUInformation").standardUnits;
+module.exports.standardUnits     = require("lib/data_access/EUInformation").standardUnits;
 module.exports.makeEUInformation = require("lib/data_access/EUInformation").makeEUInformation;
 module.exports.addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 
