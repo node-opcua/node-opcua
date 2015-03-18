@@ -1,8 +1,8 @@
 
 # Creating a Client
 
-In this example, we want to create a OPCUA Client to monitor a variable on a Server.
-
+In this example, we want to create a OPCUA Client to monitor a variable on the server , created in
+[this tutorial](creating_a_server.md).
 
 ## preparation
 
@@ -44,9 +44,19 @@ var async = require("async");
 
 ### client instantiation
 
+To connect to the server, the client must specify the exact URI of the server.
+<pre>
+opc.tcp://<hostname>:4334/UA/MyLittleServer
+</pre>
+where <hostname> shall be replaced with the computer name or fully qualified domain name of the machine on which the
+server is running.
+OPCUA Client
+
+
+
 ```javascript
 var client = new opcua.OPCUAClient();
-var endpointUrl = "opc.tcp://" + require("os").hostname().toLowerCase() + ":4334/UA/SampleServer";
+var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 ```
 
 

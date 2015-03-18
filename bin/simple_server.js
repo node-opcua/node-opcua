@@ -1,4 +1,12 @@
+"use strict";
 Error.stackTraceLimit = Infinity;
+
+var argv = require('yargs')
+    .wrap(132)
+    .string("alternateHostname")
+    .describe("alternateHostname")
+    .alias('a','alternateHostname')
+    .argv;
 
 var opcua = require("..");
 var _ = require("underscore");
@@ -16,9 +24,11 @@ var standard_nodeset_file = opcua.standard_nodeset_file;
 
 var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
 
-var server = new OPCUAServer({
+
+var server_options ={
 
     port: 26543,
+    resourcePath: "UA/Server",
 
     nodeset_filename: [ standard_nodeset_file],
 
@@ -35,15 +45,19 @@ var server = new OPCUAServer({
     },
     serverCapabilities: {
         operationLimits: {
-            maxNodesPerRead: 10,
-            maxNodesPerBrowse: 2
+            maxNodesPerRead: 1000,
+            maxNodesPerBrowse: 2000
         }
     }
-});
+};
+server_options.alternateHostname = argv.alternateHostname;
+
+var server = new OPCUAServer(server_options);
 
 var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
-var hostname = require("os").hostname().toLowerCase();
+var hostname = require("os").hostname();
+
 var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
 
 console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);

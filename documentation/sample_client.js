@@ -3,7 +3,7 @@ var opcua = require("node-opcua");
 var async = require("async");
 
 var client = new opcua.OPCUAClient();
-var endpointUrl = "opc.tcp://" + require("os").hostname().toLowerCase() + ":4334/UA/SampleServer";
+var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 
 var the_session, the_subscription;
 

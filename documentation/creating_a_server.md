@@ -83,11 +83,17 @@ For a simple server, you just need to specify a TCP port.
 // Let's create an instance of OPCUAServer
 var server = new opcua.OPCUAServer({
     port: 4334, // the port of the listening socket of the server
-
+    resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
     _"setting server info"
 });
-
 ```
+
+The resource path will be used to construct the endpoint uniform resource identifier (uri) of our server.
+In our case, the endpoint urn of our server will be <pre>opc.tcp://<hostname>:4334/UA/MyLittleServer</pre>
+where <pre>hostname</pre> shall be replaced with your computer name or fully qualified domain name.
+
+Client will have to use this URN to connect to the server.
+
 
 ### setting server info
 
@@ -218,7 +224,7 @@ function available_memory() {
 }
 ```
 
-Now let's expose our OPUC Variable
+Now let's expose our OPCUA Variable
 
 ```javascript
 server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
@@ -257,6 +263,6 @@ console.log(" the primary server endpoint url is ", endpointUrl );
 ## Execute and test the server
 
 ``` sh
-  $ node sample_server.js
+$ node sample_server.js
 ```
 
