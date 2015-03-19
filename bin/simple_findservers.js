@@ -1,3 +1,4 @@
+"use strict";
 /**
  * this script queries the discovery server and display the discovery urls
  *
