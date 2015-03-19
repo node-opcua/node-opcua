@@ -1,0 +1,26 @@
+{
+    "browser": false,
+    "node": true,
+    "devel": true,
+    "esnext": true,
+    "camelcase": false,
+    "curly": true,
+    "eqeqeq": true,
+    "forin": true,
+    "immed": true,
+    "indent": 4,
+    "latedef": true,
+    "noarg": true,
+    "quotmark": "double",
+    "undef": true,
+    "unused": true,
+    "strict": true,
+    "trailing": true,
+    "globals": {
+        "require": true,
+        "define": true,
+        "performance": true
+    },
+    "newcap": false,
+    "multistr": true
+}
