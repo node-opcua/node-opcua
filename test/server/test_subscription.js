@@ -1,4 +1,4 @@
-/*global require,describe,it,before,beforeEach,after,afterEach*/
+/* global: require,describe,it,before,beforeEach,after,afterEach */
 "use strict";
 require("requirish")._(module);
 var should =require("should");
