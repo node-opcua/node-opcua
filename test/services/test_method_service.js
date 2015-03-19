@@ -1,4 +1,5 @@
-/* global describe, it*/
+"use strict";
+/* global describe, it,before,after,beforeEach,afterEach*/
 require("requirish")._(module);
 
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -8,6 +9,7 @@ var opcua = require("../../");
 var DataType = opcua.DataType;
 var utils = require("lib/misc/utils");
 
+var Variant = require("lib/datamodel/variant").Variant;
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
