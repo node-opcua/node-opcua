@@ -1,4 +1,7 @@
+/*global require,describe,it,before,beforeEach,after,afterEach*/
+"use strict";
 require("requirish")._(module);
+
 var should =require("should");
 var sinon = require("sinon");
 
@@ -18,7 +21,13 @@ var Variant = require("lib/datamodel/variant").Variant;
 var fake_publish_engine = {
     pendingPublishRequestCount: 0,
     send_notification_message: function() {},
-    send_keep_alive_response: function() { return true;}
+    send_keep_alive_response: function() {
+        if (this.pendingPublishRequestCount <=0) {
+            return false;
+        }
+        this.pendingPublishRequestCount -=1;
+        return true;
+    }
 };
 
 

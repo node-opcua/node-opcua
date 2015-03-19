@@ -67,7 +67,7 @@ if (!crypto_utils.isFullySupported()) {
                 function (callback) {
 
                     client.createSession(function (err) {
-                        console.log(err);
+
                         try {
                             verif_after_create_session(err);
                         }
@@ -150,18 +150,27 @@ if (!crypto_utils.isFullySupported()) {
 
         });
 
-        xit("GGG Client shall deny server session if server nonce is too small", function (done) {
+        it("Client shall deny server session if server nonce is too small", function (done) {
 
             var crypto = require("crypto");
+            var bad_nonce = 0;
             server.makeServerNonce = function() {
+                bad_nonce +=1;
                 return crypto.randomBytes(31); //<< instead of 32  !!!
+            };
+            var options = {
+                endpoint_must_exist: true
             };
             var client = new OPCUAClient(options);
             test_connection(client, function (err) {
                 err.message.should.match(/Invalid server Nonce/);
+                bad_nonce.should.be.greaterThan(0);
             }, done);
 
         });
 
+        it("Server shall expose a Server Object",function(){
+
+        });
     });
 }

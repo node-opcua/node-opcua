@@ -1,3 +1,5 @@
+/*global xit,it,describe,before,after,beforeEach,afterEach*/
+"use strict";
 require("requirish")._(module);
 var assert = require("better-assert");
 var async = require("async");
@@ -20,14 +22,14 @@ var perform_operation_on_subscription = require("./helpers/perform_operation_on_
 var _port = 2000;
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
 
-    var server , client, temperatureVariableId, endpointUrl;
+    var server, client, temperatureVariableId, endpointUrl;
 
-    var port = _port +1 ;
+    var port = _port + 1;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
-        server = build_server_with_temperature_device({ port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
@@ -160,7 +162,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
             var monitoredItem = subscription.monitor(
                 {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
-                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
             // subscription.on("item_added",function(monitoredItem){
             monitoredItem.on("initialized", function () {
@@ -172,7 +174,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         }, done);
     });
 
-    it("should be possible to monitor several nodeId value with a single client subscription",function(done){
+    it("should be possible to monitor several nodeId value with a single client subscription", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -188,103 +190,102 @@ describe("testing Client-Server subscription use case, on a fake server exposing
             });
 
 
-
             var currentTime_changes = 0;
             var monitoredItemCurrentTime = subscription.monitor(
                 {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
-                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
             // subscription.on("item_added",function(monitoredItem){
             monitoredItemCurrentTime.on("changed", function (dataValue) {
 
-                console.log(" current time",dataValue.value.value);
+                console.log(" current time", dataValue.value.value);
                 currentTime_changes++;
             });
 
             var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
             var monitoredItemPumpSpeed = subscription.monitor(
                 {nodeId: resolveNodeId(pumpSpeedId), attributeId: AttributeIds.Value},
-                {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
             var pumpSpeed_changes = 0;
             monitoredItemPumpSpeed.on("changed", function (dataValue) {
-                console.log(" pump speed ",dataValue.value.value);
+                console.log(" pump speed ", dataValue.value.value);
                 pumpSpeed_changes++;
 
             });
 
-            setTimeout(function(){
+            setTimeout(function () {
 
                 pumpSpeed_changes.should.be.greaterThan(1);
                 currentTime_changes.should.be.greaterThan(1);
                 done();
-            },200);
+            }, 200);
 
         }, done);
     });
 
-    it("should terminate any pending subscription when the client is disconnected",function(done){
+    it("should terminate any pending subscription when the client is disconnected", function (done) {
 
 
         var the_session;
 
         async.series([
 
-        // connect
-        function (callback) {
-            client.connect(endpointUrl, callback);
-        },
+            // connect
+            function (callback) {
+                client.connect(endpointUrl, callback);
+            },
 
-        // create session
-        function (callback) {
-            client.createSession(function (err, session) {
-                assert(session instanceof ClientSession);
-                if (!err) {
-                    the_session = session;
-                }
-                callback(err);
-            });
-        },
+            // create session
+            function (callback) {
+                client.createSession(function (err, session) {
+                    assert(session instanceof ClientSession);
+                    if (!err) {
+                        the_session = session;
+                    }
+                    callback(err);
+                });
+            },
 
-        // create subscription
-        function (callback) {
+            // create subscription
+            function (callback) {
 
-            var subscription = new ClientSubscription(the_session, {
-                requestedPublishingInterval: 100,
-                requestedLifetimeCount: 100 * 60 * 10,
-                requestedMaxKeepAliveCount: 5,
-                maxNotificationsPerPublish: 5,
-                publishingEnabled: true,
-                priority: 6
-            });
-            subscription.on("started", function () {
+                var subscription = new ClientSubscription(the_session, {
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 100 * 60 * 10,
+                    requestedMaxKeepAliveCount: 5,
+                    maxNotificationsPerPublish: 5,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                subscription.on("started", function () {
 
-                var monitoredItem = subscription.monitor(
-                    {
-                        nodeId: resolveNodeId("ns=0;i=2258"),
-                        attributeId: 13
-                    },
-                    {samplingInterval: 100, discardOldest: true, queueSize: 1 });
+                    var monitoredItem = subscription.monitor(
+                        {
+                            nodeId: resolveNodeId("ns=0;i=2258"),
+                            attributeId: 13
+                        },
+                        {samplingInterval: 100, discardOldest: true, queueSize: 1});
 
-                callback();
+                    callback();
 
-            });
+                });
 
-        },
-        // wait a little bit
-        function (callback) {
-            setTimeout(function() {
-                // client.disconnect(done);
-                callback();
-            },100);
-        },
+            },
+            // wait a little bit
+            function (callback) {
+                setTimeout(function () {
+                    // client.disconnect(done);
+                    callback();
+                }, 100);
+            },
 
-        // now disconnect the client , without closing the subscription first
-        function (callback) {
-            client.disconnect(callback);
-        }
+            // now disconnect the client , without closing the subscription first
+            function (callback) {
+                client.disconnect(callback);
+            }
 
-        ] , function(err) {
+        ], function (err) {
             done(err);
         });
 
@@ -294,7 +295,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
 describe("testing server and subscription", function () {
     var server, client, temperatureVariableId, endpointUrl;
-    var port = _port +1 ;
+    var port = _port + 1;
     before(function (done) {
         console.log(" Creating Server");
         server = build_server_with_temperature_device({port: port}, function () {
@@ -417,7 +418,7 @@ describe("testing server and subscription", function () {
                 done(err);
             });
 
-        }, done)
+        }, done);
 
     });
 
@@ -558,14 +559,14 @@ describe("testing server and subscription", function () {
 
 describe("testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function () {
 
-    var server , client, temperatureVariableId, endpointUrl;
+    var server, client, temperatureVariableId, endpointUrl;
 
-    var port = _port +1 ;
+    var port = _port + 1;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
-        server = build_server_with_temperature_device({ port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done();
@@ -588,11 +589,11 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     this.timeout(10000);
 
-    it("A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval",function(done){
+    it("A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval", function (done) {
 
         //xx endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
 
-        var nb_keep_alive_received= 0;
+        var nb_keep_alive_received = 0;
         // from Spec OPCUA Version 1.02 Part 4 - 5.13.1.1 Description : Page 76
         // h. Subscriptions have a lifetime counter that counts the number of consecutive publishing cycles in
         //    which there have been no Publish requests available to send a Publish response for the
@@ -609,7 +610,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             var subscription = new ClientSubscription(session, {
 
                 requestedPublishingInterval: 10,
-                requestedLifetimeCount:     6,
+                requestedLifetimeCount: 6,
                 requestedMaxKeepAliveCount: 2,
                 maxNotificationsPerPublish: 10,
                 publishingEnabled: true,
@@ -617,13 +618,14 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
 
 
-            sinon.stub(subscription.publish_engine, "_send_publish_request", function() {});
+            sinon.stub(subscription.publish_engine, "_send_publish_request", function () {
+            });
 
-            setTimeout(function() {
+            setTimeout(function () {
                 subscription.publish_engine._send_publish_request.restore();
                 subscription.publish_engine._send_publish_request();
                 console.log(" --------------------------- ");
-            },1000);
+            }, 1000);
 
             subscription.on("keepalive", function () {
                 nb_keep_alive_received += 1;
@@ -631,12 +633,12 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
             subscription.on("started", function () {
 
-                console.log("subscriptionId     :",subscription.subscriptionId);
-                console.log("publishingInterval :",subscription.publishingInterval);
-                console.log("lifetimeCount      :",subscription.lifetimeCount);
-                console.log("maxKeepAliveCount  :",subscription.maxKeepAliveCount);
+                console.log("subscriptionId     :", subscription.subscriptionId);
+                console.log("publishingInterval :", subscription.publishingInterval);
+                console.log("lifetimeCount      :", subscription.lifetimeCount);
+                console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
 
-            }).on("status_changed",function(statusCode){
+            }).on("status_changed", function (statusCode) {
 
                 statusCode.should.eql(StatusCodes.BadTimeout);
                 setTimeout(function () {
@@ -648,12 +650,161 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 inner_done();
             });
 
+        }, done);
+
+
+    });
+
+    it("A subscription without a monitored item should not dropped too early ( see #59)",function(done) {
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 6,
+                requestedMaxKeepAliveCount: 2,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+
+            function termination_is_a_failure() {
+                //xx console.log(" subscription terminated ".yellow);
+                inner_done(new Error("subscription has been terminated !!!!"));
+            }
+
+            subscription.on("terminated", termination_is_a_failure);
+
+            setTimeout(function () {
+                subscription.removeListener("terminated", termination_is_a_failure);
+                inner_done();
+            }, 1000);
+
         },done);
+    });
+
+    it("A server should suspend/resume publishing when client send a setPublishingMode Request ", function (done) {
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 6,
+                requestedMaxKeepAliveCount: 2,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
 
 
-    })
+            subscription.on("terminated", function () {
+                console.log(" subscription terminated ".yellow);
+            });
+            var monitoredItem = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
+
+            var change_count = 0;
+            monitoredItem.on("changed", function (dataValue) {
+                change_count +=1;
+                //xx console.log(" dataValue = ",dataValue.toString());
+            });
+
+            var ref_change_count = 0;
+            async.series([
+                function (callback) {
+                    // wait 400 milliseconds and verify that the subscription is sending some notification
+                    setTimeout(function(){
+                        change_count.should.be.greaterThan(2);
+                        callback();
+                    },400);
+
+                },
+                function(callback){
+                    // suspend subscription
+                    subscription.setPublishingMode(false,function(err) {
+                        change_count = 0;
+                        callback(err);
+                    });
+
+                },
+                function (callback) {
+                    // wait  400 milliseconds and verify that the subscription is  NOT sending some notification
+                    setTimeout(function(){
+                        change_count.should.equal(0);
+                        callback();
+                    },400);
+
+                },
+
+                function(callback){
+                    // resume subscription
+                    subscription.setPublishingMode(true,function(err) {
+                        change_count = 0;
+                        callback(err);
+                    });
+                },
+
+                function (callback) {
+                    // wait 600 milliseconds and verify that the subscription is sending some notification again
+                    setTimeout(function(){
+                        change_count.should.be.greaterThan(2);
+                        callback();
+                    },600);
+                },
+
+                function (callback) {
+                    subscription.terminate();
+                    subscription.on("terminated", function () {
+                        callback();
+                    });
+                }
+            ], inner_done);
+
+
+        }, done);
+    });
+    it("A client should be able to create a subscription that have  publishingEnable=false", function (done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 6,
+                requestedMaxKeepAliveCount: 2,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: false,
+                priority: 6
+            });
+
+
+            subscription.on("terminated", function () {
+                console.log(" subscription terminated ".yellow);
+            });
+            var monitoredItem = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
+
+            var change_count = 0;
+            monitoredItem.on("changed", function (dataValue) {
+                change_count +=1;
+                //xx console.log(" dataValue = ",dataValue.toString());
+            });
+            async.series([
+                function (callback) {
+                    // wait 400 ms and verify that the subscription is not sending notification.
+                    setTimeout(function(){
+                        change_count.should.equal(0);
+                        callback();
+                    },400);
+
+                }
+            ],inner_done);
+
+        }, done);
+    });
 });
-
 
 
 

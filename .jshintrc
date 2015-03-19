@@ -19,7 +19,15 @@
     "globals": {
         "require": true,
         "define": true,
-        "performance": true
+        "performance": true,
+        "describe": true,
+        "xdescribe": true,
+        "it": true,
+        "xit": true,
+        "before": true,
+        "after": true,
+        "beforeEach": true,
+        "afterEach": true
     },
     "newcap": false,
     "multistr": true

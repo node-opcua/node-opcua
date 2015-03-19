@@ -4,6 +4,7 @@
            xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <Aliases>
     <Alias Alias="Boolean">i=1</Alias>
+    <Alias Alias="NodeId">i=17</Alias>
     <Alias Alias="HasTypeDefinition">i=40</Alias>
     <Alias Alias="HasSubtype">i=45</Alias>
   </Aliases>

@@ -1,7 +1,10 @@
+/* global describe,require,it,before */
+"use strict";
 require("requirish")._(module);
 var opcua = require("../../");
 var AddressSpace = opcua.AddressSpace;
 var should = require("should");
+var assert = require("assert");
 
 var _ = require("underscore");
 
@@ -18,9 +21,7 @@ var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").mak
 
 require("lib/datamodel/buildinfo");
 
-
 describe("ComplexType read from XML NodeSET file shall be binary Encodable",function(){
-
 
     var address_space ;
 
@@ -33,16 +34,13 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
         opcua.generate_address_space(address_space,xml_file,function(err) {
 
             makeServerStatus(address_space);
-
             done(err);
         });
     });
 
     it("a DataType should provide a DefaultBinary Encoding object",function(){
 
-
         var serverStatusType = address_space.findDataType("ServerStatusDataType");
-
         serverStatusType.getEncodingNodeId("Default Binary").nodeId.toString().should.eql("ns=0;i=864");
 
     });

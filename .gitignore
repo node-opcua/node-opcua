@@ -26,6 +26,10 @@ _generated_
 pending_*
 schemas/ServerState_enum.js
 schemas/ServerStatus_schema.js
+schemas/ServiceCounter.js
+schemas/ServiceCounter_schema.js
+schemas/SessionDiagnostics.js
+schemas/SessionDiagnostics_schema.js
 schemas/ServerStatus.js
 certificates/
 bin/openssl/

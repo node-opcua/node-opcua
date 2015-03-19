@@ -48,7 +48,20 @@
       <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
     </References>
   </UADataType>
-
+  <UADataType NodeId="i=12" BrowseName="String">
+    <DisplayName>String</DisplayName>
+    <Description>Describes a value that is a sequence of printable Unicode characters.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
+  <UADataType NodeId="i=17" BrowseName="NodeId">
+    <DisplayName>NodeId</DisplayName>
+    <Description>Describes a value that is an identifier for a node within a Server address space.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
   <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
     <DisplayName>BaseDataType</DisplayName>
     <Description>Describes a value that can have any valid DataType.</Description>
@@ -262,6 +275,52 @@
         <Description>The modelling rule defines a constraint and the BrowseName is not used in an instance of the
           type.
         </Description>
+      </Field>
+    </Definition>
+  </UADataType>
+
+  <UADataType NodeId="i=290" BrowseName="Duration">
+    <DisplayName>Duration</DisplayName>
+    <Description>A period of time measured in seconds.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=11</Reference>
+    </References>
+  </UADataType>
+  <UADataType NodeId="i=295" BrowseName="LocaleId">
+    <DisplayName>LocaleId</DisplayName>
+    <Description>An identifier for a user locale.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
+    </References>
+  </UADataType>
+
+  <UADataType NodeId="i=308" BrowseName="ApplicationDescription">
+    <DisplayName>ApplicationDescription</DisplayName>
+    <Description>Describes an application and how to find it.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+    </References>
+    <Definition Name="ApplicationDescription">
+      <Field Name="ApplicationUri" DataType="i=12">
+        <Description>The globally unique identifier for the application.</Description>
+      </Field>
+      <Field Name="ProductUri" DataType="i=12">
+        <Description>The globally unique identifier for the product.</Description>
+      </Field>
+      <Field Name="ApplicationName" DataType="i=21">
+        <Description>The name of application.</Description>
+      </Field>
+      <Field Name="ApplicationType" DataType="i=307">
+        <Description>The type of application.</Description>
+      </Field>
+      <Field Name="GatewayServerUri" DataType="i=12">
+        <Description>The globally unique identifier for the server that is acting as a gateway for the server.</Description>
+      </Field>
+      <Field Name="DiscoveryProfileUri" DataType="i=12">
+        <Description>The globally unique identifier for the discovery profile supported by the server.</Description>
+      </Field>
+      <Field Name="DiscoveryUrls" DataType="i=12" ValueRank="1">
+        <Description>The URLs for the server's discovery endpoints.</Description>
       </Field>
     </Definition>
   </UADataType>
@@ -648,6 +707,100 @@
       <Field Name="SoftwareVersion" DataType="i=12" />
       <Field Name="BuildNumber" DataType="i=12" />
       <Field Name="BuildDate" DataType="i=294" />
+    </Definition>
+  </UADataType>
+
+  <UAObject NodeId="i=866" BrowseName="Default XML" SymbolicName="DefaultXml">
+    <DisplayName>Default XML</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">i=865</Reference>
+      <Reference ReferenceType="HasDescription">i=8855</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="i=867" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">i=865</Reference>
+      <Reference ReferenceType="HasDescription">i=8220</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UADataType NodeId="i=865" BrowseName="SessionDiagnosticsDataType">
+    <DisplayName>SessionDiagnosticsDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+    </References>
+    <Definition Name="SessionDiagnosticsDataType">
+      <Field Name="SessionId" DataType="i=17" />
+      <Field Name="SessionName" DataType="i=12" />
+      <Field Name="ClientDescription" DataType="i=308" />
+      <Field Name="ServerUri" DataType="i=12" />
+      <Field Name="EndpointUrl" DataType="i=12" />
+      <Field Name="LocaleIds" DataType="i=295" ValueRank="1" />
+      <Field Name="ActualSessionTimeout" DataType="i=290" />
+      <Field Name="MaxResponseMessageSize" DataType="i=7" />
+      <Field Name="ClientConnectionTime" DataType="i=294" />
+      <Field Name="ClientLastContactTime" DataType="i=294" />
+      <Field Name="CurrentSubscriptionsCount" DataType="i=7" />
+      <Field Name="CurrentMonitoredItemsCount" DataType="i=7" />
+      <Field Name="CurrentPublishRequestsInQueue" DataType="i=7" />
+      <Field Name="TotalRequestCount" DataType="i=871" />
+      <Field Name="UnauthorizedRequestCount" DataType="i=7" />
+      <Field Name="ReadCount" DataType="i=871" />
+      <Field Name="HistoryReadCount" DataType="i=871" />
+      <Field Name="WriteCount" DataType="i=871" />
+      <Field Name="HistoryUpdateCount" DataType="i=871" />
+      <Field Name="CallCount" DataType="i=871" />
+      <Field Name="CreateMonitoredItemsCount" DataType="i=871" />
+      <Field Name="ModifyMonitoredItemsCount" DataType="i=871" />
+      <Field Name="SetMonitoringModeCount" DataType="i=871" />
+      <Field Name="SetTriggeringCount" DataType="i=871" />
+      <Field Name="DeleteMonitoredItemsCount" DataType="i=871" />
+      <Field Name="CreateSubscriptionCount" DataType="i=871" />
+      <Field Name="ModifySubscriptionCount" DataType="i=871" />
+      <Field Name="SetPublishingModeCount" DataType="i=871" />
+      <Field Name="PublishCount" DataType="i=871" />
+      <Field Name="RepublishCount" DataType="i=871" />
+      <Field Name="TransferSubscriptionsCount" DataType="i=871" />
+      <Field Name="DeleteSubscriptionsCount" DataType="i=871" />
+      <Field Name="AddNodesCount" DataType="i=871" />
+      <Field Name="AddReferencesCount" DataType="i=871" />
+      <Field Name="DeleteNodesCount" DataType="i=871" />
+      <Field Name="DeleteReferencesCount" DataType="i=871" />
+      <Field Name="BrowseCount" DataType="i=871" />
+      <Field Name="BrowseNextCount" DataType="i=871" />
+      <Field Name="TranslateBrowsePathsToNodeIdsCount" DataType="i=871" />
+      <Field Name="QueryFirstCount" DataType="i=871" />
+      <Field Name="QueryNextCount" DataType="i=871" />
+      <Field Name="RegisterNodesCount" DataType="i=871" />
+      <Field Name="UnregisterNodesCount" DataType="i=871" />
+    </Definition>
+  </UADataType>
+  <UAObject NodeId="i=872" BrowseName="Default XML" SymbolicName="DefaultXml">
+    <DisplayName>Default XML</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">i=871</Reference>
+      <Reference ReferenceType="HasDescription">i=8861</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="i=873" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">i=871</Reference>
+      <Reference ReferenceType="HasDescription">i=8226</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UADataType NodeId="i=871" BrowseName="ServiceCounterDataType">
+    <DisplayName>ServiceCounterDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+    </References>
+    <Definition Name="ServiceCounterDataType">
+      <Field Name="TotalCount" DataType="i=7" />
+      <Field Name="ErrorCount" DataType="i=7" />
     </Definition>
   </UADataType>
 </UANodeSet>

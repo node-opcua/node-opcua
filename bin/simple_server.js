@@ -182,7 +182,7 @@ server.on("post_initialize", function () {
 
 });
 
-function w(str,w) { return (str+ "                            ").substr(0,w);}
+function w(str,width) { return (str+ "                            ").substr(0,width);}
 
 function dumpObject(obj) {
  return   _.map(obj,function(value,key) {

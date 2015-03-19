@@ -1,5 +1,7 @@
-require("requirish")._(module);
+/*global require,describe,it,before,beforeEach,after,afterEach*/
 
+"use strict";
+require("requirish")._(module);
 
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 var should = require("should");
@@ -382,14 +384,11 @@ describe("testing basic Client Server dealing with subscription at low level",fu
         });
     });
 
-    it("server should handle SetPublishingMode   request",function(done){
+    it("server should handle SetPublishingMode request",function(done){
 
-        var request = new subscription_service.SetPublishingModeRequest({
-
-        });
-        g_session.setPublishingMode(request,function(err,response){
+        g_session.setPublishingMode(true,[1],function(err,results){
             if(!err) {
-                assert(response instanceof subscription_service.SetPublishingModeResponse);
+                results.should.be.instanceOf(Array);
             }
             done(err);
         });

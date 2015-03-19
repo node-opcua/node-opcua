@@ -1,3 +1,5 @@
+/*global require,describe,it,before,beforeEach,after,afterEach*/
+"use strict";
 require("requirish")._(module);
 var should =require("should");
 var sinon = require("sinon");
@@ -8,17 +10,26 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var Subscription = require("lib/server/subscription").Subscription;
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
-var fake_publish_engine = {
-    pendingPublishRequestCount: 0,
-    send_notification_message: function() {},
-    send_keep_alive_response: function() { return true;}
-};
+var fake_publish_engine = {};
 
+function reconstruct_fake_publish_engine() {
+    fake_publish_engine = {
+        pendingPublishRequestCount: 0,
+        send_notification_message: function() {},
+        send_keep_alive_response: function() {
+            if (this.pendingPublishRequestCount <=0) {
+                return false;
+            }
+            this.pendingPublishRequestCount -=1;
+            return true;            }
+    };
 
+}
 describe("Subscriptions", function () {
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
+        reconstruct_fake_publish_engine();
     });
 
     afterEach(function () {
@@ -84,6 +95,11 @@ describe("Subscriptions", function () {
     });
 
     it("a subscription that have only some notification ready before max_keepalive_count expired shall send notifications and no keepalive", function () {
+
+        fake_publish_engine.pendingPublishRequestCount.should.eql(0);
+
+        // pretend the client has sent only one pending PublishRequest
+        fake_publish_engine.pendingPublishRequestCount = 1;
 
         var subscription = new Subscription({
             publishingInterval: 1000,   // 1 second interval
@@ -199,6 +215,9 @@ describe("Subscriptions", function () {
     });
 
     it("a subscription that has no notification within maxKeepAliveCount shall send a keepalive signal ", function () {
+
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -319,6 +338,7 @@ describe("Subscriptions", function () {
             subscription.sentNotificationsCount.should.equal(0);
 
         });
+
         it("a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.",function(){
             var subscription = new Subscription({
                 id: 1234,
@@ -352,8 +372,52 @@ describe("Subscriptions", function () {
     });
 
 
+    it("a subscription that have no monitored items shall not terminate if client has sent enough PublishRequest", function () {
+
+        // pretend there is plenty of PublishRequest in publish engine
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
+        var subscription = new Subscription({
+            publishingInterval: 100,
+            maxKeepAliveCount:    5,
+            maxLifeTimeCount:    10,
+            publishEngine: fake_publish_engine
+        });
+
+        var notification_event_spy = sinon.spy();
+        var keepalive_event_spy = sinon.spy();
+        var expire_event_spy = sinon.spy();
+
+        subscription.on("notification", notification_event_spy);
+        subscription.on("keepalive", keepalive_event_spy);
+        subscription.on("expired", expire_event_spy);
+
+        this.clock.tick(3000);
+
+        subscription.publishIntervalCount.should.equal(30,
+            " 3000 ms with a publishingInterval: 100 ms means publishIntervalCount = 30");
+
+
+        expire_event_spy.callCount.should.equal(0);
+        keepalive_event_spy.callCount.should.equal(6);
+        notification_event_spy.callCount.should.equal(0);
+
+        this.clock.tick(3000);
+        expire_event_spy.callCount.should.equal(0);
+        keepalive_event_spy.callCount.should.equal(12);
+        notification_event_spy.callCount.should.equal(0);
+
+        this.clock.tick(3000);
+        expire_event_spy.callCount.should.equal(0);
+        keepalive_event_spy.callCount.should.equal(18);
+        notification_event_spy.callCount.should.equal(0);
+
+    });
 
     it("a subscription send a first message at the end of the first publishing cycle without waiting for the maximum  count to be reached",function(){
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
         /**
          * When a Subscription is created, the first Message is sent at the end of the first publishing cycle to
          * inform the Client that the Subscription is operational. A Notification Message is sent if there are
@@ -369,9 +433,11 @@ describe("Subscriptions", function () {
             //
             publishEngine: fake_publish_engine
         });
-        subscription.on("perform_update", function () {
-          // nothing
-        });
+
+        // pretend that we already have notification messages
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
         var expire_event_spy = sinon.spy();
@@ -380,9 +446,21 @@ describe("Subscriptions", function () {
         subscription.on("keepalive", keepalive_event_spy);
         subscription.on("expired", expire_event_spy);
 
-        this.clock.tick(1000);
-        keepalive_event_spy.callCount.should.equal(1);
+        this.clock.tick(200);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(0);
 
+        this.clock.tick(1000);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(1);
+
+        this.clock.tick(1000);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(1);
+
+        this.clock.tick(30000);
+        keepalive_event_spy.callCount.should.equal(1);
+        notification_event_spy.callCount.should.eql(1);
 
     });
 
@@ -412,6 +490,151 @@ describe("Subscriptions", function () {
 
 
 });
+
+describe("Subscription#setPublishingMode",function() {
+
+    beforeEach(function () {
+        this.clock = sinon.useFakeTimers();
+        reconstruct_fake_publish_engine();
+    });
+
+    afterEach(function () {
+        this.clock.restore();
+    });
+    it("a subscription created with publishingEnabled=true  shall emit notification",function(done) {
+
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
+        var subscription = new Subscription({
+            publishingInterval: 100,
+            maxKeepAliveCount:    5,
+            maxLifeTimeCount:    10,
+            publishingEnabled:   true,              //  PUBLISHING IS ENABLED !!!
+            publishEngine: fake_publish_engine
+        });
+
+
+        // pretend that we already have notification messages
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+
+        var notification_event_spy = sinon.spy();
+        var keepalive_event_spy = sinon.spy();
+        var expire_event_spy = sinon.spy();
+
+        subscription.on("notification", notification_event_spy);
+        subscription.on("keepalive", keepalive_event_spy);
+        subscription.on("expired", expire_event_spy);
+
+        this.clock.tick(400);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(4);
+
+        done();
+    });
+
+    it("a subscription created with publishingEnabled=false shall not emit notification (but keepalive)",function(done) {
+
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
+        var subscription = new Subscription({
+            publishingInterval: 100,
+            maxKeepAliveCount:    5,
+            maxLifeTimeCount:    10,
+            publishingEnabled:   false,              //  PUBLISHING IS DISABLED !!!
+            publishEngine: fake_publish_engine
+
+        });
+
+
+        // pretend that we already have notification messages
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+        // a notification finally arrived !
+        subscription.addNotificationMessage({});
+
+        var notification_event_spy = sinon.spy();
+        var keepalive_event_spy = sinon.spy();
+        var expire_event_spy = sinon.spy();
+
+        subscription.on("notification", notification_event_spy);
+        subscription.on("keepalive", keepalive_event_spy);
+        subscription.on("expired", expire_event_spy);
+
+        this.clock.tick(2000);
+        keepalive_event_spy.callCount.should.equal(4);
+        notification_event_spy.callCount.should.eql(0);
+
+        done();
+    });
+
+    it("a publishing subscription can be disabled and re-enabled",function(done){
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
+        var subscription = new Subscription({
+            publishingInterval: 100,
+            maxKeepAliveCount:    5,
+            maxLifeTimeCount:    10,
+            publishingEnabled:   true,              //  PUBLISHING IS ENABLED !!!
+            publishEngine: fake_publish_engine
+        });
+
+        // pretend that we already have notification messages
+        function push_some_notification(){
+            subscription.addNotificationMessage({});
+        }
+        var t = setInterval(push_some_notification,50);
+
+        var notification_event_spy = sinon.spy();
+        var keepalive_event_spy = sinon.spy();
+        var expire_event_spy = sinon.spy();
+
+        subscription.on("notification", notification_event_spy);
+        subscription.on("keepalive", keepalive_event_spy);
+        subscription.on("expired", expire_event_spy);
+
+        this.clock.tick(2000);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(20);
+
+
+        // now disable
+        subscription.setPublishingMode(false);
+        this.clock.tick(2000);
+        keepalive_event_spy.callCount.should.equal(4);
+        notification_event_spy.callCount.should.eql(20);
+
+        subscription.setPublishingMode(true);
+        this.clock.tick(2000);
+        keepalive_event_spy.callCount.should.equal(4);
+        notification_event_spy.callCount.should.eql(40);
+
+        clearInterval(t);
+
+        done();
+
+
+    });
+
+});
+
 
 describe("Subscription#adjustSamplingInterval",function() {
 

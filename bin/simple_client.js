@@ -1,3 +1,4 @@
+"use strict";
 var fs = require("fs");
 var treeify = require('treeify');
 var _ = require("underscore");
@@ -6,7 +7,7 @@ var util = require("util");
 var Table = require('easy-table');
 var async = require("async");
 var utils = require('../lib/misc/utils');
-
+var assert = require("assert");
 var opcua = require("../");
 var VariableIds = opcua.VariableIds;
 
@@ -178,6 +179,7 @@ async.series([
             if (!err) {
                 the_session = session;
                 console.log(" session created".yellow);
+                console.log(" sessionId : ",session.sessionId.toString());
             }
             callback(err);
         });
@@ -223,7 +225,7 @@ async.series([
                 console.log(str.yellow.bold);
             });
 
-            var t = Date.now();
+            t = Date.now();
             crawler.on("browsed",function(element){
                 // console.log("->",element.browseName.name,element.nodeId.toString());
             });
@@ -333,7 +335,7 @@ async.series([
     if (client) {
         client.disconnect(function () {
             var exit = require("exit");
-            exit()
+            exit();
         });
     }
 });
