@@ -36,8 +36,11 @@ describe("DataValue", function () {
         var dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             serverTimestamp: new Date(),
-            serverPicoseconds: 1000
+            serverPicoseconds: 1000,
+            sourceTimestamp: new Date(),
+            sourcePicoseconds: 199,
         });
+        var str = dataValue.toString();
         encode_decode_round_trip_test(dataValue, function (buffer, id) {
         });
     });

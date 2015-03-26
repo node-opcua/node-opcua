@@ -1,3 +1,4 @@
+"use strict";
 var factories   = require("../lib/misc/factories");
 var set_flag    = require("../lib/misc/utils").set_flag;
 var check_flag  = require("../lib/misc/utils").check_flag;

@@ -1,8 +1,8 @@
+"use strict";
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
 var Method = require("lib/address_space/method").Method;
-var Variable = require("lib/address_space/method").Variable;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;

@@ -1,4 +1,4 @@
-
+"use strict";
 var DataChangeNotification_Schema = {
     name: "DataChangeNotification",
     //  BaseType="NotificationData"

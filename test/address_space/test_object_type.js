@@ -29,6 +29,7 @@ describe("testing ObjectType",function() {
 
     });
     it("should read Attribute IsAbstract on Abstract ObjectType ",function() {
+
         var objType = new ObjectType({
             address_space:the_address_space,
             isAbstract: true
