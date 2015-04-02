@@ -3,7 +3,7 @@ var _ = require("underscore");
 var assert = require("better-assert");
 var should = require("should");
 
-var opcua = require(".");
+var opcua = require("index.js");
 
 var OPCUAServer = opcua.OPCUAServer;
 var StatusCodes = opcua.StatusCodes;

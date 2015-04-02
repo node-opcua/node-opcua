@@ -2,7 +2,7 @@ require("requirish")._(module);
 
 var should = require("should");
 
-var opcua  = require(".");
+var opcua = require("index.js");
 
 var OPCUAServerEndPoint = require("lib/server/server_end_point").OPCUAServerEndPoint;
 var MessageSecurityMode = opcua.MessageSecurityMode;

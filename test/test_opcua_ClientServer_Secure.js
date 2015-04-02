@@ -2,7 +2,7 @@ require("requirish")._(module);
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 
 
-var opcua = require(".");
+var opcua = require("index.js");
 
 var should = require("should");
 var assert = require("better-assert");

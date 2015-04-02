@@ -6,7 +6,7 @@ var async = require("async");
 var should = require("should");
 var sinon = require("sinon");
 
-var opcua = require(".");
+var opcua = require("index.js");
 
 var OPCUAClient = opcua.OPCUAClient;
 var ClientSession = opcua.ClientSession;
