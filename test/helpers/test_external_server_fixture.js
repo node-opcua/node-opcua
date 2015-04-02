@@ -8,7 +8,7 @@ var stop_simple_server = require("./external_server_fixture").stop_simple_server
 
 describe("testing external server operations",function() {
 
-    this.timeout(10000);
+    this.timeout(30000); // could be slow on appveyor !
 
    it("should start and stop a external server",function(done) {
 
