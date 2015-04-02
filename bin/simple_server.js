@@ -191,14 +191,13 @@ function dumpObject(obj) {
 }
 
 
-
+console.log("  server PID          :".yellow, process.pid);
 
 server.start(function (err) {
     if (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
-    console.log("  server PID          :".yellow, process.pid);
     console.log("  server on port      :".yellow, server.endpoints[0].port.toString().cyan);
     console.log("  endpointUrl         :".yellow, endpointUrl.cyan);
 
