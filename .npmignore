@@ -45,3 +45,4 @@ tttt
 package
 test_compliance
 certificates/
+appveyor.yml
