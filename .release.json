@@ -1,0 +1,20 @@
+{
+    "non-interactive": false,
+    "dry-run": false,
+    "verbose": false,
+    "force": false,
+    "pkgFiles": ["package.json"],
+    "increment": "patch",
+    "commitMessage": "v%s",
+    "tagName": "v%s",
+    "tagAnnotation": "v%s",
+    "buildCommand": false,
+    "distRepo": false,
+    "distStageDir": ".stage",
+    "distBase": "dist",
+    "distFiles": ["**/*"],
+    "private": false,
+    "publish": false,
+    "publishPath": "."
+}
+
