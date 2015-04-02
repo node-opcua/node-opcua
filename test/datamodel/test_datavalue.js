@@ -1,3 +1,5 @@
+"use strict";
+/* global describe,it*/
 require("requirish")._(module);
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
@@ -5,7 +7,7 @@ var DataType = require("lib/datamodel/variant").DataType;
 
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
-var should = require("should");
+require("should");
 
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
@@ -15,7 +17,7 @@ describe("DataValue", function () {
 
         var dataValue = new DataValue();
 
-        encode_decode_round_trip_test(dataValue, function (buffer, id) {
+        encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(1);
         });
     });
@@ -25,7 +27,7 @@ describe("DataValue", function () {
         var dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"})
         });
-        encode_decode_round_trip_test(dataValue, function (buffer, id) {
+        encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(1 + 1 + 4 + 5);
         });
     });
@@ -40,8 +42,8 @@ describe("DataValue", function () {
             sourceTimestamp: new Date(),
             sourcePicoseconds: 199,
         });
-        var str = dataValue.toString();
-        encode_decode_round_trip_test(dataValue, function (buffer, id) {
+        //xx var str = dataValue.toString();
+        encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
         });
     });
 
@@ -55,7 +57,7 @@ describe("DataValue", function () {
             sourceTimestamp: new Date(),
             sourcePicoseconds: 2000
         });
-        encode_decode_round_trip_test(dataValue, function (buffer, id) {
+        encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
         });
     });
 });
