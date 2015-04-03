@@ -108,21 +108,31 @@ function stop_simple_server(serverHandle,callback) {
     if(!serverHandle) {
         return  callback(null);
     }
-    console.log(" SHUTTING DOWN : killed = ",serverHandle.process.killed, " pid = ",serverHandle.process.pid);
+    console.log(" SHUTTING DOWN : killed = ", serverHandle.process.killed,
+        " pid = ", serverHandle.process.pid,
+        "collected pid=", serverHandle.pid_collected);
 
-    serverHandle.process.on("close",function(err){
+    serverHandle.process.on("close", function (/*err*/) {
         //xx console.log('XXXXX child process terminated due to receipt of signal ');
         setTimeout(callback,100);
     });
 
-    process.kill(serverHandle.process.pid,'SIGKILL');
-    process.kill(serverHandle.pid_collected, 'SIGKILL');
+    process.kill(serverHandle.process.pid, "SIGKILL");
+    if (serverHandle.process.pid !== serverHandle.pid_collected) {
+        try {
+            process.kill(serverHandle.pid_collected, "SIGKILL");
+
+        }
+        catch (err) {
+
+        }
+    }
 
     /* istanbul ignore next */
     if (process.platform === "win32" && false) {
         // under windows, we can also kill a process this way...
-        var spawn = require('child_process').spawn;
-        spawn("taskkill", ["/pid", serverHandle.pid_collected, '/f', '/t']);
+        var spawn = require("child_process").spawn;
+        spawn("taskkill", ["/pid", serverHandle.pid_collected, "/f", "/t"]);
     }
 
 
