@@ -1,4 +1,6 @@
+
 var factories = require("../lib/misc/factories");
+var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
 var TimestampsToReturn_Schema = {
     name: "TimestampsToReturn",
@@ -11,8 +13,9 @@ var TimestampsToReturn_Schema = {
     },
     decode: function(stream) {
 
-        var v = stream.readInt32();
-        if (y<0 || y>3) {
+        assert(stream instanceof BinaryStream);
+        var value = stream.readInteger();
+        if (value<0 || value>3) {
             return TimestampsToReturn.Invalid;
         }
         return TimestampsToReturn.get(value);
