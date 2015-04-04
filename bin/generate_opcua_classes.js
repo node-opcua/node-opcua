@@ -180,6 +180,7 @@ registerObject("DeleteSubscriptionsRequest");
 registerObject("DeleteSubscriptionsResponse");
 registerObject("MonitoredItemNotification");
 registerObject("DataChangeNotification");
+registerObject("DataChangeFilter");
 registerObject("MonitoredItemModifyRequest");
 registerObject("MonitoredItemModifyResult");
 registerObject("ModifyMonitoredItemsRequest");
