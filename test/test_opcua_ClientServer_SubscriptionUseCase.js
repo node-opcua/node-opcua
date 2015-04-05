@@ -197,8 +197,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
             // subscription.on("item_added",function(monitoredItem){
             monitoredItemCurrentTime.on("changed", function (dataValue) {
-
-                console.log(" current time", dataValue.value.value);
+                //xx console.log("xxxx current time", dataValue.value.value);
                 currentTime_changes++;
             });
 
@@ -209,7 +208,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
             var pumpSpeed_changes = 0;
             monitoredItemPumpSpeed.on("changed", function (dataValue) {
-                console.log(" pump speed ", dataValue.value.value);
+                //xx console.log(" pump speed ", dataValue.value.value);
                 pumpSpeed_changes++;
 
             });
@@ -219,7 +218,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 pumpSpeed_changes.should.be.greaterThan(1);
                 currentTime_changes.should.be.greaterThan(1);
                 done();
-            }, 200);
+            }, 1000);
 
         }, done);
     });
@@ -683,6 +682,58 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         },done);
     });
 
+    it("#rejectedSessionCount",function() {
+        server.rejectedSessionCount.should.eql(server.engine.rejectedSessionCount);
+    });
+    it("#rejectedRequestsCount",function() {
+        server.rejectedRequestsCount.should.eql(server.engine.rejectedRequestsCount);
+    });
+    it("#sessionAbortCount",function() {
+        server.sessionAbortCount.should.eql(server.engine.sessionAbortCount);
+    });
+    it("#publishingIntervalCount",function() {
+        server.publishingIntervalCount.should.eql(server.engine.publishingIntervalCount);
+    });
+
+
+    it("#buildInfo",function() {
+        server.buildInfo.should.eql(server.engine.buildInfo);
+    });
+
+    it("#bytesRead #transactionsCount #bytesWritten",function(done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            server.bytesRead.should.be.greaterThan(10);
+            server.transactionsCount.should.be.greaterThan(3);
+            server.bytesWritten.should.be.greaterThan(10);
+            inner_done();
+        },done);
+    })
+    it("#CreateMonitoredItemsRequest : A server should return statusCode === BadSubscriptionIdInvalid when appropriate  ", function (done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            var options = {
+                subscriptionId: 999 , // << invalide subscription id
+            };
+            session.createMonitoredItems(options,function (err,results){
+                err.message.should.match(/BadSubscriptionIdInvalid/);
+                inner_done();
+            })
+        },done);
+    });
+
+    it("#SetPublishingModeRequest: A server should set status codes to BadSubscriptionIdInvalid when appropriate  ", function (done) {
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var publishingEnabled = true;
+            var subscriptionIds =  [ 999 ] ;//<< invalid subscription ID
+            session.setPublishingMode(publishingEnabled,subscriptionIds,function(err,results) {
+                results.should.be.instanceOf(Array);
+                results[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                inner_done();
+            });
+        },done);
+    });
+
     it("A server should suspend/resume publishing when client send a setPublishingMode Request ", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -708,10 +759,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             var change_count = 0;
             monitoredItem.on("changed", function (dataValue) {
                 change_count +=1;
-                //xx console.log(" dataValue = ",dataValue.toString());
+                //xx console.log(" dataValue = ".cyan,dataValue.value.toString());
             });
 
-            var ref_change_count = 0;
             async.series([
                 function (callback) {
                     // wait 400 milliseconds and verify that the subscription is sending some notification
@@ -730,7 +780,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
                 },
                 function (callback) {
-                    // wait  400 milliseconds and verify that the subscription is  NOT sending some notification
+                    // wait  400 milliseconds and verify that the subscription is  NOT sending any notification
                     setTimeout(function(){
                         change_count.should.equal(0);
                         callback();
@@ -804,6 +854,158 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         }, done);
     });
+
+
+    it("#ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function(done){
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var modifyMonitoredItemsRequest = {
+                subscriptionId: 999,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither
+            };
+
+            session.modifyMonitoredItems(modifyMonitoredItemsRequest,function(err){
+                err.message.should.match(/BadSubscriptionIdInvalid/);
+                inner_done();
+            });
+        },done);
+    });
+
+    it("#ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function(done){
+
+        var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+            console.log("subscription = ",subscription.subscriptionId);
+            subscription.on("started",function() {
+                var modifyMonitoredItemsRequest = {
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Invalid
+                };
+
+                session.modifyMonitoredItems(modifyMonitoredItemsRequest,function(err,modifyMonitoredItemsResponse){
+                    err.message.should.match(/BadTimestampsToReturnInvalid/);
+                    inner_done();
+                });
+            });
+        },done);
+    });
+
+    it("#ModifyMonitoredItemRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function(done){
+
+        var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+        var MonitoredItemModifyRequest = opcua.subscription_service.MonitoredItemModifyRequest;
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+            console.log("subscription = ",subscription.subscriptionId);
+            subscription.on("started",function() {
+                var modifyMonitoredItemsRequest = {
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToModify: [
+                        new MonitoredItemModifyRequest({
+                            monitoredItemId: 999,
+                            requestedParameters: {}
+                        })
+                    ]
+                };
+
+                session.modifyMonitoredItems(modifyMonitoredItemsRequest,function(err,modifyMonitoredItemsResponse){
+                    if (err) { return  inner_done(err); }
+                    modifyMonitoredItemsResponse.results.length.should.eql(1);
+                    modifyMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                    inner_done();
+                });
+            });
+        },done);
+    });
+
+
+    it("#ModifyMonitoredItemsRequest : a client should be able to modify a monitored item",function(done){
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+            console.log("subscription = ",subscription.publishingInterval);
+
+
+            subscription.on("terminated", function () {
+                console.log(" subscription terminated ".yellow);
+            });
+            var monitoredItem = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                {
+                    samplingInterval: 1000,
+                    discardOldest: true,
+                    queueSize: 1
+                });
+
+
+            var change_count = 0;
+            monitoredItem.on("changed", function (dataValue) {
+                //xx console.log("changed",dataValue.value.toString());
+                change_count +=1;
+            });
+
+            async.series([
+
+                function (callback) {
+                    // wait 400 ms and verify that the subscription is not sending notification.
+                    setTimeout(function(){
+                        change_count.should.equal(0);
+                        callback();
+                    },400);
+                },
+                function (callback) {
+                    monitoredItem.modify({
+                        samplingInterval: 20,
+                        discardOldest: false,
+                        queueSize: 1
+                    }, function(err,result){
+                        callback(err);
+                        if(!err) {
+                            result.revisedSamplingInterval.should.be.greaterThan(19)
+                        }
+                    });
+                },
+                function (callback) {
+                    // wait 400 ms and verify that the subscription is not sending notification.
+                    setTimeout(function(){
+                        change_count.should.be.greaterThan(1);
+                        callback();
+                    },400);
+                }
+            ],inner_done);
+
+        }, done);            //
+    });
+
 });
 
 
