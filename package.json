@@ -35,7 +35,7 @@
   "devDependencies": {
     "autodoc": "0.6.2",
     "benchmark": "1.0.0",
-    "bignumber.js": "2.0.6",
+    "bignumber.js": "2.0.7",
     "coveralls": "2.11.2",
     "csv": "0.4.1",
     "eyes": "0.1.8",
@@ -45,7 +45,7 @@
     "mocha-lcov-reporter": "0.0.2",
     "mustache": "2.0.0",
     "node-xml": "1.0.2",
-    "request": "2.54.0",
+    "request": "2.55.0",
     "should": "5.2.0",
     "sinon": "1.14.1",
     "tmp": "0.0.25",
