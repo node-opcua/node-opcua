@@ -79,6 +79,6 @@
     "underscore": "1.8.3",
     "unzip": "^0.1.11",
     "wget-improved": "^1.0.1",
-    "yargs": "3.6.0"
+    "yargs": "3.7.0"
   }
 }
