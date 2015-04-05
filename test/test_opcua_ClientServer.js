@@ -313,6 +313,38 @@ describe("testing basic Client-Server communication",function() {
                 done(err);
             });
         });
+        it("#ReadRequest : server should return BadNothingToDo when nodesToRead is empty",function(done) {
+
+            var request = new opcua.read_service.ReadRequest({
+                nodesToRead: [ ], //<< EMPTY
+                maxAge: 0,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
+            });
+
+            g_session.performMessageTransaction(request, function (err, response) {
+                //
+                err.message.should.match(/BadNothingToDo/);
+                done();
+            });
+
+        });
+        it("#ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid",function(done){
+
+            var request = new opcua.read_service.ReadRequest({
+                nodesToRead: [
+                    {nodeId: opcua.coerceNodeId("ns=0;i=2456") }
+                ],
+                maxAge: 0,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Invalid
+            });
+
+            g_session.performMessageTransaction(request, function (err, response) {
+                //
+                err.message.should.match(/BadTimestampsToReturnInvalid/);
+                done();
+            });
+
+        });
 
         it("should readAllAttributes",function(done){
 

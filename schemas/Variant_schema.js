@@ -39,9 +39,7 @@ function coerceVariantType(dataType, value)
             } else {
                 value = parseInt(value,10);
             }
-            if (!_.isFinite(value)) {
-                assert(_.isFinite(value));
-            }
+            assert(_.isFinite(value));
             break;
         case DataType.ExtensionObject:
             break;
@@ -118,6 +116,7 @@ var Variant_Schema = {
         }
         ec.encodeUInt8(encodingByte,stream);
         var encode = factories.findBuiltInType(variant.dataType.key).encode;
+        /* istanbul ignore next */
         if (!encode) {
             throw new Error("Cannot find encode function for dataType "+variant.dataType.key);
         }
@@ -149,6 +148,7 @@ var Variant_Schema = {
 
         var decode = factories.findBuiltInType(self.dataType.key).decode;
 
+        /* istanbul ignore next */
         if(!decode ) {
             throw new Error("Variant.decode : cannot find decoder for type " + self.dataType.key);
         }
@@ -192,6 +192,7 @@ var Variant_Schema = {
         self.dataType = DataType.get(encodingByte & Variant_TypeMask);
 
         var decode = factories.findBuiltInType(self.dataType.key).decode;
+        /* istanbul ignore next */
         if(!decode ) {
             throw new Error("Variant.decode : cannot find decoder for type " + self.dataType.key);
         }
@@ -216,9 +217,11 @@ var Variant_Schema = {
     },
 
     construct_hook: function( options) {
-        if (!options) return null;
+
+        assert(options);
 
         if ( options.arrayType && options.arrayType !== VariantArrayType.Scalar) {
+            /* istanbul ignore else */
             if (options.arrayType === VariantArrayType.Array) {
 
                 options.value =  options.value || [];
@@ -232,6 +235,8 @@ var Variant_Schema = {
             options.arrayType = VariantArrayType.Scalar;
             // scalar
             options.value = coerceVariantType(options.dataType,options.value);
+
+            /* istanbul ignore next */
             if (!isValidVariant(options.arrayType,options.dataType,options.value)) {
                 throw new Error("Invalid variant " +options.arrayType + "  " + options.dataType + " " + options.value);
             }
@@ -255,7 +260,6 @@ var Variant_Schema = {
         } else if (self.arrayType === VariantArrayType.Array) {
             assert(_.isArray(self.value));
             data +=", l= "+ self.value.length + ", value=[" + self.value.map(f).join(",") + "]";
-        } else {
         }
         return "Variant(" + data + ")";
     }

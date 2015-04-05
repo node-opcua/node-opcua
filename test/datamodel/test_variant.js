@@ -194,12 +194,16 @@ describe("Variant",function() {
             arrayType: VariantArrayType.Array,
             value: [2, 3, 4, 5]
         });
+        var1.toString().should.eql("Variant(Array, l= 4, value=[2,3,4,5])");
         var1.isValid().should.eql(true);
 
         var1.value[2] = "Bad!";
         var1.isValid().should.eql(false);
 
+        var1.toString().should.eql("Variant(Array, l= 4, value=[2,3,Bad!,5])");
     });
+
+
 });
 
 var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;

@@ -84,4 +84,53 @@ describe("DiagnosticInfo",function(){
             buffer.length.should.equal(2 + 4 + 5);
         });
     });
+
+    it("should encode DiagnosticInfo with SymbolicId",function() {
+
+        var diag = new DiagnosticInfo({
+            symbolicId: 1234
+        });
+
+        encode_decode_round_trip_test(diag,function(buffer,id){
+            buffer.length.should.equal(5);
+        });
+
+    });
+
+    it("should encode DiagnosticInfo with LocalizedText",function() {
+
+        var diag = new DiagnosticInfo({
+            localizedText: 1234
+        });
+
+        encode_decode_round_trip_test(diag,function(buffer,id){
+            buffer.length.should.equal(1+4);
+        });
+
+    });
+    it("should encode DiagnosticInfo with NamespaceUri",function() {
+
+        var diag = new DiagnosticInfo({
+            namespaceUri: 1234
+        });
+
+        encode_decode_round_trip_test(diag,function(buffer,id){
+            buffer.length.should.equal(1+4);
+        });
+
+    });
+    it("should encode DiagnosticInfo with NamespaceUri and LocalizedText and SymbolicId",function() {
+
+        var diag = new DiagnosticInfo({
+            localizedText: 2345,
+            symbolicId: 3456,
+            namespaceUri: 1234
+        });
+
+        encode_decode_round_trip_test(diag,function(buffer,id){
+            buffer.length.should.equal(1+4+4+4);
+        });
+
+    });
+
 });

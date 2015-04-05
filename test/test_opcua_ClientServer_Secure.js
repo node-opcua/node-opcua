@@ -74,7 +74,7 @@ function start_server1(options,callback) {
 
 
 /**
- * returns the number of security token exchange on the server
+ * returns the number of security token exchanged on the server
  * since the server started, performed by any endpoints.
  * @param server
  * @returns {Number}
