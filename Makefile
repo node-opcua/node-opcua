@@ -1,7 +1,8 @@
+
 test-cov: istanbul
 
 istanbul:
-	istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec test  --recursive
+	istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec --recursive --timeout 30000 --bail test
 
 coveralls:
 	cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
@@ -34,7 +35,7 @@ build_tools:
 	npm install browserify -g
 
 build:
-	browserify  bin\simple_server.js --exclude usage --exclude node-expat --exclude ursa --exclude x509 | minifyjs -m -o simple_server.min.js
+	brfy.bat
 
 ug:
 	node -e 'var NodeUglifier= require("node-uglifier");(new NodeUglifier("bin/simple_server.js")).uglify().exportToFile("a.js");'
