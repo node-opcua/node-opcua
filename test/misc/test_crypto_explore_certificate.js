@@ -53,11 +53,11 @@ describe(" exploring Certificates",function() {
         fs.existsSync(filename).should.equal(true);
 
         var certificate = crypto_utils.readCertificate(filename);
-        console.log(certificate.toString("base64"));
+        //xx console.log(certificate.toString("base64"));
 
         var certificate_info = exploreCertificate(certificate);
-        console.log(certificate_info);
-        console.log(" Version                   : ",certificate_info.tbsCertificate.version);
+        //xx console.log(certificate_info);
+        //xx console.log(" Version                   : ",certificate_info.tbsCertificate.version);
 
     });
 });
