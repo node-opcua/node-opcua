@@ -23,7 +23,9 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
     var server, client, temperatureVariableId, endpointUrl;
 
-    this.timeout(2000);
+    // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
+    // so we set a big enough timeout
+    this.timeout((process.arch === 'arm') ? 400000 : 10000);
 
     var port = 2000;
     before(function (done) {

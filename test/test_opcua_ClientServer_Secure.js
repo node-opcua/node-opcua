@@ -176,9 +176,9 @@ function keep_monitoring_some_variable(session,  duration, done) {
     });
 }
 
-var defaultSecureTokenLifetime = 500;
-var cycleNumber = 5;
-var defaultTestDuration = defaultSecureTokenLifetime * ( cycleNumber  + 2);
+var g_defaultSecureTokenLifetime = 1000;
+var g_cycleNumber = 3;
+var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber  + 4);
 
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
@@ -243,15 +243,15 @@ if (!crypto_utils.isFullySupported()) {
                 securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
                 securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                 serverCertificate: serverCertificate,
-                defaultSecureTokenLifetime: defaultSecureTokenLifetime
+                defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
             };
 
             var token_change = 0;
             client = new OPCUAClient(options);
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                keep_monitoring_some_variable(session, defaultTestDuration, function () {
-                    token_change.should.be.greaterThan(cycleNumber);
+                keep_monitoring_some_variable(session, g_defaultTestDuration, function () {
+                    token_change.should.be.greaterThan(g_cycleNumber);
                     inner_done();
                 });
             }, done);
@@ -284,7 +284,7 @@ if (!crypto_utils.isFullySupported()) {
             serverCertificate: serverCertificate
         });
 
-        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 400;
+        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
         // console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
         var token_change = 0;
@@ -316,7 +316,7 @@ if (!crypto_utils.isFullySupported()) {
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 400
+            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
         });
         var client = new OPCUAClient(options);
         client.connect(endpointUrl, function (err) {
@@ -341,7 +341,7 @@ if (!crypto_utils.isFullySupported()) {
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 400
+            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
         };
 
         var token_change = 0;
@@ -349,7 +349,7 @@ if (!crypto_utils.isFullySupported()) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(session,  defaultTestDuration, function (err) {
+            keep_monitoring_some_variable(session,  g_defaultTestDuration, function (err) {
                 inner_done(err);
             });
         }, function (err) {
@@ -412,31 +412,31 @@ if (!crypto_utils.isFullySupported()) {
 
     function perform_collection_of_test_with_client_configuration(message,options) {
 
-        it('Basic128Rsa15 with Sign  ' + message, function (done) {
+        it('should succeed with Basic128Rsa15 with Sign  ' + message, function (done) {
             common_test("Basic128Rsa15", "SIGN", options,done);
         });
 
-        it('Basic128Rsa15 with Sign ' + message, function (done) {
+        it('should succeed with Basic128Rsa15 with Sign ' + message, function (done) {
             common_test("Basic128Rsa15", "SIGN", options,done);
         });
 
-        it('Basic128Rsa15 with SignAndEncrypt ' + message, function (done) {
+        it('should succeed with Basic128Rsa15 with SignAndEncrypt ' + message, function (done) {
             common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
         });
 
-        it('Basic256 with Sign ' + message, function (done) {
+        it('should succeed with Basic256 with Sign ' + message, function (done) {
             common_test("Basic256", "SIGN",  options,done);
         });
 
-        it('Basic256 with SignAndEncrypt ' + message, function (done) {
+        it('should succeed with Basic256 with SignAndEncrypt ' + message, function (done) {
             common_test("Basic256", "SIGNANDENCRYPT", options, done);
         });
 
-        it('Basic256Rsa15 with Sign ' + message, function (done) {
+        it('should fail with Basic256Rsa15 with Sign ' + message, function (done) {
             check_open_secure_channel_fails("Basic256Rsa15", "SIGN",  options,done);
         });
 
-        it('Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
+        it('should fail with Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
             check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT",  options,done);
         });
     }
