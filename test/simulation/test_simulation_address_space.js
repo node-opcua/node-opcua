@@ -22,7 +22,7 @@ describe("testing address space for conformance testing",function() {
 
     var engine;
 
-    this.timeout(40000);
+    this.timeout(140000); // very large time out to cope with heavy loaded vms on CI.
 
     before(function(done) {
 
