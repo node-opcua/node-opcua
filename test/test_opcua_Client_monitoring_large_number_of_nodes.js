@@ -19,7 +19,7 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
 
 var _port = 2000;
 
-function a() {
+
 describe("Testing client with many monitored items",function() {
 
     this.timeout(50000);
@@ -116,5 +116,4 @@ describe("Testing client with many monitored items",function() {
     });
 
 });
-}
-a();a();a();
+
