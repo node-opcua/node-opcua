@@ -312,7 +312,7 @@ describe("testing ClientTCP_transport", function () {
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {
                 if (process.version.toString().match(/^v0.10/)) {
-                    err.message.should.match(/EADDRNOTAVAIL/);
+                    err.message.should.match(/EADDRNOTAVAIL|ECONNREFUSED/);
                 } else {
                     err.message.should.match(/port should be/);
                 }
