@@ -311,7 +311,11 @@ describe("testing ClientTCP_transport", function () {
 
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {
-                err.message.should.match(/port should be >= 0 and < 65536/);
+                if (process.version.toString().match(/^v0.10/)) {
+                    err.message.should.match(/EADDRNOTAVAIL/);
+                } else {
+                    err.message.should.match(/port should be/);
+                }
                 done();
             } else {
                 done(new Error("Should have raised a connection error"));
