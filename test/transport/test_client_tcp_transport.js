@@ -306,5 +306,17 @@ describe("testing ClientTCP_transport", function () {
 
     });
 
-});
 
+    it("should returns an error if url has invalid port",function(done){
+
+        transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
+            if (err) {
+                err.message.should.match(/port should be >= 0 and < 65536/);
+                done();
+            } else {
+                done(new Error("Should have raised a connection error"));
+            }
+        });
+    });
+
+});
