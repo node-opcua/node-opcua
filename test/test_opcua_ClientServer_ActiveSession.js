@@ -41,9 +41,9 @@ if (!crypto_utils.isFullySupported()) {
 
         var endpointUrl;
         before(function (done) {
-            server.start(function () {
+            server.start(function (err) {
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-                done();
+                done(err);
             });
 
         });
