@@ -1,10 +1,8 @@
-/*global xit,it,describe,before,after,beforeEach,afterEach*/
+/*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 require("requirish")._(module);
 var assert = require("better-assert");
-var async = require("async");
 var should = require("should");
-var sinon = require("sinon");
 
 var opcua = require("index.js");
 
@@ -13,31 +11,29 @@ var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
 var AttributeIds = opcua.AttributeIds;
 var resolveNodeId = opcua.resolveNodeId;
-var StatusCodes = opcua.StatusCodes;
 
 var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var _port = 2000;
 
-
+function a() {
 describe("Testing client with many monitored items",function() {
 
-    this.timeout(20000);
+    this.timeout(50000);
 
     var server, client, temperatureVariableId, endpointUrl;
 
-    var port = _port + 1;
+    _port = _port + 1;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        port += 1;
-        server = build_server_with_temperature_device({port: port}, function () {
+        _port += 1;
+        server = build_server_with_temperature_device({port: _port}, function () {
 
-            build_address_space_for_conformance_testing(server.engine,{ mass_variables: true});
+            build_address_space_for_conformance_testing(server.engine,{ mass_variables: false});
 
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -51,12 +47,13 @@ describe("Testing client with many monitored items",function() {
     });
 
     afterEach(function (done) {
+        client.disconnect(done);
         client = null;
-        done();
     });
 
     after(function (done) {
         server.shutdown(done);
+        server = null;
     });
 
     it("should monitor a large number of node (see #69)", function (done) {
@@ -85,7 +82,7 @@ describe("Testing client with many monitored items",function() {
                 priority: 6
             });
 
-            subscription.on("terminated", function () {
+            subscription.once("terminated", function () {
                 inner_done();
             });
 
@@ -106,14 +103,18 @@ describe("Testing client with many monitored items",function() {
                 monitoredItem.on("changed",make_callback(nodeId));
             });
 
+            subscription.once("started",function(subscriptionId) {
+                setTimeout(function() {
+                    subscription.terminate();
+                    Object.keys(changeByNodes).length.should.eql(ids.length);
+                },3000);
 
-            setInterval(function() {
-                subscription.terminate();
-                Object.keys(changeByNodes).length.should.eql(ids.length);
-            },2000);
+            });
 
 
         }, done);
     });
 
 });
+}
+a();a();a();
