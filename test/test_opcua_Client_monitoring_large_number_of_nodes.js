@@ -31,13 +31,13 @@ describe("Testing client with many monitored items",function() {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         _port += 1;
-        server = build_server_with_temperature_device({port: _port}, function () {
+        server = build_server_with_temperature_device({port: _port}, function (err) {
 
             build_address_space_for_conformance_testing(server.engine,{ mass_variables: false});
 
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            done();
+            done(err);
         });
     });
 

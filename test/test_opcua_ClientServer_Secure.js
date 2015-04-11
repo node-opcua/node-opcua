@@ -41,8 +41,11 @@ function start_inner_server_local(options,callback) {
     options = options || {};
     options.port = options.port || port;
 
-    server = build_server_with_temperature_device(options, function () {
+    server = build_server_with_temperature_device(options, function (err) {
 
+        if (err) {
+            return callback(err);
+        }
         var data = {};
         data.endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         data.serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;

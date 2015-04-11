@@ -29,10 +29,10 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
-        server = build_server_with_temperature_device({port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            done();
+            done(err);
         });
     });
 
@@ -293,14 +293,15 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 });
 
 describe("testing server and subscription", function () {
+    
     var server, client, temperatureVariableId, endpointUrl;
     var port = _port + 1;
     before(function (done) {
         console.log(" Creating Server");
-        server = build_server_with_temperature_device({port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            done();
+            done(err);
         });
     });
 
@@ -441,7 +442,7 @@ describe("testing server and subscription", function () {
 
     it("A MonitoredItem should received changed event", function (done) {
 
-        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_callback) {
 
             var monitoredItem = subscription.monitor(
                 {
@@ -451,18 +452,17 @@ describe("testing server and subscription", function () {
                 {samplingInterval: 100, discardOldest: true, queueSize: 1});
 
             monitoredItem.on("initialized", function () {
+                //xx console.log("Initialized");
             });
 
-            monitoredItem.on("changed", function (value) {
+            monitoredItem.on("changed", function (dataValue) {
 
                 // the changed event has been received !
-
                 // lets stop monitoring this item
-                monitoredItem.terminate(function () {
-                });
+                setImmediate(function() { monitoredItem.terminate();});
             });
-            monitoredItem.on("terminated", function (value) {
-                callback();
+            monitoredItem.on("terminated", function (err) {
+                inner_callback();
             });
 
         }, done);
@@ -565,10 +565,10 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
-        server = build_server_with_temperature_device({port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            done();
+            done(err);
         });
     });
 

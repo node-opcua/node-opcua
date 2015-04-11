@@ -20,14 +20,14 @@ describe("COMPLIANCE TESTING", function () {
     var port = 2234;
     before(function (done) {
         console.log("\n INFO - building the server ".yellow);
-        options.server = build_server_with_temperature_device({ port: port, add_simulation: true}, function () {
+        options.server = build_server_with_temperature_device({ port: port, add_simulation: true}, function (err) {
             console.log("\n INFO - server built".yellow);
             options.endpointUrl = options.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             options.temperatureVariableId = options.server.temperatureVariableId;
 
             options.client = new OPCUAClient();
 
-            done();
+            done(err);
         });
     });
     beforeEach(function (done) {

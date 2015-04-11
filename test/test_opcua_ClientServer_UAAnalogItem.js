@@ -33,10 +33,10 @@ describe("testing UAAnalogItem on client side",function() {
     var g_session = null;
     before(function (done) {
 
-        server = build_server_with_temperature_device({port: port}, function () {
+        server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            done();
+            done(err);
         });
     });
 

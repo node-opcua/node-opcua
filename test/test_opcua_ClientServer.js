@@ -31,10 +31,10 @@ describe("testing basic Client-Server communication",function() {
 
     before(function(done){
 
-        server = build_server_with_temperature_device({ port:port},function() {
+        server = build_server_with_temperature_device({ port:port},function(err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            done();
+            done(err);
         });
     });
 
@@ -527,10 +527,10 @@ describe("testing ability for client to reconnect when server close connection",
 
 
         function start_demo_server(done) {
-            server = build_server_with_temperature_device({ port:port},function() {
+            server = build_server_with_temperature_device({ port:port},function(err) {
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
                 temperatureVariableId = server.temperatureVariableId;
-                done();
+                done(err);
             });
         }
 
