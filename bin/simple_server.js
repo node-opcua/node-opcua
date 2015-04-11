@@ -209,6 +209,22 @@ server.start(function (err) {
     console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
 });
 
+server.on("create_session",function(session) {
+
+    console.log(" SESSION CREATED");
+    console.log("    client application URI: ".cyan,session.clientDescription.applicationUri);
+    console.log("        client produit URI: ".cyan,session.clientDescription.productUri);
+    console.log("   client application name: ".cyan,session.clientDescription.applicationName.toString());
+    console.log("   client application type: ".cyan,session.clientDescription.applicationType.toString());
+    console.log("              session name: ".cyan,session.sessionName.toString());
+    console.log("           session timeout: ".cyan,session.sessionTimeout);
+    console.log("                session id: ".cyan,session.sessionId);
+});
+
+server.on("session_closed",function(session,reason) {
+    console.log(" SESSION CLOSED :",reason);
+    console.log("              session name: ".cyan,session.sessionName.toString());
+});
 
 server.on("request", function (request) {
     console.log(request._schema.name);
