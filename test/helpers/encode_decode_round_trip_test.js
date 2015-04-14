@@ -24,7 +24,7 @@ function dump_block_in_debug_mode(buffer,id,options) {
  * @param obj {Object} : object to test ( the object must provide a binaryStoreSize,encode,decode method
  * @param [options]
  * @param callback_buffer
- * @returns {*}
+ * @return {*}
  */
 function encode_decode_round_trip_test(obj,options, callback_buffer) {
 

@@ -313,7 +313,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 monitoredItem.on("initialized", function () {
 
                 });
-                monitoredItem.on("changed", function (value) {
+                monitoredItem.once("changed", function (value) {
 
                     session.getMonitoredItems(subscriptionId,function(err,result){
 
@@ -325,14 +325,12 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                         }
                         //xx console.log("serverHandles = ",result.serverHandles);
                         //xx console.log("clientHandles = ",result.clientHandles);
-                        inner_done(err);
-                    });
-
-                    // lets stop monitoring this item
-                    monitoredItem.terminate(function () {
+                        // lets stop monitoring this item
+                        monitoredItem.terminate(function () {
+                            inner_done(err);
+                        });
                     });
                 });
-
 
             },done);
 

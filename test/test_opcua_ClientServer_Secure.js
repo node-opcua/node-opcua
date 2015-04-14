@@ -80,7 +80,7 @@ function start_server1(options,callback) {
  * returns the number of security token exchanged on the server
  * since the server started, performed by any endpoints.
  * @param server
- * @returns {Number}
+ * @return {Number}
  */
 function get_server_channel_security_token_change_count(server) {
     var sessions = _.values(server.engine._sessions);
@@ -159,7 +159,10 @@ function keep_monitoring_some_variable(session,  duration, done) {
 
     var the_error = null;
     subscription.on("started", function () {
+
+        //xx console.log(" starting monitoring for ",duration," ms");
         setTimeout(function () {
+            //xx console.log(" terminating subscription  ");
             subscription.terminate();
         }, duration);
     });
@@ -169,6 +172,8 @@ function keep_monitoring_some_variable(session,  duration, done) {
         the_error = err;
     });
     subscription.on("terminated", function () {
+
+        //xx console.log(" subscription terminated ");
 
         if (!the_error) {
             var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
@@ -211,15 +216,16 @@ if (!crypto_utils.isFullySupported()) {
 
 
             should(serverCertificate).not.equal(null);
-
+            server.currentChannelCount.should.equal(0);
             var options = {
                 securityMode: opcua.MessageSecurityMode.SIGN,
                 securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                 serverCertificate: serverCertificate
             };
             client = new OPCUAClient(options);
-            perform_operation_on_client_session(client, endpointUrl, function (session, done) {
-                done();
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                inner_done();
             }, done);
 
         });
@@ -253,9 +259,10 @@ if (!crypto_utils.isFullySupported()) {
             client = new OPCUAClient(options);
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                keep_monitoring_some_variable(session, g_defaultTestDuration, function () {
+                keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
+                    //xx console.log("end of Monitoring ")
                     token_change.should.be.greaterThan(g_cycleNumber);
-                    inner_done();
+                    inner_done(err);
                 });
             }, done);
 
@@ -518,7 +525,6 @@ if (!crypto_utils.isFullySupported()) {
 
         });
     });
-
 
     describe("testing with various client certificates",function(){
 

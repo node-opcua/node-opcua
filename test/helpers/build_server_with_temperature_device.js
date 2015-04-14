@@ -74,6 +74,12 @@ function build_server_with_temperature_device(options,done) {
     var server = new OPCUAServer(options);
     // we will connect to first server end point
 
+    server.on("session_closed",function(session,reason) {
+        //xx console.log(" server_with_temperature_device has closed a session :",reason);
+        //xx console.log("              session name: ".cyan,session.sessionName.toString());
+    });
+
+
     server.set_point_temperature = 20.0;
 
     function start(done) {
@@ -133,6 +139,8 @@ function build_server_with_temperature_device(options,done) {
 
             // add a Analog Data Item
             addTestUAAnalogItem(myDevices);
+
+
 
             done();
 
