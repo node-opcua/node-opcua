@@ -39,6 +39,8 @@ module.exports.VariableIds        = require("lib/opcua_node_ids").VariableIds;
 module.exports.MethodIds          = require("lib/opcua_node_ids").MethodIds;
 module.exports.ObjectIds          = require("lib/opcua_node_ids").ObjectIds;
 
+module.exports.ApplicationType    = module.exports.get_endpoints_service.ApplicationType;
+
 // client services
 module.exports.OPCUAClient        = require("lib/client/opcua_client").OPCUAClient;
 module.exports.NodeCrawler        = require("lib/client/node_crawler").NodeCrawler;

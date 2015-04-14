@@ -51,5 +51,8 @@ describe("COMPLIANCE TESTING", function () {
         include_test("attribute_services/attribute_read/024.js", options);
     });
 
+    describe("Discovery_Services", function () {
+        include_test("discovery_services/find_servers_self/001.js", options);
+    });
 });
 
