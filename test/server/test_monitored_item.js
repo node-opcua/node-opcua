@@ -1,6 +1,14 @@
 require("requirish")._(module);
 
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var subscription_service = require("lib/services/subscription_service");
+var MonitoringMode = subscription_service.MonitoringMode;
+var MonitoringParameters = subscription_service.MonitoringParameters;
+
+var read_service = require("lib/services/read_service");
+var TimestampsToReturn = read_service.TimestampsToReturn;
+
 var DataType = require("lib/datamodel/variant").DataType;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
@@ -147,7 +155,6 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-
     it("should set timestamp to the recorded value without timestamp (variation 1)", function(done){
 
         var monitoredItem = new MonitoredItem({
@@ -156,7 +163,8 @@ describe("Server Side MonitoredItem",function(){
             discardOldest: true,
             queueSize: 2,  // <=== only 2 values in queue
             // added by the server:
-            monitoredItemId: 50
+            monitoredItemId: 50,
+            timestampsToReturn: TimestampsToReturn.Both
         });
 
         this.clock.tick(100);
@@ -184,7 +192,8 @@ describe("Server Side MonitoredItem",function(){
             discardOldest: true,
             queueSize: 2,  // <=== only 2 values in queue
             // added by the server:
-            monitoredItemId: 50
+            monitoredItemId: 50,
+            timestampsToReturn: TimestampsToReturn.Both
         });
 
         this.clock.tick(100);
@@ -258,6 +267,63 @@ describe("Server Side MonitoredItem",function(){
         this.clock.tick(2000);
         spy_samplingEventCall.callCount.should.eql(nbCalls);
 
+        done();
+    });
+
+    it("MonitoredItem#modify should cap queue size",function(done) {
+
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+        var result ; // MonitoredItemModifyResult
+        result =monitoredItem.modify(null,new MonitoringParameters({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 0xFFFFF
+        }));
+
+        result.revisedSamplingInterval.should.eql(100);
+        result.revisedQueueSize.should.not.eql(0xFFFFF);
+
+        done();
+    });
+
+    it("MonitoredItem#modify should cap samplingInterval",function(done) {
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+        var result ; // MonitoredItemModifyResult
+        result =monitoredItem.modify(null,new MonitoringParameters({
+            clientHandle: 1,
+            samplingInterval: 0,
+            discardOldest: true,
+            queueSize: 10
+        }));
+
+        result.revisedSamplingInterval.should.not.eql(0);
+
+        result =monitoredItem.modify(null,new MonitoringParameters({
+            clientHandle: 1,
+            samplingInterval: -1,
+            discardOldest: true,
+            queueSize: 10
+        }));
+        result.revisedSamplingInterval.should.not.eql(-1);
         done();
     });
 
