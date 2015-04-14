@@ -122,11 +122,11 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(subscription.publishingInterval*1.2);
 
         // server should send a response for the first publish request with the above notification
-        // in this response, there should be no availableSequenceNumbers yet
+        // in this response, there should be  one element in the availableSequenceNumbers.
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].subscriptionId.should.eql(1234);
-        send_response_for_request_spy.getCall(0).args[1].availableSequenceNumbers.should.eql([]);
+        send_response_for_request_spy.getCall(0).args[1].availableSequenceNumbers.should.eql([1]);
 
         // client sends a PublishRequest to the server ( with no acknowledgement)
         var fake_request2 = new subscription_service.PublishRequest({ subscriptionAcknowledgements: [] });
@@ -143,7 +143,7 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.callCount.should.equal(2);
         send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(1).args[1].subscriptionId.should.eql(1234);
-        send_response_for_request_spy.getCall(1).args[1].availableSequenceNumbers.should.eql([1]);
+        send_response_for_request_spy.getCall(1).args[1].availableSequenceNumbers.should.eql([1,2]);
 
 
         // send_response_for_request_spy.
