@@ -30,7 +30,7 @@ function start_simple_server(options,callback) {
 
     //xx options.env.DEBUG = "ALL";
 
-    var server_exec  = spawn('node', ['./bin/simple_server'],options);
+    var server_exec  = spawn('node', ['./bin/simple_server' ,'-p','2223'],options);
 
     var serverCertificateFilename = path.join(__dirname,"../../certificates/server_cert_1024.pem");
 
