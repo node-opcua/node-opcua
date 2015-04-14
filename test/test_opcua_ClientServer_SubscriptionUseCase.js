@@ -952,8 +952,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 publishingEnabled: true,
                 priority: 6
             });
-            console.log("subscription = ",subscription.publishingInterval);
 
+            //xx console.log("xxx subscription = ",subscription.publishingInterval);
 
             subscription.on("terminated", function () {
                 console.log(" subscription terminated ".yellow);
@@ -1005,6 +1005,54 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         }, done);            //
     });
+
+
+    /**
+     * see CTT createMonitoredItems591064
+     * Description:
+     * Create a monitored item with the nodeId set to that of a non-Variable node and
+     * the attributeId set to a non-Value attribute. call Publish().
+     * Expected Results: All service and operation level results are Good. Publish response contains a DataChangeNotification.
+     */
+    it("a monitored item with the nodeId set to that of a non-Variable node an  and the attributeId set to a non-Value attribute should send a DataChangeNotification",function(done){
+
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+
+            subscription.on("terminated", function () {
+                //xx console.log(" subscription terminated ".yellow);
+                inner_done();
+            });
+
+            var monitoredItem = subscription.monitor(
+                {nodeId: resolveNodeId("Server"), attributeId: AttributeIds.DisplayName},
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
+            var change_count = 0;
+            monitoredItem.on("changed", function (dataValue){
+                //xx console.log("dataValue = ",dataValue.toString());
+                change_count +=1;
+            });
+
+            setTimeout(function(){
+                change_count.should.equal(1);
+                subscription.terminate();
+            },400);
+
+        }, done);
+
+
+    });
+
 
 });
 
