@@ -11,6 +11,8 @@ var assert = require('better-assert');
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
+var _ = require("underscore");
+
 console.log(" Version ", opcua.version);
 
 var client = new OPCUAClient();
@@ -21,7 +23,7 @@ var dumpPacket = false;
 var dumpMessageChunk = false;
 
 
-var sessionTimeout = 10000;
+var sessionTimeout = 5000;
 
 
 var endpoints_history = [];
@@ -49,7 +51,8 @@ if (fs.existsSync(endpoints_history_file)) {
 var history_file =path.join(__dirname,".history");
 
 function save_history(callback) {
-    fs.writeFileSync(history_file,rl.history.join("\n"),"ascii");
+    var history_uniq = _.uniq(rl.history);
+    fs.writeFileSync(history_file,history_uniq.join("\n"),"ascii");
     callback();
 }
 
@@ -208,13 +211,15 @@ function ping_server(callback) {
 
     var nodes = [opcua.coerceNodeId("ns=0;i=2258")]; // CurrentServer Time
     the_session.readVariableValue(nodes, function (err, dataValues) {
-        assert(!err);
+        if(err) {
+            console.log(" warning : ".cyan, err.message.yellow);
+        }
         callback();
     });
 }
 var timerId = 0;
 function start_ping() {
-    timerId = setInterval(ping_server,sessionTimeout * 2/ 3);
+    timerId = setInterval(ping_server,sessionTimeout / 3);
 }
 function stop_ping() {
     clearInterval(timerId);
@@ -230,6 +235,19 @@ function close_session(callback) {
     });
 
 }
+
+function set_debug(flag) {
+    if (flag) {
+        dumpPacket = true;
+        process.env.DEBUG = "ALL";
+        console.log(" Debug is ON");
+    } else {
+        dumpPacket = true;
+        delete process.env.DEBUG;
+        console.log(" Debug is OFF");
+    }
+}
+
 function process_line(line) {
     var nodes;
     var args = line.trim().split(/ +/);
@@ -238,15 +256,7 @@ function process_line(line) {
     switch (cmd) {
         case 'debug':
             var flag = (!args[1]) ? true: ( ["ON","TRUE","1"].indexOf(args[1].toUpperCase()) >= 0 ? true:false);
-            if (flag) {
-                dumpPacket = true;
-                process.env.DEBUG = "ALL";
-                console.log(" Debug is ON");
-            } else {
-                dumpPacket = true;
-                delete process.env.DEBUG;
-                console.log(" Debug is OFF");
-            }
+            set_debug(flag);
             rl.prompt(">");
             break;
         case 'open':
@@ -280,6 +290,17 @@ function process_line(line) {
             });
             break;
 
+        case 'fs':
+        case "FindServers":
+            rl.pause();
+            client.findServers({
+
+            },function (err, servers) {
+                console.log(treeify.asTree(servers, true));
+                rl.resume();
+                rl.prompt(">");
+            });
+            break;
         case 'gep':
         case 'getEndpoints':
             rl.pause();
@@ -447,10 +468,18 @@ function process_line(line) {
             });
         } break;
         case "info":
+
             console.log("            bytesRead  ", client.bytesRead , " bytes");
             console.log("         bytesWritten  ", client.bytesWritten , " bytes");
             console.log("transactionsPerformed  ", client.transactionsPerformed , "");
+            // -----------------------------------------------------------------------
+            // number of subscriptions
+            // -----------------------------------------------------------------------
+            // number of monitored items by subscription
+
             break;
+        case ".quit":
+            process.exit(0);
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
             break;

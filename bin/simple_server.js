@@ -6,6 +6,9 @@ var argv = require('yargs')
     .string("alternateHostname")
     .describe("alternateHostname")
     .alias('a','alternateHostname')
+    .string("port")
+    .describe("port")
+    .alias('p','port')
     .argv;
 
 var opcua = require("..");
@@ -24,10 +27,11 @@ var standard_nodeset_file = opcua.standard_nodeset_file;
 
 var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
 
+var port = parseInt(argv.port) || 26543;
 
 var server_options ={
 
-    port: 26543,
+    port: port,
     resourcePath: "UA/Server",
 
     nodeset_filename: [ standard_nodeset_file],
@@ -50,6 +54,9 @@ var server_options ={
         }
     }
 };
+
+process.title ="Node OPCUA Server on port : " + server_options.port;
+
 server_options.alternateHostname = argv.alternateHostname;
 
 var server = new OPCUAServer(server_options);
@@ -179,6 +186,23 @@ server.on("post_initialize", function () {
         }
     });
 
+    // UAAnalogItem
+    // add a UAAnalogItem
+    var node = opcua.addAnalogDataItem(myDevices,{
+        nodeId:"ns=4;s=TemperatureAnalogItem",
+        browseName: "TemperatureAnalogItem",
+        definition: "(tempA -25) + tempB",
+        valuePrecision: 0.5,
+        engineeringUnitsRange: { low: 100 , high: 200},
+        instrumentRange: { low: -100 , high: +200},
+        engineeringUnits: opcua.standardUnits.degree_celsius,
+        dataType: "Double",
+        value: {
+            get: function(){
+                return new Variant({dataType: DataType.Double , value: Math.random() + 19.0});
+            }
+        }
+    });
 
 });
 
