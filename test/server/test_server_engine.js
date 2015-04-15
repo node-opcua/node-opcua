@@ -19,6 +19,8 @@ var DataType = require("lib/datamodel/variant").DataType;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
+
 var VariableIds = require("lib/opcua_node_ids").VariableIds;
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
@@ -72,7 +74,55 @@ describe("testing ServerEngine", function () {
                 }
             );
 
+            // add a writable Int32
+            engine.addVariable(
+                engine.findObject("ObjectsFolder"),
+                {
+                    browseName: "WriteableInt32",
+                    nodeId: "ns=1;s=WriteableInt32",
+                    dataType: "Int32",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        },
+                        set:  function(variant){
+                            // Variation 1 : synchronous
+                            // assert(_.isFunction(callback));
+                            return StatusCodes.Good;
+                        }
+                    }
+                }
+            );
 
+            // add a writable Int32
+            engine.addVariable(
+                engine.findObject("ObjectsFolder"),
+                {
+                    browseName: "WriteableUInt32Async",
+                    nodeId: "ns=1;s=WriteableUInt32Async",
+                    dataType: "UInt32",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        },
+                        set:  function(variant){
+                            // Variation 1 : synchronous
+                            // assert(_.isFunction(callback));
+                            setTimeout(function() {
+                                callback(null,StatusCodes.Good);
+                            },20);
+                        }
+                    }
+                }
+            );
             done();
         });
 
@@ -1437,24 +1487,28 @@ describe("testing ServerEngine", function () {
     describe("writing nodes ", function () {
 
         var WriteValue = require("lib/services/write_service").WriteValue;
-        it("should write a single node", function (done) {
+
+        it("QQ should write a single node", function (done) {
 
             var nodeToWrite = new WriteValue({
-                nodeId: makeNodeId(0, 2254), // Server_ServerArray
+                nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                 attributeId: AttributeIds.Value,
                 indexRange: null,
                 value: { // dataValue
                     value: { // variant
-                        dataType: DataType.UInt32,
+                        dataType: DataType.Int32,
                         value: 10
                     }
                 }
             });
-            engine.writeSingleNode(nodeToWrite);
-            done();
+            engine.writeSingleNode(nodeToWrite,function(err,statusCode){
+                statusCode.should.eql(StatusCodes.Good);
+                done(err);
+            });
         });
 
         it("should return BadNotWritable when trying to write a Executable attribute", function (done) {
+
             var nodeToWrite = new WriteValue({
                 nodeId: resolveNodeId("RootFolder"),
                 attributeId: AttributeIds.Executable,
@@ -1466,9 +1520,10 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            var result = engine.writeSingleNode(nodeToWrite);
-            assert(result.should.eql(StatusCodes.BadNotWritable));
-            done();
+            engine.writeSingleNode(nodeToWrite,function(err,statusCode){
+                statusCode.should.eql(StatusCodes.BadNotWritable);
+                done(err);
+            });
 
         });
 
@@ -1498,8 +1553,12 @@ describe("testing ServerEngine", function () {
                     }
                 })
             ];
-            engine.write(nodesToWrite);
-            done();
+
+            engine.write(nodesToWrite,function(results){
+
+                done();
+
+            });
 
         });
     });

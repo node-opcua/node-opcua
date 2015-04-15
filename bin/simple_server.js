@@ -237,7 +237,7 @@ server.on("create_session",function(session) {
 
     console.log(" SESSION CREATED");
     console.log("    client application URI: ".cyan,session.clientDescription.applicationUri);
-    console.log("        client produit URI: ".cyan,session.clientDescription.productUri);
+    console.log("        client product URI: ".cyan, session.clientDescription.productUri);
     console.log("   client application name: ".cyan,session.clientDescription.applicationName.toString());
     console.log("   client application type: ".cyan,session.clientDescription.applicationType.toString());
     console.log("              session name: ".cyan,session.sessionName.toString());
@@ -271,8 +271,10 @@ process.on('SIGINT', function() {
     // only work on linux apparently
     console.log(" Received server interruption from user ".red.bold);
     console.log(" shutting down ".red.bold);
-    server.shutdown(function () {
+    server.shutdown(10000, function () {
+        console.log(" shutting down completed ".red.bold);
         console.log(" done ".red.bold);
+        console.log("");
         process.exit(-1);
     });
 });

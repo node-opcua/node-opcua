@@ -39,7 +39,7 @@ describe("testing address space for conformance testing",function() {
         engine = null;
     });
 
-    it("should check that AccessLevel_CurrentRead_NotCurrentWrite Int32 can be read but not written",function() {
+    it("should check that AccessLevel_CurrentRead_NotCurrentWrite Int32 can be read but not written", function (done) {
 
         var nodeId = makeNodeId("AccessLevel_CurrentRead_NotCurrentWrite", namespaceIndex);
         var value = engine.readSingleNode(nodeId,AttributeIds.Value);
@@ -50,22 +50,25 @@ describe("testing address space for conformance testing",function() {
         value.value.value.should.eql(36);
 
         // now write it again
-        var result = engine.writeSingleNode(new WriteValue({
+        var writeValue = new WriteValue({
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
             value: {
-                value : {
+                value: {
                     dataType: DataType.Int32,
                     value: 1000
                 }
             }
-        }));
+        });
+        engine.writeSingleNode(writeValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.BadNotWritable, " writing on AccessLevel_CurrentRead_NotCurrentWrite should raise BadNotWritable ");
+            done(err);
+        });
 
-        result.should.eql(StatusCodes.BadNotWritable , " writing on AccessLevel_CurrentRead_NotCurrentWrite should raise BadNotWritable ");
 
     });
 
-    it("should be able to write a array of double on Scalar_Static_Array_Double",function() {
+    it("should be able to write a array of double on Scalar_Static_Array_Double", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Double", namespaceIndex);
         var value = engine.readSingleNode(nodeId,AttributeIds.Value);
@@ -76,71 +79,94 @@ describe("testing address space for conformance testing",function() {
         value.value.value.length.should.eql(10);
 
         // now write it again
-        var result = engine.writeSingleNode(new WriteValue({
+        var writeValue = new WriteValue({
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
             value: {
-                value : {
+                value: {
                     dataType: DataType.Double,
                     arrayType: VariantArrayType.Array,
-                    value: [10,20,30,40,50]
+                    value: [10, 20, 30, 40, 50]
                 }
             }
-        }));
-
-        result.should.eql(StatusCodes.Good);
+        });
+        engine.writeSingleNode(writeValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            done(err);
+        });
 
     });
 
 
-    it("should write a scalar Int32 value to the  Scalar_Static_Int32_NodeId node",function() {
+    it("should write a scalar Int32 value to the  Scalar_Static_Int32_NodeId node", function (done) {
 
         // change one value
         var nodeId = makeNodeId("Scalar_Static_Int32", namespaceIndex);
 
-        engine.writeSingleNode(new WriteValue({
+        var writeValue = new WriteValue({
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
             value: {
-                value : {
+                value: {
                     dataType: DataType.Int32,
                     value: 1000
                 }
             }
-        }));
+        });
+        engine.writeSingleNode(writeValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            done(err);
+        });
 
     });
 
-    it("should build an address space for conformance testing with options.mass_variables",function() {
+    it("should build an address space for conformance testing with options.mass_variables", function (done) {
 
 
+        async.series([
+            function (callback) {
+                // browseName Interval
+                // browseName Enabled
+                var intervalNodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
+                // change interval to 200 ms
 
-        // browseName Interval
-        // browseName Enabled
-        var intervalNodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
-        // change interval to 200 ms
-        engine.writeSingleNode(new WriteValue({
-            nodeId: intervalNodeId,
-            attributeId: AttributeIds.Value,
-            value: {
-               value : {
-                   dataType: DataType.UInt16,
-                   value: 250
-               }
+                var writeValue = new WriteValue({
+                    nodeId: intervalNodeId,
+                    attributeId: AttributeIds.Value,
+                    value: {
+                        value: {
+                            dataType: DataType.UInt16,
+                            value: 250
+                        }
+                    }
+                });
+
+                engine.writeSingleNode(writeValue, function (err, statusCode) {
+                    callback(err);
+                });
+            },
+            function (callback) {
+
+                // set enable to true
+                var enabledNodeId = makeNodeId("Scalar_Simulation_Enabled", namespaceIndex);
+
+                var writeValue = new WriteValue({
+                    nodeId: enabledNodeId,
+                    attributeId: AttributeIds.Value,
+                    value: {
+                        value: {
+                            dataType: DataType.Boolean,
+                            value: true
+                        }
+                    }
+                });
+
+                engine.writeSingleNode(writeValue, function (err, statusCode) {
+                    callback(err);
+                });
             }
-        }));
-        // set enable to true
-        var enabledNodeId = makeNodeId("Scalar_Simulation_Enabled", namespaceIndex);
-        engine.writeSingleNode(new WriteValue({
-            nodeId: enabledNodeId,
-            attributeId: AttributeIds.Value,
-            value: {
-                value : {
-                    dataType: DataType.Boolean,
-                    value: true
-                }
-            }
-        }));
+        ], done);
+
 
     });
 });

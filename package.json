@@ -41,12 +41,12 @@
     "eyes": "0.1.8",
     "jsdoc": "3.3.0-beta3",
     "literate-programming": "0.8.4",
-    "mocha": "2.2.1",
+    "mocha": "2.2.4",
     "mocha-lcov-reporter": "0.0.2",
     "mustache": "2.0.0",
     "node-xml": "1.0.2",
     "request": "2.55.0",
-    "should": "5.2.0",
+    "should": "6.0.1",
     "sinon": "1.14.1",
     "tmp": "0.0.25",
     "tracer": "0.7.4",
@@ -72,13 +72,13 @@
     "pem": "1.7.2",
     "progress": "1.1.8",
     "prettyjson": "1.1.0",
-    "requirish": "0.2.0",
+    "requirish": "0.3.0",
     "sprintf": "0.1.5",
     "ssh-key-to-pem": "0.11.0",
     "treeify": "1.0.1",
     "underscore": "1.8.3",
     "unzip": "^0.1.11",
     "wget-improved": "^1.0.1",
-    "yargs": "3.7.1"
+    "yargs": "3.7.2"
   }
 }

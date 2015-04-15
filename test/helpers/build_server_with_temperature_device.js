@@ -141,6 +141,37 @@ function build_server_with_temperature_device(options,done) {
             addTestUAAnalogItem(myDevices);
 
 
+            // add a variable that can be written asynchronously
+            var asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
+            var asyncValue = 46;
+
+            server.asyncWriteNode = server.engine.addVariableInFolder(myDevices,{
+                browseName: "AsynchronousVariable",
+                nodeId: asyncWriteNodeId,
+                dataType: "Double",
+
+                value: {
+                    // asynchronous read
+                    refreshFunc: function (callback) {
+
+                        var value = new Variant({dataType: DataType.Double, value: asyncValue});
+                        var sourceTimestamp = new Date();
+
+                        // simulate a asynchronous behaviour
+                        setTimeout(function () {
+                            callback(null, value, sourceTimestamp);
+                        }, 100);
+                    },
+                    set: function(variant) {
+                        setTimeout(function() {
+                            asyncValue = variant.value;
+                        },1000);
+                        return StatusCodes.GoodCompletesAsynchronously;
+                    }
+                }
+
+            });
+
 
             done();
 

@@ -211,6 +211,9 @@ function ping_server(callback) {
 
     callback  = callback || function(){};
 
+    if (!the_session) {
+        return callback();
+    }
 
     var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
     the_session.readVariableValue(nodes, function (err, dataValues) {
@@ -264,7 +267,7 @@ function process_line(line) {
 
     switch (cmd) {
         case 'debug':
-            var flag = (!args[1]) ? true: ( ["ON","TRUE","1"].indexOf(args[1].toUpperCase()) >= 0 ? true:false);
+            var flag = (!args[1]) ? true: ( ["ON","TRUE","1"].indexOf(args[1].toUpperCase()) >= 0);
             set_debug(flag);
             rl.prompt(">");
             break;
