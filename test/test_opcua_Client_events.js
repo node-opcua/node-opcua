@@ -76,7 +76,7 @@ describe("testing basic Client-Server communication", function () {
             function (callback) {
                 close_counter.should.eql(1);
                 callback(null);
-            } ,
+            }
         ], done);
 
 
@@ -156,7 +156,7 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
 
                 callback(null);
                 close_counter.should.eql(1);
-            },
+            }
 
         ], done);
 
