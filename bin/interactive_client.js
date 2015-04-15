@@ -195,7 +195,9 @@ function dump_dataValues(nodesToRead,dataValues) {
 
 }
 
-
+// ns=0;i=2259
+var serverStatus_State_Id = opcua.coerceNodeId(opcua.VariableIds.Server_ServerStatus_State);
+var lastKnownState = opcua.ServerState.Unknown;
 /**
  * @method ping_server
  *
@@ -209,10 +211,17 @@ function ping_server(callback) {
 
     callback  = callback || function(){};
 
-    var nodes = [opcua.coerceNodeId("ns=0;i=2258")]; // CurrentServer Time
+
+    var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
     the_session.readVariableValue(nodes, function (err, dataValues) {
         if(err) {
             console.log(" warning : ".cyan, err.message.yellow);
+        } else {
+            var newState = opcua.ServerState.get(dataValues[0].value.value);
+            if (newState !== lastKnownState) {
+                console.log(" Server State = ", newState.toString());
+            }
+            lastKnownState = newState;
         }
         callback();
     });
@@ -226,9 +235,9 @@ function stop_ping() {
 }
 
 function close_session(callback) {
-    apply_on_valid_session("closeSession",function(the_session) {
+    apply_on_valid_session("closeSession", function (session) {
         stop_ping();
-        the_session.close(function (err) {
+        session.close(function (err) {
             the_session = null;
             callback();
         });
@@ -315,27 +324,33 @@ function process_line(line) {
             break;
         case 'createSession':
         case 'cs':
-            rl.pause();
-            client.requestedSessionTimeout = sessionTimeout;
-            client.createSession(function (err, session) {
-                if (err) {
-                    console.log("Error : ".red, err);
-                } else {
-                    //xx  console.log("Session  : ", session);
-                    the_session = session;
-                    console.log("session created ",session.sessionId.toString());
+            if (the_session !== null) {
+                console.log(" a session exists already ! use closeSession First");
+            } else {
+                rl.pause();
+                client.requestedSessionTimeout = sessionTimeout;
+                client.createSession(function (err, session) {
+                    if (err) {
+                        console.log("Error : ".red, err);
+                    } else {
+                        //xx  console.log("Session  : ", session);
+                        the_session = session;
+                        console.log("session created ", session.sessionId.toString());
 
-                    start_ping();
-                }
-                rl.resume();
-                rl.prompt(">");
-            });
-            client.on("close",function(){
-                console.log(" Server has disconnected ".red);
-            })
+                        start_ping();
+                    }
+                    rl.resume();
+                    rl.prompt(">");
+                });
+                client.on("close", function () {
+                    console.log(" Server has disconnected ".red);
+                    the_session = null;
+                })
+            }
             break;
         case 'closeSession':
             close_session(function() {
+                assert(the_session === null);
                 rl.resume();
                 rl.prompt(">");
             });
@@ -353,6 +368,8 @@ function process_line(line) {
                     rl.write("client disconnected");
                 });
             }
+            rl.resume();
+            rl.prompt(">");
             break;
         case 'b':
         case 'browse':
