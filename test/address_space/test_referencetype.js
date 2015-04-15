@@ -146,6 +146,7 @@ describe("testing ReferenceType", function () {
         var browseNames = references.map(function (r) {
             return r.browseName.name;
         });
+        browseNames.length.should.be.equal(0);
 
         references.length.should.equal(0);
     });
@@ -333,6 +334,8 @@ describe("testing ReferenceType", function () {
 
 
 describe(" improving performance of isSubtypeOf", function () {
+
+
     var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
     //  References i=31
     //  +->(hasSubtype) NoHierarchicalReferences
@@ -387,13 +390,14 @@ describe(" improving performance of isSubtypeOf", function () {
         });
         done();
     });
+
     it("should ensure that optimized version of isSubtypeOf is really faster that brute force version", function (done) {
 
         //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
         bench.add('isSubtypeOf slow', function () {
 
             referenceTypes.forEach(function (referenceType) {
-                var flags = referenceTypes.map(function (refType) {
+                referenceTypes.map(function (refType) {
                     return referenceType._slow_isSubtypeOf(refType);
                 });
             });
@@ -402,9 +406,10 @@ describe(" improving performance of isSubtypeOf", function () {
         .add('isSubtypeOf fast', function () {
 
             referenceTypes.forEach(function (referenceType) {
-                var flags = referenceTypes.map(function (refType) {
+                referenceTypes.map(function (refType) {
                     return referenceType.isSubtypeOf(refType);
                 });
+
             });
         })
         .on('cycle', function (message) {
@@ -421,6 +426,5 @@ describe(" improving performance of isSubtypeOf", function () {
             done();
         })
         .run();
-
     });
 });

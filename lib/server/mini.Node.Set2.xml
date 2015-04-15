@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-           Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
-           xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet
+        Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
+        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="SByte">i=2</Alias>
@@ -41,6 +41,42 @@
     </Aliases>
 
 
+    <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">
+        <DisplayName>Number</DisplayName>
+        <Description>Describes a value that can have any numeric DataType.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
+        <DisplayName>Enumeration</DisplayName>
+        <Description>Describes a value that is an enumerated DataType.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="i=4" BrowseName="Int16">
+        <DisplayName>Int16</DisplayName>
+        <Description>Describes a value that is an integer between −32,768 and 32,767.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=5" BrowseName="UInt16">
+        <DisplayName>UInt16</DisplayName>
+        <Description>Describes a value that is an integer between 0 and 65535.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=6" BrowseName="Int32">
+        <DisplayName>Int32</DisplayName>
+        <Description>Describes a value that is an integer between −2,147,483,648 and 2,147,483,647.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+        </References>
+    </UADataType>
     <UADataType NodeId="i=7" BrowseName="UInt32">
         <DisplayName>UInt32</DisplayName>
         <Description>Describes a value that is an integer between 0 and 4,294,967,295.</Description>
@@ -48,7 +84,13 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
         </References>
     </UADataType>
-
+    <UADataType NodeId="i=10" BrowseName="Float">
+        <DisplayName>Float</DisplayName>
+        <Description>Describes a value that is an IEEE 754-1985 single precision floating point number.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
+        </References>
+    </UADataType>
     <UADataType NodeId="i=11" BrowseName="Double">
         <DisplayName>Double</DisplayName>
         <Description>Describes a value that is an IEEE 754-1985 double precision floating point number.</Description>
@@ -108,13 +150,7 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
         </References>
     </UADataType>
-    <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
-        <DisplayName>Enumeration</DisplayName>
-        <Description>Describes a value that is an enumerated DataType.</Description>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
-        </References>
-    </UADataType>
+
 
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
@@ -1115,7 +1151,7 @@
                             </DataType>
                             <ValueRank>-1</ValueRank>
                             <ArrayDimensions/>
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance"/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -1142,7 +1178,7 @@
                             </DataType>
                             <ValueRank>1</ValueRank>
                             <ArrayDimensions/>
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance"/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -1158,7 +1194,7 @@
                             </DataType>
                             <ValueRank>1</ValueRank>
                             <ArrayDimensions/>
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance"/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -1539,7 +1575,7 @@
                             </DataType>
                             <ValueRank>-1</ValueRank>
                             <ArrayDimensions/>
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance"/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -1567,7 +1603,7 @@
                             </DataType>
                             <ValueRank>1</ValueRank>
                             <ArrayDimensions/>
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance"/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -1583,7 +1619,7 @@
                             </DataType>
                             <ValueRank>1</ValueRank>
                             <ArrayDimensions/>
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance"/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
