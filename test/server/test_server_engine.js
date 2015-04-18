@@ -336,8 +336,10 @@ describe("testing ServerEngine", function () {
 
             });
 
-        newVariable.value.should.be.instanceOf(Variant);
-        newVariable.value.value.should.equal(10.0);
+        var dataValue = newVariable.readValue();
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+        dataValue.value.should.be.instanceOf(Variant);
+        dataValue.value.value.should.equal(10.0);
 
         newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.should.equal(newFolder.nodeId);
@@ -959,7 +961,7 @@ describe("testing ServerEngine", function () {
                     dataEncoding: null /* */
                 },
                 {
-                    nodeId: resolveNodeId("RootFolder"),
+                    nodeId: resolveNodeId("ns=0;i=2259"),
                     attributeId: AttributeIds.Value,
                     indexRange: null, /* ???? */
                     dataEncoding: null /* */
@@ -975,17 +977,28 @@ describe("testing ServerEngine", function () {
             });
             var dataValues = engine.read(readRequest);
             dataValues.length.should.equal(3);
+
             dataValues[0].should.be.instanceOf(DataValue);
-            dataValues[1].should.be.instanceOf(DataValue);
-            dataValues[2].should.be.instanceOf(DataValue);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[0].serverTimeStamp).eql(undefined);
             should(dataValues[0].sourceTimeStamp).eql(undefined);
             should(dataValues[0].serverPicoseconds).eql(0);
             should(dataValues[0].sourcePicoseconds).eql(0);
+
+            dataValues[1].should.be.instanceOf(DataValue);
+            dataValues[1].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[1].serverTimeStamp).eql(undefined);
             should(dataValues[1].sourceTimeStamp).eql(undefined);
             should(dataValues[1].serverPicoseconds).eql(0);
             should(dataValues[1].sourcePicoseconds).eql(0);
+
+            dataValues[2].should.be.instanceOf(DataValue);
+            dataValues[2].statusCode.should.eql(StatusCodes.Good);
+            should(dataValues[2].serverTimeStamp).eql(undefined);
+            should(dataValues[2].sourceTimeStamp).eql(undefined);
+            should(dataValues[2].serverPicoseconds).eql(0);
+            should(dataValues[2].sourcePicoseconds).eql(0);
+
 
         });
 
