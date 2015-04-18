@@ -1,5 +1,7 @@
 require("requirish")._(module);
-var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
+
+var async = require("async");
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var address_space = require("lib/address_space/address_space");
@@ -10,39 +12,40 @@ var DataType = require("lib/datamodel/variant").DataType;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var WriteValue = require("lib/services/write_service").WriteValue;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
-var StatusCodes  = require("lib/datamodel/opcua_status_code").StatusCodes;
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var ReadValueId = require("lib/services/read_service").ReadValueId;
 
-var should  = require("should");
+var should = require("should");
 var assert = require("better-assert");
 
 var namespaceIndex = 411; // namespace for conformance testing nodes
 
 
-describe("testing address space for conformance testing",function() {
+describe("testing address space for conformance testing", function () {
 
     var engine;
 
     this.timeout(140000); // very large time out to cope with heavy loaded vms on CI.
 
-    before(function(done) {
+    before(function (done) {
 
         engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function() {
-            build_address_space_for_conformance_testing(engine,{ mass_variables: true});
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+            build_address_space_for_conformance_testing(engine, {mass_variables: true});
 
             // address space variable change for conformance testing are changing randomly
             // let wait a little bit to make sure variables have changed at least once
-            setTimeout(done,500);
+            setTimeout(done, 500);
         });
     });
-    after(function() {
+    after(function () {
         engine = null;
     });
 
     it("should check that AccessLevel_CurrentRead_NotCurrentWrite Int32 can be read but not written", function (done) {
 
         var nodeId = makeNodeId("AccessLevel_CurrentRead_NotCurrentWrite", namespaceIndex);
-        var value = engine.readSingleNode(nodeId,AttributeIds.Value);
+        var value = engine.readSingleNode(nodeId, AttributeIds.Value);
 
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Int32);
@@ -71,7 +74,7 @@ describe("testing address space for conformance testing",function() {
     it("should be able to write a array of double on Scalar_Static_Array_Double", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Double", namespaceIndex);
-        var value = engine.readSingleNode(nodeId,AttributeIds.Value);
+        var value = engine.readSingleNode(nodeId, AttributeIds.Value);
 
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Double);
@@ -169,4 +172,64 @@ describe("testing address space for conformance testing",function() {
 
 
     });
+
+    function writeValue(nodeId, dataType, value, callback) {
+
+        var request = new WriteValue({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value,
+            value: {
+                value: {
+                    dataType: dataType,
+                    value: value
+                }
+            }
+        });
+
+        engine.writeSingleNode(request, function (err, statusCode) {
+            callback(err);
+        });
+    }
+
+    function readValue(nodeId, callback) {
+        var request = new ReadValueId({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value
+        });
+        var dataValue = engine._readSingleNode(request);
+        callback(null, dataValue.value.value);
+
+    }
+
+    it(" should write a new value on Scalar_Static_Int16 and check with read", function (done) {
+
+        var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
+
+        var l_value = 555;
+        async.series([
+
+
+            function (callback) {
+                readValue(nodeId, function (err, value) {
+                    l_value = value;
+                    l_value.should.eql(0);
+                    callback(err);
+                });
+            },
+            function (callback) {
+                l_value.should.eql(0);
+                writeValue(nodeId, DataType.Int16, l_value + 100, function (err, statusCode) {
+                    callback(err);
+                });
+            },
+            function (callback) {
+                readValue(nodeId, function (err, value) {
+                    value.should.eql(l_value + 100);
+                    callback(err);
+                });
+            }
+        ], done);
+    });
+
+
 });
