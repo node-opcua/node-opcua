@@ -12,9 +12,30 @@ var factories = require("../lib/misc/factories");
 var MonitoringMode_Schema = {
     name: "MonitoringMode",
     enumValues: {
+        /**
+         * DISABLED_0  The item being monitored is not sampled or evaluated, and Notifications are not generated or
+         *              queued. Notification reporting is disabled.
+         *
+         */
         Disabled: 0,
+
+
+        /**
+         * SAMPLING_1  The item being monitored is sampled and evaluated, and Notifications are generated and
+         *             queued. Notification reporting is disabled.
+         */
         Sampling: 1,
-        Reporting: 2
+
+
+        /**
+         *  REPORTING_2  The item being monitored is sampled and evaluated, and Notifications are generated and
+         *               queued. Notification reporting is enabled
+         */
+        Reporting: 2,
+
+
+
+        Invalid: -1
     }
 };
 exports.MonitoringMode_Schema = MonitoringMode_Schema;

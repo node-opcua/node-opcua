@@ -47,7 +47,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("a MonitoredItem should trigger a read event according to sampling interval",function(done){
+    it("a MonitoredItem should trigger a read event according to sampling interval in Reporting mode",function(done){
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -57,6 +57,7 @@ describe("Server Side MonitoredItem",function(){
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
 
         monitoredItem.oldValue = new Variant({dataType: DataType.UInt32, value: 42});
         var spy_samplingEventCall = sinon.spy();
@@ -255,6 +256,8 @@ describe("Server Side MonitoredItem",function(){
             // added by the server:
             monitoredItemId: 50
         });
+
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
 
         var spy_samplingEventCall = sinon.spy();
         monitoredItem.on("samplingEvent",spy_samplingEventCall);
