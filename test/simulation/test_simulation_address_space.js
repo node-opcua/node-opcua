@@ -1,5 +1,6 @@
 require("requirish")._(module);
 
+var _ = require("underscore");
 var async = require("async");
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -9,12 +10,13 @@ var nodeid = require("lib/datamodel/nodeid");
 var server_engine = require("lib/server/server_engine");
 var makeNodeId = nodeid.makeNodeId;
 var DataType = require("lib/datamodel/variant").DataType;
+var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var WriteValue = require("lib/services/write_service").WriteValue;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var ReadValueId = require("lib/services/read_service").ReadValueId;
-
+var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 var should = require("should");
 var assert = require("better-assert");
 
@@ -31,7 +33,7 @@ describe("testing address space for conformance testing", function () {
 
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-            build_address_space_for_conformance_testing(engine, {mass_variables: true});
+            build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
             // address space variable change for conformance testing are changing randomly
             // let wait a little bit to make sure variables have changed at least once
@@ -45,27 +47,39 @@ describe("testing address space for conformance testing", function () {
     it("should check that AccessLevel_CurrentRead_NotCurrentWrite Int32 can be read but not written", function (done) {
 
         var nodeId = makeNodeId("AccessLevel_CurrentRead_NotCurrentWrite", namespaceIndex);
-        var value = engine.readSingleNode(nodeId, AttributeIds.Value);
 
-        value.statusCode.should.eql(StatusCodes.Good);
-        value.value.dataType.should.eql(DataType.Int32);
-        value.value.arrayType.should.eql(VariantArrayType.Scalar);
-        value.value.value.should.eql(36);
 
-        // now write it again
-        var writeValue = new WriteValue({
-            nodeId: nodeId,
-            attributeId: AttributeIds.Value,
-            value: {
-                value: {
-                    dataType: DataType.Int32,
-                    value: 1000
-                }
+        var nodesToRefresh = [{ nodeId:nodeId}];
+        engine.refreshValues(nodesToRefresh,function(err){
+
+            if (!err){
+                var value = engine.readSingleNode(nodeId, AttributeIds.Value);
+
+                value.statusCode.should.eql(StatusCodes.Good);
+                value.value.dataType.should.eql(DataType.Int32);
+                value.value.arrayType.should.eql(VariantArrayType.Scalar);
+                value.value.value.should.eql(36);
+
+                // now write it again
+                var writeValue = new WriteValue({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value,
+                    value: {
+                        value: {
+                            dataType: DataType.Int32,
+                            value: 1000
+                        }
+                    }
+                });
+                engine.writeSingleNode(writeValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.BadNotWritable, " writing on AccessLevel_CurrentRead_NotCurrentWrite should raise BadNotWritable ");
+                    done(err);
+                });
+
+            } else {
+                done(err);
             }
-        });
-        engine.writeSingleNode(writeValue, function (err, statusCode) {
-            statusCode.should.eql(StatusCodes.BadNotWritable, " writing on AccessLevel_CurrentRead_NotCurrentWrite should raise BadNotWritable ");
-            done(err);
+
         });
 
 
@@ -99,7 +113,6 @@ describe("testing address space for conformance testing", function () {
         });
 
     });
-
 
     it("should write a scalar Int32 value to the  Scalar_Static_Int32_NodeId node", function (done) {
 
@@ -198,10 +211,9 @@ describe("testing address space for conformance testing", function () {
         });
         var dataValue = engine._readSingleNode(request);
         callback(null, dataValue.value.value);
-
     }
 
-    it(" should write a new value on Scalar_Static_Int16 and check with read", function (done) {
+    it("should write a new value on Scalar_Static_Int16 and check with read", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
 
@@ -231,5 +243,222 @@ describe("testing address space for conformance testing", function () {
         ], done);
     });
 
+    it("should read a array Boolean",function(done){
+
+
+        var nodeId = makeNodeId("Scalar_Static_Array_Boolean", namespaceIndex);
+
+        var request = new ReadValueId({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value
+        });
+        var dataValue = engine._readSingleNode(request);
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+        dataValue.value.value.should.be.instanceOf(Array);
+        dataValue.value.value.length.should.eql(10);
+        dataValue.value.value[0].should.eql(false);
+
+        // -------------------------------------------------------------------------------------------------------------
+        var request = new ReadValueId({
+            nodeId: nodeId,
+            indexRange: "1",
+            attributeId: AttributeIds.Value
+        });
+        var dataValue = engine._readSingleNode(request);
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+        dataValue.value.value.should.be.instanceOf(Array);
+        dataValue.value.value.length.should.eql(1);
+        dataValue.value.value[0].should.eql(false);
+
+        done();
+    });
+
+    function readValueArray(nodeId,indexRange, callback) {
+
+        indexRange = indexRange || new NumericRange();
+
+        var request = new ReadValueId({
+            nodeId: nodeId,
+            indexRange: indexRange,
+            attributeId: AttributeIds.Value
+        });
+        var dataValue = engine._readSingleNode(request);
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+        callback(null, dataValue.value.value);
+    }
+
+    function writeValueArray(nodeId, dataType,indexRange, value, callback) {
+        assert(_.isArray(value));
+        var request = new WriteValue({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value,
+            indexRange: indexRange,
+            value: {     // DataValue
+                value: new Variant({ // Variant
+                    arrayType: VariantArrayType.Array,
+                    dataType: dataType,
+                    value: value
+                })
+            }
+        });
+        console.log("      value = ",value);
+        console.log(" indexRange = ",indexRange);
+        console.log(" indexRange = ",request.indexRange.toString());
+        console.log(" indexRange = ",request.indexRange.type.toString());
+        console.log("    request = ",request.toString());
+        engine.writeSingleNode(request, function (err, statusCode) {
+            callback(err,statusCode);
+        });
+    }
+
+    it("should read an array slice inside an array ",function(done) {
+
+        var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
+
+        var data = [ 1 ,2,3,4,5,6,7,8,9,10];
+
+        writeValueArray(nodeId,DataType.Int32,null,data, function (err, value) {
+
+            readValueArray(nodeId, "3:4", function (err, value) {
+                value.length.should.eql(2);
+                value.should.eql([4, 5]);
+                done(err);
+            });
+        });
+    });
+
+    it("should write an array slice inside an array ",function(done) {
+
+        var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
+
+        var original_data = [ 1 ,2,3,4,5,6,7,8,9,10];
+
+        async.series([
+
+            // load the variable with the initial array
+            function(callback) {
+                writeValueArray(nodeId,DataType.Int32,null,original_data, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
+
+            // make sure that variable contains the initial array
+            function(callback) {
+                readValueArray(nodeId, null, function (err, value) {
+                    value.length.should.eql(10);
+                    value.should.eql( [ 1 ,2,3,4,5,6,7,8,9,10]);
+                    callback(err);
+                });
+            },
+
+            // now read a single element
+            function(callback) {
+                readValueArray(nodeId, "3", function (err, value) {
+                    value.length.should.eql(1);
+                    value.should.eql([4]);
+                    callback(err);
+                });
+            },
+            // now read a single element
+            function(callback) {
+                readValueArray(nodeId, null,function (err, value) {
+                    value.length.should.eql(10);
+                    value.should.eql([1,2,3,4,5,6,7,8,9,10]);
+                    callback(err);
+                });
+            },
+
+            // now read a range
+            function(callback) {
+                readValueArray(nodeId, "3:4", function (err, value) {
+                    value.length.should.eql(2);
+                    value.should.eql([4, 5]);
+                    callback(err);
+                });
+            },
+
+            // now replace element 2 & 3
+            function (callback) {
+
+                var sub_array = [123,345];
+                writeValueArray(nodeId, DataType.Int32,"2:3", sub_array , function (err, statusCode) {
+
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
+
+            // verify that whole array is now as expected
+            function(callback) {
+                readValueArray(nodeId, null, function (err, value) {
+                    value.length.should.eql(10);
+                    console.log(" =>",value);
+                    value.should.eql([1,2,123,345,5,6,7,8,9,10]);
+                    callback(err);
+                });
+            }
+        ],done);
+    });
+
+    it("should write an  element inside an array of Float (indexRange 2:4) ",function(done) {
+
+        done();
+    });
+    it("should write an  element inside an array of Boolean (indexRange 2:4) ",function(done) {
+        done();
+    });
+    it("should write an  element inside an array ( indexRange 2:4 ) ",function(done) {
+
+
+        var nodeId = makeNodeId("Scalar_Static_Array_Int16", namespaceIndex);
+
+        var l_value = null ;
+        async.series([
+
+            function (callback) {
+                readValueArray(nodeId,null, function (err, value) {
+                    l_value = value;
+                    l_value.length.should.eql(10);
+                    callback(err);
+                });
+            },
+            function (callback) {
+
+                l_value.length.should.eql(10);
+                l_value[3]+= 1000;
+                l_value[4]+= 2000;
+                var newValue = [ l_value[3],  l_value[4] ];
+
+                writeValueArray(nodeId, DataType.Int16,"3:4", newValue , function (err, statusCode) {
+                    callback(err);
+                });
+
+            },
+
+            function (callback) {
+                readValueArray(nodeId,null, function (err, value) {
+                    value.length.should.eql(10);
+                    value.should.eql(l_value);
+                    callback(err);
+                });
+            },
+
+            function (callback) {
+                readValueArray(nodeId,"4", function (err, value) {
+                    value.length.should.eql(1);
+                    value.should.eql([l_value[4]]);
+                    callback(err);
+                });
+            },
+            function (callback) {
+                readValueArray(nodeId,"3:5", function (err, value) {
+                    value.length.should.eql(3);
+                    value.should.eql([l_value[3],l_value[4],l_value[5]]);
+                    callback(err);
+                });
+            }
+        ], done);
+    });
 
 });

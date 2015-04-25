@@ -157,7 +157,7 @@ describe("end-to-end testing of a write operation between a client and a server 
 
     });
 
-    it("AAA should return an error if value to write has a wrong dataType ( Double  instead of Float)",function(done){
+    it("should return an error if value to write has a wrong dataType ( Double  instead of Float)",function(done){
 
         perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
@@ -185,7 +185,7 @@ describe("end-to-end testing of a write operation between a client and a server 
 
     });
 
-    it("ZZ server should return Good_CompletesAsynchronously if the  variable write operation happens asynchroniously",function(done){
+    it("server should return Good_CompletesAsynchronously if the  variable write operation happens asynchronously",function(done){
 
         // The value was successfully written to an intermediate system but the Server does not know if
         // the data source was updated properly.

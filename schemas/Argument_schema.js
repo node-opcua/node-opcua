@@ -40,7 +40,7 @@ function _dataType_encodeAsNodeId(dataType, stream) {
 
     var nodeId = dataType;
     if (!(dataType instanceof NodeId)) {
-        console.log("xxxx dataType.value ", dataType.value);
+        //xx console.log("xxxx dataType.value ", dataType.value);
         nodeId = makeNodeId(dataType.value, 0);
     }
     encode_NodeId(nodeId, stream);

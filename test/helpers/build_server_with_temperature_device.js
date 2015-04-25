@@ -154,12 +154,16 @@ function build_server_with_temperature_device(options,done) {
                     // asynchronous read
                     refreshFunc: function (callback) {
 
-                        var value = new Variant({dataType: DataType.Double, value: asyncValue});
-                        var sourceTimestamp = new Date();
-
+                        var dataValue = new DataValue({
+                            value: {
+                                dataType: DataType.Double,
+                                value: asyncValue
+                            },
+                            sourceTimestamp: new Date()
+                        });
                         // simulate a asynchronous behaviour
                         setTimeout(function () {
-                            callback(null, value, sourceTimestamp);
+                            callback(null,dataValue);
                         }, 100);
                     },
                     set: function(variant) {

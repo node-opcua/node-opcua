@@ -247,7 +247,7 @@ describe("Benchmarking Date conversion routines",function(){
             check_date    = date_time.bn_hundredNanoSecondFrom1601ToDate(hl[0],hl[1]);
             check_date_bn = bn_hundredNanoSecondFrom1601ToDate_big_number(hl[0],hl[1]);
 
-            check_date.should.eql(date);
+            check_date.toString().should.eql(date.toString());
 
             ec.isValidUInt32(hl[0]).should.eql(true);
             ec.isValidUInt32(hl[1]).should.eql(true);

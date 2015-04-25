@@ -134,11 +134,11 @@ server.on("post_initialize", function () {
      * The value and source timestamps are held in a external object.
      * The value and source timestamps are updated on a regular basis using a timer function.
      */
-    var external_value_with_sourceTimestamp = {
+    var external_value_with_sourceTimestamp = new opcua.DataValue({
         value: new Variant({dataType: DataType.Double , value: 10.0}),
         sourceTimestamp : null,
         sourcePicoseconds: 0
-    };
+    });
     setInterval(function() {
         external_value_with_sourceTimestamp.value.value = Math.random();
         external_value_with_sourceTimestamp.sourceTimestamp = new Date();
@@ -180,7 +180,7 @@ server.on("post_initialize", function () {
 
                 // simulate a asynchronous behaviour
                 setTimeout(function () {
-                    callback(null, value, sourceTimestamp);
+                    callback(null, new DataValue({ value:value, sourceTimestamp: sourceTimestamp}));
                 }, 100);
             }
         }
@@ -270,8 +270,8 @@ server.on("request", function (request) {
 process.on('SIGINT', function() {
     // only work on linux apparently
     console.log(" Received server interruption from user ".red.bold);
-    console.log(" shutting down ".red.bold);
-    server.shutdown(10000, function () {
+    console.log(" shutting down ...".red.bold);
+    server.shutdown(1000, function () {
         console.log(" shutting down completed ".red.bold);
         console.log(" done ".red.bold);
         console.log("");

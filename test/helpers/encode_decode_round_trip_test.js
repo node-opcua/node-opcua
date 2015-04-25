@@ -16,7 +16,6 @@ function dump_block_in_debug_mode(buffer,id,options) {
     if ( process.env.DEBUG )  {
         console.log(hexDump(buffer));
         packet_analyzer(buffer,id,0,0,options);
-
     }
 }
 /**

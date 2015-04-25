@@ -20,6 +20,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
     it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
         var method = new Method({
+            browseName: "MyMethod1",
             address_space: the_address_space,
             userExecutable: false,
             executable: true
@@ -40,6 +41,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
     it("should return Executable= true and UserExecutable=true if method is  bound ", function () {
 
         var method = new Method({
+            browseName: "MyMethod2",
             address_space: the_address_space,
             userExecutable: false,
             executable: true

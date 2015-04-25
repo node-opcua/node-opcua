@@ -238,7 +238,7 @@ var Variant_Schema = {
 
             /* istanbul ignore next */
             if (!isValidVariant(options.arrayType,options.dataType,options.value)) {
-                throw new Error("Invalid variant " +options.arrayType + "  " + options.dataType + " " + options.value);
+                throw new Error("Invalid variant " +options.arrayType.toString() + "  " + options.dataType.toString() + " " + options.value);
             }
         }
         return options;

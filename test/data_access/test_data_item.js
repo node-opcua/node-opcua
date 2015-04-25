@@ -15,7 +15,7 @@ var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range =  require("lib/data_access/Range").Range;
 var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
-
+var async = require("async");
 
 var path = require("path");
 
@@ -130,7 +130,7 @@ describe("DataAccess", function () {
     });
    var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 
-    it("should create a analogItemType",function() {
+    it("should create a analogItemType",function(done) {
 
         var address_space = engine.address_space;
 
@@ -149,13 +149,20 @@ describe("DataAccess", function () {
               engineeringUnits: standardUnits.degree_celsius,
 
               dataType: "Double",
-              value: { get: function(){return new Variant({dataType: DataType.Double , value: fakeValue}); }
+              value: {
+                  get: function(){
+                      return new Variant({
+                          dataType: DataType.Double,
+                          value: fakeValue
+                      });
+                  }
               }
 
         });
 
         //xx console.log(JSON.stringify(analogItem,null," "));
         // analogItem.dataType.should.eql(address_space.findVariableType("AnalogItemType").nodeId);
+
         analogItem.definition.browseName.should.eql("Definition");
         analogItem.valuePrecision.browseName.should.eql("ValuePrecision");
         analogItem.eURange.browseName.should.eql("EURange");
@@ -167,15 +174,6 @@ describe("DataAccess", function () {
         analogItem.$instrumentRange.low.should.eql(-100);
         analogItem.$instrumentRange.high.should.eql(200);
 
-        // accessing data from nodeId
-        var dataValue = engine.readSingleNode(analogItem.instrumentRange.nodeId,AttributeIds.Value);
-        //xx console.log("value",dataValue);
-        dataValue.statusCode.should.eql(StatusCodes.Good);
-        dataValue.value.dataType.should.eql(DataType.ExtensionObject);
-        dataValue.value.value.should.be.instanceOf(Range);
-        dataValue.value.value.low.should.eql(-100);
-        dataValue.value.value.high.should.eql(200);
-
         // browsing variable
         var browseDescription = {
             nodeClassMask: 0, // 0 = all nodes
@@ -185,19 +183,49 @@ describe("DataAccess", function () {
         var browseResult = engine.browseSingleNode(analogItem.nodeId, browseDescription);
         browseResult.references.length.should.eql(6);
 
+        async.series([
 
-        var dataValue = engine.readSingleNode(analogItem.nodeId,AttributeIds.Value);
-        dataValue.statusCode.should.eql(StatusCodes.Good);
-        dataValue.value.dataType.should.eql(DataType.Double);
-        dataValue.value.value.should.eql(fakeValue);
+            function (callback){
+                analogItem.instrumentRange.readValueAsync(function(err,dataValue){
+                    if (!err) {
+                        dataValue.statusCode.should.eql(StatusCodes.Good);
+                        dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+                        dataValue.value.value.should.be.instanceOf(Range);
+                        dataValue.value.value.low.should.eql(-100);
+                        dataValue.value.value.high.should.eql(200);
+                    }
+                    callback(err);
+                });
 
-        fakeValue = 2.0;
+            },
 
-        // do it again, to see if value is changing accordingly , to proof that the binding is correct
-        var dataValue = engine.readSingleNode(analogItem.nodeId,AttributeIds.Value);
-        dataValue.statusCode.should.eql(StatusCodes.Good);
-        dataValue.value.dataType.should.eql(DataType.Double);
-        dataValue.value.value.should.eql(fakeValue);
+            function (callback){
+                console.log(analogItem._dataValue);
+                analogItem.readValueAsync(function(err,dataValue){
+                    if (!err) {
+                        dataValue.statusCode.should.eql(StatusCodes.Good);
+                        dataValue.value.dataType.should.eql(DataType.Double);
+                        dataValue.value.value.should.eql(fakeValue);
+                    }
+                    callback(err);
+                });
+            },
+            function (callback) {
+
+                fakeValue = 2.0;
+
+                analogItem.readValueAsync(function(err,dataValue){
+                    console.log(analogItem._dataValue);
+                    if (!err) {
+                        dataValue.statusCode.should.eql(StatusCodes.Good);
+                        dataValue.value.dataType.should.eql(DataType.Double);
+                        dataValue.value.value.should.eql(fakeValue);
+                    }
+                    callback(err);
+                });
+            }
+
+        ],done);
 
 
     });

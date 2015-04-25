@@ -317,7 +317,7 @@ describe("testing ServerEngine", function () {
         result.should.eql(newFolder1);
     });
 
-    it("should be possible to create a variable in a folder", function () {
+    it("should be possible to create a variable in a folder", function (done) {
 
         var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder1");
 
@@ -335,14 +335,18 @@ describe("testing ServerEngine", function () {
                 }
 
             });
-
-        var dataValue = newVariable.readValue();
-        dataValue.statusCode.should.eql(StatusCodes.Good);
-        dataValue.value.should.be.instanceOf(Variant);
-        dataValue.value.value.should.equal(10.0);
-
         newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.should.equal(newFolder.nodeId);
+
+        newVariable.readValueAsync(function(err,dataValue){
+            if (!err) {
+                dataValue.statusCode.should.eql(StatusCodes.Good);
+                dataValue.value.should.be.instanceOf(Variant);
+                dataValue.value.value.should.equal(10.0);
+            }
+            done(err);
+        });
+
 
     });
 
@@ -372,15 +376,15 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should be possible to create a variable in a folder that returns a timestamped value", function () {
+    it("should be possible to create a variable in a folder that returns a timestamped value", function (done) {
 
         engine.createFolder("ObjectsFolder", "MyNewFolder4");
 
-        var temperature = {
+        var temperature = new DataValue({
             value: new Variant({dataType: DataType.Double, value: 10.0}),
             sourceTimestamp: new Date(Date.UTC(1999, 9, 9)),
             sourcePicoseconds: 10
-        };
+        });
 
         var newVariable = engine.addVariableInFolder("MyNewFolder4",
             {
@@ -394,11 +398,19 @@ describe("testing ServerEngine", function () {
             });
 
 
-        var dataValue = newVariable.readAttribute(AttributeIds.Value, undefined, undefined);
-        dataValue.should.be.instanceOf(DataValue);
+        newVariable.readValueAsync(function(err,dataValue){
 
-        dataValue.sourceTimestamp.should.eql(new Date(Date.UTC(1999, 9, 9)));
-        dataValue.sourcePicoseconds.should.eql(10);
+            if (!err) {
+
+                var dataValue = newVariable.readAttribute(AttributeIds.Value, undefined, undefined);
+                dataValue.should.be.instanceOf(DataValue);
+                dataValue.sourceTimestamp.should.eql(new Date(Date.UTC(1999, 9, 9)));
+                dataValue.sourcePicoseconds.should.eql(10);
+
+            }
+            done(err);
+        });
+
 
     });
 
@@ -412,7 +424,6 @@ describe("testing ServerEngine", function () {
 
 
     });
-
 
     it("should browse the 'Objects' folder for back references", function () {
 
@@ -605,7 +616,6 @@ describe("testing ServerEngine", function () {
         results[0].references.length.should.equal(4);
 
     });
-
 
     describe("readSingleNode on Object", function () {
 
@@ -967,7 +977,7 @@ describe("testing ServerEngine", function () {
                     dataEncoding: null /* */
                 }
             ];
-        it("should read and set the required timestamps : TimestampsToReturn.Neither", function () {
+        it("should read and set the required timestamps : TimestampsToReturn.Neither", function (done) {
 
             var DataValue = require("lib/datamodel/datavalue").DataValue;
             var readRequest = new read_service.ReadRequest({
@@ -975,30 +985,36 @@ describe("testing ServerEngine", function () {
                 timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: nodesToRead
             });
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(3);
 
-            dataValues[0].should.be.instanceOf(DataValue);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            should(dataValues[0].serverTimeStamp).eql(undefined);
-            should(dataValues[0].sourceTimeStamp).eql(undefined);
-            should(dataValues[0].serverPicoseconds).eql(0);
-            should(dataValues[0].sourcePicoseconds).eql(0);
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
 
-            dataValues[1].should.be.instanceOf(DataValue);
-            dataValues[1].statusCode.should.eql(StatusCodes.Good);
-            should(dataValues[1].serverTimeStamp).eql(undefined);
-            should(dataValues[1].sourceTimeStamp).eql(undefined);
-            should(dataValues[1].serverPicoseconds).eql(0);
-            should(dataValues[1].sourcePicoseconds).eql(0);
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(3);
 
-            dataValues[2].should.be.instanceOf(DataValue);
-            dataValues[2].statusCode.should.eql(StatusCodes.Good);
-            should(dataValues[2].serverTimeStamp).eql(undefined);
-            should(dataValues[2].sourceTimeStamp).eql(undefined);
-            should(dataValues[2].serverPicoseconds).eql(0);
-            should(dataValues[2].sourcePicoseconds).eql(0);
+                    dataValues[0].should.be.instanceOf(DataValue);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    should(dataValues[0].serverTimestamp).eql(null);
+                    should(dataValues[0].sourceTimestamp).eql(null);
+                    should(dataValues[0].serverPicoseconds).eql(0);
+                    should(dataValues[0].sourcePicoseconds).eql(0);
 
+                    dataValues[1].should.be.instanceOf(DataValue);
+                    dataValues[1].statusCode.should.eql(StatusCodes.Good);
+                    should(dataValues[1].serverTimestamp).eql(null);
+                    should(dataValues[1].sourceTimestamp).eql(null);
+                    should(dataValues[1].serverPicoseconds).eql(0);
+                    should(dataValues[1].sourcePicoseconds).eql(0);
+
+                    dataValues[2].should.be.instanceOf(DataValue);
+                    dataValues[2].statusCode.should.eql(StatusCodes.Good);
+                    should(dataValues[2].serverTimestamp).eql(null);
+                    should(dataValues[2].sourceTimestamp).eql(null);
+                    should(dataValues[2].serverPicoseconds).eql(0);
+                    should(dataValues[2].sourcePicoseconds).eql(0);
+                }
+                done(err);
+            });
 
         });
 
@@ -1087,7 +1103,8 @@ describe("testing ServerEngine", function () {
         });
 
     });
-    it("should read Server_NamespaceArray ", function () {
+
+    it("should read Server_NamespaceArray ", function (done) {
 
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
@@ -1107,14 +1124,20 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(2);
-        dataValues[0].value.value.text.should.eql("NamespaceArray");
-        dataValues[1].value.value.should.be.instanceOf(Array);
-        dataValues[1].value.value.length.should.be.eql(2);
+
+        engine.refreshValues(readRequest.nodesToRead, function (err) {
+            if (!err) {
+                var dataValues = engine.read(readRequest);
+                dataValues.length.should.equal(2);
+                dataValues[0].value.value.text.should.eql("NamespaceArray");
+                dataValues[1].value.value.should.be.instanceOf(Array);
+                dataValues[1].value.value.length.should.be.eql(2);
+            }
+            done(err);
+        });
     });
 
-    it("should handle indexRange with individual value", function () {
+    it("should handle indexRange with individual value", function (done) {
 
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
@@ -1128,17 +1151,21 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.Good);
+        engine.refreshValues(readRequest.nodesToRead, function (err) {
+            if (!err) {
+                var dataValues = engine.read(readRequest);
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
-        dataValues[0].value.value.should.be.instanceOf(Array);
-        dataValues[0].value.value.length.should.be.eql(1);
-        dataValues[0].value.value[0].should.be.eql(2.0);
-
+                dataValues[0].value.value.should.be.instanceOf(Array);
+                dataValues[0].value.value.length.should.be.eql(1);
+                dataValues[0].value.value[0].should.be.eql(2.0);
+            }
+            done(err);
+        });
     });
 
-    it("should handle indexRange with a simple range", function () {
+    it("should handle indexRange with a simple range", function (done) {
 
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
@@ -1152,15 +1179,21 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.Good);
-        dataValues[0].value.value.should.be.instanceOf(Array);
-        dataValues[0].value.value.length.should.be.eql(4);
-        dataValues[0].value.value.should.be.eql([2.0, 3.0, 4.0, 5.0]);
+        engine.refreshValues(readRequest.nodesToRead, function (err) {
+            if (!err) {
+                var dataValues = engine.read(readRequest);
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                dataValues[0].value.value.should.be.instanceOf(Array);
+                dataValues[0].value.value.length.should.be.eql(4);
+                dataValues[0].value.value.should.be.eql([2.0, 3.0, 4.0, 5.0]);
+            }
+            done(err);
+        });
 
     });
-    it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", function () {
+
+    it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", function (done) {
 
         var readRequest = new read_service.ReadRequest({
             maxAge: 0,
@@ -1174,9 +1207,15 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(readRequest);
-        dataValues.length.should.equal(1);
-        dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+        engine.refreshValues(readRequest.nodesToRead, function (err) {
+            if (!err) {
+                var dataValues = engine.read(readRequest);
+                var dataValues = engine.read(readRequest);
+                dataValues.length.should.equal(1);
+                dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+            }
+            done(err);
+        });
 
     });
 
@@ -1222,7 +1261,6 @@ describe("testing ServerEngine", function () {
         dataValues[0].value.value.should.eql(VariantArrayType.Array.value);
 
     });
-
 
     describe("testing ServerEngine browsePath", function () {
         var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
@@ -1322,7 +1360,7 @@ describe("testing ServerEngine", function () {
 
     describe("Accessing ServerStatus nodes", function () {
 
-        it("should read  Server_ServerStatus_CurrentTime", function () {
+        it("should read  Server_ServerStatus_CurrentTime", function (done) {
 
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
@@ -1331,16 +1369,20 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value
                 }]
             });
-
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.DateTime);
-            dataValues[0].value.value.should.be.instanceOf(Date);
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(1);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[0].value.dataType.should.eql(DataType.DateTime);
+                    dataValues[0].value.value.should.be.instanceOf(Date);
+                }
+                done(err);
+            });
 
         });
 
-        it("should read  Server_ServerStatus_StartTime", function () {
+        it("should read  Server_ServerStatus_StartTime", function (done) {
 
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
@@ -1349,16 +1391,20 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value
                 }]
             });
-
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.DateTime);
-            dataValues[0].value.value.should.be.instanceOf(Date);
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(1);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[0].value.dataType.should.eql(DataType.DateTime);
+                    dataValues[0].value.value.should.be.instanceOf(Date);
+                }
+                done(err);
+            });
 
         });
 
-        it("should read  Server_ServerStatus_BuildInfo_BuildNumber", function () {
+        it("should read  Server_ServerStatus_BuildInfo_BuildNumber", function (done) {
 
             engine.buildInfo.buildNumber = "1234";
 
@@ -1369,13 +1415,16 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value
                 }]
             });
-
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.String);
-            dataValues[0].value.value.should.eql("1234")
-
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(1);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[0].value.dataType.should.eql(DataType.String);
+                    dataValues[0].value.value.should.eql("1234");
+                }
+                done(err);
+            });
         });
 
         it("should read  Server_ServerStatus_BuildInfo_BuildNumber (2nd)", function () {
@@ -1394,7 +1443,7 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", function () {
+        it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", function (done) {
 
 
             var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
@@ -1402,15 +1451,23 @@ describe("testing ServerEngine", function () {
             assert(node != null);
             should(node).not.eql(null);
 
-            var dataValue = node.readAttribute(13);
-
-            dataValue.statusCode.should.eql(StatusCodes.Good);
-            dataValue.value.dataType.should.eql(DataType.UInt32);
-            dataValue.value.value.should.eql(0);
+            var nodesToRead= [{
+                nodeId: nodeid,
+                attributeId: AttributeIds.Value
+            }];
+            engine.refreshValues(nodesToRead, function (err) {
+                if (!err) {
+                    var dataValue = node.readAttribute(AttributeIds.Value);
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    dataValue.value.dataType.should.eql(DataType.UInt32);
+                    dataValue.value.value.should.eql(0);
+                }
+                done(err);
+            });
 
         });
 
-        it("should read all attributes of Server_ServerStatus_CurrentTime", function () {
+        it("should read all attributes of Server_ServerStatus_CurrentTime", function (done) {
 
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
@@ -1421,19 +1478,23 @@ describe("testing ServerEngine", function () {
                     };
                 })
             });
-
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(15);
-            dataValues[7].statusCode.should.eql(StatusCodes.Good);
-            dataValues[7].value.dataType.should.eql(DataType.DateTime);
-            dataValues[7].value.value.should.be.instanceOf(Date);
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(15);
+                    dataValues[7].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[7].value.dataType.should.eql(DataType.DateTime);
+                    dataValues[7].value.value.should.be.instanceOf(Date);
+                }
+                done(err);
+            });
 
         });
     });
 
     describe("Accessing ServerStatus as a single composite object", function () {
 
-        it("should be possible to access the ServerStatus Object as a variable", function () {
+        it("should be possible to access the ServerStatus Object as a variable", function (done) {
 
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
@@ -1442,32 +1503,35 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value
                 }]
             });
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(1);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
+                    dataValues[0].value.value.should.be.instanceOf(Object);
 
-            dataValues[0].value.value.should.be.instanceOf(Object);
+                    var serverStatus = dataValues[0].value.value;
 
-            var serverStatus = dataValues[0].value.value;
+                    serverStatus.state.key.should.eql("Running");
+                    serverStatus.state.value.should.eql(0);
+                    serverStatus.shutdownReason.text.should.eql("");
 
-            serverStatus.state.key.should.eql("Running");
-            serverStatus.state.value.should.eql(0);
-            serverStatus.shutdownReason.text.should.eql("");
-
-            serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
-            serverStatus.buildInfo.softwareVersion.should.equal("1.0");
-            serverStatus.buildInfo.manufacturerName.should.equal("<Manufacturer>");
-            serverStatus.buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
-
+                    serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
+                    serverStatus.buildInfo.softwareVersion.should.equal("1.0");
+                    serverStatus.buildInfo.manufacturerName.should.equal("<Manufacturer>");
+                    serverStatus.buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+                }
+                done(err);
+            });
         });
     });
 
 
     describe("Accessing BuildInfo as a single composite object", function () {
 
-        it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure", function () {
+        it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure", function (done) {
 
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
@@ -1476,23 +1540,25 @@ describe("testing ServerEngine", function () {
                     attributeId: AttributeIds.Value
                 }]
             });
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var dataValues = engine.read(readRequest);
+                    dataValues.length.should.equal(1);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
-            var dataValues = engine.read(readRequest);
-            dataValues.length.should.equal(1);
-            dataValues[0].statusCode.should.eql(StatusCodes.Good);
-            dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
+                    console.log('buildInfo', dataValues[0].value.value);
+                    dataValues[0].value.value.should.be.instanceOf(Object);
 
-            console.log('buildInfo', dataValues[0].value.value);
-            dataValues[0].value.value.should.be.instanceOf(Object);
+                    var buildInfo = dataValues[0].value.value;
 
-            var buildInfo = dataValues[0].value.value;
-
-            buildInfo.productName.should.equal("NODEOPCUA-SERVER");
-            buildInfo.softwareVersion.should.equal("1.0");
-            buildInfo.manufacturerName.should.equal("<Manufacturer>");
-            buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
-
-
+                    buildInfo.productName.should.equal("NODEOPCUA-SERVER");
+                    buildInfo.softwareVersion.should.equal("1.0");
+                    buildInfo.manufacturerName.should.equal("<Manufacturer>");
+                    buildInfo.productUri.should.equal("URI:NODEOPCUA-SERVER");
+                }
+                done(err);
+            });
         });
     });
 
@@ -1501,7 +1567,7 @@ describe("testing ServerEngine", function () {
 
         var WriteValue = require("lib/services/write_service").WriteValue;
 
-        it("QQ should write a single node", function (done) {
+        it("should write a single node", function (done) {
 
             var nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
@@ -1544,33 +1610,34 @@ describe("testing ServerEngine", function () {
 
             var nodesToWrite = [
                 new WriteValue({
-                    nodeId: makeNodeId(0, 2254),
+                    nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                     attributeId: AttributeIds.Value,
                     indexRange: null,
                     value: { // dataValue
                         value: { // variant
-                            dataType: DataType.UInt32,
+                            dataType: DataType.Int32,
                             value: 10
                         }
                     }
                 }),
                 new WriteValue({
-                    nodeId: makeNodeId(0, 2254),
+                    nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                     attributeId: AttributeIds.Value,
                     indexRange: null,
                     value: { // dataValue
                         value: { // variant
-                            dataType: DataType.UInt32,
+                            dataType: DataType.Int32,
                             value: 10
                         }
                     }
                 })
             ];
 
-            engine.write(nodesToWrite,function(results){
-
-                done();
-
+            engine.write(nodesToWrite,function(err,results){
+                results.length.should.eql(2);
+                results[0].should.eql(StatusCodes.Good);
+                results[1].should.eql(StatusCodes.Good);
+                done(err);
             });
 
         });
@@ -1601,11 +1668,22 @@ describe("testing ServerEngine", function () {
                 }
             );
         });
-        it("should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function () {
+        it("ZZ should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function (done) {
 
-            var readResult = engine.readSingleNode("ns=1;s=FailingPLCValue", AttributeIds.Value);
-
-            readResult.statusCode.should.eql(StatusCodes.BadResourceUnavailable);
+            var readRequest = new read_service.ReadRequest({
+                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+                nodesToRead: [{
+                    nodeId:"ns=1;s=FailingPLCValue",
+                    attributeId: AttributeIds.Value
+                }]
+            });
+            engine.refreshValues(readRequest.nodesToRead, function (err) {
+                if (!err) {
+                    var readResults = engine.read(readRequest);
+                    readResults[0].statusCode.should.eql(StatusCodes.BadResourceUnavailable);
+                }
+                done(err);
+            });
 
         });
     });
@@ -1630,8 +1708,13 @@ describe("testing ServerEngine", function () {
                             // add some delay to simulate a long operation to perform the asynchronous read
                             setTimeout(function(){
                                 value1 +=1;
-                                var result =new Variant({dataType: DataType.Double, value: value1});
-                                callback(null, result);
+                                var dataValue =new DataValue({
+                                    value:  {
+                                        dataType: DataType.Double,
+                                        value: value1
+                                    }
+                                });
+                                callback(null, dataValue);
                             },10)
                         }
                     }
@@ -1647,8 +1730,11 @@ describe("testing ServerEngine", function () {
                     value: {
                         refreshFunc: function(callback) {
                             setTimeout(function(){
-                                value2 +=1;
-                                callback(null,new Variant({dataType: DataType.Double, value: value2}));
+                                value2 += 1;
+                                var dataValue= new DataValue({
+                                    value: {dataType: DataType.Double, value: value2}
+                                });
+                                callback(null,dataValue);
                             },10)
                         }
                     }
@@ -1674,15 +1760,17 @@ describe("testing ServerEngine", function () {
 
             engine.refreshValues(nodesToRefresh,function(err,values){
 
-                values[0].value.value.should.equal(1);
+                if(!err) {
+                    values[0].value.value.should.equal(1);
 
-                value1.should.equal(1);
-                value2.should.equal(0);
+                    value1.should.equal(1);
+                    value2.should.equal(0);
 
-                var dataValue = engine.readSingleNode(nodesToRefresh[0].nodeId,AttributeIds.Value);
-                dataValue.statusCode.should.eql(StatusCodes.Good);
-                dataValue.value.value.should.eql(1);
+                    var dataValue = engine.readSingleNode(nodesToRefresh[0].nodeId,AttributeIds.Value);
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    dataValue.value.value.should.eql(1);
 
+                }
                 done(err);
             })
         });
@@ -1695,15 +1783,16 @@ describe("testing ServerEngine", function () {
             ];
 
             engine.refreshValues(nodesToRefresh,function(err,values) {
-                values.length.should.equal(2," expecting two node asynchronous refresh call");
+                if (!err) {
+                    values.length.should.equal(2," expecting two node asynchronous refresh call");
 
-                values[0].value.value.should.equal(1);
-                values[1].value.value.should.equal(1);
+                    values[0].value.value.should.equal(1);
+                    values[1].value.value.should.equal(1);
 
-                value1.should.equal(1);
-                value2.should.equal(1);
-
-                done();
+                    value1.should.equal(1);
+                    value2.should.equal(1);
+                }
+                done(err);
             });
         });
 
@@ -1716,12 +1805,14 @@ describe("testing ServerEngine", function () {
             ];
             engine.refreshValues(nodesToRefresh,function(err,values) {
 
-                values.length.should.equal(1," expecting only one node asynchronous refresh call");
+                if(!err) {
+                    values.length.should.equal(1," expecting only one node asynchronous refresh call");
 
-                value1.should.equal(1);
-                value2.should.equal(0);
+                    value1.should.equal(1);
+                    value2.should.equal(0);
+                }
 
-                done();
+                done(err);
             });
         });
 
@@ -1731,12 +1822,12 @@ describe("testing ServerEngine", function () {
                 { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId:AttributeIds.DisplayName }
             ];
             engine.refreshValues(nodesToRefresh,function(err,values) {
-
-                values.length.should.equal(0," expecting no asynchronous refresh call");
-                value1.should.equal(0);
-                value2.should.equal(0);
-
-                done();
+                if (!err) {
+                    values.length.should.equal(0," expecting no asynchronous refresh call");
+                    value1.should.equal(0);
+                    value2.should.equal(0);
+                }
+                done(err);
             });
         });
         it("should perform readValueAsync on Variable",function(done){

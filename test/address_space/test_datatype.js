@@ -24,6 +24,7 @@ describe("testing UADataype -  Attribute", function () {
     it("UADataType#readAttribute", function () {
 
         var dataType = new UADataType({
+            browseName:  "MyDataType",
             address_space: the_address_space,
             isAbstract: true
         });

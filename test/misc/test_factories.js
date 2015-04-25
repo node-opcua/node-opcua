@@ -679,18 +679,16 @@ describe("factories testing advanced cases",function(){
         var options = {};
         Object.keys(_defaultTypeMap).forEach(function(key) {
             if (key === "Any" || key==="Null" || key==="AccessLevelFlag") return;
-            var type = findBuiltInType(key);
-            var random  =ec["random"+ type.name];
+            var type = _defaultTypeMap[key];
+
+            var random  =type.random || ec["random"+ type.name];
 
             if (_.isFunction(random)) {
                 options["value_"+key] =  random();
                 options["array_"+key] =  [ random(), random()];
-                //xx console.log("xxxxxxxxx setting value_"+key ,options["value_"+key]);
-                //xx console.log("xxxxxxxxx setting array_"+key ,options["array_"+key]);
-
             }
         });
-        //xx console.log(options);
+        console.log(options);
 
         var Blob6 = factories.registerObject(exports.Blob6_Schema,"tmp");
 

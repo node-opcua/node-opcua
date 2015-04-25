@@ -440,6 +440,110 @@ describe("testing server and subscription", function () {
 
     });
 
+    it("should return BadAttributeIdInvalid if the client tries to monitored an invalid attribute",function(done) {
+
+        this.timeout(5000);
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var monitoredItem = subscription.monitor(
+                {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.INVALID},
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
+            monitoredItem.on("err",function(statusCode){
+
+                statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
+                callback();
+            });
+
+
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItem.on("initialized", function () {
+                monitoredItem.terminate(function () {
+                    callback(new Error("Should not have been initialized"));
+                });
+            });
+        }, done);
+    });
+
+    it("should return BadIndexRangeInvalid if the client tries to monitored with an invalid index range",function(done) {
+
+        this.timeout(5000);
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var monitoredItem = subscription.monitor(
+                {
+                    nodeId: resolveNodeId("ns=0;i=2258"),
+                    attributeId: AttributeIds.Value,
+                    indexRange: "5:3" // << INTENTIONAL : Invalid Range
+                },
+                {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
+            monitoredItem.on("err",function(statusCode){
+                statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+                callback();
+            });
+
+            // subscription.on("item_added",function(monitoredItem){
+            monitoredItem.on("initialized", function () {
+                monitoredItem.terminate(function () {
+                    callback(new Error("monitoredItem.on('initialized') should not be called"));
+                });
+            });
+        }, done);
+    });
+
+    it("should return BadNothingToDo if CreateMonitoredItemRequest has no nodes to monitored",function(done) {
+
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var createMonitoredItemsRequest= new opcua.subscription_service.CreateMonitoredItemsRequest({
+                subscriptionId: subscription.subscriptionId,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                itemsToCreate: []
+            });
+            session.createMonitoredItems(createMonitoredItemsRequest,function(err,createMonitoredItemsResponse){
+                createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                callback();
+            });
+
+        },done);
+    });
+
+    it("should return BadNothingToDo if ModifyMonitoredItemRequest has no nodes to monitored",function(done) {
+
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var modifyMonitoredItemsRequest= new opcua.subscription_service.ModifyMonitoredItemsRequest({
+                subscriptionId: subscription.subscriptionId,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                itemsToModify: []
+            });
+            session.modifyMonitoredItems(modifyMonitoredItemsRequest,function(err,modifyMonitoredItemsResponse){
+                modifyMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                callback();
+            });
+
+        },done);
+    });
+    it("should return BadNothingToDo if DeleteMonitoredItemsResponse has no nodes to delete",function(done) {
+
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+            var deleteMonitoredItemsRequest= new opcua.subscription_service.DeleteMonitoredItemsRequest({
+                subscriptionId: subscription.subscriptionId,
+                monitoredItemIds: []
+            });
+            session.deleteMonitoredItems(deleteMonitoredItemsRequest,function(err,deleteMonitoredItemsResponse){
+                deleteMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                callback();
+            });
+
+        },done);
+    });
+
+
+
+
     it("A MonitoredItem should received changed event", function (done) {
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_callback) {
@@ -969,7 +1073,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             var change_count = 0;
             monitoredItem.on("changed", function (dataValue) {
-                //xx console.log("changed",dataValue.value.toString());
+                console.log("changed",dataValue.value.toString());
                 change_count +=1;
             });
 
@@ -999,7 +1103,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     setTimeout(function(){
                         change_count.should.be.greaterThan(1);
                         callback();
-                    },400);
+                    },3000); // wait at least 3 second as date resolution is 1 sec.
                 }
             ],inner_done);
 

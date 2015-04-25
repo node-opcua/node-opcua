@@ -60,4 +60,43 @@ describe("DataValue", function () {
         encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
         });
     });
+
+    it("DataValue#toString",function() {
+
+        var dataValue = new DataValue({
+            value: new Variant({dataType: DataType.String, value: "Hello"}),
+            statusCode: StatusCodes.BadCertificateHostNameInvalid,
+            serverTimestamp: new Date(Date.UTC(1789,6,14)),
+            serverPicoseconds: 1000,
+            sourceTimestamp: new Date(Date.UTC(2089,6,14)),
+            sourcePicoseconds: 2000
+        });
+        var str = dataValue.toString();
+        str.split(/\n/).should.eql([
+            "DATAVALUE ",
+            "",
+            "   value = Variant(Scalar, value: Hello)",
+            "   statusCode       = BadCertificateHostNameInvalid (0x80160000)",
+            "   serverTimestamp  = 1789-07-14T00:00:00.000Z $ 1000",
+            "   sourceTimestamp  = 2089-07-14T00:00:00.000Z $ 2000"
+        ]);
+
+        var dataValue = new DataValue({
+            value: new Variant({dataType: DataType.String, value: "Hello"}),
+            statusCode: StatusCodes.BadCertificateHostNameInvalid,
+            serverTimestamp: null,
+            serverPicoseconds: null,
+            sourceTimestamp: new Date(Date.UTC(2089,6,14)),
+            sourcePicoseconds: 2000
+        });
+        var str = dataValue.toString();
+        str.split(/\n/).should.eql([
+            "DATAVALUE ",
+            "",
+            "   value = Variant(Scalar, value: Hello)",
+            "   statusCode       = BadCertificateHostNameInvalid (0x80160000)",
+            "   serverTimestamp  = null",
+            "   sourceTimestamp  = 2089-07-14T00:00:00.000Z $ 2000"
+        ]);
+    });
 });
