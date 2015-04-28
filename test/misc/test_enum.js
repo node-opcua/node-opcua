@@ -79,3 +79,4 @@ describe("Test Enum", function () {
     });
 
 });
+
