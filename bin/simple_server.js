@@ -34,6 +34,8 @@ var server_options ={
     port: port,
     resourcePath: "UA/Server",
 
+    maxAllowedSessionNumber: 500,
+
     nodeset_filename: [ standard_nodeset_file],
 
     serverInfo: {
@@ -49,7 +51,7 @@ var server_options ={
     },
     serverCapabilities: {
         operationLimits: {
-            maxNodesPerRead: 1000,
+            maxNodesPerRead:   1000,
             maxNodesPerBrowse: 2000
         }
     }
