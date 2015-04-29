@@ -27,7 +27,7 @@ function restore_default_certificate_store() {
 
 var alice_private_key_filename = path.join(__dirname,"../fixtures/certs/server_key_1024.pem");
 var alice_public_key_filename  = path.join(__dirname,"../fixtures/certs/server_public_key_1024.pub");
-var alice_certificate_filename = path.join(__dirname,".../fixtures/certs/server_cert_1024.pem");
+var alice_certificate_filename = path.join(__dirname,"../fixtures/certs/server_cert_1024.pem");
 
 
 var doDebug = false;
