@@ -9,10 +9,20 @@ var OPCUAClient = opcua.OPCUAClient;
 
 var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 
-var empty_nodeset_filename = require("path").join(__dirname,"./fixtures/fixture_empty_nodeset2.xml");
+var empty_nodeset_filename = require("path").join(__dirname,"../fixtures/fixture_empty_nodeset2.xml");
+
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
 
 describe("Testing a simple server from Server side",function(){
 
+    before(function() {
+        resourceLeakDetector.start();
+    });
+    after(function() {
+        resourceLeakDetector.stop();
+    });
 
     it("should have at least one endpoint",function(){
 
@@ -41,17 +51,17 @@ describe("Testing a simple server from Server side",function(){
             server.getChannels().length.should.equal(0);
 
             // now make a simple connection
-            var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
             var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
              var options = {};
             var client = new OPCUAClient(options);
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 server.getChannels().length.should.equal(1);
-                console.log(" nb Channels ",server.getChannels().length);
+                //xx console.log("xxxxx nb Channels ",server.getChannels().length);
                 inner_done();
             },function() {
                 server.shutdown(function(){
+                    OPCUAServer.getRunningServerCount().should.eql(0);
                     done();
                 });
             });

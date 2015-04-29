@@ -66,7 +66,7 @@ function build_server_with_temperature_device(options,done) {
 
     assert(_.isFunction(done,"expecting a callback function"));
 
-    // console.log("xxx building server with temperature device");
+    //xx console.log("xxx building server with temperature device");
 
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename  || opcua.mini_nodeset_filename;

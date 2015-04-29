@@ -12,6 +12,9 @@ var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
 var fake_publish_engine = {};
 
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
+
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = {
         pendingPublishRequestCount: 0,
@@ -27,6 +30,12 @@ function reconstruct_fake_publish_engine() {
 }
 describe("Subscriptions", function () {
 
+    before(function() {
+        resourceLeakDetector.start();
+    });
+    after(function() {
+        resourceLeakDetector.stop();
+    });
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
@@ -36,29 +45,33 @@ describe("Subscriptions", function () {
         this.clock.restore();
     });
 
-    it("a subscription will make sure that maxLifeTimeCount is at least 3 times  maxKeepAliveCount", function () {
+    it("a subscription will make sure that lifeTimeCount is at least 3 times  maxKeepAliveCount", function () {
 
         {
            var subscription1 = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount:  20,
-                maxLifeTimeCount:   60, // at least 3 times maxKeepAliveCount
+                lifeTimeCount:   60, // at least 3 times maxKeepAliveCount
                 //
                 publishEngine: fake_publish_engine
             });
             subscription1.maxKeepAliveCount.should.eql(20);
-            subscription1.maxLifeTimeCount.should.eql(60);
+            subscription1.lifeTimeCount.should.eql(60);
+
+            subscription1.terminate();
+
         }
         {
             var subscription2 = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount:  20,
-                maxLifeTimeCount:   1, // at least 3 times maxKeepAliveCount
+                lifeTimeCount:   1, // at least 3 times maxKeepAliveCount
                 //
                 publishEngine: fake_publish_engine
             });
             subscription2.maxKeepAliveCount.should.eql(20);
-            subscription2.maxLifeTimeCount.should.eql(60);
+            subscription2.lifeTimeCount.should.eql(60);
+            subscription2.terminate();
         }
 
     });
@@ -68,7 +81,7 @@ describe("Subscriptions", function () {
         var subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount:  20,
-            maxLifeTimeCount:   60, // at least 3 times maxKeepAliveCount
+            lifeTimeCount:   60, // at least 3 times maxKeepAliveCount
             //
             publishEngine: fake_publish_engine
         });
@@ -103,7 +116,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,   // 1 second interval
-            maxLifeTimeCount:   100000, // very long lifeTimeCount not to be bother by client not pinging us
+            lifeTimeCount:   100000, // very long lifeTimeCount not to be bother by client not pinging us
             maxKeepAliveCount:  20,
             //
             publishEngine: fake_publish_engine
@@ -168,17 +181,18 @@ describe("Subscriptions", function () {
         subscription.on("expired", expire_event_spy);
         var terminate_spy = sinon.spy(subscription, "terminate");
 
-        this.clock.tick(subscription.publishingInterval * (subscription.maxLifeTimeCount - 2));
+        this.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount - 2));
 
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
 
-        this.clock.tick(subscription.publishingInterval * (subscription.maxLifeTimeCount + 2));
+        this.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount + 2));
 
         terminate_spy.callCount.should.equal(1);
         expire_event_spy.callCount.should.equal(1);
 
-        //xx subscription.terminate();
+        subscription.terminate();
+
     });
 
     it("a subscription that has been pinged by client before the lifetime expiration shall not terminate", function () {
@@ -197,7 +211,7 @@ describe("Subscriptions", function () {
         subscription.on("expired", expire_event_spy);
         var terminate_spy = sinon.spy(subscription, "terminate");
 
-        this.clock.tick(subscription.publishingInterval * (subscription.maxLifeTimeCount - 2));
+        this.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount - 2));
 
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
@@ -209,9 +223,12 @@ describe("Subscriptions", function () {
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
 
-        this.clock.tick(subscription.publishingInterval * (subscription.maxLifeTimeCount + 2));
+        this.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount + 2));
         terminate_spy.callCount.should.equal(1);
         expire_event_spy.callCount.should.equal(1);
+
+        subscription.terminate();
+
     });
 
     it("a subscription that has no notification within maxKeepAliveCount shall send a keepalive signal ", function () {
@@ -221,7 +238,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxLifeTimeCount: 100000, // very large lifetime not to be bother by client not pinging us
+            lifeTimeCount: 100000, // very large lifetime not to be bother by client not pinging us
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
@@ -260,6 +277,8 @@ describe("Subscriptions", function () {
         notification_event_spy.callCount.should.equal(0);
         keepalive_event_spy.callCount.should.equal(3);
 
+        subscription.terminate();
+
     });
 
     it("a subscription shall maintain a retransmission queue of pending NotificationMessages.",function(){
@@ -267,7 +286,7 @@ describe("Subscriptions", function () {
         var subscription = new Subscription({
             id: 1234,
             publishingInterval: 1000,
-            maxLifeTimeCount: 1000,
+            lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
@@ -277,6 +296,9 @@ describe("Subscriptions", function () {
         subscription.addNotificationMessage({});
         subscription.pendingNotificationsCount.should.equal(1);
 
+        subscription.terminate();
+
+
     });
 
     //OPC Unified Architecture, Part 4 74 Release 1.01
@@ -285,7 +307,7 @@ describe("Subscriptions", function () {
         var subscription = new Subscription({
             id: 1234,
             publishingInterval: 1000,
-            maxLifeTimeCount: 1000,
+            lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
@@ -302,6 +324,8 @@ describe("Subscriptions", function () {
         subscription.pendingNotificationsCount.should.equal(0);
         subscription.sentNotificationsCount.should.equal(1);
 
+        subscription.terminate();
+
 
     });
     describe("NotificationMessages are retained in this queue until they are acknowledged or until they have been in the queue for a minimum of one keep-alive interval.",function(){
@@ -310,7 +334,7 @@ describe("Subscriptions", function () {
             var subscription = new Subscription({
                 id: 1234,
                 publishingInterval: 1000,
-                maxLifeTimeCount: 1000,
+                lifeTimeCount: 1000,
                 maxKeepAliveCount: 20,
                 //
                 publishEngine: fake_publish_engine
@@ -337,13 +361,15 @@ describe("Subscriptions", function () {
             subscription.pendingNotificationsCount.should.equal(0);
             subscription.sentNotificationsCount.should.equal(0);
 
+            subscription.terminate();
+
         });
 
         it("a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.",function(){
             var subscription = new Subscription({
                 id: 1234,
                 publishingInterval: 1000,
-                maxLifeTimeCount: 1000,
+                lifeTimeCount: 1000,
                 maxKeepAliveCount: 20,
                 //
                 publishEngine: fake_publish_engine
@@ -367,6 +393,7 @@ describe("Subscriptions", function () {
             // now check that at t=1000*100 , old notification has been discarded
             subscription.sentNotificationsCount.should.equal(0);
 
+            subscription.terminate();
         });
 
     });
@@ -380,7 +407,7 @@ describe("Subscriptions", function () {
         var subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount:    5,
-            maxLifeTimeCount:    10,
+            lifeTimeCount:    10,
             publishEngine: fake_publish_engine
         });
 
@@ -412,6 +439,7 @@ describe("Subscriptions", function () {
         keepalive_event_spy.callCount.should.equal(18);
         notification_event_spy.callCount.should.equal(0);
 
+        subscription.terminate();
     });
 
     it("a subscription send a first message at the end of the first publishing cycle without waiting for the maximum  count to be reached",function(){
@@ -462,6 +490,8 @@ describe("Subscriptions", function () {
         keepalive_event_spy.callCount.should.equal(1);
         notification_event_spy.callCount.should.eql(1);
 
+        subscription.terminate();
+
     });
 
     it("the first Notification Message sent on a Subscription has a sequence number of 1.",function(){
@@ -473,6 +503,8 @@ describe("Subscriptions", function () {
         subscription._get_next_sequence_number().should.equal(2);
         subscription._get_next_sequence_number().should.equal(3);
         subscription._get_future_sequence_number().should.equal(4);
+
+        subscription.terminate();
     });
 
     it("should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist",function(){
@@ -482,6 +514,7 @@ describe("Subscriptions", function () {
         });
         subscription.removeMonitoredItem(26).should.eql(StatusCodes.BadMonitoredItemIdInvalid);
 
+        subscription.terminate();
 
     });
     xit("closing a Subscription causes its MonitoredItems to be deleted. ",function(){
@@ -501,7 +534,7 @@ describe("Subscription#setPublishingMode",function() {
     afterEach(function () {
         this.clock.restore();
     });
-    it("a subscription created with publishingEnabled=true  shall emit notification",function(done) {
+    it("a subscription created with publishingEnabled=true shall emit notification",function(done) {
 
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
@@ -509,7 +542,7 @@ describe("Subscription#setPublishingMode",function() {
         var subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount:    5,
-            maxLifeTimeCount:    10,
+            lifeTimeCount:    10,
             publishingEnabled:   true,              //  PUBLISHING IS ENABLED !!!
             publishEngine: fake_publish_engine
         });
@@ -537,7 +570,9 @@ describe("Subscription#setPublishingMode",function() {
 
         this.clock.tick(400);
         keepalive_event_spy.callCount.should.equal(0);
-        notification_event_spy.callCount.should.eql(4);
+        notification_event_spy.callCount.should.be.greaterThan(4);
+
+        subscription.terminate();
 
         done();
     });
@@ -550,7 +585,7 @@ describe("Subscription#setPublishingMode",function() {
         var subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount:    5,
-            maxLifeTimeCount:    10,
+            lifeTimeCount:    10,
             publishingEnabled:   false,              //  PUBLISHING IS DISABLED !!!
             publishEngine: fake_publish_engine
 
@@ -581,6 +616,7 @@ describe("Subscription#setPublishingMode",function() {
         keepalive_event_spy.callCount.should.equal(4);
         notification_event_spy.callCount.should.eql(0);
 
+        subscription.terminate();
         done();
     });
 
@@ -591,7 +627,7 @@ describe("Subscription#setPublishingMode",function() {
         var subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount:    5,
-            maxLifeTimeCount:    10,
+            lifeTimeCount:    10,
             publishingEnabled:   true,              //  PUBLISHING IS ENABLED !!!
             publishEngine: fake_publish_engine
         });
@@ -612,22 +648,23 @@ describe("Subscription#setPublishingMode",function() {
 
         this.clock.tick(2000);
         keepalive_event_spy.callCount.should.equal(0);
-        notification_event_spy.callCount.should.eql(20);
+        notification_event_spy.callCount.should.be.greaterThan(20);
 
 
         // now disable
         subscription.setPublishingMode(false);
         this.clock.tick(2000);
         keepalive_event_spy.callCount.should.equal(4);
-        notification_event_spy.callCount.should.eql(20);
+        notification_event_spy.callCount.should.be.greaterThan(20);
 
         subscription.setPublishingMode(true);
         this.clock.tick(2000);
         keepalive_event_spy.callCount.should.equal(4);
-        notification_event_spy.callCount.should.eql(40);
+        notification_event_spy.callCount.should.be.greaterThan(40);
 
         clearInterval(t);
 
+        subscription.terminate();
         done();
 
 
@@ -653,33 +690,42 @@ describe("Subscription#adjustSamplingInterval",function() {
     it("should adjust sampling interval to subscription publish interval when requested sampling interval === -1",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
         subscription.adjustSamplingInterval(-1).should.eql(subscription.publishingInterval);
+
+        subscription.terminate();
     });
     it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value != -1",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
         subscription.adjustSamplingInterval(-2).should.eql(subscription.publishingInterval);
         subscription.adjustSamplingInterval(-0.02).should.eql(subscription.publishingInterval);
+
+        subscription.terminate();
     });
 
     it("should adjust sampling interval to minimum when requested sampling interval === 0",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(0).should.eql(MonitoredItem.minimumSamplingInterval);
+
+        subscription.terminate();
     });
 
     it("should adjust sampling interval to maximum when requested sampling interval is too high",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
         subscription.adjustSamplingInterval(1E10).should.eql(MonitoredItem.maximumSamplingInterval);
+        subscription.terminate();
     });
 
     it("should return an unmodified sampling interval when requested sampling is in valid range",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
         var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval)/2.0;
         subscription.adjustSamplingInterval(someValidSamplingInterval).should.eql(someValidSamplingInterval);
+        subscription.terminate();
     });
 
     it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
         var someVeryLowSamplingInterval = 1;
         subscription.adjustSamplingInterval(someVeryLowSamplingInterval).should.eql(MonitoredItem.minimumSamplingInterval);
+        subscription.terminate();
     });
 
 });

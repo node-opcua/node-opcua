@@ -14,7 +14,9 @@ var StatusCodes = opcua.StatusCodes;
 
 var port = 2000;
 
-var empty_nodeset_filename = require("path").join(__dirname,"./fixtures/fixture_empty_nodeset2.xml");
+var empty_nodeset_filename = require("path").join(__dirname,"../fixtures/fixture_empty_nodeset2.xml");
+
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)",function(){
 
@@ -30,6 +32,7 @@ describe("testing the server ability to deny client session request (server with
 
     var endpointUrl;
     before(function(done){
+        resourceLeakDetector.start();
         server.start(function(){
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done();
@@ -42,7 +45,13 @@ describe("testing the server ability to deny client session request (server with
         async.series([
             function(callback) {    client2.disconnect(callback);      },
             function(callback) {    client1.disconnect(callback);      },
-            function(callback) {    server.shutdown(callback);         }
+            function(callback) {    server.shutdown(callback);         },
+            function(callback) {
+                OPCUAServer.getRunningServerCount().should.eql(0);
+                callback();
+                resourceLeakDetector.stop();
+            }
+
         ],done);
     });
 

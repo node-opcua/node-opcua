@@ -2,6 +2,16 @@ require("requirish")._(module);
 
 var _ = require("underscore");
 var async = require("async");
+
+
+var sinon = require("sinon");
+var subscription_service = require("lib/services/subscription_service");
+var Subscription = require("lib/server/subscription").Subscription;
+var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
+var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
+
+
+
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
@@ -12,6 +22,8 @@ var makeNodeId = nodeid.makeNodeId;
 var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+
 var WriteValue = require("lib/services/write_service").WriteValue;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
@@ -22,6 +34,7 @@ var assert = require("better-assert");
 
 var namespaceIndex = 411; // namespace for conformance testing nodes
 
+var resourceLeakDetector = require("../helpers/resource_leak_detector").resourceLeakDetector;
 
 describe("testing address space for conformance testing", function () {
 
@@ -29,7 +42,9 @@ describe("testing address space for conformance testing", function () {
 
     this.timeout(140000); // very large time out to cope with heavy loaded vms on CI.
 
+
     before(function (done) {
+        resourceLeakDetector.start();
 
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
@@ -41,7 +56,9 @@ describe("testing address space for conformance testing", function () {
         });
     });
     after(function () {
+        engine.shutdown();
         engine = null;
+        resourceLeakDetector.stop();
     });
 
     it("should check that AccessLevel_CurrentRead_NotCurrentWrite Int32 can be read but not written", function (done) {
@@ -83,6 +100,50 @@ describe("testing address space for conformance testing", function () {
         });
 
 
+    });
+
+
+    it("hould read a simulated float variable and check value change",function(done) {
+
+
+        var nodeId = makeNodeId("Scalar_Simulation_Float", namespaceIndex);
+        var variable = engine.findObject(nodeId);
+
+        var value1 = null;
+
+
+        async.series([
+            function(callback) {
+                var nodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
+                var simulationInterval = engine.findObject(nodeId,namespaceIndex);
+                var dataValue =new DataValue({ value: { dataType: "UInt16", value: 100}});
+                simulationInterval.writeValue(dataValue,callback);
+            },
+            function(callback) {
+                variable.readValueAsync(function(err,dataValue){
+
+                    should(dataValue).not.eql(null);
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    //xx console.log("xxx ", dataValue? dataValue.toString():"" );
+                    value1 = dataValue.value.value;
+                    callback(err);
+                });
+            },
+            function(callback) {
+                setTimeout(callback,300);
+            },
+
+            function(callback) {
+                variable.readValueAsync(function(err,dataValue){
+
+                    should(dataValue).not.eql(null);
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    var value2 = dataValue.value.value;
+                    value2.should.not.eql(value1);
+                    callback(err);
+                });
+            }
+        ],done)
     });
 
     it("should be able to write a array of double on Scalar_Static_Array_Double", function (done) {
@@ -136,6 +197,48 @@ describe("testing address space for conformance testing", function () {
 
     });
 
+    it("should write a scalar Double value to the  Scalar_Static_Duration node", function (done) {
+
+        // change one value
+        var nodeId = makeNodeId("Scalar_Static_Duration", namespaceIndex);
+
+        var writeValue = new WriteValue({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value,
+            value: {
+                value: {
+                    dataType: DataType.Double,
+                    value: 2.0
+                }
+            }
+        });
+        engine.writeSingleNode(writeValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            done(err);
+        });
+
+    });
+    it("should write a scalar UInt32 value to the  Scalar_Static_UInteger node", function (done) {
+
+        // change one value
+        var nodeId = makeNodeId("Scalar_Static_UInteger", namespaceIndex);
+
+        var writeValue = new WriteValue({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value,
+            value: {
+                value: {
+                    dataType: DataType.UInt32,
+                    value: 2.0
+                }
+            }
+        });
+        engine.writeSingleNode(writeValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            done(err);
+        });
+
+    });
     it("should build an address space for conformance testing with options.mass_variables", function (done) {
 
 
@@ -327,6 +430,22 @@ describe("testing address space for conformance testing", function () {
         });
     });
 
+    it("should read the last 3 elements of an array  ",function(done) {
+
+        var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
+
+        var data = [ 0,1 ,2,3,4,5,6,7,8,9];
+
+        writeValueArray(nodeId,DataType.Int32,null,data, function (err, value) {
+
+            readValueArray(nodeId, "7:9", function (err, value) {
+                value.length.should.eql(3);
+                value.should.eql([7,8,9]);
+                done(err);
+            });
+        });
+    });
+
     it("should write an array slice inside an array ",function(done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
@@ -405,9 +524,11 @@ describe("testing address space for conformance testing", function () {
 
         done();
     });
+
     it("should write an  element inside an array of Boolean (indexRange 2:4) ",function(done) {
         done();
     });
+
     it("should write an  element inside an array ( indexRange 2:4 ) ",function(done) {
 
 
@@ -461,4 +582,11 @@ describe("testing address space for conformance testing", function () {
         ], done);
     });
 
+
+
+
 });
+
+
+
+

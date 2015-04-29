@@ -26,12 +26,12 @@ var _ = require("underscore");
 
 var port = 2222;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-var start_simple_server = require("./helpers/external_server_fixture").start_simple_server;
-var stop_simple_server = require("./helpers/external_server_fixture").stop_simple_server;
+var start_simple_server = require("test/helpers/external_server_fixture").start_simple_server;
+var stop_simple_server = require("test/helpers/external_server_fixture").stop_simple_server;
 
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
@@ -122,8 +122,8 @@ var start_server_with_1024bits_certificate = function(callback) {
 var start_server_with_2048bits_certificate = function(callback) {
 
     var path = require("path");
-    var server_certificate256_pem_file = path.join(__dirname,"fixtures/certs/demo_client_cert256.pem");
-    var server_certificate256_privatekey_file = path.join(__dirname,"fixtures/certs/demo_client_key256.pem");
+    var server_certificate256_pem_file = path.join(__dirname,"../fixtures/certs/demo_client_cert256.pem");
+    var server_certificate256_privatekey_file = path.join(__dirname,"../fixtures/certs/demo_client_key256.pem");
 
     var options = {
         certificateFile: server_certificate256_pem_file,
@@ -295,7 +295,7 @@ if (!crypto_utils.isFullySupported()) {
         });
 
         options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
-        // console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
+        //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
         var token_change = 0;
         var client = new OPCUAClient(options);
@@ -454,8 +454,8 @@ if (!crypto_utils.isFullySupported()) {
     function perform_collection_of_test_with_various_client_configuration(prefix) {
 
         prefix = prefix || "" ;
-        var client_certificate256_pem_file = path.join(__dirname,"fixtures/certs/demo_client_cert256.pem");
-        var client_certificate256_privatekey_file = path.join(__dirname,"fixtures/certs/demo_client_key256.pem");
+        var client_certificate256_pem_file = path.join(__dirname,"../fixtures/certs/demo_client_cert256.pem");
+        var client_certificate256_privatekey_file = path.join(__dirname,"../fixtures/certs/demo_client_key256.pem");
 
         var options = {
             certificateFile: client_certificate256_pem_file,
@@ -544,12 +544,12 @@ if (!crypto_utils.isFullySupported()) {
             });
         });
 
-        var client_privatekey_file              = path.join(__dirname,"../certificates/client_key_1024.pem");
+        var client_privatekey_file              = path.join(__dirname,"../../certificates/client_key_1024.pem");
 
-        var client_certificate_ok               = path.join(__dirname,"../certificates/client_cert_1024.pem");
-        var client_certificate_out_of_date      = path.join(__dirname,"../certificates/client_cert_1024_outofdate.pem");
-        var client_certificate_not_active_yet   = path.join(__dirname,"../certificates/client_cert_1024_not_active_yet.pem");
-        var client_certificate_revoked          = path.join(__dirname,"../certificates/client_cert_1024_revoked.pem");
+        var client_certificate_ok               = path.join(__dirname,"../../certificates/client_cert_1024.pem");
+        var client_certificate_out_of_date      = path.join(__dirname,"../../certificates/client_cert_1024_outofdate.pem");
+        var client_certificate_not_active_yet   = path.join(__dirname,"../../certificates/client_cert_1024_not_active_yet.pem");
+        var client_certificate_revoked          = path.join(__dirname,"../../certificates/client_cert_1024_revoked.pem");
 
         it("Server should allow a client with a valid certificate to connect", function (done) {
 

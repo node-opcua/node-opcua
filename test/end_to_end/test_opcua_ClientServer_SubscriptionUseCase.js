@@ -15,9 +15,11 @@ var AttributeIds = opcua.AttributeIds;
 var resolveNodeId = opcua.resolveNodeId;
 var StatusCodes = opcua.StatusCodes;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 var _port = 2000;
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
@@ -26,6 +28,8 @@ describe("testing Client-Server subscription use case, on a fake server exposing
 
     var port = _port + 1;
     before(function (done) {
+
+        resourceLeakDetector.start();
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
@@ -47,12 +51,15 @@ describe("testing Client-Server subscription use case, on a fake server exposing
     });
 
     after(function (done) {
-        server.shutdown(done);
+        server.shutdown(function(err){
+            resourceLeakDetector.stop();
+            done(err);
+        });
     });
 
-    it("should create a ClientSubscription to manage a subscription", function (done) {
+    it("xx should create a ClientSubscription to manage a subscription", function (done) {
 
-        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             assert(session instanceof ClientSession);
 
@@ -70,7 +77,9 @@ describe("testing Client-Server subscription use case, on a fake server exposing
                 }, 200);
             });
             subscription.on("terminated", function () {
-                done();
+                setTimeout(function () {
+                    inner_done();
+                },200);
             });
         }, done);
     });
@@ -1073,7 +1082,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             var change_count = 0;
             monitoredItem.on("changed", function (dataValue) {
-                console.log("changed",dataValue.value.toString());
+                //xx console.log("xx changed",dataValue.value.toString());
                 change_count +=1;
             });
 

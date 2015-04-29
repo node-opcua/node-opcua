@@ -20,6 +20,7 @@ var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType =  require("lib/datamodel/variant").VariantArrayType;
 
 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
 describe("ServerEngine Subscriptions service", function () {
@@ -27,31 +28,29 @@ describe("ServerEngine Subscriptions service", function () {
 
     var engine,session,FolderTypeId,BaseDataVariableTypeId;
     beforeEach(function(done){
+        resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
             FolderTypeId = engine.findObject("FolderType").nodeId;
             BaseDataVariableTypeId = engine.findObject("BaseDataVariableType").nodeId;
             done();
         });
-
         session  = engine.createSession();
 
     });
     afterEach(function(){
+        session= null;
         should(engine).not.equal(null);
         engine.shutdown();
         engine = null;
+        resourceLeakDetector.stop();
     });
 
     it("should return an error when trying to delete an non-existing subscription",function(){
-
         session.deleteSubscription(-6789).should.eql(StatusCodes.BadSubscriptionIdInvalid);
-
     });
 
     it("should check the subscription live cycle",function(){
-
-
 
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(0);
@@ -64,6 +63,7 @@ describe("ServerEngine Subscriptions service", function () {
             publishingEnabled: true,            // Boolean
             priority: 14                        // Byte
         });
+        subscription.monitoredItemCount.should.eql(0);
 
         session.currentSubscriptionCount.should.equal(1);
         session.cumulatedSubscriptionCount.should.equal(1);
@@ -79,13 +79,14 @@ describe("ServerEngine Subscriptions service", function () {
         engine.currentSubscriptionCount.should.equal(0);
         engine.cumulatedSubscriptionCount.should.equal(1);
 
+        subscription.terminate();
     });
 
-    it("should maintain the correct number of  cumulatedSubscriptionCount at the engine leve",function() {
+    it("should maintain the correct number of cumulatedSubscriptionCount at the engine level",function() {
 
         var subscription_parameters = {
             requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 10,         // Counter
+                requestedLifetimeCount: 10,     // Counter
             requestedMaxKeepAliveCount: 10,     // Counter
             maxNotificationsPerPublish: 10,     // Counter
             publishingEnabled: true,            // Boolean
@@ -107,8 +108,6 @@ describe("ServerEngine Subscriptions service", function () {
         engine.currentSubscriptionCount.should.equal(2);
         engine.cumulatedSubscriptionCount.should.equal(2);
 
-
-
         session.deleteSubscription(subscription2.id);
         engine.currentSubscriptionCount.should.equal(1);
         engine.cumulatedSubscriptionCount.should.equal(2);
@@ -120,9 +119,9 @@ describe("ServerEngine Subscriptions service", function () {
         engine.cumulatedSessionCount.should.equal(2);
         engine.currentSubscriptionCount.should.equal(1);
 
-        session2.createSubscription(subscription_parameters);
-        session2.createSubscription(subscription_parameters);
-        session2.createSubscription(subscription_parameters);
+        var subscription1_2 = session2.createSubscription(subscription_parameters);
+        var subscription2_2 = session2.createSubscription(subscription_parameters);
+        var subscription3_2 = session2.createSubscription(subscription_parameters);
 
         engine.currentSubscriptionCount.should.equal(4);
         engine.cumulatedSubscriptionCount.should.equal(5);

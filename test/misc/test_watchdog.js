@@ -6,6 +6,7 @@ var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 var should = require("should");
 
+var resourceLeakDetector = require("../helpers/resource_leak_detector").resourceLeakDetector;
 
 var WatchDog = require("lib/misc/watchdog").WatchDog;
 
@@ -21,6 +22,13 @@ MyObject.prototype.watchdogReset = function() {
 
 // http://sinonjs.org/docs/#clock
 describe("watch dog", function () {
+
+    before(function(){
+        resourceLeakDetector.start();
+    });
+    after(function(){
+        resourceLeakDetector.stop();
+    });
 
     this.timeout(10000);
     var watchDog = null;

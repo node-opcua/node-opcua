@@ -41,13 +41,7 @@
     </Aliases>
 
 
-    <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">
-        <DisplayName>Number</DisplayName>
-        <Description>Describes a value that can have any numeric DataType.</Description>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
-        </References>
-    </UADataType>
+
     <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
         <DisplayName>Enumeration</DisplayName>
         <Description>Describes a value that is an enumerated DataType.</Description>
@@ -136,6 +130,14 @@
         <References/>
     </UADataType>
 
+    <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">
+        <DisplayName>Number</DisplayName>
+        <Description>Describes a value that can have any numeric DataType.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+
     <UADataType NodeId="i=27" BrowseName="Integer" IsAbstract="true">
         <DisplayName>Integer</DisplayName>
         <Description>Describes a value that can have any integer DataType.</Description>
@@ -143,6 +145,7 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
         </References>
     </UADataType>
+
     <UADataType NodeId="i=28" BrowseName="UInteger" IsAbstract="true">
         <DisplayName>UInteger</DisplayName>
         <Description>Describes a value that can have any unsigned integer DataType.</Description>

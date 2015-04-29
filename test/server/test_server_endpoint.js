@@ -13,8 +13,19 @@ var crypto_utils = require("lib/misc/crypto_utils");
 var it_with_crypto =  (crypto_utils.isFullySupported())  ? it: xit;
 
 var default_port = 1234;
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
 
 describe("OPCUAServerEndpoint#addEndpointDescription",function() {
+
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
+
     var server_endpoint;
     beforeEach(function() {
 
@@ -56,6 +67,15 @@ describe("OPCUAServerEndpoint#addEndpointDescription",function() {
 
 describe("OPCUAServerEndpoint#addStandardEndpointDescriptions",function(){
 
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
+
+
     var server_endpoint;
     beforeEach(function() {
         server_endpoint = new OPCUAServerEndPoint({port: default_port,serverInfo: {}});
@@ -84,6 +104,14 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions",function(){
 });
 
 describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure",function(){
+
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
 
     var server_endpoint;
     beforeEach(function() {
@@ -116,6 +144,14 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure",func
 
 
 describe("OPCUAServerEndpoint#getEndpointDescription",function() {
+
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
 
     var server_endpoint;
     beforeEach(function() {

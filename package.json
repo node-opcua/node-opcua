@@ -37,7 +37,7 @@
     "benchmark": "1.0.0",
     "bignumber.js": "2.0.7",
     "coveralls": "2.11.2",
-    "csv": "0.4.1",
+    "csv": "0.4.2",
     "eyes": "0.1.8",
     "jsdoc": "3.3.0-beta3",
     "literate-programming": "0.8.4",
@@ -58,7 +58,9 @@
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
     "byline": "4.2.1",
+    "collections": "^1.2.2",
     "colors": "1.0.3",
+    "dequeue": "^1.0.5",
     "easy-table": "0.3.0",
     "ersatz-node-expat": "0.1.2",
     "exit": "^0.1.2",
@@ -69,8 +71,8 @@
     "node-require-timings": "0.0.2",
     "optimist": "0.6.1",
     "pem": "1.7.2",
-    "progress": "1.1.8",
     "prettyjson": "1.1.0",
+    "progress": "1.1.8",
     "requirish": "0.3.0",
     "sprintf": "0.1.5",
     "ssh-key-to-pem": "0.11.0",
@@ -78,6 +80,6 @@
     "underscore": "1.8.3",
     "unzip": "^0.1.11",
     "wget-improved": "^1.0.1",
-    "yargs": "3.7.2"
+    "yargs": "^3.8.0"
   }
 }

@@ -41,33 +41,86 @@ describe("testing UADataype -  Attribute", function () {
 
 
     });
-    it("UADataType#isSubtypeOf", function () {
-        // Number
-        //   +--> Double
-        //   +--> Float
-        //   +--> Integer
-        //           +-> Int16
-        //           +-> Int32
-        var number_dt = the_address_space.findDataType("Number");
+    describe("UADataType#isSupertypeOf", function () {
 
 
-        var double_dt = the_address_space.findDataType("Double");
-        var float_dt = the_address_space.findDataType("Float");
-        var integer_dt = the_address_space.findDataType("Integer");
-        var int16_dt = the_address_space.findDataType("Int16");
+        var number_dt,double_dt,float_dt,integer_dt,int16_dt,uint32_dt,duration_dt,uinteger_dt;
+        before(function() {
+            // BaseDataType (i=24)
+            //   +-->String(i=12)
+            //   +-->Number (i=26)
+            //        +--> Double(i=11)
+            //        +--> Float (i=10)
+            //        +--> Integer (i=27)
+            //              +--> Int16 (i=4)
+            //              +--> Int32 (i=6)
+            //              +--> UInteger(i=28)
+            //                    +--> UInt16 (i=5)
+            //                    +--> UInt32 (i=7)
+            number_dt = the_address_space.findDataType("Number");
 
-        (typeof int16_dt).should.equal("object");
-        (typeof integer_dt).should.equal("object");
-        (typeof float_dt).should.equal("object");
-        (typeof double_dt).should.equal("object");
-        (typeof number_dt).should.equal("object");
 
-        number_dt.isSubtypeOf(double_dt).should.eql(false);
-        int16_dt.isSubtypeOf(integer_dt).should.eql(true);
-        int16_dt.isSubtypeOf(number_dt).should.eql(true);
-        int16_dt.isSubtypeOf(float_dt).should.eql(false);
-        int16_dt.isSubtypeOf(int16_dt).should.eql(true);
+            double_dt = the_address_space.findDataType("Double");
+            float_dt = the_address_space.findDataType("Float");
+            integer_dt = the_address_space.findDataType("Integer");
+            uinteger_dt = the_address_space.findDataType("UInteger");
+            int16_dt = the_address_space.findDataType("Int16");
+            uint32_dt = the_address_space.findDataType("UInt32");
+            duration_dt = the_address_space.findDataType("Duration");
+
+            (typeof number_dt).should.equal("object");
+            (typeof float_dt).should.equal("object");
+            (typeof double_dt).should.equal("object");
+            (typeof integer_dt).should.equal("object");
+            (typeof int16_dt).should.equal("object");
+            (typeof uint32_dt).should.equal("object");
+            (typeof duration_dt).should.equal("object");
+        });
+
+        it("Number should not be a super type of Double",function() {
+            number_dt.isSupertypeOf(double_dt).should.eql(false);
+        });
+        it("Int16 should be a super type of Integer",function() {
+            int16_dt.isSupertypeOf(integer_dt).should.eql(true);
+        });
+        it("Int16 should be a super type of Number",function() {
+            int16_dt.isSupertypeOf(number_dt).should.eql(true);
+        });
+        it("Int16 should not be a super type of Float",function() {
+            int16_dt.isSupertypeOf(float_dt).should.eql(false);
+        });
+        it("Int16 should be a super type of Int16",function() {
+            int16_dt.isSupertypeOf(int16_dt).should.eql(true);
+        });
+        it("Duration should be a super type of Double",function() {
+            duration_dt.isSupertypeOf(double_dt).should.eql(true);
+        });
+
+        it("Double should *not* be a super type of Duration",function() {
+            double_dt.isSupertypeOf(duration_dt).should.eql(false);
+        });
+        it("Integer should *not* be a super type of UInt32",function() {
+            integer_dt.isSupertypeOf(uint32_dt).should.eql(false);
+        });
+        it("UInteger should be a super type of Integer",function() {
+            uinteger_dt.isSupertypeOf(integer_dt).should.eql(true);
+        });
+
+        it("UInt32 should be a super type of UInteger",function() {
+            uint32_dt.isSupertypeOf(uinteger_dt).should.eql(true);
+        });
+        it("UInt32 should be a super type of Integer",function() {
+            uint32_dt.isSupertypeOf(integer_dt).should.eql(true);
+        });
+        it("UInt32 should be a super type of UInteger",function() {
+            uint32_dt.isSupertypeOf(uinteger_dt).should.eql(true);
+        });
+
+
+
+
     });
+
 
 
 });

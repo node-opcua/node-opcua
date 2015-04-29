@@ -23,14 +23,19 @@ var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 var port = 2000;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
 
 describe("testing basic Client-Server communication", function () {
+
 
     var server, client, temperatureVariableId, endpointUrl;
 
     before(function (done) {
 
+        resourceLeakDetector.start();
         server = build_server_with_temperature_device({ port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -50,7 +55,10 @@ describe("testing basic Client-Server communication", function () {
     });
 
     after(function (done) {
-        server.shutdown(done);
+        server.shutdown(function() {
+            resourceLeakDetector.stop();
+            done();
+        });
     });
 
     it("should raise a close event once on normal disconnection", function (done) {
@@ -145,10 +153,10 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
                 close_counter.should.eql(0);
 
                 // client is connected but server initiate a immediate shutdown , closing all connections
-                console.log("shutting down server");
+                // delegate the call of the callback function of this step to when client has closed
                 the_pending_callback = callback;
+
                 server.shutdown( function() {
-                    console.log("Server is now down");
                 });
 
             },

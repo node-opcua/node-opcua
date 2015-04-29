@@ -20,8 +20,18 @@ var Method = require("lib/address_space/method").Method;
 
 var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
 
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 describe("ServerEngine - addMethod", function () {
+
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
+
 
     before(function (done) {
 

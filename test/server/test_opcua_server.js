@@ -3,8 +3,19 @@ require("requirish")._(module);
 var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
 
 var should = require("should");
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
+
 
 describe("OPCUAServer",function() {
+
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
 
     it("should dismiss all existing session upon termination",function(done){
 

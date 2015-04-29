@@ -29,7 +29,9 @@ var debugLog  = opcua.utils.make_debugLog(__filename);
 
 var port = 2000;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
 describe("Functional test : one server with many concurrent clients",function() {
@@ -40,6 +42,7 @@ describe("Functional test : one server with many concurrent clients",function() 
 
     before(function (done) {
 
+        resourceLeakDetector.start();
         server = build_server_with_temperature_device({
             port: port,
             maxAllowedSessionNumber: 10
@@ -61,6 +64,7 @@ describe("Functional test : one server with many concurrent clients",function() 
     });
     after(function(done) {
         server.shutdown(function() {
+            resourceLeakDetector.stop();
             done();
         });
     });

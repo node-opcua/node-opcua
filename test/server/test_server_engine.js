@@ -3,6 +3,8 @@ require("requirish")._(module);
 /*global require,describe, it, before, after */
 var should = require("should");
 var server_engine = require("lib/server/server_engine");
+var ServerEngine =  server_engine.ServerEngine;
+
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var browse_service = require("lib/services/browse_service");
@@ -26,6 +28,10 @@ var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 
 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
+
+
 
 describe("testing ServerEngine", function () {
 
@@ -39,7 +45,8 @@ describe("testing ServerEngine", function () {
     };
     before(function (done) {
 
-        engine = new server_engine.ServerEngine({buildInfo: defaultBuildInfo});
+        resourceLeakDetector.start();
+        engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
         engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename}, function () {
 
@@ -130,6 +137,7 @@ describe("testing ServerEngine", function () {
     after(function () {
         engine.shutdown();
         engine = null;
+        resourceLeakDetector.stop();
     });
 
     describe("findReferenceType findReferenceTypeFromInverseName", function () {
@@ -1641,6 +1649,23 @@ describe("testing ServerEngine", function () {
             });
 
         });
+
+        it(" write a single node with a null variant shall return BadTypeMismatch", function (done) {
+
+            var nodeToWrite = new WriteValue({
+                nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
+                attributeId: AttributeIds.Value,
+                indexRange: null,
+                value: { // dataValue
+                    value: null
+                }
+            });
+            engine.writeSingleNode(nodeToWrite,function(err,statusCode){
+                statusCode.should.eql(StatusCodes.BadTypeMismatch);
+                done(err);
+            });
+        });
+
     });
 
 
@@ -1756,7 +1781,7 @@ describe("testing ServerEngine", function () {
             var nodesToRefresh = [{ nodeId: "ns=1;s=RefreshedOnDemandValue"}];
 
             var v = engine.readSingleNode(nodesToRefresh[0].nodeId,AttributeIds.Value);
-            v.statusCode.should.equal(StatusCodes.BadNoDataAvailable);
+            v.statusCode.should.equal(StatusCodes.UncertainInitialValue);
 
             engine.refreshValues(nodesToRefresh,function(err,values){
 
@@ -1774,6 +1799,7 @@ describe("testing ServerEngine", function () {
                 done(err);
             })
         });
+
         it("should refresh multiple variable values asynchronously",function(done){
 
 
@@ -1830,6 +1856,7 @@ describe("testing ServerEngine", function () {
                 done(err);
             });
         });
+
         it("should perform readValueAsync on Variable",function(done){
 
 
@@ -1845,7 +1872,46 @@ describe("testing ServerEngine", function () {
         });
     });
 
+
 });
 
 
+describe("ServerEngine advanced",function() {
 
+    before(function (done) {
+        resourceLeakDetector.start();
+        done();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
+
+    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown",function(done) {
+
+       var engine = new ServerEngine();
+
+        var sinon = require("sinon");
+        var myFunc = new sinon.spy();
+
+        engine.registerShutdownTask(myFunc);
+
+        engine.shutdown();
+
+        myFunc.calledOnce.should.eql(true);
+
+        done();
+    });
+
+    it("ServerEngine#shutdown engine should take care of disposing session on shutdown",function(done){
+
+        var engine = new ServerEngine();
+        var session1  = engine.createSession();
+        var session2  = engine.createSession();
+        var session3  = engine.createSession();
+
+        engine.shutdown();
+        // leaks will be detected if engine failed to dispose session
+        done();
+    });
+
+});

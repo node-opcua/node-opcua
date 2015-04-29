@@ -9,7 +9,7 @@ var OPCUAClient = opcua.OPCUAClient;
 var SecurityPolicy = opcua.SecurityPolicy;
 var MessageSecurityMode = opcua.MessageSecurityMode;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
 var session_service = require("lib/services/session_service");

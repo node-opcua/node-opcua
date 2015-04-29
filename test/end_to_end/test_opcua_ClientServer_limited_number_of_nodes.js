@@ -14,8 +14,8 @@ var StatusCodes = opcua.StatusCodes;
 
 var port = 2000;
 
-var empty_nodeset_filename = require("path").join(__dirname, "./fixtures/fixture_empty_nodeset2.xml");
-var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixture_empty_nodeset2.xml");
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function () {
@@ -71,7 +71,12 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             },
             function (callback) {
                 server.shutdown(callback);
+            },
+            function(callback) {
+                OPCUAServer.getRunningServerCount().should.eql(0);
+                callback();
             }
+
         ], done);
     });
 

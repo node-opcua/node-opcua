@@ -11,7 +11,7 @@ var util = require("util");
 
 describe("constructBrowsePath and simpleBrowsePath",function(){
 
-    var nodeset_filename = __dirname+ "/../lib/server/mini.Node.Set2.xml";
+    var nodeset_filename = __dirname+ "/../../lib/server/mini.Node.Set2.xml";
     var address_space = new AddressSpace();
 
     before(function(done){

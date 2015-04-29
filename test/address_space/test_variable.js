@@ -440,7 +440,7 @@ describe("testing Variable#bindVariable", function () {
 
                     var dataValue_check = variable.readValue();
                     dataValue_check.should.be.instanceOf(DataValue);
-                    dataValue_check.statusCode.should.eql(StatusCodes.BadNoDataAvailable);
+                    dataValue_check.statusCode.should.eql(StatusCodes.UncertainInitialValue);
                     callback();
                 },
 
@@ -625,7 +625,78 @@ describe("testing Variable#bindVariable", function () {
 });
 
 
-describe("testing Variable#writeValue",function(){
+describe("testing Variable#writeValue Scalar",function() {
+
+    var the_address_space, rootFolder,variable;
+
+    before(function (done) {
+
+        the_address_space = new address_space.AddressSpace();
+        generate_address_space(the_address_space, nodeset_filename, function () {
+
+            rootFolder = the_address_space.findObject("RootFolder");
+
+            variable = new Variable({
+                browseName: "some variable",
+                address_space: the_address_space,
+                minimumSamplingInterval: 10,
+                userAccessLevel: 0,
+                accessLevel: 0,
+                dataType: "Duration",
+
+                value: new Variant({
+                    arrayType: VariantArrayType.Scalar,
+                    dataType: DataType.Double,
+                    value: 100.0
+                })
+            });
+
+            done();
+        });
+    });
+    beforeEach(function(done){
+
+        var dataValue = new DataValue({
+            value: {
+                dataType: DataType.Double,
+                arrayType: VariantArrayType.Scalar,
+                value: 10.0
+            }
+        });
+
+        variable.writeValue(dataValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            var dataValue_check = variable.readAttribute(AttributeIds.Value);
+            dataValue_check.value.value.should.eql(10.0);
+            done(err);
+        });
+    });
+
+    after(function () {
+        the_address_space = null;
+        rootFolder = null;
+    });
+
+    it("should write a double in a Duration ",function(done){
+
+        var dataValue = new DataValue({
+            value: {
+                dataType: DataType.Double,
+                arrayType: VariantArrayType.Scalar,
+                value: 12.0
+            }
+        });
+        variable.writeValue(dataValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            var dataValue_check = variable.readAttribute(AttributeIds.Value);
+            dataValue_check.value.value.should.eql(12.0);
+            done(err);
+        });
+    })
+
+});
+
+describe("testing Variable#writeValue Array",function(){
 
     var the_address_space, rootFolder,variable;
 
@@ -678,7 +749,7 @@ describe("testing Variable#writeValue",function(){
         rootFolder = null;
     });
 
-    it("A1 should write an array ",function(done) {
+     it("A1 should write an array ",function(done) {
 
         async.series([
 

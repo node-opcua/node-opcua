@@ -16,7 +16,16 @@ var Variant = require("lib/datamodel/variant").Variant;
 var sinon = require("sinon");
 var should = require("should");
 
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
 describe("Server Side MonitoredItem",function(){
+
+    before(function() {
+        resourceLeakDetector.start();
+    });
+    after(function() {
+        resourceLeakDetector.stop();
+    });
 
     beforeEach(function(){
         this.clock = sinon.useFakeTimers();
@@ -44,6 +53,8 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.queueSize.should.eql(100);
         monitoredItem.queue.should.eql([]);
         monitoredItem.monitoredItemId.should.eql(50);
+
+        monitoredItem.terminate();
         done();
     });
 
@@ -66,6 +77,7 @@ describe("Server Side MonitoredItem",function(){
         this.clock.tick(2000);
         spy_samplingEventCall.callCount.should.be.greaterThan(6);
 
+        monitoredItem.terminate();
         done();
     });
 
@@ -85,6 +97,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
         monitoredItem.queue.length.should.eql(1);
 
+        monitoredItem.terminate();
         done();
     });
 
@@ -119,6 +132,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.queue[1].value.value.should.eql(1002);
         monitoredItem.overflow.should.eql(true);
 
+        monitoredItem.terminate();
         done();
     });
 
@@ -153,6 +167,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(true);
 
+        monitoredItem.terminate();
         done();
     });
 
@@ -181,6 +196,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.queue[0].serverTimestamp.should.eql(now);
         monitoredItem.queue[0].sourceTimestamp.should.eql(now);
 
+        monitoredItem.terminate();
         done();
     });
 
@@ -216,6 +232,7 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue[0].sourceTimestamp.should.eql(sourceTimestamp);
 
+        monitoredItem.terminate();
         done();
 
     });
@@ -231,6 +248,8 @@ describe("Server Side MonitoredItem",function(){
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+
 
         var sample_value = 1;
         monitoredItem.on("samplingEvent",function(oldValue){
@@ -239,11 +258,14 @@ describe("Server Side MonitoredItem",function(){
             // check if different enough from old Value
             // if different enough : call recordValue
             this.recordValue({value:{ dataType: DataType.UInt32,value: sample_value }});
+
+            monitoredItem.terminate();
+            done();
         });
 
         this.clock.tick(200);
+        sample_value.should.eql(2);
 
-        done();
     });
 
     it("a MonitoredItem should not trigger any read event after terminate has been called",function(done){

@@ -25,6 +25,17 @@ describe("Discovery server",function(){
 
     var discovery_server,discovery_server_endpointUrl;
 
+    var server;
+    before(function() {
+        OPCUAServer.getRunningServerCount().should.eql(0);
+        server = new OPCUAServer({ port: 1235 });
+        server.serverType = s.ApplicationType.SERVER;
+
+    });
+    after(function(){
+        OPCUAServer.getRunningServerCount().should.eql(0);
+    });
+
     beforeEach(function(done){
         discovery_server = new OPCUADiscoveryServer({ port: 1235 });
         discovery_server_endpointUrl = discovery_server._get_endpoints()[0].endpointUrl;
@@ -34,9 +45,6 @@ describe("Discovery server",function(){
 
         discovery_server.shutdown(done);
     });
-
-    var server = new OPCUAServer({ port: 1235 });
-    server.serverType = s.ApplicationType.SERVER;
 
 
 

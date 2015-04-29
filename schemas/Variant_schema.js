@@ -255,6 +255,8 @@ var Variant_Schema = {
         }
 
         var data = self.arrayType.toString();
+
+        data += "<" + self.dataType.toString() + ">";
         if (self.arrayType === VariantArrayType.Scalar) {
             data += ", value: " + f(self.value);
         } else if (self.arrayType === VariantArrayType.Array) {

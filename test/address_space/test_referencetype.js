@@ -66,33 +66,33 @@ describe("testing ReferenceType", function () {
         organizes_refId.nodeId.should.eql(nodeid.makeNodeId(35));
     });
 
-    it("'Organizes' should be a sub-type of 'HierarchicalReferences'", function () {
+    it("'Organizes' should be a super type of 'HierarchicalReferences'", function () {
 
         var hr = address_space.findReferenceType("HierarchicalReferences");
         var organizes_refId = address_space.findReferenceType("Organizes");
 
-        organizes_refId.isSubtypeOf(hr).should.eql(true);
-        hr.isSubtypeOf(organizes_refId).should.eql(false);
+        organizes_refId.isSupertypeOf(hr).should.eql(true);
+        hr.isSupertypeOf(organizes_refId).should.eql(false);
 
     });
 
-    it("'HasTypeDefinition' should *not* be a sub-type of 'HierarchicalReferences'", function () {
+    it("'HasTypeDefinition' should *not* be a super-type of 'HierarchicalReferences'", function () {
 
         var hr = address_space.findReferenceType("HierarchicalReferences");
         var hasTypeDefinition_refId = address_space.findReferenceType("HasTypeDefinition");
 
-        hasTypeDefinition_refId.isSubtypeOf(hr).should.eql(false);
-        hr.isSubtypeOf(hasTypeDefinition_refId).should.eql(false);
+        hasTypeDefinition_refId.isSupertypeOf(hr).should.eql(false);
+        hr.isSupertypeOf(hasTypeDefinition_refId).should.eql(false);
 
     });
 
-    it("'HasTypeDefinition' should  be a sub-type of 'NonHierarchicalReferences'", function () {
+    it("'HasTypeDefinition' should  be a super-type of 'NonHierarchicalReferences'", function () {
 
         var nhr = address_space.findReferenceType("NonHierarchicalReferences");
         var hasTypeDefinition_refId = address_space.findReferenceType("HasTypeDefinition");
 
-        hasTypeDefinition_refId.isSubtypeOf(nhr).should.eql(true);
-        nhr.isSubtypeOf(hasTypeDefinition_refId).should.eql(false);
+        hasTypeDefinition_refId.isSupertypeOf(nhr).should.eql(true);
+        nhr.isSupertypeOf(hasTypeDefinition_refId).should.eql(false);
 
     });
 
@@ -333,7 +333,7 @@ describe("testing ReferenceType", function () {
 });
 
 
-describe(" improving performance of isSubtypeOf", function () {
+describe(" improving performance of isSupertypeOf", function () {
 
 
     var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
@@ -373,14 +373,14 @@ describe(" improving performance of isSubtypeOf", function () {
     });
 
 
-    it("should ensure that optimized version of isSubtypeOf produce same result as brute force version", function (done) {
+    it("should ensure that optimized version of isSupertypeOf produce same result as brute force version", function (done) {
 
         referenceTypes.forEach(function (referenceType) {
             var flags1 = referenceTypes.map(function (refType) {
-                return referenceType.isSubtypeOf(refType);
+                return referenceType.isSupertypeOf(refType);
             });
             var flags2 = referenceTypes.map(function (refType) {
-                return referenceType._slow_isSubtypeOf(refType);
+                return referenceType._slow_isSupertypeOf(refType);
             });
 
             //xx console.log( referenceType.browseName,flags1.map(function(f){return f ? 1 :0;}).join(" - "));
@@ -391,23 +391,23 @@ describe(" improving performance of isSubtypeOf", function () {
         done();
     });
 
-    it("should ensure that optimized version of isSubtypeOf is really faster that brute force version", function (done) {
+    it("should ensure that optimized version of isSupertypeOf is really faster that brute force version", function (done) {
 
         //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
-        bench.add('isSubtypeOf slow', function () {
+        bench.add('isSupertypeOf slow', function () {
 
             referenceTypes.forEach(function (referenceType) {
                 referenceTypes.map(function (refType) {
-                    return referenceType._slow_isSubtypeOf(refType);
+                    return referenceType._slow_isSupertypeOf(refType);
                 });
             });
 
         })
-        .add('isSubtypeOf fast', function () {
+        .add('isSupertypeOf fast', function () {
 
             referenceTypes.forEach(function (referenceType) {
                 referenceTypes.map(function (refType) {
-                    return referenceType.isSubtypeOf(refType);
+                    return referenceType.isSupertypeOf(refType);
                 });
 
             });
@@ -419,7 +419,7 @@ describe(" improving performance of isSubtypeOf", function () {
 
             console.log(' Fastest is ' + this.fastest.name);
             console.log(' Speed Up : x', this.speedUp);
-            this.fastest.name.should.eql("isSubtypeOf fast");
+            this.fastest.name.should.eql("isSupertypeOf fast");
 
             this.speedUp.should.be.greaterThan(10);
 

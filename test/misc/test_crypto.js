@@ -8,7 +8,7 @@ var colors = require("colors");
 var assert = require("assert");
 
 var utils = require("lib/misc/utils");
-var loremIpsum = require("./helpers/lorem_ipsum").loremIpsum;
+var loremIpsum = require("test/helpers/lorem_ipsum").loremIpsum;
 
 var crypto_utils = require("lib/misc/crypto_utils");
 
@@ -16,7 +16,7 @@ var crypto_utils = require("lib/misc/crypto_utils");
 var old_store = null;
 function switch_to_test_certificate_store() {
     assert(old_store === null);
-    old_store = crypto_utils.setCertificateStore(__dirname+"/fixtures/certs/");
+    old_store = crypto_utils.setCertificateStore(path.join(__dirname,"../fixtures/certs/"));
 }
 function restore_default_certificate_store() {
     assert(old_store !== null);
@@ -25,9 +25,9 @@ function restore_default_certificate_store() {
 
 }
 
-var alice_private_key_filename = path.join(__dirname,"./fixtures/certs/server_key_1024.pem");
-var alice_public_key_filename  = path.join(__dirname,"./fixtures/certs/server_public_key_1024.pub");
-var alice_certificate_filename = path.join(__dirname,"./fixtures/certs/server_cert_1024.pem");
+var alice_private_key_filename = path.join(__dirname,"../fixtures/certs/server_key_1024.pem");
+var alice_public_key_filename  = path.join(__dirname,"../fixtures/certs/server_public_key_1024.pub");
+var alice_certificate_filename = path.join(__dirname,".../fixtures/certs/server_cert_1024.pem");
 
 
 var doDebug = false;

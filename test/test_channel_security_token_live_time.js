@@ -22,6 +22,7 @@ var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
 
 var port = 4000;
 
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 describe("Testing ChannelSecurityToken lifetime",function(){
 
@@ -30,6 +31,12 @@ describe("Testing ChannelSecurityToken lifetime",function(){
     var server , client;
     var endpointUrl ;
 
+    before(function() {
+        resourceLeakDetector.start();
+    });
+    after(function() {
+        resourceLeakDetector.stop();
+    });
     beforeEach(function(done){
 
         port+=1;
@@ -53,6 +60,9 @@ describe("Testing ChannelSecurityToken lifetime",function(){
         setImmediate(function(){
             client.disconnect(function(){
                 server.shutdown(function() {
+
+                    OPCUAServer.getRunningServerCount().should.eql(0);
+
                     done();
                 });
             });

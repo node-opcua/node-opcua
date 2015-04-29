@@ -12,12 +12,14 @@ var ClientSubscription = opcua.ClientSubscription;
 var AttributeIds = opcua.AttributeIds;
 var resolveNodeId = opcua.resolveNodeId;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var _port = 2000;
+
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
 describe("Testing client with many monitored items",function() {
@@ -26,11 +28,10 @@ describe("Testing client with many monitored items",function() {
 
     var server, client, temperatureVariableId, endpointUrl;
 
-    _port = _port + 1;
     before(function (done) {
+        resourceLeakDetector.start();
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        _port += 1;
         server = build_server_with_temperature_device({port: _port}, function (err) {
 
             build_address_space_for_conformance_testing(server.engine,{ mass_variables: false});
@@ -52,7 +53,10 @@ describe("Testing client with many monitored items",function() {
     });
 
     after(function (done) {
-        server.shutdown(done);
+        server.shutdown(function(err){
+            resourceLeakDetector.stop();
+            done(err);
+        });
         server = null;
     });
 

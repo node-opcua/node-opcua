@@ -1,22 +1,21 @@
 /*global describe, it, require*/
 require("requirish")._(module);
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
-//var ClientSession = require("lib/client/opcua_client").ClientSession;
-//var ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
-var AttributeIds = require("lib/services/read_service").AttributeIds;
-var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-
-var perform_operation_on_client_session = require("./helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("./helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 var opcua = require("index");
-var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var DataType = require("lib/datamodel/variant").DataType;
+
+var OPCUAClient   = opcua.OPCUAClient;
+var AttributeIds  = opcua.AttributeIds;
+var resolveNodeId = opcua.resolveNodeId;
+var coerceNodeId  = opcua.coerceNodeId;
+var StatusCodes   = opcua.StatusCodes;
+var DataType      = opcua.DataType;
+
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 
 describe("testing CALL SERVICE on a fake server exposing the temperature device", function () {

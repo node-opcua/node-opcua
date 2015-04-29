@@ -4,7 +4,7 @@ var should = require("should");
 
 var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 var NumericRangeType = NumericRange.NumericRangeType;
-
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 var factories = require("lib/misc/factories");
 
@@ -151,6 +151,13 @@ describe("Testing numerical range", function () {
             nr.extract_values(array).array.should.eql([ 0, 1, 2, 3, 4, 5]);
         });
 
+        it("it should extract the last 3 elements of an array", function () {
+            var nr = new NumericRange("3:5");
+            var r = nr.extract_values(array);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.array.should.eql([ 3, 4, 5]);
+        });
+
     });
 
     describe("setting range of an array", function () {
@@ -196,6 +203,12 @@ describe("Testing numerical range", function () {
             var nr = new NumericRange("0:10");
             nr.set_values(array,[-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]).array.should.eql([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]);
             array.should.eql([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]);
+        });
+        it("it should write the last 3 elements of an array", function () {
+            var nr = new NumericRange("8:10");
+            var r = nr.set_values(array,[80,90,100]);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.array.should.eql([0,1,2, 3, 4, 5,6,7,80,90,100]);
         });
     });
 

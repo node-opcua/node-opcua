@@ -22,7 +22,9 @@ var debugLog  = opcua.utils.make_debugLog(__filename);
 
 var port = 2000;
 
-var build_server_with_temperature_device = require("./helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
 
 
 describe("testing basic Client-Server communication",function() {
@@ -30,7 +32,7 @@ describe("testing basic Client-Server communication",function() {
     var server , client,temperatureVariableId,endpointUrl ;
 
     before(function(done){
-
+        resourceLeakDetector.start();
         server = build_server_with_temperature_device({ port:port},function(err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -49,10 +51,13 @@ describe("testing basic Client-Server communication",function() {
     });
 
     after(function(done){
-        server.shutdown(done);
+        server.shutdown(function(err) {
+            resourceLeakDetector.stop();
+            done(err);
+        });
     });
 
-    it("a client should connect to a server and disconnect ",function(done){
+    it("T1 - a client should connect to a server and disconnect ",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -69,7 +74,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("a server should not accept a connection when the protocol version is incompatible",function(done){
+    it("T2 - a server should not accept a connection when the protocol version is incompatible",function(done){
 
         client.protocolVersion = 55555; // set a invalid protocol version
         server.currentChannelCount.should.equal(0);
@@ -91,7 +96,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("a client shall be able to create a session with a anonymous token",function(done){
+    it("T3 - a client shall be able to create a session with a anonymous token",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -139,7 +144,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("a client shall be able to reconnect if the first connection has failed",function(done){
+    it("T4 - a client shall be able to reconnect if the first connection has failed",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -168,7 +173,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("a client shall be able to connect & disconnect many times",function(done){
+    it("T5 - a client shall be able to connect & disconnect many times",function(done){
 
         server.currentChannelCount.should.equal(0);
 
@@ -199,7 +204,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("a client shall raise an error when trying to create a session on an invalid endpoint",function(done){
+    it("T6 - a client shall raise an error when trying to create a session on an invalid endpoint",function(done){
 
         // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
         //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
@@ -226,7 +231,7 @@ describe("testing basic Client-Server communication",function() {
 
     });
 
-    it("calling connect on the client twice shall return a error the second time",function(done){
+    it("T7 - calling connect on the client twice shall return a error the second time",function(done){
         server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 0;
@@ -275,7 +280,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should browse RootFolder",function(done){
+        it("T8-1 - should browse RootFolder",function(done){
 
             g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
                 if (!err) {
@@ -287,7 +292,7 @@ describe("testing basic Client-Server communication",function() {
 
         });
 
-        it("browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid",function(done){
+        it("T8-2 - browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid",function(done){
 
             var bad_referenceid_node = "ns=3;i=3500";
             var browseDesc = {
@@ -303,7 +308,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should read a Variable",function(done){
+        it("T8-3 should read a Variable",function(done){
 
             g_session.readVariableValue("RootFolder",function(err,dataValues,diagnosticInfos){
                 if (!err) {
@@ -313,7 +318,7 @@ describe("testing basic Client-Server communication",function() {
                 done(err);
             });
         });
-        it("#ReadRequest : server should return BadNothingToDo when nodesToRead is empty",function(done) {
+        it("T8-4 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty",function(done) {
 
             var request = new opcua.read_service.ReadRequest({
                 nodesToRead: [ ], //<< EMPTY
@@ -328,7 +333,7 @@ describe("testing basic Client-Server communication",function() {
             });
 
         });
-        it("#ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid",function(done){
+        it("T8-5 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid",function(done){
 
             var request = new opcua.read_service.ReadRequest({
                 nodesToRead: [
@@ -346,7 +351,7 @@ describe("testing basic Client-Server communication",function() {
 
         });
 
-        it("should readAllAttributes",function(done){
+        it("T8-6 should readAllAttributes",function(done){
 
             g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
                 nodesToRead.length.should.equal(dataValues.length);
@@ -354,7 +359,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should return a appropriate status code if nodeid to read doesn't exists",function(done){
+        it("T8-7 should return a appropriate status code if nodeid to read doesn't exists",function(done){
 
             g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist",function(err,dataValues,diagnosticInfos){
                 dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
@@ -362,7 +367,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should return BadNothingToDo when reading an empty nodeToRead array", function(done) {
+        it("T8-9 should return BadNothingToDo when reading an empty nodeToRead array", function(done) {
 
             var nodesToRead = [];
 
@@ -378,7 +383,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function(done) {
+        it("T8-10 should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function(done) {
 
             var nodesToRead = [
                 {
@@ -398,7 +403,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should read the TemperatureTarget value", function(done) {
+        it("T8-11 - should read the TemperatureTarget value", function(done) {
 
             g_session.readVariableValue(temperatureVariableId.nodeId,function(err,dataValues,diagnosticInfos){
 
@@ -413,7 +418,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("should write the TemperatureTarget value", function(done) {
+        it("T8-12 -  should write the TemperatureTarget value", function(done) {
 
             var Variant = require("lib/datamodel/variant").Variant;
             var DataType = require("lib/datamodel/variant").DataType;
@@ -430,12 +435,12 @@ describe("testing basic Client-Server communication",function() {
         });
 
 
-        describe("Accessing the Server object in the Root folder",function(){
+        describe("T9 - Accessing the Server object in the Root folder",function(){
             var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
             var ReferenceTypeIds = require("lib/opcua_node_ids").ReferenceTypeIds;
             var VariableIds = require("lib/opcua_node_ids").VariableIds;
 
-            it("Server should expose a 'Server' object in the 'Objects' folder",function(done){
+            it("T9-1 - Server should expose a 'Server' object in the 'Objects' folder",function(done){
 
                 var Organizes = makeNodeId(ReferenceTypeIds.Organizes); // "ns=0;i=35";
                 var browseDesc = {
@@ -460,7 +465,7 @@ describe("testing basic Client-Server communication",function() {
                 });
             });
 
-            it("Server should expose 'Server_NamespaceArray' variable ",function(done){
+            it("T9-2 - Server should expose 'Server_NamespaceArray' variable ",function(done){
                 var DataValue = require("lib/datamodel/datavalue").DataValue;
                 var DataType = require("lib/datamodel/variant").DataType;
                 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
@@ -481,7 +486,7 @@ describe("testing basic Client-Server communication",function() {
 
             });
 
-            it("ServerStatus object shall be accessible as a ExtensionObject",function(done){
+            it("T9-3 - ServerStatus object shall be accessible as a ExtensionObject",function(done){
 
                 var server_NamespaceArray_Id =  makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
                 g_session.readVariableValue(server_NamespaceArray_Id,function(err,results,diagnosticsInfo){
@@ -492,10 +497,8 @@ describe("testing basic Client-Server communication",function() {
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);
 
-
                     done();
                 });
-
 
             });
         });
