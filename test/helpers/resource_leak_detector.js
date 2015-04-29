@@ -8,7 +8,7 @@ var OPCUAClient = opcua.OPCUAClient;
 var MonitoredItem =  require("lib/server/monitored_item").MonitoredItem;
 var Subscription = require("lib/server/subscription").Subscription;
 
-var color = require("color");
+var colors = require("colors");
 
 // var trace = true;
 var trace = false;
