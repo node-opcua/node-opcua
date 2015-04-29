@@ -665,7 +665,7 @@ describe("Float",function(){
 
         console.log(buffer.toString("hex"));
 
-        var value = buffer.readFloatLE()
+        var value = buffer.readFloatLE(0);
         value.should.eql(0.0);
 
     })

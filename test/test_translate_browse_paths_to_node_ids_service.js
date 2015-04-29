@@ -4,7 +4,7 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var ec = require("lib/misc/encode_decode");
 
 describe("TranslateBrowsePathsToNodeIds service",function(){
-    var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+    var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
     it("should encode and decode a TranslateBrowsePathsToNodeIdsRequest",function(){
 
@@ -69,9 +69,9 @@ var _ = require("underscore");
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 var should = require("should");
 
-var opcua = require("../");
+var opcua = require("index");
 
-var build_client_server_session = require("./helpers/build_client_server_session").build_client_server_session;
+var build_client_server_session = require("test/helpers/build_client_server_session").build_client_server_session;
 
 
 describe("testing Client Server dealing with translate browse path",function(){
@@ -85,8 +85,6 @@ describe("testing Client Server dealing with translate browse path",function(){
     after(function(done){ client_server.shutdown(done);  });
 
     it("server should translate a single browse path to a node id",function(done){
-
-        var s = require("lib/datamodel/structures");
 
         var browsePath = new translate_service.BrowsePath({
             startingNode : ec.makeNodeId(12),
@@ -109,8 +107,8 @@ describe("testing Client Server dealing with translate browse path",function(){
         client_server.g_session.translateBrowsePath(browsePath,function(err,browsePathResult){
             if (!err) {
                 browsePathResult._schema.name.should.equal("BrowsePathResult");
-                browsePathResult.statusCode;
-                browsePathResult.targets;
+                // browsePathResult.statusCode;
+                // browsePathResult.targets;
             } else {
                 throw err;
             }

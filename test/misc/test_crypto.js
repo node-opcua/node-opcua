@@ -691,7 +691,7 @@ if (!ursa) {
 
         it("should encrypt a message with the  server public key and decrypt it (1024bits RSA)",function() {
 
-            var messageToEncrypt = new Buffer(require("./helpers/lorem_ipsum").loremIpsum);
+            var messageToEncrypt = new Buffer(require("test/helpers/lorem_ipsum").loremIpsum);
 
             var encryptedBuf = crypto_utils.publicEncrypt_long(messageToEncrypt,server_public_key,128,11);
 

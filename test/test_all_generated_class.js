@@ -31,7 +31,7 @@ require("schemas/ServerState_enum");
 require("schemas/ServerStatus");
 require("lib/services/write_service");
 
-var encode_decode_round_trip_test = require("./helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 var folder_for_generated_file = require("lib/misc/factory_code_generator").folder_for_generated_file;
 
