@@ -650,3 +650,46 @@ describe("UInt64",function(){
     });
 });
 
+
+describe("Float",function(){
+
+    it("should encode float (0)",function() {
+
+        var buffer = new Buffer(4);
+        buffer[0] = 0x1;
+        buffer[0] = 0x2;
+        buffer[0] = 0x3;
+        buffer[0] = 0x4;
+
+        buffer.writeFloatLE(0.0,0);
+
+        console.log(buffer.toString("hex"));
+
+        var value = buffer.readFloatLE()
+        value.should.eql(0.0);
+
+    })
+
+    it("should encode float (0)",function() {
+
+        var stream= new BinaryStream(4);
+        ec.encodeFloat(0.0,stream);
+
+        console.log(stream._buffer.toString("hex"));
+
+        stream.rewind();
+        var value = ec.decodeFloat(stream);
+        value.should.eql(0.0);
+
+    })
+    it("should decode zero from a buffer with 4 bytes set to zero",function(){
+
+        var buf = new Buffer(4);
+        buf.writeUInt32LE(0,0);
+        var stream = new BinaryStream(buf);
+
+        var value = ec.decodeFloat(stream);
+        value.should.eql(0.0);
+    });
+});
+
