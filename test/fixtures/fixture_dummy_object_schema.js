@@ -52,7 +52,7 @@ var DummyObject_Schema = {
         {name: "timestamp",   fieldType: "UtcTime", documentation: "Browses the view at or before this time."},
         {name: "viewVersion", fieldType: "UInt32",  documentation: "Browses a specific version of the view ."},
         {name: "ArrayInt",    fieldType: "UInt32",  isArray: true, documentation: "an array with Int values."},
-        {name: "type",        fieldType: "SomeEnumeration", documentation: "an array with Int values."},
+        {name: "typeEnum",        fieldType: "SomeEnumeration", documentation: "an array with Int values."},
         {name: "fooBar",      fieldType: "FooBar", documentation: "a foo bar object"}
     ]
 };

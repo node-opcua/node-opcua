@@ -16,19 +16,24 @@ describe("Code Generator",function(){
             viewVersion : 50,
             name: "Paris",
             ArrayInt : [10,20,30],
-            type: 2
+            typeEnum: 2
         });
         dummy.viewVersion.should.eql(50);
         dummy.name.should.eql("Paris");
         dummy.ArrayInt.should.eql([10,20,30]);
-        dummy.type.should.eql(SomeEnumeration.SQUARE);
+        dummy.typeEnum.should.eql(SomeEnumeration.SQUARE);
 
         var dummy_reloaded = encode_decode_round_trip_test(dummy);
 
         dummy_reloaded.viewVersion.should.eql(dummy.viewVersion);
         dummy_reloaded.name.should.eql(dummy.name);
         dummy_reloaded.ArrayInt.should.eql([10,20,30]);
-        dummy_reloaded.type.should.eql(dummy.type);
+        dummy_reloaded.typeEnum.should.eql(dummy.typeEnum);
+
+        (function() {
+            dummy.typeEnum = "toto";
+        }).should.throw();
+
     });
     it("should handle new type with base class ",function() {
 

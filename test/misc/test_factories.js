@@ -117,7 +117,7 @@ describe("Factories: testing object factory", function () {
         catch(err) {
 
         }
-    })
+    });
     it("should construct a new object from a simple Class Description", function () {
 
         var person = new Person();
