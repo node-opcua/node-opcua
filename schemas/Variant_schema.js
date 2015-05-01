@@ -106,12 +106,9 @@ var Variant_Schema = {
     ],
     encode: function(variant,stream){
 
-        assert(variant.isValid());
-
         var encodingByte = variant.dataType.value;
 
         if (variant.arrayType ===  VariantArrayType.Array ) {
-
             encodingByte = encodingByte | Variant_ArrayMask;
         }
         ec.encodeUInt8(encodingByte,stream);
@@ -123,9 +120,9 @@ var Variant_Schema = {
         if (variant.arrayType ===  VariantArrayType.Array ) {
             var arr = variant.value || [];
             ec.encodeUInt32(arr.length,stream);
-            arr.forEach(function(el){
-                encode(el,stream);
-            });
+            var i,n= arr.length;
+            for (i=0;i<n;i++) { encode(arr[i],stream); };
+            //xx arr.forEach(function(el){encode(el,stream);});
         } else {
             encode(variant.value,stream);
         }
@@ -182,7 +179,6 @@ var Variant_Schema = {
 
     },
     decode: function(self,stream){
-
 
         var encodingByte = ec.decodeUInt8(stream);
 

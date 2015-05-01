@@ -236,3 +236,91 @@ describe("Variant - Analyser",function(){
 
 
 });
+
+
+
+var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
+
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+
+var assert = require("better-assert");
+var _ = require("underscore");
+var Variant_ArrayMask            = 0x80;
+var Variant_ArrayDimensionsMask  = 0x40;
+var Variant_TypeMask             = 0x3F;
+var factories = require("lib/misc/factories");
+var old_encode=  function(variant,stream){
+
+    assert(variant.isValid());
+
+    var encodingByte = variant.dataType.value;
+
+    if (variant.arrayType ===  VariantArrayType.Array ) {
+
+        encodingByte = encodingByte | Variant_ArrayMask;
+    }
+    ec.encodeUInt8(encodingByte,stream);
+    var encode = factories.findBuiltInType(variant.dataType.key).encode;
+    /* istanbul ignore next */
+    if (!encode) {
+        throw new Error("Cannot find encode function for dataType "+variant.dataType.key);
+    }
+    if (variant.arrayType ===  VariantArrayType.Array ) {
+        var arr = variant.value || [];
+        ec.encodeUInt32(arr.length,stream);
+        arr.forEach(function(el){
+            encode(el,stream);
+        });
+    } else {
+        encode(variant.value,stream);
+    }
+};
+
+
+describe("benchmarking variant encode",function() {
+
+
+    function perform_benchmark(done) {
+
+        var bench = new Benchmarker();
+
+        function test_iteration(v,s,encode) {
+
+            s.rewind();
+            encode.call(this,v,stream);
+        }
+
+        var stream = new BinaryStream();
+        var variant = new Variant({
+            dataType: DataType.Double,
+            arrayType: VariantArrayType.Array,
+            value : [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+        });
+
+        bench.add('Variant.encode', function () {
+            assert(_.isFunction(Variant.prototype._schema.encode));
+            test_iteration(variant,stream,Variant.prototype._schema.encode);
+        })
+        .add('Variant.old_encode', function () {
+            assert(_.isFunction(old_encode));
+            test_iteration(variant,stream,old_encode);
+        })
+        .on('cycle', function (message) {
+            console.log(message);
+        })
+        .on('complete', function () {
+
+            console.log(' Fastest is ' + this.fastest.name);
+            console.log(' Speed Up : x', this.speedUp);
+            this.fastest.name.should.eql("Variant.encode");
+            done();
+        })
+        .run();
+    }
+
+    it("should ",function(done) {
+
+        perform_benchmark(done);
+    });
+});
+
