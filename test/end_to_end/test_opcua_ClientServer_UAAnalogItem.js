@@ -12,10 +12,10 @@ var StatusCodes = opcua.StatusCodes;
 var Variant =  opcua.Variant ;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
+var AttributeIds = opcua.AttributeIds;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog  = opcua.utils.make_debugLog(__filename);
-
 
 
 
@@ -97,6 +97,68 @@ describe("testing UAAnalogItem on client side",function() {
         client_utils.readUAAnalogItem(g_session,nodeId,function(err,data ) {
             should(err).not.eql(null);
             done();
+        });
+
+    });
+
+    /**
+     * find the nodeId that matches  property  named 'browseName' on a given node
+     * @param nodeId
+     * @param browseName
+     * @param callback
+     */
+    function findProperty(g_session,nodeId,browseName,callback) {
+
+        var browseDescription = {
+            nodeId: nodeId,
+            referenceTypeId: "HasProperty",
+            browseDirection: BrowseDirection.Forward
+        };
+        g_session.browse(browseDescription,function(err,result) {
+
+            result = result[0];
+            if (result.statusCode != StatusCodes.Good) {
+                return callback(null,null);
+            }
+
+            var tmp = _.filter(result.references,function(e){
+                console.log("     ",e.nodeId.toString(),e.browseName.name.yellow);
+                return e.browseName.name === browseName;
+            });
+            tmp = tmp.map(function(e) { return e.nodeId; });
+            var found = (tmp.length == 1) ? tmp[0] : null;
+            callback(null,found);
+
+        });
+    }
+
+
+    it("should read the EUrange property of an analog item",function(done){
+
+        var nodeId = "ns=4;s=TemperatureAnalogItem";
+
+        findProperty(g_session,nodeId,"EURange",function(err,propertyId){
+
+            if (err) { return callback(err); }
+
+            should(propertyId).not.eql(null);
+
+            var nodeToRead = {
+                nodeId: propertyId,
+                attributeId: AttributeIds.Value
+            };
+            console.log("propertyId = ",propertyId.toString());
+            g_session.read([nodeToRead],function(err,nodeToRead,results){
+                if (err) { return callback(err); }
+                var result =results[0];
+                //xx console.log("result = ",result.toString());
+                result.value.dataType.should.eql(DataType.ExtensionObject);
+
+                result.value.value.low.should.eql(100);
+                result.value.value.high.should.eql(200);
+
+                done(err);
+            });
         });
 
     });
