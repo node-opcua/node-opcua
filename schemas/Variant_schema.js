@@ -72,6 +72,24 @@ function isValidScalarVariant(dataType,value) {
 }
 function isValidSArrayVariant(dataType,value) {
 
+    if (dataType === DataType.Float && value instanceof Float32Array ) {
+        return true;
+    } else if (dataType === DataType.Double && value instanceof Float64Array ) {
+        return true;
+    } else if (dataType === DataType.SByte && ( value instanceof Uint8Array )) {
+        return true;
+    } else if (dataType === DataType.Byte && ( value instanceof Buffer || value instanceof Int8Array )) {
+        return true;
+    } else if (dataType === DataType.Int16 && value instanceof Int16Array ) {
+        return true;
+    } else if (dataType === DataType.Int32 && value instanceof Int32Array ) {
+        return true;
+    } else if (dataType === DataType.UInt16 && value instanceof Uint16Array ) {
+        return true;
+    } else if (dataType === DataType.UInt32 && value instanceof Uint32Array ) {
+        return true;
+    }
+    // array values can be store in Buffer, Float32Array
     assert(_.isArray(value));
     var isValid = true;
     value.forEach(function(element,elementIndex){
@@ -93,6 +111,29 @@ function isValidVariant(arrayType,dataType,value) {
             return isValidMatrixVariant(dataType,value);
     }
 }
+function coerceVariantArray(dataType,value) {
+    if (!value) { return null; }
+    if (dataType === DataType.Float && value instanceof Float32Array ) {
+        return value;
+    } else if (dataType === DataType.Double && value instanceof Float64Array ) {
+        return value;
+    } else if (dataType === DataType.SByte && ( value instanceof Uint8Array )) {
+        return value;
+    } else if (dataType === DataType.Byte && ( value instanceof Buffer || value instanceof Int8Array )) {
+        return value;
+    } else if (dataType === DataType.Int16 && value instanceof Int16Array ) {
+        return value;
+    } else if (dataType === DataType.Int32 && value instanceof Int32Array ) {
+        return value;
+    } else if (dataType === DataType.UInt16 && value instanceof Uint16Array ) {
+        return value;
+    } else if (dataType === DataType.UInt32 && value instanceof Uint32Array ) {
+        return value;
+    }
+    assert(_.isArray(value));
+    return value.map(coerceVariantType.bind(null, dataType));
+}
+
 exports.isValidVariant = isValidVariant;
 
 
@@ -221,11 +262,7 @@ var Variant_Schema = {
             if (options.arrayType === VariantArrayType.Array) {
 
                 options.value =  options.value || [];
-                assert(_.isArray( options.value));
-                options.value = options.value.map(function(val) {
-                    return coerceVariantType(options.dataType,val);
-                });
-
+                options.value = coerceVariantArray(options.dataType,options.value);
             } else { throw new Error("Not implemented Yet"); }
         } else {
             options.arrayType = VariantArrayType.Scalar;

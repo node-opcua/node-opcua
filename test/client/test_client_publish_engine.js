@@ -171,8 +171,6 @@ describe("Testing the client publish engine", function () {
         publish_client.registerSubscriptionCallback(44,function(){});
         publish_client.registerSubscriptionCallback(1, function(){});
 
-        publish_client.keepalive_interval = 1000; // 1 second
-
         this.clock.tick(4500);
 
         spy.callCount.should.be.greaterThan(1);

@@ -73,12 +73,11 @@ describe("DataValue", function () {
         });
         var str = dataValue.toString();
         str.split(/\n/).should.eql([
-            "DATAVALUE ",
-            "",
-            "   value = Variant(Scalar<String>, value: Hello)",
-            "   statusCode       = BadCertificateHostNameInvalid (0x80160000)",
-            "   serverTimestamp  = 1789-07-14T00:00:00.000Z $ 1000",
-            "   sourceTimestamp  = 2089-07-14T00:00:00.000Z $ 2000"
+            "DataValue:",
+            "   value:           Variant(Scalar<String>, value: Hello)",
+            "   statusCode:      BadCertificateHostNameInvalid (0x80160000)",
+            "   serverTimestamp: 1789-07-14T00:00:00.000Z $ 1000",
+            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 2000"
         ]);
 
         var dataValue = new DataValue({
@@ -91,12 +90,11 @@ describe("DataValue", function () {
         });
         var str = dataValue.toString();
         str.split(/\n/).should.eql([
-            "DATAVALUE ",
-            "",
-            "   value = Variant(Scalar<String>, value: Hello)",
-            "   statusCode       = BadCertificateHostNameInvalid (0x80160000)",
-            "   serverTimestamp  = null",
-            "   sourceTimestamp  = 2089-07-14T00:00:00.000Z $ 2000"
+            "DataValue:",
+            "   value:           Variant(Scalar<String>, value: Hello)",
+            "   statusCode:      BadCertificateHostNameInvalid (0x80160000)",
+            "   serverTimestamp: null",
+            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 2000"
         ]);
     });
 });

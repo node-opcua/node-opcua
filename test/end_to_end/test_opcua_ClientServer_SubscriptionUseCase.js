@@ -14,6 +14,8 @@ var ClientSubscription = opcua.ClientSubscription;
 var AttributeIds = opcua.AttributeIds;
 var resolveNodeId = opcua.resolveNodeId;
 var StatusCodes = opcua.StatusCodes;
+var DataType = opcua.DataType;
+var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -25,6 +27,7 @@ var _port = 2000;
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
+
 
     var port = _port + 1;
     before(function (done) {
@@ -57,7 +60,7 @@ describe("testing Client-Server subscription use case, on a fake server exposing
         });
     });
 
-    it("xx should create a ClientSubscription to manage a subscription", function (done) {
+    it("should create a ClientSubscription to manage a subscription", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -673,6 +676,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     var server, client, temperatureVariableId, endpointUrl;
 
+    var nodeIdVariant ="ns=1234;s=SomeDouble";
+
     var port = _port + 1;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
@@ -681,6 +686,19 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
+
+
+            server.engine.addVariableInFolder("RootFolder", {
+                browseName: "SomeDouble",
+                nodeId:nodeIdVariant,
+                dataType: "Double",
+                value: {
+                    dataType: DataType.Double,
+                    value: 0.0
+                }
+            });
+
+
             done(err);
         });
     });
@@ -798,16 +816,18 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     it("#rejectedSessionCount",function() {
         server.rejectedSessionCount.should.eql(server.engine.rejectedSessionCount);
     });
+
     it("#rejectedRequestsCount",function() {
         server.rejectedRequestsCount.should.eql(server.engine.rejectedRequestsCount);
     });
+
     it("#sessionAbortCount",function() {
         server.sessionAbortCount.should.eql(server.engine.sessionAbortCount);
     });
+
     it("#publishingIntervalCount",function() {
         server.publishingIntervalCount.should.eql(server.engine.publishingIntervalCount);
     });
-
 
     it("#buildInfo",function() {
         server.buildInfo.should.eql(server.engine.buildInfo);
@@ -820,7 +840,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             server.bytesWritten.should.be.greaterThan(10);
             inner_done();
         },done);
-    })
+    });
+
     it("#CreateMonitoredItemsRequest : A server should return statusCode === BadSubscriptionIdInvalid when appropriate  ", function (done) {
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             var options = {
@@ -928,6 +949,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         }, done);
     });
+
     it("A client should be able to create a subscription that have  publishingEnable=false", function (done) {
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -967,7 +989,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         }, done);
     });
-
 
     it("#ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function(done){
 
@@ -1052,7 +1073,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         },done);
     });
 
-
     it("#ModifyMonitoredItemsRequest : a client should be able to modify a monitored item",function(done){
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -1129,6 +1149,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
      */
     it("a monitored item with the nodeId set to that of a non-Variable node an  and the attributeId set to a non-Value attribute should send a DataChangeNotification",function(done){
 
+        // Attributes, other than the  Value  Attribute, are only monitored for a change in value.
+        // The filter is not used for these  Attributes. Any change in value for these  Attributes
+        // causes a  Notification  to be  generated.
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -1146,24 +1169,174 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 inner_done();
             });
 
-            var monitoredItem = subscription.monitor(
-                {nodeId: resolveNodeId("Server"), attributeId: AttributeIds.DisplayName},
-                {samplingInterval: 10, discardOldest: true, queueSize: 1});
+            var readValue = {
+                nodeId: resolveNodeId("Server"),
+                attributeId: AttributeIds.DisplayName
+            };
+            var monitoredItem = subscription.monitor(readValue,
+                {samplingInterval: 10, discardOldest: true, queueSize: 1},
+                TimestampsToReturn.Both);
 
+            monitoredItem.on("err", function (err){
+                should(err).eql(null);
+            });
             var change_count = 0;
             monitoredItem.on("changed", function (dataValue){
-                //xx console.log("dataValue = ",dataValue.toString());
+                console.log("dataValue = ",dataValue.toString());
                 change_count +=1;
             });
 
             setTimeout(function(){
                 change_count.should.equal(1);
                 subscription.terminate();
-            },400);
+            },300);
 
         }, done);
 
 
+    });
+
+    xit("When a user adds a monitored item that the user is denied read access to, the add operation for the"+
+       " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be"+
+       " returned in the Publish response",function(done){
+            done();
+       });
+    /**
+     * see CTT createMonitoredItems591014 ( -009.js)
+     */
+
+
+    xit("XX should make sure that only the latest value is returned when queue size is one",function(done) {
+
+        var nodeId =nodeIdVariant;
+
+        var MonitoringMode = opcua.subscription_service.MonitoringMode;
+
+        function writeValue(session,value,callback) {
+            var nodesToWrite = [
+                {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value,
+                    value: /*new DataValue(*/{
+                        value: { /* Variant */dataType: DataType.Double, value: value  }
+                    }
+                }
+            ];
+
+            setTimeout(function() {
+                session.write(nodesToWrite,function(err,statusCodes){
+                    statusCodes.length.should.eql(1);
+                    statusCodes[0].should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },100);
+        }
+
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var publishingInterval = 300;
+            var samplingInterval = 50;
+
+            var createSubscriptionRequest = {
+                requestedPublishingInterval: publishingInterval,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            };
+
+
+            var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+            // var subscription = new ClientSubscription(session,createSubscriptionRequest);
+            // subscription.on("terminated", function () { console.log(" subscription terminated ".yellow); });
+
+            var itemToMonitor =new opcua.read_service.ReadValueId({nodeId: nodeId , attributeId: AttributeIds.Value});
+
+            var parameters =  {
+                samplingInterval: samplingInterval,
+                discardOldest: false,
+                queueSize: 1
+            };
+
+            var createMonitoredItemsRequest = {
+
+                subscriptionId: 1,
+                timestampsToReturn: TimestampsToReturn.Both,
+                itemsToCreate: [
+                    {
+                        itemToMonitor: itemToMonitor,
+                        requestedParameters: parameters,
+                        monitoringMode: MonitoringMode.Reporting
+                    }
+                ]
+            };
+
+            function sendPublishRequest(session,callback) {
+
+
+                var publishEngine = session.getPublishEngine();
+                publishEngine.send_publish_request();
+
+            }
+
+            var last_dataValue = null;
+            async.series([
+
+                function (callback) {
+                    session.createSubscription(createSubscriptionRequest, function (err, createSubscriptionResponse) {
+                        //xx console.log("createSubscriptionResponse= ",createSubscriptionResponse.toString());
+                        createMonitoredItemsRequest.subscriptionId = createSubscriptionResponse.subscriptionId;
+                        callback(err);
+                    });
+                },
+                function (callback) {
+
+                    session.createMonitoredItems(createMonitoredItemsRequest,function(err,createMonitoredItemsResponse){
+                        callback(err);
+                    });
+                },
+
+                function (callback) {
+
+
+                    sendPublishRequest(session, function (err, response) {
+                        var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                        console.log("notification= ",notification.toString().green);
+                        last_dataValue = notification.value;
+                        callback(err);
+                    });
+                },
+                function (callback) { writeValue(session,1,callback); },
+                function (callback) { writeValue(session,2,callback); },
+                function (callback) { writeValue(session,3,callback); },
+                function (callback) { writeValue(session,4,callback); },
+                function (callback) { writeValue(session,5,callback); },
+                function (callback) { writeValue(session,6,callback); },
+                function (callback) { writeValue(session,7,callback); },
+
+                function (callback) { callback();},
+
+                function (callback) {
+                    sendPublishRequest(session,function(err,response){
+                        var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                        console.log("notification= ",notification.toString().red);
+                        last_dataValue = notification.value;
+                        callback(err);
+                    });
+                },
+
+                function (callback) { setTimeout(callback,publishingInterval*2); },
+
+                function (callback) {
+                    //xx should(change_count - cur_change_count ).be.eql(1);
+                    last_dataValue.value.value.should.eql(7);
+                    callback();
+                }
+            ],inner_done);
+
+        }, done);
     });
 
 

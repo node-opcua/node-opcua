@@ -11,7 +11,6 @@ var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn
 var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 
 
-
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
@@ -56,8 +55,10 @@ describe("testing address space for conformance testing", function () {
         });
     });
     after(function () {
-        engine.shutdown();
-        engine = null;
+        if (engine) {
+            engine.shutdown();
+            engine = null;
+        }
         resourceLeakDetector.stop();
     });
 
@@ -66,10 +67,10 @@ describe("testing address space for conformance testing", function () {
         var nodeId = makeNodeId("AccessLevel_CurrentRead_NotCurrentWrite", namespaceIndex);
 
 
-        var nodesToRefresh = [{ nodeId:nodeId}];
-        engine.refreshValues(nodesToRefresh,function(err){
+        var nodesToRefresh = [{nodeId: nodeId}];
+        engine.refreshValues(nodesToRefresh, function (err) {
 
-            if (!err){
+            if (!err) {
                 var value = engine.readSingleNode(nodeId, AttributeIds.Value);
 
                 value.statusCode.should.eql(StatusCodes.Good);
@@ -103,7 +104,7 @@ describe("testing address space for conformance testing", function () {
     });
 
 
-    it("hould read a simulated float variable and check value change",function(done) {
+    it("hould read a simulated float variable and check value change", function (done) {
 
 
         var nodeId = makeNodeId("Scalar_Simulation_Float", namespaceIndex);
@@ -113,14 +114,14 @@ describe("testing address space for conformance testing", function () {
 
 
         async.series([
-            function(callback) {
+            function (callback) {
                 var nodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
-                var simulationInterval = engine.findObject(nodeId,namespaceIndex);
-                var dataValue =new DataValue({ value: { dataType: "UInt16", value: 100}});
-                simulationInterval.writeValue(dataValue,callback);
+                var simulationInterval = engine.findObject(nodeId, namespaceIndex);
+                var dataValue = new DataValue({value: {dataType: "UInt16", value: 100}});
+                simulationInterval.writeValue(dataValue, callback);
             },
-            function(callback) {
-                variable.readValueAsync(function(err,dataValue){
+            function (callback) {
+                variable.readValueAsync(function (err, dataValue) {
 
                     should(dataValue).not.eql(null);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -129,12 +130,12 @@ describe("testing address space for conformance testing", function () {
                     callback(err);
                 });
             },
-            function(callback) {
-                setTimeout(callback,300);
+            function (callback) {
+                setTimeout(callback, 300);
             },
 
-            function(callback) {
-                variable.readValueAsync(function(err,dataValue){
+            function (callback) {
+                variable.readValueAsync(function (err, dataValue) {
 
                     should(dataValue).not.eql(null);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -143,7 +144,7 @@ describe("testing address space for conformance testing", function () {
                     callback(err);
                 });
             }
-        ],done)
+        ], done)
     });
 
     it("should be able to write a array of double on Scalar_Static_Array_Double", function (done) {
@@ -303,7 +304,7 @@ describe("testing address space for conformance testing", function () {
         });
 
         engine.writeSingleNode(request, function (err, statusCode) {
-            callback(err);
+            callback(err, statusCode);
         });
     }
 
@@ -346,7 +347,7 @@ describe("testing address space for conformance testing", function () {
         ], done);
     });
 
-    it("should read a array Boolean",function(done){
+    it("should read a array Boolean", function (done) {
 
 
         var nodeId = makeNodeId("Scalar_Static_Array_Boolean", namespaceIndex);
@@ -376,7 +377,7 @@ describe("testing address space for conformance testing", function () {
         done();
     });
 
-    function readValueArray(nodeId,indexRange, callback) {
+    function readValueArray(nodeId, indexRange, callback) {
 
         indexRange = indexRange || new NumericRange();
 
@@ -390,7 +391,7 @@ describe("testing address space for conformance testing", function () {
         callback(null, dataValue.value.value);
     }
 
-    function writeValueArray(nodeId, dataType,indexRange, value, callback) {
+    function writeValueArray(nodeId, dataType, indexRange, value, callback) {
         assert(_.isArray(value));
         var request = new WriteValue({
             nodeId: nodeId,
@@ -404,23 +405,23 @@ describe("testing address space for conformance testing", function () {
                 })
             }
         });
-        console.log("      value = ",value);
-        console.log(" indexRange = ",indexRange);
-        console.log(" indexRange = ",request.indexRange.toString());
-        console.log(" indexRange = ",request.indexRange.type.toString());
-        console.log("    request = ",request.toString());
+        console.log("      value = ", value);
+        console.log(" indexRange = ", indexRange);
+        console.log(" indexRange = ", request.indexRange.toString());
+        console.log(" indexRange = ", request.indexRange.type.toString());
+        console.log("    request = ", request.toString());
         engine.writeSingleNode(request, function (err, statusCode) {
-            callback(err,statusCode);
+            callback(err, statusCode);
         });
     }
 
-    it("should read an array slice inside an array ",function(done) {
+    it("should read an array slice inside an array ", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
 
-        var data = [ 1 ,2,3,4,5,6,7,8,9,10];
+        var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-        writeValueArray(nodeId,DataType.Int32,null,data, function (err, value) {
+        writeValueArray(nodeId, DataType.Int32, null, data, function (err, value) {
 
             readValueArray(nodeId, "3:4", function (err, value) {
                 value.length.should.eql(2);
@@ -430,49 +431,49 @@ describe("testing address space for conformance testing", function () {
         });
     });
 
-    it("should read the last 3 elements of an array  ",function(done) {
+    it("should read the last 3 elements of an array  ", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
 
-        var data = [ 0,1 ,2,3,4,5,6,7,8,9];
+        var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-        writeValueArray(nodeId,DataType.Int32,null,data, function (err, value) {
+        writeValueArray(nodeId, DataType.Int32, null, data, function (err, value) {
 
             readValueArray(nodeId, "7:9", function (err, value) {
                 value.length.should.eql(3);
-                value.should.eql([7,8,9]);
+                value.should.eql([7, 8, 9]);
                 done(err);
             });
         });
     });
 
-    it("should write an array slice inside an array ",function(done) {
+    it("should write an array slice inside an array ", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
 
-        var original_data = [ 1 ,2,3,4,5,6,7,8,9,10];
+        var original_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         async.series([
 
             // load the variable with the initial array
-            function(callback) {
-                writeValueArray(nodeId,DataType.Int32,null,original_data, function (err, statusCode) {
+            function (callback) {
+                writeValueArray(nodeId, DataType.Int32, null, original_data, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
             },
 
             // make sure that variable contains the initial array
-            function(callback) {
+            function (callback) {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
-                    value.should.eql( [ 1 ,2,3,4,5,6,7,8,9,10]);
+                    value.should.eql([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
                     callback(err);
                 });
             },
 
             // now read a single element
-            function(callback) {
+            function (callback) {
                 readValueArray(nodeId, "3", function (err, value) {
                     value.length.should.eql(1);
                     value.should.eql([4]);
@@ -480,16 +481,16 @@ describe("testing address space for conformance testing", function () {
                 });
             },
             // now read a single element
-            function(callback) {
-                readValueArray(nodeId, null,function (err, value) {
+            function (callback) {
+                readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
-                    value.should.eql([1,2,3,4,5,6,7,8,9,10]);
+                    value.should.eql([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
                     callback(err);
                 });
             },
 
             // now read a range
-            function(callback) {
+            function (callback) {
                 readValueArray(nodeId, "3:4", function (err, value) {
                     value.length.should.eql(2);
                     value.should.eql([4, 5]);
@@ -500,8 +501,8 @@ describe("testing address space for conformance testing", function () {
             // now replace element 2 & 3
             function (callback) {
 
-                var sub_array = [123,345];
-                writeValueArray(nodeId, DataType.Int32,"2:3", sub_array , function (err, statusCode) {
+                var sub_array = [123, 345];
+                writeValueArray(nodeId, DataType.Int32, "2:3", sub_array, function (err, statusCode) {
 
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
@@ -509,36 +510,36 @@ describe("testing address space for conformance testing", function () {
             },
 
             // verify that whole array is now as expected
-            function(callback) {
+            function (callback) {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
-                    console.log(" =>",value);
-                    value.should.eql([1,2,123,345,5,6,7,8,9,10]);
+                    console.log(" =>", value);
+                    value.should.eql([1, 2, 123, 345, 5, 6, 7, 8, 9, 10]);
                     callback(err);
                 });
             }
-        ],done);
+        ], done);
     });
 
-    it("should write an  element inside an array of Float (indexRange 2:4) ",function(done) {
+    it("should write an  element inside an array of Float (indexRange 2:4) ", function (done) {
 
         done();
     });
 
-    it("should write an  element inside an array of Boolean (indexRange 2:4) ",function(done) {
+    it("should write an  element inside an array of Boolean (indexRange 2:4) ", function (done) {
         done();
     });
 
-    it("should write an  element inside an array ( indexRange 2:4 ) ",function(done) {
+    it("should write an  element inside an array ( indexRange 2:4 ) ", function (done) {
 
 
         var nodeId = makeNodeId("Scalar_Static_Array_Int16", namespaceIndex);
 
-        var l_value = null ;
+        var l_value = null;
         async.series([
 
             function (callback) {
-                readValueArray(nodeId,null, function (err, value) {
+                readValueArray(nodeId, null, function (err, value) {
                     l_value = value;
                     l_value.length.should.eql(10);
                     callback(err);
@@ -547,18 +548,18 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
 
                 l_value.length.should.eql(10);
-                l_value[3]+= 1000;
-                l_value[4]+= 2000;
-                var newValue = [ l_value[3],  l_value[4] ];
+                l_value[3] += 1000;
+                l_value[4] += 2000;
+                var newValue = [l_value[3], l_value[4]];
 
-                writeValueArray(nodeId, DataType.Int16,"3:4", newValue , function (err, statusCode) {
+                writeValueArray(nodeId, DataType.Int16, "3:4", newValue, function (err, statusCode) {
                     callback(err);
                 });
 
             },
 
             function (callback) {
-                readValueArray(nodeId,null, function (err, value) {
+                readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
                     value.should.eql(l_value);
                     callback(err);
@@ -566,16 +567,16 @@ describe("testing address space for conformance testing", function () {
             },
 
             function (callback) {
-                readValueArray(nodeId,"4", function (err, value) {
+                readValueArray(nodeId, "4", function (err, value) {
                     value.length.should.eql(1);
                     value.should.eql([l_value[4]]);
                     callback(err);
                 });
             },
             function (callback) {
-                readValueArray(nodeId,"3:5", function (err, value) {
+                readValueArray(nodeId, "3:5", function (err, value) {
                     value.length.should.eql(3);
-                    value.should.eql([l_value[3],l_value[4],l_value[5]]);
+                    value.should.eql([l_value[3], l_value[4], l_value[5]]);
                     callback(err);
                 });
             }
@@ -583,7 +584,32 @@ describe("testing address space for conformance testing", function () {
     });
 
 
+    it("should be possible to write to a an Array of Byte with a ByteString", function (done) {
 
+        var nodeId = makeNodeId("Scalar_Static_Array_Byte", namespaceIndex);
+
+        var l_value = null;
+
+        async.series([
+
+            function (callback) {
+                readValueArray(nodeId, null, function (err, value) {
+                    l_value = value;
+                    l_value.length.should.eql(10);
+                    callback(err);
+                });
+            },
+            function (callback) {
+
+                var newValue = new Buffer("Lorem ipsum");
+                writeValue(nodeId, DataType.ByteString, newValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err)
+                });
+            }
+
+        ], done);
+    });
 
 });
 

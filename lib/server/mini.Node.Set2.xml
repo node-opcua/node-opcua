@@ -50,6 +50,21 @@
         </References>
     </UADataType>
 
+  <UADataType NodeId="i=2" BrowseName="SByte">
+    <DisplayName>SByte</DisplayName>
+    <Description>Describes a value that is an integer between -128 and 127.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+    </References>
+  </UADataType>
+  <UADataType NodeId="i=3" BrowseName="Byte">
+    <DisplayName>Byte</DisplayName>
+    <Description>Describes a value that is an integer between 0 and 255.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
+    </References>
+  </UADataType>
+
     <UADataType NodeId="i=4" BrowseName="Int16">
         <DisplayName>Int16</DisplayName>
         <Description>Describes a value that is an integer between −32,768 and 32,767.</Description>
@@ -106,6 +121,14 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
     </UADataType>
+      <UADataType NodeId="i=15" BrowseName="ByteString">
+        <DisplayName>ByteString</DisplayName>
+        <Description>Describes a value that is a sequence of bytes.</Description>
+        <References>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+      </UADataType>
+
 
     <UADataType NodeId="i=21" BrowseName="LocalizedText">
         <DisplayName>LocalizedText</DisplayName>

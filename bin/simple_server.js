@@ -109,7 +109,7 @@ server.on("post_initialize", function () {
              * @method get
              * @return {Variant}
              */
-            get: function () {
+            get: function() {
                 var pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
                 return new Variant({dataType: DataType.Double, value: pump_speed});
             }
@@ -252,16 +252,42 @@ server.on("session_closed",function(session,reason) {
     console.log("              session name: ".cyan,session.sessionName.toString());
 });
 
-server.on("request", function (request) {
-    console.log(request._schema.name);
-    switch (request._schema.name) {
-        case "ReadRequest":
-            var str = "";
-            request.nodesToRead.map(function (node) {
-                str += node.nodeId.toString() + " " + node.attributeId + " ";
+
+server.on("response", function (response) {
+    console.log(response._schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
+    switch (response._schema.name) {
+        case "WriteResponse":
+            var str = "   ";
+            response.results.map(function (result) {
+                str += result.toString();
             });
             console.log(str);
             break;
+    };
+
+});
+
+function indent(str,nb) {
+    var spacer = "                                             ".slice(0,nb);
+    return str.split("\n").map(function(s) { return spacer + s }).join("\n");
+}
+server.on("request", function (request) {
+    console.log(request._schema.name.yellow);
+    switch (request._schema.name) {
+        case "ReadRequest":
+            var str = "    ";
+            request.nodesToRead.map(function (node) {
+                str += node.nodeId.toString() + " " + node.attributeId + " " + node.indexRange;
+            });
+            console.log(str);
+            break;
+        case "WriteRequest":
+            var lines  = request.nodesToWrite.map(function (node) {
+                return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(),10) + "\n";
+            });
+            console.log(lines.join("\n"));
+            break;
+
         case "TranslateBrowsePathsToNodeIdsRequest":
             // do special console output
             //xx console.log(util.inspect(request, {colors: true, depth: 10}));

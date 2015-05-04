@@ -27,9 +27,10 @@ describe("ExtensionObject", function () {
     var MetaShape = factories.registerObject(exports.MetaShapeForUnitTest_Schema,"tmp");
 
 
+    var Potato_Schema_Id =0xF00001;
     exports.Potato_Schema = {
         name: "Potato",
-        id: factories.next_available_id(),
+        id: Potato_Schema_Id,
         fields: [
             { name: "length", fieldType: "Double"          },
             { name: "radius", fieldType: "Double"          }
@@ -38,7 +39,7 @@ describe("ExtensionObject", function () {
     };
     var Potato = factories.registerObject(exports.Potato_Schema,"tmp");
 
-    it("should work with some missing ExtensionObject ", function () {
+    it("should encode an object with an embedded ExtensionObject set to null ", function () {
 
         var shape = new MetaShape({
             name: "MyPotato",
@@ -52,7 +53,7 @@ describe("ExtensionObject", function () {
         encode_decode_round_trip_test(shape);
     });
 
-    it("should work with some existing ExtensionObject ", function () {
+    it("should encode an object with a valid embedded ExtensionObject", function () {
 
         var shape = new MetaShape({
             name: "Potato",
