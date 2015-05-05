@@ -47,8 +47,8 @@ describe("testing Variables ", function () {
 
         value = v.readAttribute(AttributeIds.ArrayDimensions);
         value.value.arrayType.should.eql(VariantArrayType.Array);
-        value.value.value.should.eql([1, 2, 3]);
-        (_.isArray(value.value.value)).should.eql(true);
+        value.value.value.should.eql(new Uint32Array([1, 2, 3]));
+        (value.value.value instanceof Uint32Array).should.eql(true);
         value.value.dataType.should.eql(DataType.UInt32);
         value.statusCode.should.eql(StatusCodes.Good);
 
@@ -718,7 +718,7 @@ describe("testing Variable#writeValue Array",function(){
 
                 value: new Variant({
                     arrayType: VariantArrayType.Array,
-                    dataType: DataType.Int32,
+                    dataType: DataType.Double,
                     value: []
                 })
 
@@ -739,7 +739,7 @@ describe("testing Variable#writeValue Array",function(){
         variable.writeValue(dataValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             var dataValue_check = variable.readAttribute(AttributeIds.Value);
-            dataValue_check.value.value.should.eql([ 1,2,3,4,5,6]);
+            dataValue_check.value.value.should.eql(new Float64Array([ 1,2,3,4,5,6]));
             done(err);
         });
     });
@@ -758,7 +758,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([1,2,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
                 callback(null);
             },
 
@@ -783,7 +783,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([2,3,4,5,6,7]);
+                dataValue_check.value.value.should.eql(new Float64Array([2,3,4,5,6,7]));
                 callback(null);
             }
 
@@ -799,7 +799,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([1,2,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
                 callback(null);
             },
 
@@ -813,6 +813,7 @@ describe("testing Variable#writeValue Array",function(){
                     }
                 });
 
+                should(dataValue.value.value instanceof Float64Array).be.eql(true);
 
                 variable.writeValue(dataValue, "1", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
@@ -825,7 +826,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([1,500,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,500,3,4,5,6]));
                 callback(null);
             }
 
@@ -841,7 +842,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([1,2,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
                 callback(null);
             },
             function (callback) {
@@ -865,7 +866,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
-                dataValue_check.value.value.should.eql([1,2,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
                 callback(null);
             }
 
@@ -881,7 +882,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([1,2,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
                 callback(null);
             },
             function (callback) {
@@ -905,7 +906,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
-                dataValue_check.value.value.should.eql([1,200,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,200,3,4,5,6]));
                 callback(null);
             }
 
@@ -921,7 +922,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql([1,2,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
                 callback(null);
             },
             function (callback) {
@@ -947,7 +948,7 @@ describe("testing Variable#writeValue Array",function(){
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
-                dataValue_check.value.value.should.eql([1,200,3,4,5,6]);
+                dataValue_check.value.value.should.eql(new Float64Array([1,200,3,4,5,6]));
                 dataValue_check.sourceTimestamp.should.eql(new Date(1789,7,14));
                 callback(null);
             }

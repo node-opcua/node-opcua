@@ -1165,7 +1165,7 @@ describe("testing ServerEngine", function () {
                 dataValues.length.should.equal(1);
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
-                dataValues[0].value.value.should.be.instanceOf(Array);
+                dataValues[0].value.value.should.be.instanceOf(Float64Array);
                 dataValues[0].value.value.length.should.be.eql(1);
                 dataValues[0].value.value[0].should.be.eql(2.0);
             }
@@ -1192,9 +1192,9 @@ describe("testing ServerEngine", function () {
                 var dataValues = engine.read(readRequest);
                 dataValues.length.should.equal(1);
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
-                dataValues[0].value.value.should.be.instanceOf(Array);
+                dataValues[0].value.value.should.be.instanceOf(Float64Array);
                 dataValues[0].value.value.length.should.be.eql(4);
-                dataValues[0].value.value.should.be.eql([2.0, 3.0, 4.0, 5.0]);
+                dataValues[0].value.value.should.be.eql(new Float64Array([2.0, 3.0, 4.0, 5.0]));
             }
             done(err);
         });
@@ -1210,14 +1210,13 @@ describe("testing ServerEngine", function () {
                 {
                     nodeId: "ns=1;s=TestArray",
                     attributeId: AttributeIds.Value,
-                    indexRange: "2:1000",    // <<<<<<<<<<<<<<<<<<<<<<<<<<
+                    indexRange: "2:1000",    // <<<<<<<<<<<<<<<<<<<<<<<<<< BAD BOUNDARY !!!
                     dataEncoding: null /* */
                 }
             ]
         });
         engine.refreshValues(readRequest.nodesToRead, function (err) {
             if (!err) {
-                var dataValues = engine.read(readRequest);
                 var dataValues = engine.read(readRequest);
                 dataValues.length.should.equal(1);
                 dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);

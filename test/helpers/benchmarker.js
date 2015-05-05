@@ -33,13 +33,13 @@ Benchmarker.prototype.measure_perf = function(name,func,options) {
     assert(_.isFunction(func));
     var total_time =0;
     var count =0;
-    var max_time = options.max_time || 0.5;
+    var max_time   = (!options.max_time ? 0.5 : options.max_time);
     var min_count = options.min_count || 5;
     while (total_time < max_time ||  count < min_count) {
         total_time += measure_cycle(func);
         count +=1;
     }
-    var message = " CYCLE " + name + " op/s " + ( ( count )/ total_time );
+    var message = " CYCLE " + name + " op/s " + (( ( count )/ total_time).toPrecision(7) );
     this.emit("cycle",message);
 
     return {
@@ -53,7 +53,7 @@ Benchmarker.prototype.measure_perf = function(name,func,options) {
 Benchmarker.prototype.run = function(options) {
 
     options = options || {};
-    options.max_time  |= 0.5;
+    options.max_time   = (!options.max_time ? 0.5 : options.max_time);
     options.min_count |= 5;
 
 

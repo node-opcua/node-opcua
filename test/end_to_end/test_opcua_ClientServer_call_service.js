@@ -285,8 +285,8 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 session.getMonitoredItems(subscriptionId,function(err,result){
                     if (!err) {
-                        should(result.serverHandles).be.instanceOf(Array);
-                        should(result.clientHandles).be.instanceOf(Array);
+                        should(result.serverHandles).be.instanceOf(Uint32Array);
+                        should(result.clientHandles).be.instanceOf(Uint32Array);
                         result.serverHandles.length.should.eql(0);
                         result.clientHandles.length.should.eql(0);
                     }
@@ -317,8 +317,8 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                     session.getMonitoredItems(subscriptionId,function(err,result){
 
                         if (!err) {
-                            should(result.serverHandles).be.instanceOf(Array);
-                            should(result.clientHandles).be.instanceOf(Array);
+                            should(result.serverHandles).be.instanceOf(Uint32Array);
+                            should(result.clientHandles).be.instanceOf(Uint32Array);
                             result.serverHandles.length.should.eql(1);
                             result.clientHandles.length.should.eql(1);
                         }

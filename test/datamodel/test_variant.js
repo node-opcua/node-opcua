@@ -11,6 +11,18 @@ var should = require("should");
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 
+var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
+
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+
+var assert = require("better-assert");
+var _ = require("underscore");
+var Variant_ArrayMask            = 0x80;
+var Variant_ArrayDimensionsMask  = 0x40;
+var Variant_TypeMask             = 0x3F;
+var factories = require("lib/misc/factories");
+
+
 describe("Variant",function() {
 
     it("should create a empty Variant", function () {
@@ -198,9 +210,12 @@ describe("Variant",function() {
         var1.isValid().should.eql(true);
 
         var1.value[2] = "Bad!";
-        var1.isValid().should.eql(false);
 
-        var1.toString().should.eql("Variant(Array<UInt32>, l= 4, value=[2,3,Bad!,5])");
+        var1.value[2].should.eql(0);
+        var1.toString().should.eql("Variant(Array<UInt32>, l= 4, value=[2,3,0,5])");
+
+        //xx var1.isValid().should.eql(false);
+        //xx var1.toString().should.eql("Variant(Array<UInt32>, l= 4, value=[2,3,Bad!,5])");
     });
 
 
@@ -212,18 +227,25 @@ describe("Variant - Analyser",function(){
 
     var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
+    var manyValues = []; for (var i=0;i<1000;i++) {manyValues[i] = Math.random()*1000-500};
+
     var various_variants = [
-        new Variant({  dataType: DataType.UInt32,       arrayType: VariantArrayType.Array,  value: [  2,3,4,5 ]   }),
         new Variant({  dataType: DataType.NodeId,       arrayType: VariantArrayType.Scalar, value: makeNodeId(1,2)}),
         new Variant({  dataType: DataType.LocalizedText,arrayType: VariantArrayType.Scalar, value: new LocalizedText({text: "Hello", locale: "en"}) }),
         new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Scalar, value: 3.14 }),
-        new Variant({  dataType: DataType.Guid   ,       arrayType: VariantArrayType.Scalar, value:  ec.randomGuid() }),
+        new Variant({  dataType: DataType.Guid  ,       arrayType: VariantArrayType.Scalar, value:  ec.randomGuid() }),
 
-        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array     }),
-        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array ,value:[]   }),
-        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array ,value:[1]  }),
-        new Variant({  dataType: DataType.Int32  ,       arrayType: VariantArrayType.Array ,value:[1,2]})
+        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array  /*, unspecified value*/}),
+        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value:[]   }),
+        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value:[1]  }),
+        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value:[1,2]}),
+        new Variant({  dataType: DataType.UInt32,       arrayType: VariantArrayType.Array ,value: [  2,3,4,5 ]   }),
+        new Variant({  dataType: DataType.Float ,       arrayType: VariantArrayType.Array ,value: [  2,3,4,5 ]   }),
+        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: manyValues }),
+        new Variant({  dataType: DataType.Int32,        arrayType: VariantArrayType.Array ,value: manyValues })
     ];
+
+    //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
 
     it("should analyze variant",function() {
 
@@ -233,24 +255,26 @@ describe("Variant - Analyser",function(){
             });
         });
     });
+    it("should encode/decode variant",function() {
 
-
+        redirectToFile("variant_analyze.log",function() {
+            various_variants.forEach(function(v){
+                encode_decode_round_trip_test(v, function (stream) {
+                    // stream.length.should.equal(1+4+4*4);
+                });
+            });
+        });
+    });
 });
 
 
 
-var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 
-var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
-
-var assert = require("better-assert");
-var _ = require("underscore");
-var Variant_ArrayMask            = 0x80;
-var Variant_ArrayDimensionsMask  = 0x40;
-var Variant_TypeMask             = 0x3F;
-var factories = require("lib/misc/factories");
 var old_encode=  function(variant,stream){
 
+    // NOTE: this code matches the old implement and should not be changed
+    //       It is useful to compare new performance of the encode method
+    //       with the old implementation.
     assert(variant.isValid());
 
     var encodingByte = variant.dataType.value;
@@ -279,23 +303,23 @@ var old_encode=  function(variant,stream){
 
 describe("benchmarking variant encode",function() {
 
-
     function perform_benchmark(done) {
 
         var bench = new Benchmarker();
 
         function test_iteration(v,s,encode) {
-
             s.rewind();
             encode.call(this,v,stream);
         }
 
         var stream = new BinaryStream();
         var variant = new Variant({
-            dataType: DataType.Double,
+            dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,
-            value : [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+            value :[]
         });
+
+        variant.value =  [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
 
         bench.add('Variant.encode', function () {
             assert(_.isFunction(Variant.prototype._schema.encode));
@@ -315,12 +339,160 @@ describe("benchmarking variant encode",function() {
             this.fastest.name.should.eql("Variant.encode");
             done();
         })
-        .run();
+        .run({max_time: 0.1 });
     }
 
-    it("should ",function(done) {
+    it("should verify that current Variant.encode method is better than old implementation",function(done) {
 
         perform_benchmark(done);
     });
 });
 
+describe("benchmarking float Array encode/decode",function() {
+
+    this.timeout(40000);
+
+    function test_1(stream,arr) {
+
+        stream.writeUInt32(arr.length);
+        for (var i=0;i< arr.length;i++) {
+            stream.writeFloat(arr[i]);
+        }
+    }
+
+    function test_2(stream,arr) {
+
+        stream.writeUInt32(arr.length);
+        var byteArr = new Uint8Array(arr.buffer);
+        var n = byteArr.length;
+        for (var i=0;i< n;i++) {
+            stream.writeUInt8(byteArr[i]);
+
+        }
+    }
+    function test_3(stream,arr) {
+
+        stream.writeUInt32(arr.length);
+        var byteArr = new Uint32Array(arr.buffer);
+        var n = byteArr.length;
+        for (var i=0;i< n;i++) {
+            stream.writeUInt32(byteArr[i]);
+
+        }
+    }
+    function test_4(stream,arr) {
+
+        stream.writeUInt32(arr.length);
+        var intArray = new Uint32Array(arr.buffer);
+        var n = intArray.length;
+        for (var i=0;i< n;i++) {
+            stream.writeUInt32(intArray[i],true);
+        }
+    }
+    function test_5(stream,arr) {
+
+        stream.writeUInt32(arr.length);
+        var byteArr = new Uint8Array(arr.buffer);
+        var n = byteArr.length;
+        for (var i=0;i< n;i++) {
+            stream._buffer[stream.length++] = byteArr[i];
+        }
+    }
+    function test_6(stream,arr) {
+        stream.writeUInt32(arr.length);
+        stream.writeArrayBuffer(arr.buffer);
+    }
+
+    function test_iteration(variant,stream,fct) {
+        stream.rewind();
+        fct(stream,variant.value);
+    }
+
+
+    function perform_benchmark(done) {
+
+        var bench = new Benchmarker();
+
+        var length = 1024;
+        var sampleArray = new Float32Array(length);
+        for(var i=0;i< length;i++) {
+            sampleArray[i] = 1.0/ (i+1);
+        }
+
+        var stream = new BinaryStream(length*4+30);
+        var variant = new Variant({
+            dataType: DataType.Float,
+            arrayType: VariantArrayType.Array,
+            value :sampleArray
+        });
+        assert(variant.value.buffer instanceof ArrayBuffer);
+
+        stream.rewind();
+        var r = [test_1,test_2,test_3,test_4,test_5,test_6].map(function(fct){
+            stream.rewind();
+            fct(stream,variant.value);
+            var reference_buf = stream._buffer.slice(0,stream._buffer.length);
+            return reference_buf.toString("hex");
+        });
+        r[0].should.eql(r[1]);
+        r[0].should.eql(r[2]);
+        r[0].should.eql(r[3]);
+        r[0].should.eql(r[4]);
+        r[0].should.eql(r[5]);
+
+        bench
+            .add('test1', function () {
+                test_iteration(variant,stream,test_1);
+            })
+            .add('test2', function () {
+                test_iteration(variant,stream,test_2);
+            })
+            .add('test3', function () {
+                test_iteration(variant,stream,test_3);
+            })
+            .add('test4', function () {
+                test_iteration(variant,stream,test_4);
+            })
+            .add('test5', function () {
+                test_iteration(variant,stream,test_5);
+            })
+            .add('test6', function () {
+                test_iteration(variant,stream,test_6);
+            })
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+            .on('complete', function () {
+
+                console.log(' slowest is ' + this.slowest.name);
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                // xxthis.fastest.name.should.eql("test4");
+                done();
+            })
+            .run({max_time: 0.1 });
+
+    }
+
+    it("should check which is the faster way to encode decode a float",function(done) {
+
+        perform_benchmark(done);
+    });
+});
+
+describe("Variant with Advanced Array",function() {
+
+    it("should be possible to handle an Float array  with a Float32Array",function() {
+
+        var v = new Variant({
+            dataType: DataType.Float,
+            arrayType: VariantArrayType.Array,
+            value: [1,2,3,4]
+        });
+        encode_decode_round_trip_test(v, function (stream) {
+            stream.length.should.equal(1+4+4*4);
+        });
+    })
+
+
+});
