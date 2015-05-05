@@ -5,7 +5,8 @@ istanbul:
 	istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec --recursive --timeout 30000 --bail test
 
 coveralls:
-	cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+	cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js --exclude tmp
+
 
 # literate_programming stuff
 LP= "../node_modules/.bin/literate-programming"
