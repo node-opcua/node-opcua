@@ -6,7 +6,7 @@ function _is_equal(arr1,arr2) {
     }
     var i,n = arr1.length;
     for (i=0;i<n;i++) {
-        if (arr1[i]!= arr1[i]) {
+        if (arr1[i]!== arr1[i]) {
             return false;
         }
     }

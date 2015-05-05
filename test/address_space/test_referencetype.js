@@ -364,7 +364,7 @@ describe(" improving performance of isSupertypeOf", function () {
                 return address_space.findReferenceType(referenceTypeName);
             });
             referenceTypes = referenceTypes.filter(function (e) {
-                return e != undefined;
+                return e !== undefined;
             });
 
             assert(referenceTypes[0].nodeClass === NodeClass.ReferenceType);

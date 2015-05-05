@@ -76,7 +76,7 @@ describe("testing all auto_generated Class", function () {
                     if (_defaultTypeMap[field.fieldType]) {
                         var defVal = _defaultTypeMap[field.fieldType].defaultValue;
 
-                        if (defVal != undefined) {
+                        if (defVal !== undefined) {
                             if (_.isFunction(defVal)) {
                                 options[field.name] = [defVal(), defVal(), defVal()];
 

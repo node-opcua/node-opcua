@@ -1456,7 +1456,7 @@ describe("testing ServerEngine", function () {
 
             var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
             var node = engine.findObject(nodeid);
-            assert(node != null);
+            assert(node !== null);
             should(node).not.eql(null);
 
             var nodesToRead= [{

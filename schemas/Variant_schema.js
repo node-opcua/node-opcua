@@ -100,6 +100,12 @@ function isValidSArrayVariant(dataType,value) {
     });
     return isValid;
 }
+
+/*istanbul ignore next*/
+function isValidMatrixVariant(/*dataType,value*/) {
+    assert(false,"not implemented");
+}
+
 function isValidVariant(arrayType,dataType,value) {
 
     switch(arrayType) {
@@ -232,13 +238,12 @@ function decodeVariantArray(dataType,stream) {
     return decodeGeneralArray(dataType,stream);
 }
 
-exports.isValidVariant = isValidVariant;
 
 function get_encoder(dataType) {
     var encode = factories.findBuiltInType(dataType.key).encode;
     /* istanbul ignore next */
     if (!encode) {
-        throw new Error("Cannot find encode function for dataType "+variant.dataType.key);
+        throw new Error("Cannot find encode function for dataType "+ dataType.key);
     }
     return encode;
 }
@@ -251,6 +256,9 @@ function get_decoder(dataType) {
     }
     return decode;
 }
+
+
+exports.isValidVariant = isValidVariant;
 
 var Variant_Schema = {
     name: "Variant",
@@ -278,6 +286,7 @@ var Variant_Schema = {
     },
     decode_debug: function(self,stream,options) {
 
+        var i,element;
         var tracer = options.tracer;
 
         var encodingByte = ec.decodeUInt8(stream);
@@ -310,18 +319,18 @@ var Variant_Schema = {
 
             var n1 = Math.min(10,length);
             // display a maximum of 10 elements
-            for (var i = 0; i< n1 ; i++ ) {
+            for ( i = 0; i< n1 ; i++ ) {
                 tracer.trace("start_element", "", i);
                 cursor_before = stream.length;
-                var element = decode(stream);
+                element = decode(stream);
                 // arr.push(element);
                 tracer.trace("member", "Variant",  element , cursor_before, stream.length,self.dataType.key);
                 tracer.trace("end_element", "", i);
             }
             // keep reading
             if (length>=n1) {
-                for (var i = n1; i< length ; i++ ) {
-                    var element = decode(stream);
+                for ( i = n1; i< length ; i++ ) {
+                     decode(stream);
                 }
                 tracer.trace("start_element", "", n1);
                 tracer.trace("member", "Variant",  "..." , cursor_before, stream.length,self.dataType.key);
@@ -345,7 +354,7 @@ var Variant_Schema = {
 
         var isArray      = (( encodingByte & Variant_ArrayMask  ) === Variant_ArrayMask);
 
-        var dimension    = (( encodingByte & Variant_ArrayDimensionsMask  ) === Variant_ArrayDimensionsMask);
+        //xx var dimension    = (( encodingByte & Variant_ArrayDimensionsMask  ) === Variant_ArrayDimensionsMask);
 
         self.dataType = DataType.get(encodingByte & Variant_TypeMask);
 

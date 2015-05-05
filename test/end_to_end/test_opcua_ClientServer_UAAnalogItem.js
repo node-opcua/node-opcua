@@ -117,7 +117,7 @@ describe("testing UAAnalogItem on client side",function() {
         g_session.browse(browseDescription,function(err,result) {
 
             result = result[0];
-            if (result.statusCode != StatusCodes.Good) {
+            if (result.statusCode !== StatusCodes.Good) {
                 return callback(null,null);
             }
 
