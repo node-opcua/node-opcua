@@ -18,6 +18,9 @@ var DataType = opcua.DataType;
 
 var nodeset = require("lib/address_space/convert_nodeset_to_types").nodeset;
 var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
+var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
+
+
 
 require("lib/datamodel/buildinfo");
 

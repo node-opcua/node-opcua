@@ -9,6 +9,8 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var factories = require("lib/misc/factories");
 
 
+var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
+
 var ObjWithNumericRange_Schema = {
 
     id: factories.next_available_id(),
@@ -155,7 +157,7 @@ describe("Testing numerical range", function () {
             var nr = new NumericRange("3:5");
             var r = nr.extract_values(array);
             r.statusCode.should.eql(StatusCodes.Good);
-            r.array.should.eql([ 3, 4, 5]);
+            assert_arrays_are_equal(r.array,[ 3, 4, 5]);
         });
 
     });
@@ -178,7 +180,9 @@ describe("Testing numerical range", function () {
 
                 var nr = new NumericRange(2);
                 var r = nr.extract_values(array);
-                r.array.should.eql(createArray([2]));
+
+                assert_arrays_are_equal(r.array,createArray([2]));
+
                 should(r.array instanceof array.constructor).equal(true);
             });
 
@@ -187,7 +191,7 @@ describe("Testing numerical range", function () {
                 var nr = new NumericRange(2, 4);
 
                 var r = nr.extract_values(array);
-                r.array.should.eql(createArray([2, 3, 4]));
+                assert_arrays_are_equal(r.array,createArray([2, 3, 4]));
 
             });
 
@@ -195,14 +199,14 @@ describe("Testing numerical range", function () {
             it(name + " Z3 - it should extract a sub array with the requested element with a empty NumericRange", function () {
                 var nr = new NumericRange();
                 var r = nr.extract_values(array);
-                r.array.should.eql(createArray([0, 1, 2, 3, 4, 5]));
+                assert_arrays_are_equal(r.array,createArray([0, 1, 2, 3, 4, 5]));
             });
 
             it(name + " Z4 - it should extract the last 3 elements of an array", function () {
                 var nr = new NumericRange("3:5");
                 var r = nr.extract_values(array);
                 r.statusCode.should.eql(StatusCodes.Good);
-                r.array.should.eql(createArray([3, 4, 5]));
+                assert_arrays_are_equal(r.array,createArray([3, 4, 5]));
             });
 
             it(name + " Z5 - it should return BadIndexRangeNoData if range is outside array boundary", function () {
@@ -277,7 +281,7 @@ describe("Testing numerical range", function () {
             var nr = new NumericRange("8:10");
             var r = nr.set_values(array,[80,90,100]);
             r.statusCode.should.eql(StatusCodes.Good);
-            r.array.should.eql([0,1,2, 3, 4, 5,6,7,80,90,100]);
+            assert_arrays_are_equal(r.array,[0,1,2, 3, 4, 5,6,7,80,90,100]);
         });
     });
 
@@ -292,7 +296,7 @@ describe("Testing numerical range", function () {
             it(name+"-S1 - should replace the old array with the provided array when numeric range is empty",function() {
                 var nr = new NumericRange();
                 var r = nr.set_values(array,createArray([20,30,40]));
-                r.array.should.eql(createArray([20,30,40]));
+                assert_arrays_are_equal(r.array,createArray([20,30,40]));
                 should(r.array instanceof array.constructor).be.eql(true);
             });
 
@@ -321,13 +325,13 @@ describe("Testing numerical range", function () {
             it(name+"-S7 - should replace a single element when numeric range is a pair of values matching the whole array",function() {
                 var nr = new NumericRange("0:10");
                 var r = nr.set_values(array,createArray([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]));
-                r.array.should.eql(createArray([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]));
+                assert_arrays_are_equal(r.array,createArray([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]));
             });
             it(name+"-S8 - should write the last 3 elements of an array", function () {
                 var nr = new NumericRange("8:10");
                 var r = nr.set_values(array,createArray([80,90,100]));
                 r.statusCode.should.eql(StatusCodes.Good);
-                r.array.should.eql(createArray([0,1,2, 3, 4, 5,6,7,80,90,100]));
+                assert_arrays_are_equal(r.array,createArray([0,1,2, 3, 4, 5,6,7,80,90,100]));
             });
         }
 

@@ -33,7 +33,9 @@ var assert = require("better-assert");
 
 var namespaceIndex = 411; // namespace for conformance testing nodes
 
-var resourceLeakDetector = require("../helpers/resource_leak_detector").resourceLeakDetector;
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
+
 
 describe("testing address space for conformance testing", function () {
 
@@ -425,7 +427,7 @@ describe("testing address space for conformance testing", function () {
 
             readValueArray(nodeId, "3:4", function (err, value) {
                 value.length.should.eql(2);
-                value.should.eql(new Int32Array([4, 5]));
+                assert_arrays_are_equal(value,new Int32Array([4, 5]));
                 done(err);
             });
         });
@@ -441,7 +443,7 @@ describe("testing address space for conformance testing", function () {
 
             readValueArray(nodeId, "7:9", function (err, value) {
                 value.length.should.eql(3);
-                value.should.eql(new Int32Array([7, 8, 9]));
+                assert_arrays_are_equal(value,new Int32Array([7, 8, 9]));
                 done(err);
             });
         });
@@ -467,7 +469,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
-                    value.should.eql(new Int32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+                    assert_arrays_are_equal(value,new Int32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
                     callback(err);
                 });
             },
@@ -476,7 +478,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, "3", function (err, value) {
                     value.length.should.eql(1);
-                    value.should.eql(new Int32Array([4]));
+                    assert_arrays_are_equal(value,new Int32Array([4]));
                     callback(err);
                 });
             },
@@ -493,7 +495,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, "3:4", function (err, value) {
                     value.length.should.eql(2);
-                    value.should.eql(new Int32Array([4, 5]));
+                    assert_arrays_are_equal(value,new Int32Array([4, 5]));
                     callback(err);
                 });
             },
@@ -514,7 +516,7 @@ describe("testing address space for conformance testing", function () {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
                     console.log(" =>", value);
-                    value.should.eql(new Int32Array([1, 2, 123, 345, 5, 6, 7, 8, 9, 10]));
+                    assert_arrays_are_equal(value,new Int32Array([1, 2, 123, 345, 5, 6, 7, 8, 9, 10]));
                     callback(err);
                 });
             }
@@ -569,14 +571,14 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, "4", function (err, value) {
                     value.length.should.eql(1);
-                    value.should.eql(new Int16Array([l_value[4]]));
+                    assert_arrays_are_equal(value,new Int16Array([l_value[4]]));
                     callback(err);
                 });
             },
             function (callback) {
                 readValueArray(nodeId, "3:5", function (err, value) {
                     value.length.should.eql(3);
-                    value.should.eql(new Int16Array([l_value[3], l_value[4], l_value[5]]));
+                    assert_arrays_are_equal(value,new Int16Array([l_value[3], l_value[4], l_value[5]]));
                     callback(err);
                 });
             }

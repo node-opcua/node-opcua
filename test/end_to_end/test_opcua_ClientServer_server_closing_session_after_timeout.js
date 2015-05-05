@@ -30,8 +30,8 @@ describe("testing server dropping session after timeout if no activity has been 
     var serverCertificate = server.getCertificate();
 
     var options = {
-        securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
-        securityPolicy: opcua.SecurityPolicy.Basic256,
+        //xx securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+        //xx securityPolicy: opcua.SecurityPolicy.Basic256,
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: 2000
     };
@@ -97,7 +97,7 @@ describe("testing server dropping session after timeout if no activity has been 
         ], done);
     });
 
-    it("should denied service call wikth BadSessionClosed on a timed out session", function (done) {
+    it("should denied service call with BadSessionClosed on a timed out session", function (done) {
         var client = new OPCUAClient(options);
 
         var l_session = null;

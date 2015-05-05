@@ -30,6 +30,7 @@ var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
 
 
 
@@ -1194,7 +1195,7 @@ describe("testing ServerEngine", function () {
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
                 dataValues[0].value.value.should.be.instanceOf(Float64Array);
                 dataValues[0].value.value.length.should.be.eql(4);
-                dataValues[0].value.value.should.be.eql(new Float64Array([2.0, 3.0, 4.0, 5.0]));
+                assert_arrays_are_equal(dataValues[0].value.value,new Float64Array([2.0, 3.0, 4.0, 5.0]));
             }
             done(err);
         });

@@ -6,7 +6,7 @@ var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 var should = require("should");
 
-var resourceLeakDetector = require("../helpers/resource_leak_detector").resourceLeakDetector;
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 var WatchDog = require("lib/misc/watchdog").WatchDog;
 
