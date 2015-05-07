@@ -302,7 +302,7 @@ describe("testing Variable#bindVariable", function () {
                     //var
                     variable.readValueAsync(function(err){
                         if (!err) {
-                            dataValue_check = variable.readAttribute(AttributeIds.Value);
+                            var dataValue_check = variable.readAttribute(AttributeIds.Value);
                             dataValue_check.should.be.instanceOf(DataValue);
                             dataValue_check.statusCode.should.eql(StatusCodes.Good);
                             //xx console.log("dataValue_check =",dataValue_check.toString());
