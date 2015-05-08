@@ -3,10 +3,10 @@ var should = require("should");
 var path = require("path");
 var fs = require("fs");
 var crypto_utils = require("lib/misc/crypto_utils");
-var assert = require("assert");
-var hexDump = require("../../lib/misc/utils").hexDump;
+var assert = require("better-assert");
+var hexDump = require("lib/misc/utils").hexDump;
 
-var exploreCertificate = require("../../lib/misc/crypto_explore_certificate").exploreCertificate;
+var exploreCertificate = require("lib/misc/crypto_explore_certificate").exploreCertificate;
 
 
 describe(" exploring Certificates",function() {
@@ -64,8 +64,8 @@ describe(" exploring Certificates",function() {
 
 describe("exploring certificate chains",function() {
 
-    var combine_der = require("../../lib/misc/crypto_explore_certificate").combine_der;
-    var split_der = require("../../lib/misc/crypto_explore_certificate").split_der;
+    var combine_der = require("lib/misc/crypto_explore_certificate").combine_der;
+    var split_der = require("lib/misc/crypto_explore_certificate").split_der;
 
     xit("should combine certificates in a single block",function(){
 

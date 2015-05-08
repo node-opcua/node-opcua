@@ -6,7 +6,7 @@ var colors = require("colors");
 var util = require("util");
 var Table = require('easy-table');
 var async = require("async");
-var utils = require('../lib/misc/utils');
+var utils = require('lib/misc/utils');
 var assert = require("assert");
 var opcua = require("../");
 var VariableIds = opcua.VariableIds;
@@ -81,7 +81,7 @@ var doCrawling = argv.crawl ? true: false;
 var  serverCertificate = null;
 
 var path = require("path");
-var crypto_utils = require("../lib/misc/crypto_utils");
+var crypto_utils = require("lib/misc/crypto_utils");
 
 async.series([
     function (callback) {

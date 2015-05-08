@@ -20,7 +20,7 @@ var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-
+var perform_operation_on_monitoredItem = require("test/helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 var _port = 2000;
@@ -899,7 +899,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             session.setPublishingMode(publishingEnabled, subscriptionIds, function(err, results) {
                 results.should.be.instanceOf(Array);
                 results[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
-                inner_done();
+                inner_done(err);
             });
         }, done);
     });
@@ -1123,31 +1123,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     it("#ModifyMonitoredItemsRequest : a client should be able to modify a monitored item", function(done) {
 
-        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+        var itemToMonitor = "ns=0;i=2258";
 
-            var subscription = new ClientSubscription(session, {
-                requestedPublishingInterval: 10,
-                requestedLifetimeCount: 600,
-                requestedMaxKeepAliveCount: 20,
-                maxNotificationsPerPublish: 10,
-                publishingEnabled: true,
-                priority: 6
-            });
-
-            //xx console.log("xxx subscription = ",subscription.publishingInterval);
-
-            subscription.on("terminated", function() {
-                console.log(" subscription terminated ".yellow);
-            });
-            var monitoredItem = subscription.monitor({
-                nodeId: resolveNodeId("ns=0;i=2258"),
-                attributeId: AttributeIds.Value
-            }, {
-                samplingInterval: 1000,
-                discardOldest: true,
-                queueSize: 1
-            });
-
+        perform_operation_on_monitoredItem(client, endpointUrl,itemToMonitor, function(session,subscription,monitoredItem, inner_done) {
 
             var change_count = 0;
             monitoredItem.on("changed", function(dataValue) {
@@ -1500,38 +1478,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         }, done);
     });
 
-    function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId, func, done_func) {
-
-        perform_operation_on_subscription(client, endpointUrl, function(session, subscription, inner_done) {
-
-            var monitoredItem;
-            async.series([
-                function(callback) {
-                    monitoredItem = subscription.monitor({
-                        nodeId: resolveNodeId(monitoredItemId),
-                        attributeId: AttributeIds.Value
-                    }, {
-                        samplingInterval: 10,
-                        discardOldest: true,
-                        queueSize: 1
-                    });
-
-                    monitoredItem.on("initialized", function() {
-                        callback();
-                    });
-                },
-                function(callback) {
-                    func(session, subscription, monitoredItem, callback);
-                },
-                function(callback) {
-                    monitoredItem.terminate(function() {
-                        callback();
-                    });
-                }
-            ], inner_done);
-
-        }, done_func);
-    }
 
     it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid is monitoringMode is invalid", function(done) {
 
@@ -1589,7 +1535,5 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
         }, done);        
     });
-    
-    
 
 });
