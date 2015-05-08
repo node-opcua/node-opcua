@@ -5,8 +5,6 @@ var ec = require("lib/misc/encode_decode");
 var assert = require("better-assert");
 var _ = require("underscore");
 
-var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
-var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
 
 var DataType = require("./DataType_enum").DataType;
 var VariantArrayType = require("./VariantArrayType_enum").VariantArrayType;
@@ -38,22 +36,6 @@ function convertTo(dataType, ArrayType, value) {
 }
 
 var typedArrayHelpers = {};
-
-function _declareTypeArrayHelper(dataType, TypedArray) {
-  typedArrayHelpers[dataType.key] = {
-    coerce: convertTo.bind(null, dataType, TypedArray),
-    encode: encodeTypedArray.bind(null, TypedArray),
-    decode: decodeTypedArray.bind(null, TypedArray)
-  }
-}
-_declareTypeArrayHelper(DataType.Float,   Float32Array);
-_declareTypeArrayHelper(DataType.Double,  Float64Array);
-_declareTypeArrayHelper(DataType.SByte,   Int8Array);
-_declareTypeArrayHelper(DataType.Byte,    Uint8Array);
-_declareTypeArrayHelper(DataType.Int16,   Int16Array);
-_declareTypeArrayHelper(DataType.Int32,   Int32Array);
-_declareTypeArrayHelper(DataType.UInt16,  Uint16Array);
-_declareTypeArrayHelper(DataType.UInt32,  Uint32Array);
 
 function _getHelper(dataType) {
   return typedArrayHelpers[dataType.key];
@@ -174,12 +156,27 @@ function get_decoder(dataType) {
 
 
 
+function _declareTypeArrayHelper(dataType, TypedArray) {
+  typedArrayHelpers[dataType.key] = {
+    coerce: convertTo.bind(null, dataType, TypedArray),
+    encode: encodeTypedArray.bind(null, TypedArray),
+    decode: decodeTypedArray.bind(null, TypedArray)
+  };
+}
+_declareTypeArrayHelper(DataType.Float,   Float32Array);
+_declareTypeArrayHelper(DataType.Double,  Float64Array);
+_declareTypeArrayHelper(DataType.SByte,   Int8Array);
+_declareTypeArrayHelper(DataType.Byte,    Uint8Array);
+_declareTypeArrayHelper(DataType.Int16,   Int16Array);
+_declareTypeArrayHelper(DataType.Int32,   Int32Array);
+_declareTypeArrayHelper(DataType.UInt16,  Uint16Array);
+_declareTypeArrayHelper(DataType.UInt32,  Uint32Array);
+
 
 function _decodeVariantArrayDebug(stream, decode, tracer, dataType) {
 
   var cursor_before = stream.length;
   var length = ec.decodeUInt32(stream);
-  var arr = [];
   var i, element;
   tracer.trace("start_array", "Variant", length, cursor_before, stream.length);
 
@@ -241,7 +238,6 @@ var Variant_Schema = {
   },
   decode_debug: function(self, stream, options) {
 
-    var i, element;
     var tracer = options.tracer;
 
     var encodingByte = ec.decodeUInt8(stream);
