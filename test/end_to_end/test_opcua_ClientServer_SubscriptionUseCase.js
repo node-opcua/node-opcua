@@ -327,7 +327,7 @@ describe("testing server and subscription", function () {
         //xx console.log(" shutting down client");
         client.disconnect(function (err) {
             client = null;
-            done();
+            done(err);
         });
     });
 
@@ -1339,7 +1339,65 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         }, done);
     });
 
+    it("#ModifySubscriptionRequest: should return BadSubscriptionIdInvalid if client specifies a invalid subscriptionId",function(done){
+    
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
+            var modifySubscriptionRequest = {
+                subscriptionId: 999,
+            };
+
+            session.modifySubscription(modifySubscriptionRequest,function(err){
+                err.message.should.match(/BadSubscriptionIdInvalid/);
+                inner_done();
+            });
+        },done);
+    });
+    it("#ModifySubscriptionRequest: should return StatusGood",function(done){
+    
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            
+            
+            var subscription = new ClientSubscription(session, {
+                requestedPublishingInterval: 10,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 6
+            });
+
+            subscription.on("terminated", function () {
+                //xx console.log(" subscription terminated ".yellow);
+                inner_done();
+            });
+            subscription.on("started",function(){
+                
+            async.series([
+                function (callback) {
+                   callback();      
+                },
+                
+               function(callback) {
+                 var modifySubscriptionRequest = {
+                   subscriptionId: subscription.subscriptionId,
+                   requestedPublishingInterval: 200
+                 };
+                 session.modifySubscription(modifySubscriptionRequest,function(err,response){
+                     
+                     response.revisedPublishingInterval.should.eql(200);
+                     
+                    callback(err);
+                 });                   
+               } 
+            ],function(err) {
+                done(err);
+            });
+            
+            });
+
+        },done);
+    });
 });
 
 
