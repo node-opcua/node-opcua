@@ -1,16 +1,14 @@
+"use strict";
+/* global describe,it,before,after,beforeEach,afterEach*/
 require("requirish")._(module);
 
-var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var s = require("lib/datamodel/structures");
-
 var opcua = require("index");
 var makeNodeId = opcua.makeNodeId;
-var DataValue = opcua.DataValue;
 var DataType = opcua.DataType;
 var AttributeIds = opcua.AttributeIds;
 var OPCUAClient = opcua.OPCUAClient;
@@ -217,5 +215,18 @@ describe("end-to-end testing of a write operation between a client and a server 
         },done);
 
     });
+    
+    it("should return BadNothingToDo if writeRequest is empty",function(done){
+          perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
+            var nodesToWrite = [ ];
+
+            session.write(nodesToWrite,function(err,statusCodes){
+                err.message.should.match(/BadNothingToDo/);
+                done();
+            });
+
+        },done);
+    });
+    
 });
