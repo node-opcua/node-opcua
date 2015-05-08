@@ -21,6 +21,24 @@ exports.isValidVariant = isValidVariant;
 
 
 
+function get_encoder(dataType) {
+  var encode = factories.findBuiltInType(dataType.key).encode;
+  /* istanbul ignore next */
+  if (!encode) {
+    throw new Error("Cannot find encode function for dataType " + dataType.key);
+  }
+  return encode;
+}
+
+function get_decoder(dataType) {
+  var decode = factories.findBuiltInType(dataType.key).decode;
+  /* istanbul ignore next */
+  if (!decode) {
+    throw new Error("Variant.decode : cannot find decoder for type " + dataType.key);
+  }
+  return decode;
+}
+
 function convertTo(dataType, ArrayType, value) {
 
   if (ArrayType && value instanceof ArrayType) {
@@ -136,23 +154,6 @@ function decodeVariantArray(dataType, stream) {
 }
 
 
-function get_encoder(dataType) {
-  var encode = factories.findBuiltInType(dataType.key).encode;
-  /* istanbul ignore next */
-  if (!encode) {
-    throw new Error("Cannot find encode function for dataType " + dataType.key);
-  }
-  return encode;
-}
-
-function get_decoder(dataType) {
-  var decode = factories.findBuiltInType(dataType.key).decode;
-  /* istanbul ignore next */
-  if (!decode) {
-    throw new Error("Variant.decode : cannot find decoder for type " + dataType.key);
-  }
-  return decode;
-}
 
 
 
