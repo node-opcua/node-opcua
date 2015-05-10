@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 // Symmetric algorithms are used to secure all messages other than the OpenSecureChannel messages
 // OPC UA Secure Conversation Message Header Release 1.02 Part 6 page 39

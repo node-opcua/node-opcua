@@ -1,12 +1,14 @@
 "use strict";
-var factories   = require("../lib/misc/factories");
-var set_flag    = require("../lib/misc/utils").set_flag;
-var check_flag  = require("../lib/misc/utils").check_flag;
-var ec          = require("../lib/misc/encode_decode");
-var StatusCodes = require("../lib/datamodel/opcua_status_code").StatusCodes;
-var StatusCode  = require("../lib/datamodel/opcua_status_code").StatusCode;
-var DataValueEncodingByte = require("./DataValueEncodingByte_enum").DataValueEncodingByte;
-var Variant     = require("../lib/datamodel/variant").Variant;
+require("requirish")._(module);
+var factories   = require("lib/misc/factories");
+var set_flag    = require("lib/misc/utils").set_flag;
+var check_flag  = require("lib/misc/utils").check_flag;
+var ec          = require("lib/misc/encode_decode");
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var StatusCode  = require("lib/datamodel/opcua_status_code").StatusCode;
+var Variant     = require("lib/datamodel/variant").Variant;
+var DataValueEncodingByte = require("schemas/DataValueEncodingByte_enum").DataValueEncodingByte;
+
 var _           = require("underscore");
 var assert      = require("better-assert");
 

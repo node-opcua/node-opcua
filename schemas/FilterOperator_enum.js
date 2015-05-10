@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 // OPC Unified Architecture, Part 4 Release 1.02 page 115
 var FilterOperator_Schema = {
 

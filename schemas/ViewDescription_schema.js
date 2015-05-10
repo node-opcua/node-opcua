@@ -1,5 +1,6 @@
-
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 // see part 4 $7.37
 var ViewDescription_Schema = {

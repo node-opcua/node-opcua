@@ -1,5 +1,6 @@
-
-var NumericRange = require("../lib/datamodel/numeric_range").NumericRange;
+"use strict";
+require("requirish")._(module);
+var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 
 var AttributeOperand_Schema = {
     name:"AttributeOperand",

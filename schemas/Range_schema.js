@@ -1,4 +1,5 @@
-var factories= require("../lib/misc/factories");
+"use strict";
+
 var Range_Schema = {
     name:"Range",
     fields: [

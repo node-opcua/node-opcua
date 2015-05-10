@@ -1,4 +1,5 @@
-var factories = require("../lib/misc/factories");
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 var DataType_Schema = {
     name:"DataType",

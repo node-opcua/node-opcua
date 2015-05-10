@@ -1,6 +1,8 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
-var AxisScale = require("./AxisScale_enum").AxisScale;
+var AxisScale = require("schemas/AxisScale_enum").AxisScale;
 
 var AxisInformation_Schema = {
     name:"AxisInformation",

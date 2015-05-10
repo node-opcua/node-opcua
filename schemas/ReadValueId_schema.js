@@ -1,7 +1,11 @@
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
-var AttributeIds = require("../lib/datamodel/attributeIds").AttributeIds;
-var is_valid_attributeId = require("../lib/datamodel/attributeIds").is_valid_attributeId;
-require("../lib/datamodel/numeric_range");
+var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
+var is_valid_attributeId = require("lib/datamodel/attributeIds").is_valid_attributeId;
+
+require("lib/datamodel/numeric_range");
 
 var ReadValueId_Schema = {
     name: "ReadValueId",

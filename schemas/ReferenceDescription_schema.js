@@ -1,6 +1,8 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
-var NodeClass = require("./NodeClass_enum").NodeClass;
+var NodeClass = require("schemas/NodeClass_enum").NodeClass;
 
 var ReferenceDescription_Schema = {
     name: "ReferenceDescription",

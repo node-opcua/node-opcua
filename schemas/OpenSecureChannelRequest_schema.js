@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 var MessageSecurityMode =  require("./MessageSecurityMode_enum").MessageSecurityMode;
 var SecurityTokenRequestType = require("./SecurityTokenRequestType_enum").SecurityTokenRequestType;

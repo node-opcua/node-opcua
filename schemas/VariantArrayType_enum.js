@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 var VariantArrayType_Schema = {
     name:"VariantArrayType",

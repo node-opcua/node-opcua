@@ -1,5 +1,7 @@
+"use strict";
 
-var ExtensionObject = require("../lib/misc/extension_object").ExtensionObject;
+require("requirish")._(module);
+var ExtensionObject = require("lib/misc/extension_object").ExtensionObject;
 
 var ActivateSessionRequest_Schema =  {
     documentation: "Activates a session with the server.",

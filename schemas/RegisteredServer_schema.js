@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 var RegisteredServer_Schema = {
     documentation:"The information required to register a server with a discovery server.",

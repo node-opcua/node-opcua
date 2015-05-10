@@ -1,5 +1,7 @@
+"use strict";
 
-var factories = require("../lib/misc/factories");
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 // OPC Unified Architecture, Part 4 page 106
 var ApplicationInstanceCertificate_Schema = {

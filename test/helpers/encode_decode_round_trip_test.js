@@ -59,7 +59,7 @@ function encode_decode_round_trip_test(obj,options, callback_buffer) {
         console.log = old;
 
     }
-    var analyze_object_binary_encoding = require("../../lib/misc/packet_analyzer").analyze_object_binary_encoding;
+    var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
     redirectToNull(function() {analyze_object_binary_encoding(obj);});
 
 

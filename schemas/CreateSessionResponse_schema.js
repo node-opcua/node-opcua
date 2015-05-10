@@ -1,5 +1,5 @@
-
-require("../lib/datamodel/SessionAuthenticationToken");
+require("requirish")._(module);
+require("lib/datamodel/SessionAuthenticationToken");
 
 
 var CreateSessionResponse_Schema = {

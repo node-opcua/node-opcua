@@ -1,4 +1,5 @@
 "use strict";
+require("requirish")._(module);
 Error.stackTraceLimit = Infinity;
 
 var argv = require('yargs')
@@ -18,14 +19,14 @@ var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 
 
-var address_space_for_conformance_testing = require("../lib/simulation/address_space_for_conformance_testing");
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-var install_optional_cpu_and_memory_usage_node = require("../lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
+var install_optional_cpu_and_memory_usage_node = require("lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
 
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
-var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
+var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 
 var port = parseInt(argv.port) || 26543;
 

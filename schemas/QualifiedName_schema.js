@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 // see Part 3 $8.3 and Part 6 $5.2.213
 var QualifiedName_Schema = {

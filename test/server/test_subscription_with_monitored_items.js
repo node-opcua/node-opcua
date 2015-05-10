@@ -72,7 +72,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
 
-        //xx require("../../lib/utils").dump(monitoredItemCreateResult);
+        //xx require("lib/utils").dump(monitoredItemCreateResult);
         subscription.monitoredItemCount.should.eql(1);
 
         monitoredItemCreateResult.should.be.instanceOf(subscription_service.MonitoredItemCreateResult);

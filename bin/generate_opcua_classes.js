@@ -20,6 +20,7 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
+require("requirish")._(module);
 
 var argv = require('optimist')
 .usage('Usage: $0 --clear --verbose ')
@@ -73,13 +74,13 @@ if (argv.clear) {
     remove_files_in_folder(path.normalize(path.join(__dirname, "../_generated_")), false);
 }
 if (argv.verbose) {
-    require("../lib/misc/factories").verbose = true;
+    require("lib/misc/factories").verbose = true;
 }
 
 // make sure ExtensionObject is defined
-require("../lib/misc/extension_object");
+require("lib/misc/extension_object");
 
-var registerObject = require("../lib/misc/factories").registerObject;
+var registerObject = require("lib/misc/factories").registerObject;
 
 registerObject("TCPErrorMessage");
 
@@ -262,12 +263,12 @@ registerObject("WriteResponse");
 // -------------------------------------------------------------------------
 var filename = path.join(__dirname, "../nodesets/Opc.Ua.NodeSet2.xml");
 
-var address_space = require("../lib/address_space/address_space");
+var address_space = require("lib/address_space/address_space");
 var AddressSpace = address_space.AddressSpace;
 
-var generate_address_space = require("../lib/address_space/load_nodeset2").generate_address_space;
+var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
-var makeServerStatus = require("../lib/address_space/convert_nodeset_to_types").makeServerStatus;
+var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
 
 
 var aspace = new AddressSpace();

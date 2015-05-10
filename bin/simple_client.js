@@ -1,4 +1,5 @@
 "use strict";
+require("requirish")._(module);
 var fs = require("fs");
 var treeify = require('treeify');
 var _ = require("underscore");
@@ -145,7 +146,7 @@ async.series([
     // reconnect using the correct end point URL now
     function (callback) {
 
-        var hexDump = require("../lib/misc/utils").hexDump;
+        var hexDump = require("lib/misc/utils").hexDump;
         console.log("Server Certificate :".cyan);
         console.log(hexDump(serverCertificate).yellow);
 

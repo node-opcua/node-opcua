@@ -1,5 +1,7 @@
-var factories = require("../lib/misc/factories");
-var ec = require("../lib/misc/encode_decode");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
+var ec = require("lib/misc/encode_decode");
 var assert = require("better-assert");
 
 function getLocalizeText_EncodingByte(localizedText) {

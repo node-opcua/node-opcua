@@ -1,4 +1,7 @@
-var ExtensionObject = require("../lib/misc/extension_object").ExtensionObject;
+"use strict";
+require("requirish")._(module);
+var ExtensionObject = require("lib/misc/extension_object").ExtensionObject;
+
 // OPC Unified Architecture, Part 4  $7.27 page 139
 var RequestHeader_Schema = {
     name: "RequestHeader",

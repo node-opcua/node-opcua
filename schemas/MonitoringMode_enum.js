@@ -1,4 +1,6 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 
 // OPCUA Spec 1.02 Part 4 page 5.12.1.3 Monitoring Mode:
 // The monitoring mode parameter is used to enable and disable the sampling of a MonitoredItem, and also to provide

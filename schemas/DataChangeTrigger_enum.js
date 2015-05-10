@@ -1,5 +1,6 @@
 "use strict";
-var factories = require("../lib/misc/factories");
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
 var DataChangeTrigger_Schema = {
     name:"DataChangeTrigger",
     enumValues: {

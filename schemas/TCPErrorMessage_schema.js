@@ -1,4 +1,7 @@
-var factories = require("../lib/misc/factories");
+"use strict";
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
+
 // TCP Error Message  OPC Unified Architecture, Part 6 page 46
 // the server always close the connection after sending the TCPError message
 var TCPErrorMessage_Schema = {

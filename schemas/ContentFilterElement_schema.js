@@ -1,5 +1,6 @@
-
-var FilterOperator = require("../schemas/FilterOperator_enum").FilterOperator;
+"use strict";
+require("requirish")._(module);
+var FilterOperator = require("schemas/FilterOperator_enum").FilterOperator;
 
 // see OPCUA 1.02 Part 4 : section 7.4 Content Filter Part
 // The ContentFilter structure defines a collection of elements that define filtering criteria. Each

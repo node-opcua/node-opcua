@@ -1,5 +1,7 @@
 "use strict";
-var factories = require("../lib/misc/factories");
+require("requirish")._(module);
+var factories = require("lib/misc/factories");
+
 var DeadbandType_Schema = {
     name:"DeadbandType",
     enumValues: {
