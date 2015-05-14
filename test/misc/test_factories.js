@@ -248,7 +248,7 @@ describe("Factories: testing object factory", function () {
 
         factories.registerBasicType({
             name: "MyInteger",
-            subtype: "Integer",
+            subtype: "UInt16",
             defaultValue: 0
         });
 

@@ -74,7 +74,7 @@
     <DisplayName>UInteger</DisplayName>
     <Description>Describes a value that can have any unsigned integer DataType.</Description>
     <References>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
     </References>
   </UADataType>
   <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">

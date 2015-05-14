@@ -292,11 +292,11 @@ describe("testing address space for conformance testing", function () {
 
     });
 
-    function writeValue(nodeId, dataType, value, callback) {
-
+    function writeValueRange(nodeId, dataType, value, range,callback) {
         var request = new WriteValue({
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
+            indexRange: range,
             value: {
                 value: {
                     dataType: dataType,
@@ -308,6 +308,11 @@ describe("testing address space for conformance testing", function () {
         engine.writeSingleNode(request, function (err, statusCode) {
             callback(err, statusCode);
         });
+
+    }
+    function writeValue(nodeId, dataType, value, callback) {
+
+        writeValueRange(nodeId,dataType,value,null,callback);
     }
 
     function readValue(nodeId, callback) {
@@ -603,13 +608,75 @@ describe("testing address space for conformance testing", function () {
             },
             function (callback) {
 
-                var newValue = new Buffer("Lorem ipsum");
+                var newValue = new Buffer("Lorem ipsu");
                 writeValue(nodeId, DataType.ByteString, newValue, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err)
                 });
             }
 
+        ], done);
+    });
+
+    it("should be possible to write to a an Array of Byte with a Byte Array", function (done) {
+
+        var nodeId = makeNodeId("Scalar_Static_Array_Byte", namespaceIndex);
+
+        var l_value = null;
+
+        async.series([
+
+            function (callback) {
+                readValueArray(nodeId, null, function (err, value) {
+                    l_value = value;
+                    l_value.length.should.eql(10);
+                    callback(err);
+                });
+            },
+            function (callback) {
+                var buf = [0,1,2,3,4,5,6,9];
+                writeValue(nodeId, DataType.ByteString, buf,function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err)
+                });
+            },
+            function (callback) {
+                readValueArray(nodeId, "3", function (err, value) {
+                    l_value = value;
+                    l_value.length.should.eql(1);
+                    l_value[0].should.eql(3);
+                    callback(err);
+                });
+            },
+            function (callback) {
+                readValueArray(nodeId, "3:5", function (err, value) {
+                    l_value = value;
+                    l_value.length.should.eql(3);
+                    l_value.should.eql(new Uint8Array([3,4,5]));
+                    callback(err);
+                });
+            },
+            function (callback) {
+                var buf = new Buffer("LoremIpsum");
+                writeValue(nodeId, DataType.ByteString, buf,function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err)
+                });
+            },
+            function (callback) {
+                var buf = new Buffer("OREM");
+                writeValueRange(nodeId, DataType.ByteString, buf,"1:4",function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err)
+                });
+            },
+            function (callback) {
+                readValueArray(nodeId, "0:6", function (err, value) {
+                    l_value = value;
+                    (new Buffer(l_value)).toString().should.eql("LOREMIp");
+                    callback(err);
+                });
+            },
         ], done);
     });
 

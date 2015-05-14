@@ -93,6 +93,21 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
         </References>
     </UADataType>
+  <UADataType NodeId="i=8" BrowseName="Int64">
+    <DisplayName>Int64</DisplayName>
+    <Description>Describes a value that is an integer between −9,223,372,036,854,775,808 and 9,223,372,036,854,775,807.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+    </References>
+  </UADataType>
+  <UADataType NodeId="i=9" BrowseName="UInt64">
+    <DisplayName>UInt64</DisplayName>
+    <Description>Describes a value that is an integer between 0 and 18,446,744,073,709,551,615.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
+    </References>
+  </UADataType>
+
     <UADataType NodeId="i=10" BrowseName="Float">
         <DisplayName>Float</DisplayName>
         <Description>Describes a value that is an IEEE 754-1985 single precision floating point number.</Description>
@@ -173,7 +188,7 @@
         <DisplayName>UInteger</DisplayName>
         <Description>Describes a value that can have any unsigned integer DataType.</Description>
         <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
         </References>
     </UADataType>
 

@@ -957,4 +957,141 @@ describe("testing Variable#writeValue Array",function(){
 
     });
 
+
+});
+
+
+
+describe("testing Variable#writeValue on Integer",function() {
+
+    var the_address_space, rootFolder, variableInteger, variableInt32;
+
+    before(function (done) {
+        the_address_space = new address_space.AddressSpace();
+        generate_address_space(the_address_space, nodeset_filename, function () {
+
+            rootFolder = the_address_space.findObject("RootFolder");
+
+
+            variableInteger = new Variable({
+                browseName: "some INTEGER Variable",
+                address_space: the_address_space,
+                minimumSamplingInterval: 10,
+                userAccessLevel: 0,
+                arrayDimensions: [1, 2, 3],
+                accessLevel: 0,
+                dataType: "Integer",
+
+                value: new Variant({
+                    dataType: DataType.Integer,
+                    value: 1
+                })
+
+            });
+
+            variableInt32 = new Variable({
+                browseName: "some Int32 Variable",
+                address_space: the_address_space,
+                minimumSamplingInterval: 10,
+                userAccessLevel: 0,
+                arrayDimensions: [1, 2, 3],
+                accessLevel: 0,
+                dataType: "Int32",
+
+                value: new Variant({
+                    dataType: DataType.Int32,
+                    value: 1
+                })
+
+            });
+
+            done();
+        });
+    });
+    beforeEach(function (done) {
+        done();
+    });
+
+    after(function () {
+        the_address_space = null;
+        rootFolder = null;
+    });
+
+
+    function verify_badtypemismatch(variable,dataType,value,done) {
+        // same as CTT test write582err021 Err-011.js
+        var dataValue = new DataValue({
+            value: {
+                dataType: dataType,
+                value: value
+            }
+        });
+
+        variable.writeValue(dataValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.BadTypeMismatch);
+            done(err);
+        });
+    }
+    function verify_writeOK(variable,dataType,value,done) {
+        // same as CTT test write582err021 Err-011.js
+        var dataValue = new DataValue({
+            value: {
+                dataType: dataType,
+                value: value
+            }
+        });
+
+        variable.writeValue(dataValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            done(err);
+        });
+    }
+    it("Z1 should not be possible to write a Byte Value into an integer Variable",function(done){
+        verify_badtypemismatch(variableInteger,DataType.Byte,36,done);
+    });
+    it("Z2 should not be possible to write a UInt16 Value into an integer Variable",function(done){
+        verify_badtypemismatch(variableInteger,DataType.UInt16,36,done);
+    });
+    it("Z3 should not be possible to write a UInt32 Value into an integer Variable",function(done){
+        verify_badtypemismatch(variableInteger,DataType.UInt32,36,done);
+    });
+
+    it("Z2 should not be possible to write a UInt16 Value into an Integer Variable",function(done){
+        verify_badtypemismatch(variableInteger,DataType.UInt16,36,done);
+    });
+    it("Z3 should not be possible to write a UInt64 Value into an integer Variable",function(done){
+        verify_badtypemismatch(variableInteger,DataType.UInt64,36,done);
+    });
+
+    it("Z1 should not be possible to write a Byte Value into an Integer Variable",function(done){
+        verify_badtypemismatch(variableInteger,DataType.Byte,36,done);
+    });
+
+
+    //xxx it("Z1 should not be possible to write a UInt64 Value into an integer Variable",function(done){
+    //xxx     perform_test(DataType.UInt64,36,done);
+    //xxx});
+
+    it("Z1 should not be possible to write a Byte Value into an Int32 Variable",function(done){
+        verify_badtypemismatch(variableInt32,DataType.Byte,36,done);
+    });
+    it("Z2 should not be possible to write a UInt16 Value into an Int32 Variable",function(done){
+        verify_badtypemismatch(variableInt32,DataType.UInt16,36,done);
+    });
+    it("Z3 should not be possible to write a UInt32 Value into an Int32 Variable",function(done){
+        verify_badtypemismatch(variableInt32,DataType.UInt32,36,done);
+    });
+    it("Z1 should not be possible to write a SByte Value into an Int32 Variable",function(done){
+        verify_badtypemismatch(variableInt32,DataType.SByte,36,done);
+    });
+    it("Z2 should not be possible to write a Int16 Value into an Int32 Variable",function(done){
+        verify_badtypemismatch(variableInt32,DataType.Int16,36,done);
+    });
+    it("Z3 should not be possible to write a UInt32 Value into an Int32 Variable",function(done){
+        verify_badtypemismatch(variableInt32,DataType.UInt32,36,done);
+    });
+
+    it("Z3 should  possible to write a Int32 Value into an Int32 Variable",function(done){
+        verify_writeOK(variableInt32,DataType.Int32,36,done);
+    });
 });
