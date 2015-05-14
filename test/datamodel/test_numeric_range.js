@@ -162,6 +162,11 @@ describe("Testing numerical range", function () {
 
     });
 
+    function makeBuffer(values) {
+        var buff = new Buffer(values.length);
+        for(var i=0;i<values.length;i++) { buff[i] = values[i]; }
+        return buff;
+    }
     describe("extracting ranges from a typed array", function () {
 
 
@@ -231,6 +236,7 @@ describe("Testing numerical range", function () {
 
         test("BLOB",function(values)    {return values.map(function(v){  return { value: v.toString()}; }); });
 
+        test("Uint8Array",makeBuffer);
     });
 
     describe("setting range of an array", function () {
@@ -346,6 +352,7 @@ describe("Testing numerical range", function () {
 
         test("BLOB",function(values)    {return values.map(function(v){  return { value: v.toString()}; }); });
 
+        test("Int8Array",makeBuffer);
 
     });
 
