@@ -2,6 +2,7 @@
 require("requirish")._(module);
 var Enum = require("lib/misc/enum");
 var should = require("should");
+var _ = require("underscore");
 
 describe("Test Enum", function () {
 
@@ -87,18 +88,25 @@ var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 var EnumSlow = require("enum");
 var EnumFast = require("lib/misc/enum");
 
-describe("Benchmarking Enums", function (done) {
+describe("Benchmarking Enums", function () {
 
 
     function perform_benchmark(params, checks, done) {
 
         var bench = new Benchmarker();
 
+        var keys = _.isArray(params)? params: Object.keys(params);
 
         function test_iteration(en) {
 
             var e1 = en.SOMEDATA;
             var e2 = en.get("OTHERDATA");
+
+            en[keys[0]].value.should.eql(en.get(keys[0]).value);
+
+            var item = en[keys[0]];
+            en.get(item).value.should.eql(item.value);
+
 
             checks.forEach(function (p) {
                 p.value.should.eql(en.get(p.key).value);
@@ -158,8 +166,26 @@ describe("Benchmarking Enums", function (done) {
             HistoryWrite: 0x08,
             SemanticChange: 0x10
         };
+
         var checks = [{key: "CurrentWrite | HistoryWrite", value: 0x0A}];
         perform_benchmark(AccessLevelFlag, checks, done);
+    });
+
+    it("should verify that our enums are faster than Enum 2.1.0 ( value Zero)", function (done) {
+        var ApplicationType = {
+            SERVER: 0, // The application is a Server
+            CLIENT: 1, // The application is a Client
+            CLIENTANDSERVER: 2, // The application is a Client and a Server
+            DISCOVERYSERVER: 3  // The application is a DiscoveryServer
+        }
+        var checks = [
+            {key: "SERVER",          value: 0},
+            {key: "CLIENT",          value: 1},
+            {key: "CLIENTANDSERVER", value: 2},
+            {key: "DISCOVERYSERVER", value: 3}
+        ];
+        perform_benchmark(ApplicationType, checks, done);
+
     });
 
 
