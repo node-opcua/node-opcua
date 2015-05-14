@@ -73,16 +73,11 @@ function coerceVariantArray(dataType, value) {
 function encodeTypedArray(ArrayType, stream, value) {
 
   assert(value instanceof ArrayType);
-  assert(value.buffer instanceof ArrayBuffer);
 
   ec.encodeUInt32(value.length, stream);
 
-  var arr = new Uint8Array(value.buffer);
-  assert(arr.length === value.length * ArrayType.BYTES_PER_ELEMENT);
-  var i, n = arr.length;
-  for (i = 0; i < n; i++) {
-    stream.writeUInt8(arr[i]);
-  }
+  stream.writeArrayBuffer(value.buffer,value.byteOffset,value.byteLength);
+
 }
 
 function encodeGeneralArray(dataType, stream, value) {
