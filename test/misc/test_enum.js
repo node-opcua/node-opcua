@@ -102,6 +102,7 @@ describe("Benchmarking Enums", function (done) {
 
             checks.forEach(function (p) {
                 p.value.should.eql(en.get(p.key).value);
+                p.value.should.eql(en.get(p.value).value);
             });
         }
 
