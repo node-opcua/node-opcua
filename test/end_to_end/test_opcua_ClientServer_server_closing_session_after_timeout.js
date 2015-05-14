@@ -82,11 +82,11 @@ describe("testing server dropping session after timeout if no activity has been 
                 client.connect(endpointUrl, callback);
             },
 
-            // reading should fail
+            // reading should fail with BadSessionIdInvalid
             function (callback) {
 
                 client._secureChannel.performMessageTransaction(readRequest, function (err, response) {
-                    response.responseHeader.serviceResult.should.equal(opcua.StatusCodes.BadSessionNotActivated);
+                    response.responseHeader.serviceResult.should.equal(opcua.StatusCodes.BadSessionIdInvalid);
                     callback(err);
                 });
             },
@@ -128,12 +128,12 @@ describe("testing server dropping session after timeout if no activity has been 
                 setTimeout(callback, 1500);
             },
 
-            // reading should fail
+            // reading should fail with BadSessionIdInvalid
             function (callback) {
 
                 server.currentSessionCount.should.eql(0);
                 l_session.read(readRequest.nodesToRead,function(err,results){
-                    err.message.should.match(/BadSessionClosed/);
+                    err.message.should.match(/BadSessionIdInvalid/);
                     callback(null);
                 });
             },
