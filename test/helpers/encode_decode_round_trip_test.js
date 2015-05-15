@@ -4,7 +4,7 @@ var should =require("should");
 var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var factories = require("lib/misc/factories_factories");
 var hexDump = require("lib/misc/utils").hexDump;
-
+var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
 var _ = require("underscore");
 
 var packet_analyzer = require("lib/misc/packet_analyzer").packet_analyzer;
@@ -17,6 +17,15 @@ function dump_block_in_debug_mode(buffer,id,options) {
         console.log(hexDump(buffer));
         packet_analyzer(buffer,id,0,0,options);
     }
+}
+function isTypedArray(v) {
+    if (v && v.buffer && v.buffer instanceof ArrayBuffer) {
+        return true;
+    }
+    return false;
+}
+function isArrayOrTypedArray(v) {
+    return isTypedArray(v) || v instanceof Array;
 }
 /**
  *
@@ -66,7 +75,11 @@ function encode_decode_round_trip_test(obj,options, callback_buffer) {
     Object.keys(obj_reloaded).forEach(function(p) {
 
         try {
-            JSON.stringify(obj_reloaded[p]).should.eql(JSON.stringify(obj[p]));
+            if (isArrayOrTypedArray(obj[p])) {
+                assert_arrays_are_equal(obj_reloaded[p],obj[p]);
+            } else {
+                JSON.stringify(obj_reloaded[p]).should.eql(JSON.stringify(obj[p]));
+            }
         } catch(err) {
             console.log(" ---------------------------------- error in encode_decode_round_trip_test".yellow);
             console.log(" key ".red,      p);
