@@ -75,7 +75,7 @@ function start_simple_server(options,callback) {
     server_exec.on("close", detect_early_termination);
 
     server_exec.on("error",function(err){
-        console.log("XXXXX child process terminated due to receipt of signal ");
+        console.log("xxxx child process terminated due to receipt of signal ");
     });
 
 

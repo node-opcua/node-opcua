@@ -126,7 +126,7 @@ describe("testing OPCUA-Service Discovery Endpoint",function() {
     });
 
 
-    it("should anwser FindServers Request and apply endpointUri filter",function(done) {
+    it("should answer FindServers Request and apply endpointUri filter",function(done) {
 
         make_on_connected_client(function(client,callback) {
 
