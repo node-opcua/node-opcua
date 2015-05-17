@@ -446,7 +446,8 @@ describe("testing basic Client-Server communication",function() {
                 var browseDesc = {
                     nodeId: "ObjectsFolder",
                     referenceTypeId: Organizes,
-                    browseDirection: BrowseDirection.Forward
+                    browseDirection: BrowseDirection.Forward,
+                    resultMask: 0x3F
                 };
 
                 g_session.browse(browseDesc,function(err,browseResults/*,diagnosticInfos*/){

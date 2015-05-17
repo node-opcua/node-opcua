@@ -31,7 +31,7 @@ var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); //
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
-
+var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
 
 describe("testing ServerEngine", function () {
@@ -451,7 +451,7 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[0].isForward.should.equal(false);
         browseResult.references[0].browseName.name.should.equal("Root");
-        browseResult.references [0].nodeId.toString().should.equal("ns=0;i=84");
+        browseResult.references[0].nodeId.toString().should.equal("ns=0;i=84");
         //xx browseResult.references[0].displayName.text.should.equal("Root");
         browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
@@ -575,7 +575,8 @@ describe("testing ServerEngine", function () {
         var browseDescription = {
             browseDirection: BrowseDirection.Forward,
             nodeClassMask: 0, // 0 = all nodes
-            referenceTypeId: "Organizes"
+            referenceTypeId: "Organizes",
+            resultMask: 0x3F
         };
         var browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
         browseResult.statusCode.should.eql(StatusCodes.Good);
@@ -623,6 +624,54 @@ describe("testing ServerEngine", function () {
 
         // RootFolder should have 4 nodes ( 1 hasTypeDefinition , 3 sub-folders)
         results[0].references.length.should.equal(4);
+
+    });
+
+    it("should provide results that conforms to browseDescription.resultMask",function() {
+
+        var check_flag = require("lib/misc/utils").check_flag;
+        var ResultMask = require("schemas/ResultMask_enum").ResultMask;
+
+        function test_referenceDescription(referenceDescription,resultMask) {
+            if ( check_flag(resultMask,ResultMask.ReferenceType)) {
+                should(referenceDescription.referenceTypeId).be.instanceOf(Object);
+            }else {
+                should(referenceDescription.referenceTypeId).be.eql(makeNodeId(0,0));
+            }
+            if ( check_flag(resultMask,ResultMask.BrowseName)) {
+                should(referenceDescription.browseName).be.instanceOf(Object);
+            }else {
+                should(referenceDescription.browseName).be.eql(new QualifiedName({}));
+            }
+            if ( check_flag(resultMask,ResultMask.NodeClass)) {
+                should(referenceDescription.nodeClass).be.not.eql(NodeClass.Unspecified);
+            }else {
+                should(referenceDescription.nodeClass).be.eql(NodeClass.Unspecified);
+            }
+        }
+        function test_result_mask(resultMask) {
+
+            var browseDescription = {
+                browseDirection : browse_service.BrowseDirection.Both,
+                referenceTypeId : "HierarchicalReferences",
+                includeSubtypes : true,
+                nodeClassMask:  0, // 0 = all nodes
+                resultMask: resultMask
+            };
+            var browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
+
+            browseResult.references.length.should.be.greaterThan(1);
+            browseResult.references.forEach(function(referenceDescription){
+                test_referenceDescription(referenceDescription,resultMask.value);
+            });
+
+        }
+
+        // ReferenceType
+        test_result_mask(ResultMask.BrowseName);
+        test_result_mask(ResultMask.NodeClass);
+        test_result_mask(ResultMask.NodeClass & ResultMask.BrowseName);
+
 
     });
 

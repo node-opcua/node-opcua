@@ -112,7 +112,8 @@ describe("testing UAAnalogItem on client side",function() {
         var browseDescription = {
             nodeId: nodeId,
             referenceTypeId: "HasProperty",
-            browseDirection: BrowseDirection.Forward
+            browseDirection: BrowseDirection.Forward,
+            resultMask: 0x3F
         };
         g_session.browse(browseDescription,function(err,result) {
 

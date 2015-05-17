@@ -19,3 +19,4 @@ var EnumNodeClass_Schema = {
 };
 exports.EnumNodeClass_Schema = EnumNodeClass_Schema;
 exports.NodeClass = factories.registerEnumeration(EnumNodeClass_Schema);
+

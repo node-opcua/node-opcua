@@ -1,6 +1,10 @@
+"use strict";
+require("requirish")._(module);
 
-var BrowseDirection = require("./BrowseDirection_enum").BrowseDirection;
-var NodeClass = require("./NodeClass_enum").NodeClass;
+var BrowseDirection = require("schemas/BrowseDirection_enum").BrowseDirection;
+var NodeClass = require("schemas/NodeClass_enum").NodeClass;
+
+var ResultMask = require("schemas/ResultMask_enum").ResultMask;
 
 var BrowseDescription_Schema = {
     name: "BrowseDescription",
@@ -35,7 +39,7 @@ var BrowseDescription_Schema = {
         //   3   BrowseName
         //   4   DisplayName
         //   5   TypeDefinition
-        {name: "resultMask", fieldType: "UInt32", documentation: "A mask indicating which fields in the ReferenceDescription should be returned in the results."}
+        {name: "resultMask", fieldType: "UInt32", defaultValue: 0, documentation: "A mask indicating which fields in the ReferenceDescription should be returned in the results."}
     ]
 };
 exports.BrowseDescription_Schema = BrowseDescription_Schema;
