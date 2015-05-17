@@ -134,7 +134,7 @@ describe("Benchmarking Enums", function () {
 
             console.log(' Fastest is ' + this.fastest.name);
             console.log(' Speed Up : x', this.speedUp);
-            if (this.speedUp>1) {
+            if (this.speedUp>1.5) {
                 // if the speedUp is greater than 1 ,
                 // our implementation should win
                 this.fastest.name.should.eql("fastEnum");
