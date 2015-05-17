@@ -30,6 +30,19 @@ var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qua
 
 var port = parseInt(argv.port) || 26543;
 
+var userManager = {
+    isValidUser: function (userName,password) {
+
+        if (userName === "user1" && password === "password1") {
+            return true;
+        }
+        if (userName === "user2" && password === "password2") {
+            return true;
+        }
+        return false;
+    }
+};
+
 var server_options ={
 
     port: port,
@@ -55,7 +68,8 @@ var server_options ={
             maxNodesPerRead:   1000,
             maxNodesPerBrowse: 2000
         }
-    }
+    },
+    userManager: userManager
 };
 
 process.title ="Node OPCUA Server on port : " + server_options.port;
@@ -272,8 +286,8 @@ function indent(str,nb) {
     var spacer = "                                             ".slice(0,nb);
     return str.split("\n").map(function(s) { return spacer + s }).join("\n");
 }
-server.on("request", function (request) {
-    console.log(request._schema.name.yellow);
+server.on("request", function (request,channel) {
+    console.log(request._schema.name.yellow, " ID =",channel.secureChannelId.toString().cyan);
     switch (request._schema.name) {
         case "ReadRequest":
             var str = "    ";
