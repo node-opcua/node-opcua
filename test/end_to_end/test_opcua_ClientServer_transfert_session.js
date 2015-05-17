@@ -54,6 +54,123 @@ describe("testing session  transfer to different channel",function() {
         });
     });
 
+    it("RQB1 - calling CreateSession and CloseSession - CloseSession should return BadSessionNotActivated",function(done) {
+            var client1;
+            var session1;
+            async.series([
+
+            function(callback) {
+                client1 = new OPCUAClient();
+                client1.connect(endpointUrl,callback)
+            },
+            // create a session using client1
+            function(callback) {
+                client1._createSession(function(err,session) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    session1 = session;
+                    callback();
+                });
+            },
+
+            function(callback) {
+                client1._closeSession(session1,function(err) {
+                    err.message.should.match(/BadSessionNotActivated/);
+                    callback();
+                });
+            },
+
+            //// activate the session as expected on same channel used to create it
+            //function(callback) {
+            //    client1._activateSession(session1,function(err){
+            //        callback(err);
+            //    });
+            //},
+            //
+            function(callback) {
+                client1.disconnect(callback);
+            }
+
+        ],done);
+
+    });
+
+    it("RQB2 - calling CloseSession without calling CreateSession first",function(done) {
+        var client1;
+        var session1;
+        async.series([
+
+            function(callback) {
+                client1 = new OPCUAClient();
+                client1.connect(endpointUrl,callback)
+            },
+            function(callback) {
+                var request = new opcua.session_service.CloseSessionRequest({
+                    deleteSubscriptions: true
+                });
+                client1.performMessageTransaction(request,function(err,response){
+                    //err.message.should.match(/BadSessionIdInvalid/);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
+                    callback();
+                });
+            },
+            function(callback) {
+                client1.disconnect(callback);
+            }
+        ],done);
+
+    });
+
+    it("RQB3 - calling CreateSession,  CloseSession  and CloseSession again" ,function(done) {
+        var client1;
+        var session1;
+        async.series([
+
+            function(callback) {
+                client1 = new OPCUAClient();
+                client1.connect(endpointUrl,callback)
+            },
+            // create a session using client1
+            function(callback) {
+                client1._createSession(function(err,session) {
+                    if (err) { return callback(err);}
+                    session1 = session;
+                    callback();
+                });
+            },
+
+            // first call to close session should be OK
+            function(callback) {
+                client1._closeSession(session1,function(err) {
+                    err.message.should.match(/BadSessionNotActivated/);
+                    callback();
+                });
+            },
+            // second call to close session should raise an error
+            function(callback) {
+                var request = new opcua.session_service.CloseSessionRequest({
+                    deleteSubscriptions: true
+                });
+                client1.performMessageTransaction(request,function(err,response){
+                    //err.message.should.match(/BadSessionIdInvalid/);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
+                    callback();
+                });
+            },
+
+            function(callback) {
+                client1.disconnect(callback);
+            }
+
+        ],function final(err){
+            client1.disconnect(function() {
+                done(err);
+            });
+        });
+
+    });
+
     it("RQ0 - call ActiveSession on a session that has been transfered to a different channel",function(done){
 
         // this test verifies that the following requirement can be met
@@ -123,14 +240,15 @@ describe("testing session  transfer to different channel",function() {
                 });
                 request.requestHeader.authenticationToken = session1.authenticationToken;
                 client1.performMessageTransaction(request, function (err, response) {
-                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadSecureChannelIdInvalid);
-                    callback();
+                    if (!err) {
+                        response.responseHeader.serviceResult.should.eql(StatusCodes.BadSecureChannelIdInvalid);
+                    }
+                    callback(err);
                 });
             },
 
             // terminate
             function(callback) {
-                server.getChannels().length.should.equal(2);
                 client2.disconnect(callback);
             },
             function(callback) {
@@ -228,6 +346,7 @@ describe("testing session  transfer to different channel",function() {
 
                 // create a first channel (client1)
                 function (callback) {
+                    console.log(" creating initial channel with some certificate");
                     var certificateFile1 = m("certificates/client_cert_1024.pem");
                     var privateKeyFile1 = m("certificates/client_key_1024.pem");
                     client1 = new OPCUAClient({
@@ -241,6 +360,7 @@ describe("testing session  transfer to different channel",function() {
                 },
                 // create a session using client1
                 function (callback) {
+                    console.log(" create session");
                     client1._createSession(function (err, session) {
                         if (err) {
                             return callback(err);
@@ -251,6 +371,7 @@ describe("testing session  transfer to different channel",function() {
                 },
                 // activate the session as expected on same channel used to create it
                 function (callback) {
+                    console.log(" activate session");
                     client1._activateSession(session1, function (err) {
                         callback(err);
                     });
@@ -259,6 +380,9 @@ describe("testing session  transfer to different channel",function() {
                 // create a second channel (client2)
                 // with a different certificate ....
                 function (callback) {
+
+                    // creating second channel with different credential
+                    console.log(" creating second channel with different certificate");
                     var certificateFile2 = m("certificates/client_cert_2048.pem");
                     var privateKeyFile2 = m("certificates/client_key_2048.pem");
                     client2 = new OPCUAClient({
@@ -268,7 +392,8 @@ describe("testing session  transfer to different channel",function() {
                         securityPolicy: opcua.SecurityPolicy.Basic256,
                         serverCertificate: serverCertificate
                     });
-                    client2.connect(endpointUrl, callback)
+                    client2.connect(endpointUrl, callback);
+
                 },
                 function (callback) {
                     // reactivate session on second channel
@@ -284,7 +409,6 @@ describe("testing session  transfer to different channel",function() {
                 },
                 // terminate
                 function (callback) {
-                    server.getChannels().length.should.equal(2);
                     client2.disconnect(callback);
                 },
                 function (callback) {
