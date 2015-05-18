@@ -408,11 +408,16 @@ function constructCACertificateWithCRL(callback) {
  */
 function createPrivateKey(private_key_filename,key_length,callback) {
 
-    if (fs.existsSync(private_key_filename) && !force) {
-        console.log("private key ",private_key_filename," already exists ");
-        return callback();
-    }
     assert([1024, 2048, 4096].indexOf(key_length) >= 0);
+    if (fs.existsSync(private_key_filename) ) {
+        if(force) {
+            console.log("private key ",private_key_filename,"  exists => deleted");
+            fs.unlinkSync(private_key_filename);
+        } else {
+            console.log("private key ",private_key_filename," already exists ");
+            return callback();
+        }
+    }
     execute(openssl_path + " genrsa -out " + private_key_filename + " " + key_length,callback);
 }
 
@@ -544,8 +549,10 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
         execute.bind(null,openssl_path + " x509 -in " + certificate_file + " -noout -fingerprint"),
 
         constructCACertificateWithCRL.bind(null),
-        Subtitle.bind(null,"- verify certificate against the root CA"),
-        execute.bind(null,openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
+
+        // removed as openssl verify crashes on windows
+        //xx Subtitle.bind(null,"- verify certificate against the root CA"),
+        //xx execute.bind(null,openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
     ];
 
     async.series(tasks,callback);
@@ -597,8 +604,9 @@ function revoke_certificate(certificate_file, callback) {
         Subtitle.bind(null,"Display (Certificate Revocation List)"),
         execute.bind(null,openssl_path + " crl -in crl/revocation_list.crl -text -noout"),
 
-        Subtitle.bind(null,"Verify  certificate "),
-        execute.bind(null,openssl_path + " verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
+        // removed as openssl verify crashes on windows
+        //xx Subtitle.bind(null,"Verify  certificate "),
+        //xx execute.bind(null,openssl_path + " verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
 
     ];
 
@@ -702,7 +710,11 @@ function main() {
         find_openssl.bind(null),
         construct_CertificateAuthority.bind(null),
         create_default_certificates.bind(null)
-    ]);
+    ],function(err) {
+        if (err) {
+            console.log("ERROR ".red, err.message);
+        }
+    });
 }
 
 main();

@@ -56,9 +56,13 @@ function start_inner_server_local(options,callback) {
 }
 
 function stop_inner_server_local(data, callback) {
-    var server = data.server;
-    server.currentChannelCount.should.equal(0);
-    server.shutdown(callback);
+    if (data) {
+        var server = data.server;
+        server.currentChannelCount.should.equal(0);
+        server.shutdown(callback);
+    } else {
+        callback();
+    }
 }
 
 
