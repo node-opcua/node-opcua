@@ -20,6 +20,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
+var colors = require("colors");
+var path = require("path");
+var fs = require("fs");
 var child_process = require("child_process");
 var async = require("async");
 var _ =require("underscore");
@@ -32,6 +35,11 @@ var argv = require('optimist')
     .boolean("silent")
     .argv;
 
+process.env.ALTNAME_URI = process.env.ALTNAME_URI || "";
+process.env.ALTNAME_DNS = process.env.ALTNAME_DNS || "";
+process.env.ALTNAME_DNS_1 = process.env.ALTNAME_DNS_1 || "";
+process.env.ALTNAME_DNS_2 = process.env.ALTNAME_DNS_2 || "";
+
 
 var force = argv.force;
 
@@ -39,10 +47,6 @@ var openssl_path = "openssl";
 
 var isDevelopment = argv.dev;
 
-var assert = require("assert");
-var colors = require("colors");
-var path = require("path");
-var fs = require("fs");
 
 var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
 var hostname =require("os").hostname();
@@ -252,6 +256,11 @@ function execute(cmd,callback) {
     }
 }
 
+function execute_no_failure(cmd, callback) {
+    execute(cmd, function (err) {
+        callback(null);
+    });
+}
 
 function construct_CertificateAuthority(done) {
 
@@ -303,7 +312,7 @@ function construct_CertificateAuthority(done) {
 
     var ca_conf =path.join(rootDir,"conf/caconfig.cnf");
     if (1 || !fs.existsSync(ca_conf)) {
-        var data = inlineText(configurationFile)
+        var data = inlineText(configurationFile);
         data = data.replace(/%%ROOT_FOLDER%%/,rootDir);
         fs.writeFileSync(ca_conf,data);
     }
@@ -550,9 +559,8 @@ function _createCertificate(self_signed,certname,private_key,applicationUri,star
 
         constructCACertificateWithCRL.bind(null),
 
-        // removed as openssl verify crashes on windows
-        //xx Subtitle.bind(null,"- verify certificate against the root CA"),
-        //xx execute.bind(null,openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
+        Subtitle.bind(null, "- verify certificate against the root CA"),
+        execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
     ];
 
     async.series(tasks,callback);
@@ -596,7 +604,7 @@ function revoke_certificate(certificate_file, callback) {
         Title.bind(null,"Revoking certificate  " + certificate_file),
         Subtitle.bind(null,"Revoke certificate"),
 
-        execute.bind(null,openssl_path + " ca -config " +  "conf/caconfig.cnf" + " -revoke " + certificate_file),
+        execute_no_failure.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" + " -revoke " + certificate_file),
         // regenerate CRL (Certificate Revocation List)
         Subtitle.bind(null,"regenerate CRL (Certificate Revocation List)"),
         execute.bind(null,openssl_path + " ca -gencrl -config " +  "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
@@ -604,9 +612,8 @@ function revoke_certificate(certificate_file, callback) {
         Subtitle.bind(null,"Display (Certificate Revocation List)"),
         execute.bind(null,openssl_path + " crl -in crl/revocation_list.crl -text -noout"),
 
-        // removed as openssl verify crashes on windows
-        //xx Subtitle.bind(null,"Verify  certificate "),
-        //xx execute.bind(null,openssl_path + " verify -verbose -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
+        Subtitle.bind(null, "Verify  certificate "),
+        execute_no_failure.bind(null, openssl_path + " verify -verbose -CRLfile " + "crl/revocation_list.crl" + " -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
 
     ];
 

@@ -57,16 +57,29 @@ function check_openssl(callback) {
 var ProgressBar = require('progress');
 var wget = require("wget-improved");
 
+function win32or64() {
+    if (process.arch === "x64") {
+        return 64;
+    }
+    // check if we are running nodejs x32 on a x64 arch
+    if (process.env.CURRENT_CPU === "x64") {
+        return 64;
+    }
+    return 32;
+}
 function download_openssl(callback) {
 
-    var url    = "http://indy.fulgan.com/SSL/openssl-1.0.2-x64_86-win64.zip"
+    var url = (win32or64() === 64 )
+            ? "http://indy.fulgan.com/SSL/openssl-1.0.2a-x64_86-win64.zip"
+            : "http://indy.fulgan.com/SSL/openssl-1.0.2a-i386-win32.zip"
+        ;
     var output_filename = path.basename(url);
 
     console.log("downloading " + url.yellow);
     if (fs.existsSync(output_filename)) {
         return callback(null,output_filename);
     }
-    var options = {}
+    var options = {};
     var bar = new ProgressBar("[:bar]".cyan + " :percent ".yellow + ':etas'.white, {
         complete: '=',
         incomplete: ' ',
@@ -138,10 +151,10 @@ exports.install_prerequisite = function(callback) {
                 });
 
             } else {
-                console.log("openssl is already installed and have the expected version.".green)
+                console.log("openssl is already installed and have the expected version.".green);
                 callback(null);
             }
         });
     }
-}
+};
 
