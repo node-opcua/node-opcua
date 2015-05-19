@@ -127,6 +127,34 @@ describe("Testing numerical range", function () {
         nr.isValid().should.equal(false);
     });
 
+    describe("MatrixRange", function () {
+
+        it("should be an MatrixRange when constructed with a matrix formed string : '1:3,4:5' ", function () {
+            var nr = new NumericRange("1:3,4:5");
+            nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+            nr.isValid().should.equal(true);
+        });
+        it("should be an MatrixRange when constructed with a matrix formed string : '1,2' ", function () {
+            var nr = new NumericRange("1,2");
+            nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+            nr.isValid().should.equal(true);
+            nr.value.should.eql([1, 2]);
+        });
+        it("should be an Invalid when constructed with a malformed matrix  string : '1,2:3' ", function () {
+            var nr = new NumericRange("1,2:3");
+            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+            nr.isValid().should.equal(false);
+            nr.value.should.eql("1,2:3");
+        });
+        it("should be an Invalid when constructed with a malformed matrix  string : '1:2,2' ", function () {
+            var nr = new NumericRange("1:2,3");
+            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+            nr.isValid().should.equal(false);
+            nr.value.should.eql("1:2,3");
+        });
+
+
+    });
 
     describe("extracting ranges from array", function () {
 
@@ -223,6 +251,13 @@ describe("Testing numerical range", function () {
                 var nr = new NumericRange("-3:100000000");
                 var r = nr.extract_values(array);
                 r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+            });
+
+            it(name + " Z7 - it should return BadIndexRangeNoData if range is a MatrixRange and value is an array", function () {
+                var nr = new NumericRange("1,1");
+                nr.type.should.eql(NumericRange.NumericRangeType.MatrixRange);
+                var r = nr.extract_values(array);
+                r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             });
         }
         test("Float32Array",function(values) {return new Float32Array(values); });
@@ -339,6 +374,14 @@ describe("Testing numerical range", function () {
                 r.statusCode.should.eql(StatusCodes.Good);
                 assert_arrays_are_equal(r.array,createArray([0,1,2, 3, 4, 5,6,7,80,90,100]));
             });
+
+            it(name + "-S9 - should return BadIndexRangeNoData if range is a matrix range and value is an array", function () {
+                var nr = new NumericRange("1,1"); // Matrix Range
+                var r = nr.set_values(array, createArray([80, 90, 100]));
+                r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+                assert_arrays_are_equal(r.array, createArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+            });
+
         }
 
         test("Float32Array",function(values) {return new Float32Array(values); });
@@ -368,6 +411,8 @@ describe("Testing numerical range", function () {
         var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
         it("should persist an object with a numeric range - empty", function () {
             var o = new ObjWithNumericRange({});
+            o.numericRange.type.should.equal(NumericRange.NumericRangeType.Empty);
+            should(o.numericRange.isValid()).eql(true);
             should(o.numericRange.toEncodeableString()).eql(null);
             encode_decode_round_trip_test(o);
         });
@@ -375,6 +420,8 @@ describe("Testing numerical range", function () {
             var o = new ObjWithNumericRange({
                 numericRange: "2:3"
             });
+            should(o.numericRange.isValid()).eql(true);
+            o.numericRange.type.should.equal(NumericRange.NumericRangeType.ArrayRange);
             should(o.numericRange.toEncodeableString()).eql("2:3");
             encode_decode_round_trip_test(o);
         });
@@ -382,6 +429,8 @@ describe("Testing numerical range", function () {
             var o = new ObjWithNumericRange({
                 numericRange: "100"
             });
+            should(o.numericRange.isValid()).eql(true);
+            o.numericRange.type.should.equal(NumericRange.NumericRangeType.SingleValue);
             should(o.numericRange.toEncodeableString()).eql("100");
             encode_decode_round_trip_test(o);
         });
@@ -389,8 +438,31 @@ describe("Testing numerical range", function () {
             var o = new ObjWithNumericRange({
                 numericRange: "-4,-8"
             });
-            should(o.numericRange.toEncodeableString()).eql("-1:-3"); // -1 -3 is the default invalid numerical range
+            should(o.numericRange.isValid()).eql(false);
+            o.numericRange.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+            should(o.numericRange.toEncodeableString()).eql("-4,-8");
             encode_decode_round_trip_test(o);
         });
+        it("should persist an object with a numeric range - MatrixRange - type 1", function () {
+            var o = new ObjWithNumericRange({
+                numericRange: "1:2,3:4"
+            });
+            o.numericRange.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+            should(o.numericRange.isValid()).eql(true);
+            should(o.numericRange.toEncodeableString()).eql("1:2,3:4");
+            encode_decode_round_trip_test(o);
+        });
+        it("should persist an object with a numeric range - MatrixRange - type 2", function () {
+            var o = new ObjWithNumericRange({
+                numericRange: "1,3"
+            });
+            o.numericRange.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+            should(o.numericRange.isValid()).eql(true);
+            should(o.numericRange.toEncodeableString()).eql("1,3");
+            encode_decode_round_trip_test(o);
+        });
+
+
+
     });
 });
