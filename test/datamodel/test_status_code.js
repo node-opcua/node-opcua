@@ -20,6 +20,11 @@ describe("testing status code manipulation",function(){
         StatusCodes.BadAttributeIdInvalid.value.should.equal(0x80350000);
         StatusCodes.BadAttributeIdInvalid.name.should.equal("BadAttributeIdInvalid");
     });
+    it("should create GoodWithOverflowBit", function () {
+        StatusCodes.GoodWithOverflowBit.value.should.equal(0x480);
+        StatusCodes.GoodWithOverflowBit.name.should.equal("GoodWithOverflowBit");
+    });
+
 
     it("should encode and decode a status code",function(){
 

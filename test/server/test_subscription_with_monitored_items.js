@@ -414,4 +414,11 @@ describe("#maxNotificationsPerPublish", function () {
         done();
     });
 
+    //
+    xit("#monitoringMode Publish / should always result in the server sending an \"initial\" data change. " +
+        " after monitoringMode is set to Disabled and then Reporting,", function (done) {
+        // todo
+
+        done();
+    });
 });

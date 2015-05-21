@@ -365,7 +365,14 @@ describe("Subscriptions", function () {
 
         });
 
-        it("a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.",function(){
+
+        it("1.02 the server shall retain a maximum number of un-acknowledge NotificationMessage until they are acknoledged", function () {
+            // TODO
+        });
+
+        xit("1.01 a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.", function () {
+            // this conforms to OPC UA specifciation 1.01 and is now obsolete as behavior has been chanded in 1.02
+
             var subscription = new Subscription({
                 id: 1234,
                 publishingInterval: 1000,
