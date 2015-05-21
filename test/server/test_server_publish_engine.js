@@ -6,15 +6,13 @@
  *    - The server will block the request until some subscriptions have some available data, or a time out
  *
  *
- *    - the Publish Request message is also used by the client to acknowledge processing of notification messages.
+ *    - the Publish Request message is also used by the client to acknowledge processing of notification messages
  *
- *    n this mode, the client can sent
- *  A good algorithm for a client is to send more publish request than live subscription.
  *
+ *    A good algorithm for a client is to send more publish request than live subscription.
  *
  *   - Publish Request are not tied to a particular subscription, the Server will use the oldest pending
- *     client  Publish request to send some notification regarding the notifying subscription.
- *
+ *     client Publish request to send some notification regarding the notifying subscription.
  *
  * preventing queue overflow
  * -------------------------
@@ -55,8 +53,6 @@ describe("Testing the server publish engine", function () {
     after(function() {
         resourceLeakDetector.stop();
     });
-
-
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();

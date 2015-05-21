@@ -106,7 +106,7 @@ describe("testing address space for conformance testing", function () {
     });
 
 
-    it("hould read a simulated float variable and check value change", function (done) {
+    it("should read a simulated float variable and check value change", function (done) {
 
 
         var nodeId = makeNodeId("Scalar_Simulation_Float", namespaceIndex);
@@ -520,7 +520,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
-                    console.log(" =>", value);
+                    //xx console.log(" =>", value);
                     assert_arrays_are_equal(value,new Int32Array([1, 2, 123, 345, 5, 6, 7, 8, 9, 10]));
                     callback(err);
                 });

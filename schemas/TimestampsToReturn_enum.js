@@ -1,6 +1,6 @@
 "use strict";
 require("requirish")._(module);
-
+var assert = require("better-assert");
 var factories = require("lib/misc/factories");
 var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 

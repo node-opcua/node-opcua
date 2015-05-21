@@ -139,11 +139,23 @@ describe("Subscriptions and MonitoredItems", function () {
 
     it("a subscription should collect monitored item notification at publishing interval", function (done) {
 
+
+        var publishEngine = new ServerSidePublishEngine();
+
+        function simulate_client_adding_publish_request(publishEngine, callback) {
+            var publishRequest = new subscription_service.PublishRequest({});
+            publishEngine._on_PublishRequest(publishRequest, callback);
+        }
+
+
         var subscription = new Subscription({
-            publishingInterval: 1000,
+            publishingInterval: 500,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: publishEngine,
+            publishingEnabled: true
         });
+        subscription.id = 1000;
+        publishEngine.add_subscription(subscription);
 
         // let spy the notifications event handler
         var spy_notification_event = sinon.spy();
@@ -159,9 +171,14 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
+        simulate_client_adding_publish_request(subscription.publishEngine);
+        simulate_client_adding_publish_request(subscription.publishEngine);
+        simulate_client_adding_publish_request(subscription.publishEngine);
+
         var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        monitoredItem.samplingInterval.should.eql(100);
 
         // now simulate some data change
         this.clock.tick(100);

@@ -136,7 +136,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("a MonitoredItem should not accept new value when queue is full when discardOldest is false",function(done){
+    it("a MonitoredItem should discard last value when queue is full when discardOldest is false", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -164,7 +164,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1002 }});
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
-        monitoredItem.queue[1].value.value.should.eql(1001);
+        monitoredItem.queue[1].value.value.should.eql(1002);
         monitoredItem.overflow.should.eql(true);
 
         monitoredItem.terminate();
@@ -332,6 +332,7 @@ describe("Server Side MonitoredItem",function(){
             monitoredItemId: 50
         });
 
+
         var result ; // MonitoredItemModifyResult
         result =monitoredItem.modify(null,new MonitoringParameters({
             clientHandle: 1,
@@ -340,7 +341,8 @@ describe("Server Side MonitoredItem",function(){
             queueSize: 10
         }));
 
-        result.revisedSamplingInterval.should.not.eql(0);
+        // setting
+        result.revisedSamplingInterval.should.eql(0);
 
         result =monitoredItem.modify(null,new MonitoringParameters({
             clientHandle: 1,

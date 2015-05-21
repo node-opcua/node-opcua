@@ -701,10 +701,15 @@ describe("Subscription#adjustSamplingInterval",function() {
         subscription.terminate();
     });
 
-    it("should adjust sampling interval to minimum when requested sampling interval === 0",function() {
+    it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)",function() {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        subscription.adjustSamplingInterval(0).should.eql(MonitoredItem.minimumSamplingInterval);
+        subscription.adjustSamplingInterval(0).should.eql(0);
+        subscription.terminate();
+    });
 
+    it("should adjust sampling interval to minimum when requested sampling interval === 1",function() {
+        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        subscription.adjustSamplingInterval(1).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
     });
 

@@ -38,7 +38,7 @@ function get_decoder(dataType) {
   }
   return decode;
 }
-
+var displayWarning = true;
 function convertTo(dataType, ArrayType, value) {
 
   if (ArrayType && value instanceof ArrayType) {
@@ -49,6 +49,11 @@ function convertTo(dataType, ArrayType, value) {
   var n = value.length;
   for (var i = 0; i < n; i++) {
     newArr[i] = coerceFunc(value[i]);
+  }
+  if (ArrayType && displayWarning && n > 10) {
+    console.log("Warning ! a array containing  " + dataType.key + "elements has been provided as a generic array. ");
+    console.log("          This is inefficient as every array value will have to be coerced and verified against the expected type");
+    console.log("          It is highly recommended that you use a  typed array ", ArrayType.constructor.name, " instead");
   }
   return newArr;
 }

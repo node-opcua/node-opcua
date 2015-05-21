@@ -687,7 +687,6 @@ describe("factories testing advanced cases",function(){
                 options["array_"+key] =  [ random(), random()];
             }
         });
-        console.log(options);
 
         var Blob6 = factories.registerObject(exports.Blob6_Schema,"tmp");
 

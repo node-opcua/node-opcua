@@ -2,6 +2,7 @@
 require("requirish")._(module);
 var factories = require("lib/misc/factories");
 var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+var assert = require("better-assert");
 
 var EnumBrowseDirection_Schema = {
     name: "BrowseDirection",
