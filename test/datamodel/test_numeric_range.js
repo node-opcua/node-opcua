@@ -63,6 +63,7 @@ describe("Testing numerical range", function () {
         var nr = new NumericRange(15, 15);
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
+        nr.toString().should.eql("NumericRange:<Invalid>");
     });
 
     it("should throw an exception if high bound is crap", function () {
@@ -106,6 +107,11 @@ describe("Testing numerical range", function () {
     });
     it("should be an InvalidRange when constructed with two values ( negative ,negative)", function () {
         var nr = new NumericRange(-15, -12);
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+        nr.isValid().should.equal(false);
+    });
+    it("should be an InvalidRange when constructed with a single negative numb", function () {
+        var nr = new NumericRange("-11000");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
@@ -186,6 +192,12 @@ describe("Testing numerical range", function () {
             var r = nr.extract_values(array);
             r.statusCode.should.eql(StatusCodes.Good);
             assert_arrays_are_equal(r.array,[ 3, 4, 5]);
+        });
+
+        it("it should return BadIndexRangeNoData  if single value Range is outside array boundary",function() {
+            var nr = new NumericRange("1000");
+            var r = nr.extract_values(array);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         });
 
     });
@@ -324,6 +336,17 @@ describe("Testing numerical range", function () {
             r.statusCode.should.eql(StatusCodes.Good);
             assert_arrays_are_equal(r.array,[0,1,2, 3, 4, 5,6,7,80,90,100]);
         });
+        it("S9 - should return BadIndexRangeNoData  if range is outside array boundary",function() {
+            var nr = new NumericRange("1000:1010");
+            var r = nr.set_values(array,[80,90,100]);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+        });
+        it("S10 - should return BadIndexRangeInvalid  if range is invalid",function() {
+            var nr = new NumericRange("-1000:1010");
+            var r = nr.set_values(array,[80,90,100]);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+        });
+
     });
 
     describe("setting range of a typed  array", function () {
