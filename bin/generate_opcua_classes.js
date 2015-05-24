@@ -216,6 +216,10 @@ registerObject("BrowsePathTarget");
 registerObject("BrowsePathResult");
 registerObject("TranslateBrowsePathsToNodeIdsResponse");
 
+registerObject("RegisterNodesResponse");
+registerObject("RegisterNodesRequest");
+registerObject("UnregisterNodesResponse");
+registerObject("UnregisterNodesRequest");
 
 // BaseDataType
 registerObject("Argument");

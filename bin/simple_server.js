@@ -17,7 +17,7 @@ var _ = require("underscore");
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
-
+var DataValue = opcua.DataValue;
 
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -221,6 +221,15 @@ server.on("post_initialize", function () {
         }
     });
 
+
+    //------------------------------------------------------------------------------
+    // Add a view
+    //------------------------------------------------------------------------------
+    var viewsFolder = server.engine.findObject("ViewsFolder");
+    var view = server.engine.addView(viewsFolder,{
+        browseName:"MyView",
+        nodeId: "ns=2;s=SampleView"
+    })
 });
 
 function w(str,width) { return (str+ "                            ").substr(0,width);}

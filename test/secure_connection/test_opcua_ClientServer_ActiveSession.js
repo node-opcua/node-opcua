@@ -175,8 +175,34 @@ if (!crypto_utils.isFullySupported()) {
 
         });
 
-        it("Server shall expose a Server Object",function(){
 
+        it("TA -#createSession Server  shall return an erro if requestHeader.clientNonce has less than 32 bytes",function(done) {
+
+            var client = new OPCUAClient(options);
+
+            async.series([
+
+                function(callback) {
+                    client.endpoint_must_exist = true;
+                    client.connect(endpointUrl,callback);
+                },
+
+                function(callback) {
+
+                    var createSessionRequest = new opcua.session_service.CreateSessionRequest({
+                        requestHeader : {
+                            clientNonce: new Buffer(31)
+                        }
+                    });
+                    client.performMessageTransaction(createSessionRequest,function(err,response){
+
+                        callback();
+                    });
+                },
+
+                function(callback) { client.disconnect(callback);                }
+
+            ],done);
         });
     });
 }

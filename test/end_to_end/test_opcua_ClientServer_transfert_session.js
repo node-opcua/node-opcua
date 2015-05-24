@@ -171,7 +171,7 @@ describe("testing session  transfer to different channel",function() {
 
     });
 
-    it("RQ0 - call ActiveSession on a session that has been transfered to a different channel",function(done){
+    it("RQ0 - call ActiveSession on a session that has been transferred to a different channel",function(done){
 
         // this test verifies that the following requirement can be met
         // OpcUA 1.02 part 3 $5.5 Secure Channel Set page 20
@@ -422,7 +422,7 @@ describe("testing session  transfer to different channel",function() {
 
     // In addition,the Server shall verify that the  Client  supplied a  UserIdentityToken  that is   identical to the token
     // currently associated with the  Session.
-    it("RQ3 - server should raise an error if a session is reactivated with different user identity tokens",function(done){
+    xit("RQ3 - server should raise an error if a session is reactivated with different user identity tokens",function(done){
         async.series([
 
 
@@ -430,7 +430,7 @@ describe("testing session  transfer to different channel",function() {
 
     });
     // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel.
-    it("RQ4 - server should reject request send via old channel when session has been transfered to new channel",function(done){
+    xit("RQ4 - server should reject request send via old channel when session has been transfered to new channel",function(done){
         async.series([
 
 

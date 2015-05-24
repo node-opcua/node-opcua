@@ -242,7 +242,6 @@ describe("testing basic Client-Server communication",function() {
             },
             function(callback) {
 
-
                 client.connect(endpointUrl,function(err) {
 
                     err.should.be.instanceOf(Error);
@@ -282,7 +281,7 @@ describe("testing basic Client-Server communication",function() {
 
         it("T8-1 - should browse RootFolder",function(done){
 
-            g_session.browse("RootFolder",function(err,browseResults,diagnosticInfos){
+            g_session.browse("RootFolder",function(err,browseResults){
                 if (!err) {
                     browseResults.length.should.equal(1);
                     browseResults[0]._schema.name.should.equal("BrowseResult");
@@ -318,7 +317,9 @@ describe("testing basic Client-Server communication",function() {
                 done(err);
             });
         });
-        it("T8-4 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty",function(done) {
+
+
+        it("T8-11 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty",function(done) {
 
             var request = new opcua.read_service.ReadRequest({
                 nodesToRead: [ ], //<< EMPTY
@@ -333,7 +334,7 @@ describe("testing basic Client-Server communication",function() {
             });
 
         });
-        it("T8-5 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid",function(done){
+        it("T8-12 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid",function(done){
 
             var request = new opcua.read_service.ReadRequest({
                 nodesToRead: [
@@ -351,7 +352,7 @@ describe("testing basic Client-Server communication",function() {
 
         });
 
-        it("T8-6 should readAllAttributes",function(done){
+        it("T8-13 should readAllAttributes",function(done){
 
             g_session.readAllAttributes("RootFolder",function(err,nodesToRead,dataValues,diagnosticInfos){
                 nodesToRead.length.should.equal(dataValues.length);
@@ -359,7 +360,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("T8-7 should return a appropriate status code if nodeid to read doesn't exists",function(done){
+        it("T8-14 #readVariableValue should return a appropriate status code if nodeid to read doesn't exists",function(done){
 
             g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist",function(err,dataValues,diagnosticInfos){
                 dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
@@ -367,7 +368,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("T8-9 should return BadNothingToDo when reading an empty nodeToRead array", function(done) {
+        it("T8-15 #read hould return BadNothingToDo when reading an empty nodeToRead array", function(done) {
 
             var nodesToRead = [];
 
@@ -383,7 +384,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("T8-10 should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function(done) {
+        it("T8-16 #read should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function(done) {
 
             var nodesToRead = [
                 {
@@ -403,7 +404,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("T8-11 - should read the TemperatureTarget value", function(done) {
+        it("T8-17 #readVariableValue - should read the TemperatureTarget value", function(done) {
 
             g_session.readVariableValue(temperatureVariableId.nodeId,function(err,dataValues,diagnosticInfos){
 
@@ -418,7 +419,7 @@ describe("testing basic Client-Server communication",function() {
             });
         });
 
-        it("T8-12 -  should write the TemperatureTarget value", function(done) {
+        it("T8-20 #writeSingleNode -  should write the TemperatureTarget value", function(done) {
 
             var Variant = require("lib/datamodel/variant").Variant;
             var DataType = require("lib/datamodel/variant").DataType;

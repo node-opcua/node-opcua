@@ -725,7 +725,7 @@ describe("Testing the server publish engine", function () {
         publish_server.shutdown();
     });
 
-    it("xx LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout ",function(){
+    it("LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout ",function(){
 
         var publish_server = new ServerSidePublishEngine();
 
@@ -770,6 +770,51 @@ describe("Testing the server publish engine", function () {
         //xxsubscription.terminate();
         //xxpublish_server.remove_subscription(subscription);
         publish_server.shutdown();
+    });
+    it("PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out",function(){
+        var publish_server = new ServerSidePublishEngine();
+
+        var subscription = new Subscription({
+            id: 1234,
+            publishingInterval: 1000,
+            lifeTimeCount:   4,
+            maxKeepAliveCount: 20,
+            publishEngine: publish_server
+        });
+        publish_server.add_subscription(subscription);
+
+        subscription.maxKeepAliveCount.should.eql(20);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+        var send_response_for_request_spy =sinon.spy(publish_server,"send_response_for_request");
+
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({requestHeader: {timeoutHint: 1200}}));
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({requestHeader: {timeoutHint: 1200}} ));
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({requestHeader: {timeoutHint: 1200}} ));
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({requestHeader: {timeoutHint: 1200}} ));
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({requestHeader: {timeoutHint: 1200}} ));
+        publish_server.pendingPublishRequestCount.should.eql(5);
+        this.clock.tick(20);
+
+        this.clock.tick(1000);
+
+        send_response_for_request_spy.callCount.should.equal(1);
+        publish_server.pendingPublishRequestCount.should.eql(4);
+        send_response_for_request_spy.firstCall.args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+        publish_server._on_PublishRequest(new subscription_service.PublishRequest({requestHeader: {timeoutHint: 1200}} ));
+
+        this.clock.tick(1000);
+        // all remaining 4 publish request must have been detected as timedout now and answered as such.
+        send_response_for_request_spy.callCount.should.equal(5);
+        publish_server.pendingPublishRequestCount.should.eql(1);
+        send_response_for_request_spy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
+        send_response_for_request_spy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
+        send_response_for_request_spy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
+        send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
+
+        subscription.terminate();
+        publish_server.remove_subscription(subscription);
+        publish_server.shutdown();
+
     });
 
 });
