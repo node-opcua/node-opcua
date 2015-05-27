@@ -176,7 +176,7 @@ if (!crypto_utils.isFullySupported()) {
         });
 
 
-        it("TA -#createSession Server  shall return an erro if requestHeader.clientNonce has less than 32 bytes",function(done) {
+        it("TA -#createSession Server  shall return an error if requestHeader.clientNonce has less than 32 bytes",function(done) {
 
             var client = new OPCUAClient(options);
 

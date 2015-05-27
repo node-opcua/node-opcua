@@ -20,7 +20,7 @@ exports.resourceLeakDetector = {
 
     start: function(){
 
-        console.log(" starting resourceLeakDetector");
+        if (trace){console.log(" starting resourceLeakDetector");}
         assert(!this.setInterval_old ," resourceLeakDetector.stop hasn't been called !");
         this.setIntervalCallCount = 0;
         this.clearIntervalCallCount = 0;
@@ -51,8 +51,7 @@ exports.resourceLeakDetector = {
         assert(MonitoredItem.getRunningMonitoredItemCount() ===0);
     },
     stop: function(){
-        console.log(" stop resourceLeakDetector");
-
+        if(trace) {console.log(" stop resourceLeakDetector");}
         assert(this.setInterval_old  !== null);
         GLOBAL.setInterval = this.setInterval_old;
         this.setInterval_old = null;
