@@ -69,8 +69,8 @@ describe("Testing the server publish engine", function () {
         var subscription = new Subscription({
             id: 1234,
             publishingInterval: 1000,
-            lifeTimeCount: 1000,
-            maxKeepAliveCount: 20,
+            lifeTimeCount:      1000,
+            maxKeepAliveCount:    20,
             //
             publishEngine: publish_server
         });
@@ -109,8 +109,8 @@ describe("Testing the server publish engine", function () {
         var subscription = new Subscription({
             id: 1234,
             publishingInterval: 1000,
-            lifeTimeCount: 1000,
-            maxKeepAliveCount: 20,
+            lifeTimeCount:      1000,
+            maxKeepAliveCount:    20,
             //
             publishEngine: publish_server
         });
@@ -576,6 +576,10 @@ describe("Testing the server publish engine", function () {
             publishingInterval: 1000,  lifeTimeCount:   10, maxKeepAliveCount:  2,
             publishEngine: publish_server
         });
+        subscription1.publishingInterval.should.eql(1000);
+        subscription1.lifeTimeCount.should.eql(10);
+        subscription1.maxKeepAliveCount.should.eql(2);
+
         publish_server.add_subscription(subscription1);
 
         var subscription2 = new Subscription({
@@ -583,6 +587,9 @@ describe("Testing the server publish engine", function () {
             publishingInterval: 100,  lifeTimeCount:   20, maxKeepAliveCount:  2,
             publishEngine: publish_server
         });
+        subscription2.publishingInterval.should.eql(100);
+        subscription2.lifeTimeCount.should.eql(20);
+        subscription2.maxKeepAliveCount.should.eql(2);
         publish_server.add_subscription(subscription2);
 
         var subscription3 = new Subscription({
@@ -590,6 +597,10 @@ describe("Testing the server publish engine", function () {
             publishingInterval: 50,  lifeTimeCount:   1000, maxKeepAliveCount:  2,
             publishEngine: publish_server
         });
+        subscription3.publishingInterval.should.eql(100); // !! Note that publishingInterval has been clamped in constructor
+        subscription3.lifeTimeCount.should.eql(1000);
+        subscription3.maxKeepAliveCount.should.eql(2);
+
         publish_server.add_subscription(subscription3);
 
         subscription1.lifeTimeCount.should.eql(10);
@@ -599,7 +610,7 @@ describe("Testing the server publish engine", function () {
 
         subscription1.timeToExpiration.should.eql(10000);
         subscription2.timeToExpiration.should.eql( 2000);
-        subscription3.timeToExpiration.should.eql(50000);
+        subscription3.timeToExpiration.should.eql(100000);
 
         // let move in time so that subscriptions starts
         this.clock.tick(10);
