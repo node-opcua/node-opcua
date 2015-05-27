@@ -48,7 +48,7 @@ var server_options ={
     port: port,
     resourcePath: "UA/Server",
 
-    maxAllowedSessionNumber: 500,
+    maxAllowedSessionNumber: 1500,
 
     nodeset_filename: [ standard_nodeset_file],
 
@@ -263,17 +263,17 @@ server.on("create_session",function(session) {
 
     console.log(" SESSION CREATED");
     console.log("    client application URI: ".cyan,session.clientDescription.applicationUri);
-    console.log("        client product URI: ".cyan, session.clientDescription.productUri);
+    console.log("        client product URI: ".cyan,session.clientDescription.productUri);
     console.log("   client application name: ".cyan,session.clientDescription.applicationName.toString());
     console.log("   client application type: ".cyan,session.clientDescription.applicationType.toString());
-    console.log("              session name: ".cyan,session.sessionName.toString());
+    console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>" );
     console.log("           session timeout: ".cyan,session.sessionTimeout);
     console.log("                session id: ".cyan,session.sessionId);
 });
 
 server.on("session_closed",function(session,reason) {
     console.log(" SESSION CLOSED :",reason);
-    console.log("              session name: ".cyan,session.sessionName.toString());
+    console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>");
 });
 
 
@@ -287,7 +287,7 @@ server.on("response", function (response) {
             });
             console.log(str);
             break;
-    };
+    }
 
 });
 
