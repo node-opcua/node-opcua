@@ -23,65 +23,69 @@ var port = 2000;
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var crypto_utils = require("lib/misc/crypto_utils");
+if (!crypto_utils.isFullySupported()) {
+    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
+} else {
 
-describe("testing basic Client-Server communication", function () {
+    describe("testing basic Client-Server communication", function () {
 
-    var server, client, temperatureVariableId, endpointUrl;
+        var server, client, temperatureVariableId, endpointUrl;
 
-    before(function (done) {
-        resourceLeakDetector.start();
-        server = build_server_with_temperature_device({port: port}, function (err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
-            done(err);
+        before(function (done) {
+            resourceLeakDetector.start();
+            server = build_server_with_temperature_device({port: port}, function (err) {
+                endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                temperatureVariableId = server.temperatureVariableId;
+                done(err);
+            });
         });
-    });
 
-    beforeEach(function (done) {
-        client = new OPCUAClient();
-        done();
-    });
-
-    afterEach(function (done) {
-
-        done();
-    });
-
-    after(function (done) {
-        server.shutdown(function (err) {
-            resourceLeakDetector.stop();
-            done(err);
+        beforeEach(function (done) {
+            client = new OPCUAClient();
+            done();
         });
+
+        afterEach(function (done) {
+
+            done();
+        });
+
+        after(function (done) {
+            server.shutdown(function (err) {
+                resourceLeakDetector.stop();
+                done(err);
+            });
+        });
+
+
+        it("C1 - testing with username ==null ", function (done) {
+
+            var client1;
+            async.series([
+
+                function (callback) {
+                    client1 = new OPCUAClient();
+                    client1.connect(endpointUrl, callback)
+                },
+
+                function (callback) {
+                    // todo
+                    var options = {
+                        userName: "",
+                        password: "blah"
+                    };
+                    client1.createSession(options, function (err) {
+                        console.log(err.message);
+                        err.message.should.match(/BadIdentityTokenInvalid/);
+                        callback();
+                    })
+                },
+                function (callback) {
+                    client1.disconnect(callback);
+                }
+            ], done);
+        });
+
     });
-
-
-    it("C1 - testing with username ==null ", function (done) {
-
-        var client1;
-        async.series([
-
-            function (callback) {
-                client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
-            },
-
-            function (callback) {
-                // todo
-                var options ={
-                    userName:"",
-                    password:"blah"
-                };
-                client1.createSession(options,function(err){
-                    console.log(err.message);
-                    err.message.should.match(/BadIdentityTokenInvalid/);
-                    callback();
-                })
-            },
-            function (callback) {
-                client1.disconnect(callback);
-            }
-            ] , done);
-    });
-
-})
-;
+}

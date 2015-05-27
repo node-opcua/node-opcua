@@ -56,6 +56,7 @@ module.exports.ServerState = require("schemas/ServerState_enum").ServerState;
 module.exports.SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
 
 module.exports.AnonymousIdentityToken = module.exports.session_service.AnonymousIdentityToken;
+module.exports.UserNameIdentityToken = module.exports.session_service.UserNameIdentityToken;
 
 //
 module.exports.MessageSecurityMode = module.exports.get_endpoints_service.MessageSecurityMode;
@@ -76,3 +77,4 @@ module.exports.mini_nodeset_filename = require("lib/server/server_engine").mini_
 module.exports.is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpointUrl;
 
 module.exports.client_utils = require("lib/client/client_utils");
+

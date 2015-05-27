@@ -39,9 +39,13 @@ if (!crypto_utils.isFullySupported()) {
             var options = {
                 port: port,
                 allowAnonymous: false,
-                userManager: userManager
-            }
+            };
+
             server = build_server_with_temperature_device(options, function (err) {
+
+                // replace user manager with our custom one
+                server.userManager = userManager;
+
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
                 temperatureVariableId = server.temperatureVariableId;
                 done(err);

@@ -47,6 +47,20 @@ function addTestUAAnalogItem(parentNode)
 
 }
 
+
+var userManager = {
+    isValidUser: function (userName,password) {
+
+        if (userName === "user1" && password === "password1") {
+            return true;
+        }
+        if (userName === "user2" && password === "password2") {
+            return true;
+        }
+        return false;
+    }
+};
+
 /**
  * create and start a fake OPCUA Server that exposes a temperature set point variable.
  *
@@ -70,6 +84,8 @@ function build_server_with_temperature_device(options,done) {
 
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename  || opcua.mini_nodeset_filename;
+
+    options.userManager=  userManager;
 
     var server = new OPCUAServer(options);
     // we will connect to first server end point

@@ -24,6 +24,31 @@ var build_server_with_temperature_device = require("test/helpers/build_server_wi
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
+function sendPublishRequest(session, callback) {
+    var publishRequest = new opcua.subscription_service.PublishRequest({});
+    session.performMessageTransaction(publishRequest, function (err, response) {
+        callback(err, response);
+    });
+}
+
+function createSubscription(session, callback) {
+    var publishingInterval = 30;
+    var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+        requestedPublishingInterval: publishingInterval,
+        requestedLifetimeCount: 60,
+        requestedMaxKeepAliveCount: 10,
+        maxNotificationsPerPublish: 10,
+        publishingEnabled: true,
+        priority: 6
+    });
+
+    session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+        callback(err);
+    });
+}
+
+
+
 describe("testing session  transfer to different channel",function() {
 
     var server, temperatureVariableId, endpointUrl;
@@ -222,8 +247,9 @@ describe("testing session  transfer to different channel",function() {
                 client2 = new OPCUAClient();
                 client2.connect(endpointUrl,callback)
             },
+
+            // reactivate session on second channel
             function(callback) {
-                // reactivate session on second channel
                 client2.reactivateSession(session1,function(err){
                     callback(err);
                 });
@@ -418,24 +444,164 @@ describe("testing session  transfer to different channel",function() {
             ], done);
 
         });
+
+        // In addition,the Server shall verify that the  Client  supplied a  UserIdentityToken  that is   identical to the token
+        // currently associated with the  Session.
+        it("RQ3 - server should raise an error if a session is reactivated with different user identity tokens",function(done){
+            var client1,client2;
+            var session1;
+
+            var user1 = {
+                userName: "user1" ,password: "password1"
+            };
+            var user2 = new opcua.UserNameIdentityToken({
+                userName: "user1" ,password: "password1"
+            });
+            console.log(" user1 ",user1.toString());
+
+            async.series([
+
+                // given a established session with a subscription and some publish request
+
+                function(callback) {
+                    client1 = new OPCUAClient();
+                    client1.connect(endpointUrl,callback);
+                },
+                // create a session using client1
+                function(callback) {
+
+                    client1.createSession(user1,function(err,session) {
+                        if (err) { return callback(err);}
+                        session1 = session;
+                        callback();
+                    });
+                },
+                // when the session is transferred to a different channel
+                // create a second channel (client2)
+                function(callback) {
+                    client2 = new OPCUAClient();
+                    client2.connect(endpointUrl,callback);
+                },
+                function(callback) {
+                    // reactivate session on second channel
+                    // alter session1.userIdentityInfo
+                    session1.userIdentityInfo = user2;
+                    session1.userIdentityInfo.userName.should.eql("user1");
+
+                    client2.reactivateSession(session1,function(err){
+                        err.message.should.match(/BadIdentityChangeNotSupported/);
+                        _.contains(client1._sessions,session1).should.eql(true);// should have failed
+                        callback();
+                    });
+                },
+                // terminate
+                function(callback) {
+                    client2.disconnect(callback);
+                },
+                function(callback) {
+                    client1.disconnect(callback);
+                }
+
+            ],done);
+
+        });
     }
-
-    // In addition,the Server shall verify that the  Client  supplied a  UserIdentityToken  that is   identical to the token
-    // currently associated with the  Session.
-    xit("RQ3 - server should raise an error if a session is reactivated with different user identity tokens",function(done){
-        async.series([
-
-
-        ],done);
-
-    });
     // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel.
-    xit("RQ4 - server should reject request send via old channel when session has been transfered to new channel",function(done){
+    xit("RQ4 - server should reject request send via old channel when session has been transferred to new channel",function(done){
         async.series([
 
 
         ],done);
 
     });
+
+
+    // unprocessed pending Requests such as PublishRequest shall be be denied by the server
+    // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel
+    it("RQ5 - server should reject pending requests send to old channel when session has been transferred to new channel",function(done){
+
+        var sinon = require("sinon");
+
+        var collectPublishResponse = sinon.spy();
+
+        var client1,client2;
+        var session1;
+        async.series([
+
+            // given a established session with a subscription and some publish request
+
+                function(callback) {
+                    client1 = new OPCUAClient();
+                    client1.connect(endpointUrl,callback)
+                },
+                // create a session using client1
+                function(callback) {
+                    client1._createSession(function(err,session) {
+                        if (err) { return callback(err);}
+                        session1 = session;
+                        callback();
+                    });
+                },
+                // activate the session as expected on same channel used to create it
+                function(callback) {
+                    client1._activateSession(session1,function(err){
+                        callback(err);
+                    });
+                },
+
+                // creaet a subscription,
+                function(callback) {
+                    createSubscription(session1,callback);
+                },
+
+                // provision 3 publish requests
+                function(callback) {
+
+                    sendPublishRequest(session1,collectPublishResponse);
+                    sendPublishRequest(session1,collectPublishResponse);
+                    sendPublishRequest(session1,collectPublishResponse);
+                    callback();
+                },
+
+            // when the session is transferred to a different channel
+                // create a second channel (client2)
+                function(callback) {
+                    client2 = new OPCUAClient();
+                    client2.connect(endpointUrl,callback);
+                    collectPublishResponse.callCount.should.eql(0);
+                },
+                function(callback) {
+                    // reactivate session on second channel
+                    client2.reactivateSession(session1,function(err){
+                        callback(err);
+
+                    });
+                },
+                function(callback) {
+
+                    collectPublishResponse.callCount.should.eql(3);
+                    collectPublishResponse.getCall(0).args[0].message.should.match(/BadSecureChannelClosed/);
+                    collectPublishResponse.getCall(1).args[0].message.should.match(/BadSecureChannelClosed/);
+                    collectPublishResponse.getCall(2).args[0].message.should.match(/BadSecureChannelClosed/);
+                    callback();
+                },
+
+            // then the server shall reject requests sent via the old  SecureChannel
+                function(callback) {
+                    callback();
+                },
+
+            // terminate
+            function(callback) {
+                client2.disconnect(callback);
+            },
+            function(callback) {
+                client1.disconnect(callback);
+            }
+
+        ],done);
+
+    });
+
 });
 
