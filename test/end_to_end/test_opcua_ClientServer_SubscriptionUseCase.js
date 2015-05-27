@@ -1304,6 +1304,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
             value: /*new DataValue(*/ {
+                serverTimestamp: new Date(),
+                sourceTimestamp: new Date(),
                 value: {
                     /* Variant */
                     dataType: DataType.Double,
@@ -1363,6 +1365,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         });
 
         session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
+            response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             callback(err);
         });
     }
@@ -1384,7 +1387,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
                 function (callback) {
                     sendPublishRequest(session, function (err, response) {
-                        var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                        if (!err) {
+                            //Xx var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                        }
                         callback(err);
                     });
                 },
@@ -1413,12 +1418,18 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
                 function (callback) {
                     sendPublishRequest(session, function (err, response) {
+
                         var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                         //xx console.log("notification= ", notification.toString().red);
+
                         notification.value.value.value.should.eql(7);
+
+                        parameters.queueSize.should.eql(1);
+                        notification.value.statusCode.should.eql(StatusCodes.Good,"OverFlow bit shall not be set when queueSize =1");
                         callback(err);
                     });
-                },
+                }
+
             ], inner_done);
 
         }, done);
@@ -1496,6 +1507,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
                         response.notificationMessage.notificationData.length.should.eql(1);
 
+                        // we should have 2 elements in queue
                         response.notificationMessage.notificationData[0].monitoredItems.length.should.eql(2);
 
                         var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
@@ -1505,6 +1517,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                         var notification = response.notificationMessage.notificationData[0].monitoredItems[1];
                         //xx console.log(notification.value.value.value);
                         notification.value.value.value.should.eql(expected_values[1]);
+                        parameters.queueSize.should.eql(2);
+                        notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit,"OverFlow bit shall not be set when queueSize =2");
                         callback(err);
                     });
                 },

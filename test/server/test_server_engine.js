@@ -1085,6 +1085,7 @@ describe("testing ServerEngine", function () {
                 nodesToRead: nodesToRead
             });
             var dataValues = engine.read(readRequest);
+
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
@@ -1094,10 +1095,16 @@ describe("testing ServerEngine", function () {
             should(dataValues[0].sourceTimestamp).be.eql(null);
             should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
+
             should(dataValues[1].serverTimestamp).be.instanceOf(Date);
             should(dataValues[1].sourceTimestamp).be.eql(null);
             should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
+
+            should(dataValues[2].serverTimestamp).be.instanceOf(Date);
+            should(dataValues[2].sourceTimestamp).be.eql(null);
+            should(dataValues[2].serverPicoseconds).be.eql(0);
+            should(dataValues[2].sourcePicoseconds).be.eql(0);
 
         });
 
