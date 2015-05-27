@@ -113,13 +113,8 @@ function decodeTypedArray(ArrayType, stream) {
     return null;
   }
 
-  var arr = new Uint8Array(length * ArrayType.BYTES_PER_ELEMENT);
-
-  var n = arr.length;
-  for (var i = 0; i < n; i++) {
-    arr[i] = stream.readUInt8();
-
-  }
+  var byteLength =length * ArrayType.BYTES_PER_ELEMENT;
+  var arr = stream.readArrayBuffer(byteLength);
   var value = new ArrayType(arr.buffer);
   assert(value.length === length);
   return value;

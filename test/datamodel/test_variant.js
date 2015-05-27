@@ -237,19 +237,21 @@ describe("Variant - Analyser",function(){
 
         new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array  /*, unspecified value*/}),
         new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value:[]   }),
-        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value:[1]  }),
-        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value:[1,2]}),
-        new Variant({  dataType: DataType.UInt32,       arrayType: VariantArrayType.Array ,value: [  2,3,4,5 ]   }),
-        new Variant({  dataType: DataType.Float ,       arrayType: VariantArrayType.Array ,value: [  2,3,4,5 ]   }),
-        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: manyValues }),
-        new Variant({  dataType: DataType.Int32,        arrayType: VariantArrayType.Array ,value: manyValues })
+        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value: new Int32Array   ( [1       ])}),
+        new Variant({  dataType: DataType.Int32 ,       arrayType: VariantArrayType.Array ,value: new Int32Array   ( [1,2     ])}),
+        new Variant({  dataType: DataType.UInt32,       arrayType: VariantArrayType.Array ,value: new Uint32Array  ( [2,3,4,5 ])}),
+        new Variant({  dataType: DataType.Float ,       arrayType: VariantArrayType.Array ,value: new Float32Array ( [2,3,4,5 ])}),
+        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array (manyValues) }),
+        new Variant({  dataType: DataType.Int32,        arrayType: VariantArrayType.Array ,value: new Int32Array   (manyValues) }),
+        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array ( 10*1024) }),
+        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array ( 50*1024) }),
     ];
 
     //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
 
     it("should analyze variant",function() {
 
-        redirectToFile("variant_analyze.log",function() {
+        redirectToFile("variant_analyze1.log",function() {
             various_variants.forEach(function(v){
                 analyze_object_binary_encoding(v);
             });
@@ -257,14 +259,65 @@ describe("Variant - Analyser",function(){
     });
     it("should encode/decode variant",function() {
 
-        redirectToFile("variant_analyze.log",function() {
             various_variants.forEach(function(v){
                 encode_decode_round_trip_test(v, function (stream) {
                     // stream.length.should.equal(1+4+4*4);
                 });
             });
-        });
     });
+
+    it("should encode/decode a very large array of Float",function() {
+
+        var very_large=  new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array (1500*1024) });
+        encode_decode_round_trip_test(very_large, function (stream) {
+            // stream.length.should.equal(1+4+4*4);
+        });
+
+    });
+
+    it("should check the performance of encode/decode a very large array of Float",function() {
+
+        this.timeout(30000);
+
+        var length = 500 *1024;
+
+        console.log("    array size = ",length);
+
+        var obj=  new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array(length) });
+
+        for (var i=0;i<length;i++) { obj.value[i] = i; }
+        obj.value[100].should.eql(100);
+
+        var size = obj.binaryStoreSize();
+        var stream  = new BinaryStream(new Buffer(size));
+
+        var bench = new Benchmarker();
+
+        var obj_reloaded= new Variant();
+
+        bench.add('Variant.encode', function () {
+            stream.rewind();
+            obj.encode(stream);
+        })
+        .add('Variant.decode', function () {
+            stream.rewind();
+            obj_reloaded.decode(stream);
+        })
+        .on('cycle', function (message) {
+            console.log(message);
+        })
+        .on('complete', function () {
+
+            console.log(' Fastest is ' + this.fastest.name);
+            console.log(' Speed Up : x', this.speedUp);
+            this.fastest.name.should.eql("Variant.encode");
+
+        })
+        .run({max_time: 0.1 });
+
+        for (var i=0;i<length;i++) { obj.value[i].should.eql(i); }
+
+    })
 });
 
 
@@ -332,7 +385,6 @@ describe("benchmarking variant encode",function() {
             1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9,
             10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
         ];
-
         bench.add('Variant.encode', function () {
             assert(_.isFunction(Variant.prototype._schema.encode));
             test_iteration(variant,stream,Variant.prototype._schema.encode);
@@ -504,7 +556,7 @@ describe("Variant with Advanced Array",function() {
         encode_decode_round_trip_test(v, function (stream) {
             stream.length.should.equal(1+4+4*4);
         });
-    })
+    });
 
     it("should be possible to encode/decode an subarray of Float32Array",function() {
 
