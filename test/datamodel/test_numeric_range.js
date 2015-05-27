@@ -200,6 +200,19 @@ describe("Testing numerical range", function () {
             r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         });
 
+        it("should handle null array",function() {
+            var nr = new NumericRange("1000");
+            var r = nr.extract_values(null);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+        });
+
+        it("should handle null array",function() {
+            var nr = new NumericRange();
+            var r = nr.extract_values(null);
+            r.array = array;
+            r.statusCode.should.eql(StatusCodes.Good);
+        });
+
     });
 
     function makeBuffer(values) {
