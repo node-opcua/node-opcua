@@ -162,6 +162,54 @@ describe("Testing numerical range", function () {
 
     });
 
+    describe("extracting ranges from string", function () {
+
+        var referenceString = "Lorem Ipsum";
+
+        it("it should extract a single element with a range defined with a individual integer", function () {
+            referenceString.length.should.eql(11);
+            var nr = new NumericRange(2);
+            var r = nr.extract_values(referenceString);
+            r.array.should.eql("r");
+            r.statusCode.should.eql(StatusCodes.Good);
+            referenceString.length.should.eql(11);
+        });
+
+        it("it should extract a sub array with the requested element with a simple array range", function () {
+            var nr = new NumericRange(2, 4);
+            referenceString.length.should.eql(11);
+            var r = nr.extract_values(referenceString);
+            r.array.should.eql("rem");
+            r.statusCode.should.eql(StatusCodes.Good);
+            referenceString.length.should.eql(11);
+        });
+
+    });
+    describe("extracting ranges from ByteString", function () {
+
+        var referenceByteString = new Buffer("Lorem Ipsum", "ascii");
+
+        it("it should extract a single element with a range defined with a individual integer", function () {
+            referenceByteString.length.should.eql(11);
+            var nr = new NumericRange(2);
+            var r = nr.extract_values(referenceByteString);
+            r.array.should.be.instanceOf(Buffer);
+            r.array.toString().should.eql("r");
+            r.statusCode.should.eql(StatusCodes.Good);
+            referenceByteString.length.should.eql(11);
+        });
+
+        it("it should extract a sub array with the requested element with a simple array range", function () {
+            var nr = new NumericRange(2, 4);
+            referenceByteString.length.should.eql(11);
+            var r = nr.extract_values(referenceByteString);
+            r.array.should.be.instanceOf(Buffer);
+            r.array.toString().should.eql("rem");
+            r.statusCode.should.eql(StatusCodes.Good);
+            referenceByteString.length.should.eql(11);
+        });
+
+    });
     describe("extracting ranges from array", function () {
 
         var array = [ 0, 1, 2, 3, 4, 5];
@@ -169,7 +217,8 @@ describe("Testing numerical range", function () {
         it("it should extract a single element with a range defined with a individual integer", function () {
             array.length.should.eql(6);
             var nr = new NumericRange(2);
-            nr.extract_values(array).array.should.eql([2]);
+            var r = nr.extract_values(array);
+            r.array.should.eql([2]);
             array.length.should.eql(6);
         });
 
@@ -177,7 +226,9 @@ describe("Testing numerical range", function () {
 
             var nr = new NumericRange(2, 4);
             array.length.should.eql(6);
-            nr.extract_values(array).array.should.eql([2, 3, 4]);
+            var r = nr.extract_values(array);
+            r.array.should.eql([2, 3, 4]);
+            r.statusCode.should.eql(StatusCodes.Good);
             array.length.should.eql(6);
         });
 
@@ -220,8 +271,8 @@ describe("Testing numerical range", function () {
         for(var i=0;i<values.length;i++) { buff[i] = values[i]; }
         return buff;
     }
-    describe("extracting ranges from a typed array", function () {
 
+    describe("extracting ranges from a typed array", function () {
 
         function test(name,createArray) {
 
@@ -250,10 +301,7 @@ describe("Testing numerical range", function () {
 
                 var r = nr.extract_values(array);
                 assert_arrays_are_equal(r.array,createArray([2, 3, 4]));
-
             });
-
-
             it(name + " Z3 - it should extract a sub array with the requested element with a empty NumericRange", function () {
                 var nr = new NumericRange();
                 var r = nr.extract_values(array);
@@ -295,7 +343,6 @@ describe("Testing numerical range", function () {
         test("Int8Array",function(values)    {return new Int8Array(values); });
 
         test("BLOB",function(values)    {return values.map(function(v){  return { value: v.toString()}; }); });
-
         test("Uint8Array",makeBuffer);
     });
 
@@ -497,8 +544,45 @@ describe("Testing numerical range", function () {
             should(o.numericRange.toEncodeableString()).eql("1,3");
             encode_decode_round_trip_test(o);
         });
-
-
-
     });
+
+    describe("Operations", function () {
+
+        it("'<empty>' '<empty>' should  overlap ", function () {
+            NumericRange.overlap(new NumericRange(), new NumericRange()).should.eql(true);
+        });
+        it("'<empty>' '5:6' should  overlap ", function () {
+            NumericRange.overlap(new NumericRange(), new NumericRange("5:6")).should.eql(true);
+        });
+        it(" '5:6' '<empty>' should  overlap ", function () {
+            NumericRange.overlap(new NumericRange("5:6"), new NumericRange()).should.eql(true);
+        });
+        it(" '5' '8' should not overlap ", function () {
+            NumericRange.overlap(new NumericRange("5"), new NumericRange("8")).should.eql(false);
+        });
+        it(" '5' '5' should not overlap ", function () {
+            NumericRange.overlap(new NumericRange("5"), new NumericRange("5")).should.eql(true
+            );
+        });
+        it("'1:2' '5:6' should not overlap ", function () {
+
+            NumericRange.overlap(new NumericRange("1:2"), new NumericRange("5:6")).should.eql(false);
+        });
+        // +-----+        +------+     +---+       +------+
+        //     +----+       +---+    +--------+  +---+
+
+        it("'1:6' '3:8' should overlap ", function () {
+            NumericRange.overlap(new NumericRange("1:6"), new NumericRange("3:8")).should.eql(true);
+        });
+        it("'1:6' '3:4' should overlap ", function () {
+            NumericRange.overlap(new NumericRange("1:6"), new NumericRange("3:4")).should.eql(true);
+        });
+        it("'3:4' '1:10' should overlap ", function () {
+            NumericRange.overlap(new NumericRange("3:4"), new NumericRange("1:10")).should.eql(true);
+        });
+        it("'1:2' '2:6' should overlap ", function () {
+            NumericRange.overlap(new NumericRange("1:2"), new NumericRange("2:6")).should.eql(true);
+        });
+
+    })
 });

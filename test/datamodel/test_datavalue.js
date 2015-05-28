@@ -97,4 +97,61 @@ describe("DataValue", function () {
             "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 2000"
         ]);
     });
+
+
+    var extractRange = require("lib/datamodel/datavalue").extractRange;
+    var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
+    var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
+
+    it("DataValue - extractRange on a Float Array", function () {
+
+        var dataValue = new DataValue({
+            value: new Variant({
+                dataType: DataType.Double,
+                arrayType: VariantArrayType.Array,
+                value: new Float64Array([1, 2, 3, 4, 5, 6, 7])
+            })
+        });
+        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        dataValue1.value.value.length.should.eql(2);
+        dataValue1.value.value[0].should.eql(3.0);
+        dataValue1.value.value[1].should.eql(4.0);
+        dataValue1.value.dataType.should.eql(DataType.Double);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Array);
+
+    });
+    it("DataValue - extractRange on a String", function () {
+
+        var dataValue = new DataValue({
+            value: new Variant({
+                dataType: DataType.String,
+                arrayType: VariantArrayType.Scalar,
+                value: "1234567890"
+            })
+        });
+        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        dataValue1.value.value.length.should.eql(2);
+        dataValue1.value.value.should.eql("34");
+        dataValue1.value.dataType.should.eql(DataType.String);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
+
+    });
+    it("DataValue - extractRange on a ByteString", function () {
+
+        var dataValue = new DataValue({
+            value: new Variant({
+                dataType: DataType.ByteString,
+                arrayType: VariantArrayType.Scalar,
+                value: new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+            })
+        });
+        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        dataValue1.value.value.length.should.eql(2);
+        dataValue1.value.value[0].should.eql(3.0);
+        dataValue1.value.value[1].should.eql(4.0);
+        dataValue1.value.dataType.should.eql(DataType.ByteString);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
+
+    });
 });
+

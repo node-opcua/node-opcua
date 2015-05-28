@@ -777,6 +777,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     var server, client, temperatureVariableId, endpointUrl;
 
     var nodeIdVariant = "ns=1234;s=SomeDouble";
+    var nodeIdByteString = "ns=1234;s=ByteString";
+    var nodeIdString = "ns=1234;s=String";
 
     var port = _port + 1;
     before(function (done) {
@@ -800,7 +802,24 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 }
             });
 
-
+            server.engine.addVariableInFolder("RootFolder", {
+                browseName: "SomeByteString",
+                nodeId: nodeIdByteString,
+                dataType: "ByteString",
+                value: {
+                    dataType: DataType.ByteString,
+                    value: new Buffer("Lorem ipsum", "ascii")
+                }
+            });
+            server.engine.addVariableInFolder("RootFolder", {
+                browseName: "Some String",
+                nodeId: nodeIdString,
+                dataType: "String",
+                value: {
+                    dataType: DataType.String,
+                    value: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                }
+            });
             done(err);
         });
     });
@@ -1346,12 +1365,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         });
     }
 
-    function createMonitoredItems(session, nodeId, parameters, callback) {
+    function createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback) {
 
-        var itemToMonitor = new opcua.read_service.ReadValueId({
-            nodeId: nodeId,
-            attributeId: AttributeIds.Value
-        });
 
         var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
 
@@ -1371,7 +1386,13 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     }
 
     function _test_with_queue_size_of_one(parameters, done) {
+
         var nodeId = nodeIdVariant;
+
+        var itemToMonitor = new opcua.read_service.ReadValueId({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value
+        });
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -1382,7 +1403,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 },
 
                 function (callback) {
-                    createMonitoredItems(session, nodeId, parameters, callback);
+                    createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                 },
 
                 function (callback) {
@@ -1461,6 +1482,11 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     function _test_with_queue_size_of_two(parameters, expected_values, done) {
 
         var nodeId = nodeIdVariant;
+        var itemToMonitor = new opcua.read_service.ReadValueId({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value
+        });
+
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             async.series([
@@ -1470,7 +1496,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 },
 
                 function (callback) {
-                    createMonitoredItems(session, nodeId, parameters, callback);
+                    createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                 },
 
                 function (callback) {
@@ -1528,6 +1554,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     }
 
+
     it("#CTT3 - should make sure that only the last 2 values are returned when queue size is two and discard oldest is TRUE", function (done) {
 
         var samplingInterval = 0;
@@ -1550,6 +1577,87 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         };
         _test_with_queue_size_of_two(parameters, [1, 7], done);
     });
+
+
+    describe("#CTT - Monitored Value Change", function () {
+
+
+        it("ZZZ should monitor a substring ", function (done) {
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                var nodeId = nodeIdString;
+                var samplingInterval = 0;
+
+                var parameters = {
+                    samplingInterval: samplingInterval,
+                    discardOldest: false,
+                    queueSize: 2
+                };
+
+                var itemToMonitor = new opcua.read_service.ReadValueId({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value,
+                    indexRange: "4:10"
+                });
+
+                async.series([
+
+                    function (callback) {
+                        createSubscription(session, callback);
+                    },
+
+                    function (callback) {
+                        createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
+                    },
+
+                    function (callback) {
+                        sendPublishRequest(session, function (err, response) {
+                            var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                            console.log("notification", notification.toString());
+                            notification.value.value.value.should.eql("EFGHIJK");
+                            callback(err);
+                        });
+                    },
+
+                    function (callback) {
+
+                        var nodesToWrite = [{
+                            nodeId: nodeId,
+                            attributeId: AttributeIds.Value,
+                            value: /*new DataValue(*/ {
+                                value: {
+                                    /* Variant */
+                                    dataType: DataType.String,
+                                    //      01234567890123456789012345
+                                    value: "ZYXWVUTSRQPONMLKJIHGFEDCBA"
+                                }
+                            }
+                        }];
+
+                        session.write(nodesToWrite, function (err, statusCodes) {
+                            statusCodes.length.should.eql(1);
+                            statusCodes[0].should.eql(StatusCodes.Good);
+                            callback(err);
+                        });
+                    },
+
+                    function (callback) {
+                        sendPublishRequest(session, function (err, response) {
+                            var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                            console.log("notification", notification.toString());
+                            notification.value.value.value.should.eql("VUTSRQP");
+                            callback(err);
+                        });
+                    }
+
+
+                ], inner_done);
+            }, done);
+        });
+    });
+
+
 
     it("#ModifySubscriptionRequest: should return BadSubscriptionIdInvalid if client specifies a invalid subscriptionId", function (done) {
 
@@ -1696,5 +1804,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
         }, done);
     });
+
 
 });
