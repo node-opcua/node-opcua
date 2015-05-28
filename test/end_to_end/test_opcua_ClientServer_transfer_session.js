@@ -563,6 +563,8 @@ describe("testing session  transfer to different channel",function() {
                     callback();
                 },
 
+                function(callback) { setTimeout(callback,100);  },
+
             // when the session is transferred to a different channel
                 // create a second channel (client2)
                 function(callback) {
@@ -577,6 +579,9 @@ describe("testing session  transfer to different channel",function() {
 
                     });
                 },
+
+                function(callback) { setTimeout(callback,100);  },
+
                 function(callback) {
 
                     collectPublishResponse.callCount.should.eql(3);
@@ -586,10 +591,6 @@ describe("testing session  transfer to different channel",function() {
                     callback();
                 },
 
-            // then the server shall reject requests sent via the old  SecureChannel
-                function(callback) {
-                    callback();
-                },
 
             // terminate
             function(callback) {
