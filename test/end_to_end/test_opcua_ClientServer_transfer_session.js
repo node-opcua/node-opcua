@@ -32,7 +32,7 @@ function sendPublishRequest(session, callback) {
 }
 
 function createSubscription(session, callback) {
-    var publishingInterval = 30;
+    var publishingInterval = 1000;
     var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
         requestedPublishingInterval: publishingInterval,
         requestedLifetimeCount: 60,
@@ -554,16 +554,7 @@ describe("testing session  transfer to different channel",function() {
                     createSubscription(session1,callback);
                 },
 
-                // provision 3 publish requests
-                function(callback) {
 
-                    sendPublishRequest(session1,collectPublishResponse);
-                    sendPublishRequest(session1,collectPublishResponse);
-                    sendPublishRequest(session1,collectPublishResponse);
-                    callback();
-                },
-
-                function(callback) { setTimeout(callback,100);  },
 
             // when the session is transferred to a different channel
                 // create a second channel (client2)
@@ -572,6 +563,20 @@ describe("testing session  transfer to different channel",function() {
                     client2.connect(endpointUrl,callback);
                     collectPublishResponse.callCount.should.eql(0);
                 },
+
+                // provision 3 publish requests and wait for the first keep alive
+                function(callback) {
+
+                    sendPublishRequest(session1,function(err) {
+                        should(err).eql(null);
+                        collectPublishResponse.callCount.should.eql(0);
+                        callback();
+                    });
+                    sendPublishRequest(session1,collectPublishResponse);
+                    sendPublishRequest(session1,collectPublishResponse);
+                },
+
+
                 function(callback) {
                     // reactivate session on second channel
                     client2.reactivateSession(session1,function(err){
@@ -579,15 +584,13 @@ describe("testing session  transfer to different channel",function() {
 
                     });
                 },
-
-                function(callback) { setTimeout(callback,100);  },
+                function(callback) {setTimeout(callback,100);   },
 
                 function(callback) {
 
-                    collectPublishResponse.callCount.should.eql(3);
+                    collectPublishResponse.callCount.should.eql(2);
                     collectPublishResponse.getCall(0).args[0].message.should.match(/BadSecureChannelClosed/);
                     collectPublishResponse.getCall(1).args[0].message.should.match(/BadSecureChannelClosed/);
-                    collectPublishResponse.getCall(2).args[0].message.should.match(/BadSecureChannelClosed/);
                     callback();
                 },
 
