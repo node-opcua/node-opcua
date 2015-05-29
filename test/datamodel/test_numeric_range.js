@@ -40,6 +40,7 @@ describe("Testing numerical range", function () {
         nr.toString().should.eql("12");
 
     });
+
     it("should construct a NumericRange from a integer", function () {
         var nr = new NumericRange("-12");
         nr.type.should.eql(NumericRangeType.InvalidRange);
@@ -59,11 +60,11 @@ describe("Testing numerical range", function () {
         nr.isValid().should.equal(false);
     });
 
-    it("should be an InvalidRange if bound === high bound", function () {
+    xit("should be an ArrayRange if low bound === high bound", function () {
         var nr = new NumericRange(15, 15);
-        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
-        nr.isValid().should.equal(false);
-        nr.toString().should.eql("NumericRange:<Invalid>");
+        nr.type.should.equal(NumericRange.NumericRangeType.ArrayRange);
+        nr.isValid().should.equal(true);
+        nr.toString().should.eql("15");
     });
 
     it("should throw an exception if high bound is crap", function () {
@@ -95,21 +96,25 @@ describe("Testing numerical range", function () {
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
+
     it("should be an InvalidRange when constructed with a string with 3 values separated with :", function () {
         var nr = new NumericRange("12:13:14");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
+
     it("should be an InvalidRange when constructed with two values ( high ,low)", function () {
         var nr = new NumericRange(15, 12);
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
+
     it("should be an InvalidRange when constructed with two values ( negative ,negative)", function () {
         var nr = new NumericRange(-15, -12);
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
+
     it("should be an InvalidRange when constructed with a single negative numb", function () {
         var nr = new NumericRange("-11000");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
@@ -121,6 +126,7 @@ describe("Testing numerical range", function () {
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
+
     it("should be an InvalidRange when constructed with a badly formed string '2-4' ", function () {
         var nr = new NumericRange("2-4");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
@@ -140,25 +146,28 @@ describe("Testing numerical range", function () {
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
         });
+
         it("should be an MatrixRange when constructed with a matrix formed string : '1,2' ", function () {
             var nr = new NumericRange("1,2");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
-            nr.value.should.eql([1, 2]);
-        });
-        it("should be an Invalid when constructed with a malformed matrix  string : '1,2:3' ", function () {
-            var nr = new NumericRange("1,2:3");
-            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
-            nr.isValid().should.equal(false);
-            nr.value.should.eql("1,2:3");
-        });
-        it("should be an Invalid when constructed with a malformed matrix  string : '1:2,2' ", function () {
-            var nr = new NumericRange("1:2,3");
-            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
-            nr.isValid().should.equal(false);
-            nr.value.should.eql("1:2,3");
+            nr.value.should.eql([[1,1], [2,2]]);
         });
 
+        it("should be an Matrix when constructed with  string : '1,2:3' ", function () {
+            var nr = new NumericRange("1,2:3");
+            nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+            nr.isValid().should.equal(true);
+            nr.value.should.eql([[1,1], [2,3]]);
+            nr.toEncodeableString().should.eql("1,2:3");
+        });
+
+        it("should be an MatrixRange when constructed with   string : '1:2,2' ", function () {
+            var nr = new NumericRange("1:2,3");
+            nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+            nr.isValid().should.equal(true);
+            nr.toString().should.eql("1:2,3");
+        });
 
     });
 
@@ -166,7 +175,7 @@ describe("Testing numerical range", function () {
 
         var referenceString = "Lorem Ipsum";
 
-        it("it should extract a single element with a range defined with a individual integer", function () {
+        it("it should extract a single element with a single value range", function () {
             referenceString.length.should.eql(11);
             var nr = new NumericRange(2);
             var r = nr.extract_values(referenceString);
@@ -182,6 +191,32 @@ describe("Testing numerical range", function () {
             r.array.should.eql("rem");
             r.statusCode.should.eql(StatusCodes.Good);
             referenceString.length.should.eql(11);
+        });
+
+        it("it should extract a sub matrix when indexRange is a NumericRange.Matrix", function() {
+
+            var matrixString = [
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam ",
+                "nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat ",
+                "volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ",
+                "ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.",
+                "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse ",
+             ];
+
+            var nr = new NumericRange("1:2,3:5");
+
+            var result = nr.extract_values(matrixString);
+            result.array.should.be.instanceOf(Array);
+            result.array.length.should.eql(2);
+            result.array[0].should.eql("umm");
+            result.array[1].should.eql("utp");
+
+            var nr2 = new NumericRange("1,3");
+            var result2 = nr2.extract_values(matrixString);
+            result2.array.should.be.instanceOf(Array);
+            result2.array.length.should.eql(1);
+            result2.array[0].should.eql("u");
+
         });
 
     });
@@ -584,5 +619,7 @@ describe("Testing numerical range", function () {
             NumericRange.overlap(new NumericRange("1:2"), new NumericRange("2:6")).should.eql(true);
         });
 
-    })
+    });
+
+
 });
