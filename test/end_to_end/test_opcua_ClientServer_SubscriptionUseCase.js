@@ -1738,7 +1738,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
             var setMonitoringModeRequest = {
                 subscriptionId: subscription.subscriptionId,
-                monitoredItemId: []
+                monitoredItemIds: []
             };
             session.setMonitoringMode(setMonitoringModeRequest, function (err) {
                 err.message.should.match(/BadNothingToDo/);
