@@ -73,7 +73,7 @@ describe("Testing ChannelSecurityToken lifetime",function(){
     it("A secure channel should raise a event to notify its client that its token is at 75% of its livetime",function(done){
 
         client.connect(endpointUrl,function(err){
-            should(err).equal(undefined);
+            should(!!err).equal(false);
         });
         client._secureChannel.once("lifetime_75",function(){
             debugLog(" received lifetime_75");
@@ -83,7 +83,7 @@ describe("Testing ChannelSecurityToken lifetime",function(){
 
     it("A secure channel should raise a event to notify its client that a token about to expired has been renewed",function(done){
 
-        client.connect(endpointUrl,function(err){should(err).equal(undefined); });
+        client.connect(endpointUrl,function(err){should(!!err).equal(false); });
         client._secureChannel.on("security_token_renewed",function(){
             debugLog(" received security_token_renewed");
             done();
@@ -92,7 +92,7 @@ describe("Testing ChannelSecurityToken lifetime",function(){
 
     it("A client should periodically renew the expiring security token",function(done){
 
-        client.connect(endpointUrl,function(err){should(err).equal(undefined); });
+        client.connect(endpointUrl,function(err){should(!!err).equal(false); });
 
         var security_token_renewed_counter = 0;
         client._secureChannel.on("security_token_renewed",function(){
