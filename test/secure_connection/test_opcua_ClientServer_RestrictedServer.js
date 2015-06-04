@@ -95,7 +95,7 @@ if (!crypto_utils.isFullySupported()) {
                 serverCertificate: serverCertificate
             });
             client.connect(endpointUrl, function (err) {
-                should(err).be.eql(undefined);
+                should(!!err).be.eql(false);
                 client.disconnect(done);
             });
         });
