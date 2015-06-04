@@ -412,7 +412,7 @@ describe("Subscriptions", function () {
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
 
-        subscription.reset_life_time_counters();
+        subscription.resetLifeTimeAndKeepAliveCounters();
 
         this.clock.tick(subscription.publishingInterval * 4);
 

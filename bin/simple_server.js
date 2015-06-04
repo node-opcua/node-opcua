@@ -276,10 +276,22 @@ server.on("session_closed",function(session,reason) {
     console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>");
 });
 
+function w(s,w) {
+    return ("000"+ s).substr(-w);
+}
+function t(d) {
+    return w(d.getHours(),2) + ":" + w(d.getMinutes(),2) + ":" + w(d.getSeconds(),2) +":" + w(d.getMilliseconds(),3);
+}
 
 server.on("response", function (response) {
-    console.log(response._schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
+    console.log(t(response.responseHeader.timeStamp),response.responseHeader.requestHandle,
+                response._schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {
+        case "ModifySubscriptionResponse":
+        case "CreateMonitoredItemsResponse":
+        case "RepublishResponse":
+            //xx console.log(response.toString());
+            break;
         case "WriteResponse":
             var str = "   ";
             response.results.map(function (result) {
@@ -296,8 +308,14 @@ function indent(str,nb) {
     return str.split("\n").map(function(s) { return spacer + s }).join("\n");
 }
 server.on("request", function (request,channel) {
-    console.log(request._schema.name.yellow, " ID =",channel.secureChannelId.toString().cyan);
+    console.log(t(request.requestHeader.timeStamp),request.requestHeader.requestHandle,
+                request._schema.name.yellow, " ID =",channel.secureChannelId.toString().cyan);
     switch (request._schema.name) {
+        case "ModifySubscriptionRequest":
+        case "CreateMonitoredItemsRequest":
+        case "RepublishRequest":
+            //xx console.log(request.toString());
+            break;
         case "ReadRequest":
             var str = "    ";
             request.nodesToRead.map(function (node) {

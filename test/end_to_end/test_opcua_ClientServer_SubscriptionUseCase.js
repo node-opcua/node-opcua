@@ -1582,7 +1582,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     describe("#CTT - Monitored Value Change", function () {
 
 
-        it("ZZZ should monitor a substring ", function (done) {
+        it("should monitor a substring ", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -1805,5 +1805,126 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         }, done);
     });
 
+
+
+    it("#subscription operations should extend subscription lifetime", function (done) {
+
+        this.timeout(20000);
+        // see CTT test063
+
+        var monitoredItem;
+
+        function step1(session,subscription, callback) {
+
+            monitoredItem = subscription.monitor({
+                nodeId: resolveNodeId("ns=0;i=2254"),
+                attributeId: AttributeIds.Value
+            }, {
+                samplingInterval: 100,
+                discardOldest: true,
+                queueSize: 1
+            });
+
+
+            monitoredItem.on("initialized", function () {
+                callback();
+            });
+        }
+
+        function step2(session,subscription,callback) {
+            var setMonitoringModeRequest = {
+                subscriptionId: subscription.subscriptionId,
+                monitoringMode: opcua.subscription_service.MonitoringMode.Sampling,
+                monitoredItemIds: [
+                    monitoredItem.monitoredItemId
+                ]
+            };
+            session.setMonitoringMode(setMonitoringModeRequest, function (err, response) {
+                response.results[0].should.eql(StatusCodes.Good);
+                callback(err);
+            });
+        }
+
+        function step3(session,subcription,callback) {
+            session.deleteSubscriptions({
+                subscriptionIds: [subcription.subscriptionId]
+            }, function (err, response) {
+                callback();
+            });
+        }
+
+        function my_perform_operation_on_subscription(client, endpointUrl, do_func, done_func) {
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+                var subscription;
+                async.series([
+
+                    function (callback) {
+                        subscription = new ClientSubscription(session, {
+                            requestedPublishingInterval: 100,
+                            requestedLifetimeCount: 10 * 60,
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 2,
+                            publishingEnabled: true,
+                            priority: 6
+                        });
+                        subscription.on("started", function () {
+                            callback();
+                        });
+                    },
+
+                    function (callback) {
+                        do_func(session, subscription, callback);
+                    },
+
+                    function (callback) {
+                        subscription.on("terminated", callback);
+                        subscription.terminate();
+                    }
+                ], function (err) {
+                    done(err);
+                });
+
+            }, done_func);
+        }
+        my_perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+            // xx perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
+
+            subscription.publishingInterval.should.eql(100);
+            subscription.maxKeepAliveCount.should.eql(10);
+
+            var waitingTime = subscription.publishingInterval * (subscription.maxKeepAliveCount - 3) - 100;
+
+            var nb_keep_alive_received = 0;
+            subscription.on("keepalive", function () {
+                nb_keep_alive_received += 1;
+            });
+
+            async.series([
+
+                function(callback) { nb_keep_alive_received.should.eql(0); callback(); },
+                function(callback) { setTimeout(callback,subscription.publishingInterval*2); },
+                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+
+                function(callback) { setTimeout(callback,waitingTime); },
+                function(callback) { step1(session,subscription,callback); },
+
+                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+
+                function(callback) { setTimeout(callback,waitingTime); },
+                function(callback) { step2(session,subscription,callback); },
+                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+
+                function(callback) { setTimeout(callback,waitingTime); },
+                function(callback) { step3(session,subscription,callback); },
+                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+
+
+            ],inner_done);
+
+        },done);
+
+    });
 
 });
