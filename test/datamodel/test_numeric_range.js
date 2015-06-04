@@ -441,6 +441,11 @@ describe("Testing numerical range", function () {
             var r = nr.set_values(array,[80,90,100]);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         });
+        it("S11 - should return BadIndexRangeInvalid if range does'nt match new array size",function() {
+            var nr = new NumericRange("2:2");
+            var r = nr.set_values(array,[80,90,100]);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+        });
 
     });
 
