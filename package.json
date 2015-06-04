@@ -46,7 +46,7 @@
     "mocha-lcov-reporter": "0.0.2",
     "mustache": "2.0.0",
     "node-xml": "1.0.2",
-    "request": "2.55.0",
+    "request": "2.57.0",
     "should": "6.0.3",
     "sinon": "1.14.1",
     "tmp": "0.0.26",
@@ -55,7 +55,7 @@
     "yuidocjs": "*"
   },
   "dependencies": {
-    "async": "1.0.0",
+    "async": "1.2.0",
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
     "byline": "4.2.1",
