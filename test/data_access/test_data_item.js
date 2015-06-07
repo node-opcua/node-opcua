@@ -18,7 +18,7 @@ var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 var async = require("async");
 
 var path = require("path");
-
+var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 describe("DataAccess", function () {
 
     var engine;
@@ -125,18 +125,12 @@ describe("DataAccess", function () {
         xyArrayItemType.arrayDimensions.should.eql([0,0,0]);
     });
 
-    it("should coerce property Type to a nodeId",function() {
-
-    });
-   var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
-
     it("should create a analogItemType",function(done) {
 
         var address_space = engine.address_space;
 
         var rootFolder = address_space.findObject("ObjectsFolder");
         rootFolder.browseName.should.eql("Objects");
-
 
         var fakeValue = 1;
 
@@ -238,6 +232,62 @@ describe("DataAccess", function () {
         })
 
     });
+
+    it("Writing a value exceeding InstrumentRange shall return BadOutOfRange",function(done) {
+
+        var address_space = engine.address_space;
+
+        var rootFolder = address_space.findObject("ObjectsFolder");
+
+        var analogItem = addAnalogDataItem(rootFolder,{
+            browseName: "TemperatureSensor",
+            definition: "(tempA -25) + tempB",
+            valuePrecision: 0.5,
+            engineeringUnitsRange: { low: -2000 , high: 2000},
+            instrumentRange:       { low:  -100 , high:  200},
+            engineeringUnits: standardUnits.degree_celsius,
+            dataType: "Double",
+            value:  new Variant({dataType: DataType.Double,value: 10.0})
+        });
+
+        var dataValue = new DataValue({
+            value: new Variant({dataType: DataType.Double,value: -1000.0})// out of range
+        });
+
+        analogItem.writeValue(dataValue,null,function(err,statusCode){
+            statusCode.should.eql(StatusCodes.BadOutOfRange);
+            done(err);
+        });
+
+    });
+
+    it("Writing a value within InstrumentRange shall return Good",function(done) {
+
+        var address_space = engine.address_space;
+        var rootFolder = address_space.findObject("ObjectsFolder");
+
+        var analogItem = addAnalogDataItem(rootFolder,{
+            browseName: "TemperatureSensor",
+            definition: "(tempA -25) + tempB",
+            valuePrecision: 0.5,
+            engineeringUnitsRange: { low: -2000 , high: 2000},
+            instrumentRange:       { low:  -100 , high:  200},
+            engineeringUnits: standardUnits.degree_celsius,
+            dataType: "Double",
+            value:  new Variant({dataType: DataType.Double,value: 10.0})
+        });
+
+        var dataValue = new DataValue({
+            value: new Variant({dataType: DataType.Double,value: 150})// in range
+        });
+
+        analogItem.writeValue(dataValue,null,function(err,statusCode){
+            statusCode.should.eql(StatusCodes.Good);
+            done(err);
+        });
+
+    });
+
 });
 
 
@@ -281,3 +331,20 @@ describe("commonCodeToUInt",function() {
     });
 
 });
+
+
+// todo :
+// 5.2  SemanticsChanged
+// The StatusCode  also contains an informational bit called  SemanticsChanged.
+// Servers  that implement Data Access  shall  set this Bit in notifications if  certain  Properties   defined in
+// this standard  change. The corresponding  Properties  are specified individually for each  VariableType.
+// Clients  that use any of these  Properties   should re- read them before they process the data value .
+// Part 8 5.3.2
+// The  StatusCode SemanticsChanged  bit shall be set if any of the  EURange  ( could change the
+// behaviour of a  Subscription  if a  PercentDeadband  filter is used)   or  EngineeringUnits  (could create
+// problems if the client uses the value to perform calcul ations)  Properties  are changed (see section
+// 5.2  for additional information).
+
+// todo:
+// AnalogItemType must have EURange properties
+
