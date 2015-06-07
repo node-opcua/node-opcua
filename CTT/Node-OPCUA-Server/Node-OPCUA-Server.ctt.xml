@@ -3333,7 +3333,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Byte"/>
+                    <Value typename="QString" type="10" data="ns=411;s=ByteDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3371,7 +3371,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Double"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3409,7 +3409,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Float"/>
+                    <Value typename="QString" type="10" data="ns=411;s=FloatDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3447,7 +3447,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Int16"/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int16DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3485,7 +3485,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_UInt16"/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3523,7 +3523,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Int32"/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int32DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3561,7 +3561,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_UInt32"/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt32DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3599,7 +3599,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int64DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3637,7 +3637,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt64DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3675,7 +3675,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_SByte"/>
+                    <Value typename="QString" type="10" data="ns=411;s=SByteDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3713,7 +3713,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_String"/>
+                    <Value typename="QString" type="10" data="ns=411;s=StringDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3751,7 +3751,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_DateTime"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DateTimeDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3828,7 +3828,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=4;s=TemperatureAnalogItem"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3866,7 +3866,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=FloatAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3904,7 +3904,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int16AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3942,7 +3942,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3980,7 +3980,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int32AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4018,7 +4018,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt32AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4056,7 +4056,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int64AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4094,7 +4094,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt64AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4132,7 +4132,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=ByteAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4170,7 +4170,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=SByteAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4208,7 +4208,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=4;s=TemperatureAnalogItem"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleAnalogDataItemWithEU"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4246,7 +4246,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=4;s=TemperatureAnalogItem"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>

@@ -232,12 +232,16 @@ server.on("post_initialize", function () {
     })
 });
 
-function w(str,width) { return (str+ "                            ").substr(0,width);}
+
 
 function dumpObject(obj) {
- return   _.map(obj,function(value,key) {
-     return  w("          " + key,30).green + "       : " + ((value === null)? null : value.toString());
- }).join("\n");
+    function w(str,width) {
+        var tmp =str+ "                                        ";
+        return tmp.substr(0,width);
+    }
+    return   _.map(obj,function(value,key) {
+        return  "      " + w(key,30).green + "  : " + ((value === null)? null : value.toString());
+    }).join("\n");
 }
 
 

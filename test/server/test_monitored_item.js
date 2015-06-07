@@ -356,3 +356,159 @@ describe("Server Side MonitoredItem",function(){
 
 
 });
+
+var DataChangeFilter = subscription_service.DataChangeFilter;
+var DataChangeTrigger = subscription_service.DataChangeTrigger;
+var DeadbandType = subscription_service.DeadbandType;
+
+describe("MonitoredItem with DataChangeFilter",function(){
+
+    var dataValue1 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 48}});
+    var dataValue2 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 49}}); // +1 =>
+    var dataValue3 = new DataValue({ statusCode: StatusCodes.GoodWithOverflowBit, value:{ value: 49}});
+    var dataValue4 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 49}});
+    var dataValue5 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 49}});
+    //
+    var dataValue6 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 59}}); // +10
+    var dataValue7 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 60}}); // +1
+    var dataValue8 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 10}}); // -50
+
+    it("should only detect status change when dataChangeFilter trigger is DataChangeTrigger.Status ",function(){
+
+
+        var dataChangeFilter = new DataChangeFilter({
+            trigger: DataChangeTrigger.Status,
+            deadbandType: DeadbandType.None
+        });
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            filter: dataChangeFilter,
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+        monitoredItem.queue.length.should.eql(0);
+
+        monitoredItem.recordValue(dataValue1);
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.queue[0].should.eql(dataValue1);
+
+        monitoredItem.recordValue(dataValue2);
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.queue[0].should.eql(dataValue1);
+
+        monitoredItem.recordValue(dataValue3);
+        monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[1].should.eql(dataValue3);
+
+        monitoredItem.recordValue(dataValue4);
+        monitoredItem.queue.length.should.eql(3);
+        monitoredItem.queue[2].should.eql(dataValue4);
+    });
+
+    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue ",function(){
+
+        var dataChangeFilter = new DataChangeFilter({
+            trigger: DataChangeTrigger.StatusValue,
+            deadbandType: DeadbandType.None
+        });
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            filter: dataChangeFilter,
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+        monitoredItem.queue.length.should.eql(0);
+
+        monitoredItem.recordValue(dataValue1);
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.queue[0].should.eql(dataValue1);
+
+        monitoredItem.recordValue(dataValue2);
+        monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[1].should.eql(dataValue2);
+
+        monitoredItem.recordValue(dataValue3);
+        monitoredItem.queue.length.should.eql(3);
+        monitoredItem.queue[2].should.eql(dataValue3);
+
+        monitoredItem.recordValue(dataValue4);
+        monitoredItem.queue.length.should.eql(4);
+        monitoredItem.queue[3].should.eql(dataValue4);
+
+        monitoredItem.recordValue(dataValue5);
+        monitoredItem.queue.length.should.eql(4);
+        monitoredItem.queue[3].should.eql(dataValue4);
+
+    });
+
+    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8",function(){
+
+        var dataChangeFilter = new DataChangeFilter({
+            trigger: DataChangeTrigger.StatusValue,
+            deadbandType: DeadbandType.Absolute,
+            deadbandValue: 8
+        });
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            filter: dataChangeFilter,
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+        monitoredItem.queue.length.should.eql(0);
+
+        monitoredItem.recordValue(dataValue1);
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.queue[0].should.eql(dataValue1);
+
+        // 48-> 49 no record
+        monitoredItem.recordValue(dataValue2);
+        monitoredItem.queue.length.should.eql(1);
+        monitoredItem.queue[0].should.eql(dataValue1);
+
+        // 48-> 49  + statusChange => Record
+        monitoredItem.recordValue(dataValue3);
+        monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue[1].should.eql(dataValue3);
+
+        // 49-> 49  + statusChange => Record
+        monitoredItem.recordValue(dataValue4);
+        monitoredItem.queue.length.should.eql(3);
+        monitoredItem.queue[2].should.eql(dataValue4);
+
+        // 49-> 49  + no statusChange => No Record
+        monitoredItem.recordValue(dataValue5);
+        monitoredItem.queue.length.should.eql(3);
+        monitoredItem.queue[2].should.eql(dataValue4);
+
+        // 49-> 59  + no statusChange => No Record
+        dataValue6.value.value.should.eql(59);
+        monitoredItem.recordValue(dataValue6);
+        monitoredItem.queue.length.should.eql(4);
+        monitoredItem.queue[3].should.eql(dataValue6);
+
+        monitoredItem.recordValue(dataValue7);
+        monitoredItem.queue.length.should.eql(4);
+        monitoredItem.queue[3].should.eql(dataValue6);
+
+        monitoredItem.recordValue(dataValue8);
+        monitoredItem.queue.length.should.eql(5);
+        monitoredItem.queue[4].should.eql(dataValue8);
+
+    });
+
+});

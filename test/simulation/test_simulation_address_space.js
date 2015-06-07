@@ -48,7 +48,11 @@ describe("testing address space for conformance testing", function () {
         resourceLeakDetector.start();
 
         engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        var nodeset_filename = [
+            server_engine.mini_nodeset_filename,
+            server_engine.part8_nodeset_filename
+        ];
+        engine.initialize({nodeset_filename:nodeset_filename }, function () {
             build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
             // address space variable change for conformance testing are changing randomly
@@ -102,18 +106,15 @@ describe("testing address space for conformance testing", function () {
 
         });
 
-
     });
 
 
     it("should read a simulated float variable and check value change", function (done) {
 
-
         var nodeId = makeNodeId("Scalar_Simulation_Float", namespaceIndex);
         var variable = engine.findObject(nodeId);
 
         var value1 = null;
-
 
         async.series([
             function (callback) {

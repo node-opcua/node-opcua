@@ -421,4 +421,5 @@ describe("#maxNotificationsPerPublish", function () {
 
         done();
     });
+
 });

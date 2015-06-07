@@ -73,6 +73,7 @@ module.exports.standard_nodeset_file = require("lib/server/server_engine").stand
 
 // an incomplete but sufficient nodeset file used during testing
 module.exports.mini_nodeset_filename = require("lib/server/server_engine").mini_nodeset_filename;
+module.exports.part8_nodeset_filename = require("lib/server/server_engine").part8_nodeset_filename;
 
 module.exports.is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpointUrl;
 
