@@ -121,11 +121,18 @@ describe("Testing numerical range", function () {
         nr.isValid().should.equal(false);
     });
 
-    it("should be an InvalidRange when constructed with a string with invalid simple range", function () {
+    it("should be an InvalidRange when constructed with a string with invalid array range (low==high) ", function () {
+        var nr = new NumericRange("12:12");
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+        nr.isValid().should.equal(false);
+    });
+
+    it("should be an InvalidRange when constructed with a string with invalid array range ( low > high )", function () {
         var nr = new NumericRange("15:12");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
+
 
     it("should be an InvalidRange when constructed with a badly formed string '2-4' ", function () {
         var nr = new NumericRange("2-4");
