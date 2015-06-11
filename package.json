@@ -40,11 +40,10 @@
     "coveralls": "2.11.2",
     "csv": "0.4.2",
     "eyes": "0.1.8",
-    "jsdoc": "3.3.0",
+    "jsdoc": "3.3.1",
     "literate-programming": "0.8.4",
     "mocha": "2.2.5",
     "mocha-lcov-reporter": "0.0.2",
-    "mustache": "2.0.0",
     "node-xml": "1.0.2",
     "request": "2.57.0",
     "should": "6.0.3",
@@ -55,7 +54,7 @@
     "yuidocjs": "*"
   },
   "dependencies": {
-    "async": "1.2.0",
+    "async": "1.2.1",
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
     "byline": "4.2.1",
