@@ -146,7 +146,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 
     it("addVariable should accept a typeDefinition as a String", function () {
 
-        var nodeVar = the_address_space.addVariable(rootFolder, {
+        var nodeVar = the_address_space.addProperty(rootFolder, {
             browseName: "SomeVariable5",
             dataType: "Double",
             typeDefinition: "PropertyType"

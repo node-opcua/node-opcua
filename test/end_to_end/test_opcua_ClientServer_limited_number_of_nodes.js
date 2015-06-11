@@ -212,9 +212,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     it("should crawl a server cyclic-node ",function(done){
 
 
-        server.subFolder1 = server.engine.createFolder("RootFolder","SubFolder1");
-        server.subFolder2 = server.engine.createFolder("SubFolder1","SubFolder2");
-        server.engine.addComponentInFolder(server.subFolder2, server.subFolder1);
+        server.subFolder1 = server.engine.addFolder("RootFolder","SubFolder1");
+        server.subFolder2 = server.engine.addFolder("SubFolder1","SubFolder2");
+        //xx server.engine.addComponentInFolder(server.subFolder2, server.subFolder1);
         done();
     });
 });

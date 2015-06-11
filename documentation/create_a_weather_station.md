@@ -335,12 +335,12 @@ The server address space will be made of a ```Cities``` folder containing one fo
 
 ```javascript
 // declare some folders
-server.engine.createFolder("Objects",{ browseName: "Cities"});
+server.engine.addFolder("Objects",{ browseName: "Cities"});
 
 function create_CityNode(city_name) {
 
     // declare the city node
-    server.engine.createFolder("Cities",{ browseName: city_name });
+    server.engine.addFolder("Cities",{ browseName: city_name });
 
     _"construct city weather variables"
 }
@@ -377,18 +377,18 @@ Each city node exposes 3 read-only variables that can be instantiated this way:
 
 ```javascript
 
-server.engine.addVariableInFolder(city_name,{
+server.engine.addVariable(city_name,{
     browseName: "Temperature",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"temperature"); } }
 });
-server.engine.addVariableInFolder(city_name,{
+server.engine.addVariable(city_name,{
     browseName: "Humidity",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"humidity"); } }
 
 });
-server.engine.addVariableInFolder(city_name,{
+server.engine.addVariable(city_name,{
     browseName: "Pressure",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"pressure"); } }

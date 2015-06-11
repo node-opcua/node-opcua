@@ -90,7 +90,7 @@ server.buildInfo.productName ="Rapsberry 1-Wire OPCUA Server"
 
 function post_initialize() {
 
-  server.engine.createFolder("Objects",{ browseName: "Devices"});
+  server.engine.addFolder("Objects",{ browseName: "Devices"});
 
   sensors.forEach(function(sensor) { install_sensor(sensor); });
 
@@ -100,7 +100,7 @@ var value1 = -10.0;
 function install_sensor(sensor) {
 
       var sensorName = "TemperatureSensor";
-      server.engine.createFolder("Devices",{browseName: sensorName});
+      server.engine.addFolder("Devices",{browseName: sensorName});
 
       setInterval(function() {
            read_sensor(sensor,function(err,result) {
@@ -108,7 +108,7 @@ function install_sensor(sensor) {
                 console.log("result=",result, " v=",value1);
            });
       },1000);
-      server.engine.addVariableInFolder(sensorName,{
+      server.engine.addVariable(sensorName,{
         nodeId: "ns=1;s=Temperature",
         browseName: "temperature",
         dataType: "Double",

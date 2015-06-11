@@ -391,6 +391,12 @@
         <InverseName>HistoricalConfigurationOf</InverseName>
     </UAReferenceType>
 
+    <UAObjectType NodeId="i=75" BrowseName="DataTypeSystemType">
+        <DisplayName>DataTypeSystemType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
 
     <UAObject NodeId="i=84" BrowseName="Root" SymbolicName="RootFolder">
         <DisplayName>Root</DisplayName>
@@ -457,6 +463,14 @@
             <Reference ReferenceType="Organizes" IsForward="false">i=86</Reference>
             <Reference ReferenceType="Organizes">i=31</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=93" BrowseName="OPC Binary" SymbolicName="OPCBinarySchema_TypeSystem">
+        <DisplayName>OPC Binary</DisplayName>
+        <Description>A type system which uses OPC binary schema to describe the encoding of data types.</Description>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=90</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=75</Reference>
         </References>
     </UAObject>
 
@@ -1585,6 +1599,27 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=2268</Reference>
         </References>
     </UAVariable>
+
+
+    <UAVariable NodeId="i=7617" BrowseName="Opc.Ua" SymbolicName="OpcUa_BinarySchema" DataType="ByteString">
+    <DisplayName>Opc.Ua</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=7619</Reference>
+        </References>
+    </UAVariable>
+
+    <UAVariable NodeId="i=7619" BrowseName="NamespaceUri" ParentNodeId="i=7617" DataType="String">
+        <DisplayName>NamespaceUri</DisplayName>
+        <Description>A URI that uniquely identifies the dictionary.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=7617</Reference>
+        </References>
+        <Value>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</String>
+        </Value>
+    </UAVariable>
+
 
     <UAMethod NodeId="i=11489" BrowseName="GetMonitoredItems" ParentNodeId="i=2004">
         <DisplayName>GetMonitoredItems</DisplayName>

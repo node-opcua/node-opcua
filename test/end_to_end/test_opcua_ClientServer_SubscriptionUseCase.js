@@ -791,8 +791,10 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
+            var rootFolder = server.engine.getFolder("RootFolder");
 
-            server.engine.addVariableInFolder("RootFolder", {
+
+            server.engine.addVariable(rootFolder, {
                 browseName: "SomeDouble",
                 nodeId: nodeIdVariant,
                 dataType: "Double",
@@ -802,7 +804,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 }
             });
 
-            server.engine.addVariableInFolder("RootFolder", {
+            server.engine.addVariable(rootFolder, {
                 browseName: "SomeByteString",
                 nodeId: nodeIdByteString,
                 dataType: "ByteString",
@@ -811,7 +813,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     value: new Buffer("Lorem ipsum", "ascii")
                 }
             });
-            server.engine.addVariableInFolder("RootFolder", {
+            server.engine.addVariable(rootFolder, {
                 browseName: "Some String",
                 nodeId: nodeIdString,
                 dataType: "String",

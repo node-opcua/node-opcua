@@ -153,7 +153,7 @@ _"start the server"
 ##### declare a new folder
 
 ```javascript
- server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
+ server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
 ```
 
 ##### add a variable
@@ -169,7 +169,7 @@ var variable1 = 1;
 // emulate variable1 changing every 500 ms
 setInterval(function(){  variable1+=1; }, 500);
 
-server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
+server.nodeVariable1 = server.engine.addVariable("MyDevice",{
         browseName: "MyVariable1",
         dataType: "Double",
         value: {
@@ -188,7 +188,7 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
 
 // add a variable named MyVariable2 to the newly created folder "MyDevice"
 var variable2 = 10.0;
-server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
+server.nodeVariable2 = server.engine.addVariable("MyDevice",{
 
     nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
     browseName: "MyVariable2",
@@ -227,7 +227,7 @@ function available_memory() {
 Now let's expose our OPCUA Variable
 
 ```javascript
-server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
+server.nodeVariable3 = server.engine.addVariable("MyDevice", {
     nodeId: "ns=4;s=free_memory", // a string nodeID
     browseName: "FreeMemory",
     dataType: "Double",    

@@ -152,7 +152,14 @@
         </References>
         <InverseName>ChildOf</InverseName>
     </UAReferenceType>
-
+    <UAReferenceType NodeId="i=35" BrowseName="Organizes">
+        <DisplayName>Organizes</DisplayName>
+        <Description>The type for hierarchical references that are used to organize nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+        </References>
+        <InverseName>OrganizedBy</InverseName>
+    </UAReferenceType>
     <UAReferenceType NodeId="i=40" BrowseName="HasTypeDefinition">
         <DisplayName>HasTypeDefinition</DisplayName>
         <Description>The type for references from a instance node its type defintion node.</Description>
@@ -197,7 +204,7 @@
         </References>
         <InverseName>ComponentOf</InverseName>
     </UAReferenceType>
-
+    
     <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
         <DisplayName>BaseObjectType</DisplayName>
         <Description>The base type for all object nodes.</Description>

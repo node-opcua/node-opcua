@@ -92,25 +92,25 @@ function post_initialize() {
 
     function construct_my_address_space(server) {
        // declare some folders
-       server.engine.createFolder("Objects",{ browseName: "Cities"});
+       server.engine.addFolder("Objects",{ browseName: "Cities"});
        
        function create_CityNode(city_name) {
        
            // declare the city node
-           server.engine.createFolder("Cities",{ browseName: city_name });
+           server.engine.addFolder("Cities",{ browseName: city_name });
        
-           server.engine.addVariableInFolder(city_name,{
+           server.engine.addVariable(city_name,{
                browseName: "Temperature",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"temperature"); } }
            });
-           server.engine.addVariableInFolder(city_name,{
+           server.engine.addVariable(city_name,{
                browseName: "Humidity",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"humidity"); } }
            
            });
-           server.engine.addVariableInFolder(city_name,{
+           server.engine.addVariable(city_name,{
                browseName: "Pressure",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"pressure"); } }

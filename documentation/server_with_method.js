@@ -7,7 +7,7 @@ var server = new opcua.OPCUAServer({
 
 function post_initialize() {
 
-    var myDevice = server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
+    var myDevice = server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
 
     var method = server.engine.addMethod(myDevice,{
     

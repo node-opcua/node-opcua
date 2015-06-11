@@ -282,7 +282,7 @@ describe("testing ServerEngine", function () {
 
         var objectFolder = engine.findObjectByBrowseName("Objects");
 
-        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+        var newFolder = engine.addFolder("ObjectsFolder", "MyNewFolder");
         assert(newFolder);
 
         newFolder.hasTypeDefinition.should.eql(FolderTypeId);
@@ -295,7 +295,7 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to find a newly created folder by nodeId", function () {
 
-        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder");
+        var newFolder = engine.addFolder("ObjectsFolder", "MyNewFolder");
 
         // a specific node id should have been assigned by the engine
         assert(newFolder.nodeId instanceof NodeId);
@@ -308,7 +308,7 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to find a newly created folder by 'browse name'", function () {
 
-        var newFolder = engine.createFolder("ObjectsFolder", "MySecondNewFolder");
+        var newFolder = engine.addFolder("ObjectsFolder", "MySecondNewFolder");
         var result = engine.findObjectByBrowseName("MySecondNewFolder");
         assert(result !== null);
         result.should.eql(newFolder);
@@ -316,10 +316,10 @@ describe("testing ServerEngine", function () {
 
     xit("should not be possible to create a object with an existing 'browse name'", function () {
 
-        var newFolder1 = engine.createFolder("ObjectsFolder", "NoUniqueName");
+        var newFolder1 = engine.addFolder("ObjectsFolder", "NoUniqueName");
 
         (function () {
-            engine.createFolder("ObjectsFolder", "NoUniqueName");
+            engine.addFolder("ObjectsFolder", "NoUniqueName");
         }).should.throw("browseName already registered");
 
         var result = engine.findObjectByBrowseName("NoUniqueName");
@@ -328,9 +328,9 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder", function (done) {
 
-        var newFolder = engine.createFolder("ObjectsFolder", "MyNewFolder1");
+        var newFolder = engine.addFolder("ObjectsFolder", "MyNewFolder1");
 
-        var newVariable = engine.addVariableInFolder("MyNewFolder1",
+        var newVariable = engine.addVariable("MyNewFolder1",
             {
                 browseName: "Temperature",
                 dataType: "Float",
@@ -361,9 +361,9 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
-        engine.createFolder("ObjectsFolder", "MyNewFolder3");
+        engine.addFolder("ObjectsFolder", "MyNewFolder3");
 
-        var newVariable = engine.addVariableInFolder("MyNewFolder3",
+        var newVariable = engine.addVariable("MyNewFolder3",
             {
                 nodeId: "ns=4;b=01020304ffaa",  // << fancy node id here !
                 browseName: "Temperature",
@@ -387,7 +387,7 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder that returns a timestamped value", function (done) {
 
-        engine.createFolder("ObjectsFolder", "MyNewFolder4");
+        engine.addFolder("ObjectsFolder", "MyNewFolder4");
 
         var temperature = new DataValue({
             value: new Variant({dataType: DataType.Double, value: 10.0}),
@@ -395,7 +395,7 @@ describe("testing ServerEngine", function () {
             sourcePicoseconds: 10
         });
 
-        var newVariable = engine.addVariableInFolder("MyNewFolder4",
+        var newVariable = engine.addVariable("MyNewFolder4",
             {
                 browseName: "TemperatureWithSourceTimestamps",
                 dataType: "Double",

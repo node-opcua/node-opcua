@@ -17,7 +17,7 @@ function post_initialize() {
     function construct_my_address_space(server) {
     
         // declare some folders
-         server.engine.createFolder("RootFolder",{ browseName: "MyDevice"});
+         server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
     
         // add variables in folders
         // add a variable named MyVariable1 to the newly created folder "MyDevice"
@@ -26,7 +26,7 @@ function post_initialize() {
         // emulate variable1 changing every 500 ms
         setInterval(function(){  variable1+=1; }, 500);
         
-        server.nodeVariable1 = server.engine.addVariableInFolder("MyDevice",{
+        server.nodeVariable1 = server.engine.addVariable("MyDevice",{
                 browseName: "MyVariable1",
                 dataType: "Double",
                 value: {
@@ -39,7 +39,7 @@ function post_initialize() {
         
         // add a variable named MyVariable2 to the newly created folder "MyDevice"
         var variable2 = 10.0;
-        server.nodeVariable2 = server.engine.addVariableInFolder("MyDevice",{
+        server.nodeVariable2 = server.engine.addVariable("MyDevice",{
         
             nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
             browseName: "MyVariable2",
@@ -66,7 +66,7 @@ function post_initialize() {
             return percentageMemUsed;
         }
         
-        server.nodeVariable3 = server.engine.addVariableInFolder("MyDevice", {
+        server.nodeVariable3 = server.engine.addVariable("MyDevice", {
             nodeId: "ns=4;s=free_memory", // a string nodeID
             browseName: "FreeMemory",
             dataType: "Double",    
@@ -87,3 +87,5 @@ function post_initialize() {
     });
 }
 server.initialize(post_initialize);
+
+

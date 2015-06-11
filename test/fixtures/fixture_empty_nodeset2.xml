@@ -26,6 +26,15 @@
     <InverseName>NonHierarchicalReferences</InverseName>
   </UAReferenceType>
 
+  <UAReferenceType NodeId="i=35" BrowseName="Organizes">
+    <DisplayName>Organizes</DisplayName>
+    <Description>The type for hierarchical references that are used to organize nodes.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+    </References>
+    <InverseName>OrganizedBy</InverseName>
+  </UAReferenceType>
+
   <UAReferenceType NodeId="i=40" BrowseName="HasTypeDefinition">
     <DisplayName>HasTypeDefinition</DisplayName>
     <Description>The type for references from a instance node its type definition node.</Description>
@@ -33,6 +42,22 @@
       <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
     </References>
     <InverseName>TypeDefinitionOf</InverseName>
+  </UAReferenceType>
+  <UAReferenceType NodeId="i=46" BrowseName="HasProperty">
+    <DisplayName>HasProperty</DisplayName>
+    <Description>The type for non-looping hierarchical reference from a node to its property.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+    </References>
+    <InverseName>PropertyOf</InverseName>
+  </UAReferenceType>
+  <UAReferenceType NodeId="i=47" BrowseName="HasComponent">
+    <DisplayName>HasComponent</DisplayName>
+    <Description>The type for non-looping hierarchical reference from a node to its component.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+    </References>
+    <InverseName>ComponentOf</InverseName>
   </UAReferenceType>
 
   <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">

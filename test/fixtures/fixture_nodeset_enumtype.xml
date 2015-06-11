@@ -128,6 +128,14 @@
     </References>
     <InverseName>ChildOf</InverseName>
   </UAReferenceType>
+  <UAReferenceType NodeId="i=35" BrowseName="Organizes">
+    <DisplayName>Organizes</DisplayName>
+    <Description>The type for hierarchical references that are used to organize nodes.</Description>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+    </References>
+    <InverseName>OrganizedBy</InverseName>
+  </UAReferenceType>
   <UAReferenceType NodeId="i=37" BrowseName="HasModellingRule">
     <DisplayName>HasModellingRule</DisplayName>
     <Description>The type for references from instance declarations to modelling rule nodes.</Description>

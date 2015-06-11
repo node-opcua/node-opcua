@@ -56,11 +56,9 @@ describe("ServerEngine - addMethod", function () {
     it("should be able to attach a method on a object of the address space and call it",function(done) {
 
 
-        var object = engine.addObjectInFolder( engine.findObject("ObjectsFolder"),{
-            browseName: "MyObject",
-            nodeId: "ns=1;s=MyObject"
-        });
+        var objectFolder = engine.findObject("ObjectsFolder");
 
+        var object = engine.addObjectInFolder(objectFolder,{browseName: "MyObject",nodeId: "ns=1;s=MyObject"});
 
         var method = engine.addMethod(object,{
             browseName: "Bark",
