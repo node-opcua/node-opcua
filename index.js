@@ -27,7 +27,8 @@ module.exports.read_service     = require("lib/services/read_service");
 module.exports.call_service     = require("lib/services/call_service");
 module.exports.session_service  = require("lib/services/session_service");
 module.exports.get_endpoints_service  = require("lib/services/get_endpoints_service");
-module.exports.subscription_service  = require("lib/services/subscription_service");
+module.exports.subscription_service   = require("lib/services/subscription_service");
+module.exports.historizing_service    = require("lib/services/historizing_service");
 
 module.exports.EndpointDescription =  module.exports.get_endpoints_service.EndpointDescription;
 
@@ -35,9 +36,11 @@ module.exports.utils              = require("lib/misc/utils");
 
 module.exports.AttributeIds       = module.exports.read_service.AttributeIds;
 module.exports.AttributeNameById  = module.exports.read_service.AttributeNameById;
+module.exports.VariableTypeIds    = require("lib/opcua_node_ids").VariableTypeIds;
 module.exports.VariableIds        = require("lib/opcua_node_ids").VariableIds;
 module.exports.MethodIds          = require("lib/opcua_node_ids").MethodIds;
 module.exports.ObjectIds          = require("lib/opcua_node_ids").ObjectIds;
+module.exports.ObjectTypeIds      = require("lib/opcua_node_ids").ObjectTypeIds;
 
 module.exports.ApplicationType    = module.exports.get_endpoints_service.ApplicationType;
 
@@ -79,3 +82,4 @@ module.exports.is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpoint
 
 module.exports.client_utils = require("lib/client/client_utils");
 
+module.exports.DataTypeIds = require("lib/opcua_node_ids").DataTypeIds;

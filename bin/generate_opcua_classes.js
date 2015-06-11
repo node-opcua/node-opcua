@@ -263,6 +263,11 @@ registerObject("WriteValue");
 registerObject("WriteRequest");
 registerObject("WriteResponse");
 
+// history
+registerObject("ModificationInfo");
+registerObject("HistoryData");
+registerObject("HistoryModifiedData");
+
 
 // -------------------------------------------------------------------------
 var filename = path.join(__dirname, "../nodesets/Opc.Ua.NodeSet2.xml");

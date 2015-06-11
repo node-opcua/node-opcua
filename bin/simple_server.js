@@ -104,7 +104,7 @@ server.on("post_initialize", function () {
 
     install_optional_cpu_and_memory_usage_node(server);
 
-    var myDevices = server.engine.createFolder("Objects", { browseName: "MyDevices"});
+    var myDevices = server.engine.addFolder("Objects", { browseName: "MyDevices"});
 
     /**
      * variation 1:
@@ -114,7 +114,7 @@ server.on("post_initialize", function () {
      * The server will set the timestamps automatically for us.
      *
      */
-    server.engine.addVariableInFolder(myDevices, {
+    server.engine.addVariable(myDevices, {
         browseName: "PumpSpeed",
         nodeId: "ns=2;s=PumpSpeed",
         dataType: "Double",
@@ -131,7 +131,7 @@ server.on("post_initialize", function () {
         }
     });
 
-    server.engine.addVariableInFolder(myDevices, {
+    server.engine.addVariable(myDevices, {
         browseName: "SomeDate",
         nodeId: "ns=2;s=SomeDate",
         dataType: "DateTime",
@@ -161,7 +161,7 @@ server.on("post_initialize", function () {
         external_value_with_sourceTimestamp.sourceTimestamp = new Date();
     },1000);
 
-    server.engine.addVariableInFolder(myDevices, {
+    server.engine.addVariable(myDevices, {
         browseName: "Pressure",
         nodeId: "ns=2;s=Pressure",
         dataType: "Double",
@@ -183,7 +183,7 @@ server.on("post_initialize", function () {
      *
      */
 
-    server.engine.addVariableInFolder(myDevices, {
+    server.engine.addVariable(myDevices, {
         browseName: "Temperature",
         nodeId: "ns=2;s=Temperature",
         dataType: "Double",
@@ -229,7 +229,7 @@ server.on("post_initialize", function () {
     var view = server.engine.addView(viewsFolder,{
         browseName:"MyView",
         nodeId: "ns=2;s=SampleView"
-    })
+    });
 });
 
 

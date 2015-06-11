@@ -2,9 +2,9 @@
 var HistoryReadResult_Schema = {
     name: "HistoryReadResult",
     fields: [
-        { name: "StatusCode", fieldType:"StatusCode" },
-        { name: "ContinuationPoint", fieldType:"ByteString" ,default:null},
-        { name: "HistoryData", fieldType:"ExtensionObject"}
+        { name: "statusCode", fieldType:"StatusCode" },
+        { name: "continuationPoint", fieldType:"ByteString" ,default:null},
+        { name: "historyData", fieldType:"ExtensionObject"}
     ]
 };
 exports.HistoryReadResult_Schema = HistoryReadResult_Schema;
