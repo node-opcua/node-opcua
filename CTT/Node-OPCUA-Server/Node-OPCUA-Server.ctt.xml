@@ -12350,7 +12350,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="b=NULL"/>
+              <Value typename="QString" type="10" data="b="/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
