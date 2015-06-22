@@ -35,7 +35,7 @@ describe("testing NodeSet XML file loading",function(){
             Object.keys(address_space._dataTypeMap).length.should.be.greaterThan(2);
             Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(1);
             done(err);
-        })
+        });
     });
 
     it("should load a large nodeset xml file",function(done){
@@ -56,7 +56,30 @@ describe("testing NodeSet XML file loading",function(){
             Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(10);
 
             done(err);
-        })
+        });
+    });
+
+    it("should load the DI nodeset ",function(done){
+
+        var xml_files = [
+            __dirname + "/../../nodesets/Opc.Ua.NodeSet2.xml",
+            __dirname + "/../../nodesets/Opc.Ua.Di.NodeSet2.xml"
+        ];
+        require("fs").existsSync(xml_files[0]).should.be.eql(true," standard node set file shall exist");
+        require("fs").existsSync(xml_files[1]).should.be.eql(true," DI node set file shall exist");
+
+        generate_address_space(address_space,xml_files,function(err){
+
+            Object.keys(address_space._aliases).length.should.be.greaterThan(10);
+            Object.keys(address_space._objectMap).length.should.be.greaterThan(10);
+            Object.keys(address_space._variableTypeMap).length.should.be.greaterThan(10);
+            Object.keys(address_space._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(address_space._dataTypeMap).length.should.be.greaterThan(10);
+            Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(10);
+
+            done(err);
+        });
+
     });
 
 
