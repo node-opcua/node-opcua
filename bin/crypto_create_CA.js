@@ -634,20 +634,22 @@ function create_default_certificates(done) {
 
     var base_name = certificateDir;
 
-   //xx var clientURN="urn:NodeOPCUA-Client";
-    //xx var serverURN="urn:NodeOPCUA-Server";
-
     var hostname = get_fully_qualified_domain_name(35);
 
     var clientURN="urn:" + hostname +  ":" + "NodeOPCUA-Client";
     var serverURN="urn:" + hostname +  ":" + "NodeOPCUA-Server";
+    var discoveryServerURN="urn:" + hostname +  ":" + "NodeOPCUA-DiscoveryServer";
     var task1 = [
 
-        Title.bind(null,"Create  Application Certificate for Server its private key"),
+        Title.bind(null,"Create  Application Certificate for Server & its private key"),
         __create_default_certificates.bind(null,base_name,"client_",clientURN),
 
-        Title.bind(null,"Create  Application Certificate for Client its private key"),
-        __create_default_certificates.bind(null,base_name,"server_",serverURN)
+        Title.bind(null,"Create  Application Certificate for Client & its private key"),
+        __create_default_certificates.bind(null,base_name,"server_",serverURN),
+
+        Title.bind(null,"Create  Application Certificate for DiscoveryServer & its private key"),
+        __create_default_certificates.bind(null,base_name,"discoveryServer_",discoveryServerURN),
+
     ];
     async.series(task1,done);
 }

@@ -29,6 +29,7 @@ module.exports.session_service  = require("lib/services/session_service");
 module.exports.get_endpoints_service  = require("lib/services/get_endpoints_service");
 module.exports.subscription_service   = require("lib/services/subscription_service");
 module.exports.historizing_service    = require("lib/services/historizing_service");
+module.exports.register_server_service = require("lib/services/register_server_service");
 
 module.exports.EndpointDescription =  module.exports.get_endpoints_service.EndpointDescription;
 

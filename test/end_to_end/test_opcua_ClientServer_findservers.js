@@ -81,7 +81,7 @@ describe("testing OPCUA-Service Discovery Endpoint",function() {
         });
     }
 
-    it("should anwser a FindServers Request - without filters",function(done){
+    it("should answer a FindServers Request - without filters",function(done){
         // Every  Server  shall provide a  Discovery Endpoint  that supports this  Service;   however, the  Server
         // shall only return a single record that describes itself.  Gateway Servers  shall return a record for each
         // Server  that they provide access to plus (optionally) a record that allows the  Gateway Server  to be
@@ -96,7 +96,7 @@ describe("testing OPCUA-Service Discovery Endpoint",function() {
 
     });
 
-    it("should anwser a FindServers Request - with filters",function(done){
+    it("should answer a FindServers Request - with filters",function(done){
 
         make_on_connected_client(function(client,callback) {
 
@@ -108,7 +108,7 @@ describe("testing OPCUA-Service Discovery Endpoint",function() {
         },done);
 
     });
-    it("should anwser FindServers Request and apply serverUris filter",function(done) {
+    it("should answer FindServers Request and apply serverUris filter",function(done) {
 
         make_on_connected_client(function(client,callback) {
 
