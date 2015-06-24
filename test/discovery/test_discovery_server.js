@@ -161,12 +161,15 @@ describe("Discovery server",function(){
 
         // there should be no endpoint exposed by an blank discovery server
         discovery_server.registeredServerCount.should.equal(0);
-        var initalServerCount = 0;
+        var initialServerCount = 0;
         async.series([
 
             function (callback) {
                 perform_findServersRequest(discovery_server_endpointUrl,function(err,servers){
-                    initalServerCount = servers[0].discoveryUrls.length;
+                    initialServerCount = servers.length;
+                    servers[0].discoveryUrls.length.should.eql(1);
+                    console.log(" initialServerCount = ",initialServerCount);
+                    console.log("servers[0].discoveryUrls",servers[0].discoveryUrls.join("\n"));
                     callback(err);
                 });
             },
@@ -183,7 +186,7 @@ describe("Discovery server",function(){
             function (callback) {
                 perform_findServersRequest(discovery_server_endpointUrl,function(err,servers){
                     console.log(servers[0].toString());
-                    servers[0].discoveryUrls.length.should.eql(initalServerCount + 1);
+                    servers.length.should.eql(initialServerCount + 1);
                     callback(err);
                 });
             },
@@ -194,10 +197,10 @@ describe("Discovery server",function(){
             function (callback) {
 
                 perform_findServersRequest(discovery_server_endpointUrl,function(err,servers){
-                    servers[0].discoveryUrls.length.should.eql(initalServerCount);
+                    servers.length.should.eql(initialServerCount);
                     callback(err);
                 });
-            },
+            }
 
         ],done);
 

@@ -19,7 +19,7 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-
+require("requirish")._(module);
 var colors = require("colors");
 var path = require("path");
 var fs = require("fs");
@@ -48,9 +48,10 @@ var openssl_path = "openssl";
 var isDevelopment = argv.dev;
 
 
-var get_fully_qualified_domain_name = require("../lib/misc/hostname").get_fully_qualified_domain_name;
+var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 var hostname =require("os").hostname();
 
+var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
 function make_path(folder_name,file_name) {
     var s =  path.normalize(path.join(folder_name,file_name));
@@ -629,16 +630,17 @@ var next_year = get_offset_date(today,365);
 
 
 
-
 function create_default_certificates(done) {
 
     var base_name = certificateDir;
 
-    var hostname = get_fully_qualified_domain_name(35);
+    var hostname = get_fully_qualified_domain_name();
+    console.log(" hostname = ",hostname);
 
-    var clientURN="urn:" + hostname +  ":" + "NodeOPCUA-Client";
-    var serverURN="urn:" + hostname +  ":" + "NodeOPCUA-Server";
-    var discoveryServerURN="urn:" + hostname +  ":" + "NodeOPCUA-DiscoveryServer";
+    var clientURN= makeApplicationUrn(hostname,"NodeOPCUA-Client");
+    var serverURN= makeApplicationUrn(hostname,"NodeOPCUA-Server");
+    var discoveryServerURN= makeApplicationUrn(hostname,"NodeOPCUA-DiscoveryServer");
+
     var task1 = [
 
         Title.bind(null,"Create  Application Certificate for Server & its private key"),

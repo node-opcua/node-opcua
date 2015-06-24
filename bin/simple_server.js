@@ -43,6 +43,8 @@ var userManager = {
     }
 };
 
+var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
+
 var server_options ={
 
     port: port,
@@ -53,7 +55,7 @@ var server_options ={
     nodeset_filename: [ standard_nodeset_file],
 
     serverInfo: {
-        applicationUri : "urn:"+ get_fully_qualified_domain_name(35)+ ":NodeOPCUA-Server",
+        applicationUri : makeApplicationUrn(get_fully_qualified_domain_name(),"NodeOPCUA-Server"),
         productUri:      "NodeOPCUA-SimpleDemoServer",
         applicationName: {text: "applicationName"},
         gatewayServerUri: null,
@@ -81,20 +83,6 @@ var server = new OPCUAServer(server_options);
 var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
 var hostname = require("os").hostname();
-
-var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
-
-console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
-
-server.registerServer(discovery_server_endpointUrl, function (err) {
-    if (err) {
-        // cannot register server in discovery
-        console.log("     warning : cannot register server into registry server".cyan);
-    } else {
-        console.log("     registering server to the discovery server : done.".cyan);
-    }
-    console.log("");
-});
 
 
 
@@ -352,3 +340,19 @@ process.on('SIGINT', function() {
         process.exit(-1);
     });
 });
+
+var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
+
+console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
+
+server.registerServer(discovery_server_endpointUrl, function (err) {
+    if (err) {
+        // cannot register server in discovery
+        console.log("     warning : cannot register server into registry server".cyan);
+    } else {
+
+        console.log("     registering server to the discovery server : done.".cyan);
+    }
+    console.log("");
+});
+

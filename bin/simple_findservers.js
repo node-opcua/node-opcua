@@ -19,13 +19,13 @@ perform_findServersRequest(discovery_server_endpointUrl,function(err,servers){
             console.log("         productUri:",server.productUri.cyan.bold);
             console.log("    applicationName:",server.applicationName.text.cyan.bold);
             console.log("               type:",server.applicationType.key.cyan.bold);
-            console.log("   gatewayServerUri:",server.gatewayServerUri.cyan.bold);
-            console.log("discoveryProfileUri:",server.discoveryProfileUri.cyan.bold);
+            console.log("   gatewayServerUri:",server.gatewayServerUri ? server.gatewayServerUri.cyan.bold : "");
+            console.log("discoveryProfileUri:",server.discoveryProfileUri ? server.discoveryProfileUri.cyan.bold:"")  ;
             console.log("      discoveryUrls:");
             server.discoveryUrls.forEach(function(discoveryUrl) {
             console.log("                    " + discoveryUrl.cyan.bold);
             });
-            console.log("");
+            console.log("-------------");
         });
     } else {
         console.log("Error",err);
