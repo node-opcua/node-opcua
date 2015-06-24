@@ -42,8 +42,6 @@ global.nodeIdSettings = nodeIdSettings;
 function describe_on_session(title, options, callback) {
 
     describe(title, function () {
-
-        var session = null;
         var final_callback = null;
         var after_done = null;
 

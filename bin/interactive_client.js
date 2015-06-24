@@ -5,7 +5,7 @@ require('colors');
 var sprintf = require('sprintf');
 
 var opcua = require("..");
-var OPCUAClient = opcua.OPCUAClient;
+
 
 var utils = require('lib/misc/utils');
 var assert = require('better-assert');
@@ -16,7 +16,7 @@ var _ = require("underscore");
 
 console.log(" Version ", opcua.version);
 
-var client = new OPCUAClient();
+var client = new opcua.OPCUAClient();
 var the_session = null;
 var crawler = null;
 
@@ -24,7 +24,8 @@ var dumpPacket = false;
 var dumpMessageChunk = false;
 
 
-var sessionTimeout = 5000;
+var sessionTimeout = 10 * 60* 1000; // 10 minutes
+var pingTimeout  = 10* 1000; //  interval  between two keepalive pings
 
 
 var endpoints_history = [];
@@ -220,6 +221,7 @@ function ping_server(callback) {
     the_session.readVariableValue(nodes, function (err, dataValues) {
         if(err) {
             console.log(" warning : ".cyan, err.message.yellow);
+            return close_session(callback);
         } else {
             var newState = opcua.ServerState.get(dataValues[0].value.value);
             if (newState !== lastKnownState) {
@@ -232,10 +234,14 @@ function ping_server(callback) {
 }
 var timerId = 0;
 function start_ping() {
-    timerId = setInterval(ping_server,sessionTimeout / 3);
+    assert(!timerId);
+    timerId = setInterval(ping_server,pingTimeout / 3);
 }
 function stop_ping() {
-    clearInterval(timerId);
+    if (timerId) {
+        clearInterval(timerId);
+        timerId = 0;
+    }
 }
 
 function close_session(callback) {
@@ -246,7 +252,6 @@ function close_session(callback) {
             callback();
         });
     });
-
 }
 
 function set_debug(flag) {
