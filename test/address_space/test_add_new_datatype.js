@@ -45,7 +45,7 @@ describe("testing add new DataType ", function () {
             dataType: "Double",
             references: [
                 { referenceType: "HasTypeDefinition", isForward: false, nodeId: baseDataVariableType.nodeId },
-                //xx { referenceType: "HasModelingRule" ,                    nodeId: "ModellingRule_Mandatory"   }
+                { referenceType: "HasModelingRule" ,                    nodeId: "ModellingRule_Mandatory"   }
             ],
             value: { dataType: DataType.Double, value: 19.5}
         });
@@ -56,13 +56,14 @@ describe("testing add new DataType ", function () {
     }
 
     function instantiateTemperatureSensor(address_space,parentObject,options) {
+
         assert(parentObject.nodeId);
         var temperatureSensorTypeNode = address_space.findObjectType("TemperatureSensorType");
         assert(temperatureSensorTypeNode.nodeId);
 
         assert(_.isString(options.browseName),"expecting a browse name");
 
-        var machineTypeTemperatureSensorNode = address_space._createObject({
+        var temperatureSensorNode = address_space._createObject({
             browseName:  options.browseName,
             nodeId:      address_space._build_new_NodeId(),
             nodeClass:   NodeClass.Object,
@@ -71,7 +72,16 @@ describe("testing add new DataType ", function () {
                 { referenceType: "HasComponent",      isForward: false, nodeId: parentObject.nodeId}
             ]
         });
-        machineTypeTemperatureSensorNode.propagate_back_references(address_space);
+        temperatureSensorNode.propagate_back_references(address_space);
+
+        address_space.addProperty(temperatureSensorNode,{
+            browseName: "Temperature",
+            dataType: "Double",
+            references: [
+                { referenceType: "HasTypeDefinition", isForward: false, nodeId: "BaseDataVariableType" },
+            ],
+            value: { dataType: DataType.Double, value: 19.5}
+        });
     }
 
     function createMachineType(address_space) {
