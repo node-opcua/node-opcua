@@ -658,6 +658,9 @@ function create_default_certificates(done) {
 
 function __create_default_certificates(base_name,prefix,application_URI,done) {
 
+    // Fugl hack
+    base_name = "\"" + base_name + "\"";
+
     assert(_.isFunction(done));
 
     var key_1024 = make_path(base_name ,prefix + "key_1024.pem");
@@ -709,7 +712,7 @@ var install_prerequisite = require("./install_prerequisite").install_prerequisit
 function find_openssl(callback) {
 
     if (process.platform === "win32") {
-        openssl_path = path.join(__dirname, "./openssl/openssl.exe");
+        openssl_path = path.join("\"" + __dirname + "\"", "./openssl/openssl.exe");
     }
     callback(null);
 
