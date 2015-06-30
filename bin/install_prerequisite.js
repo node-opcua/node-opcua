@@ -26,10 +26,13 @@ var fs = require("fs");
 var path = require("path");
 var colors= require("colors");
 
-function execute(cmd,callback){
+function execute(cmd,callback, cwd){
 
     var output = "";
-    var child = child_process.exec(cmd,function(err){
+
+    var cwd = cwd ? {cwd: cwd} : {};
+
+    var child = child_process.exec(cmd, cwd,function(err){
         //xx console.log("status = ", child.exitCode);
         callback(err,child.exitCode,output );
     });
@@ -40,7 +43,8 @@ function execute(cmd,callback){
     });
 }
 
-var cmd = path.join(__dirname,"./openssl/openssl.exe");
+var cwd = path.join(__dirname,"./openssl");
+var cmd = "openssl.exe";
 
 function check_openssl(callback) {
 
@@ -51,7 +55,7 @@ function check_openssl(callback) {
     execute(cmd + " version", function(err,exitCode,output){
         if (err) {return callback(err);}
         callback(null, (exitCode === 0) && output.match(/ 1.0.2 /));
-    });
+    }, cwd);
 }
 
 var ProgressBar = require('progress');
