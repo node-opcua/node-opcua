@@ -23,152 +23,74 @@ describe("testing add new DataType ", function () {
 
     function createTemperatureSensorType(address_space) {
 
-        var baseObjectType = address_space.findObjectType("BaseObjectType");
-        var baseDataVariableType = address_space.findVariableType("BaseDataVariableType");
-
         // TemperatureSensorType
-        var temperatureSensorTypeParams = {
-            nodeClass:   NodeClass.ObjectType,
-            isAbstract:  false,
-            nodeId: address_space._build_new_NodeId(),
-            browseName: "TemperatureSensorType",
-            eventNotifier: 0,
-            references: [
-                { referenceType: "HasSubtype", isForward: false, nodeId:  baseObjectType.nodeId }
-            ]
-        };
-        var temperatureSensorTypeNode = address_space._createObject(temperatureSensorTypeParams);
-        temperatureSensorTypeNode.propagate_back_references(address_space);
+        var temperatureSensorTypeNode = address_space.addObjectType({ browseName: "TemperatureSensorType" });
 
-        var property1 = address_space.addProperty(temperatureSensorTypeNode,{
-            browseName: "Temperature",
-            dataType: "Double",
-            references: [
-                { referenceType: "HasTypeDefinition", isForward: false, nodeId: baseDataVariableType.nodeId },
-                { referenceType: "HasModelingRule" ,                    nodeId: "ModellingRule_Mandatory"   }
-            ],
+        address_space.addVariable(temperatureSensorTypeNode,{
+            browseName:     "Temperature",
+            dataType:       "Double",
+            modellingRule:  "Mandatory",
             value: { dataType: DataType.Double, value: 19.5}
         });
-        //xx p.propagate_back_references(address_space);
 
+        //temperatureSensorTypeNode.subTypeOf.should.eql(address_space.findVariableType("BaseObjectType").nodeId);
+        console.log(temperatureSensorTypeNode);
+        console.log(temperatureSensorTypeNode.subTypeOf);
         return temperatureSensorTypeNode;
 
     }
 
-    function instantiateTemperatureSensor(address_space,parentObject,options) {
 
-        assert(parentObject.nodeId);
-        var temperatureSensorTypeNode = address_space.findObjectType("TemperatureSensorType");
-        assert(temperatureSensorTypeNode.nodeId);
 
-        assert(_.isString(options.browseName),"expecting a browse name");
-
-        var temperatureSensorNode = address_space._createObject({
-            browseName:  options.browseName,
-            nodeId:      address_space._build_new_NodeId(),
-            nodeClass:   NodeClass.Object,
-            references: [
-                { referenceType: "HasTypeDefinition", isForward: false, nodeId:  temperatureSensorTypeNode.nodeId },
-                { referenceType: "HasComponent",      isForward: false, nodeId: parentObject.nodeId}
-            ]
-        });
-        temperatureSensorNode.propagate_back_references(address_space);
-
-        address_space.addProperty(temperatureSensorNode,{
-            browseName: "Temperature",
-            dataType: "Double",
-            references: [
-                { referenceType: "HasTypeDefinition", isForward: false, nodeId: "BaseDataVariableType" },
-            ],
-            value: { dataType: DataType.Double, value: 19.5}
-        });
-    }
 
     function createMachineType(address_space) {
 
         var baseObjectType = address_space.findObjectType("BaseObjectType");
         var baseDataVariableType = address_space.findVariableType("BaseDataVariableType");
 
-        var temperatureSensorTypeNode = createTemperatureSensorType(address_space);
+        var temperatureSensorType = createTemperatureSensorType(address_space);
 
         // -------------------------------------------- MachineType
-        var machineTypeParams = {
-            nodeClass:   NodeClass.ObjectType,
-            isAbstract:  false,
-            nodeId: address_space._build_new_NodeId(),
-            browseName: "MachineType",
-            eventNotifier: 0,
-            references: [
-                { referenceType: "HasSubtype", isForward: false, nodeId:  baseObjectType.nodeId }
-            ]
-        };
-        var machineTypeNode = address_space._createObject(machineTypeParams);
-        machineTypeNode.propagate_back_references(address_space);
-        assert(machineTypeNode.nodeId);
-        // MachineType.TemperatureSensor
-        var machineTypeTemperatureSensorNode = instantiateTemperatureSensor(address_space,machineTypeNode,{
+        var machineTypeNode = address_space.addObjectType({ browseName: "MachineType" });
+
+        var machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
+            componentOf: machineTypeNode,
             browseName: "TemperatureSensor"
         });
+        assert(machineTypeNode.temperatureSensor);
 
         // MachineType.HeaderSwitch
         var machineTypeHeaderSwitchNode = address_space.addProperty(machineTypeNode,{
             browseName: "HeaterSwitch",
             dataType: "Boolean",
-            references: [
-                { referenceType: "HasTypeDefinition", isForward: false, nodeId: baseDataVariableType.nodeId },
-                //xx { referenceType: "HasProperty",       isForward: false, nodeId: machineTypeNode.nodeId}
-            ],
+            hasTypeDefinition: baseDataVariableType,
             value: { dataType: DataType.Boolean, value: false}
         });
-        machineTypeHeaderSwitchNode.propagate_back_references(address_space);
+        //xx machineTypeHeaderSwitchNode.propagate_back_references(address_space);
 
+        assert(machineTypeNode.heaterSwitch);
+        console.log(machineTypeNode.heaterSwitch.nodeId.toString());
         return machineTypeNode;
     }
 
 
     function instantiateMachine(address_space,parentFolder,options) {
-
         assert(parentFolder.nodeId);
         assert(_.isString(options.browseName));
         var baseObjectType = address_space.findObjectType("BaseObjectType");
         var baseDataVariableType = address_space.findVariableType("BaseDataVariableType");
 
-        // -------------------------------------------- MachineType
         var machineType = address_space.findObjectType("MachineType");
         assert(machineType);
-
-        // create machine type object
-        var machineParams = {
-            nodeClass:   NodeClass.Object,
-            nodeId: address_space._build_new_NodeId(),
-            browseName: options.browseName,
-            eventNotifier: 0,
-            references: [
-                { referenceType: "HasTypeDefinition", isForward: false, nodeId:  machineType.nodeId },
-                { referenceType: "HasComponent", isForward: false, nodeId:  parentFolder.nodeId },
-            ]
-        };
-        var myMachineNode = address_space._createObject(machineParams);
-
-        // MachineType.TemperatureSensor
-        var machineTypeTemperatureSensorNode = instantiateTemperatureSensor(address_space,myMachineNode,{
-            browseName: "TemperatureSensor"
+        var machine = machineType.instantiate({
+            componentOf: parentFolder,
+            browseName:  options.browseName
         });
 
-        // MachineType.HeaderSwitch
-        var machineHeaterSwitchNode = address_space.addProperty(myMachineNode,{
-            browseName: "HeaterSwitch",
-            dataType: "Boolean",
-            references: [
-                { referenceType: "HasTypeDefinition", isForward: false, nodeId: baseDataVariableType.nodeId },
-                //xx { referenceType: "HasProperty",       isForward: false, nodeId: machineTypeNode.nodeId}
-            ],
-            value: { dataType: DataType.Boolean, value: false}
-        });
-        machineHeaterSwitchNode.propagate_back_references(address_space);
-
-        return myMachineNode;
+        machine.temperatureSensor.nodeId.should.be.instanceof(NodeId);
+        return machine;
     }
+
     it("should create a new TemperatureSensorType",function(done) {
         var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
 
@@ -179,14 +101,30 @@ describe("testing add new DataType ", function () {
 
             var machineTypeNode  = createMachineType(address_space);
 
+            // perform some verification on temperatureSensorType
+            var temperatureSensorType = address_space.findObjectType("TemperatureSensorType");
+            should(temperatureSensorType.temperature).not.eql(0);
+
+            var temperatureSensor = temperatureSensorType.instantiate({browseName: "Test"});
+            should(temperatureSensor.temperature).not.eql(0);
+
+            // perform some verification
+            var baseDataVariableType = address_space.findVariableType("BaseDataVariableType");
+            temperatureSensor.temperature.hasTypeDefinition.should.eql(baseDataVariableType.nodeId);
+
+
             var folder =address_space.addFolder("RootFolder",{ browseName: "MyDevices"});
             assert(folder.nodeId);
 
-            var machine1 = instantiateMachine(address_space,folder,{ browseName: "Machine1"});
-            var machine2 = instantiateMachine(address_space,folder,{ browseName: "Machine2"});
-            var machine3 = instantiateMachine(address_space,folder,{ browseName: "Machine3"});
-            var machine4 = instantiateMachine(address_space,folder,{ browseName: "Machine4"});
-            console.log("done");
+            var machine1 = machineTypeNode.instantiate({organizedBy: folder,browseName: "Machine1"});
+
+            should(machine1.temperatureSensor).be.instanceOf(Object);
+            should(machine1.heaterSwitch).be.instanceOf(Object);
+
+            console.log(" Machine 1 = ",machine1.toString());
+
+            var machine2 = machineTypeNode.instantiate({organizedBy: folder,browseName: "Machine2"});
+
             done();
 
         });

@@ -70,7 +70,7 @@ describe("testing NodeSet XML file loading",function(){
 
         generate_address_space(address_space,xml_files,function(err){
 
-            Object.keys(address_space._aliases).length.should.be.greaterThan(10);
+            Object  .keys(address_space._aliases).length.should.be.greaterThan(10);
             Object.keys(address_space._objectMap).length.should.be.greaterThan(10);
             Object.keys(address_space._variableTypeMap).length.should.be.greaterThan(10);
             Object.keys(address_space._referenceTypeMap).length.should.be.greaterThan(10);
