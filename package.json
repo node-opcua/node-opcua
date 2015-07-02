@@ -79,6 +79,7 @@
     "underscore": "1.8.3",
     "unzip": "^0.1.11",
     "wget-improved": "^1.0.1",
+    "xml-writer": "^1.6.0",
     "yargs": "^3.9.1"
   }
 }

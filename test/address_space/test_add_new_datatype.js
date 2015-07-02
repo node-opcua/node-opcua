@@ -4,6 +4,9 @@ require("requirish")._(module);
 var should = require("should");
 var Method = require("lib/address_space/method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var UADataType = require("lib/address_space/data_type").UADataType;
+var ObjectType = require("lib/address_space/objectType").ObjectType;
+
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
@@ -39,8 +42,6 @@ describe("testing add new DataType ", function () {
         return temperatureSensorTypeNode;
 
     }
-
-
 
 
     function createMachineType(address_space) {
@@ -125,8 +126,38 @@ describe("testing add new DataType ", function () {
 
             var machine2 = machineTypeNode.instantiate({organizedBy: folder,browseName: "Machine2"});
 
+
+            function createSpecialTempSensorType(address_space) {
+
+                var specialTemperatureSensorTypeNode = address_space.addObjectType({
+                    browseName: "SpecialTemperatureSensorType",
+                    subtypeOf: "TemperatureSensorType"
+                });
+                return specialTemperatureSensorTypeNode;
+            }
+
+            var specialTemperatureSensorTypeNode = createSpecialTempSensorType(address_space);
+            specialTemperatureSensorTypeNode.should.be.instanceOf(ObjectType);
+
+            //xx console.log(specialTemperatureSensorTypeNode);
+            //xx console.log(specialTemperatureSensorTypeNode.toString());
+
+            //xx specialTemperatureSensorTypeNode.should.not.have.property("typeDefinitionObj");
+            should(specialTemperatureSensorTypeNode.typeDefinitionObj).eql(null,"ObjectType should not have TypeDefinition");
+            specialTemperatureSensorTypeNode.subtypeOfObj.browseName.should.eql("TemperatureSensorType");
+
+            var specialSensor= specialTemperatureSensorTypeNode.instantiate({browseName:"mySpecialSensor"});
+            specialSensor.should.have.property("typeDefinitionObj");
+            specialSensor.should.not.have.property("subtypeOfObj","Object should not have SubType");
+            specialSensor.typeDefinitionObj.browseName.should.eql("SpecialTemperatureSensorType");
+            should(specialSensor.temperature).not.eql(0);
+
+            console.log("done");
             done();
 
         });
     });
+
+
+
 });
