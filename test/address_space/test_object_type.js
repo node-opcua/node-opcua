@@ -1,22 +1,22 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
-var ObjectType = require("lib/address_space/objectType").ObjectType;
+var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var address_space = require("lib/address_space/address_space");
 
-describe("testing ObjectType",function() {
+describe("testing UAObjectType",function() {
 
     var the_address_space;
     before(function() {
         the_address_space = new address_space.AddressSpace();
     });
 
-    it("should read Attribute IsAbstract on ObjectType ",function() {
+    it("should read Attribute IsAbstract on UAObjectType ",function() {
 
-        var objType = new ObjectType({
+        var objType = new UAObjectType({
             browseName: "MyObject",
             address_space:the_address_space,
             isAbstract: false
@@ -29,9 +29,9 @@ describe("testing ObjectType",function() {
         value.value.value.should.equal(false);
 
     });
-    it("should read Attribute IsAbstract on Abstract ObjectType ",function() {
+    it("should read Attribute IsAbstract on Abstract UAObjectType ",function() {
 
-        var objType = new ObjectType({
+        var objType = new UAObjectType({
             browseName: "MyObject2",
             address_space:the_address_space,
             isAbstract: true

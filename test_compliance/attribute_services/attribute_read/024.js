@@ -94,8 +94,8 @@ function test_24_on_node(session,nodeId,callback) {
             // cannot read array
             callback(err);
         }
-    })
-};
+    });
+}
 
 
 /**

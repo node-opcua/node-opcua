@@ -2,7 +2,7 @@ require("requirish")._(module);
 
 var async = require("async");
 var address_space = require("lib/address_space/address_space");
-var Variable = require("lib/address_space/variable").Variable;
+var UAVariable = require("lib/address_space/ua_variable").UAVariable;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;
@@ -22,7 +22,7 @@ describe("testing Variables ", function () {
 
         var the_address_space = new address_space.AddressSpace();
 
-        var v = new Variable({
+        var v = new UAVariable({
             browseName: "some variable",
             address_space: the_address_space,
             minimumSamplingInterval: 10,
@@ -144,7 +144,7 @@ describe("Address Space : add Variable :  testing various variations for specify
     });
 
 
-    it("addVariable should accept a typeDefinition as a String", function () {
+    it("addProperty should accept a typeDefinition as a String", function () {
 
         var nodeVar = the_address_space.addProperty(rootFolder, {
             browseName: "SomeVariable5",
@@ -357,7 +357,7 @@ describe("testing Variable#bindVariable", function () {
             var counter = 0;
             var options = {
                 timestamped_get: function () {
-                    counter = counter+1;
+                    counter += 1;
                     return value_with_timestamp;
                 }
             };
@@ -636,7 +636,7 @@ describe("testing Variable#writeValue Scalar",function() {
 
             rootFolder = the_address_space.findObject("RootFolder");
 
-            variable = new Variable({
+            variable = new UAVariable({
                 browseName: "some variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
@@ -707,7 +707,7 @@ describe("testing Variable#writeValue Array",function(){
             rootFolder = the_address_space.findObject("RootFolder");
 
 
-            variable = new Variable({
+            variable = new UAVariable({
                 browseName: "some variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
@@ -973,7 +973,7 @@ describe("testing Variable#writeValue on Integer",function() {
             rootFolder = the_address_space.findObject("RootFolder");
 
 
-            variableInteger = new Variable({
+            variableInteger = new UAVariable({
                 browseName: "some INTEGER Variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
@@ -989,7 +989,7 @@ describe("testing Variable#writeValue on Integer",function() {
 
             });
 
-            variableInt32 = new Variable({
+            variableInt32 = new UAVariable({
                 browseName: "some Int32 Variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,

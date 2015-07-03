@@ -2,7 +2,6 @@ require("requirish")._(module);
 var _ = require("underscore");
 var should = require("should");
 
-
 var server_engine = require("lib/server/server_engine");
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
@@ -16,7 +15,7 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
 var getMethodDeclaration_ArgumentList = require("lib/datamodel/argument_list").getMethodDeclaration_ArgumentList;
-var Method = require("lib/address_space/method").Method;
+var UAMethod = require("lib/address_space/ua_method").UAMethod;
 
 var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
 
@@ -82,7 +81,7 @@ describe("ServerEngine - addMethod", function () {
             ]
         });
 
-        method.should.be.instanceOf(Method);
+        method.should.be.instanceOf(UAMethod);
 
         method.nodeId.should.be.instanceOf(NodeId);
         var objectMethod = object.getMethodById(method.nodeId);

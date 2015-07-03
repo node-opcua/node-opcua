@@ -2,10 +2,10 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
-var Method = require("lib/address_space/method").Method;
+var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var UADataType = require("lib/address_space/data_type").UADataType;
-var ObjectType = require("lib/address_space/objectType").ObjectType;
+var UADataType = require("lib/address_space/ua_data_type").UADataType;
+var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
 
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
@@ -106,7 +106,7 @@ describe("testing add new DataType ", function () {
             var temperatureSensorType = address_space.findObjectType("TemperatureSensorType");
             should(temperatureSensorType.temperature).not.eql(0);
 
-            var temperatureSensor = temperatureSensorType.instantiate({browseName: "Test"});
+            var temperatureSensor = temperatureSensorType.instantiate({ organizedBy: "RootFolder", browseName: "Test"});
             should(temperatureSensor.temperature).not.eql(0);
 
             // perform some verification
@@ -137,7 +137,7 @@ describe("testing add new DataType ", function () {
             }
 
             var specialTemperatureSensorTypeNode = createSpecialTempSensorType(address_space);
-            specialTemperatureSensorTypeNode.should.be.instanceOf(ObjectType);
+            specialTemperatureSensorTypeNode.should.be.instanceOf(UAObjectType);
 
             //xx console.log(specialTemperatureSensorTypeNode);
             //xx console.log(specialTemperatureSensorTypeNode.toString());
@@ -146,7 +146,11 @@ describe("testing add new DataType ", function () {
             should(specialTemperatureSensorTypeNode.typeDefinitionObj).eql(null,"ObjectType should not have TypeDefinition");
             specialTemperatureSensorTypeNode.subtypeOfObj.browseName.should.eql("TemperatureSensorType");
 
-            var specialSensor= specialTemperatureSensorTypeNode.instantiate({browseName:"mySpecialSensor"});
+            var specialSensor= specialTemperatureSensorTypeNode.instantiate({
+                organizedBy:"RootFolder",
+                browseName:"mySpecialSensor"
+            });
+
             specialSensor.should.have.property("typeDefinitionObj");
             specialSensor.should.not.have.property("subtypeOfObj","Object should not have SubType");
             specialSensor.typeDefinitionObj.browseName.should.eql("SpecialTemperatureSensorType");

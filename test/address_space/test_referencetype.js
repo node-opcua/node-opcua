@@ -1,4 +1,5 @@
-/* global describe,it,require*/
+"use strict";
+/* global describe,it,require,before*/
 require("requirish")._(module);
 
 var address_space = require("lib/address_space/address_space");
@@ -18,11 +19,8 @@ var browse_service = require("lib/services/browse_service");
 
 
 describe("testing ReferenceType", function () {
-
-    var util = require("util");
     var address_space;
     var rootFolder;
-
     before(function (done) {
         get_mini_address_space(function (err, data) {
             address_space = data;
@@ -42,6 +40,7 @@ describe("testing ReferenceType", function () {
         hr.nodeId.should.eql(nodeid.makeNodeId(33));
 
     });
+
     it("HierarchicalReferences should have an Abstract attribute set to true ",function() {
 
         var hr = address_space.findReferenceType("HierarchicalReferences");
@@ -51,6 +50,7 @@ describe("testing ReferenceType", function () {
         v.value.value.should.eql(true);
 
     });
+
     it("Organizes should have an Abstract attribute set to true ",function() {
 
         var hr = address_space.findReferenceType("Organizes");
@@ -98,7 +98,6 @@ describe("testing ReferenceType", function () {
 
 
     it("should return 4 refs for browseNode on RootFolder ,  referenceTypeId=null,!includeSubtypes  ", function () {
-
 
         var references = rootFolder.browseNode({
             browseDirection: browse_service.BrowseDirection.Forward,
@@ -236,7 +235,7 @@ describe("testing ReferenceType", function () {
 
         redirectToFile("ReferenceDescription1.log", function () {
             assert(_.isArray(references));
-            var dump = require("lib/address_space/basenode").dumpReferenceDescriptions;
+            var dump = require("lib/address_space/base_node").dumpReferenceDescriptions;
             dump(address_space, references);
         }, done)
     });
@@ -265,7 +264,7 @@ describe("testing ReferenceType", function () {
 
         redirectToFile("ReferenceDescription2.log", function () {
             assert(_.isArray(references));
-            var dump = require("lib/address_space/basenode").dumpReferenceDescriptions;
+            var dump = require("lib/address_space/base_node").dumpReferenceDescriptions;
             dump(address_space, references);
         }, done)
 
@@ -394,7 +393,7 @@ describe(" improving performance of isSupertypeOf", function () {
     it("should ensure that optimized version of isSupertypeOf is really faster that brute force version", function (done) {
 
         //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
-        bench.add('isSupertypeOf slow', function () {
+        bench.add("isSupertypeOf slow", function () {
 
             referenceTypes.forEach(function (referenceType) {
                 referenceTypes.map(function (refType) {
@@ -403,7 +402,7 @@ describe(" improving performance of isSupertypeOf", function () {
             });
 
         })
-        .add('isSupertypeOf fast', function () {
+        .add("isSupertypeOf fast", function () {
 
             referenceTypes.forEach(function (referenceType) {
                 referenceTypes.map(function (refType) {
@@ -412,10 +411,10 @@ describe(" improving performance of isSupertypeOf", function () {
 
             });
         })
-        .on('cycle', function (message) {
+        .on("cycle", function (message) {
             console.log(message);
         })
-        .on('complete', function () {
+        .on("complete", function () {
 
             console.log(' Fastest is ' + this.fastest.name);
             console.log(' Speed Up : x', this.speedUp);

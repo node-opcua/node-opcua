@@ -28,7 +28,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
     var port = 2000;
     before(function (done) {
-        port = port +1;
+        port += 1;
         server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;

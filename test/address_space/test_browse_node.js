@@ -1,20 +1,14 @@
+"use strict";
+/*global describe,require,it,before*/
 require("requirish")._(module);
-
-var address_space = require("lib/address_space/address_space");
-
 var should  = require("should");
-var nodeid = require("lib/datamodel/nodeid");
 
-var dumpReferences = require("lib/address_space/basenode").dumpReferences;
-var dumpBrowseDescription = require("lib/address_space/basenode").dumpBrowseDescription;
+var dumpReferences = require("lib/address_space/base_node").dumpReferences;
+var dumpBrowseDescription = require("lib/address_space/base_node").dumpBrowseDescription;
 var browse_service = require("lib/services/browse_service");
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
-var util = require("util");
-
-
-
 
 describe("testing address space",function(){
 

@@ -104,8 +104,8 @@ describe("CallRequest on custom method", function () {
         });
     });
 
-    var BaseObject = require("lib/address_space/baseObject").BaseObject;
-    var Method = require("lib/address_space/method").Method;
+    var UAObject = require("lib/address_space/ua_object").UAObject;
+    var UAMethod = require("lib/address_space/ua_method").UAMethod;
 
     it("Q3 should encode and decode a method call request", function (done) {
 
@@ -114,10 +114,10 @@ describe("CallRequest on custom method", function () {
 
 
         var obj = address_space.findObject(objectId);
-        obj.should.be.instanceOf(BaseObject);
+        obj.should.be.instanceOf(UAObject);
 
         var method = obj.getMethodById(methodId);
-        method.should.be.instanceOf(Method);
+        method.should.be.instanceOf(UAMethod);
         method.browseName.should.eql("DoStuff");
 
         var inputArguments = method.getInputArguments();

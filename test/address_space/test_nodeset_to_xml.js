@@ -3,10 +3,10 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
-var Method = require("lib/address_space/method").Method;
+var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var UADataType = require("lib/address_space/data_type").UADataType;
-var ObjectType = require("lib/address_space/objectType").ObjectType;
+var UADataType = require("lib/address_space/ua_data_type").UADataType;
+var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
 
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
@@ -24,7 +24,7 @@ var dumpXml = require("lib/address_space/nodeset_to_xml").dumpXml;
 describe("testing nodeset to xml", function () {
     var address_space;
 
-    before(function (done) {
+    beforeEach(function (done) {
         address_space = new AddressSpace();
         var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
 
@@ -39,19 +39,57 @@ describe("testing nodeset to xml", function () {
 
     });
 
-    it("should output a nodeset node to xml",function() {
+    it("should output a simple objecType node to xml",function() {
         // TemperatureSensorType
-        var temperatureSensorTypeNode = address_space.addObjectType({ browseName: "TemperatureSensorType" });
-        address_space.addVariable(temperatureSensorTypeNode,{
+        var temperatureSensorType = address_space.addObjectType({ browseName: "TemperatureSensorType" });
+        address_space.addVariable(temperatureSensorType,{
             browseName:     "Temperature",
+            description:    "the temperature value of the sensor in Celsius <°C>",
             dataType:       "Double",
             modellingRule:  "Mandatory",
             value: { dataType: DataType.Double, value: 19.5}
         });
 
-        var str = dumpXml(temperatureSensorTypeNode,{});
+        var str = dumpXml(temperatureSensorType,{});
         console.log(str);
+        str.should.match(/UAObjectType/);
+
     });
+    it("should output a instance of a new ObjectType  to xml",function() {
+
+        // TemperatureSensorType
+        var temperatureSensorType = address_space.addObjectType({ browseName: "TemperatureSensorType" });
+        address_space.addVariable(temperatureSensorType,{
+            browseName:     "Temperature",
+            description:    "the temperature value of the sensor in Celsius <°C>",
+            dataType:       "Double",
+            modellingRule:  "Mandatory",
+            value: { dataType: DataType.Double, value: 19.5}
+        });
+
+        var parentFolder = address_space.findObject("RootFolder");
+        parentFolder.browseName.should.eql("Root");
+
+        // variation 1
+        var temperatureSensor = temperatureSensorType.instantiate({
+            organizedBy: parentFolder,
+            browseName:"MyTemperatureSensor"
+        });
+
+        // variation 2
+        var temperatureSensor2 = temperatureSensorType.instantiate({
+            organizedBy: "RootFolder",
+            browseName:  "MyTemperatureSensor"
+        });
+
+
+
+        var str = dumpXml(temperatureSensor,{});
+        console.log(str);
+        str.should.match(/UAObjectType/g);
+
+    });
+
 });
 
 

@@ -3,7 +3,7 @@ require("requirish")._(module);
 
 var should = require("should");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var UADataType = require("lib/address_space/data_type").UADataType;
+var UADataType = require("lib/address_space/ua_data_type").UADataType;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var address_space = require("lib/address_space/address_space");

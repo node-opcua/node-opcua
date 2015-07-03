@@ -220,7 +220,7 @@ var Variant_Schema = {
     var encodingByte = variant.dataType.value;
 
     if (variant.arrayType === VariantArrayType.Array) {
-      encodingByte = encodingByte | Variant_ArrayMask;
+      encodingByte |= Variant_ArrayMask;
     }
     ec.encodeUInt8(encodingByte, stream);
 

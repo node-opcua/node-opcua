@@ -227,7 +227,7 @@ describe("Variant - Analyser",function(){
 
     var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
-    var manyValues = []; for (var i=0;i<1000;i++) {manyValues[i] = Math.random()*1000-500};
+    var manyValues = []; for (var i=0;i<1000;i++) {manyValues[i] = Math.random()*1000-500;}
 
     var various_variants = [
         new Variant({  dataType: DataType.NodeId,       arrayType: VariantArrayType.Scalar, value: makeNodeId(1,2)}),
@@ -334,7 +334,7 @@ var old_encode=  function(variant,stream){
 
     if (variant.arrayType ===  VariantArrayType.Array ) {
 
-        encodingByte = encodingByte | Variant_ArrayMask;
+        encodingByte  |= Variant_ArrayMask;
     }
     ec.encodeUInt8(encodingByte,stream);
     var encode = factories.findBuiltInType(variant.dataType.key).encode;

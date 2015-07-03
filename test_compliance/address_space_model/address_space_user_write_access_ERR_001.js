@@ -98,8 +98,7 @@ function read_user_access_level(session,nodeId,callback) {
 }
 function read_access_level(session,nodeId,callback) {
     _read_access_level(session,nodeId,AttributeIds.AccessLevel,callback);
-};
-
+}
 
 function _write_node_value(session,nodeId,value,attributeId,expectedStatusCodes,callback) {
 
