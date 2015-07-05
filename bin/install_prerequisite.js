@@ -44,7 +44,7 @@ function execute(cmd,callback, cwd){
 }
 
 var cwd = path.join(__dirname,"./openssl");
-var cmd = "openssl.exe";
+var cmd = path.join(cwd,"openssl.exe");
 
 function check_openssl(callback) {
 
@@ -54,7 +54,7 @@ function check_openssl(callback) {
     }
     execute(cmd + " version", function(err,exitCode,output){
         if (err) {return callback(err);}
-        callback(null, (exitCode === 0) && output.match(/ 1.0.2 /));
+        callback(null, (exitCode === 0) && output.match(/1.0.2/));
     }, cwd);
 }
 
@@ -147,7 +147,7 @@ exports.install_prerequisite = function(callback) {
                     if (!err) {
                         console.log("deflating ",filename.yellow);
                         install_openssl(filename,function(err){
-                            console.log("verifying ",fs.existsSync(cmd) ? "OK ".green: " Error".red);
+                            console.log("verifying ",fs.existsSync(cmd) ? "OK ".green: " Error".red,cmd);
                             console.log("done ", err? err :"" );
                             callback(err);
                         });
