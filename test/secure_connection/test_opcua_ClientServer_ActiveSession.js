@@ -191,16 +191,19 @@ if (!crypto_utils.isFullySupported()) {
 
                     var createSessionRequest = new opcua.session_service.CreateSessionRequest({
                         requestHeader : {
-                            clientNonce: new Buffer(31)
-                        }
+
+                        },
+                        clientNonce: new Buffer(31)
                     });
                     client.performMessageTransaction(createSessionRequest,function(err,response){
-
+                        response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
                         callback();
                     });
                 },
 
-                function(callback) { client.disconnect(callback);                }
+                function(callback) {
+                    client.disconnect(callback);
+                }
 
             ],done);
         });
