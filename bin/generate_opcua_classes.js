@@ -241,6 +241,11 @@ registerObject("ReadRawModifiedDetails");
 registerObject("ReadProcessedDetails");
 registerObject("ReadAtTimeDetails");
 
+// Event results
+registerObject("ContentFilterElementResult", undefined, true);
+registerObject("ContentFilterResult", undefined, true);
+registerObject("EventFilterResult", undefined, true);
+
 // Call service
 registerObject("CallMethodRequest");
 registerObject("CallMethodResult");
