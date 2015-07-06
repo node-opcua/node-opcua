@@ -242,9 +242,9 @@ registerObject("ReadProcessedDetails");
 registerObject("ReadAtTimeDetails");
 
 // Event results
-registerObject("ContentFilterElementResult", undefined, true);
-registerObject("ContentFilterResult", undefined, true);
-registerObject("EventFilterResult", undefined, true);
+registerObject("ContentFilterElementResult");
+registerObject("ContentFilterResult");
+registerObject("EventFilterResult");
 
 // Call service
 registerObject("CallMethodRequest");
