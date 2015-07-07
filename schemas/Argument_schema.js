@@ -1,27 +1,28 @@
+"use strict";
 /**
  <UADataType NodeId="i=296" BrowseName="Argument">
- <DisplayName>Argument</DisplayName>
- <Description>An argument for a method.</Description>
- <References>
- <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
- </References>
- <Definition Name="Argument">
- <Field Name="Name" DataType="i=12">
- <Description>The name of the argument.</Description>
- </Field>
- <Field Name="DataType" DataType="i=17">
- <Description>The data type of the argument.</Description>
- </Field>
- <Field Name="ValueRank" DataType="i=6">
- <Description>Whether the argument is an array type and the rank of the array if it is.</Description>
- </Field>
- <Field Name="ArrayDimensions" DataType="i=7" ValueRank="1">
- <Description>The number of dimensions if the argument is an array type and one or more dimensions have a fixed length.</Description>
- </Field>
- <Field Name="Description" DataType="i=21">
- <Description>The description for the argument.</Description>
- </Field>
- </Definition>
+     <DisplayName>Argument</DisplayName>
+     <Description>An argument for a method.</Description>
+     <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+     </References>
+     <Definition Name="Argument">
+         <Field Name="Name" DataType="i=12">
+             <Description>The name of the argument.</Description>
+         </Field>
+         <Field Name="DataType" DataType="i=17">
+             <Description>The data type of the argument.</Description>
+         </Field>
+         <Field Name="ValueRank" DataType="i=6">
+             <Description>Whether the argument is an array type and the rank of the array if it is.</Description>
+         </Field>
+         <Field Name="ArrayDimensions" DataType="i=7" ValueRank="1">
+             <Description>The number of dimensions if the argument is an array type and one or more dimensions have a fixed length.</Description>
+         </Field>
+         <Field Name="Description" DataType="i=21">
+             <Description>The description for the argument.</Description>
+         </Field>
+     </Definition>
  </UADataType>
  */
 require("requirish")._(module);
@@ -45,18 +46,22 @@ function _dataType_encodeAsNodeId(dataType, stream) {
     }
     encode_NodeId(nodeId, stream);
 }
+function _dataType_encodeAsNodeIdXML(xw,value){
+    xw.text(value.toString());
+}
 
+var DataType = require("lib/datamodel/variant").DataType;
 function _dataType_decodeAsNodeId(stream) {
     var nodeId = decode_NodeId(stream);
     assert(_.isFinite(nodeId.value));
     return DataType.get(nodeId.value);
 }
-var DataType = require("lib/datamodel/variant").DataType;
 
 factories.registerBuiltInType({
     name: "DataTypeAsNodeId",
     encode: _dataType_encodeAsNodeId,
     decode: _dataType_decodeAsNodeId,
+    encodeXML: _dataType_encodeAsNodeIdXML,
     defaultValue: DataType.Null
 });
 
@@ -82,7 +87,7 @@ var Argument_Schema = {
      *                             dimensions.
      *   ScalarOrOneDimension(−3): The value can be a scalar or a one dimensional array.
      *
-     *   NOTE: All DataTypes are considered to be scalar, even if they hav
+     *   NOTE: All DataTypes are considered to be scalar, even if they have
      *   array-like semantics like ByteString and String.
      */
         {

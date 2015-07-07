@@ -78,7 +78,7 @@ function coerceVariantArray(dataType, value) {
 function encodeTypedArray(ArrayType, stream, value) {
 
   assert(value instanceof ArrayType);
-
+  assert(value.buffer instanceof ArrayBuffer);
   ec.encodeUInt32(value.length, stream);
 
   stream.writeArrayBuffer(value.buffer,value.byteOffset,value.byteLength);
@@ -101,7 +101,12 @@ function encodeGeneralArray(dataType, stream, value) {
 function encodeVariantArray(dataType, stream, value) {
 
   if (value.buffer) {
-    return _getHelper(dataType).encode(stream, value);
+    try {
+      return _getHelper(dataType).encode(stream, value);
+    } catch(err) {
+      console.log("DATATYPE",dataType);
+      console.log("value",value.length);
+    }
   }
   return encodeGeneralArray(dataType, stream, value);
 }
@@ -138,7 +143,6 @@ function decodeGeneralArray(dataType, stream) {
 }
 
 function decodeVariantArray(dataType, stream) {
-
   var helper = _getHelper(dataType);
   if (helper) {
     return helper.decode(stream);
@@ -147,10 +151,6 @@ function decodeVariantArray(dataType, stream) {
     return decodeGeneralArray(dataType, stream);
   }
 }
-
-
-
-
 
 function _declareTypeArrayHelper(dataType, TypedArray) {
   typedArrayHelpers[dataType.key] = {

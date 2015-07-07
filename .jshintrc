@@ -1,4 +1,5 @@
 {
+  "unused": false,
   "browser": false,
   "mocha": true,
   "node": true,

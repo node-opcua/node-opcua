@@ -33,4 +33,4 @@ var DataType_Schema = {
     }
 };
 
-var DataType = exports.DataType = factories.registerEnumeration(DataType_Schema);
+exports.DataType = factories.registerEnumeration(DataType_Schema);

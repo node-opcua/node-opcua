@@ -1095,3 +1095,53 @@ describe("testing Variable#writeValue on Integer",function() {
         verify_writeOK(variableInt32,DataType.Int32,36,done);
     });
 });
+
+
+describe("testing Variable#clone ",function() {
+
+
+    var the_address_space, rootFolder, variableInteger, variableInt32;
+
+    before(function (done) {
+
+
+
+        the_address_space = new address_space.AddressSpace();
+        generate_address_space(the_address_space, nodeset_filename, function (err) {
+
+            if (!err) {
+                rootFolder = the_address_space.findObject("RootFolder");
+
+                variableInteger = the_address_space.addVariable(rootFolder,{
+                    browseName: "some INTEGER Variable",
+                    minimumSamplingInterval: 10,
+                    userAccessLevel: 0,
+                    arrayDimensions: [1, 2, 3],
+                    accessLevel: 0,
+                    dataType: "Integer",
+                    value: new Variant({
+                        dataType: DataType.Int32,
+                        value: 1
+                    })
+                });
+            }
+            done(err);
+        });
+    });
+
+    it("should clone a variable",function() {
+
+        variableInteger.browseName.should.eql("some INTEGER Variable");
+        variableInteger._dataValue.value.dataType.should.eql(DataType.Int32);
+        variableInteger._dataValue.value.value.should.eql(1);
+
+        var variableIntegerClone = variableInteger.clone();
+        variableIntegerClone.nodeId.toString().should.not.eql(variableInteger.nodeId.toString());
+
+        variableIntegerClone.browseName.should.eql("some INTEGER Variable");
+
+        variableIntegerClone._dataValue.value.dataType.should.eql(DataType.Int32);
+        variableIntegerClone._dataValue.value.value.should.eql(1);
+        variableIntegerClone._dataValue.value.should.eql(variableInteger._dataValue.value);
+    })
+});
