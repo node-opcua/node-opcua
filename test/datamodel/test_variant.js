@@ -226,6 +226,9 @@ var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze
 
 describe("Variant - Analyser",function(){
 
+    // increase timeout to cope with istanbul
+    this.timeout(20000);
+
     var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
     var manyValues = []; for (var i=0;i<1000;i++) {manyValues[i] = Math.random()*1000-500;}
