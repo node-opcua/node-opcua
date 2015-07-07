@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 
 var Variant = require("lib/datamodel/variant").Variant;
@@ -244,7 +245,7 @@ describe("Variant - Analyser",function(){
         new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array (manyValues) }),
         new Variant({  dataType: DataType.Int32,        arrayType: VariantArrayType.Array ,value: new Int32Array   (manyValues) }),
         new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array ( 10*1024) }),
-        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array ( 50*1024) }),
+        new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array ( 50*1024) })
     ];
 
     //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
@@ -266,9 +267,39 @@ describe("Variant - Analyser",function(){
             });
     });
 
+    it("should encode/decode a very large array of Float - 1",function() {
+
+        var get_clock_tick = require("lib/misc/utils").get_clock_tick;
+
+        var nbElements =1500*1024;
+
+        var t0 =  get_clock_tick();
+        var very_large=  new Variant({  dataType: DataType.Double, arrayType: VariantArrayType.Array ,value: new Float64Array(nbElements) });
+
+        for (var i=0;i<nbElements; i++) { very_large.value[i] = Math.random(); }
+
+        var t1 =  get_clock_tick();
+        var size = very_large.binaryStoreSize();
+        size.should.eql(nbElements*8+5);
+
+        var t2 =  get_clock_tick();
+        var stream = new BinaryStream(new Buffer(size));
+        var t3 =  get_clock_tick();
+        very_large.encode(stream);
+        var t4 =  get_clock_tick();
+
+        console.log(" t1 = create variant   ",t1-t0);
+        console.log(" t2 = binaryStoreSize  ",t2-t1);
+        console.log(" t3 = new BinaryStream ",t3-t2);
+        console.log(" t3 = encode           ",t4-t3);
+    });
+
     it("should encode/decode a very large array of Float",function() {
 
-        var very_large=  new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array (1500*1024) });
+        var nbElements =1500*1024;
+        var very_large=  new Variant({  dataType: DataType.Double, arrayType: VariantArrayType.Array ,value: new Float64Array(nbElements ) });
+
+        for (var i=0;i<nbElements; i++) { very_large.value[i] = Math.random(); }
         encode_decode_round_trip_test(very_large, function (stream) {
             // stream.length.should.equal(1+4+4*4);
         });
@@ -283,7 +314,7 @@ describe("Variant - Analyser",function(){
 
         console.log("    array size = ",length);
 
-        var obj=  new Variant({  dataType: DataType.Double,       arrayType: VariantArrayType.Array ,value: new Float64Array(length) });
+        var obj=  new Variant({  dataType: DataType.Double, arrayType: VariantArrayType.Array ,value: new Float64Array(length) });
 
         for (var i=0;i<length;i++) { obj.value[i] = i; }
         obj.value[100].should.eql(100);
@@ -313,10 +344,17 @@ describe("Variant - Analyser",function(){
             //xx this.fastest.name.should.eql("Variant.encode");
 
         })
-        .run({max_time: 0.1 });
+        .run({max_time: 0.2 });
 
-        for (var i=0;i<length;i++) { obj.value[i].should.eql(i); }
-
+        // note : the following test could be *slow* with large value of length
+        //        for (var i=0;i<length;i++) { obj.value[i].should.eql(i); }
+        function validate_array() {
+            for (var i=0;i<length;i++) {
+                if (obj.value[i]!==i) { return false;}
+            }
+            return true;
+        }
+        validate_array().should.eql(true);
     })
 });
 

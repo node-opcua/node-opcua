@@ -22,7 +22,7 @@ Benchmarker.prototype.add = function(name, func) {
 
 function measure_cycle(func) {
 
-    var start = process.hrtime();
+    var start = process.hrtime(); // tuple [second, nanosecond]
     func.call();
     var elapsed = process.hrtime(start);
     return elapsed[0] +  elapsed[1]/1000000000;
@@ -39,12 +39,13 @@ Benchmarker.prototype.measure_perf = function(name,func,options) {
         total_time += measure_cycle(func);
         count +=1;
     }
-    var message = " CYCLE " + name + " op/s " + (( ( count )/ total_time).toPrecision(7) );
+    var ops = ( ( count )/ total_time );
+    var message = " CYCLE " + name + " op/s " + (( ( count )/ total_time).toPrecision(7)  + " count = " + count);
     this.emit("cycle",message);
 
     return {
         message: message,
-        ops: ( ( count )/ total_time ),
+        ops: ops,
         count: count,
         total_time: total_time
     };
