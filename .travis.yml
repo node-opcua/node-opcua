@@ -10,6 +10,7 @@ before_script:
   - npm install -g istanbul coveralls
   - npm install -g mocha
   - npm install -g codeclimate-test-reporter
+  - npm install memcpy
   - npm install
   - if [[ `node --version` == v0.10* ]]; then npm i ursa ; fi
 

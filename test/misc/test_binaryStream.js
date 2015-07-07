@@ -77,7 +77,7 @@ BinaryStream.prototype.readArrayBuffer_old = function (length) {
 
 describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer", function () {
 
-    this.timeout(20000);
+    this.timeout(30000);
 
     var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 
