@@ -658,7 +658,7 @@ function create_default_certificates(done) {
 
 function __create_default_certificates(base_name,prefix,application_URI,done) {
 
-    // Fugl hack
+    // Bad hack that ensures that paths with spaces are correctly interpreted.
     base_name = "\"" + base_name + "\"";
 
     assert(_.isFunction(done));
