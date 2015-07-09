@@ -5,7 +5,7 @@ var ContentFilterElementResult_Schema = {
     fields: [
         { name: "statusCode", fieldType: "StatusCode" },
         { name: "operandStatusCodes", isArrays: true, fieldType: "StatusCode"},
-        { name: "operandGiagnosticInfos", isArrays: true, fieldType: "DiagnosticInfo" },
+        { name: "operandDiagnosticInfos", isArrays: true, fieldType: "DiagnosticInfo" }
     ]
 };
 

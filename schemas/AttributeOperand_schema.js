@@ -4,6 +4,7 @@ var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 
 var AttributeOperand_Schema = {
     name:"AttributeOperand",
+    baseType:"FilterOperand",
     fields:[
         { name: "nodeId",     fieldType:"NodeId",documentation:"NodeId of a Node from the type system."},
         { name: "alias",      fieldType:"String", documentation:"An optional parameter used to identify or refer to an alias. An alias is a symbolic name that can be used to alias this operand and use it in other locations in the filter structure."},

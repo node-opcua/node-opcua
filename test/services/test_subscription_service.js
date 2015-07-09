@@ -127,6 +127,64 @@ describe("testing subscription objects",function(){
         done();
     });
 
+    it("should encode and decode a MonitoringParameters with EventFilter filter",function(done){
+
+        var AttributeIds = read_service.AttributeIds;
+        var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
+        var obj = new subscription_service.MonitoringParameters({
+            samplingInterval: 10,
+            discardOldest: true,
+            queueSize: 10,
+            filter: new subscription_service.EventFilter({
+                selectClauses: [// SimpleAttributeOperand
+                    {
+                        typeId: "i=123", // NodeId
+
+                        browsePath: [    // QualifiedName
+                            {namespaceIndex: 1,name:"A"},{namespaceIndex: 1,name:"B"},{namespaceIndex: 1,name:"C"}
+                        ],
+                        attributeId: AttributeIds.Value,
+                        indexRange: new NumericRange()
+                    },
+                    {
+                        // etc...
+                    },
+                    {
+                        // etc...
+                    }
+                ],
+                whereClause: { //ContentFilter
+                    elements: [ // ContentFilterElement
+                        {
+                            filterOperator: subscription_service.FilterOperator.InList,
+                            filterOperands: [ //
+                                new subscription_service.ElementOperand({
+                                    index: 123
+                                }),
+                                new subscription_service.AttributeOperand({
+                                    nodeId: "i=10",
+                                    alias: "someText",
+                                    browsePath: { //RelativePath
+
+                                    },
+                                    attributeId:  AttributeIds.Value
+                                })
+                            ]
+                        }
+                    ]
+                }
+            })
+        });
+        var obj_reloaded = encode_decode_round_trip_test(obj);
+
+        obj_reloaded.filter.selectClauses.length.should.eql(3);
+        obj_reloaded.filter.whereClause.elements.length.should.eql(1);
+
+        obj_reloaded.filter.whereClause.elements[0].filterOperands[1].attributeId.should.eql(AttributeIds.Value);
+
+        done();
+    });
+
     it("should encode and decode a DeleteMonitoredItemsRequest",function(done){
         var obj = new subscription_service.DeleteMonitoredItemsRequest({
             subscriptionId: 100,

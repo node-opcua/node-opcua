@@ -1,9 +1,4 @@
 
-
-
-
-
-
 var EventFilter_Schema = {
     name: "EventFilter",
     baseType: "MonitoringFilter",
