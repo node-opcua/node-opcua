@@ -281,6 +281,8 @@ async.series([
             });
 
 
+
+
         }).on("internal_error", function (err) {
             console.log(" received internal error",err.message);
             clearTimeout(timerId);
@@ -292,8 +294,16 @@ async.series([
         }).on("terminated", function () {
             callback();
         });
+
+
+        // ---------------------------------------------------------------
+        //  monitor a variable node value
+        // ---------------------------------------------------------------
         var monitoredItem = the_subscription.monitor(
-            {   nodeId: monitored_node, attributeId: 13    },
+            {
+                nodeId: monitored_node,
+                attributeId: AttributeIds.Value
+            },
             {
                 clientHandle: 13,
                 samplingInterval: 500,
@@ -308,7 +318,50 @@ async.series([
         monitoredItem.on("changed", function (dataValue) {
             console.log(monitored_node, " value has changed to " + dataValue.value.value);
         });
+        monitoredItem.on("err", function (err_message) {
+            console.log(monitored_node, " ERROR".red ,  err_message);
+        });
 
+        // ---------------------------------------------------------------
+        //  monitor the object events
+        // ---------------------------------------------------------------
+
+        var baseEventTypeId =  "i=2041"; // BaseEventType;
+        var serverObjectId =  "i=2253";
+        var event_monitoringItem = the_subscription.monitor(
+            {
+                nodeId: serverObjectId,
+                attributeId: AttributeIds.EventNotifier
+            },
+            {
+                queueSize: 1,
+                filter: new opcua.subscription_service.EventFilter({
+
+                    selectClauses: [// SimpleAttributeOperand
+                        {
+                            typeId: baseEventTypeId, // NodeId of a TypeDefinitionNode.
+                            browsePath: [ { name: "EventId" } ],
+                            attributeId: AttributeIds.Value
+                        }
+                    ],
+                    whereClause: { //ContentFilter
+                    }
+                }),
+
+                discardOldest: true
+            }
+        );
+
+        event_monitoringItem.on("initialized", function () {
+            console.log("event_monitoringItem initialized");
+        });
+
+        event_monitoringItem.on("changed", function (value) {
+            console.log(event_monitoringItem, " value has changed to " + value.toString());
+        });
+        event_monitoringItem.on("err", function (err_message) {
+            console.log("event_monitoringItem ",baseEventTypeId, " ERROR".red , err_message);
+        });
 
     },
     function (callback) {
