@@ -515,9 +515,9 @@ describe("testing server and subscription", function () {
                 queueSize: 1
             });
 
-            monitoredItem.on("err", function (statusCode) {
+            monitoredItem.on("err", function (statusMessage) {
 
-                statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
+                statusMessage.should.eql(StatusCodes.BadAttributeIdInvalid.toString());
                 callback();
             });
 
@@ -546,8 +546,8 @@ describe("testing server and subscription", function () {
                 queueSize: 1
             });
 
-            monitoredItem.on("err", function (statusCode) {
-                statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+            monitoredItem.on("err", function (statusMessage) {
+                statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                 callback();
             });
 
