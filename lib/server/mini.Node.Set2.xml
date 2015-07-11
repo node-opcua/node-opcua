@@ -143,8 +143,41 @@
           <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
       </UADataType>
-
-
+    <UADataType NodeId="i=16" BrowseName="XmlElement">
+        <DisplayName>XmlElement</DisplayName>
+        <Description>Describes a value that is an XML element.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=17" BrowseName="NodeId">
+        <DisplayName>NodeId</DisplayName>
+        <Description>Describes a value that is an identifier for a node within a Server address space.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=18" BrowseName="ExpandedNodeId">
+        <DisplayName>ExpandedNodeId</DisplayName>
+        <Description>Describes a value that is an absolute identifier for a node.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=19" BrowseName="StatusCode">
+        <DisplayName>StatusCode</DisplayName>
+        <Description>Describes a value that is a code representing the outcome of an operation by a Server.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=20" BrowseName="QualifiedName">
+        <DisplayName>QualifiedName</DisplayName>
+        <Description>Describes a value that is a name qualified by a namespace.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
     <UADataType NodeId="i=21" BrowseName="LocalizedText">
         <DisplayName>LocalizedText</DisplayName>
         <Description>Describes a value that is human readable Unicode text with a locale identifier.</Description>
@@ -152,7 +185,6 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
     </UADataType>
-
     <UADataType NodeId="i=22" BrowseName="Structure" IsAbstract="true">
         <DisplayName>Structure</DisplayName>
         <Description>Describes a value that is any type of structure that can be described with a data encoding.
@@ -161,7 +193,6 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
     </UADataType>
-
     <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
         <DisplayName>BaseDataType</DisplayName>
         <Description>Describes a value that can have any valid DataType.</Description>
@@ -899,6 +930,173 @@
         </References>
     </UAObject>
 
+
+    <UADataType NodeId="i=8912" BrowseName="TimeZoneDataType">
+        <DisplayName>TimeZoneDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="TimeZoneDataType">
+            <Field Name="Offset" DataType="i=4" />
+            <Field Name="DaylightSavingInOffset" DataType="i=1" />
+        </Definition>
+    </UADataType>
+
+    <UAObjectType NodeId="i=2041" BrowseName="BaseEventType" IsAbstract="true">
+        <DisplayName>BaseEventType</DisplayName>
+        <Description>The base type for all events.</Description>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2042</Reference>
+            <Reference ReferenceType="HasProperty">i=2043</Reference>
+            <Reference ReferenceType="HasProperty">i=2044</Reference>
+            <Reference ReferenceType="HasProperty">i=2045</Reference>
+            <Reference ReferenceType="HasProperty">i=2046</Reference>
+            <Reference ReferenceType="HasProperty">i=2047</Reference>
+            <Reference ReferenceType="HasProperty">i=3190</Reference>
+            <Reference ReferenceType="HasProperty">i=2050</Reference>
+            <Reference ReferenceType="HasProperty">i=2051</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="i=2042" BrowseName="EventId" ParentNodeId="i=2041" DataType="ByteString">
+        <DisplayName>EventId</DisplayName>
+        <Description>A globally unique identifier for the event.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2043" BrowseName="EventType" ParentNodeId="i=2041" DataType="NodeId">
+        <DisplayName>EventType</DisplayName>
+        <Description>The identifier for the event type.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2044" BrowseName="SourceNode" ParentNodeId="i=2041" DataType="NodeId">
+        <DisplayName>SourceNode</DisplayName>
+        <Description>The source of the event.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2045" BrowseName="SourceName" ParentNodeId="i=2041" DataType="String">
+        <DisplayName>SourceName</DisplayName>
+        <Description>A description of the source of the event.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2046" BrowseName="Time" ParentNodeId="i=2041" DataType="i=294">
+        <DisplayName>Time</DisplayName>
+        <Description>When the event occurred.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2047" BrowseName="ReceiveTime" ParentNodeId="i=2041" DataType="i=294">
+        <DisplayName>ReceiveTime</DisplayName>
+        <Description>When the server received the event from the underlying system.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=3190" BrowseName="LocalTime" ParentNodeId="i=2041" DataType="i=8912">
+        <DisplayName>LocalTime</DisplayName>
+        <Description>Information about the local time where the event originated.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2050" BrowseName="Message" ParentNodeId="i=2041" DataType="LocalizedText">
+        <DisplayName>Message</DisplayName>
+        <Description>A localized description of the event.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2051" BrowseName="Severity" ParentNodeId="i=2041" DataType="UInt16">
+        <DisplayName>Severity</DisplayName>
+        <Description>Indicates how urgent an event is.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2041</Reference>
+        </References>
+    </UAVariable>
+    <UAObjectType NodeId="i=2052" BrowseName="AuditEventType" IsAbstract="true">
+        <DisplayName>AuditEventType</DisplayName>
+        <Description>A base type for events used to track client initiated changes to the server state.</Description>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2053</Reference>
+            <Reference ReferenceType="HasProperty">i=2054</Reference>
+            <Reference ReferenceType="HasProperty">i=2055</Reference>
+            <Reference ReferenceType="HasProperty">i=2056</Reference>
+            <Reference ReferenceType="HasProperty">i=2057</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2041</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="i=2053" BrowseName="ActionTimeStamp" ParentNodeId="i=2052" DataType="i=294">
+        <DisplayName>ActionTimeStamp</DisplayName>
+        <Description>When the action triggering the event occurred.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2052</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2054" BrowseName="Status" ParentNodeId="i=2052" DataType="Boolean">
+        <DisplayName>Status</DisplayName>
+        <Description>If TRUE the action was performed. If FALSE the action failed and the server state did not change.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2052</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2055" BrowseName="ServerId" ParentNodeId="i=2052" DataType="String">
+        <DisplayName>ServerId</DisplayName>
+        <Description>The unique identifier for the server generating the event.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2052</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2056" BrowseName="ClientAuditEntryId" ParentNodeId="i=2052" DataType="String">
+        <DisplayName>ClientAuditEntryId</DisplayName>
+        <Description>The log entry id provided in the request that initiated the action.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2052</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2057" BrowseName="ClientUserId" ParentNodeId="i=2052" DataType="String">
+        <DisplayName>ClientUserId</DisplayName>
+        <Description>The user identity associated with the session that initiated the action.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2052</Reference>
+        </References>
+    </UAVariable>
+
     <UAObjectType NodeId="i=2004" BrowseName="ServerType">
         <DisplayName>ServerType</DisplayName>
         <Description>Specifies the current status and capabilities of the server.</Description>
@@ -1360,6 +1558,8 @@
     </UAVariable>
 
 
+
+
     <UAObjectType NodeId="i=11564" BrowseName="OperationLimitsType">
         <DisplayName>OperationLimitsType</DisplayName>
         <Description>Identifies the operation limits imposed by the server.</Description>
@@ -1721,6 +1921,7 @@
             <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</String>
         </Value>
     </UAVariable>
+
 
 
     <UAMethod NodeId="i=11489" BrowseName="GetMonitoredItems" ParentNodeId="i=2004">
