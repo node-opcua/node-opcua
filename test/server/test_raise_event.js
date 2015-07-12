@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 /* jslint */
 /*global require,describe, it, before, after */
@@ -25,14 +26,11 @@ describe("testing Events  ", function () {
         generate_address_space(address_space, xml_file, function (err) {
             done(err);
         });
-
     });
 
-
     it("should create a new EventType",function() {
-
         var eventType = address_space.addEventType({browseName:"MyEventType"});
-
+        eventType.browseName.should.eql("MyEventType");
     });
 
     var EventEmitter = require("events").EventEmitter;
@@ -76,55 +74,147 @@ describe("testing Events  ", function () {
      *
      */
     //xxBaseNode.prototype.getChildren = function (referenceBaseName) {
-    //xx    // retrieve any children (i.e all the node are  hierachichal relationship with this node)
+    //xx    // retrieve any children (i.e all the node are  hierarchical relationship with this node)
     //xx};
-    function browsePath(node,browsePath) {
+    var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+    var ReferenceTypeIds = require("lib/opcua_node_ids").ReferenceTypeIds;
+    var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
+    var BrowsePathResult = translate_service.BrowsePathResult;
+    var BrowsePath = translate_service.BrowsePath;
+    var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
-        var root = node;
+    var hierarchicalReferencesId =makeNodeId(ReferenceTypeIds.HierarchicalReferences);
 
+    function constructBrowsePathFromQualifiedName(startingNode,browsePath) {
 
-        for (var i =0;i< browsePath.length;i++) {
+        var elements =  browsePath.map(function(targetName) {
+           return {
+               referenceTypeId: hierarchicalReferencesId,
+               isInverse: false,
+               includeSubtypes: true,
+               targetName: targetName
+            };
+        });
 
-        }
+        var browsePath = new BrowsePath({
+            startingNode: startingNode.nodeId, // ROOT
+            relativePath: {
+                elements: elements
+            }
+        });
+        return browsePath;
     }
+
+
+    function browsePath(eventNode,selectClause) {
+        // SimpleAttributeOperand
+        var address_space = eventNode.__address_space;
+
+        // navigate to the innerNode specified by the browsePath [ QualifiedName]
+        var browsePath = constructBrowsePathFromQualifiedName(eventNode,selectClause.browsePath);
+
+        var browsePathResult = address_space.browsePath(browsePath);
+        return browsePathResult;
+    }
+    var UAVariable = require("lib/address_space/ua_variable").UAVariable;
     /**
-     * extract a eventField from a event node, matching the fiven selectClause
+     * extract a eventField from a event node, matching the given selectClause
      * @param eventNode
      * @param selectClause
      */
     function extractEventField(eventNode,selectClause) {
-        // SimpleAttributeOperand
 
-        // navigate to the innerNode specified by the browsePath [ QualifiedName]
-        var innerNode =  browsePath(eventNode,selectClause.browsePath);
+        var address_space = eventNode.__address_space;
+        //console.log(selectClause.toString());
+        var browsePathResult = browsePath(eventNode,selectClause);
+        //console.log(browsePathResult.toString());
+
+        if (browsePathResult.statusCode === StatusCodes.Good) {
+            assert(browsePathResult.targets.length === 1);
+            var node  = address_space.findObject(browsePathResult.targets[0].targetId);
+            if (node instanceof UAVariable && selectClause.attributeId == AttributeIds.Value) {
+
+                return node.readValue(selectClause.indexRange);
+            }
+            return node.readAttribute(selectClause.attributeId);
+
+        } else {
+            return new Variant({dataType: DataType.StatusCode,value:browsePathResult.statusCode  });
+        }
+        //xx var innerNode =
     }
     /**
      * extract a array of eventFields from a event node, matching the selectClauses
      * @param eventNode
      * @param selectClauses
      */
-    function extractEventFields(eventNode,selectClauses) {
-        return selectClauses.map(extractEventField.bind(null,eventNode));
+    function extractEventFields(eventTypeNode,selectClauses) {
+        return selectClauses.map(extractEventField.bind(null,eventTypeNode));
     }
 
+    /**
+     *
+     * @param eventTypeNode
+     * @param selectClause
+     * @returns {Array<StatusCode>}
+     */
+    function checkSelectClause(eventTypeNode,selectClause) {
+        // SimpleAttributeOperand
+        var address_space = eventTypeNode.__address_space;
+        // navigate to the innerNode specified by the browsePath [ QualifiedName]
+        var browsePath = constructBrowsePathFromQualifiedName(eventTypeNode,selectClause.browsePath);
+        var browsePathResult = address_space.browsePath(browsePath);
+        return browsePathResult.statusCode;
+
+    }
+    /**
+     *
+     * @param eventTypeNode
+     * @param selectClauses {selectClauseResults}
+     */
+    function checkSelectClauses(eventTypeNode,selectClauses) {
+        return selectClauses.map(checkSelectClause.bind(null,eventTypeNode));
+    }
     // select clause
     var subscription_service = require("lib/services/subscription_service");
     it("should extract EventData from an select clause",function() {
 
         var eventFilter = new subscription_service.EventFilter({
             selectClauses: [ // SimpleAttributeOperand
-
+                {
+                    // This parameter restricts the operand to instances of the TypeDefinitionNode or
+                    //  one of its subtypes
+                    typeId: null,
+                    browsePath: [
+                        { name: "EventId" }
+                    ],
+                    attributeId: AttributeIds.Value,
+                    indexRange: null
+                },
+                { browsePath: [{name:"SourceNode" }],attributeId: AttributeIds.Value},
+                { browsePath: [{name:"SourceName" }],attributeId: AttributeIds.Value},
+                { browsePath: [{name:"ReceiveTime"}],attributeId: AttributeIds.Value}
             ],
             whereClause: [
 
             ]
         });
+
+        var auditEventType = address_space.findEventType("AuditEventType");
+        //xx var auditEventInstance =  auditEventType.instantiate({browseName: "Instantiation"});
+        // if (eventFilter.selectClauses.length===0) {return 0;}
+        var selectClauseResults = checkSelectClauses(auditEventType,eventFilter.selectClauses);
+        selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
+        console.log(selectClauseResults);
+
+        var eventFields = extractEventFields(auditEventType,eventFilter.selectClauses);
+        eventFields.length.should.eql(eventFilter.selectClauses.length);
+
         var eventField = new subscription_service.EventField({
             clientHandle: 1,
-            eventFields: [ // Variant
-
-            ]
+            eventFields:  /* Array<Variant> */ eventFields
         });
+        console.log("xxxx ",eventField.toString());
 
     });
 
