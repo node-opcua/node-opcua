@@ -18,6 +18,8 @@ var DataType = opcua.DataType;
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 var MonitoringMode = opcua.subscription_service.MonitoringMode;
 var NumericRange = opcua.NumericRange;
+var ObjectTypeIds = opcua.ObjectTypeIds;
+var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -68,81 +70,76 @@ describe("Client Subscription", function () {
         });
     });
 
+    it("CreateMonitoredItemsRequest: server should not accept filter if node attribute to monitor is not Event or Value", function (done) {
 
-    it("should create a monitoredItem on a event with a Filter", function (done) {
-
-        var subscription_service = opcua.subscription_service;
-        var NumericRange = opcua.NumericRange;
-
-        var filter = new subscription_service.EventFilter({
-            selectClauses: [// SimpleAttributeOperand
-                {
-                    typeId: "i=123", // NodeId
-
-                    browsePath: [    // QualifiedName
-                        {namespaceIndex: 1, name: "A"}, {namespaceIndex: 1, name: "B"}, {namespaceIndex: 1, name: "C"}
-                    ],
-                    attributeId: AttributeIds.Value,
-                    indexRange: new NumericRange()
-                },
-                {
-                    // etc...
-                },
-                {
-                    // etc...
-                }
-            ],
-            whereClause: { //ContentFilter
-                elements: [ // ContentFilterElement
-                    {
-                        filterOperator: subscription_service.FilterOperator.IsNull,
-                        filterOperands: [ //
-                            new subscription_service.ElementOperand({
-                                index: 123
-                            }),
-                            new subscription_service.AttributeOperand({
-                                nodeId: "i=10",
-                                alias: "someText",
-                                browsePath: { //RelativePath
-
-                                },
-                                attributeId: AttributeIds.Value
-                            })
-                        ]
-                    }
-                ]
-            }
-        });
-
+        var filter = constructEventFilter(["SourceName","EventId","ReceiveTime"]);
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-            var VariableIds = opcua.VariableIds;
-            var nodeId = opcua.makeNodeId(VariableIds.Server_ServerArray);
-
-            var samplingInterval = 1000;
-
             var itemToMonitor = new opcua.read_service.ReadValueId({
-                nodeId: nodeId,
-                attributeId: AttributeIds.Value,
-                indexRange: "1:2,3:4"
+                nodeId:  opcua.makeNodeId(ObjectTypeIds.BaseEventType),
+                attributeId: AttributeIds.Value
             });
+
             var parameters = {
-                samplingInterval: samplingInterval,
+                samplingInterval: 0,
                 discardOldest: false,
                 queueSize: 1,
-
-
                 filter: filter
-
             };
 
             var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
 
                 subscriptionId: subscription.subscriptionId,
-
                 timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                itemsToCreate: [{
+                    itemToMonitor:       itemToMonitor,
+                    requestedParameters: parameters,
+                    monitoringMode:      MonitoringMode.Reporting
+                }]
+            });
 
+            session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                try {
+                    createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.BadMonitoredItemFilterInvalid);
+                    should(createMonitoredItemsResponse.results[0].filterResult).eql(null);
+                }
+                catch(err) { return callback(err);}
+                callback();
+            });
+
+            // now publish and check that monitored item returns
+        }, done);
+
+
+    });
+
+    // check if nodeID exists
+   it("XXX should create a monitoredItem on a event with a Filter ", function (done) {
+
+        var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
+
+        var filter = constructEventFilter(["SourceName","EventId","ReceiveTime"]);
+
+        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+
+            var itemToMonitor = new opcua.read_service.ReadValueId({
+                nodeId: opcua.makeNodeId(ObjectTypeIds.BaseEventType),
+                attributeId: AttributeIds.EventNotifier
+            });
+
+            var parameters = {
+                samplingInterval: 0,
+                discardOldest: false,
+                queueSize: 1,
+                filter: filter
+            };
+
+            var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                subscriptionId: subscription.subscriptionId,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
                 itemsToCreate: [{
                     itemToMonitor:       itemToMonitor,
                     requestedParameters: parameters,
@@ -150,8 +147,27 @@ describe("Client Subscription", function () {
                 }]
             });
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
-                createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
+                try {
+                    console.log("createMonitoredItemsResponse",createMonitoredItemsResponse.toString());
+                    createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
+
+                    should(createMonitoredItemsResponse.results[0].filterResult).not.eql(null,"a filter result is requested");
+
+
+                    var filterResult = createMonitoredItemsResponse.results[0].filterResult;
+                    filterResult.should.be.instanceof(opcua.subscription_service.EventFilterResult);
+
+                    // verify selectClauseResults count
+                    filter.selectClauses.length.should.eql(3);
+                    filterResult.selectClauseResults.length.should.eql(filter.selectClauses.length);
+
+                    // verify whereClauseResult
+                    var ContentFilterResult = opcua.subscription_service.ContentFilterResult;
+                    filterResult.whereClauseResult.should.be.instanceof(ContentFilterResult);
+
+                }
+                catch(err) { return callback(err);}
                 callback();
             });
 
@@ -159,9 +175,10 @@ describe("Client Subscription", function () {
         }, done);
     });
 
+
     var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 
-    it("should raised a error if a filter is specified when monitoring some attributes which are not Value or EventNotifier", function (done) {
+    it("Client: should raised a error if a filter is specified when monitoring some attributes which are not Value or EventNotifier", function (done) {
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -186,7 +203,7 @@ describe("Client Subscription", function () {
         },done);
     });
 
-    it("should raised a error if filter is not of type EventFilter when monitoring an event", function (done) {
+    it("Client: should raised a error if filter is not of type EventFilter when monitoring an event", function (done) {
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -210,76 +227,6 @@ describe("Client Subscription", function () {
             });
 
         },done);
-    });
-
-    it("should create a monitoredItem on a event with a Filter 2", function (done) {
-
-        perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
-
-            var subscription_service =opcua.subscription_service;
-            var readValue = {
-                nodeId: resolveNodeId("Server"),
-                attributeId: AttributeIds.EventNotifier
-            };
-            var filter = new subscription_service.EventFilter({
-                selectClauses: [// SimpleAttributeOperand
-                    {
-                        typeId: "i=123", // NodeId
-
-                        browsePath: [    // QualifiedName
-                            {namespaceIndex: 1, name: "A"}, {namespaceIndex: 1, name: "B"}, {namespaceIndex: 1, name: "C"}
-                        ],
-                        attributeId: AttributeIds.Value,
-                        indexRange: new NumericRange()
-                    },
-                    {
-                        // etc...
-                    },
-                    {
-                        // etc...
-                    }
-                ],
-                whereClause: { //ContentFilter
-                    elements: [ // ContentFilterElement
-                        {
-                            filterOperator: subscription_service.FilterOperator.IsNull,
-                            filterOperands: [ //
-                                new subscription_service.ElementOperand({
-                                    index: 123
-                                }),
-                                new subscription_service.AttributeOperand({
-                                    nodeId: "i=10",
-                                    alias: "someText",
-                                    browsePath: { //RelativePath
-
-                                    },
-                                    attributeId: AttributeIds.Value
-                                })
-                            ]
-                        }
-                    ]
-                }
-            });
-
-            var requestedParameters= {
-                samplingInterval: 10,
-                discardOldest: true,
-                queueSize: 1,
-                filter: filter
-            };
-            var monitoredItem = subscription.monitor(readValue,requestedParameters,TimestampsToReturn.Both);
-
-            monitoredItem.on("changed", function (dataValue) {
-
-            });
-
-
-            setTimeout(function () {
-                inner_done();
-            }, 400);
-
-        },done);
-
     });
 
 });

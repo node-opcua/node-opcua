@@ -15,6 +15,8 @@ var _ = require("underscore");
 
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
+var constructBrowsePathFromQualifiedName = require("lib/tools/tools_browse_path").constructBrowsePathFromQualifiedName;
+var checkSelectClauses = require("lib/tools/tools_event_filter").checkSelectClauses;
 
 describe("testing Events  ", function () {
 
@@ -73,38 +75,7 @@ describe("testing Events  ", function () {
      *
      *
      */
-    //xxBaseNode.prototype.getChildren = function (referenceBaseName) {
-    //xx    // retrieve any children (i.e all the node are  hierarchical relationship with this node)
-    //xx};
-    var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
-    var ReferenceTypeIds = require("lib/opcua_node_ids").ReferenceTypeIds;
-    var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
-    var BrowsePathResult = translate_service.BrowsePathResult;
-    var BrowsePath = translate_service.BrowsePath;
     var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-
-    var hierarchicalReferencesId =makeNodeId(ReferenceTypeIds.HierarchicalReferences);
-
-    function constructBrowsePathFromQualifiedName(startingNode,browsePath) {
-
-        var elements =  browsePath.map(function(targetName) {
-           return {
-               referenceTypeId: hierarchicalReferencesId,
-               isInverse: false,
-               includeSubtypes: true,
-               targetName: targetName
-            };
-        });
-
-        var browsePath = new BrowsePath({
-            startingNode: startingNode.nodeId, // ROOT
-            relativePath: {
-                elements: elements
-            }
-        });
-        return browsePath;
-    }
-
 
     function browsePath(eventNode,selectClause) {
         // SimpleAttributeOperand
@@ -152,29 +123,8 @@ describe("testing Events  ", function () {
         return selectClauses.map(extractEventField.bind(null,eventTypeNode));
     }
 
-    /**
-     *
-     * @param eventTypeNode
-     * @param selectClause
-     * @returns {Array<StatusCode>}
-     */
-    function checkSelectClause(eventTypeNode,selectClause) {
-        // SimpleAttributeOperand
-        var address_space = eventTypeNode.__address_space;
-        // navigate to the innerNode specified by the browsePath [ QualifiedName]
-        var browsePath = constructBrowsePathFromQualifiedName(eventTypeNode,selectClause.browsePath);
-        var browsePathResult = address_space.browsePath(browsePath);
-        return browsePathResult.statusCode;
 
-    }
-    /**
-     *
-     * @param eventTypeNode
-     * @param selectClauses {selectClauseResults}
-     */
-    function checkSelectClauses(eventTypeNode,selectClauses) {
-        return selectClauses.map(checkSelectClause.bind(null,eventTypeNode));
-    }
+
     // select clause
     var subscription_service = require("lib/services/subscription_service");
     it("should extract EventData from an select clause",function() {
