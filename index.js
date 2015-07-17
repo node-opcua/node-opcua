@@ -24,6 +24,7 @@ module.exports.AccessLevelFlag  = require("lib/datamodel/access_level").AccessLe
 // services
 module.exports.browse_service   = require("lib/services/browse_service");
 module.exports.read_service     = require("lib/services/read_service");
+module.exports.write_service     = require("lib/services/write_service");
 module.exports.call_service     = require("lib/services/call_service");
 module.exports.session_service  = require("lib/services/session_service");
 module.exports.get_endpoints_service  = require("lib/services/get_endpoints_service");

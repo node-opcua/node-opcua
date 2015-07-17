@@ -95,12 +95,34 @@ server.on("post_initialize", function () {
     var myDevices = server.engine.addFolder("Objects", { browseName: "MyDevices"});
 
     /**
+     * variation 0:
+     * ------------
+     *
+     * Add a variable in folder using a raw Variant.
+     * Use this variation when the variable has to be read or written by the OPCUA clients
+     */
+    var variable0 = server.engine.addVariable(myDevices, {
+        browseName: "FanSpeed",
+        nodeId: "ns=2;s=FanSpeed",
+        dataType: "Double",
+        value:  new Variant({dataType: DataType.Double,value: 1000.0 })
+    });
+
+    setInterval(function() {
+        var fluctuation = Math.random()*100-50;
+        variable0.setValueFromSource(new Variant({dataType: DataType.Double,value: 1000.0 + fluctuation}));
+    },10    );
+
+
+    /**
      * variation 1:
      * ------------
      *
      * Add a variable in folder using a single get function witch returns the up to date variable value in Variant.
      * The server will set the timestamps automatically for us.
-     *
+     * Use this variation when the variable value is controled by the getter function
+     * Avoid using this variation if the variable has to be made writable, as the server will call the getter
+     * function prior to returning its value upon client read requests.
      */
     server.engine.addVariable(myDevices, {
         browseName: "PumpSpeed",
@@ -165,8 +187,8 @@ server.on("post_initialize", function () {
      * variation 3:
      * ------------
      *
-     * Add a variable in a folder. This variable gets its value  and source timestamps from the provided asynchronous
-     * function.
+     * Add a variable in a folder. This variable gets its value  and source timestamps from the provided
+     * asynchronous function.
      * The asynchronous function is called only when needed by the opcua Server read services and monitored item services
      *
      */
