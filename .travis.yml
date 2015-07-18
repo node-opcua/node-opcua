@@ -26,8 +26,8 @@ addons:
     repo_token: 0860a573fd01a1fbafc298b7c40cd0c1fd8b25e5f53a5e8346d3b42cb40ab48e
 
 after_script:
-  - cat coverage/lcov.info | codeclimate
-
+  # old - cat coverage/lcov.info | codeclimate
+  - codeclimate-test-reporter < coverage/lcov.info
 
 notifications:
   webhooks:
