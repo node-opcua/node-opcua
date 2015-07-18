@@ -1,13 +1,31 @@
+"use strict";
 require("requirish")._(module);
 
 var _ = require("underscore");
 var async = require("async");
 
-
 var sinon = require("sinon");
-var subscription_service = require("lib/services/subscription_service");
-var Subscription = require("lib/server/subscription").Subscription;
-var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
+
+var opcua = require("index");
+
+
+var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+
+var makeNodeId = opcua.makeNodeId;
+var coerceNodeId  =opcua.coerceNodeId;
+
+var DataType = opcua.DataType;
+var Variant = opcua.Variant;
+var VariantArrayType = opcua.VariantArrayType;
+var DataValue = opcua.DataValue;
+var AttributeIds = opcua.AttributeIds;
+var StatusCodes = opcua.StatusCodes;
+var NumericRange = opcua.NumericRange;
+
+var WriteValue = opcua.write_service.WriteValue;
+var ReadValueId = opcua.read_service.ReadValueId;
+var subscription_service = opcua.subscription_service;
+var Subscription = subscription_service.Subscription;
 var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 
 
@@ -15,19 +33,11 @@ var address_space_for_conformance_testing = require("lib/simulation/address_spac
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var address_space = require("lib/address_space/address_space");
-var nodeid = require("lib/datamodel/nodeid");
-var server_engine = require("lib/server/server_engine");
-var makeNodeId = nodeid.makeNodeId;
-var DataType = require("lib/datamodel/variant").DataType;
-var Variant = require("lib/datamodel/variant").Variant;
-var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
-var DataValue = require("lib/datamodel/datavalue").DataValue;
+var server_engine = require("lib/server/server_engine");4
 
-var WriteValue = require("lib/services/write_service").WriteValue;
-var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var ReadValueId = require("lib/services/read_service").ReadValueId;
-var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
+
+
+
 var should = require("should");
 var assert = require("better-assert");
 
@@ -529,12 +539,12 @@ describe("testing address space for conformance testing", function () {
         ], done);
     });
 
-    it("should write an  element inside an array of Float (indexRange 2:4) ", function (done) {
+    xit("should write an  element inside an array of Float (indexRange 2:4) ", function (done) {
 
         done();
     });
 
-    it("should write an  element inside an array of Boolean (indexRange 2:4) ", function (done) {
+    xit("should write an  element inside an array of Boolean (indexRange 2:4) ", function (done) {
         done();
     });
 
@@ -680,8 +690,51 @@ describe("testing address space for conformance testing", function () {
             },
         ], done);
     });
+
+
 });
 
 
 
 
+describe("testing address space with large number of nodes", function () {
+
+    var engine;
+    this.timeout(30000);
+
+    before(function (done) {
+        resourceLeakDetector.start();
+
+        engine = new server_engine.ServerEngine();
+        var nodeset_filename = [
+            server_engine.mini_nodeset_filename,
+            server_engine.part8_nodeset_filename
+        ];
+        engine.initialize({nodeset_filename:nodeset_filename }, function () {
+            build_address_space_for_conformance_testing(engine, {mass_variables: true});
+
+            // address space variable change for conformance testing are changing randomly
+            // let wait a little bit to make sure variables have changed at least once
+            setTimeout(done, 500);
+        });
+    });
+    after(function () {
+        if (engine) {
+            engine.shutdown();
+            engine = null;
+        }
+        resourceLeakDetector.stop();
+    });
+
+
+
+    it("should create mass variables", function (done) {
+
+        var a = engine.findObjectByBrowseName("Scalar_Mass_UInt32");
+        should(a).not.eql(null);
+
+        engine.findObject(coerceNodeId("ns="+namespaceIndex + ";s=Scalar_Mass_Time"));
+        should(a).not.eql(null);
+        done();
+    });
+});
