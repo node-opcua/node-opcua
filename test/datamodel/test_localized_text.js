@@ -1,3 +1,5 @@
+
+"use strict";
 require("requirish")._(module);
 var should = require("should");
 var util = require("util");
@@ -89,5 +91,18 @@ describe("LocalizedText",function() {
 
     });
 
+    var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
+    it("#coerceLocalizedText - null",function() {
+
+        should(coerceLocalizedText(null)).eql(null);
+    });
+    it("#coerceLocalizedText - string",function() {
+
+        should(coerceLocalizedText("Hello World")).eql({locale:null, text:"Hello World"});
+    });
+    it("#coerceLocalizedText - LocalizedText",function() {
+
+        should(coerceLocalizedText(new LocalizedText({text: "Hello World" }))).eql({locale:null, text:"Hello World"});
+    });
 
 });
