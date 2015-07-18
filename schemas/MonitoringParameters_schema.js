@@ -1,14 +1,14 @@
 var MonitoringParameters_Schema = {
     name: "MonitoringParameters",
     fields: [
-        /**
+        /*
          * Client-supplied id of the MonitoredItem. This id is used in Notifications generated
          * for the list Node.
          */
 
         { name: "clientHandle", fieldType: "IntegerId" },
 
-        /**
+        /*
          * - samplingInterval is the interval that defines the fastest rate at which the MonitoredItem(s) should be
          *   accessed and evaluated. This interval is defined in milliseconds.
          * - The value 0 indicates that the Server should use the fastest practical rate.
@@ -27,7 +27,7 @@ var MonitoringParameters_Schema = {
          *   the maximum sampling interval is returned.
          */
         { name: "samplingInterval", fieldType: "Duration" },
-        /**
+        /*
          * A filter used by the Server to determine if the MonitoredItem should generate a
          * Notification. If not used, this parameter is null. The MonitoringFilter parameter type
          * is an extensible parameter type specified in 7.16. It specifies the types of filters that
@@ -35,7 +35,7 @@ var MonitoringParameters_Schema = {
          */
          { name: "filter", fieldType: "ExtensionObject" },
 
-        /**
+        /*
          * The requested size of the MonitoredItem queue.
          * The following values have special meaning for data monitored items:
          * Value    Meaning
@@ -64,7 +64,7 @@ var MonitoringParameters_Schema = {
          * EventQueueOverflowEventType is generated.
          */
         { name: "queueSize", fieldType: "Counter" },
-        /**
+        /*
          * A boolean parameter that specifies the discard policy when the queue is full and a
          * new Notification is to be queued. It has the following values:
          *      TRUE     the oldest (first) Notification in the queue is discarded. The new

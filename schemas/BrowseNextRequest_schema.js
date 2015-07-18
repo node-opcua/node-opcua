@@ -5,7 +5,7 @@ var BrowseNextRequest_Schema = {
     documentation: "Continues one or more browse operations.",
     fields: [
         {name: "requestHeader", fieldType: "RequestHeader", documentation: "A standard header included in all requests sent to a server."},
-        /**
+        /*
          *
          * A Boolean parameter with the following values:
          *   TRUE:   passed continuationPoints shall be reset to free resources in the Server. The continuation points
@@ -18,7 +18,7 @@ var BrowseNextRequest_Schema = {
          * BrowseNext shall be called with this parameter set to TRUE.
          */
         {name: "releaseContinuationPoints", fieldType: "Boolean", documentation: "If TRUE the continuation points are released and no results are returned." },
-        /**
+        /*
          * A list of Server-defined opaque values that represent continuation points. The value for a continuation point
          * was returned to the Client in a previous Browse or BrowseNext response. These values are used to identify the
          * previously processed Browse or BrowseNext request that is being continued and the point in the result set

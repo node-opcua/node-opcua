@@ -1,5 +1,5 @@
 "use strict";
-/**
+/*
  <UADataType NodeId="i=296" BrowseName="Argument">
      <DisplayName>Argument</DisplayName>
      <Description>An argument for a method.</Description>
@@ -74,7 +74,7 @@ var Argument_Schema = {
         {name: "name", fieldType: "String", documentation: "The name of the argument."},
         {name: "dataType", fieldType: "DataTypeAsNodeId", documentation: "The data type of the argument."},
 
-    /**
+    /*
      * valueRank (5.6.2 Variable NodeClass part 3)
      * This Attribute indicates whether the Value Attribute of the Variable is
      * an array and how many dimensions the array has.
@@ -97,7 +97,7 @@ var Argument_Schema = {
             defaultValue: -1 /* Scalar is the default value */
         },
 
-    /**
+    /*
      * arrayDimensions:
      * This Attribute specifies the length of each dimension for an array
      * value. The Attribute is intended to describe the capability of the

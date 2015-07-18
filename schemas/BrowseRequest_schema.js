@@ -3,7 +3,7 @@ var BrowseRequest_Schema = {
     documentation: "Browse the references for one or more nodes from the server address space.",
     fields: [
         {name: "requestHeader", fieldType: "RequestHeader", documentation: "A standard header included in all requests sent to a server."},
-    /**
+    /*
      * An empty ViewDescription value indicates the entire AddressSpace.
      * Use of the empty ViewDescription value causes all References of the nodesToBrowse to be returned. Use of any
      * other View causes only the References of the nodesToBrowse that are defined for that View to be returned.

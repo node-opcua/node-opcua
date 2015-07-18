@@ -1,7 +1,7 @@
 
 var TimestampsToReturn = require("./TimestampsToReturn_enum").TimestampsToReturn;
 
-/**
+/*
  * Maximum age of the value to be read in milliseconds. The age of the value is based on the difference between the
  * ServerTimestamp and the time when the Server starts processing the request. For example if the Client specifies a
  * maxAge of 500 milliseconds and it takes 100 milliseconds until the Server starts processing the request, the age of

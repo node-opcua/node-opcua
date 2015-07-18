@@ -1,4 +1,4 @@
-/**
+/*
  * @module opcua.datamodel
  */
 "use strict";

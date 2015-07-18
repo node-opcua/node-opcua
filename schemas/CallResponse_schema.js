@@ -9,7 +9,7 @@ var CallResponse_Schema = {
 
         {name: "results", fieldType: "CallMethodResult" , isArray:true,documentation:"Result for the Method calls." },
 
-        /**
+        /*
          * diagnosticInfos []               DiagnosticInfo
          *
          *                                  List of diagnostic information for the statusCode of the results.

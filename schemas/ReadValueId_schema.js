@@ -15,10 +15,6 @@ var ReadValueId_Schema = {
             validate:function(value){
                 return is_valid_attributeId(value) || value == AttributeIds.INVALID;
             },
-            decode: function(stream) {
-                var value = IntegerId.decode(stream);
-                return is_valid_attributeId(value) ? value : AttributeIds.INVALID;
-            },
             defaultValue: AttributeIds.Value
         }, // see AttributeIds
 

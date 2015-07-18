@@ -11,7 +11,7 @@ before_script:
   - npm install -g mocha
   - npm install -g codeclimate-test-reporter
   # memcpy only works with node version > 0.8 and <= 0.12, and not with io.js, at this time
-  - if [[ `node --version` == v0.1* ]]; then npm i memcpy ; fi
+  - if [[ `node --version` == v0.12 ]]; then npm i memcpy ; fi
   - npm install
   - if [[ `node --version` == v0.10* ]]; then npm i ursa ; fi
 

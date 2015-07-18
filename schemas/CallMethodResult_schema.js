@@ -4,7 +4,7 @@ var assert = require("better-assert");
 
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
-/**
+/*
  * results []
  * 5.11.2.3
  * CallMethodResult
@@ -14,7 +14,7 @@ CallMethodResult_Schema = {
     name: "CallMethodResult",
     documentation: "The result of a Method call.",
     fields: [
-    /**
+    /*
      * statusCode                       StatusCode
      *                                  StatusCode of the Method executed in the server. This
      *                                  StatusCode is set to the Bad_InvalidArgument StatusCode if at
@@ -27,14 +27,14 @@ CallMethodResult_Schema = {
         { name: "statusCode" , fieldType:"StatusCode", documentation: "The StatusCode of the Method executed in the server." },
 
 
-    /**
+    /*
      * inputArgumentResults []          StatusCode
      *                                   List of StatusCodes corresponding to the inputArguments.
      *
      */
         { name: "inputArgumentResults" , fieldType:"StatusCode", isArray:true,documentation: "The list of StatusCodes corresponding to the inputArguments." },
 
-    /**
+    /*
      * inputArgumentDiagnosticInfos []  DiagnosticInfo
      *                                  List of diagnostic information corresponding to the
      *                                  inputArguments. This list is empty if diagnostics information was
@@ -43,7 +43,7 @@ CallMethodResult_Schema = {
      *
      */
         { name: "inputArgumentDiagnosticInfos" , fieldType:"DiagnosticInfo", isArray:true,documentation: "The list of diagnostic information corresponding to the inputArguments." },
-    /**
+    /*
      * outputArguments []               BaseDataType (ANY)
      *
      *                                  List of output argument values. An empty list indicates that there
