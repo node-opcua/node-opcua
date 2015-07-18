@@ -2,7 +2,7 @@
 test-cov: istanbul
 
 istanbul:
-	istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec --recursive --timeout 30000 --bail test > istanbul.log
+	istanbul cover -x "tmp/**" ./node_modules/mocha/bin/_mocha -- -R spec --recursive --timeout 30000 --bail test > istanbul.log
 
 coveralls:
 	cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js --exclude tmp
