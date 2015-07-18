@@ -32,13 +32,32 @@ var fake_publish_engine = {
     }
 };
 
+var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+var server_engine = require("lib/server/server_engine");
+var ServerEngine =  server_engine.ServerEngine;
 
 describe("Subscriptions and MonitoredItems", function () {
 
-    before(function() {
+    var address_space;
+    var someVariableNode;
+    var engine;
+    before(function(done) {
         resourceLeakDetector.start();
+        engine = new server_engine.ServerEngine();
+        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
+            address_space = engine.address_space;
+            var node = address_space.addVariable("RootFolder",{
+                browseName: "SomeVariable",
+                dataType:"UInt32",
+                value: { dataType: DataType.UInt32,value: 0}
+            });
+            someVariableNode = node.nodeId;
+            done();
+        });
     });
     after(function() {
+        engine.shutdown();
+        engine = null;
         resourceLeakDetector.stop();
     });
 
@@ -59,7 +78,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-            itemToMonitor: {},
+            itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
 
             requestedParameters: {
@@ -70,7 +89,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         //xx require("lib/utils").dump(monitoredItemCreateResult);
         subscription.monitoredItemCount.should.eql(1);
@@ -100,7 +120,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-            itemToMonitor: {},
+            itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
                 queueSize: 10,
@@ -108,7 +128,8 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
@@ -118,10 +139,11 @@ describe("Subscriptions and MonitoredItems", function () {
 
         // now simulate some data change
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1000}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
 
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1001}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
+
         monitoredItem.queue.length.should.eql(2);
 
         // then, collectDataChangeNotification  should collect at least 2 values
@@ -162,7 +184,7 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.on("notification", spy_notification_event);
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-            itemToMonitor: {},
+            itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
                 clientHandle: 123,
@@ -175,19 +197,24 @@ describe("Subscriptions and MonitoredItems", function () {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+
+        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
         monitoredItem.samplingInterval.should.eql(100);
 
         // now simulate some data change
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1000}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1001}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
+
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1002}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
         monitoredItem.queue.length.should.eql(3);
+
 
         this.clock.tick(800);
 
@@ -198,11 +225,11 @@ describe("Subscriptions and MonitoredItems", function () {
 
         // now let the subscription send a PublishResponse to the client
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 2000}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2000}}));
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 2001}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2001}}));
         this.clock.tick(100);
-        monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 2002}});
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2002}}));
         monitoredItem.queue.length.should.eql(3);
         this.clock.tick(800);
 
@@ -229,7 +256,7 @@ describe("Subscriptions and MonitoredItems", function () {
         });
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-            itemToMonitor: {},
+            itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
                 clientHandle: 123,
@@ -238,7 +265,8 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
@@ -251,22 +279,82 @@ describe("Subscriptions and MonitoredItems", function () {
         done();
     });
 
-});
 
+    it("should return an error when filter is DataChangeFilter deadband is out of bound",function(done) {
+
+        var subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
+        });
+
+        function _create_MonitoredItemCreateRequest_with_deadbandValue(value) {
+            return new MonitoredItemCreateRequest({
+                itemToMonitor: {nodeId: someVariableNode},
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 100,
+                    filter: new subscription_service.DataChangeFilter({
+                        trigger: subscription_service.DataChangeTrigger.Status,
+                        deadbandType: subscription_service.DeadbandType.Percent,
+                        deadbandValue: value
+                    })
+                }
+            });
+
+        }
+
+        var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
+        var monitoredItemCreateResult1 = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both,monitoredItemCreateRequest1);
+        monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+
+        var monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
+        var monitoredItemCreateResult2 = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both,monitoredItemCreateRequest2);
+        monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+
+        var monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
+        var monitoredItemCreateResult3 = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both,monitoredItemCreateRequest3);
+        monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
+
+        subscription.terminate();
+        done();
+    });
+
+});
 
 var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
 
 describe("#maxNotificationsPerPublish", function () {
 
-    var publishEngine =null;
-    before(function() {
+    var address_space;
+    var someVariableNode;
+    var engine;
+    var publishEngine;
+    before(function(done) {
         resourceLeakDetector.start();
         publishEngine = new ServerSidePublishEngine();
+        engine = new server_engine.ServerEngine();
+        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
+            address_space = engine.address_space;
+            var node = address_space.addVariable("RootFolder",{
+                browseName: "SomeVariable",
+                dataType:"UInt32",
+                value: { dataType: DataType.UInt32,value: 0}
+            });
+            someVariableNode = node.nodeId;
+            done();
+        });
     });
     after(function() {
-        publishEngine.shutdown();
+        engine.shutdown();
+        engine = null;
+        if (publishEngine) {
+            publishEngine.shutdown();
+        }
         resourceLeakDetector.stop();
     });
+
 
 
     function simulate_client_adding_publish_request(callback) {
@@ -313,7 +401,7 @@ describe("#maxNotificationsPerPublish", function () {
     }
     function createMonitoredItem(subscription,clientHandle) {
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-            itemToMonitor: {},
+            itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
                 clientHandle: clientHandle,
@@ -322,8 +410,11 @@ describe("#maxNotificationsPerPublish", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        should(monitoredItem).not.eql(null);
         return monitoredItem;
     }
 
@@ -366,20 +457,20 @@ describe("#maxNotificationsPerPublish", function () {
 
         // now simulate some data change on monitored items
         this.clock.tick(100);
-        monitoredItem1.recordValue({value: {dataType: DataType.UInt32, value: 1000}});
-        monitoredItem2.recordValue({value: {dataType: DataType.UInt32, value: 2000}});
-        monitoredItem3.recordValue({value: {dataType: DataType.UInt32, value: 3000}});
-        monitoredItem4.recordValue({value: {dataType: DataType.UInt32, value: 4000}});
+        monitoredItem1.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+        monitoredItem2.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2000}}));
+        monitoredItem3.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 3000}}));
+        monitoredItem4.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 4000}}));
         this.clock.tick(100);
-        monitoredItem1.recordValue({value: {dataType: DataType.UInt32, value: 1001}});
-        monitoredItem2.recordValue({value: {dataType: DataType.UInt32, value: 2001}});
-        monitoredItem3.recordValue({value: {dataType: DataType.UInt32, value: 3001}});
-        monitoredItem4.recordValue({value: {dataType: DataType.UInt32, value: 4001}});
+        monitoredItem1.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
+        monitoredItem2.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2001}}));
+        monitoredItem3.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 3001}}));
+        monitoredItem4.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 4001}}));
         this.clock.tick(100);
-        monitoredItem1.recordValue({value: {dataType: DataType.UInt32, value: 1002}});
-        monitoredItem2.recordValue({value: {dataType: DataType.UInt32, value: 2002}});
-        monitoredItem3.recordValue({value: {dataType: DataType.UInt32, value: 3002}});
-        monitoredItem4.recordValue({value: {dataType: DataType.UInt32, value: 4002}});
+        monitoredItem1.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
+        monitoredItem2.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2002}}));
+        monitoredItem3.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 3002}}));
+        monitoredItem4.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 4002}}));
 
         monitoredItem1.queue.length.should.eql(3);
         monitoredItem2.queue.length.should.eql(3);
@@ -423,3 +514,5 @@ describe("#maxNotificationsPerPublish", function () {
     });
 
 });
+
+

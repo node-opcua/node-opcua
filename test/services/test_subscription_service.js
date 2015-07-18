@@ -323,6 +323,9 @@ describe("testing subscription objects",function(){
 
 var _ = require("underscore");
 var build_client_server_session = require("test/helpers/build_client_server_session").build_client_server_session;
+var VariableIds =require("lib/opcua_node_ids").VariableIds;
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+var DataType = require("lib/datamodel/variant").DataType;
 
 describe("testing basic Client Server dealing with subscription at low level",function(){
     var g_session ;
@@ -333,6 +336,7 @@ describe("testing basic Client Server dealing with subscription at low level",fu
         client_server = build_client_server_session(function(err){
             if (!err) {
                 g_session = client_server.g_session;
+
             }
             done(err);
         });
@@ -364,7 +368,6 @@ describe("testing basic Client Server dealing with subscription at low level",fu
     });
     it("server should create a monitored item  (CreateMonitoredItems)",function(done){
 
-        var VariableIds =require("lib/opcua_node_ids").VariableIds;
 
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateMonitoredItemsRequest({
@@ -416,18 +419,6 @@ describe("testing basic Client Server dealing with subscription at low level",fu
         });
     });
 
-    it("server should handle Republish request",function(done){
-
-        var request = new subscription_service.RepublishRequest({
-
-        });
-        g_session.republish(request,function(err,response){
-            if(!err) {
-                assert(response instanceof subscription_service.RepublishResponse);
-            }
-            done();
-        });
-    });
 
     it("server should handle DeleteMonitoredItems  request",function(done){
 
@@ -435,9 +426,8 @@ describe("testing basic Client Server dealing with subscription at low level",fu
 
         });
         g_session.deleteMonitoredItems(request,function(err,response){
-            if(!err) {
-                assert(response instanceof subscription_service.DeleteMonitoredItemsResponse);
-            }
+            response.should.be.instanceof(subscription_service.DeleteMonitoredItemsResponse);
+
             done();
         });
     });

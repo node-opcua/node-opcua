@@ -34,6 +34,8 @@ describe("AddressSpace : add event type ", function () {
                 //isAbstract:false,
                 subtypeOf:  "BaseEventType" // should be implicit
             });
+
+
             done(err);
         });
 
@@ -42,6 +44,13 @@ describe("AddressSpace : add event type ", function () {
     it("should find BaseEventType",function() {
         address_space.findEventType("BaseEventType").nodeId.toString().should.eql("ns=0;i=2041");
     });
+
+    it("BaseEventType should be abstract ",function() {
+        var baseEventType =address_space.findEventType("BaseEventType");
+        baseEventType.nodeId.toString().should.eql("ns=0;i=2041");
+        baseEventType.isAbstract.should.eql(true);
+    });
+
 
     it("should find AuditEventType",function() {
         address_space.findEventType("AuditEventType").nodeId.toString().should.eql("ns=0;i=2052");
@@ -53,13 +62,6 @@ describe("AddressSpace : add event type ", function () {
         var auditEventType = address_space.findObjectType("AuditEventType");
         auditEventType.isSupertypeOf(baseEventType).should.eql(true);
         baseEventType.isSupertypeOf(auditEventType).should.eql(false);
-    });
-
-
-    it("should failed to instantiate an abstract event type",function(){
-        (function() {
-            address_space.instantiateEvent("BaseEventType",{});
-        }).should.throw(/cannot instanciate abstract EvenType/);
     });
 
     it("should find a newly added EventType",function() {
@@ -77,6 +79,12 @@ describe("AddressSpace : add event type ", function () {
         should(reloaded).not.eql(null,"cannot findEventType " +"__EventTypeForTest1" );
         reloaded.nodeId.should.eql(eventType.nodeId);
 
+    });
+
+    it("added EventType should be abstact",function() {
+        var eventType = address_space.findEventType("MyCustomEvent");
+        eventType.browseName.should.eql("MyCustomEvent");
+        eventType.isAbstract.should.eql(true);
     });
 
     it("should add an basic event type",function() {

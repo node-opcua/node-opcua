@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
@@ -94,7 +95,7 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(2000);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1000 }}));
         monitoredItem.queue.length.should.eql(1);
 
         monitoredItem.terminate();
@@ -114,19 +115,19 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1000 }}));
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1001 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1001 }}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1002 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1002 }}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1001);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -149,19 +150,19 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1000 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1000 }}));
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1001 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1001 }}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue({value:{dataType: DataType.UInt32, value: 1002 }});
+        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1002 }}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -257,7 +258,7 @@ describe("Server Side MonitoredItem",function(){
             // read new value
             // check if different enough from old Value
             // if different enough : call recordValue
-            this.recordValue({value:{ dataType: DataType.UInt32,value: sample_value }});
+            this.recordValue(new DataValue({value:{ dataType: DataType.UInt32,value: sample_value }})   );
 
             monitoredItem.terminate();
             done();
@@ -511,4 +512,24 @@ describe("MonitoredItem with DataChangeFilter",function(){
 
     });
 
+    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 20%",function() {
+
+         var dataChangeFilter = new DataChangeFilter({
+            trigger: DataChangeTrigger.StatusValue,
+            deadbandType: DeadbandType.Percent, // percentage of the EURange
+             // see part 8
+            deadbandValue: 10
+        });
+
+        var monitoredItem = new MonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            filter: dataChangeFilter,
+            // added by the server:
+            monitoredItemId: 50
+        });
+
+    });
 });

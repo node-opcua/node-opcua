@@ -58,7 +58,7 @@ describe("testing Events  ", function () {
 
         serverObject.raiseEvent(eventType,{
             sourceNode: { dataType: "NodeId" , value: serverObject.nodeId },
-            message: { dataType: "String" , value: "Hello World" }
+            message:    { dataType: "String" , value: "Hello World" }
         });
 
     });

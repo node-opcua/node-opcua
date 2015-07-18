@@ -355,6 +355,79 @@ describe("testing server and subscription", function () {
         server.shutdown(done);
     });
 
+
+    it("should return BadTooManySubscriptions if too many subscriptions are opened", function (done) {
+
+        server.engine.currentSessionCount.should.equal(0);
+
+        var subscriptionIds = [];
+
+        function create_an_other_subscription(session, expected_error, callback) {
+            session.createSubscription({
+                requestedPublishingInterval: 100, // Duration
+                requestedLifetimeCount: 10,    // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
+            }, function (err, response) {
+
+                if (!expected_error) {
+                    should(err).eql(null);
+                    subscriptionIds.push(response.subscriptionId);
+                }
+                else {
+                    err.message.should.match(new RegExp(expected_error));
+                }
+                callback();
+            });
+        }
+
+        var MAX_SUBSCRIPTION_BACKUP = opcua.OPCUAServer.MAX_SUBSCRIPTION;
+        opcua.OPCUAServer.MAX_SUBSCRIPTION = 5;
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+            async.series([
+
+                function (callback) {
+                    create_an_other_subscription(session, null, callback);
+                },
+                function (callback) {
+                    create_an_other_subscription(session, null, callback);
+                },
+                function (callback) {
+                    create_an_other_subscription(session, null, callback);
+                },
+                function (callback) {
+                    create_an_other_subscription(session, null, callback);
+                },
+                function (callback) {
+                    create_an_other_subscription(session, null, callback);
+                },
+                function (callback) {
+                    create_an_other_subscription(session, "BadTooManySubscriptions", callback);
+                },
+                function (callback) {
+                    create_an_other_subscription(session, "BadTooManySubscriptions", callback);
+                },
+
+                function (callback) {
+                    session.deleteSubscriptions({
+                        subscriptionIds: subscriptionIds
+                    }, function (err, response) {
+                        callback();
+                    });
+                }
+            ], function (err) {
+                opcua.OPCUAServer.MAX_SUBSCRIPTION = MAX_SUBSCRIPTION_BACKUP;
+                done(err);
+            });
+
+        }, done);
+
+    });
+
     it(" a server should accept several Publish Requests from the client without sending notification immediately," +
         " and should still be able to reply to other requests",
         function (done) {
@@ -454,7 +527,7 @@ describe("testing server and subscription", function () {
 
     });
 
-    it("#deleteSubscriptions -  should return serviceResult=BadNothingToDo if subscriptionIds is empty",function(done){
+    it("#deleteSubscriptions -  should return serviceResult=BadNothingToDo if subscriptionIds is empty", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -1448,7 +1521,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                         notification.value.value.value.should.eql(7);
 
                         parameters.queueSize.should.eql(1);
-                        notification.value.statusCode.should.eql(StatusCodes.Good,"OverFlow bit shall not be set when queueSize =1");
+                        notification.value.statusCode.should.eql(StatusCodes.Good, "OverFlow bit shall not be set when queueSize =1");
                         callback(err);
                     });
                 }
@@ -1546,7 +1619,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                         //xx console.log(notification.value.value.value);
                         notification.value.value.value.should.eql(expected_values[1]);
                         parameters.queueSize.should.eql(2);
-                        notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit,"OverFlow bit shall not be set when queueSize =2");
+                        notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit, "OverFlow bit shall not be set when queueSize =2");
                         callback(err);
                     });
                 },
@@ -1658,7 +1731,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             }, done);
         });
     });
-
 
 
     it("#ModifySubscriptionRequest: should return BadSubscriptionIdInvalid if client specifies a invalid subscriptionId", function (done) {
@@ -1807,8 +1879,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         }, done);
     });
 
-
-
     it("#subscription operations should extend subscription lifetime", function (done) {
 
         this.timeout(20000);
@@ -1816,7 +1886,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         var monitoredItem;
 
-        function step1(session,subscription, callback) {
+        function step1(session, subscription, callback) {
 
             monitoredItem = subscription.monitor({
                 nodeId: resolveNodeId("ns=0;i=2254"),
@@ -1833,7 +1903,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
         }
 
-        function step2(session,subscription,callback) {
+        function step2(session, subscription, callback) {
             var setMonitoringModeRequest = {
                 subscriptionId: subscription.subscriptionId,
                 monitoringMode: opcua.subscription_service.MonitoringMode.Sampling,
@@ -1847,7 +1917,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
         }
 
-        function step3(session,subcription,callback) {
+        function step3(session, subcription, callback) {
             session.deleteSubscriptions({
                 subscriptionIds: [subcription.subscriptionId]
             }, function (err, response) {
@@ -1890,6 +1960,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             }, done_func);
         }
+
         my_perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
             // xx perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
 
@@ -1905,28 +1976,239 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             async.series([
 
-                function(callback) { nb_keep_alive_received.should.eql(0); callback(); },
-                function(callback) { setTimeout(callback,subscription.publishingInterval*2); },
-                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+                function (callback) {
+                    nb_keep_alive_received.should.eql(0);
+                    callback();
+                },
+                function (callback) {
+                    setTimeout(callback, subscription.publishingInterval * 2);
+                },
+                function (callback) {
+                    nb_keep_alive_received.should.eql(1);
+                    callback();
+                },
 
-                function(callback) { setTimeout(callback,waitingTime); },
-                function(callback) { step1(session,subscription,callback); },
+                function (callback) {
+                    setTimeout(callback, waitingTime);
+                },
+                function (callback) {
+                    step1(session, subscription, callback);
+                },
 
-                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+                function (callback) {
+                    nb_keep_alive_received.should.eql(1);
+                    callback();
+                },
 
-                function(callback) { setTimeout(callback,waitingTime); },
-                function(callback) { step2(session,subscription,callback); },
-                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+                function (callback) {
+                    setTimeout(callback, waitingTime);
+                },
+                function (callback) {
+                    step2(session, subscription, callback);
+                },
+                function (callback) {
+                    nb_keep_alive_received.should.eql(1);
+                    callback();
+                },
 
-                function(callback) { setTimeout(callback,waitingTime); },
-                function(callback) { step3(session,subscription,callback); },
-                function(callback) { nb_keep_alive_received.should.eql(1); callback(); },
+                function (callback) {
+                    setTimeout(callback, waitingTime);
+                },
+                function (callback) {
+                    step3(session, subscription, callback);
+                },
+                function (callback) {
+                    nb_keep_alive_received.should.eql(1);
+                    callback();
+                },
 
 
-            ],inner_done);
+            ], inner_done);
 
-        },done);
+        }, done);
 
     });
 
-});
+
+    describe("#Republish", function () {
+        var VariableIds = require("lib/opcua_node_ids").VariableIds;
+        var DataValue = require("lib/datamodel/datavalue").DataValue;
+        var DataType = require("lib/datamodel/variant").DataType;
+        var Variant = require("lib/datamodel/variant").Variant;
+
+        var async = require("async");
+        var VALID_SUBSCRIPTION;
+        var VALID_RETRANSMIT_SEQNUM =0;
+        var INVALID_SUBSCRIPTION = 1234;
+        var INVALID_RETRANSMIT_SEQNUM = 1234;
+
+
+        var subscription_service = opcua.subscription_service;
+        var read_service = opcua.read_service;
+        var g_session;
+        var client,fanSpeed;
+        before(function (done) {
+
+            VALID_RETRANSMIT_SEQNUM = 0;
+
+            client = new OPCUAClient();
+            fanSpeed = server.engine.findObject("ns=2;s=FanSpeed");
+            //xxx console.log(fanSpeed.toString());
+            done();
+        });
+
+        function inner_test(the_test_function, done) {
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                assert(session instanceof ClientSession);
+                g_session = session;
+                async.series([
+
+                    function (callback) {
+                        // CreateSubscriptionRequest
+                        var request = new subscription_service.CreateSubscriptionRequest({
+                            requestedPublishingInterval: 100,
+                            requestedLifetimeCount: 1000,
+                            requestedMaxKeepAliveCount: 1000,
+                            maxNotificationsPerPublish: 2000,
+                            publishingEnabled: true,
+                            priority: 6
+                        });
+                        g_session.createSubscription(request, function (err, response) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            VALID_SUBSCRIPTION = response.subscriptionId;
+                            callback();
+                        });
+
+                    },
+
+                    function (callback) {
+                        // CreateMonitoredItemsRequest
+                        var request = new subscription_service.CreateMonitoredItemsRequest({
+                            subscriptionId: VALID_SUBSCRIPTION,
+                            timestampsToReturn: read_service.TimestampsToReturn.Both,
+                            itemsToCreate: [
+                                {
+                                    itemToMonitor: {
+                                        nodeId: fanSpeed.nodeId
+                                        // nodeId: opcua.makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
+                                    },
+                                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                                    requestedParameters: {
+                                        clientHandle: 26,
+                                        samplingInterval: 10,
+                                        filter: null,
+                                        queueSize: 100,
+                                        discardOldest: true
+                                    }
+                                }
+                            ]
+                        });
+
+                        g_session.createMonitoredItems(request, function (err, response) {
+
+                            response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
+                            response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                            response.results.length.should.eql(1);
+                            response.results[0].statusCode.should.eql(StatusCodes.Good);
+
+                            callback(err);
+                        });
+                    },
+
+                    function (callback) {
+                        fanSpeed.setValueFromSource(new Variant({dataType: DataType.Double, value: 1}));
+                        setTimeout(callback, 50);
+                        fanSpeed.setValueFromSource(new Variant({dataType: DataType.Double, value: 2}));
+                        //console.log(fanSpeed.toString());
+                    },
+
+                    //publish_republish,
+
+                    function (callback) {
+
+                        // publish request now requires a subscriptions
+                        var request = new subscription_service.PublishRequest({
+                            subscriptionAcknowledgements: []
+                        });
+                        g_session.publish(request, function (err, response) {
+                            assert(response instanceof subscription_service.PublishResponse);
+                            assert(response.availableSequenceNumbers.length > 0);
+                            VALID_RETRANSMIT_SEQNUM = response.availableSequenceNumbers[0];
+                            VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
+
+                            callback(err);
+
+                        });
+
+                    },
+
+                    the_test_function,
+
+                ], inner_done);
+
+            }, done);
+        }
+
+
+        it("server should handle Republish request (BadMessageNotAvailable) ", function (done) {
+
+            inner_test(function (done) {
+                var request = new subscription_service.RepublishRequest({
+                    subscriptionId: VALID_SUBSCRIPTION,
+                    retransmitSequenceNumber: INVALID_RETRANSMIT_SEQNUM
+                });
+                g_session.republish(request, function (err, response) {
+                    response.should.be.instanceof(subscription_service.RepublishResponse);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
+                    done();
+                });
+            }, done);
+
+        });
+
+        it("server should handle Republish request (BadSubscriptionIdInvalid) ", function (done) {
+
+            inner_test(function (done) {
+
+                VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
+
+                var request = new subscription_service.RepublishRequest({
+                    subscriptionId: INVALID_SUBSCRIPTION,
+                    retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
+                });
+                g_session.republish(request, function (err, response) {
+                    response.should.be.instanceof(subscription_service.RepublishResponse);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                    done();
+                });
+            }, done);
+        });
+
+
+        it("server should handle Republish request (Good) ", function (done) {
+
+            inner_test(function (done) {
+
+                VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
+
+                var request = new subscription_service.RepublishRequest({
+                    subscriptionId: VALID_SUBSCRIPTION,
+                    retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
+                });
+
+                g_session.republish(request, function (err, response) {
+                    response.should.be.instanceof(subscription_service.RepublishResponse);
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    done();
+                });
+            }, done);
+        });
+
+    });
+
+
+})
+;

@@ -111,6 +111,13 @@ function build_server_with_temperature_device(options,done) {
             assert(server.engine.status === "initialized");
             var myDevices = server.engine.addFolder("Objects",{ browseName: "MyDevices"});
 
+            var variable0 = server.engine.addVariable(myDevices, {
+                browseName: "FanSpeed",
+                nodeId: "ns=2;s=FanSpeed",
+                dataType: "Double",
+                value:  new Variant({dataType: DataType.Double,value: 1000.0 })
+            });
+
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
             // install a Read/Write variable representing a temperature set point of a temperature controller.
             server.temperatureVariableId = server.engine.addVariable(myDevices,

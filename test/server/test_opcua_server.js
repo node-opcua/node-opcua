@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 
 var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
@@ -38,4 +39,6 @@ describe("OPCUAServer",function() {
         });
 
     });
+
+
 });

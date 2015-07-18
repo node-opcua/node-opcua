@@ -169,6 +169,29 @@ describe("Subscriptions", function () {
     });
 
     describe("a subscription shall send its first notification as soon as the publish request is available",function() {
+        var server_engine = require("lib/server/server_engine");
+        var DataType = require("lib/datamodel/variant").DataType;
+
+        var address_space;
+        var someVariableNode;
+        var engine;
+        before(function(done) {
+            engine = new server_engine.ServerEngine();
+            engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
+                address_space = engine.address_space;
+                var node = address_space.addVariable("RootFolder",{
+                    browseName: "SomeVariable",
+                    dataType:"UInt32",
+                    value: { dataType: DataType.UInt32,value: 0}
+                });
+                someVariableNode = node.nodeId;
+                done();
+            });
+        });
+        after(function() {
+            engine.shutdown();
+            engine = null;
+        });
 
         var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
         var publish_engine;
@@ -208,6 +231,7 @@ describe("Subscriptions", function () {
             subscription.terminate();
             subscription = null;
         });
+
         it(" - case 1 - publish Request arrives before first publishInterval is over ",function(done){
             // in this case the subscription received a first publish request before the first tick is processed
 
@@ -268,7 +292,7 @@ describe("Subscriptions", function () {
             var Variant = require("lib/datamodel/variant").Variant;
 
             var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-                itemToMonitor: {},
+                itemToMonitor: {nodeId: someVariableNode},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
                    clientHandle: 123,
@@ -276,7 +300,7 @@ describe("Subscriptions", function () {
                    samplingInterval: 100
                }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
@@ -284,7 +308,7 @@ describe("Subscriptions", function () {
             subscription.state.key.should.eql("LATE");
 
             // now simulate some data change
-            monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1000}});
+            monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
 
             notification_event_spy.callCount.should.eql(0);
             simulate_client_adding_publish_request(subscription.publishEngine);
@@ -310,7 +334,7 @@ describe("Subscriptions", function () {
             var Variant = require("lib/datamodel/variant").Variant;
 
             var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-                itemToMonitor: {},
+                itemToMonitor: {nodeId: someVariableNode},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
                     clientHandle: 123,
@@ -318,7 +342,7 @@ describe("Subscriptions", function () {
                     samplingInterval: 100
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
@@ -326,7 +350,7 @@ describe("Subscriptions", function () {
             subscription.state.key.should.eql("LATE");
 
             // now simulate some data change
-            monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1000}});
+            monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
             notification_event_spy.callCount.should.eql(0);
             simulate_client_adding_publish_request(subscription.publishEngine);
             notification_event_spy.callCount.should.eql(1);
@@ -335,14 +359,14 @@ describe("Subscriptions", function () {
             this.clock.tick(subscription.publishingInterval);
             subscription.state.key.should.eql("LATE");
 
-            monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1001}});
+            monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
             subscription.state.key.should.eql("LATE");
 
             simulate_client_adding_publish_request(subscription.publishEngine);
             notification_event_spy.callCount.should.eql(2);
 
             this.clock.tick(subscription.publishingInterval);
-            monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1002}});
+            monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
             subscription.state.key.should.eql("LATE");
             simulate_client_adding_publish_request(subscription.publishEngine);
             notification_event_spy.callCount.should.eql(3);

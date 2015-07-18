@@ -73,6 +73,7 @@ function build_client_server_session(done){
 
     var client_server = {
         g_session: null,
+        g_server: server,
         shutdown: shutdown
     };
     start(done);
