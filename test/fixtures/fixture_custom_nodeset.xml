@@ -11,6 +11,7 @@
         <Alias Alias="NodeId">i=17</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
     </Aliases>
     <UAObject NodeId="ns=1;i=1" BrowseName="1:ObjectInCUSTOM_NAMESPACE1">
         <DisplayName>ObjectInCUSTOM_NAMESPACE1</DisplayName>
