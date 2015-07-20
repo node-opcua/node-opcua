@@ -46,7 +46,7 @@ describe("testing  address space namespace loading",function() {
             fs.existsSync(xml_files[0]).should.be.eql(true);
             fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        address_space.registerNamespace("ServerNamespaceURI");
+            address_space.registerNamespace("ServerNamespaceURI");
             address_space.getNamespaceArray().length.should.eql(2);
 
             generate_address_space(address_space,xml_files,function(err){
@@ -66,5 +66,33 @@ describe("testing  address space namespace loading",function() {
                 ]);
                 done();
             });
+    });
+
+    it("should process namespaces with DI",function(done){
+
+        var address_space = new AddressSpace();
+        var xml_files = [
+            __dirname + "/../../nodesets/Opc.Ua.NodeSet2.xml",
+            __dirname + "/../../nodesets/Opc.Ua.Di.NodeSet2.xml"
+        ];
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
+
+        address_space.registerNamespace("ServerNamespaceURI");
+        address_space.getNamespaceArray().length.should.eql(2);
+
+        generate_address_space(address_space,xml_files,function(err){
+
+            should(err).eql(null);
+            address_space.getNamespaceArray().length.should.eql(3);
+            address_space.getNamespaceArray()[2].should.eql("http://opcfoundation.org/UA/DI/");
+
+            address_space.getNamespaceArray().should.eql([
+                "http://opcfoundation.org/UA/",   // 0
+                "ServerNamespaceURI",             // 1
+                "http://opcfoundation.org/UA/DI/",// 2
+            ]);
+            done();
+        });
     });
 });

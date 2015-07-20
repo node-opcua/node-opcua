@@ -21,7 +21,6 @@ describe("testing NodeSet XML file loading",function(){
 
     it("should load a nodeset xml file",function(done){
 
-
         var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
 
         require("fs").existsSync(xml_file).should.be.eql(true);
@@ -79,8 +78,6 @@ describe("testing NodeSet XML file loading",function(){
 
             done(err);
         });
-
     });
-
 
 });
