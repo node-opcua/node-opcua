@@ -28,7 +28,8 @@ if (!crypto_utils.isFullySupported()) {
 } else {
 
     describe("testing Client-Server with UserName/Password identity token", function () {
-        var server, client, temperatureVariableId, endpointUrl;
+
+        var server, client, temperatureVariableId, endpointUrl,serverCertificate;
 
         var port = 2001;
         before(function (done) {
@@ -47,13 +48,14 @@ if (!crypto_utils.isFullySupported()) {
                 server.userManager = userManager;
 
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
                 temperatureVariableId = server.temperatureVariableId;
                 done(err);
             });
         });
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = null;
             done();
         });
 
@@ -66,9 +68,11 @@ if (!crypto_utils.isFullySupported()) {
             server.shutdown(done);
         });
 
-        function perform_simple_connection(credentials, done) {
+        function perform_simple_connection(connectionOption,credentials, done) {
 
             var the_session;
+
+            client = new OPCUAClient(connectionOption);
 
             async.series([
 
@@ -105,10 +109,11 @@ if (!crypto_utils.isFullySupported()) {
             ], done);
         }
 
-        it("should not anonymously connect to a server that forbids anonymous connection", function (done) {
+        it("should not anonymously connect to a server that forbids anonymous connection : anonymous connection", function (done) {
 
-            perform_simple_connection({}, function (err) {
+            perform_simple_connection({},{}, function (err) {
                 should(err).be.instanceOf(Error);
+                err.message.should.match(/Cannot find ANONYMOUS user token policy in end point description/);
                 done();
             });
         });
@@ -117,21 +122,33 @@ if (!crypto_utils.isFullySupported()) {
 
             var userName = "username";
             var password = "***invalid password***";
-            perform_simple_connection({userName: userName, password: password}, function (err) {
+            perform_simple_connection({},{userName: userName, password: password}, function (err) {
                 should(err).be.instanceOf(Error);
+                err.message.should.match(/BadUserAccessDenied/);
                 done();
             });
 
 
         });
 
-        it("should connect to a server using username/password authentication and valid credentials ", function (done) {
+        it("should connect to a server using username/password authentication and valid credentials - anonymous conection ", function (done) {
 
             var userName = "username";
             var password = "p@ssw0rd";
+            perform_simple_connection({},{userName: userName, password: password}, done);
 
-            perform_simple_connection({userName: userName, password: password}, done);
+        });
 
+        it("should connect to a server using username/password authentication and valid credentials - secure connection ", function (done) {
+
+            var userName = "username";
+            var password = "p@ssw0rd";
+            var options = {
+                securityMode: opcua.MessageSecurityMode.SIGN,
+                securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+                serverCertificate: serverCertificate
+            };
+            perform_simple_connection(options,{userName: userName, password: password}, done);
 
         });
 

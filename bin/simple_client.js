@@ -382,6 +382,7 @@ async.series([
     if (err) {
         console.log(" client : process terminated with an error".red.bold);
         console.log(" error", err);
+        console.log(" stack trace", err.stack);
     } else {
         console.log("success !!   ");
     }

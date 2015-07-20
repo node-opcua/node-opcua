@@ -402,12 +402,12 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             session.translateBrowsePath(browsePath, function(err,results) {
 
-                console.log(results[0].toString());
+                //xx console.log(results[0].toString());
                 results[0].statusCode.should.eql(StatusCodes.Good);
                 results[0].targets.length.should.eql(1);
                 results[0].targets[0].targetId.toString().should.eql("ns=0;i=11493");
 
-                console.log(results[1].toString());
+                //xx console.log(results[1].toString());
                 results[1].statusCode.should.eql(StatusCodes.Good);
                 results[1].targets.length.should.eql(1);
                 results[1].targets[0].targetId.toString().should.eql("ns=0;i=11494");
