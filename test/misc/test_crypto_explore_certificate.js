@@ -12,7 +12,7 @@ var exploreCertificate = require("lib/misc/crypto_explore_certificate").exploreC
 describe(" exploring Certificates",function() {
 
 
-    this.timeout(100000);
+    this.timeout(200000);
     it("should extract the information out of a 1024-bits certificate",function() {
 
         var certificate = crypto_utils.readCertificate(path.join(__dirname,"../fixtures/certs/server_cert_1024.pem"));

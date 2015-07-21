@@ -58,7 +58,7 @@ describe("Benchmarking Factory Implementation", function (done) {
         done();
     });
 
-    this.timeout(5000);
+    this.timeout(200000);
     function perform_benchmark(params, checks, done) {
 
         var bench = new Benchmarker();

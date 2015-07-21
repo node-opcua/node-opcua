@@ -55,8 +55,8 @@ describe("testing  address space namespace loading",function() {
                 address_space.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
                 address_space.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
 
-                address_space.findObject("ns=2;i=1").browseName.should.eql("ObjectInCUSTOM_NAMESPACE1");
-                address_space.findObject("ns=3;i=1").browseName.should.eql("ObjectInCUSTOM_NAMESPACE2");
+                address_space.findObject("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
+                address_space.findObject("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
                 address_space.getNamespaceArray().should.eql([
                     "http://opcfoundation.org/UA/",

@@ -3,15 +3,16 @@ require("requirish")._(module);
 require("lib/address_space/address_space_add_method");
 var should = require("should");
 var DataType = require("lib/datamodel/variant").DataType;
+var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
 exports.createCameraType = function createCameraType(address_space) {
 
 
-    var cameraType = address_space.addObjectType({ browseName: "CameraType" });
+    var cameraType = address_space.addObjectType({ browseName: "1:CameraType" });
 
     // MachineType.HeaderSwitch
     var triggerMethod = address_space.addMethod(cameraType,{
-        browseName: "Trigger",
+        browseName: "1:Trigger",
 
         inputArguments:  [
             {
@@ -29,6 +30,7 @@ exports.createCameraType = function createCameraType(address_space) {
             }
         ]
     });
-    triggerMethod.browseName.should.eql("Trigger");
+    triggerMethod.browseName.toString().should.eql("1:Trigger");
+    triggerMethod.browseName.should.eql(new QualifiedName({name:"Trigger",namespaceIndex:1}));
     return cameraType;
 };

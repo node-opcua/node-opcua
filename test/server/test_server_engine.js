@@ -889,7 +889,7 @@ describe("testing ServerEngine", function () {
         // for views
         it("should have ServerStatusDataType dataType exposed", function () {
             var obj = engine.address_space.findDataType("ServerStatusDataType");
-            obj.browseName.should.eql("ServerStatusDataType");
+            obj.browseName.toString().should.eql("ServerStatusDataType");
             obj.nodeClass.should.eql(NodeClass.DataType);
         });
         it("should handle a readSingleNode - ServerStatusDataType - BrowseName", function () {

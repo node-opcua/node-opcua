@@ -52,7 +52,10 @@ var server_options ={
 
     maxAllowedSessionNumber: 1500,
 
-    nodeset_filename: [ standard_nodeset_file],
+    nodeset_filename: [
+        standard_nodeset_file,
+        __dirname + "/../nodesets/Opc.Ua.Di.NodeSet2.xml"
+    ],
 
     serverInfo: {
         applicationUri : makeApplicationUrn(get_fully_qualified_domain_name(),"NodeOPCUA-Server"),
@@ -103,7 +106,7 @@ server.on("post_initialize", function () {
      */
     var variable0 = server.engine.addVariable(myDevices, {
         browseName: "FanSpeed",
-        nodeId: "ns=2;s=FanSpeed",
+        nodeId: "ns=1;s=FanSpeed",
         dataType: "Double",
         value:  new Variant({dataType: DataType.Double,value: 1000.0 })
     });
@@ -126,7 +129,7 @@ server.on("post_initialize", function () {
      */
     server.engine.addVariable(myDevices, {
         browseName: "PumpSpeed",
-        nodeId: "ns=2;s=PumpSpeed",
+        nodeId: "ns=1;s=PumpSpeed",
         dataType: "Double",
         value: {
             /**
@@ -143,7 +146,7 @@ server.on("post_initialize", function () {
 
     server.engine.addVariable(myDevices, {
         browseName: "SomeDate",
-        nodeId: "ns=2;s=SomeDate",
+        nodeId: "ns=1;s=SomeDate",
         dataType: "DateTime",
         value: {
             get: function () {
@@ -173,7 +176,7 @@ server.on("post_initialize", function () {
 
     server.engine.addVariable(myDevices, {
         browseName: "Pressure",
-        nodeId: "ns=2;s=Pressure",
+        nodeId: "ns=1;s=Pressure",
         dataType: "Double",
         value: {
             timestamped_get: function () {
@@ -195,7 +198,7 @@ server.on("post_initialize", function () {
 
     server.engine.addVariable(myDevices, {
         browseName: "Temperature",
-        nodeId: "ns=2;s=Temperature",
+        nodeId: "ns=1;s=Temperature",
         dataType: "Double",
 
         value: {
@@ -216,7 +219,7 @@ server.on("post_initialize", function () {
     // UAAnalogItem
     // add a UAAnalogItem
     var node = opcua.addAnalogDataItem(myDevices,{
-        nodeId:"ns=4;s=TemperatureAnalogItem",
+        nodeId:"ns=1;s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
@@ -238,7 +241,7 @@ server.on("post_initialize", function () {
     var viewsFolder = server.engine.findObject("ViewsFolder");
     var view = server.engine.addView(viewsFolder,{
         browseName:"MyView",
-        nodeId: "ns=2;s=SampleView"
+        nodeId: "ns=1;s=SampleView"
     });
 });
 

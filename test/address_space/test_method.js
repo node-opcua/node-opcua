@@ -118,7 +118,7 @@ describe("testing Method binding", function () {
         get_mini_address_space(function (err, data) {
             address_space = data;
             rootFolder = address_space.findObjectByBrowseName("Root");
-            rootFolder.browseName.should.equal("Root");
+            rootFolder.browseName.toString().should.equal("Root");
             done(err);
         });
     });

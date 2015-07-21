@@ -1,8 +1,12 @@
 require("requirish")._(module);
 var should =require("should");
+var assert = require("better-assert");
+
+var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
 var constructBrowsePath = require("lib/address_space/address_space_browse").constructBrowsePath;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+assert(constructBrowsePath);
+
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var makeExpandedNodeId =require("lib/datamodel/expanded_nodeid").makeExpandedNodeId;
@@ -40,7 +44,7 @@ describe("constructBrowsePath and simpleBrowsePath",function(){
 
         var nodeId = address_space.simpleBrowsePath("/","Objects.Server");
         nodeId.should.eql(makeExpandedNodeId(2253));
-        address_space.findObject(nodeId).browseName.should.eql("Server");
+        address_space.findObject(nodeId).browseName.toString().should.eql("Server");
     });
 
 });

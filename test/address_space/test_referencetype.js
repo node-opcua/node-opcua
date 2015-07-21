@@ -27,7 +27,7 @@ describe("testing ReferenceType", function () {
             address_space.should.be.instanceOf(AddressSpace);
 
             rootFolder = address_space.findObjectByBrowseName("Root");
-            rootFolder.browseName.should.equal("Root");
+            rootFolder.browseName.toString().should.equal("Root");
 
             done();
         });
@@ -36,7 +36,7 @@ describe("testing ReferenceType", function () {
     it("should find 'HierarchicalReferences'", function () {
 
         var hr = address_space.findReferenceType("HierarchicalReferences");
-        hr.browseName.should.equal("HierarchicalReferences");
+        hr.browseName.toString().should.equal("HierarchicalReferences");
         hr.nodeId.should.eql(nodeid.makeNodeId(33));
 
     });
@@ -62,7 +62,7 @@ describe("testing ReferenceType", function () {
 
     it("should find 'Organizes'", function () {
         var organizes_refId = address_space.findReferenceType("Organizes");
-        organizes_refId.browseName.should.equal("Organizes");
+        organizes_refId.browseName.toString().should.equal("Organizes");
         organizes_refId.nodeId.should.eql(nodeid.makeNodeId(35));
     });
 
@@ -154,7 +154,7 @@ describe("testing ReferenceType", function () {
     it("should return 3 refs for browseNode on RootFolder , HierarchicalReferences , includeSubtypes  ", function () {
 
         var serverStatus = rootFolder.objects.server.serverStatus;
-        serverStatus.browseName.should.equal("ServerStatus");
+        serverStatus.browseName.toString().should.equal("ServerStatus");
 
         var references = rootFolder.browseNode({
             browseDirection: browse_service.BrowseDirection.Both,
@@ -169,7 +169,7 @@ describe("testing ReferenceType", function () {
     it("should return 6 refs for browseNode on ServerStatus (BrowseDirection.Forward)", function () {
 
         var serverStatus = rootFolder.objects.server.serverStatus;
-        serverStatus.browseName.should.equal("ServerStatus");
+        serverStatus.browseName.toString().should.equal("ServerStatus");
 
         var references = serverStatus.browseNode({
             browseDirection: browse_service.BrowseDirection.Forward,
@@ -194,11 +194,11 @@ describe("testing ReferenceType", function () {
     it("ServerStatus parent shall be Server", function (done) {
 
         var server = rootFolder.objects.server;
-        server.browseName.should.equal("Server");
+        server.browseName.toString().should.equal("Server");
         server.nodeId.toString().should.equal("ns=0;i=2253");
 
         var serverStatus = server.serverStatus;
-        serverStatus.browseName.should.equal("ServerStatus");
+        serverStatus.browseName.toString().should.equal("ServerStatus");
         serverStatus.nodeId.toString().should.equal("ns=0;i=2256");
 
         serverStatus.parent.should.equal(server.nodeId);
@@ -296,7 +296,7 @@ describe("testing ReferenceType", function () {
         var mask = browse_service.makeNodeClassMask("Method");
 
         var server = rootFolder.objects.server;
-        server.browseName.should.equal("Server");
+        server.browseName.toString().should.equal("Server");
 
         var references = server.browseNode({
             browseDirection: browse_service.BrowseDirection.Forward,

@@ -60,54 +60,54 @@ describe("DataAccess", function () {
 
     it("should find a BaseDataVariableType in the address_space",function(){
         var baseDataVariableType = engine.address_space.findVariableType("BaseDataVariableType");
-        baseDataVariableType.browseName.should.eql("BaseDataVariableType");
+        baseDataVariableType.browseName.toString().should.eql("BaseDataVariableType");
         //xx baseDataVariableType.isAbstract.should.eql(true); ?
     });
 
     it("should find a DataItemType in the address_space",function(){
         var dataItemType = engine.address_space.findVariableType("DataItemType");
-        dataItemType.browseName.should.eql("DataItemType");
+        dataItemType.browseName.toString().should.eql("DataItemType");
         //xxx dataItemType.isAbstract.should.eql(true);
     });
 
     it("should find a ArrayItemType in the address_space",function(){
         var arrayItemType = engine.address_space.findVariableType("ArrayItemType");
-        arrayItemType.browseName.should.eql("ArrayItemType");
+        arrayItemType.browseName.toString().toString().should.eql("ArrayItemType");
     });
 
     it("should find a AnalogItemType in the address_space",function(){
         var analogItemType = engine.address_space.findVariableType("AnalogItemType");
-        analogItemType.browseName.should.eql("AnalogItemType");
+        analogItemType.browseName.toString().should.eql("AnalogItemType");
     });
     it("should find a DiscreteItemType in the address_space",function(){
         var discreteItemType = engine.address_space.findVariableType("DiscreteItemType");
-        discreteItemType.browseName.should.eql("DiscreteItemType");
+        discreteItemType.browseName.toString().should.eql("DiscreteItemType");
         discreteItemType.isAbstract.should.eql(false);
     });
 
     it("should find a TwoStateDiscreteType in the address_space",function(){
         var twoStateDiscreteType = engine.address_space.findVariableType("TwoStateDiscreteType");
-        twoStateDiscreteType.browseName.should.eql("TwoStateDiscreteType");
+        twoStateDiscreteType.browseName.toString().should.eql("TwoStateDiscreteType");
     });
     it("should find a MultiStateDiscreteType in the address_space",function(){
         var multiStateDiscreteType = engine.address_space.findVariableType("MultiStateDiscreteType");
-        multiStateDiscreteType.browseName.should.eql("MultiStateDiscreteType");
+        multiStateDiscreteType.browseName.toString().should.eql("MultiStateDiscreteType");
     });
 
     it("should find a MultiStateValueDiscreteType in the address_space",function(){
         var multiStateValueDiscreteType = engine.address_space.findVariableType("MultiStateValueDiscreteType");
-        multiStateValueDiscreteType.browseName.should.eql("MultiStateValueDiscreteType");
+        multiStateValueDiscreteType.browseName.toString().should.eql("MultiStateValueDiscreteType");
     });
 
 
     it("should find a EUInformation in the address_space",function(){
         var _EUInformation = engine.address_space.findDataType("EUInformation");
-        _EUInformation.browseName.should.eql("EUInformation");
+        _EUInformation.browseName.toString().should.eql("EUInformation");
     });
 
     it("should find a Range in the address_space",function(){
         var range = engine.address_space.findDataType("Range");
-        range.browseName.should.eql("Range");
+        range.browseName.toString().should.eql("Range");
     });
 
     it("should have a UAVariableType XYArrayItemType",function() {
@@ -130,7 +130,7 @@ describe("DataAccess", function () {
         var address_space = engine.address_space;
 
         var rootFolder = address_space.findObject("ObjectsFolder");
-        rootFolder.browseName.should.eql("Objects");
+        rootFolder.browseName.toString().should.eql("Objects");
 
         var fakeValue = 1;
 
@@ -157,11 +157,11 @@ describe("DataAccess", function () {
         //xx console.log(JSON.stringify(analogItem,null," "));
         // analogItem.dataType.should.eql(address_space.findVariableType("AnalogItemType").nodeId);
 
-        analogItem.definition.browseName.should.eql("Definition");
-        analogItem.valuePrecision.browseName.should.eql("ValuePrecision");
-        analogItem.eURange.browseName.should.eql("EURange");
-        analogItem.instrumentRange.browseName.should.eql("InstrumentRange");
-        analogItem.engineeringUnits.browseName.should.eql("EngineeringUnits");
+        analogItem.definition.browseName.toString().should.eql("Definition");
+        analogItem.valuePrecision.browseName.toString().should.eql("ValuePrecision");
+        analogItem.eURange.browseName.toString().should.eql("EURange");
+        analogItem.instrumentRange.browseName.toString().should.eql("InstrumentRange");
+        analogItem.engineeringUnits.browseName.toString().should.eql("EngineeringUnits");
 
 
         // accessing data with shortcuts
@@ -194,7 +194,7 @@ describe("DataAccess", function () {
             },
 
             function (callback){
-                console.log(analogItem._dataValue);
+                //xx console.log(analogItem._dataValue);
                 analogItem.readValueAsync(function(err,dataValue){
                     if (!err) {
                         dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -209,7 +209,7 @@ describe("DataAccess", function () {
                 fakeValue = 2.0;
 
                 analogItem.readValueAsync(function(err,dataValue){
-                    console.log(analogItem._dataValue);
+                    //xx console.log(analogItem._dataValue);
                     if (!err) {
                         dataValue.statusCode.should.eql(StatusCodes.Good);
                         dataValue.value.dataType.should.eql(DataType.Double);

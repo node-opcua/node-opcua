@@ -11,11 +11,8 @@ var QualifiedName_Schema = {
         { name: "name", fieldType: "String", defaultValue: function () {
             return null;
         }, documentation: "The name"            }
-    ],
+    ]
 
-    toString: function () {
-        return "ns=" + this.namespaceIndex + " name=" + this.name;
-    }
 };
 exports.QualifiedName_Schema = QualifiedName_Schema;
 

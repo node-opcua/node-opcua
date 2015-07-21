@@ -156,7 +156,7 @@ the_session.close(function(err){
 the_session.browse("RootFolder", function(err,browse_result){
     if(!err) {
         browse_result[0].references.forEach(function(reference) {
-            console.log( reference.browseName);
+            console.log( reference.browseName.toString());
         });
     }
     callback(err);

@@ -700,7 +700,7 @@ describe("testing address space for conformance testing", function () {
 describe("testing address space with large number of nodes", function () {
 
     var engine;
-    this.timeout(30000);
+    this.timeout(200000);
 
     before(function (done) {
         resourceLeakDetector.start();

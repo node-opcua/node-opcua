@@ -69,7 +69,7 @@ describe("testing nodeset to xml", function () {
             ]
         });
 
-        myEnumType.browseName.should.eql("MyEnumType");
+        myEnumType.browseName.toString().should.eql("MyEnumType");
         var str = dumpXml(myEnumType,{});
         console.log(str);
         str.should.match(/RUNNING/);
@@ -101,7 +101,7 @@ describe("testing nodeset to xml", function () {
         });
 
         var parentFolder = address_space.findObject("RootFolder");
-        parentFolder.browseName.should.eql("Root");
+        parentFolder.browseName.toString().should.eql("Root");
 
         // variation 1
         var temperatureSensor = temperatureSensorType.instantiate({

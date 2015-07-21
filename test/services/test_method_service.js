@@ -118,7 +118,7 @@ describe("CallRequest on custom method", function () {
 
         var method = obj.getMethodById(methodId);
         method.should.be.instanceOf(UAMethod);
-        method.browseName.should.eql("DoStuff");
+        method.browseName.toString().should.eql("DoStuff");
 
         var inputArguments = method.getInputArguments();
         inputArguments.should.be.instanceOf(Array);

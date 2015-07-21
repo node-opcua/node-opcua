@@ -392,7 +392,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                                 referenceTypeId: hasPropertyRefId,
                                 isInverse: false,
                                 includeSubtypes: false,
-                                targetName: {   name: "OutputArguments" }
+                                targetName: { namespaceIndex: 0,  name: "OutputArguments" }
                             }
                         ]
                     }

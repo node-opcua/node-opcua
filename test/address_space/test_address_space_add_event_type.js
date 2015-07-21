@@ -73,7 +73,7 @@ describe("AddressSpace : add event type ", function () {
             //isAbstract:false,
             subtypeOf:  "BaseEventType" // should be implicit
         });
-        eventType.browseName.should.eql("__EventTypeForTest1");
+        eventType.browseName.toString().should.eql("__EventTypeForTest1");
 
         var reloaded = address_space.findEventType("__EventTypeForTest1");
         should(reloaded).not.eql(null,"cannot findEventType " +"__EventTypeForTest1" );
@@ -83,14 +83,14 @@ describe("AddressSpace : add event type ", function () {
 
     it("added EventType should be abstact",function() {
         var eventType = address_space.findEventType("MyCustomEvent");
-        eventType.browseName.should.eql("MyCustomEvent");
+        eventType.browseName.toString().should.eql("MyCustomEvent");
         eventType.isAbstract.should.eql(true);
     });
 
     it("should add an basic event type",function() {
 
         var eventType = address_space.findEventType("MyCustomEvent");
-        eventType.browseName.should.eql("MyCustomEvent");
+        eventType.browseName.toString().should.eql("MyCustomEvent");
 
         address_space.addProperty(eventType,{
             browseName:"MyCustomEventProperty",

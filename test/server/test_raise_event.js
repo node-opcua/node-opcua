@@ -32,7 +32,7 @@ describe("testing Events  ", function () {
 
     it("should create a new EventType",function() {
         var eventType = address_space.addEventType({browseName:"MyEventType"});
-        eventType.browseName.should.eql("MyEventType");
+        eventType.browseName.toString().should.eql("MyEventType");
     });
 
     var EventEmitter = require("events").EventEmitter;
@@ -43,7 +43,7 @@ describe("testing Events  ", function () {
     it("should raise a new EventType",function(done) {
 
         var serverObject = address_space.findObject("Server");
-        serverObject.browseName.should.eql("Server");
+        serverObject.browseName.toString().should.eql("Server");
 
         var eventType = address_space.findEventType("MyEventType");
 
@@ -164,7 +164,7 @@ describe("testing Events  ", function () {
             clientHandle: 1,
             eventFields:  /* Array<Variant> */ eventFields
         });
-        console.log("xxxx ",eventField.toString());
+        //xx console.log("xxxx ",eventField.toString());
 
     });
 

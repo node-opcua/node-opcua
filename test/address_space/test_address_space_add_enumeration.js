@@ -50,7 +50,7 @@ describe("AddressSpace : testing add enumeration ", function () {
 
         });
 
-        myEnumType.browseName.should.eql("MyEnumType");
+        myEnumType.browseName.toString().should.eql("MyEnumType");
 
     });
 

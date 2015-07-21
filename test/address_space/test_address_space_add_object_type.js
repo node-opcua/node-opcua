@@ -111,7 +111,7 @@ describe("testing add new DataType ", function () {
 
         //xx specialTemperatureSensorTypeNode.should.not.have.property("typeDefinitionObj");
         should(specialTemperatureSensorTypeNode.typeDefinitionObj).eql(null,"ObjectType should not have TypeDefinition");
-        specialTemperatureSensorTypeNode.subtypeOfObj.browseName.should.eql("TemperatureSensorType");
+        specialTemperatureSensorTypeNode.subtypeOfObj.browseName.toString().should.eql("TemperatureSensorType");
 
         var specialSensor= specialTemperatureSensorTypeNode.instantiate({
             organizedBy:"RootFolder",
@@ -120,7 +120,7 @@ describe("testing add new DataType ", function () {
 
         specialSensor.should.have.property("typeDefinitionObj");
         specialSensor.should.not.have.property("subtypeOfObj","Object should not have SubType");
-        specialSensor.typeDefinitionObj.browseName.should.eql("SpecialTemperatureSensorType");
+        specialSensor.typeDefinitionObj.browseName.toString().should.eql("SpecialTemperatureSensorType");
         should(specialSensor.temperature).not.eql(0);
 
         console.log("done");
@@ -138,7 +138,7 @@ describe("testing add new DataType ", function () {
             browseName:"Camera1"
         });
 
-        camera1.browseName.should.eql("Camera1");
+        camera1.browseName.toString().should.eql("Camera1");
 
         // camera should have one component
         var c = camera1.getComponents();
@@ -146,7 +146,7 @@ describe("testing add new DataType ", function () {
 
         var UAMethod = require("lib/address_space/ua_method").UAMethod;
         c[0].should.be.instanceOf(UAMethod);
-        c[0].browseName.should.eql("Trigger");
+        c[0].browseName.toString().should.eql("1:Trigger");
 
         done();
     });

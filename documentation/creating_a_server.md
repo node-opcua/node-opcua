@@ -190,7 +190,7 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
 var variable2 = 10.0;
 server.nodeVariable2 = server.engine.addVariable("MyDevice",{
 
-    nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
+    nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
     browseName: "MyVariable2",
     dataType: "Double",    
     value: {
@@ -228,7 +228,7 @@ Now let's expose our OPCUA Variable
 
 ```javascript
 server.nodeVariable3 = server.engine.addVariable("MyDevice", {
-    nodeId: "ns=4;s=free_memory", // a string nodeID
+    nodeId: "ns=1;s=free_memory", // a string nodeID
     browseName: "FreeMemory",
     dataType: "Double",    
     value: {

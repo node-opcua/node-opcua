@@ -1131,14 +1131,14 @@ describe("testing Variable#clone ",function() {
 
     it("should clone a variable",function() {
 
-        variableInteger.browseName.should.eql("some INTEGER Variable");
+        variableInteger.browseName.toString().should.eql("some INTEGER Variable");
         variableInteger._dataValue.value.dataType.should.eql(DataType.Int32);
         variableInteger._dataValue.value.value.should.eql(1);
 
         var variableIntegerClone = variableInteger.clone();
         variableIntegerClone.nodeId.toString().should.not.eql(variableInteger.nodeId.toString());
 
-        variableIntegerClone.browseName.should.eql("some INTEGER Variable");
+        variableIntegerClone.browseName.toString().should.eql("some INTEGER Variable");
 
         variableIntegerClone._dataValue.value.dataType.should.eql(DataType.Int32);
         variableIntegerClone._dataValue.value.value.should.eql(1);

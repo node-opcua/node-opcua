@@ -90,7 +90,7 @@ describe("NodeCrawler",function(){
                 var data = {};
                 crawler.on("browsed", function (nodeElement, data) {
 
-                    console.log("nodeElement ".yellow, nodeElement.browseName, nodeElement.nodeId.displayText());
+                    //xx console.log("nodeElement ".yellow, nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
                     var objectIndex = {  findObject: function (nodeId) {
                         return null;
                     }};
@@ -165,11 +165,11 @@ describe("NodeCrawler",function(){
             crawler.read(nodeId, function (err, obj) {
 
                 if (!err) {
-                    obj.browseName.should.equal("Root");
+                    obj.browseName.toString().should.equal("Root");
                     obj.organizes.length.should.equal(3);
-                    obj.organizes[0].browseName.should.eql("Objects");
-                    obj.organizes[1].browseName.should.eql("Types");
-                    obj.organizes[2].browseName.should.eql("Views");
+                    obj.organizes[0].browseName.toString().should.eql("Objects");
+                    obj.organizes[1].browseName.toString().should.eql("Types");
+                    obj.organizes[2].browseName.toString().should.eql("Views");
                     obj.hasTypeDefinition.should.eql("FolderType");
                 }
                 done(err);

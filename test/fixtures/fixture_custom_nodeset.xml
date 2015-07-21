@@ -12,7 +12,7 @@
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
-    <UAObject NodeId="ns=1;i=1" BrowseName="ObjectInCUSTOM_NAMESPACE1">
+    <UAObject NodeId="ns=1;i=1" BrowseName="1:ObjectInCUSTOM_NAMESPACE1">
         <DisplayName>ObjectInCUSTOM_NAMESPACE1</DisplayName>
         <References>
             <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
@@ -26,14 +26,14 @@
         <InverseName>ConnectsTo</InverseName>
     </UAReferenceType>
 
-    <UAObject NodeId="ns=2;i=1" BrowseName="ObjectInCUSTOM_NAMESPACE2">
+    <UAObject NodeId="ns=2;i=1" BrowseName="2:ObjectInCUSTOM_NAMESPACE2">
         <DisplayName>ObjectInCUSTOM_NAMESPACE2</DisplayName>
         <References>
             <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
         </References>
     </UAObject>
-    <UAObject NodeId="ns=1;i=2" BrowseName="ObjectWithLocalReference">
+    <UAObject NodeId="ns=1;i=2" BrowseName="1:ObjectWithLocalReference">
         <DisplayName>ObjectWithLocalReference</DisplayName>
         <References>
             <Reference ReferenceType="ns=1;i=6030">ns=2;i=1</Reference>
