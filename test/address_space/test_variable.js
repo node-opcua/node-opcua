@@ -1100,7 +1100,7 @@ describe("testing Variable#writeValue on Integer",function() {
 describe("testing Variable#clone ",function() {
 
 
-    var the_address_space, rootFolder, variableInteger, variableInt32;
+    var the_address_space, rootFolder, variableInteger;
 
     before(function (done) {
 
@@ -1143,5 +1143,108 @@ describe("testing Variable#clone ",function() {
         variableIntegerClone._dataValue.value.dataType.should.eql(DataType.Int32);
         variableIntegerClone._dataValue.value.value.should.eql(1);
         variableIntegerClone._dataValue.value.should.eql(variableInteger._dataValue.value);
-    })
+    });
+
+    it("#readValueAsync should cope with faulty refreshFunc -- calling callback with an error",function(done) {
+
+        rootFolder = the_address_space.findObject("RootFolder");
+        var temperatureVar =the_address_space.addVariable(rootFolder, {
+            browseName: "BadVar",
+            nodeId: "ns=1;s=BadVar",
+            dataType: "Double",
+
+            value: {
+                refreshFunc: function (callback) {
+
+                    var temperature = 20 + 10 * Math.sin(Date.now() / 10000);
+                    var value = new Variant({dataType: DataType.Double, value: temperature});
+                    var sourceTimestamp = new Date();
+                    // simulate a asynchronous behaviour
+                    setTimeout(function () {
+                        callback(new Error("Something goes wrong here"));
+                    }, 100);
+                }
+            }
+        });
+        temperatureVar.readValueAsync(function(err,value){
+            should(err).not.eql(null);
+            console.log("err=",err);
+            done();
+        });
+    });
+    it("#readValueAsync should cope with faulty refreshFunc - crashing inside refreshFunc",function(done) {
+
+        rootFolder = the_address_space.findObject("RootFolder");
+        var temperatureVar =the_address_space.addVariable(rootFolder, {
+            browseName: "BadVar2",
+            nodeId: "ns=1;s=BadVar2",
+            dataType: "Double",
+            value: {
+                refreshFunc: function (callback) {
+                   throw new Error("Something goes wrong here");
+                }
+            }
+        });
+        temperatureVar.readValueAsync(function(err,value){
+            should(err).not.eql(null);
+            console.log("err=",err);
+            done();
+        });
+
+    });
+    it("#readValueAsync  should be reentrant",function(done) {
+        rootFolder = the_address_space.findObject("RootFolder");
+        var temperatureVar =the_address_space.addVariable(rootFolder, {
+            browseName: "Temperature",
+            nodeId: "ns=1;s=Temperature",
+            dataType: "Double",
+
+            value: {
+                refreshFunc: function (callback) {
+
+                    var temperature = 20 + 10 * Math.sin(Date.now() / 10000);
+                    var value = new Variant({dataType: DataType.Double, value: temperature});
+                    var sourceTimestamp = new Date();
+                    // simulate a asynchronous behaviour
+                    setTimeout(function () {
+                        callback(null, new DataValue({ value:value, sourceTimestamp: sourceTimestamp}));
+                    }, 100);
+                }
+            }
+        });
+
+        var counter = 0;
+        var refValue =0;
+        function my_callback(err,value){
+            counter =counter +1;
+            if (counter === 1) {
+                refValue = value;
+            }else {
+                refValue.should.eql(value);
+            }
+            if( counter === 4) {
+                done();
+            }
+        }
+        // calling 4 times readValueAsync in parallel should cause the callback
+        temperatureVar.readValueAsync(my_callback);
+        temperatureVar.readValueAsync(my_callback);
+        temperatureVar.readValueAsync(my_callback);
+        temperatureVar.readValueAsync(my_callback);
+
+
+    });
+    it("#writeAttribute ",function(done){
+        var write_service = require("lib/services/write_service");
+        var WriteValue = write_service.WriteValue;
+
+        var v = new WriteValue({
+            attributeId: AttributeIds.Description,
+            value: { value: { dataType: DataType.String,value: "New Description"}}
+        });
+        variableInteger.writeAttribute(v,function(err,statusCode){
+            done();
+        });
+
+    });
 });
