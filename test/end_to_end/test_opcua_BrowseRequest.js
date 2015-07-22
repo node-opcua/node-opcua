@@ -142,6 +142,7 @@ describe("Test Browse Request", function () {
                     nodesToBrowse: [browseDesc]
                 });
                 g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                    if (err) { return callback(err); }
                     // console.log(response.toString());
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                     response.results[0].references.length.should.be.greaterThan(3);
@@ -156,6 +157,7 @@ describe("Test Browse Request", function () {
                     nodesToBrowse: [browseDesc]
                 });
                 g_session.performMessageTransaction(browseRequest2, function (err, response) {
+                    if (err) { return callback(err); }
                     //xx console.log(response.toString());
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                     response.results[0].references.length.should.be.eql(1);
@@ -176,6 +178,7 @@ describe("Test Browse Request", function () {
                     continuationPoints: null,
                 });
                 g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                    err.message.should.match(/BadNothingToDo/);
                     // console.log(response.toString());
                     response.responseHeader.serviceResult.should.equal(StatusCodes.BadNothingToDo);
                     callback();
@@ -203,6 +206,7 @@ describe("Test Browse Request", function () {
                     nodesToBrowse: [browseDesc]
                 });
                 g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                    if (err) { return callback(err); }
                     // console.log(response.toString());
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                     response.results[0].references.length.should.be.greaterThan(3); // want 4 at lest
@@ -219,6 +223,7 @@ describe("Test Browse Request", function () {
                     nodesToBrowse: [browseDesc]
                 });
                 g_session.performMessageTransaction(browseRequest2, function (err, response) {
+                    if (err) { return callback(err); }
                     //xx console.log(response.toString());
 
                     response.results.length.should.eql(1);
@@ -239,6 +244,7 @@ describe("Test Browse Request", function () {
                     continuationPoints: [continuationPoint],
                 });
                 g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                    if (err) { return callback(err); }
                     // console.log(response.toString());
                     response.responseHeader.serviceResult.should.equal(StatusCodes.Good);
 
@@ -264,6 +270,7 @@ describe("Test Browse Request", function () {
                     continuationPoints: [continuationPoint],
                 });
                 g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                    if (err) { return callback(err); }
                     // console.log(response.toString());
                     response.responseHeader.serviceResult.should.equal(StatusCodes.Good);
                     response.results.length.should.eql(1);

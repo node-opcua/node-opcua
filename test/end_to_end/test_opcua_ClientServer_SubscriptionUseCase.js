@@ -17,7 +17,6 @@ var StatusCodes = opcua.StatusCodes;
 var DataType = opcua.DataType;
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 var MonitoringMode = opcua.subscription_service.MonitoringMode;
-var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -416,7 +415,7 @@ describe("testing server and subscription", function () {
                     session.deleteSubscriptions({
                         subscriptionIds: subscriptionIds
                     }, function (err, response) {
-                        callback();
+                        callback(err);
                     });
                 }
             ], function (err) {
@@ -457,31 +456,29 @@ describe("testing server and subscription", function () {
                     },
                     function (callback) {
 
+                        function publish_callback(err, response) {
+                            should(err.message).match(/BadNoSubscription/);
+                        }
+
                         // send many publish requests, in one go
-                        session.publish({}, function (err, response) {
-                        });
-                        session.publish({}, function (err, response) {
-                        });
-                        session.publish({}, function (err, response) {
-                        });
-                        session.publish({}, function (err, response) {
-                        });
-                        session.publish({}, function (err, response) {
-                        });
-                        session.publish({}, function (err, response) {
-                        });
+                        session.publish({}, publish_callback);
+                        session.publish({}, publish_callback);
+                        session.publish({}, publish_callback);
+                        session.publish({}, publish_callback);
+                        session.publish({}, publish_callback);
+                        session.publish({}, publish_callback);
                         callback();
                     },
                     function (callback) {
                         session.readVariableValue("RootFolder", function (err, dataValues, diagnosticInfos) {
-                            callback();
+                            callback(err);
                         });
                     },
                     function (callback) {
                         session.deleteSubscriptions({
                             subscriptionIds: [subscriptionId]
                         }, function (err, response) {
-                            callback();
+                            callback(err);
                         });
                     }
                 ], function (err) {
@@ -516,7 +513,7 @@ describe("testing server and subscription", function () {
                     session.deleteSubscriptions({
                         subscriptionIds: [subscriptionId]
                     }, function (err, response) {
-                        callback();
+                        callback(err);
                     });
                 }
             ], function (err) {
@@ -643,6 +640,7 @@ describe("testing server and subscription", function () {
                 itemsToCreate: []
             });
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                should(err.message).match(/BadNothingToDo/);
                 createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                 callback();
             });
@@ -678,6 +676,7 @@ describe("testing server and subscription", function () {
                 }]
             });
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                should(err).eql(null);
                 createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                 createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -698,6 +697,7 @@ describe("testing server and subscription", function () {
                 itemsToModify: []
             });
             session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
+                should(err.message).match(/BadNothingToDo/);
                 modifyMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                 callback();
             });
@@ -713,6 +713,7 @@ describe("testing server and subscription", function () {
                 monitoredItemIds: []
             });
             session.deleteMonitoredItems(deleteMonitoredItemsRequest, function (err, deleteMonitoredItemsResponse) {
+                should(err.message).match(/BadNothingToDo/);
                 deleteMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                 callback();
             });
@@ -746,7 +747,7 @@ describe("testing server and subscription", function () {
                     monitoredItem.terminate();
                 });
             });
-            monitoredItem.on("terminated", function (err) {
+            monitoredItem.on("terminated", function () {
                 inner_callback();
             });
 
@@ -1307,7 +1308,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     }, function (err, result) {
                         callback(err);
                         if (!err) {
-                            result.revisedSamplingInterval.should.be.greaterThan(19)
+                            result.revisedSamplingInterval.should.be.greaterThan(19);
                         }
                     });
                 },
@@ -1615,7 +1616,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                         //xx console.log(notification.value.value.value);
                         notification.value.value.value.should.eql(expected_values[0]);
 
-                        var notification = response.notificationMessage.notificationData[0].monitoredItems[1];
+                        notification = response.notificationMessage.notificationData[0].monitoredItems[1];
                         //xx console.log(notification.value.value.value);
                         notification.value.value.value.should.eql(expected_values[1]);
                         parameters.queueSize.should.eql(2);
@@ -1921,7 +1922,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             session.deleteSubscriptions({
                 subscriptionIds: [subcription.subscriptionId]
             }, function (err, response) {
-                callback();
+                callback(err);
             });
         }
 
@@ -2145,7 +2146,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
                     },
 
-                    the_test_function,
+                    the_test_function
 
                 ], inner_done);
 
@@ -2161,6 +2162,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     retransmitSequenceNumber: INVALID_RETRANSMIT_SEQNUM
                 });
                 g_session.republish(request, function (err, response) {
+                    should(err).not.eql(null);
                     response.should.be.instanceof(subscription_service.RepublishResponse);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
                     done();
@@ -2180,6 +2182,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
                 });
                 g_session.republish(request, function (err, response) {
+                    should(err).not.eql(null);
                     response.should.be.instanceof(subscription_service.RepublishResponse);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
                     done();
@@ -2202,7 +2205,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 g_session.republish(request, function (err, response) {
                     response.should.be.instanceof(subscription_service.RepublishResponse);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                    done();
+                    done(err);
                 });
             }, done);
         });

@@ -34,11 +34,11 @@ describe("Benchmarking Factory Implementation", function (done) {
         (variant.hasOwnProperty("dataType") ||
         VariantX.prototype.hasOwnProperty("dataType")).should.eql(true);
 
-        var variant2 = new VariantX(variant);
+        var variant3 = new VariantX(variant);
 
-        variant2.dataType.should.eql(variant.dataType);
-        variant2.arrayType.should.eql(variant.arrayType);
-        variant2.value.should.eql(variant.value);
+        variant3.dataType.should.eql(variant.dataType);
+        variant3.arrayType.should.eql(variant.arrayType);
+        variant3.value.should.eql(variant.value);
 
     }
 
@@ -100,6 +100,6 @@ describe("Benchmarking Factory Implementation", function (done) {
 
     it("should", function (done) {
         perform_benchmark(null, null, done);
-    })
+    });
 
 });

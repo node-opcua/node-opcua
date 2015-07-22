@@ -83,43 +83,40 @@ var privateKey = inlineText(
          */
     });
 
+var _describe = crypto_utils.isFullySupported ? describe : xdescribe;
 
-if (!crypto_utils.isFullySupported()) {
-} else {
+_describe("testing message decryption", function () {
 
-    describe("testing message decryption", function () {
-
-        it("should decrypt an OPN packet and verify that the signature is correct", function () {
+    it("should decrypt an OPN packet and verify that the signature is correct", function () {
 
 
-            // extract the client certificate from the unencrypted part
-            var senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
+        // extract the client certificate from the unencrypted part
+        var senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
 
-            // where the encrypted  part starts
-            var start = buffer.length - ( 128 * 3 );
-            var encrypted_part = buffer.slice(start);
+        // where the encrypted  part starts
+        var start = buffer.length - ( 128 * 3 );
+        var encrypted_part = buffer.slice(start);
 
-            // decrypt the encrypted part
-            var decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
+        // decrypt the encrypted part
+        var decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
 
-            // recompose the buffer
-            decrypted_part.copy(buffer, start);
-            buffer = buffer.slice(0, start + decrypted_part.length);
-            buffer.length.should.equal(start + 3 * (128 - 11));
+        // recompose the buffer
+        decrypted_part.copy(buffer, start);
+        buffer = buffer.slice(0, start + decrypted_part.length);
+        buffer.length.should.equal(start + 3 * (128 - 11));
 
-            // verify signature
-            var publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
-            var options = {
-                algorithm: "RSA-SHA1",
-                signatureLength: 256,
-                publicKey: publicKey
-            };
-            var boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
+        // verify signature
+        var publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
+        var options = {
+            algorithm: "RSA-SHA1",
+            signatureLength: 256,
+            publicKey: publicKey
+        };
+        var boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
 
-            boolSignatureIsOK.should.eql(true);
-        });
-
+        boolSignatureIsOK.should.eql(true);
     });
-}
+
+});
 
 

@@ -120,14 +120,8 @@ describe("testing ServerEngine", function () {
                                 arrayType: VariantArrayType.Array,
                                 value: testArray
                             });
-                        },
-                        set: function (variant) {
-                            // Variation 1 : synchronous
-                            // assert(_.isFunction(callback));
-                            setTimeout(function () {
-                                callback(null, StatusCodes.Good);
-                            }, 20);
                         }
+
                     }
                 }
             );
@@ -146,10 +140,10 @@ describe("testing ServerEngine", function () {
         it("should provide a way to access a referenceType from its inverse name", function () {
             var address_space = engine.address_space;
             var n1 = address_space.findReferenceType("Organizes").nodeId;
-            should(address_space.findReferenceType("OrganizedBy")).be.undefined;
+            should(address_space.findReferenceType("OrganizedBy")).eql(undefined);
 
             var n2 = address_space.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
-            should(address_space.findReferenceTypeFromInverseName("Organizes")).be.undefined;
+            should(address_space.findReferenceTypeFromInverseName("Organizes")).eql(undefined);
 
             n1.should.equal(n2);
 
@@ -411,7 +405,7 @@ describe("testing ServerEngine", function () {
 
             if (!err) {
 
-                var dataValue = newVariable.readAttribute(AttributeIds.Value, undefined, undefined);
+                dataValue = newVariable.readAttribute(AttributeIds.Value, undefined, undefined);
                 dataValue.should.be.instanceOf(DataValue);
                 dataValue.sourceTimestamp.should.eql(new Date(Date.UTC(1999, 9, 9)));
                 dataValue.sourcePicoseconds.should.eql(10);
@@ -834,7 +828,7 @@ describe("testing ServerEngine", function () {
 
             var readResult = engine.readSingleNode("DataTypeDescriptionType", AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
-            readResult.value.arrayType.should.eql(VariantArrayType.Array)
+            readResult.value.arrayType.should.eql(VariantArrayType.Array);
         });
     });
 
@@ -849,7 +843,7 @@ describe("testing ServerEngine", function () {
 
             var readResult = engine.readSingleNode(productUri_id, AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
-            readResult.value.arrayType.should.eql(VariantArrayType.Array)
+            readResult.value.arrayType.should.eql(VariantArrayType.Array);
         });
         it("should handle a readSingleNode - AccessLevel", function () {
 
@@ -957,7 +951,7 @@ describe("testing ServerEngine", function () {
                             return new Variant({
                                 dataType: DataType.Double,
                                 value: 0
-                            })
+                            });
                         },
                         set: null // read only
                     }
@@ -1126,12 +1120,12 @@ describe("testing ServerEngine", function () {
             dataValues[2].should.be.instanceOf(DataValue);
 
             should(dataValues[0].serverTimestamp).be.eql(null);
-            should(dataValues[0].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
+            should(dataValues[0].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
 
             should(dataValues[1].serverTimestamp).be.eql(null);
-            should(dataValues[1].sourceTimestamp).be.null; /// SourceTimestamp only for AttributeIds.Value
+            should(dataValues[1].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
             should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
 
@@ -1797,7 +1791,7 @@ describe("testing ServerEngine", function () {
                                     }
                                 });
                                 callback(null, dataValue);
-                            }, 10)
+                            }, 10);
                         }
                     }
                 }
@@ -1817,7 +1811,7 @@ describe("testing ServerEngine", function () {
                                     value: {dataType: DataType.Double, value: value2}
                                 });
                                 callback(null, dataValue);
-                            }, 10)
+                            }, 10);
                         }
                     }
                 }
@@ -1854,7 +1848,7 @@ describe("testing ServerEngine", function () {
 
                 }
                 done(err);
-            })
+            });
         });
 
         it("should refresh multiple variable values asynchronously", function (done) {
@@ -1923,7 +1917,7 @@ describe("testing ServerEngine", function () {
             variable.readValueAsync(function (err, value) {
                 value1.should.equal(1);
 
-                done();
+                done(err);
             });
 
         });
@@ -1948,7 +1942,7 @@ describe("ServerEngine advanced", function () {
         var engine = new ServerEngine();
 
         var sinon = require("sinon");
-        var myFunc = new sinon.spy();
+        var myFunc = sinon.spy();
 
         engine.registerShutdownTask(myFunc);
 

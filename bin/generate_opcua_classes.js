@@ -23,8 +23,8 @@
 require("requirish")._(module);
 
 var argv = require('optimist')
-.usage('Usage: $0 --clear --verbose ')
-.argv;
+    .usage('Usage: $0 --clear --verbose ')
+    .argv;
 
 var path = require("path");
 var fs = require("fs");
@@ -51,7 +51,7 @@ function remove_files_in_folder(dirPath, removeSelf) {
             if (fs.statSync(filePath).isFile()) {
 
                 if (argv.verbose) {
-                    console.log(" .... deleting  ",filePath);
+                    console.log(" .... deleting  ", filePath);
                 }
                 fs.unlinkSync(filePath);
             } else {

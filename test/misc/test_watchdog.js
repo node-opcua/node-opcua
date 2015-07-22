@@ -145,10 +145,10 @@ describe("watch dog", function () {
         // Since our objects are sending a keepAlive signal on a very regular basic,
         // we should make sure object do not received a watchdogReset call by the WatchDog
         obj1.on("watchdogReset", function () {
-            done(new Error("Received unexpected watchdogReset on object1"))
+            done(new Error("Received unexpected watchdogReset on object1"));
         });
         obj2.on("watchdogReset", function () {
-            done(new Error("Received unexpected watchdogReset on object2"))
+            done(new Error("Received unexpected watchdogReset on object2"));
         });
 
         setTimeout(function () {
@@ -184,4 +184,4 @@ describe("watch dog", function () {
 describe("Watch Dog", function () {
 
 
-})
+});

@@ -32,6 +32,7 @@ describe("MessageBuilder", function () {
 
             }).
             on("error", function (err) {
+                should(err).eql(null);
                 throw new Error("should not get there");
             });
 

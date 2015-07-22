@@ -229,7 +229,7 @@ describe("DataAccess", function () {
         var engineeringUnits = standardUnits.degree_celsius;
         encode_decode_round_trip_test(engineeringUnits, function (buffer, id) {
             buffer.length.should.equal(35);
-        })
+        });
 
     });
 

@@ -1,5 +1,6 @@
+"use strict";
 require("requirish")._(module);
-
+var assert = require("better-assert");
 function decompose_message_in_chunks(message, msgType, chunkSize) {
     var decompose_message_body_in_chunks = require("lib/services/secure_channel_service").decompose_message_body_in_chunks;
     assert(msgType.length === 3);

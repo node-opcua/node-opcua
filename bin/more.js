@@ -5,14 +5,13 @@ var argv = require('optimist')
     .usage('Usage: $0 <file>')
     .argv;
 
-var fs  = require("fs");
-
+var fs = require("fs");
 
 
 function readLines(input, func) {
     var remaining = '';
 
-    input.on('data', function(data) {
+    input.on('data', function (data) {
         remaining += data;
         var index = remaining.indexOf('\n');
         while (index > -1) {
@@ -23,7 +22,7 @@ function readLines(input, func) {
         }
     });
 
-    input.on('end', function() {
+    input.on('end', function () {
         if (remaining.length > 0) {
             func(remaining);
         }

@@ -47,7 +47,7 @@ describe("Testing BinaryStreamSizeCalculator", function () {
         stream.writeByteStream(new Buffer("Hello"));
         stream.length.should.equal(4 + 4 + 8 + 4 + 5);
 
-    })
+    });
 });
 
 

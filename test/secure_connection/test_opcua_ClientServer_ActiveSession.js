@@ -195,7 +195,7 @@ if (!crypto_utils.isFullySupported()) {
                     });
                     client.performMessageTransaction(createSessionRequest, function (err, response) {
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
-                        callback();
+                        callback(err);
                     });
                 },
 

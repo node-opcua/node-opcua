@@ -189,6 +189,156 @@ function keep_monitoring_some_variable(session, duration, done) {
     });
 }
 
+
+
+
+function common_test(securityPolicy, securityMode, options, done) {
+
+    //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
+
+    opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
+
+
+    options = options || {};
+    options = _.extend(options, {
+        securityMode: opcua.MessageSecurityMode.get(securityMode),
+        securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
+        serverCertificate: serverCertificate
+    });
+
+    options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
+    //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
+
+    var token_change = 0;
+    var client = new OPCUAClient(options);
+
+    perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+        keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 5, function (err) {
+            token_change.should.be.greaterThan(3);
+            inner_done(err);
+        });
+    }, done);
+
+    client.on("lifetime_75", function (token) {
+        //xx console.log("received lifetime_75",JSON.stringify(token));
+    });
+    client.on("security_token_renewed", function () {
+        token_change += 1;
+    });
+    client.on("close", function () {
+        //xx console.log(" connection has been closed");
+    });
+}
+
+function check_open_secure_channel_fails(securityPolicy, securityMode, options, done) {
+
+    options = options || {};
+    options = _.extend(options, {
+        securityMode: opcua.MessageSecurityMode.get(securityMode),
+        securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
+        serverCertificate: serverCertificate,
+        defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
+    });
+    var client = new OPCUAClient(options);
+    client.connect(endpointUrl, function (err) {
+
+        if (err) {
+            console.log("Error = ", err.message);
+            done();
+        } else {
+            client.disconnect(function () {
+                done(new Error("The connection succedeed, but was expected to fail!"));
+            });
+        }
+    });
+}
+
+function common_test_expected_server_initiated_disconnection(securityPolicy, securityMode, done) {
+
+
+    opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
+
+    var options = {
+        securityMode: opcua.MessageSecurityMode.get(securityMode),
+        securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
+        serverCertificate: serverCertificate,
+        defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
+    };
+
+    var token_change = 0;
+    var client = new OPCUAClient(options);
+
+    perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+        keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
+            inner_done(err);
+        });
+    }, function (err) {
+        console.log(" RECEIVED ERROR :".yellow.bold, err);
+
+        should(err).be.instanceOf(Error);
+        done();
+    });
+
+    client.on("lifetime_75", function (token) {
+        //xx console.log("received lifetime_75",JSON.stringify(token));
+    });
+    client.on("security_token_renewed", function () {
+        token_change += 1;
+    });
+    client.on("close", function () {
+        console.log(" connection has been closed");
+    });
+}
+
+function perform_collection_of_test_with_client_configuration(message, options) {
+
+    it('should succeed with Basic128Rsa15 with Sign  ' + message, function (done) {
+        common_test("Basic128Rsa15", "SIGN", options, done);
+    });
+
+    it('should succeed with Basic128Rsa15 with Sign ' + message, function (done) {
+        common_test("Basic128Rsa15", "SIGN", options, done);
+    });
+
+    it('should succeed with Basic128Rsa15 with SignAndEncrypt ' + message, function (done) {
+        common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+    });
+
+    it('should succeed with Basic256 with Sign ' + message, function (done) {
+        common_test("Basic256", "SIGN", options, done);
+    });
+
+    it('should succeed with Basic256 with SignAndEncrypt ' + message, function (done) {
+        common_test("Basic256", "SIGNANDENCRYPT", options, done);
+    });
+
+    it('should fail with Basic256Rsa15 with Sign ' + message, function (done) {
+        check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
+    });
+
+    it('should fail with Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
+        check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
+    });
+}
+
+function perform_collection_of_test_with_various_client_configuration(prefix) {
+
+    prefix = prefix || "";
+    var client_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
+    var client_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
+
+    var options = {
+        certificateFile: client_certificate256_pem_file,
+        privateKeyFile: client_certificate256_privatekey_file
+    };
+    perform_collection_of_test_with_client_configuration(prefix + "(2048 bits certificate on client)", options);
+    perform_collection_of_test_with_client_configuration(prefix + "(1024 bits certificate on client)", null);
+
+
+}
+
 var g_defaultSecureTokenLifetime = 1000;
 var g_cycleNumber = 3;
 var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 4);
@@ -209,7 +359,7 @@ if (!crypto_utils.isFullySupported()) {
             start_server(function (err, handle) {
                 serverHandle = handle;
                 done(err);
-            })
+            });
         });
         after(function (done) {
             stop_server(serverHandle, function () {
@@ -285,105 +435,6 @@ if (!crypto_utils.isFullySupported()) {
 
     var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
-    function common_test(securityPolicy, securityMode, options, done) {
-
-        //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
-
-        opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
-
-
-        options = options || {};
-        options = _.extend(options, {
-            securityMode: opcua.MessageSecurityMode.get(securityMode),
-            securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
-            serverCertificate: serverCertificate
-        });
-
-        options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
-        //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
-
-        var token_change = 0;
-        var client = new OPCUAClient(options);
-
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
-            keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 5, function (err) {
-                token_change.should.be.greaterThan(3);
-                inner_done(err);
-            });
-        }, done);
-
-        client.on("lifetime_75", function (token) {
-            //xx console.log("received lifetime_75",JSON.stringify(token));
-        });
-        client.on("security_token_renewed", function () {
-            token_change += 1;
-        });
-        client.on("close", function () {
-            //xx console.log(" connection has been closed");
-        });
-    }
-
-    function check_open_secure_channel_fails(securityPolicy, securityMode, options, done) {
-
-        options = options || {};
-        options = _.extend(options, {
-            securityMode: opcua.MessageSecurityMode.get(securityMode),
-            securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
-            serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
-        });
-        var client = new OPCUAClient(options);
-        client.connect(endpointUrl, function (err) {
-
-            if (err) {
-                console.log("Error = ", err.message);
-                done();
-            } else {
-                client.disconnect(function () {
-                    done(new Error("The connection succedeed, but was expected to fail!"));
-                });
-            }
-        });
-    }
-
-    function common_test_expected_server_initiated_disconnection(securityPolicy, securityMode, done) {
-
-
-        opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
-
-        var options = {
-            securityMode: opcua.MessageSecurityMode.get(securityMode),
-            securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
-            serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
-        };
-
-        var token_change = 0;
-        var client = new OPCUAClient(options);
-
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
-            keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
-                inner_done(err);
-            });
-        }, function (err) {
-            console.log(" RECEIVED ERROR :".yellow.bold, err);
-
-            should(err).be.instanceOf(Error);
-            done();
-        });
-
-        client.on("lifetime_75", function (token) {
-            //xx console.log("received lifetime_75",JSON.stringify(token));
-        });
-        client.on("security_token_renewed", function () {
-            token_change += 1;
-        });
-        client.on("close", function () {
-            console.log(" connection has been closed");
-        });
-    }
 
     describe("testing server behavior on secure connection ", function () {
 
@@ -408,7 +459,7 @@ if (!crypto_utils.isFullySupported()) {
             start_server(function (err, handle) {
                 serverHandle = handle;
                 done(err);
-            })
+            });
         });
         after(function (done) {
 
@@ -425,52 +476,6 @@ if (!crypto_utils.isFullySupported()) {
     });
 
 
-    function perform_collection_of_test_with_client_configuration(message, options) {
-
-        it('should succeed with Basic128Rsa15 with Sign  ' + message, function (done) {
-            common_test("Basic128Rsa15", "SIGN", options, done);
-        });
-
-        it('should succeed with Basic128Rsa15 with Sign ' + message, function (done) {
-            common_test("Basic128Rsa15", "SIGN", options, done);
-        });
-
-        it('should succeed with Basic128Rsa15 with SignAndEncrypt ' + message, function (done) {
-            common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
-        });
-
-        it('should succeed with Basic256 with Sign ' + message, function (done) {
-            common_test("Basic256", "SIGN", options, done);
-        });
-
-        it('should succeed with Basic256 with SignAndEncrypt ' + message, function (done) {
-            common_test("Basic256", "SIGNANDENCRYPT", options, done);
-        });
-
-        it('should fail with Basic256Rsa15 with Sign ' + message, function (done) {
-            check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
-        });
-
-        it('should fail with Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
-            check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
-        });
-    }
-
-    function perform_collection_of_test_with_various_client_configuration(prefix) {
-
-        prefix = prefix || "";
-        var client_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
-        var client_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
-
-        var options = {
-            certificateFile: client_certificate256_pem_file,
-            privateKeyFile: client_certificate256_privatekey_file
-        };
-        perform_collection_of_test_with_client_configuration(prefix + "(2048 bits certificate on client)", options);
-        perform_collection_of_test_with_client_configuration(prefix + "(1024 bits certificate on client)", null);
-
-
-    }
 
     describe("testing Security Policy with a valid 1024 bit certificate on server", function () {
 
@@ -482,7 +487,7 @@ if (!crypto_utils.isFullySupported()) {
             start_server_with_1024bits_certificate(function (err, handle) {
                 serverHandle = handle;
                 done(err);
-            })
+            });
         });
         after(function (done) {
             stop_server(serverHandle, function () {
@@ -511,7 +516,7 @@ if (!crypto_utils.isFullySupported()) {
             start_server_with_2048bits_certificate(function (err, handle) {
                 serverHandle = handle;
                 done(err);
-            })
+            });
         });
         after(function (done) {
             stop_server(serverHandle, function () {
@@ -541,7 +546,7 @@ if (!crypto_utils.isFullySupported()) {
             start_server_with_1024bits_certificate(function (err, handle) {
                 serverHandle = handle;
                 done(err);
-            })
+            });
         });
         after(function (done) {
             stop_server(serverHandle, function () {

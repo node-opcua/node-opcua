@@ -1,7 +1,7 @@
 require("requirish")._(module);
 var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
 var should = require("should");
-var opcua = require("lib/nodeopcua");
+var opcua = require("index");
 var assert = require("assert");
 var utils = require("lib/misc/utils");
 var color = require("colors");
@@ -10,24 +10,24 @@ var StatusCode = require("lib/datamodel/opcua_status_code").StatusCode;
 
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
-
 var ClientTCP_transport = require("lib/transport/client_tcp_transport").ClientTCP_transport;
+var packTcpMessage = require("lib/nodeopcua").packTcpMessage;
 
 describe("testing ClientTCP_transport", function () {
-
 
     var transport;
     beforeEach(function (done) {
         transport = new ClientTCP_transport();
         done();
     });
+
     afterEach(function (done) {
         transport.disconnect(function (err) {
             done(err);
         });
     });
 
-    var fake_AcknowledgeMessage = new opcua.AcknowledgeMessage({
+    var fake_AcknowledgeMessage = new opcua.secure_channel_service.AcknowledgeMessage({
         protocolVersion: 0,
         receiveBufferSize: 8192,
         sendBufferSize: 8192,
@@ -45,7 +45,7 @@ describe("testing ClientTCP_transport", function () {
             // received Fake HEL Message
 
             // send Fake ACK response
-            var messageChunk = opcua.packTcpMessage("ACK", fake_AcknowledgeMessage);
+            var messageChunk = packTcpMessage("ACK", fake_AcknowledgeMessage);
             fake_socket.server.write(messageChunk);
 
         });
@@ -125,7 +125,7 @@ describe("testing ClientTCP_transport", function () {
 
             // Pretend the protocol version is wrong.
             var errorResponse = makeError(StatusCodes.BadProtocolVersionUnsupported);
-            var messageChunk = opcua.packTcpMessage("ERR", errorResponse);
+            var messageChunk = packTcpMessage("ERR", errorResponse);
             fake_socket.server.write(messageChunk);
 
             setImmediate(function () {
@@ -165,7 +165,7 @@ describe("testing ClientTCP_transport", function () {
             debugLog(utils.hexDump(data).yellow.bold);
             if (counter === 1) {
                 // HEL/ACK transaction
-                var messageChunk = opcua.packTcpMessage("ACK", fake_AcknowledgeMessage);
+                var messageChunk = packTcpMessage("ACK", fake_AcknowledgeMessage);
                 counter += 1;
                 fake_socket.server.write(messageChunk);
 
@@ -216,7 +216,7 @@ describe("testing ClientTCP_transport", function () {
             debugLog(utils.hexDump(data).yellow.bold);
             if (counter === 1) {
                 // HEL/ACK transaction
-                var messageChunk = opcua.packTcpMessage("ACK", fake_AcknowledgeMessage);
+                var messageChunk = packTcpMessage("ACK", fake_AcknowledgeMessage);
                 counter += 1;
                 fake_socket.server.write(messageChunk);
                 return;
@@ -265,7 +265,7 @@ describe("testing ClientTCP_transport", function () {
             debugLog(utils.hexDump(data).yellow.bold);
             if (counter === 1) {
                 // HEL/ACK transaction
-                var messageChunk = opcua.packTcpMessage("ACK", fake_AcknowledgeMessage);
+                var messageChunk = packTcpMessage("ACK", fake_AcknowledgeMessage);
                 counter += 1;
                 fake_socket.server.write(messageChunk);
 

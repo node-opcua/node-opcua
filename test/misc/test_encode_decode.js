@@ -126,8 +126,7 @@ describe("testing built-in type encoding", function () {
 
     it("should encode and decode a null string", function () {
 
-        var value = undefined;
-
+        var value;
 
         test_encode_decode(value, ec.encodeString, ec.decodeString, 4, function (buffer) {
             // should be little endian
@@ -673,7 +672,7 @@ describe("Float", function () {
         var value = buffer.readFloatLE(0);
         value.should.eql(0.0);
 
-    })
+    });
 
     it("should encode float (0)", function () {
 
@@ -686,7 +685,8 @@ describe("Float", function () {
         var value = ec.decodeFloat(stream);
         value.should.eql(0.0);
 
-    })
+    });
+
     it("should decode zero from a buffer with 4 bytes set to zero", function () {
 
         var buf = new Buffer(4);

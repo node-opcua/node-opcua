@@ -2,6 +2,7 @@
 /*global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
+var path = require("path");
 var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 //xx var UADataType = require("lib/address_space/ua_data_type").UADataType;
@@ -26,7 +27,7 @@ describe("testing nodeset to xml", function () {
 
     beforeEach(function (done) {
         address_space = new AddressSpace();
-        var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
+        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 
         require("fs").existsSync(xml_file).should.be.eql(true);
 

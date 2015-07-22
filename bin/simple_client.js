@@ -23,24 +23,24 @@ var argv = require('yargs')
 
     .demand("endpoint")
     .string("endpoint")
-    .describe("endpoint","the end point to connect to ")
+    .describe("endpoint", "the end point to connect to ")
 
     .string("securityMode")
-    .describe("securityMode","the security mode")
+    .describe("securityMode", "the security mode")
 
     .string("securityPolicy")
-    .describe("securityPolicy","the policy mode")
+    .describe("securityPolicy", "the policy mode")
 
     .string("userName")
-    .describe("userName","specify the user name of a UserNameIdentityToken ")
+    .describe("userName", "specify the user name of a UserNameIdentityToken ")
     .string("password")
-    .describe("password","specify the password of a UserNameIdentityToken")
+    .describe("password", "specify the password of a UserNameIdentityToken")
 
-    .alias('e','endpoint')
-    .alias('s','securityMode')
-    .alias('P','securityPolicy')
-    .alias("u",'userName')
-    .alias("p",'password')
+    .alias('e', 'endpoint')
+    .alias('s', 'securityMode')
+    .alias('P', 'securityPolicy')
+    .alias("u", 'userName')
+    .alias("p", 'password')
 
     .example("simple_client  --endpoint opc.tcp://localhost:49230")
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
@@ -48,16 +48,16 @@ var argv = require('yargs')
 
     .argv;
 
-console.log("==>",argv.securityPolicy);
+console.log("==>", argv.securityPolicy);
 
-var securityMode   = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
-var securityPolicy =  opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+var securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+var securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
 
 //xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
 
-console.log("securityMode   = ".cyan,securityMode.toString());
-console.log("securityPolicy = ".cyan,securityPolicy.toString());
+console.log("securityMode   = ".cyan, securityMode.toString());
+console.log("securityPolicy = ".cyan, securityPolicy.toString());
 
 var client = null;
 
@@ -77,9 +77,9 @@ var the_subscription = null;
 var AttributeIds = opcua.AttributeIds;
 
 var NodeCrawler = opcua.NodeCrawler;
-var doCrawling = argv.crawl ? true: false;
+var doCrawling = argv.crawl ? true : false;
 
-var  serverCertificate = null;
+var serverCertificate = null;
 
 var path = require("path");
 var crypto_utils = require("lib/misc/crypto_utils");
@@ -103,31 +103,31 @@ async.series([
 
             var table = new Table();
             if (!err) {
-                endpoints.forEach(function (endpoint,i) {
-                    table.cell('endpoint',           endpoint.endpointUrl + "");
-                    table.cell('Application URI',    endpoint.server.applicationUri);
-                    table.cell('Security Mode',      endpoint.securityMode);
-                    table.cell('securityPolicyUri',  endpoint.securityPolicyUri);
-                    table.cell('Type',               endpoint.server.applicationType.key);
+                endpoints.forEach(function (endpoint, i) {
+                    table.cell('endpoint', endpoint.endpointUrl + "");
+                    table.cell('Application URI', endpoint.server.applicationUri);
+                    table.cell('Security Mode', endpoint.securityMode);
+                    table.cell('securityPolicyUri', endpoint.securityPolicyUri);
+                    table.cell('Type', endpoint.server.applicationType.key);
                     table.cell('certificate', "..." /*endpoint.serverCertificate*/);
 
                     serverCertificate = endpoint.serverCertificate;
 
-                    var certificate_filename =path.join(__dirname,"../certificates/PKI/server_certificate"+ i +".pem");
-                    fs.writeFile(certificate_filename,crypto_utils.toPem(serverCertificate,"CERTIFICATE"));
+                    var certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
+                    fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"));
 
                     table.newRow();
                 });
                 console.log(table.toString());
 
-                endpoints.forEach(function (endpoint,i) {
+                endpoints.forEach(function (endpoint, i) {
                     var table2 = new Table();
-                    endpoint.userIdentityTokens.forEach(function( token) {
-                        table2.cell('policyId',           token.policyId);
-                        table2.cell('tokenType',          token.tokenType.toString());
-                        table2.cell('issuedTokenType',    token.issuedTokenType);
-                        table2.cell('issuerEndpointUrl',  token.issuerEndpointUrl);
-                        table2.cell('securityPolicyUri',  token.securityPolicyUri);
+                    endpoint.userIdentityTokens.forEach(function (token) {
+                        table2.cell('policyId', token.policyId);
+                        table2.cell('tokenType', token.tokenType.toString());
+                        table2.cell('issuedTokenType', token.issuedTokenType);
+                        table2.cell('issuerEndpointUrl', token.issuerEndpointUrl);
+                        table2.cell('securityPolicyUri', token.securityPolicyUri);
                         table2.newRow();
                     });
                     console.log(table2.toString());
@@ -151,12 +151,12 @@ async.series([
         console.log(hexDump(serverCertificate).yellow);
 
         var options = {
-            securityMode:   securityMode,
+            securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000
         };
-        console.log("Options = ",options.securityMode.toString(),options.securityPolicy.toString());
+        console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
         client = new opcua.OPCUAClient(options);
 
@@ -171,16 +171,16 @@ async.series([
         if (argv.userName && argv.password) {
 
             userIdentity = {
-              userName:argv.userName,
+                userName: argv.userName,
                 password: argv.password
             };
 
         }
-        client.createSession(userIdentity,function (err, session) {
+        client.createSession(userIdentity, function (err, session) {
             if (!err) {
                 the_session = session;
                 console.log(" session created".yellow);
-                console.log(" sessionId : ",session.sessionId.toString());
+                console.log(" sessionId : ", session.sessionId.toString());
             }
             callback(err);
         });
@@ -210,24 +210,24 @@ async.series([
     //------------------------------------------
     function (callback) {
 
-        if(doCrawling) {
+        if (doCrawling) {
             assert(_.isObject(the_session));
             var crawler = new NodeCrawler(the_session);
 
             var t = Date.now();
             var t1;
-            client.on("send_request",function(){
+            client.on("send_request", function () {
                 t1 = Date.now();
             });
-            client.on("receive_response",function(){
+            client.on("receive_response", function () {
                 var t2 = Date.now();
                 var util = require("util");
-                var str =  util.format("R= %d W= %d T=%d t= %d", client.bytesRead,client.bytesWritten,client.transactionsPerformed ,(t2-t1));
+                var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
                 console.log(str.yellow.bold);
             });
 
             t = Date.now();
-            crawler.on("browsed",function(element){
+            crawler.on("browsed", function (element) {
                 // console.log("->",element.browseName.name,element.nodeId.toString());
             });
 
@@ -271,20 +271,18 @@ async.series([
 
             console.log("started subscription :", the_subscription.subscriptionId);
 
-            the_session.getMonitoredItems(the_subscription.subscriptionId,function(err,results){
-                if( !err) {
-                    console.log("MonitoredItems clientHandles" , results.clientHandles);
-                    console.log("MonitoredItems serverHandles" , results.serverHandles);
+            the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
+                if (!err) {
+                    console.log("MonitoredItems clientHandles", results.clientHandles);
+                    console.log("MonitoredItems serverHandles", results.serverHandles);
                 } else {
-                    console.log(" getMonitoredItems ERROR ".red,err.message.cyan);
+                    console.log(" getMonitoredItems ERROR ".red, err.message.cyan);
                 }
             });
 
 
-
-
         }).on("internal_error", function (err) {
-            console.log(" received internal error",err.message);
+            console.log(" received internal error", err.message);
             clearTimeout(timerId);
             callback(err);
 
@@ -319,15 +317,15 @@ async.series([
             console.log(monitored_node, " value has changed to " + dataValue.value.value);
         });
         monitoredItem.on("err", function (err_message) {
-            console.log(monitored_node, " ERROR".red ,  err_message);
+            console.log(monitored_node, " ERROR".red, err_message);
         });
 
         // ---------------------------------------------------------------
         //  monitor the object events
         // ---------------------------------------------------------------
 
-        var baseEventTypeId =  "i=2041"; // BaseEventType;
-        var serverObjectId =  "i=2253";
+        var baseEventTypeId = "i=2041"; // BaseEventType;
+        var serverObjectId = "i=2253";
         var event_monitoringItem = the_subscription.monitor(
             {
                 nodeId: serverObjectId,
@@ -340,7 +338,7 @@ async.series([
                     selectClauses: [// SimpleAttributeOperand
                         {
                             typeId: baseEventTypeId, // NodeId of a TypeDefinitionNode.
-                            browsePath: [ { name: "EventId" } ],
+                            browsePath: [{name: "EventId"}],
                             attributeId: AttributeIds.Value
                         }
                     ],
@@ -360,15 +358,14 @@ async.series([
             console.log(event_monitoringItem, " value has changed to " + value.toString());
         });
         event_monitoringItem.on("err", function (err_message) {
-            console.log("event_monitoringItem ",baseEventTypeId, " ERROR".red , err_message);
+            console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);
         });
 
     },
     function (callback) {
         console.log(" closing session");
-        the_session.close(function (err)     {
-
-            console.log(" session closed");
+        the_session.close(function (err) {
+            console.log(" session closed",err);
             callback();
         });
     },

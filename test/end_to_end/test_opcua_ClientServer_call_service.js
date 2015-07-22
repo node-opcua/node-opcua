@@ -63,7 +63,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 inputArguments.length.should.equal(1);
                 outputArguments.length.should.equal(2);
                 inner_done(err);
-            })
+            });
         }, done);
 
     });
@@ -360,7 +360,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                         dataValues[1].value.value.should.eql(true);
                     }
                     inner_done(err);
-                })
+                });
 
             }, done);
         });
@@ -414,7 +414,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 results[1].targets.length.should.eql(1);
                 results[1].targets[0].targetId.toString().should.eql("ns=0;i=11494");
 
-                inner_done();
+                inner_done(err);
 
             });
         }, done);

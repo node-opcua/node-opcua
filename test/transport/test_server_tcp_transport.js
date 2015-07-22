@@ -1,7 +1,6 @@
 require("requirish")._(module);
 var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
 var should = require("should");
-var opcua = require("lib/opcua");
 var assert = require("assert");
 var utils = require("lib/misc/utils");
 var color = require("colors");
@@ -11,7 +10,6 @@ var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
-
 describe("testing ServerTCP_transport", function () {
 
 
@@ -19,6 +17,13 @@ describe("testing ServerTCP_transport", function () {
 
     var helloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1;
     var openChannelRequest = require("test/fixtures/fixture_full_tcp_packets").packet_cs_2;
+    var readMessageHeader = require("lib/misc/message_header").readMessageHeader;
+    var decodeMessage = require("lib/nodeopcua").decodeMessage;
+
+    var HelloMessage = require("_generated_/_auto_generated_HelloMessage").HelloMessage;
+    var AcknowledgeMessage = require("_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
+    var TCPErrorMessage = require("_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
+    var packTcpMessage = require("lib/nodeopcua").packTcpMessage;
 
     var fake_socket;
     beforeEach(function (done) {
@@ -42,10 +47,10 @@ describe("testing ServerTCP_transport", function () {
 
         fake_socket.client.on("data", function (data) {
             var stream = new BinaryStream(data);
-            var messageHeader = opcua.readMessageHeader(stream);
+            var messageHeader = readMessageHeader(stream);
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
-            var response = opcua.decodeMessage(stream, opcua.TCPErrorMessage);
+            var response = decodeMessage(stream, TCPErrorMessage);
             response._schema.name.should.equal("TCPErrorMessage");
             done();
         });
@@ -67,10 +72,10 @@ describe("testing ServerTCP_transport", function () {
 
         fake_socket.client.on("data", function (data) {
             var stream = new BinaryStream(data);
-            var messageHeader = opcua.readMessageHeader(stream);
+            var messageHeader = readMessageHeader(stream);
             messageHeader.msgType.should.equal("ACK");
             stream.rewind();
-            var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
+            var response = decodeMessage(stream, AcknowledgeMessage);
             response._schema.name.should.equal("AcknowledgeMessage");
             done();
         });
@@ -88,7 +93,7 @@ describe("testing ServerTCP_transport", function () {
         });
 
         // simulate client send HEL
-        var helloMessage = new opcua.HelloMessage({
+        var helloMessage = new HelloMessage({
             protocolVersion: 5555,
             receiveBufferSize: 1000,
             sendBufferSize: 1000,
@@ -99,16 +104,16 @@ describe("testing ServerTCP_transport", function () {
 
         fake_socket.client.on("data", function (data) {
             var stream = new BinaryStream(data);
-            var messageHeader = opcua.readMessageHeader(stream);
+            var messageHeader = readMessageHeader(stream);
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
-            var response = opcua.decodeMessage(stream, opcua.AcknowledgeMessage);
+            var response = decodeMessage(stream, AcknowledgeMessage);
             response._schema.name.should.equal("TCPErrorMessage");
 
             done();
         });
 
-        fake_socket.client.write(opcua.packTcpMessage("HEL", helloMessage));
+        fake_socket.client.write(packTcpMessage("HEL", helloMessage));
 
     });
 

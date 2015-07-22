@@ -398,7 +398,7 @@ describe("Variant - Analyser", function () {
         }
 
         validate_array().should.eql(true);
-    })
+    });
 });
 
 
@@ -658,7 +658,7 @@ describe("Variant with Advanced Array", function () {
             stream.length.should.equal(1 + 4 + 4 + 4);
         });
 
-    })
+    });
 
 
 });

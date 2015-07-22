@@ -9,6 +9,7 @@ var OPCUAServer = opcua.OPCUAServer;
 var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
+var DataValue = opcua.DataValue;
 
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 

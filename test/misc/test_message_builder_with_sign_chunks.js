@@ -50,6 +50,7 @@ if (!crypto_utils.isFullySupported()) {
                 });
 
             fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
+                should(err).eql(null);
                 messageBuilder.feed(chunk.slice(0, 20));
                 messageBuilder.feed(chunk.slice(20));
             });
@@ -84,6 +85,7 @@ if (!crypto_utils.isFullySupported()) {
                 });
 
             fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
+                should(err).eql(null);
                 messageBuilder.feed(chunk.slice(0, 20));
                 messageBuilder.feed(chunk.slice(20));
             });
@@ -112,6 +114,7 @@ if (!crypto_utils.isFullySupported()) {
                 });
 
             fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
+                should(err).eql(null);
 
                 // alter artificially the chunk
                 // this will damage the chunk signature
@@ -151,6 +154,7 @@ if (!crypto_utils.isFullySupported()) {
                 });
 
             fake_message_chunk_factory.iterate_on_signed_and_encrypted_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
+                should(err).eql(null);
                 //xx console.log(hexDump(chunk));
                 messageBuilder.feed(chunk.slice(0, 20));
                 messageBuilder.feed(chunk.slice(20));
@@ -192,7 +196,7 @@ if (!crypto_utils.isFullySupported()) {
 
 
             fake_message_chunk_factory.iterate_on_symmetric_encrypted_chunk(lorem_ipsum_buffer, function (err, chunk) {
-
+                should(err).eql(null);
                 messageBuilder.feed(chunk);
             });
         });

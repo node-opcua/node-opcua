@@ -1,10 +1,11 @@
 require("requirish")._(module);
 var should = require("should");
+var path = require("path");
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("Code Generator", function () {
 
-    var schema_file = __dirname + "/../fixtures/fixture_dummy_object_schema.js";
+    var schema_file = path.join(__dirname,"../fixtures/fixture_dummy_object_schema.js");
 
     it("should produce the javascript for new complex type using template ", function () {
 
@@ -56,7 +57,7 @@ describe("Code Generator", function () {
     it("should handle Schema with recursion ", function () {
 
         //xx should(function(){
-        var schema_file2 = __dirname + "/../fixtures/fixture_foo_object_with_recursion_schema.js";
+        var schema_file2 = path.join(__dirname,"../fixtures/fixture_foo_object_with_recursion_schema.js");
         var FooWithRecursion = require(schema_file2).FooWithRecursion;
         //xx }).not.throwError();
 
@@ -65,7 +66,7 @@ describe("Code Generator", function () {
         should(foo.inner).be.eql(null);
         // var foo_reloaded = encode_decode_round_trip_test(foo);
 
-        var foo = new FooWithRecursion({
+        foo = new FooWithRecursion({
             inner: {name: "inside level1"}
         });
 
@@ -74,7 +75,7 @@ describe("Code Generator", function () {
         should(foo.inner.inner).eql(null);
 
 
-        var foo = new FooWithRecursion({
+        foo = new FooWithRecursion({
             inner: {
                 name: "inside level1",
                 inner: {

@@ -85,7 +85,7 @@ describe("testing session  transfer to different channel", function () {
 
             function (callback) {
                 client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
+                client1.connect(endpointUrl, callback);
             },
             // create a session using client1
             function (callback) {
@@ -127,13 +127,14 @@ describe("testing session  transfer to different channel", function () {
 
             function (callback) {
                 client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
+                client1.connect(endpointUrl, callback);
             },
             function (callback) {
                 var request = new opcua.session_service.CloseSessionRequest({
                     deleteSubscriptions: true
                 });
                 client1.performMessageTransaction(request, function (err, response) {
+                    should(err).eql(null);
                     //err.message.should.match(/BadSessionIdInvalid/);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
                     callback();
@@ -153,7 +154,7 @@ describe("testing session  transfer to different channel", function () {
 
             function (callback) {
                 client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
+                client1.connect(endpointUrl, callback);
             },
             // create a session using client1
             function (callback) {
@@ -179,6 +180,7 @@ describe("testing session  transfer to different channel", function () {
                     deleteSubscriptions: true
                 });
                 client1.performMessageTransaction(request, function (err, response) {
+                    should(err).eql(null);
                     //err.message.should.match(/BadSessionIdInvalid/);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
                     callback();
@@ -211,7 +213,7 @@ describe("testing session  transfer to different channel", function () {
             // create a first channel (client1)
             function (callback) {
                 client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
+                client1.connect(endpointUrl, callback);
             },
             // create a session using client1
             function (callback) {
@@ -240,6 +242,7 @@ describe("testing session  transfer to different channel", function () {
                 });
                 request.requestHeader.authenticationToken = session1.authenticationToken;
                 client1.performMessageTransaction(request, function (err, response) {
+                    should(err).eql(null);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                     callback();
                 });
@@ -248,7 +251,7 @@ describe("testing session  transfer to different channel", function () {
             // create a second channel (client2)
             function (callback) {
                 client2 = new OPCUAClient();
-                client2.connect(endpointUrl, callback)
+                client2.connect(endpointUrl, callback);
             },
 
             // reactivate session on second channel
@@ -300,7 +303,7 @@ describe("testing session  transfer to different channel", function () {
             function (callback) {
                 server.getChannels().length.should.equal(0);
                 client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
+                client1.connect(endpointUrl, callback);
             },
             // create a session using client1
             function (callback) {
@@ -316,7 +319,7 @@ describe("testing session  transfer to different channel", function () {
             // create a second channel (client2)
             function (callback) {
                 client2 = new OPCUAClient();
-                client2.connect(endpointUrl, callback)
+                client2.connect(endpointUrl, callback);
             },
 
             // activate the session created with client1 using client2 !!
@@ -389,7 +392,7 @@ describe("testing session  transfer to different channel", function () {
                         securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                         serverCertificate: serverCertificate
                     });
-                    client1.connect(endpointUrl, callback)
+                    client1.connect(endpointUrl, callback);
                 },
                 // create a session using client1
                 function (callback) {
@@ -538,7 +541,7 @@ describe("testing session  transfer to different channel", function () {
 
             function (callback) {
                 client1 = new OPCUAClient();
-                client1.connect(endpointUrl, callback)
+                client1.connect(endpointUrl, callback);
             },
             // create a session using client1
             function (callback) {

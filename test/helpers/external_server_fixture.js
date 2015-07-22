@@ -78,7 +78,7 @@ function start_simple_server(options, callback) {
     server_exec.on("close", detect_early_termination);
 
     server_exec.on("error", function (err) {
-        console.log("xxxx child process terminated due to receipt of signal ");
+        console.log("xxxx child process terminated due to receipt of signal ",err);
     });
 
 
@@ -87,7 +87,7 @@ function start_simple_server(options, callback) {
         data = data.split("\n");
 
         data.filter(function (a) {
-            return a.length > 0
+            return a.length > 0;
         }).forEach(function (data) {
 
             detect_ready_message(data);
@@ -127,9 +127,7 @@ function stop_simple_server(serverHandle, callback) {
             process.kill(serverHandle.pid_collected, "SIGKILL");
 
         }
-        catch (err) {
-
-        }
+        catch (err) {/**/}
     }
 
     /* istanbul ignore next */

@@ -11,11 +11,9 @@ describe("Crypto utils", function () {
 
         var certificate = crypto_utils.readCertificate(path.join(__dirname, "../fixtures/certs/demo_certificate.pem"));
 
-        if (false) {
-            console.log(certificate.toString("hex"));
-            console.log(certificate.toString("base64"));
-            console.log(hexy.hexy(certificate, {width: 32}));
-        }
+        // console.log(certificate.toString("hex"));
+        // console.log(certificate.toString("base64"));
+        // console.log(hexy.hexy(certificate, {width: 32}));
 
 
         certificate.toString("base64").should.equal(

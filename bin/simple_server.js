@@ -1,3 +1,4 @@
+/* eslint no-process-exit: 0 */
 "use strict";
 require("requirish")._(module);
 Error.stackTraceLimit = Infinity;
@@ -6,14 +7,15 @@ var argv = require('yargs')
     .wrap(132)
     .string("alternateHostname")
     .describe("alternateHostname")
-    .alias('a','alternateHostname')
+    .alias('a', 'alternateHostname')
     .string("port")
     .describe("port")
-    .alias('p','port')
+    .alias('p', 'port')
     .argv;
 
 var opcua = require("..");
 var _ = require("underscore");
+var path = require("path");
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
@@ -31,7 +33,7 @@ var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qua
 var port = parseInt(argv.port) || 26543;
 
 var userManager = {
-    isValidUser: function (userName,password) {
+    isValidUser: function (userName, password) {
 
         if (userName === "user1" && password === "password1") {
             return true;
@@ -45,7 +47,7 @@ var userManager = {
 
 var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
-var server_options ={
+var server_options = {
 
     port: port,
     resourcePath: "UA/Server",
@@ -54,12 +56,12 @@ var server_options ={
 
     nodeset_filename: [
         standard_nodeset_file,
-        __dirname + "/../nodesets/Opc.Ua.Di.NodeSet2.xml"
+        path.join(__dirname,"../nodesets/Opc.Ua.Di.NodeSet2.xml")
     ],
 
     serverInfo: {
-        applicationUri : makeApplicationUrn(get_fully_qualified_domain_name(),"NodeOPCUA-Server"),
-        productUri:      "NodeOPCUA-SimpleDemoServer",
+        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
+        productUri: "NodeOPCUA-SimpleDemoServer",
         applicationName: {text: "applicationName"},
         gatewayServerUri: null,
         discoveryProfileUri: null,
@@ -70,14 +72,14 @@ var server_options ={
     },
     serverCapabilities: {
         operationLimits: {
-            maxNodesPerRead:   1000,
+            maxNodesPerRead: 1000,
             maxNodesPerBrowse: 2000
         }
     },
     userManager: userManager
 };
 
-process.title ="Node OPCUA Server on port : " + server_options.port;
+process.title = "Node OPCUA Server on port : " + server_options.port;
 
 server_options.alternateHostname = argv.alternateHostname;
 
@@ -88,14 +90,13 @@ var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 var hostname = require("os").hostname();
 
 
-
 server.on("post_initialize", function () {
 
     build_address_space_for_conformance_testing(server.engine);
 
     install_optional_cpu_and_memory_usage_node(server);
 
-    var myDevices = server.engine.addFolder("Objects", { browseName: "MyDevices"});
+    var myDevices = server.engine.addFolder("Objects", {browseName: "MyDevices"});
 
     /**
      * variation 0:
@@ -108,13 +109,13 @@ server.on("post_initialize", function () {
         browseName: "FanSpeed",
         nodeId: "ns=1;s=FanSpeed",
         dataType: "Double",
-        value:  new Variant({dataType: DataType.Double,value: 1000.0 })
+        value: new Variant({dataType: DataType.Double, value: 1000.0})
     });
 
-    setInterval(function() {
-        var fluctuation = Math.random()*100-50;
-        variable0.setValueFromSource(new Variant({dataType: DataType.Double,value: 1000.0 + fluctuation}));
-    },10    );
+    setInterval(function () {
+        var fluctuation = Math.random() * 100 - 50;
+        variable0.setValueFromSource(new Variant({dataType: DataType.Double, value: 1000.0 + fluctuation}));
+    }, 10);
 
 
     /**
@@ -137,7 +138,7 @@ server.on("post_initialize", function () {
              * @method get
              * @return {Variant}
              */
-            get: function() {
+            get: function () {
                 var pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
                 return new Variant({dataType: DataType.Double, value: pump_speed});
             }
@@ -165,14 +166,14 @@ server.on("post_initialize", function () {
      * The value and source timestamps are updated on a regular basis using a timer function.
      */
     var external_value_with_sourceTimestamp = new opcua.DataValue({
-        value: new Variant({dataType: DataType.Double , value: 10.0}),
-        sourceTimestamp : null,
+        value: new Variant({dataType: DataType.Double, value: 10.0}),
+        sourceTimestamp: null,
         sourcePicoseconds: 0
     });
-    setInterval(function() {
+    setInterval(function () {
         external_value_with_sourceTimestamp.value.value = Math.random();
         external_value_with_sourceTimestamp.sourceTimestamp = new Date();
-    },1000);
+    }, 1000);
 
     server.engine.addVariable(myDevices, {
         browseName: "Pressure",
@@ -210,7 +211,7 @@ server.on("post_initialize", function () {
 
                 // simulate a asynchronous behaviour
                 setTimeout(function () {
-                    callback(null, new DataValue({ value:value, sourceTimestamp: sourceTimestamp}));
+                    callback(null, new DataValue({value: value, sourceTimestamp: sourceTimestamp}));
                 }, 100);
             }
         }
@@ -218,18 +219,18 @@ server.on("post_initialize", function () {
 
     // UAAnalogItem
     // add a UAAnalogItem
-    var node = opcua.addAnalogDataItem(myDevices,{
-        nodeId:"ns=1;s=TemperatureAnalogItem",
+    var node = opcua.addAnalogDataItem(myDevices, {
+        nodeId: "ns=1;s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
-        engineeringUnitsRange: { low: 100 , high: 200},
-        instrumentRange: { low: -100 , high: +200},
+        engineeringUnitsRange: {low: 100, high: 200},
+        instrumentRange: {low: -100, high: +200},
         engineeringUnits: opcua.standardUnits.degree_celsius,
         dataType: "Double",
         value: {
-            get: function(){
-                return new Variant({dataType: DataType.Double , value: Math.random() + 19.0});
+            get: function () {
+                return new Variant({dataType: DataType.Double, value: Math.random() + 19.0});
             }
         }
     });
@@ -239,21 +240,21 @@ server.on("post_initialize", function () {
     // Add a view
     //------------------------------------------------------------------------------
     var viewsFolder = server.engine.findObject("ViewsFolder");
-    var view = server.engine.addView(viewsFolder,{
-        browseName:"MyView",
+    var view = server.engine.addView(viewsFolder, {
+        browseName: "MyView",
         nodeId: "ns=1;s=SampleView"
     });
 });
 
 
-
 function dumpObject(obj) {
-    function w(str,width) {
-        var tmp =str+ "                                        ";
-        return tmp.substr(0,width);
+    function w(str, width) {
+        var tmp = str + "                                        ";
+        return tmp.substr(0, width);
     }
-    return   _.map(obj,function(value,key) {
-        return  "      " + w(key,30).green + "  : " + ((value === null)? null : value.toString());
+
+    return _.map(obj, function (value, key) {
+        return "      " + w(key, 30).green + "  : " + ((value === null) ? null : value.toString());
     }).join("\n");
 }
 
@@ -276,33 +277,33 @@ server.start(function (err) {
     console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
 });
 
-server.on("create_session",function(session) {
+server.on("create_session", function (session) {
 
     console.log(" SESSION CREATED");
-    console.log("    client application URI: ".cyan,session.clientDescription.applicationUri);
-    console.log("        client product URI: ".cyan,session.clientDescription.productUri);
-    console.log("   client application name: ".cyan,session.clientDescription.applicationName.toString());
-    console.log("   client application type: ".cyan,session.clientDescription.applicationType.toString());
-    console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>" );
-    console.log("           session timeout: ".cyan,session.sessionTimeout);
-    console.log("                session id: ".cyan,session.sessionId);
+    console.log("    client application URI: ".cyan, session.clientDescription.applicationUri);
+    console.log("        client product URI: ".cyan, session.clientDescription.productUri);
+    console.log("   client application name: ".cyan, session.clientDescription.applicationName.toString());
+    console.log("   client application type: ".cyan, session.clientDescription.applicationType.toString());
+    console.log("              session name: ".cyan, session.sessionName ? session.sessionName.toString() : "<null>");
+    console.log("           session timeout: ".cyan, session.sessionTimeout);
+    console.log("                session id: ".cyan, session.sessionId);
 });
 
-server.on("session_closed",function(session,reason) {
-    console.log(" SESSION CLOSED :",reason);
-    console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>");
+server.on("session_closed", function (session, reason) {
+    console.log(" SESSION CLOSED :", reason);
+    console.log("              session name: ".cyan, session.sessionName ? session.sessionName.toString() : "<null>");
 });
 
-function w(s,w) {
-    return ("000"+ s).substr(-w);
+function w(s, w) {
+    return ("000" + s).substr(-w);
 }
 function t(d) {
-    return w(d.getHours(),2) + ":" + w(d.getMinutes(),2) + ":" + w(d.getSeconds(),2) +":" + w(d.getMilliseconds(),3);
+    return w(d.getHours(), 2) + ":" + w(d.getMinutes(), 2) + ":" + w(d.getSeconds(), 2) + ":" + w(d.getMilliseconds(), 3);
 }
 
 server.on("response", function (response) {
-    console.log(t(response.responseHeader.timeStamp),response.responseHeader.requestHandle,
-                response._schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
+    console.log(t(response.responseHeader.timeStamp), response.responseHeader.requestHandle,
+        response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {
         case "ModifySubscriptionResponse":
         case "CreateMonitoredItemsResponse":
@@ -320,13 +321,15 @@ server.on("response", function (response) {
 
 });
 
-function indent(str,nb) {
-    var spacer = "                                             ".slice(0,nb);
-    return str.split("\n").map(function(s) { return spacer + s }).join("\n");
+function indent(str, nb) {
+    var spacer = "                                             ".slice(0, nb);
+    return str.split("\n").map(function (s) {
+        return spacer + s;
+    }).join("\n");
 }
-server.on("request", function (request,channel) {
-    console.log(t(request.requestHeader.timeStamp),request.requestHeader.requestHandle,
-                request._schema.name.yellow, " ID =",channel.secureChannelId.toString().cyan);
+server.on("request", function (request, channel) {
+    console.log(t(request.requestHeader.timeStamp), request.requestHeader.requestHandle,
+        request._schema.name.yellow, " ID =", channel.secureChannelId.toString().cyan);
     switch (request._schema.name) {
         case "ModifySubscriptionRequest":
         case "CreateMonitoredItemsRequest":
@@ -341,8 +344,8 @@ server.on("request", function (request,channel) {
             console.log(str);
             break;
         case "WriteRequest":
-            var lines  = request.nodesToWrite.map(function (node) {
-                return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(),10) + "\n";
+            var lines = request.nodesToWrite.map(function (node) {
+                return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
             });
             console.log(lines.join("\n"));
             break;
@@ -354,7 +357,7 @@ server.on("request", function (request,channel) {
     }
 });
 
-process.on('SIGINT', function() {
+process.on('SIGINT', function () {
     // only work on linux apparently
     console.log(" Received server interruption from user ".red.bold);
     console.log(" shutting down ...".red.bold);

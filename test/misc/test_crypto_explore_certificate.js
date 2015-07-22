@@ -86,14 +86,14 @@ describe("exploring certificate chains", function () {
 
         console.log(chain[0].toString("hex"));
         console.log(cert1.toString("hex"));
-        console.log("-------")
+        console.log("-------");
         console.log(chain[1].toString("hex"));
         console.log(cert2.toString("hex"));
 
         chain[0].length.should.eql(cert1.length);
         chain[1].length.should.eql(cert2.length);
 
-    })
+    });
 });
 
 var makebuffer_from_trace = require("test/helpers/makebuffer_from_trace").makebuffer_from_trace;

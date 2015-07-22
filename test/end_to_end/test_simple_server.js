@@ -79,8 +79,8 @@ describe("Testing a simple server from Server side", function () {
                 server.shutdown(function () {
                     done();
                 });
-            })
-        })
+            });
+        });
     });
 
 });

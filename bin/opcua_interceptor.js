@@ -1,4 +1,4 @@
-
+/* eslint no-process-exit: 0 */
 var argv = require('optimist')
     .usage('Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block')
     .argv;
@@ -15,26 +15,26 @@ var s = require("../lib/datamodel/structures");
 
 require("colors");
 
-var remote_port = parseInt(argv.port,10) || 4841;
+var remote_port = parseInt(argv.port, 10) || 4841;
 var hostname = argv.hostname || "localhost";
 
-var my_port = parseInt(argv.portServer,10) || remote_port + 1;
+var my_port = parseInt(argv.portServer, 10) || remote_port + 1;
 
 
-var TrafficAnalyser = function(id)
-{
+var TrafficAnalyser = function (id) {
     this.id = id;
 };
 
-TrafficAnalyser.prototype.add = function(data)
-{
+var readMessageHeader = require("lib/misc/message_header").readMessageHeader;
+
+TrafficAnalyser.prototype.add = function (data) {
 
     var stream = new BinaryStream(data);
-	if (argv.block) {
-	   console.log(hexDump(data));
-	   return ;
-	}
-    var messageHeader = opcua.readMessageHeader(stream);
+    if (argv.block) {
+        console.log(hexDump(data));
+        return;
+    }
+    var messageHeader = readMessageHeader(stream);
 
     if (messageHeader.msgType === "ERR") {
 
@@ -45,42 +45,38 @@ TrafficAnalyser.prototype.add = function(data)
     }
 
     var messageBuild = new MessageBuilder();
-    messageBuild.on("full_message_body",function(full_message_body){
+    messageBuild.on("full_message_body", function (full_message_body) {
 
         console.log(hexDump(full_message_body));
 
         try {
-		   packet_analyzer(full_message_body);
-        } 
-		catch(err) {
-		   console.log("ERROR : ".red, err);
-		}
+            packet_analyzer(full_message_body);
+        }
+        catch (err) {
+            console.log("ERROR : ".red, err);
+        }
     });
 
 
-
-
-
-
-    switch(messageHeader.msgType) {
+    switch (messageHeader.msgType) {
 
         case "HEL":
         case "ACK":
-            if (this.id%2) {
-                console.log( JSON.stringify(messageHeader,null,"").red.bold);
+            if (this.id % 2) {
+                console.log(JSON.stringify(messageHeader, null, "").red.bold);
             } else {
-                console.log( JSON.stringify(messageHeader,null,"").yellow.bold);
+                console.log(JSON.stringify(messageHeader, null, "").yellow.bold);
             }
             break;
 
         case "OPN": // open secure channel
         case "CLO": // close secure channel
         case "MSG": // message
-            // decode secure message
-            if (this.id%2) {
-                console.log( messageHeaderToString(data).red.bold);
+                    // decode secure message
+            if (this.id % 2) {
+                console.log(messageHeaderToString(data).red.bold);
             } else {
-                console.log( messageHeaderToString(data).yellow.bold);
+                console.log(messageHeaderToString(data).yellow.bold);
             }
 
             messageBuild.feed(data);
@@ -99,20 +95,20 @@ TrafficAnalyser.prototype.add = function(data)
 require('net').createServer(function (socket) {
 
     console.log("connected");
-    var ta_client = new  TrafficAnalyser(1);
+    var ta_client = new TrafficAnalyser(1);
 
-    var ta_server = new  TrafficAnalyser(2);
+    var ta_server = new TrafficAnalyser(2);
 
-    var proxy_client  = net.Socket();
-    proxy_client.connect(remote_port,hostname);
+    var proxy_client = new net.Socket();
+    proxy_client.connect(remote_port, hostname);
 
-    proxy_client.on('data',function(data) {
+    proxy_client.on('data', function (data) {
         console.log(" server -> client : packet length " + data.length);
         ta_server.add(data);
         try {
             socket.write(data);
-        } catch(err) {
-
+        } catch (err) {
+            /**/
         }
     });
 
@@ -121,12 +117,12 @@ require('net').createServer(function (socket) {
         ta_client.add(data);
         proxy_client.write(data);
     });
-    socket.on('close', function() {
+    socket.on('close', function () {
         console.log('server disconnected (CLOSE)');
         proxy_client.end();
     });
 
-    socket.on('end', function() {
+    socket.on('end', function () {
         console.log('server disconnected (END)');
     });
 

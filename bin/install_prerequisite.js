@@ -1,3 +1,4 @@
+/* eslint nzw-cap: 0*/
 // ---------------------------------------------------------------------------------------------------------------------
 // node-opcua
 // ---------------------------------------------------------------------------------------------------------------------
@@ -24,17 +25,17 @@ var child_process = require("child_process");
 var byline = require('byline');
 var fs = require("fs");
 var path = require("path");
-var colors= require("colors");
+var colors = require("colors");
 
-function execute(cmd,callback, cwd){
+function execute(cmd, callback, cwd) {
 
     var output = "";
 
-    var cwd = cwd ? {cwd: cwd} : {};
+    cwd = cwd ? {cwd: cwd} : {};
 
-    var child = child_process.exec(cmd, cwd,function(err){
+    var child = child_process.exec(cmd, cwd, function (err) {
         //xx console.log("status = ", child.exitCode);
-        callback(err,child.exitCode,output );
+        callback(err, child.exitCode, output);
     });
     var stream1 = byline(child.stdout);
     stream1.on('data', function (line) {
@@ -43,17 +44,19 @@ function execute(cmd,callback, cwd){
     });
 }
 
-var cwd = path.join(__dirname,"./openssl");
-var cmd = path.join(cwd,"openssl.exe");
+var cwd = path.join(__dirname, "./openssl");
+var cmd = path.join(cwd, "openssl.exe");
 
 function check_openssl(callback) {
 
-    console.log("checking presence of ",cmd);
+    console.log("checking presence of ", cmd);
     if (!fs.existsSync(cmd)) {
-        return callback(null,false);
+        return callback(null, false);
     }
-    execute(cmd + " version", function(err,exitCode,output){
-        if (err) {return callback(err);}
+    execute(cmd + " version", function (err, exitCode, output) {
+        if (err) {
+            return callback(err);
+        }
         callback(null, (exitCode === 0) && output.match(/1.0.2/));
     }, cwd);
 }
@@ -81,7 +84,7 @@ function download_openssl(callback) {
 
     console.log("downloading " + url.yellow);
     if (fs.existsSync(output_filename)) {
-        return callback(null,output_filename);
+        return callback(null, output_filename);
     }
     var options = {};
     var bar = new ProgressBar("[:bar]".cyan + " :percent ".yellow + ':etas'.white, {
@@ -92,63 +95,65 @@ function download_openssl(callback) {
     });
 
     var download = wget.download(url, output_filename, options);
-    download.on('error', function(err) {
+    download.on('error', function (err) {
         console.log(err);
     });
-    download.on('end', function(output) {
+    download.on('end', function (output) {
         console.log(output);
         console.log("done ...");
-        callback(null,output_filename);
+        callback(null, output_filename);
     });
-    download.on('progress', function(progress) {
+    download.on('progress', function (progress) {
         bar.update(progress);
     });
 }
-function install_openssl(filename,callback) {
+function install_openssl(filename, callback) {
     var dirPath = 'bin/openssl';
 
     var unzip = require("unzip");
     var stream = fs.createReadStream(filename);
-    var unzipExtractor = unzip.Extract({ path: dirPath });
+
+    var unzipExtractor = new unzip.Extract({path: dirPath});
     stream.pipe(unzipExtractor);
 
-    unzipExtractor.on("error",function(err) {
+    unzipExtractor.on("error", function (err) {
         callback(err);
     });
-    unzipExtractor.on("close",function() {
+    unzipExtractor.on("close", function () {
         callback(null);
-    })
+    });
 
 }
 
-exports.install_prerequisite = function(callback) {
+exports.install_prerequisite = function (callback) {
 
     if (process.platform !== 'win32') {
 
-        execute("which openssl",function(err,exitCode,output){
-            if (exitCode !== 0 ) {
+        execute("which openssl", function (err, exitCode, output) {
+            if (err) { console.log("warning: ",err.message); }
+            if (exitCode !== 0) {
                 console.log(" it seems that ".yellow + "openssl".cyan + " is not installed on your computer ".yellow);
                 console.log("Please install it before running this programs".yellow);
                 return callback(new Error("Cannot find openssl"));
             }
-            return callback(null,output);
+            return callback(null, output);
         });
 
     } else {
 
-        check_openssl(function(err,openssl_ok) {
+        check_openssl(function (err, openssl_ok) {
 
-            if(err) {
+            if (err) {
                 return callback(err);
             }
             if (!openssl_ok) {
                 console.log("openssl seems to be missing and need to be installed".yellow);
-                download_openssl(function(err,filename) {
+                download_openssl(function (err, filename) {
                     if (!err) {
-                        console.log("deflating ",filename.yellow);
-                        install_openssl(filename,function(err){
-                            console.log("verifying ",fs.existsSync(cmd) ? "OK ".green: " Error".red,cmd);
-                            console.log("done ", err? err :"" );
+                        console.log("deflating ", filename.yellow);
+                        install_openssl(filename, function (err) {
+                            console.log("verifying ", fs.existsSync(cmd) ? "OK ".green : " Error".red, cmd);
+                            console.log("done ", err ? err : "");
                             callback(err);
                         });
                     }

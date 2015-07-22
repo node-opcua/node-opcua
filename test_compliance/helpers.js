@@ -1,16 +1,18 @@
 var path = "../";
-var opcua = require(path);
-global.makeNodeId = opcua.makeNodeId;
-global.DataValue = opcua.DataValue;
-global.DataType = opcua.DataType;
-global.AttributeIds = opcua.AttributeIds;
-global.NumericRange = opcua.NumericRange;
-global.OPCUAClient = opcua.OPCUAClient;
-global.StatusCodes = opcua.StatusCodes;
-global.AccessLevelFlag = opcua.AccessLevelFlag;
-
 var should = require("should");
-global.should = should;
+
+
+//var opcua = require(path);
+//global.makeNodeId = opcua.makeNodeId;
+//global.DataValue = opcua.DataValue;
+//global.DataType = opcua.DataType;
+//global.AttributeIds = opcua.AttributeIds;
+//global.NumericRange = opcua.NumericRange;
+//global.OPCUAClient = opcua.OPCUAClient;
+//global.StatusCodes = opcua.StatusCodes;
+//global.AccessLevelFlag = opcua.AccessLevelFlag;
+
+
 
 var perform_operation_on_client_session = require(path + "test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 

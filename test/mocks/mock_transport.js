@@ -8,14 +8,15 @@ var packet_analyzer = require("lib/misc/packet_analyzer").packet_analyzer;
 var assert = require("better-assert");
 var display_trace_from_this_projet_only = require("lib/misc/utils").display_trace_from_this_projet_only;
 
-var opcua = require("lib/opcua");
+var opcua = require("index");
+
 var CloseSecureChannelResponse = opcua.secure_channel_service.CloseSecureChannelResponse;
 var OpenSecureChannelResponse = opcua.secure_channel_service.OpenSecureChannelResponse;
+var AcknowledgeMessage = opcua.secure_channel_service.AcknowledgeMessage;
 
+var GetEndpointsResponse = opcua.get_endpoints_service.GetEndpointsResponse;
 
-var GetEndpointsResponse = opcua.endpoints_service.GetEndpointsResponse;
-
-var fake_AcknowledgeMessage = new opcua.AcknowledgeMessage({
+var fake_AcknowledgeMessage = new AcknowledgeMessage({
     protocolVersion: 0,
     receiveBufferSize: 8192,
     sendBufferSize: 8192,

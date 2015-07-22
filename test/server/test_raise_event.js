@@ -20,6 +20,7 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 
 var constructBrowsePathFromQualifiedName = require("lib/tools/tools_browse_path").constructBrowsePathFromQualifiedName;
 var checkSelectClauses = require("lib/tools/tools_event_filter").checkSelectClauses;
+var Variant = require("lib/datamodel/variant").variant;
 
 describe("testing Events  ", function () {
 

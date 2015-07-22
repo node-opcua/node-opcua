@@ -83,7 +83,10 @@ describe("testing UAAnalogItem on client side", function () {
 
 
         var nodeId = "ns=4;s=TemperatureAnalogItem";
+
         client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
+
+            if (err) { return done(err); }
 
             data.should.have.ownProperty("engineeringUnits");
             data.should.have.ownProperty("engineeringUnitsRange");
@@ -121,6 +124,8 @@ describe("testing UAAnalogItem on client side", function () {
         };
         g_session.browse(browseDescription, function (err, result) {
 
+            if (err) { return callback(err); }
+
             result = result[0];
             if (result.statusCode !== StatusCodes.Good) {
                 return callback(null, null);
@@ -147,7 +152,7 @@ describe("testing UAAnalogItem on client side", function () {
         findProperty(g_session, nodeId, "EURange", function (err, propertyId) {
 
             if (err) {
-                return callback(err);
+                return done(err);
             }
 
             should(propertyId).not.eql(null);
@@ -159,7 +164,7 @@ describe("testing UAAnalogItem on client side", function () {
             console.log("propertyId = ", propertyId.toString());
             g_session.read([nodeToRead], function (err, nodeToRead, results) {
                 if (err) {
-                    return callback(err);
+                    return done(err);
                 }
                 var result = results[0];
                 //xx console.log("result = ",result.toString());

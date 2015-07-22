@@ -2,7 +2,7 @@ require("requirish")._(module);
 var async = require("async");
 var should = require("should");
 var _ = require("underscore");
-
+var assert = require("better-assert");
 var opcua = require("../../");
 var ClientSubscription = opcua.ClientSubscription;
 var resolveNodeId = opcua.resolveNodeId;

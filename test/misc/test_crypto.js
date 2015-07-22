@@ -162,7 +162,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         should(function () {
             var bob_sign = crypto.createSign("RSA-SHA256");
             bob_sign.update("HelloWorld");
-            var signature = sign.sign(alice_public_key);
+            var signature = bob_sign.sign(alice_public_key);
             //xx console.log("buffer length= ", signature.length);
             //xx console.log("buffer= ", signature.toString("hex"));
         }).throwError();
@@ -446,8 +446,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
     it("exploring crypto api with symmetrical encryption/decryption", function () {
 
-        var crypto = require("crypto")
-            , key = 'salt_from_the_user_document'
+        var crypto = require("crypto");
+        var  key = 'salt_from_the_user_document'
             , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum);
 
 
@@ -459,7 +459,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         // xx console.log('decrypted  %d :', decrypted_buff.length,decrypted_buff.toString("hex"));
         // xx console.log('decrypted  %d :', buffer.length,buffer.toString("hex"));
         buffer.toString("hex").should.equal(decrypted_buff.toString("hex"));
-    })
+    });
 });
 
 
@@ -467,8 +467,8 @@ describe("exploring symmetric signing", function () {
 
     it("should sign and verify", function () {
 
-        var crypto = require("crypto"),
-            text = 'I love cupcakes',
+        var crypto = require("crypto");
+        var  text = 'I love cupcakes',
             key = crypto.randomBytes(32);
 
         var hash = crypto.createHmac('sha1', key).update(text).digest();
@@ -486,8 +486,6 @@ describe("exploring symmetric signing", function () {
 
 /// -------------------------------------------------------------
 
-
-var fs = require("fs");
 // openssl genrsa -out certs/server/my-server.key.pem 2048
 // openssl rsa -in certs/server/my-server.key.pem -pubout -out certs/client/my-server.pub
 

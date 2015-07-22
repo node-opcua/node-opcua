@@ -74,7 +74,7 @@ describe("NodeCrawler", function () {
         );
     }
 
-    function MyDumpReferences(index, references) {
+    function myDumpReferences(index, references) {
         //xxx console.log(" xxxxxxxxxxxxxxxxx ",references);
         references.forEach(MyDumpReference);
     }
@@ -97,7 +97,7 @@ describe("NodeCrawler", function () {
                             return null;
                         }
                     };
-                    MyDumpReferences(objectIndex, nodeElement.references);
+                    myDumpReferences(objectIndex, nodeElement.references);
 
                 }).on("end", function () {
                     console.log("Data ", data);
@@ -106,9 +106,9 @@ describe("NodeCrawler", function () {
                 });
 
                 crawler.crawl("RootFolder", data, function (err) {
-
+                    if (err) { return done(err); }
                     crawler.crawl("RootFolder", data, function (err) {
-                        done();
+                        done(err);
                     });
 
                 });
@@ -141,13 +141,15 @@ describe("NodeCrawler", function () {
             });
             var data1 = {};
             crawler1.crawl("RootFolder", data1, function (err) {
+                if (err) { return done(err); }
                 browsed_node1.should.be.greaterThan(10);
                 browsed_node2.should.equal(0);
 
                 var data2 = {};
                 crawler2.crawl("RootFolder", data2, function (err) {
-                    browsed_node2.should.be.greaterThan(10);
+                    if (err) { return done(err); }
 
+                    browsed_node2.should.be.greaterThan(10);
                     browsed_node1.should.eql(browsed_node2, "crawler1 and crawler2 should browse the same number of node");
                     done();
                 });
@@ -194,6 +196,8 @@ describe("NodeCrawler", function () {
             var startTime = Date.now();
 
             crawler.read(nodeId, function (err, obj) {
+
+                if (err) { return done(err); }
 
                 var intermediateTime1 = Date.now();
                 var duration1 = intermediateTime1 - startTime;

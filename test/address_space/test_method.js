@@ -158,6 +158,7 @@ describe("testing Method binding", function () {
 
             done(err);
         });
-    })
+    });
 });
+
 

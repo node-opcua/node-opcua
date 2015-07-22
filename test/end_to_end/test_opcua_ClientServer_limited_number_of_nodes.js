@@ -199,7 +199,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             var nodeId = "ObjectsFolder";
             crawler.read(nodeId, function (err, obj) {
-                if (!err) {
+                if (!err) { /**/
                 }
                 callback(err);
             });

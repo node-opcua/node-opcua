@@ -43,7 +43,7 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     callback_buffer = callback_buffer || dump_block_in_debug_mode;
 
-    should(obj).not.be.null;
+    should(obj).not.eql(null);
 
     var expandedNodeId = obj.encodingDefaultBinary;
 
@@ -63,8 +63,9 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     function redirectToNull(functor) {
         var old = console.log;
-        console.log = (function () {
-        }).bind(console);
+
+        console.log = function () { };
+
         functor();
         console.log = old;
 

@@ -131,7 +131,7 @@ describe("testing coerceNodeId", function () {
         var empty_nodeId = makeNodeId(0, 0);
         empty_nodeId.isEmpty().should.be.eql(true);
 
-        var empty_nodeId = makeNodeId(1, 0);
+        empty_nodeId = makeNodeId(1, 0);
         empty_nodeId.isEmpty().should.be.eql(false);
 
     });

@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 require("requirish")._(module);
 var Enum = require("lib/misc/enum");
 var should = require("should");

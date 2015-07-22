@@ -285,6 +285,9 @@ describe("end-to-end testing of read and write operation on a Variable", functio
                     }
                 ];
                 session.read(nodesToRead, function (err, r, results) {
+
+                    if(err) { return inner_done(err); }
+
                     console.log(results[0].toString());
 
                     var variant = results[0].value;
@@ -301,12 +304,14 @@ describe("end-to-end testing of read and write operation on a Variable", functio
                         }
                     ];
                     session.write(nodesToWrite, function (err) {
+                        if(err) { return inner_done(err); }
 
                         console.log(nodesToWrite[0].value.value.value.constructor.name);
 
-                        assert(nodesToWrite[0].value.value.value instanceof Float32Array);
+                        nodesToWrite[0].value.value.value.should.be.instanceof(Float32Array);
                         nodesToWrite[0].value.value.value = new Float32Array(1024 * 1024);
                         session.write(nodesToWrite, function (err) {
+                            if(err) { return inner_done(err); }
                             session.read(nodesToRead, function (err, r, results) {
                                 console.log(results[0].toString());
                                 inner_done(err);

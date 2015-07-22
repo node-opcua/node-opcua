@@ -66,7 +66,7 @@ if (!crypto_utils.isFullySupported()) {
 
                 function (callback) {
                     client1 = new OPCUAClient();
-                    client1.connect(endpointUrl, callback)
+                    client1.connect(endpointUrl, callback);
                 },
 
                 function (callback) {
@@ -79,7 +79,7 @@ if (!crypto_utils.isFullySupported()) {
                         console.log(err.message);
                         err.message.should.match(/BadIdentityTokenInvalid/);
                         callback();
-                    })
+                    });
                 },
                 function (callback) {
                     client1.disconnect(callback);

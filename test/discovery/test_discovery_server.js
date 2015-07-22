@@ -98,6 +98,7 @@ if (!crypto_utils.isFullySupported()) {
             });
 
             function check_response(err, response) {
+                should(err).eql(null);
                 //xx console.log(response.toString());
                 response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadDiscoveryUrlMissing);
             }
@@ -128,6 +129,7 @@ if (!crypto_utils.isFullySupported()) {
             });
 
             function check_response(err, response) {
+                should(err).eql(null);
                 //xx console.log(response.toString());
                 response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadInvalidArgument);
             }
@@ -159,6 +161,7 @@ if (!crypto_utils.isFullySupported()) {
             });
 
             function check_response(err, response) {
+                should(err).eql(null);
                 //xx console.log(response.toString());
                 response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadServerNameMissing);
             }
@@ -218,4 +221,5 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 }
+
 

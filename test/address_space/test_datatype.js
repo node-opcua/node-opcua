@@ -16,7 +16,7 @@ describe("testing UADataype -  Attribute", function () {
         get_mini_address_space(function (err, data) {
             the_address_space = data;
             the_address_space.should.be.instanceOf(address_space.AddressSpace);
-            done();
+            done(err);
         });
     });
 

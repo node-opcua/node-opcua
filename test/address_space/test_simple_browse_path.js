@@ -1,6 +1,8 @@
 require("requirish")._(module);
 var should = require("should");
 var assert = require("better-assert");
+var util = require("util");
+var path  = require("path");
 
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
@@ -11,11 +13,10 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var makeExpandedNodeId = require("lib/datamodel/expanded_nodeid").makeExpandedNodeId;
 
-var util = require("util");
 
 describe("constructBrowsePath and simpleBrowsePath", function () {
 
-    var nodeset_filename = __dirname + "/../../lib/server/mini.Node.Set2.xml";
+    var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
     var address_space = new AddressSpace();
 
     before(function (done) {

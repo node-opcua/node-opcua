@@ -65,7 +65,7 @@ describe("testing  address space namespace loading", function () {
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/"
             ]);
-            done();
+            done(err);
         });
     });
 

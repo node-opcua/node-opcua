@@ -119,9 +119,8 @@ describe("Factories: testing object factory", function () {
         try {
             factories.unregisterType("MyInteger");
         }
-        catch (err) {
+        catch (err) {/**/ }
 
-        }
     });
     it("should construct a new object from a simple Class Description", function () {
 
@@ -353,7 +352,7 @@ describe("Factories: testing object factory", function () {
         };
 
         (function () {
-            new Shape({
+            var a = new Shape({
 
                 this_invalid_field_should_cause_Shape_Constructor_to_raise_an_exception: "**bingo**",
 
@@ -665,7 +664,7 @@ describe("factories testing advanced cases", function () {
             fs.unlinkSync(filename);
         }
 
-        require("lib/misc/extension_object").ExtensionObject;
+        var ExtensionObject = require("lib/misc/extension_object").ExtensionObject;
 
         exports.Blob6_Schema = {
             name: "Blob6",
@@ -677,7 +676,7 @@ describe("factories testing advanced cases", function () {
         var findBuiltInType = require("lib/misc/factories_builtin_types").findBuiltInType;
 
         Object.keys(_defaultTypeMap).forEach(function (key) {
-            if (key === "Any") return;
+            if (key === "Any") { return; }
 
             exports.Blob6_Schema.fields.push({name: "value_" + key, fieldType: key});
             exports.Blob6_Schema.fields.push({name: "array_" + key, fieldType: key, isArray: true});
@@ -686,7 +685,7 @@ describe("factories testing advanced cases", function () {
 
         var options = {};
         Object.keys(_defaultTypeMap).forEach(function (key) {
-            if (key === "Any" || key === "Null" || key === "AccessLevelFlag") return;
+            if (key === "Any" || key === "Null" || key === "AccessLevelFlag") { return; }
             var type = _defaultTypeMap[key];
 
             var random = type.random || ec["random" + type.name];

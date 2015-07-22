@@ -32,6 +32,9 @@ function build_client_server_session(done) {
         server.start(function () {
             setImmediate(function () {
                 client.connect(endpointUrl, function (err) {
+                    if (err) {
+                        return done(err);
+                    }
                     client.createSession(function (err, session) {
                         if (!err) {
                             client_server.g_session = session;

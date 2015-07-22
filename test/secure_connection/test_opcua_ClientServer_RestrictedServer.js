@@ -34,7 +34,8 @@ if (!crypto_utils.isFullySupported()) {
                 port: port,
                 securityPolicies: [SecurityPolicy.Basic128Rsa15],
                 securityModes: [MessageSecurityMode.SIGNANDENCRYPT]
-            }
+            };
+
             server = build_server_with_temperature_device(options, function (err) {
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
                 temperatureVariableId = server.temperatureVariableId;

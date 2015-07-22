@@ -395,6 +395,7 @@ describe("testing basic Client-Server communication", function () {
         it("T8-14 #readVariableValue should return a appropriate status code if nodeid to read doesn't exists", function (done) {
 
             g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist", function (err, dataValues, diagnosticInfos) {
+                should(err).eql(null);
                 dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
                 done();
             });
@@ -491,7 +492,7 @@ describe("testing basic Client-Server communication", function () {
                         //xx console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
 
                         var foundNode = _.filter(browseResults[0].references, function (result) {
-                            return result.browseName.name === "Server"
+                            return result.browseName.name === "Server";
                         });
                         foundNode.length.should.equal(1);
                         foundNode[0].browseName.name.should.equal("Server");
@@ -508,6 +509,9 @@ describe("testing basic Client-Server communication", function () {
                 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
                 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
                 g_session.readVariableValue(server_NamespaceArray_Id, function (err, results, diagnosticsInfo) {
+                    if (err) {
+                        return done(err);
+                    }
                     var dataValue = results[0];
                     dataValue.should.be.instanceOf(DataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -517,7 +521,7 @@ describe("testing basic Client-Server communication", function () {
                     // first namespace must be standard OPC namespace
                     dataValue.value.value[0].should.eql("http://opcfoundation.org/UA/");
 
-                    done();
+                    done(err);
                 });
 
             });
@@ -526,14 +530,15 @@ describe("testing basic Client-Server communication", function () {
 
                 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
                 g_session.readVariableValue(server_NamespaceArray_Id, function (err, results, diagnosticsInfo) {
+                    if (err) {
+                        return done(err);
+                    }
                     var dataValue = results[0];
-
-
                     dataValue.should.be.instanceOf(DataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);
 
-                    done();
+                    done(err);
                 });
 
             });
@@ -582,7 +587,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             client_has_received_close_event = 0;
             client.on("close", function (err) {
-
+                if(err) { console.log("err=",err.message); }
                 //xx console.log(" client has received close event");
                 client_has_received_close_event += 1;
             });
@@ -637,7 +642,7 @@ describe("testing ability for client to reconnect when server close connection",
 
         ], function (err) {
             done(err);
-        })
+        });
     });
 
 });

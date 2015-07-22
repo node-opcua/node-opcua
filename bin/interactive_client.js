@@ -1,4 +1,4 @@
-// "strict": [2, "always"]
+/* eslint no-process-exit: 0 */
 "use strict";
 require("requirish")._(module);
 var readline = require('readline');
@@ -26,37 +26,39 @@ var dumpPacket = false;
 var dumpMessageChunk = false;
 
 
-var sessionTimeout = 10 * 60* 1000; // 10 minutes
-var pingTimeout  = 10* 1000; //  interval  between two keepalive pings
+var sessionTimeout = 10 * 60 * 1000; // 10 minutes
+var pingTimeout = 10 * 1000; //  interval  between two keepalive pings
 
 
 var endpoints_history = [];
 
 function add_endpoint_to_history(endpoint) {
-    if (endpoints_history.indexOf(endpoint)>=0) return; // already in
+    if (endpoints_history.indexOf(endpoint) >= 0) { return;  }
     endpoints_history.push(endpoint);
     save_endpoint_history();
 }
 
-var endpoints_history_file = path.join(__dirname,".history_endpoints");
+var endpoints_history_file = path.join(__dirname, ".history_endpoints");
 
 function save_endpoint_history(callback) {
-    if (endpoints_history.length>0) {
-        fs.writeFileSync(endpoints_history_file,endpoints_history.join("\n"),"ascii");
+    if (endpoints_history.length > 0) {
+        fs.writeFileSync(endpoints_history_file, endpoints_history.join("\n"), "ascii");
     }
-    if (callback) { callback();}
+    if (callback) {
+        callback();
+    }
 }
 
 if (fs.existsSync(endpoints_history_file)) {
-    lines = fs.readFileSync(endpoints_history_file,"ascii");
+    lines = fs.readFileSync(endpoints_history_file, "ascii");
     endpoints_history = lines.split(/\r\n|\n/);
 }
 
-var history_file =path.join(__dirname,".history");
+var history_file = path.join(__dirname, ".history");
 
 function save_history(callback) {
     var history_uniq = _.uniq(rl.history);
-    fs.writeFileSync(history_file,history_uniq.join("\n"),"ascii");
+    fs.writeFileSync(history_file, history_uniq.join("\n"), "ascii");
     callback();
 }
 
@@ -64,12 +66,12 @@ function completer(line) {
 
     var completions, hits;
 
-    if ( "open".match(new RegExp("^"+line.trim()))) {
-        completions = [ "open localhost:port" ];
-        return [ completions , line];
+    if ("open".match(new RegExp("^" + line.trim()))) {
+        completions = ["open localhost:port"];
+        return [completions, line];
 
     } else {
-        if (the_session===null) {
+        if (the_session === null) {
             if (client._secureChannel) {
                 completions = 'createSession cs getEndpoints gep quit'.split(' ');
             } else {
@@ -93,13 +95,13 @@ var rl = readline.createInterface({
 });
 
 client.on("send_chunk", function (message_chunk) {
-    if(dumpMessageChunk) {
+    if (dumpMessageChunk) {
         process.stdout.write(">> " + message_chunk.length + "\r");
     }
 });
 
 client.on("receive_chunk", function (message_chunk) {
-    if(dumpMessageChunk) {
+    if (dumpMessageChunk) {
         process.stdout.write("<< " + message_chunk.length + "\r");
     }
 });
@@ -122,23 +124,22 @@ client.on("receive_response", function (message) {
 
 
 function dumpNodeResult(node) {
-  var str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
-  console.log(str);
+    var str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
+    console.log(str);
 }
 function colorize(value) {
     return ("" + value).yellow.bold;
 }
 
 
-
 if (rl.history) {
 
     var lines = [];
     if (fs.existsSync(history_file)) {
-        lines = fs.readFileSync(history_file,"ascii");
+        lines = fs.readFileSync(history_file, "ascii");
         lines = lines.split(/\r\n|\n/);
     }
-    if (lines.length===0 ) {
+    if (lines.length === 0) {
         var hostname = require("os").hostname();
         hostname = hostname.toLowerCase();
         rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
@@ -153,7 +154,7 @@ if (rl.history) {
     }
 }
 
-process.on('uncaughtException', function(e) {
+process.on('uncaughtException', function (e) {
     util.puts(e.stack.red);
     rl.prompt();
 });
@@ -175,7 +176,7 @@ rl.on('line', function (line) {
     }
 });
 
-function apply_on_valid_session(cmd,func) {
+function apply_on_valid_session(cmd, func) {
     if (the_session) {
         func(the_session);
     } else {
@@ -183,10 +184,10 @@ function apply_on_valid_session(cmd,func) {
     }
 }
 
-function dump_dataValues(nodesToRead,dataValues) {
+function dump_dataValues(nodesToRead, dataValues) {
     for (var i = 0; i < dataValues.length; i++) {
         var dataValue = dataValues[i];
-        console.log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold , nodesToRead[i].attributeId.toString());
+        console.log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold, nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
             console.log("           type : ", colorize(dataValue.value.dataType.key));
             console.log("           value: ", colorize(dataValue.value.value));
@@ -213,7 +214,8 @@ var lastKnownState = opcua.ServerState.Unknown;
  */
 function ping_server(callback) {
 
-    callback  = callback || function(){};
+    callback = callback || function () {
+        };
 
     if (!the_session) {
         return callback();
@@ -221,7 +223,7 @@ function ping_server(callback) {
 
     var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
     the_session.readVariableValue(nodes, function (err, dataValues) {
-        if(err) {
+        if (err) {
             console.log(" warning : ".cyan, err.message.yellow);
             return close_session(callback);
         } else {
@@ -237,7 +239,7 @@ function ping_server(callback) {
 var timerId = 0;
 function start_ping() {
     assert(!timerId);
-    timerId = setInterval(ping_server,pingTimeout / 3);
+    timerId = setInterval(ping_server, pingTimeout / 3);
 }
 function stop_ping() {
     if (timerId) {
@@ -251,7 +253,7 @@ function close_session(callback) {
         stop_ping();
         session.close(function (err) {
             the_session = null;
-            callback();
+            callback(err);
         });
     });
 }
@@ -275,7 +277,7 @@ function process_line(line) {
 
     switch (cmd) {
         case 'debug':
-            var flag = (!args[1]) ? true: ( ["ON","TRUE","1"].indexOf(args[1].toUpperCase()) >= 0);
+            var flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
             set_debug(flag);
             rl.prompt(">");
             break;
@@ -286,22 +288,23 @@ function process_line(line) {
                 endpoint_url = "opc.tcp://" + endpoint_url;
             }
             var p = opcua.parseEndpointUrl(endpoint_url);
-            var hostname = p.hostname ;
+            var hostname = p.hostname;
             var port = p.port;
-            console.log(" open    url :" , endpoint_url );
-            console.log("    hostname :" , (hostname || "<null>").yellow);
+            console.log(" open    url :", endpoint_url);
+            console.log("    hostname :", (hostname || "<null>").yellow);
             console.log("        port : ", port.yellow);
             rl.pause();
             client.connect(endpoint_url, function (err) {
                 if (err) {
                     console.log("client connected err=", err);
                 } else {
-                    console.log("client connected : ","OK".green);
+                    console.log("client connected : ", "OK".green);
 
 
                     add_endpoint_to_history(endpoint_url);
 
-                    save_history(function(){});
+                    save_history(function () {
+                    });
 
 
                 }
@@ -313,9 +316,8 @@ function process_line(line) {
         case 'fs':
         case "FindServers":
             rl.pause();
-            client.findServers({
-
-            },function (err, servers) {
+            client.findServers({}, function (err, servers) {
+                if(err) { console.log(err.message); }
                 console.log(treeify.asTree(servers, true));
                 rl.resume();
                 rl.prompt(">");
@@ -325,7 +327,7 @@ function process_line(line) {
         case 'getEndpoints':
             rl.pause();
             client.getEndpointsRequest(function (err, endpoints) {
-
+                if(err) { console.log(err.message); }
                 endpoints = utils.replaceBufferWithHexDump(endpoints);
                 console.log(treeify.asTree(endpoints, true));
 
@@ -356,11 +358,11 @@ function process_line(line) {
                 client.on("close", function () {
                     console.log(" Server has disconnected ".red);
                     the_session = null;
-                })
+                });
             }
             break;
         case 'closeSession':
-            close_session(function() {
+            close_session(function () {
                 assert(the_session === null);
                 rl.resume();
                 rl.prompt(">");
@@ -369,7 +371,7 @@ function process_line(line) {
 
         case 'disconnect':
             if (the_session) {
-                close_session(function() {
+                close_session(function () {
                     client.disconnect(function () {
                         rl.write("client disconnected");
                     });
@@ -384,11 +386,11 @@ function process_line(line) {
             break;
         case 'b':
         case 'browse':
-            apply_on_valid_session(cmd,function(the_session){
+            apply_on_valid_session(cmd, function (the_session) {
 
                 rl.pause();
 
-                nodes = [ args[1] ];
+                nodes = [args[1]];
 
                 the_session.browse(nodes, function (err, nodeResults) {
 
@@ -397,7 +399,8 @@ function process_line(line) {
                         console.log(nodeResults);
                     } else {
 
-                        save_history(function(){});
+                        save_history(function () {
+                        });
 
                         for (var i = 0; i < nodeResults.length; i++) {
                             console.log("Node: ", nodes[i]);
@@ -415,7 +418,7 @@ function process_line(line) {
 
         case 'r':
         case 'read':
-            apply_on_valid_session(cmd,function(the_session){
+            apply_on_valid_session(cmd, function (the_session) {
                 rl.pause();
                 nodes = [args[1]];
                 nodes = nodes.map(opcua.coerceNodeId);
@@ -425,11 +428,12 @@ function process_line(line) {
                         console.log(err);
                         console.log(dataValues);
                     } else {
-                        save_history(function(){});
-                        dump_dataValues([ {
+                        save_history(function () {
+                        });
+                        dump_dataValues([{
                             nodeId: nodes[0],
                             attributeId: 13
-                        }],dataValues);
+                        }], dataValues);
                     }
                     rl.resume();
                     rl.prompt(">");
@@ -438,14 +442,15 @@ function process_line(line) {
             break;
         case 'ra':
         case 'readall':
-            apply_on_valid_session(cmd,function(the_session){
+            apply_on_valid_session(cmd, function (the_session) {
                 rl.pause();
                 nodes = [args[1]];
 
                 the_session.readAllAttributes(nodes, function (err, nodesToRead, dataValues/*,diagnosticInfos*/) {
                     if (!err) {
-                        save_history(function(){});
-                        dump_dataValues(nodesToRead,dataValues);
+                        save_history(function () {
+                        });
+                        dump_dataValues(nodesToRead, dataValues);
                     }
                     rl.resume();
                     rl.prompt(">");
@@ -454,11 +459,12 @@ function process_line(line) {
             break;
 
         case 'tb':
-            apply_on_valid_session(cmd,function(the_session){
+            apply_on_valid_session(cmd, function (the_session) {
 
                 var path = args[1];
                 rl.pause();
                 the_session.translateBrowsePath(path, function (err, results) {
+                    if(err) { console.log(err.message); }
                     console.log(" Path ", path, " is ");
                     console.log(util.inspect(results, {colors: true, depth: 100}));
                     rl.resume();
@@ -466,18 +472,19 @@ function process_line(line) {
                 });
             });
             break;
-        case 'crawl': {
-            apply_on_valid_session(cmd,function(the_session){
+        case 'crawl':
+        {
+            apply_on_valid_session(cmd, function (the_session) {
 
                 if (!crawler) {
                     crawler = new opcua.NodeCrawler(the_session);
-                    crawler.on("browsed",function(element){
+                    crawler.on("browsed", function (element) {
                         // console.log("->",element.browseName.name,element.nodeId.toString());
                     });
 
                 }
 
-                var  nodeId= args[1]  || "ObjectsFolder";
+                var nodeId = args[1] || "ObjectsFolder";
                 console.log("now crawling " + nodeId.yellow + " ...please wait...");
                 rl.pause();
                 crawler.read(nodeId, function (err, obj) {
@@ -488,18 +495,19 @@ function process_line(line) {
                             console.log(line);
                         });
                     } else {
-                        console.log("err ",err.message);
+                        console.log("err ", err.message);
                     }
                     rl.resume();
                     rl.prompt(">");
                 });
             });
-        } break;
+        }
+            break;
         case "info":
 
-            console.log("            bytesRead  ", client.bytesRead , " bytes");
-            console.log("         bytesWritten  ", client.bytesWritten , " bytes");
-            console.log("transactionsPerformed  ", client.transactionsPerformed , "");
+            console.log("            bytesRead  ", client.bytesRead, " bytes");
+            console.log("         bytesWritten  ", client.bytesWritten, " bytes");
+            console.log("transactionsPerformed  ", client.transactionsPerformed, "");
             // -----------------------------------------------------------------------
             // number of subscriptions
             // -----------------------------------------------------------------------
@@ -508,6 +516,7 @@ function process_line(line) {
             break;
         case ".quit":
             process.exit(0);
+            break;
         default:
             console.log('Say what? I might have heard `' + cmd.trim() + '`');
             break;

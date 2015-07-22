@@ -146,4 +146,4 @@ describe("testing server dropping session after timeout if no activity has been 
         ], done);
     });
 
-})
+});

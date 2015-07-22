@@ -80,7 +80,7 @@ describe("DataValue", function () {
             "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 2000"
         ]);
 
-        var dataValue = new DataValue({
+        dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: null,
@@ -88,7 +88,7 @@ describe("DataValue", function () {
             sourceTimestamp: new Date(Date.UTC(2089, 6, 14)),
             sourcePicoseconds: 2000
         });
-        var str = dataValue.toString();
+        str = dataValue.toString();
         str.split(/\n/).should.eql([
             "DataValue:",
             "   value:           Variant(Scalar<String>, value: Hello)",

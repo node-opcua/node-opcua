@@ -2,6 +2,7 @@
 require("requirish")._(module);
 
 var async = require("async");
+var path = require("path");
 var address_space = require("lib/address_space/address_space");
 var UAVariable = require("lib/address_space/ua_variable").UAVariable;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
@@ -15,7 +16,7 @@ var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var _ = require("underscore");
 var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 
-var nodeset_filename = __dirname + "/../../lib/server/mini.Node.Set2.xml";
+var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 
 describe("testing Variables ", function () {
 
@@ -696,7 +697,7 @@ describe("testing Variable#writeValue Scalar", function () {
             dataValue_check.value.value.should.eql(12.0);
             done(err);
         });
-    })
+    });
 
 });
 
@@ -1221,6 +1222,7 @@ describe("testing Variable#clone ", function () {
         var refValue = 0;
 
         function my_callback(err, value) {
+            should(err).eql(null);
             counter = counter + 1;
             if (counter === 1) {
                 refValue = value;
@@ -1249,7 +1251,8 @@ describe("testing Variable#clone ", function () {
             value: {value: {dataType: DataType.String, value: "New Description"}}
         });
         variableInteger.writeAttribute(v, function (err, statusCode) {
-            done();
+            should(err).eql(null);
+            done(err);
         });
 
     });

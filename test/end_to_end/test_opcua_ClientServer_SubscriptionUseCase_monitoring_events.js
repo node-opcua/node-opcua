@@ -100,6 +100,7 @@ describe("Client Subscription", function () {
             });
 
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                if(err) { return callback(err); }
                 try {
                     createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                     createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.BadMonitoredItemFilterInvalid);
@@ -149,6 +150,7 @@ describe("Client Subscription", function () {
                 }]
             });
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                if(err) { return callback(err); }
                 try {
                     console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
                     createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);

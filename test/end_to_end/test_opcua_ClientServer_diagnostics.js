@@ -79,6 +79,7 @@ describe("Testing Server and Client diagnostic facilities", function () {
                 });
 
                 session.browse("RootFolder", function (err, browseResults, diagnosticInfos) {
+                    should(err).eql(null);
                 });
 
             }, done);

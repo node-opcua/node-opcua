@@ -1,23 +1,29 @@
 require("requirish")._(module);
-var opcua = require("lib/nodeopcua");
+
+
 var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var should = require("should");
+
+var parseEndpointUrl = require("lib/nodeopcua").parseEndpointUrl;
+var HelloMessage = require("_generated_/_auto_generated_HelloMessage").HelloMessage;
+var packTcpMessage = require("lib/nodeopcua").packTcpMessage;
+var decodeMessage = require("lib/nodeopcua").decodeMessage;
 
 
 describe("testing message encoding and decoding", function () {
 
     it("should encode and decode HelloMessage ", function () {
 
-        var helloMessage1 = new opcua.HelloMessage();
+        var helloMessage1 = new HelloMessage();
         //xx console.log(Object.getPrototypeOf(helloMessage1),opcua.HelloMessage);
 
 
-        var message = opcua.packTcpMessage('HEL', helloMessage1);
+        var message = packTcpMessage('HEL', helloMessage1);
 
 
         var stream = new BinaryStream(message);
 
-        var helloMessage2 = opcua.decodeMessage(stream, opcua.HelloMessage);
+        var helloMessage2 = decodeMessage(stream, HelloMessage);
         //xx console.log(helloMessage2);
 
         helloMessage1.should.eql(helloMessage2);
@@ -29,11 +35,12 @@ describe("testing message encoding and decoding", function () {
 
     });
 });
-
 describe("testing parseEndpointUrl", function () {
+
+
     it(" should parse a endpoint ", function () {
 
-        var ep = opcua.parseEndpointUrl("opc.tcp://abcd1234:51210/UA/SampleServer");
+        var ep = parseEndpointUrl("opc.tcp://abcd1234:51210/UA/SampleServer");
 
         ep.protocol.should.equal("opc.tcp");
         ep.hostname.should.equal("abcd1234");
@@ -43,7 +50,7 @@ describe("testing parseEndpointUrl", function () {
 
     it(" should parse this endpoint as well", function () {
 
-        var ep = opcua.parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
+        var ep = parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
 
         ep.protocol.should.equal("opc.tcp");
         ep.hostname.should.equal("ABCD12354");
@@ -53,7 +60,7 @@ describe("testing parseEndpointUrl", function () {
 
     it(" should parse this endpoint as well", function () {
 
-        var ep = opcua.parseEndpointUrl("opc.tcp://portable-Precision-M4500:4841");
+        var ep = parseEndpointUrl("opc.tcp://portable-Precision-M4500:4841");
 
         ep.protocol.should.equal("opc.tcp");
         ep.hostname.should.equal("portable-Precision-M4500");

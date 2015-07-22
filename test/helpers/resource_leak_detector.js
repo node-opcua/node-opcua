@@ -14,7 +14,7 @@ var colors = require("colors");
 var trace = false;
 function get_stack() {
     var stack = (new Error()).stack.split("\n");
-    return stack.slice(2, 7).join("\n")
+    return stack.slice(2, 7).join("\n");
 }
 exports.resourceLeakDetector = {
 
@@ -88,3 +88,4 @@ exports.resourceLeakDetector = {
         }
     }
 };
+

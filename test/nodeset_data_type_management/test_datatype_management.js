@@ -7,6 +7,7 @@ var should = require("should");
 var assert = require("assert");
 
 var _ = require("underscore");
+var path = require("path");
 
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
@@ -30,7 +31,7 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable", fun
     before(function (done) {
         address_space = new AddressSpace();
 
-        var xml_file = __dirname + "/../fixtures/fixture_nodeset_enumtype.xml";
+        var xml_file = path.join(__dirname,"../fixtures/fixture_nodeset_enumtype.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         opcua.generate_address_space(address_space, xml_file, function (err) {

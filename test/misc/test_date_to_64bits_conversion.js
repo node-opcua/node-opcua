@@ -232,12 +232,13 @@ describe("Benchmarking Date conversion routines", function () {
             new Date(14, 4, 1972),
             new Date(14, 4, 2172)
         ];
-        for (var i = 0; i < 100; i++) {
+        var i;
+        for (i = 0; i < 100; i++) {
             dates_to_check.push(ec.randomDateTime());
         }
         var date, check_date, check_date_bn;
         var bs = new BinaryStream();
-        for (var i = 0; i < dates_to_check.length; i++) {
+        for (i = 0; i < dates_to_check.length; i++) {
             date = dates_to_check[i];
             var hl = date_time.bn_dateToHundredNanoSecondFrom1601(date);
             var hl_bn = bn_dateToHundredNanoSecondFrom1601_big_number(date);
@@ -337,5 +338,5 @@ describe("understanding Javascript date", function () {
         for (var y = 1970; y < 2020; y++) {
             inner_test(y);
         }
-    })
+    });
 });

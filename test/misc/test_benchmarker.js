@@ -44,5 +44,5 @@ describe("Testing ", function () {
             })
             .run({max_time: 0.1});
 
-    })
+    });
 });

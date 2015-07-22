@@ -23,6 +23,9 @@ describe("testing ReferenceType", function () {
     var rootFolder;
     before(function (done) {
         get_mini_address_space(function (err, data) {
+
+            if (err) { return done(err); }
+
             address_space = data;
             address_space.should.be.instanceOf(AddressSpace);
 
@@ -237,7 +240,7 @@ describe("testing ReferenceType", function () {
             assert(_.isArray(references));
             var dump = require("lib/address_space/base_node").dumpReferenceDescriptions;
             dump(address_space, references);
-        }, done)
+        }, done);
     });
 
 
@@ -265,7 +268,7 @@ describe("testing ReferenceType", function () {
             assert(_.isArray(references));
             var dump = require("lib/address_space/base_node").dumpReferenceDescriptions;
             dump(address_space, references);
-        }, done)
+        }, done);
 
     });
 
@@ -356,6 +359,9 @@ describe(" improving performance of isSupertypeOf", function () {
     var address_space;
     before(function (done) {
         get_mini_address_space(function (err, data) {
+
+            if (err) { return done(err); }
+
             address_space = data;
 
             referenceTypes = referenceTypeNames.map(function (referenceTypeName) {

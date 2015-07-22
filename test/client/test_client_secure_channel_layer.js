@@ -11,6 +11,7 @@ var fake_AcknowledgeMessage = require("test/mocks/mock_transport").fake_Acknowle
 var endpoints_service = require("lib/services/get_endpoints_service");
 var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
 
+var packTcpMessage = require("lib/nodeopcua").packTcpMessage;
 
 describe("testing ClientSecureChannelLayer ", function () {
 
@@ -19,7 +20,7 @@ describe("testing ClientSecureChannelLayer ", function () {
         var mock = new MockTransport([
 
             //
-            opcua.packTcpMessage("ACK", fake_AcknowledgeMessage),
+            packTcpMessage("ACK", fake_AcknowledgeMessage),
 
             require("test/fixtures/fixture_full_tcp_packets").packet_sc_2 // OpenChannelResponse
 
@@ -41,7 +42,7 @@ describe("testing ClientSecureChannelLayer ", function () {
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
             // Server will reply with this :
-            opcua.packTcpMessage("ACK", fake_AcknowledgeMessage),
+            packTcpMessage("ACK", fake_AcknowledgeMessage),
 
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
@@ -66,6 +67,7 @@ describe("testing ClientSecureChannelLayer ", function () {
         var secureChannel = new ClientSecureChannelLayer();
 
         secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
+            if (err) { return done(err); }
             secureChannel.close(function (err) {
                 done(err);
             });
@@ -79,7 +81,7 @@ describe("testing ClientSecureChannelLayer ", function () {
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
             // Server will reply with this :
-            opcua.packTcpMessage("ACK", fake_AcknowledgeMessage),
+            packTcpMessage("ACK", fake_AcknowledgeMessage),
 
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
@@ -104,6 +106,8 @@ describe("testing ClientSecureChannelLayer ", function () {
 
         secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
 
+            if (err) { return done(err); }
+
             // after connection client holds the security token provided by the server
             should(secureChannel.securityToken).not.equal(undefined);
 
@@ -122,7 +126,6 @@ describe("testing ClientSecureChannelLayer ", function () {
     it("should callback with an error if performMessageTransaction is called before connection", function (done) {
 
         var secureChannel = new ClientSecureChannelLayer();
-        var s = require("lib/datamodel/structures");
         var message = new GetEndpointsRequest();
         secureChannel.performMessageTransaction(message, function (err/*, response*/) {
             err.message.should.equal("Client not connected");
@@ -137,7 +140,7 @@ describe("testing ClientSecureChannelLayer ", function () {
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
             // Server will reply with this :
-            opcua.packTcpMessage("ACK", fake_AcknowledgeMessage),
+            packTcpMessage("ACK", fake_AcknowledgeMessage),
 
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
@@ -160,6 +163,8 @@ describe("testing ClientSecureChannelLayer ", function () {
         secureChannel.bytesWritten.should.equal(0);
 
         secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
+
+            if (err) { return done(err); }
 
             secureChannel.bytesRead.should.be.greaterThan(0);
             secureChannel.bytesWritten.should.be.greaterThan(0);

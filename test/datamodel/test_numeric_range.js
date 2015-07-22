@@ -69,7 +69,7 @@ describe("Testing numerical range", function () {
 
     it("should throw an exception if high bound is crap", function () {
         should(function () {
-            new NumericRange(15, "crappy stuff");
+            var a = new NumericRange(15, "crappy stuff");
         }).throwError();
     });
 

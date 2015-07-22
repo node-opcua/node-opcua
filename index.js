@@ -31,6 +31,7 @@ module.exports.get_endpoints_service  = require("lib/services/get_endpoints_serv
 module.exports.subscription_service   = require("lib/services/subscription_service");
 module.exports.historizing_service    = require("lib/services/historizing_service");
 module.exports.register_server_service = require("lib/services/register_server_service");
+module.exports.secure_channel_service  = require("lib/services/secure_channel_service");
 
 module.exports.EndpointDescription =  module.exports.get_endpoints_service.EndpointDescription;
 
