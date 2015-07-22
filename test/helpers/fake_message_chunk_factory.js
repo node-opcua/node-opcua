@@ -14,12 +14,12 @@ var path = require("path");
 var folder = path.resolve(__dirname);
 
 var senderCertificate = crypto_utils.readCertificate(path.join(folder, "../fixtures/certs/client_cert_1024.pem"));
-var senderPrivateKey  = crypto_utils.readKeyPem(path.join(folder,      "../fixtures/certs/client_key_1024.pem"));
+var senderPrivateKey = crypto_utils.readKeyPem(path.join(folder, "../fixtures/certs/client_key_1024.pem"));
 
-var receiverCertificate = crypto_utils.readCertificate(path.join(folder,"../fixtures/certs/server_cert_1024.pem"));
+var receiverCertificate = crypto_utils.readCertificate(path.join(folder, "../fixtures/certs/server_cert_1024.pem"));
 var receiverCertificateThumbprint = crypto_utils.makeSHA1Thumbprint(receiverCertificate);
 
-var receiverPublicKey   = fs.readFileSync(path.join(folder,"../fixtures/certs/server_public_key_1024.pub"));
+var receiverPublicKey = fs.readFileSync(path.join(folder, "../fixtures/certs/server_public_key_1024.pub"));
 
 var sequenceNumberGenerator = new SequenceNumberGenerator();
 
@@ -31,16 +31,16 @@ var sequenceNumberGenerator = new SequenceNumberGenerator();
  * @param callback.chunks  {Array<Buffer>}
  *
  */
-function iterate_on_signed_message_chunks(buffer,callback) {
+function iterate_on_signed_message_chunks(buffer, callback) {
 
-    var params = {signatureLength: 128,algorithm:  "RSA-SHA1",  privateKey:senderPrivateKey };
+    var params = {signatureLength: 128, algorithm: "RSA-SHA1", privateKey: senderPrivateKey};
 
     var options = {
         requestId: 10,
         chunkSize: 2048,
         signatureLength: 128,
-        signingFunc: function(chunk) {
-            return crypto_utils.makeMessageChunkSignature(chunk,params);
+        signingFunc: function (chunk) {
+            return crypto_utils.makeMessageChunkSignature(chunk, params);
         }
     };
 
@@ -50,15 +50,17 @@ function iterate_on_signed_message_chunks(buffer,callback) {
         receiverCertificateThumbprint: null // null == no encryption ...receiverCertificateThumbprint
     });
 
-    var msgChunkManager = new SecureMessageChunkManager("OPN",options,securityHeader,sequenceNumberGenerator);
+    var msgChunkManager = new SecureMessageChunkManager("OPN", options, securityHeader, sequenceNumberGenerator);
 
-    msgChunkManager.on("chunk", function (chunk, final) { callback(null,chunk); });
+    msgChunkManager.on("chunk", function (chunk, final) {
+        callback(null, chunk);
+    });
     msgChunkManager.write(buffer, buffer.length);
     msgChunkManager.end();
 }
 exports.iterate_on_signed_message_chunks = iterate_on_signed_message_chunks;
 
-function iterate_on_signed_and_encrypted_message_chunks(buffer,callback) {
+function iterate_on_signed_and_encrypted_message_chunks(buffer, callback) {
 
     var params = {signatureLength: 128, algorithm: "RSA-SHA1", privateKey: senderPrivateKey};
 
@@ -70,10 +72,10 @@ function iterate_on_signed_and_encrypted_message_chunks(buffer,callback) {
             return crypto_utils.makeMessageChunkSignature(chunk, params);
         },
 
-        plainBlockSize: 128-11,
+        plainBlockSize: 128 - 11,
         cipherBlockSize: 128,
         encrypt_buffer: function (chunk) {
-            return crypto_utils.publicEncrypt_long(chunk, receiverPublicKey , 128, 11);
+            return crypto_utils.publicEncrypt_long(chunk, receiverPublicKey, 128, 11);
         }
     };
 
@@ -84,7 +86,9 @@ function iterate_on_signed_and_encrypted_message_chunks(buffer,callback) {
     });
 
     var msgChunkManager = new SecureMessageChunkManager("OPN", options, securityHeader, sequenceNumberGenerator);
-    msgChunkManager.on("chunk", function (chunk, final) { callback(null, chunk);  });
+    msgChunkManager.on("chunk", function (chunk, final) {
+        callback(null, chunk);
+    });
     msgChunkManager.write(buffer, buffer.length);
     msgChunkManager.end();
 }
@@ -92,7 +96,7 @@ exports.iterate_on_signed_and_encrypted_message_chunks = iterate_on_signed_and_e
 
 
 var secret = new Buffer("My Little Secret");
-var seed   = new Buffer("My Little Seed");
+var seed = new Buffer("My Little Seed");
 var options = {
     signingKeyLength: 16,
     encryptingKeyLength: 16,
@@ -100,10 +104,10 @@ var options = {
     signatureLength: 20,
     algorithm: "aes-128-cbc"
 };
-var derivedKeys = crypto_utils.computeDerivedKeys(secret,seed,options);
-exports.derivedKeys  = derivedKeys;
+var derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
+exports.derivedKeys = derivedKeys;
 
-function iterate_on_symmetric_encrypted_chunk(buffer,callback) {
+function iterate_on_symmetric_encrypted_chunk(buffer, callback) {
 
     var options = {
         requestId: 10,
@@ -111,13 +115,13 @@ function iterate_on_symmetric_encrypted_chunk(buffer,callback) {
     };
 
     options.signatureLength = derivedKeys.signatureLength;
-    options.signingFunc= function(chunk) {
-        return crypto_utils.makeMessageChunkSignatureWithDerivedKeys(chunk,derivedKeys);
+    options.signingFunc = function (chunk) {
+        return crypto_utils.makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys);
     };
     options.plainBlockSize = derivedKeys.encryptingBlockSize;
-    options.cipherBlockSize= derivedKeys.encryptingBlockSize;
+    options.cipherBlockSize = derivedKeys.encryptingBlockSize;
     options.encrypt_buffer = function (chunk) {
-        return crypto_utils.encryptBufferWithDerivedKeys(chunk,derivedKeys);
+        return crypto_utils.encryptBufferWithDerivedKeys(chunk, derivedKeys);
     };
 
     var securityHeader = new SymmetricAlgorithmSecurityHeader({
@@ -125,7 +129,9 @@ function iterate_on_symmetric_encrypted_chunk(buffer,callback) {
     });
 
     var msgChunkManager = new SecureMessageChunkManager("MSG", options, securityHeader, sequenceNumberGenerator);
-    msgChunkManager.on("chunk", function (chunk, final) { callback(null, chunk);  });
+    msgChunkManager.on("chunk", function (chunk, final) {
+        callback(null, chunk);
+    });
     msgChunkManager.write(buffer, buffer.length);
     msgChunkManager.end();
 }

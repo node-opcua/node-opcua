@@ -13,11 +13,11 @@ var DataType = opcua.DataType;
 var AttributeIds = opcua.AttributeIds;
 var OPCUAClient = opcua.OPCUAClient;
 
-var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
-describe("end-to-end testing of read and write operation on a Variable",function() {
+describe("end-to-end testing of read and write operation on a Variable", function () {
     var server, client, temperatureVariableId, endpointUrl;
 
     var port = 2555;
@@ -47,22 +47,22 @@ describe("end-to-end testing of read and write operation on a Variable",function
 
     var namespaceIndex = 411;
 
-    it("should register nodes - BadNothingToDo",function(done) {
+    it("should register nodes - BadNothingToDo", function (done) {
         var browse_service = require("lib/services/browse_service");
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             var request = new browse_service.RegisterNodesRequest({
                 nodesToRegister: []
             });
-            session.performMessageTransaction(request,function(err,response){
+            session.performMessageTransaction(request, function (err, response) {
                 err.message.should.match(/BadNothingToDo/);
                 inner_done();
             });
 
-        },done);
+        }, done);
     });
 
-    it("should register nodes - Good",function(done) {
+    it("should register nodes - Good", function (done) {
         var browse_service = require("lib/services/browse_service");
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -71,31 +71,31 @@ describe("end-to-end testing of read and write operation on a Variable",function
                     "ns=0;i=1"
                 ]
             });
-            session.performMessageTransaction(request,function(err,response){
+            session.performMessageTransaction(request, function (err, response) {
                 should(err).eql(null);
                 response.registeredNodeIds.length.should.eql(1);
                 inner_done();
             });
 
-        },done);
+        }, done);
     });
 
-    it("should unregister nodes - BadNothingToDo",function(done) {
+    it("should unregister nodes - BadNothingToDo", function (done) {
         var browse_service = require("lib/services/browse_service");
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             var request = new browse_service.UnregisterNodesRequest({
                 nodesToUnregister: []
             });
-            session.performMessageTransaction(request,function(err,response){
+            session.performMessageTransaction(request, function (err, response) {
                 err.message.should.match(/BadNothingToDo/);
                 inner_done();
             });
 
-        },done);
+        }, done);
     });
 
-    it("should unregister nodes - Good",function(done) {
+    it("should unregister nodes - Good", function (done) {
         var browse_service = require("lib/services/browse_service");
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -104,11 +104,11 @@ describe("end-to-end testing of read and write operation on a Variable",function
                     "ns=0;i=1"
                 ]
             });
-            session.performMessageTransaction(request,function(err,response){
+            session.performMessageTransaction(request, function (err, response) {
                 should(err).eql(null);
                 inner_done();
             });
 
-        },done);
+        }, done);
     });
 });

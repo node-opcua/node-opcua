@@ -174,7 +174,7 @@ function getCityWeather(city,callback) {
 
     var request = require("request");
     request(options, function (error, response, body) {
-      if (!error && response.statusCode == 200) {
+      if (!error && response.statusCode === 200) {
         var data  = perform_read(city,body);
         callback(null,data);
       } else {

@@ -61,14 +61,14 @@ describe("DataValue", function () {
         });
     });
 
-    it("DataValue#toString",function() {
+    it("DataValue#toString", function () {
 
         var dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
-            serverTimestamp: new Date(Date.UTC(1789,6,14)),
+            serverTimestamp: new Date(Date.UTC(1789, 6, 14)),
             serverPicoseconds: 1000,
-            sourceTimestamp: new Date(Date.UTC(2089,6,14)),
+            sourceTimestamp: new Date(Date.UTC(2089, 6, 14)),
             sourcePicoseconds: 2000
         });
         var str = dataValue.toString();
@@ -85,7 +85,7 @@ describe("DataValue", function () {
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: null,
             serverPicoseconds: null,
-            sourceTimestamp: new Date(Date.UTC(2089,6,14)),
+            sourceTimestamp: new Date(Date.UTC(2089, 6, 14)),
             sourcePicoseconds: 2000
         });
         var str = dataValue.toString();

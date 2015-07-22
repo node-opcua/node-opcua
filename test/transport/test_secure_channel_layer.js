@@ -5,7 +5,6 @@ var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer")
 var ServerSecureChannelLayer = require("lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
 
 
-
 describe("Testing ClientSecureChannel 1", function () {
 
 
@@ -16,6 +15,7 @@ describe("Testing ClientSecureChannel 1", function () {
         var client_has_received_close_event = 0;
 
         secureChannel.on("close", function (err) {
+            should(err).eql(null);
             client_has_received_close_event += 1;
         });
 
@@ -37,6 +37,7 @@ describe("Testing ClientSecureChannel 1", function () {
         var client_has_received_close_event = 0;
 
         secureChannel.on("close", function (err) {
+            should(err).eql(null);
             client_has_received_close_event += 1;
         });
 
@@ -67,6 +68,7 @@ describe("Testing ClientSecureChannel 2", function () {
         }
 
     }
+
     beforeEach(function (done) {
 
         server_socket = new net.Server();
@@ -78,7 +80,8 @@ describe("Testing ClientSecureChannel 2", function () {
 
             serverChannel = new ServerSecureChannelLayer();
             serverChannel.timeout = 10050;
-            serverChannel.init(socket, function (err) {
+            serverChannel.init(socket, function () {
+
                 //xx console.log(" server channel is initialised");
             });
         });
@@ -99,7 +102,7 @@ describe("Testing ClientSecureChannel 2", function () {
 
         secureChannel.protocolVersion.should.equal(0);
 
-        secureChannel.on_transaction_completed = function(transaction_stat) {
+        secureChannel.on_transaction_completed = function (transaction_stat) {
             transaction_stat.dump();
         };
 

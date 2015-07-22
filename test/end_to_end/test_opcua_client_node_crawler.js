@@ -17,8 +17,7 @@ var NodeCrawler = opcua.NodeCrawler;
 
 
 var redirectToFile = require("lib/misc/utils").redirectToFile;
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
-
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 
 var port = 2000;
@@ -27,59 +26,61 @@ var build_server_with_temperature_device = require("test/helpers/build_server_wi
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-describe("NodeCrawler",function(){
+describe("NodeCrawler", function () {
 
     // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
     // so we set a big enough timeout 
     this.timeout((process.arch === 'arm') ? 400000 : 10000);
 
-    var server , client,temperatureVariableId,endpointUrl ;
+    var server, client, temperatureVariableId, endpointUrl;
 
     var port = 2001;
-    before(function(done){
+    before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        port+=1;
-        server = build_server_with_temperature_device({ port:port},function(err) {
+        port += 1;
+        server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done(err);
         });
     });
 
-    beforeEach(function(done){
+    beforeEach(function (done) {
         client = new OPCUAClient();
         done();
     });
 
-    afterEach(function(done){
+    afterEach(function (done) {
         client = null;
         done();
     });
 
-    after(function(done){
+    after(function (done) {
         server.shutdown(done);
     });
 
 
     function MyDumpReference(reference) {
-        function f(text,width) {
-            return (text + "                                                     ").substring(0,width);
+        function f(text, width) {
+            return (text + "                                                     ").substring(0, width);
         }
+
         console.log("    referenceTypeId ",
-                f(reference.referenceTypeId.displayText(),35).yellow +
-                (  reference.isForward?" => ":" <= ") +
-                f(reference.browseName.name,20).blue.bold +
-                    "(" + reference.nodeId.displayText().cyan +")"
+            f(reference.referenceTypeId.displayText(), 35).yellow +
+            (  reference.isForward ? " => " : " <= ") +
+            f(reference.browseName.name, 20).blue.bold +
+            "(" + reference.nodeId.displayText().cyan + ")"
         );
     }
-    function MyDumpReferences(index,references) {
+
+    function MyDumpReferences(index, references) {
         //xxx console.log(" xxxxxxxxxxxxxxxxx ",references);
         references.forEach(MyDumpReference);
     }
 
 
-    it("should crawl for a complete tree",function(done) {
+    it("should crawl for a complete tree", function (done) {
 
         redirectToFile("NodeCrawler_complete_tree.log", function (done) {
 
@@ -91,9 +92,11 @@ describe("NodeCrawler",function(){
                 crawler.on("browsed", function (nodeElement, data) {
 
                     //xx console.log("nodeElement ".yellow, nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
-                    var objectIndex = {  findObject: function (nodeId) {
-                        return null;
-                    }};
+                    var objectIndex = {
+                        findObject: function (nodeId) {
+                            return null;
+                        }
+                    };
                     MyDumpReferences(objectIndex, nodeElement.references);
 
                 }).on("end", function () {
@@ -112,9 +115,9 @@ describe("NodeCrawler",function(){
 
 
             }, done);
-        },done);
+        }, done);
     });
-    it("should crawl for a complete tree with limited node per browse and read request",function(done) {
+    it("should crawl for a complete tree with limited node per browse and read request", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -136,25 +139,25 @@ describe("NodeCrawler",function(){
             crawler2.on("browsed", function (nodeElement, data) {
                 browsed_node2++;
             });
-            var data1= {};
+            var data1 = {};
             crawler1.crawl("RootFolder", data1, function (err) {
                 browsed_node1.should.be.greaterThan(10);
                 browsed_node2.should.equal(0);
 
-                var data2= {};
+                var data2 = {};
                 crawler2.crawl("RootFolder", data2, function (err) {
                     browsed_node2.should.be.greaterThan(10);
 
-                    browsed_node1.should.eql(browsed_node2,"crawler1 and crawler2 should browse the same number of node");
+                    browsed_node1.should.eql(browsed_node2, "crawler1 and crawler2 should browse the same number of node");
                     done();
                 });
             });
-        },done);
+        }, done);
     });
 
-    it("should crawl one at a time",function(done){
+    it("should crawl one at a time", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             assert(_.isFunction(done));
 
@@ -174,13 +177,13 @@ describe("NodeCrawler",function(){
                 }
                 done(err);
             });
-        },done);
+        }, done);
     });
 
 
-    it("should crawl faster the second time",function(done){
+    it("should crawl faster the second time", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             assert(_.isFunction(done));
 
@@ -206,22 +209,23 @@ describe("NodeCrawler",function(){
                 });
 
             });
-        },done);
+        }, done);
     });
 
-    it("should display a tree",function(done){
+    it("should display a tree", function (done) {
 
         var redirectToFile = require("lib/misc/utils").redirectToFile;
 
-        redirectToFile("crawler_display_tree.log",function(inner_callback){
+        redirectToFile("crawler_display_tree.log", function (inner_callback) {
 
             var treeify = require('treeify');
 
-            perform_operation_on_client_session(client,endpointUrl,function(the_session,callback) {
+            perform_operation_on_client_session(client, endpointUrl, function (the_session, callback) {
 
                 var crawler = new NodeCrawler(the_session);
 
-                crawler.on("browsed",function(element){ });
+                crawler.on("browsed", function (element) {
+                });
 
                 var nodeId = "ObjectsFolder";
                 console.log("now crawling object folder ...please wait...");
@@ -234,8 +238,8 @@ describe("NodeCrawler",function(){
                     callback(err);
                 });
 
-            },inner_callback);
-        },done);
+            }, inner_callback);
+        }, done);
 
     });
 

@@ -21,27 +21,26 @@ var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").mak
 var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
 
 
-
 require("lib/datamodel/buildinfo");
 
-describe("ComplexType read from XML NodeSET file shall be binary Encodable",function(){
+describe("ComplexType read from XML NodeSET file shall be binary Encodable", function () {
 
-    var address_space ;
+    var address_space;
 
-    before(function(done){
+    before(function (done) {
         address_space = new AddressSpace();
 
         var xml_file = __dirname + "/../fixtures/fixture_nodeset_enumtype.xml";
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        opcua.generate_address_space(address_space,xml_file,function(err) {
+        opcua.generate_address_space(address_space, xml_file, function (err) {
 
             makeServerStatus(address_space);
             done(err);
         });
     });
 
-    it("a DataType should provide a DefaultBinary Encoding object",function(){
+    it("a DataType should provide a DefaultBinary Encoding object", function () {
 
         var serverStatusType = address_space.findDataType("ServerStatusDataType");
         serverStatusType.getEncodingNodeId("Default Binary").nodeId.toString().should.eql("ns=0;i=864");
@@ -49,7 +48,7 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
     });
 
 
-    it("should create an enumeration from the  ServerState object",function(done){
+    it("should create an enumeration from the  ServerState object", function (done) {
 
         var test_value = nodeset.ServerState.NoConfiguration;
 
@@ -58,14 +57,13 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
 
     });
 
-    it("should create an structure from the ServerStatus object",function() {
+    it("should create an structure from the ServerStatus object", function () {
 
         var serverStatus = new nodeset.ServerStatus({
             startTime: new Date(),
-            buildInfo: {
-            },
+            buildInfo: {},
             secondsTillShutdown: 100,
-            shutdownReason: { text: "for maintenance"}
+            shutdownReason: {text: "for maintenance"}
         });
 
         assert(serverStatus._schema.name === "ServerStatus");
@@ -74,27 +72,26 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable",func
     });
 
 
-    it("should ServerStatus object have correct encodingDefaultBinary ",function() {
+    it("should ServerStatus object have correct encodingDefaultBinary ", function () {
 
         var serverStatus = new nodeset.ServerStatus({});
-        serverStatus.encodingDefaultBinary.should.eql(makeExpandedNodeId(864,0));
+        serverStatus.encodingDefaultBinary.should.eql(makeExpandedNodeId(864, 0));
 
     });
 
-    it("should encode and decode a ServerStatus object",function() {
+    it("should encode and decode a ServerStatus object", function () {
 
         var serverStatus = new nodeset.ServerStatus({
             startTime: new Date(),
-            buildInfo: {
-            },
+            buildInfo: {},
             secondsTillShutdown: 100,
-            shutdownReason: { text: "for maintenance"}
+            shutdownReason: {text: "for maintenance"}
         });
         encode_decode_round_trip_test(serverStatus);
 
     });
 
-    it("should encode and decode a variant containing an extension object being a ServerStatus",function() {
+    it("should encode and decode a variant containing an extension object being a ServerStatus", function () {
 
         var serverStatus = new nodeset.ServerStatus({});
 

@@ -6,12 +6,12 @@ var should = require("should");
 
 var opcua = require("index");
 
-var OPCUAClient   = opcua.OPCUAClient;
-var AttributeIds  = opcua.AttributeIds;
+var OPCUAClient = opcua.OPCUAClient;
+var AttributeIds = opcua.AttributeIds;
 var resolveNodeId = opcua.resolveNodeId;
-var coerceNodeId  = opcua.coerceNodeId;
-var StatusCodes   = opcua.StatusCodes;
-var DataType      = opcua.DataType;
+var coerceNodeId = opcua.coerceNodeId;
+var StatusCodes = opcua.StatusCodes;
+var DataType = opcua.DataType;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -51,20 +51,20 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
     });
 
 
-    it("Q1 should retrieve the inputArgument of a method using a OPCUA transaction getArgumentDefinition",function(done){
+    it("Q1 should retrieve the inputArgument of a method using a OPCUA transaction getArgumentDefinition", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            var objectId= coerceNodeId("ns=0;i=2253");// server
-            var methodId= coerceNodeId("ns=0;i=11492"); // GetMonitoredItem
-            session.getArgumentDefinition(methodId,function(err,inputArguments,outputArguments){
+            var objectId = coerceNodeId("ns=0;i=2253");// server
+            var methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItem
+            session.getArgumentDefinition(methodId, function (err, inputArguments, outputArguments) {
                 //xx console.log("inputArguments  ",inputArguments);
                 //xx console.log("outputArguments ",outputArguments);
                 inputArguments.length.should.equal(1);
                 outputArguments.length.should.equal(2);
                 inner_done(err);
             })
-        },done);
+        }, done);
 
     });
 
@@ -72,7 +72,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call([],function(err){
+            session.call([], function (err) {
 
                 should(err).not.equal(null);
                 err.should.be.instanceOf(Error);
@@ -80,7 +80,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done();
             });
-        },done);
+        }, done);
 
     });
 
@@ -89,15 +89,17 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
         var too_many = 1000;
         var methodToCalls = [];
-        for (var i=0;i < too_many;i++ ) { methodToCalls.push({
-            objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
-            methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
-            inputArguments: [{ dataType: DataType.UInt32,value: [1] }]
-        });}
+        for (var i = 0; i < too_many; i++) {
+            methodToCalls.push({
+                objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
+                methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                inputArguments: [{dataType: DataType.UInt32, value: [1]}]
+            });
+        }
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
 
                 should(err).not.equal(null);
                 err.should.be.instanceOf(Error);
@@ -107,7 +109,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 inner_done();
             });
 
-        },done);
+        }, done);
 
     });
 
@@ -117,12 +119,12 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
         var methodToCalls = [{
             objectId: coerceNodeId("ns=0;i=864"), //  Default Binary doesn't have methods
             methodId: coerceNodeId("ns=0;i=11489"),
-            inputArguments: [{ dataType: DataType.UInt32,value: [1] }]
+            inputArguments: [{dataType: DataType.UInt32, value: [1]}]
         }];
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
                 should(err).equal(null);
                 results.length.should.eql(1);
 
@@ -130,7 +132,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done();
             });
-        },done);
+        }, done);
 
     });
 
@@ -143,7 +145,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
                 should(err).equal(null);
                 results.length.should.eql(1);
 
@@ -151,7 +153,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done();
             });
-        },done);
+        }, done);
 
     });
 
@@ -160,12 +162,12 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
         var methodToCalls = [{
             objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
             methodId: coerceNodeId("ns=0;s=unknown_method")
-           // methodId: coerceNodeId("ns=0;s=11489")
+            // methodId: coerceNodeId("ns=0;s=11489")
         }];
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
                 should(err).equal(null);
                 results.length.should.eql(1);
 
@@ -173,7 +175,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done();
             });
-        },done);
+        }, done);
 
     });
 
@@ -187,7 +189,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
 
                 should(err).equal(null);
                 results.length.should.eql(1);
@@ -196,7 +198,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done();
             });
-        },done);
+        }, done);
 
     });
     it("Q8 should succeed and return BadTypeMismatch when CallRequest is GetMonitoredItem and has the argument with a wrong dataType ", function (done) {
@@ -205,13 +207,13 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
             methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
             inputArguments: [
-                { dataType: DataType.QualifiedName } // intentionally a wrong dataType here
+                {dataType: DataType.QualifiedName} // intentionally a wrong dataType here
             ]
         }];
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
 
                 should(err).equal(null);
                 results.length.should.eql(1);
@@ -223,7 +225,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done();
             });
-        },done);
+        }, done);
 
     });
 
@@ -240,13 +242,13 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
             inputArguments: [
                 // subscriptionID( UInt32)
-               { dataType: DataType.UInt32, value: subscriptionId }
+                {dataType: DataType.UInt32, value: subscriptionId}
             ]
         }];
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            session.call(methodToCalls,function(err,results){
+            session.call(methodToCalls, function (err, results) {
                 if (!err) {
                     results.length.should.eql(1);
                     results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
@@ -254,36 +256,36 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
 
                 inner_done(err);
             });
-        },done);
+        }, done);
 
     });
 
-    describe("GetMonitoredItems",function() {
+    describe("GetMonitoredItems", function () {
 
-        it("T1 A client should be able to call the GetMonitoredItems standard OPCUA command, and return BadSubscriptionId if input args subscriptionId is invalid ",function(done){
+        it("T1 A client should be able to call the GetMonitoredItems standard OPCUA command, and return BadSubscriptionId if input args subscriptionId is invalid ", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var subscriptionId = 1000000 ; // invalid subscription ID
+                var subscriptionId = 1000000; // invalid subscription ID
 
-                session.getMonitoredItems(subscriptionId,function(err,monitoredItems){
+                session.getMonitoredItems(subscriptionId, function (err, monitoredItems) {
 
                     should(err).not.eql(null);
                     err.message.should.match(/BadSubscriptionId/);
                     inner_done();
                 });
-            },done);
+            }, done);
 
         });
 
 
-        it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and no monitored Item",function(done){
+        it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and no monitored Item", function (done) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
-                var subscriptionId = subscription.subscriptionId ;
+                var subscriptionId = subscription.subscriptionId;
 
-                session.getMonitoredItems(subscriptionId,function(err,result){
+                session.getMonitoredItems(subscriptionId, function (err, result) {
                     if (!err) {
                         should(result.serverHandles).be.instanceOf(Uint32Array);
                         should(result.clientHandles).be.instanceOf(Uint32Array);
@@ -292,21 +294,20 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                     }
                     inner_done(err);
                 });
-            },done);
+            }, done);
 
         });
 
 
-
-        it("T3 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and one monitored Item",function(done){
+        it("T3 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and one monitored Item", function (done) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
-                var subscriptionId = subscription.subscriptionId ;
+                var subscriptionId = subscription.subscriptionId;
 
                 var monitoredItem = subscription.monitor(
                     {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
-                    {samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                    {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItem.on("initialized", function () {
@@ -314,7 +315,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 });
                 monitoredItem.once("changed", function (value) {
 
-                    session.getMonitoredItems(subscriptionId,function(err,result){
+                    session.getMonitoredItems(subscriptionId, function (err, result) {
 
                         if (!err) {
                             should(result.serverHandles).be.instanceOf(Uint32Array);
@@ -331,10 +332,10 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                     });
                 });
 
-            },done);
+            }, done);
 
         });
-        it("T4 GetMonitoredItem must have the Executable attribute set",function(done) {
+        it("T4 GetMonitoredItem must have the Executable attribute set", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -349,7 +350,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                     }
                 ];
 
-                session.read(nodesToRead, function(err,unused,dataValues,diagnosticInfos) {
+                session.read(nodesToRead, function (err, unused, dataValues, diagnosticInfos) {
                     if (!err) {
                         dataValues[0].statusCode.should.eql(StatusCodes.Good);
                         dataValues[0].value.dataType.should.eql(DataType.Boolean);
@@ -361,46 +362,47 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                     inner_done(err);
                 })
 
-            },done);
+            }, done);
         });
     });
 
-    it("should find the OutputArguments and InputArguments Properties with a translate browse path reaquest ( like UAEpxert)",function(done) {
+    it("should find the OutputArguments and InputArguments Properties with a translate browse path reaquest ( like UAEpxert)", function (done) {
 
         // note : this is how UAExpert tries to figure out what are the input and output arguments definition
         //
-        var getMonitoredItemMethodId =  coerceNodeId("ns=0;i=11492");
+        var getMonitoredItemMethodId = coerceNodeId("ns=0;i=11492");
 
-        var hasPropertyRefId = resolveNodeId("HasProperty");/* NodeId  ns=0;i=46*/
+        var hasPropertyRefId = resolveNodeId("HasProperty");
+        /* NodeId  ns=0;i=46*/
         var browsePath = [{
-                    startingNode: /* NodeId  */ getMonitoredItemMethodId,
-                    relativePath: /* RelativePath   */  {
-                        elements: /* RelativePathElement */ [
-                            {
-                                referenceTypeId: hasPropertyRefId,
-                                isInverse: false,
-                                includeSubtypes: false,
-                                targetName: { namespaceIndex: 0, name: "InputArguments" }
-                            }
-                        ]
+            startingNode: /* NodeId  */ getMonitoredItemMethodId,
+            relativePath: /* RelativePath   */  {
+                elements: /* RelativePathElement */ [
+                    {
+                        referenceTypeId: hasPropertyRefId,
+                        isInverse: false,
+                        includeSubtypes: false,
+                        targetName: {namespaceIndex: 0, name: "InputArguments"}
                     }
-                }, {
-                    startingNode: getMonitoredItemMethodId,
-                    relativePath: {
-                        elements: [
-                            {
-                                referenceTypeId: hasPropertyRefId,
-                                isInverse: false,
-                                includeSubtypes: false,
-                                targetName: { namespaceIndex: 0,  name: "OutputArguments" }
-                            }
-                        ]
+                ]
+            }
+        }, {
+            startingNode: getMonitoredItemMethodId,
+            relativePath: {
+                elements: [
+                    {
+                        referenceTypeId: hasPropertyRefId,
+                        isInverse: false,
+                        includeSubtypes: false,
+                        targetName: {namespaceIndex: 0, name: "OutputArguments"}
                     }
-                }
-            ];
+                ]
+            }
+        }
+        ];
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            session.translateBrowsePath(browsePath, function(err,results) {
+            session.translateBrowsePath(browsePath, function (err, results) {
 
                 //xx console.log(results[0].toString());
                 results[0].statusCode.should.eql(StatusCodes.Good);
@@ -415,7 +417,7 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
                 inner_done();
 
             });
-        },done);
+        }, done);
     });
 
 

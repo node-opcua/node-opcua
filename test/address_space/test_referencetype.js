@@ -6,7 +6,7 @@ var address_space = require("lib/address_space/address_space");
 var AddressSpace = address_space.AddressSpace;
 var should = require("should");
 var nodeid = require("lib/datamodel/nodeid");
-var AttributeIds =  require("lib/datamodel/attributeIds").AttributeIds;
+var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var DataType = require("lib/datamodel/variant").DataType;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
@@ -41,7 +41,7 @@ describe("testing ReferenceType", function () {
 
     });
 
-    it("HierarchicalReferences should have an Abstract attribute set to true ",function() {
+    it("HierarchicalReferences should have an Abstract attribute set to true ", function () {
 
         var hr = address_space.findReferenceType("HierarchicalReferences");
         var v = hr.readAttribute(AttributeIds.IsAbstract);
@@ -51,7 +51,7 @@ describe("testing ReferenceType", function () {
 
     });
 
-    it("Organizes should have an Abstract attribute set to true ",function() {
+    it("Organizes should have an Abstract attribute set to true ", function () {
 
         var hr = address_space.findReferenceType("Organizes");
         var v = hr.readAttribute(AttributeIds.IsAbstract);
@@ -230,7 +230,7 @@ describe("testing ReferenceType", function () {
         console.log("             browseNames :  " + browseNames.join(" , "));
 
         //xx references.length.should.equal(7);
-        var expectedBrowseNames = [ 'Server'];
+        var expectedBrowseNames = ['Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
         redirectToFile("ReferenceDescription1.log", function () {
@@ -239,7 +239,6 @@ describe("testing ReferenceType", function () {
             dump(address_space, references);
         }, done)
     });
-
 
 
     it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)", function (done) {
@@ -402,28 +401,28 @@ describe(" improving performance of isSupertypeOf", function () {
             });
 
         })
-        .add("isSupertypeOf fast", function () {
+            .add("isSupertypeOf fast", function () {
 
-            referenceTypes.forEach(function (referenceType) {
-                referenceTypes.map(function (refType) {
-                    return referenceType.isSupertypeOf(refType);
+                referenceTypes.forEach(function (referenceType) {
+                    referenceTypes.map(function (refType) {
+                        return referenceType.isSupertypeOf(refType);
+                    });
+
                 });
+            })
+            .on("cycle", function (message) {
+                console.log(message);
+            })
+            .on("complete", function () {
 
-            });
-        })
-        .on("cycle", function (message) {
-            console.log(message);
-        })
-        .on("complete", function () {
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                this.fastest.name.should.eql("isSupertypeOf fast");
 
-            console.log(' Fastest is ' + this.fastest.name);
-            console.log(' Speed Up : x', this.speedUp);
-            this.fastest.name.should.eql("isSupertypeOf fast");
+                this.speedUp.should.be.greaterThan(10);
 
-            this.speedUp.should.be.greaterThan(10);
-
-            done();
-        })
-        .run();
+                done();
+            })
+            .run();
     });
 });

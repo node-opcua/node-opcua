@@ -1,48 +1,48 @@
 require("requirish")._(module);
 var ServerSecureChannelLayer = require("lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
-var should  = require("should");
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var should = require("should");
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
 
 
-describe("testing ServerSecureChannelLayer ",function(){
+describe("testing ServerSecureChannelLayer ", function () {
 
-    it("should create a ServerSecureChannelLayer",function(){
+    it("should create a ServerSecureChannelLayer", function () {
 
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout.should.be.greaterThan(100);
 
     });
 
-    it("should end with a timeout if no message is received from client",function(done){
+    it("should end with a timeout if no message is received from client", function (done) {
 
         var node = new DirectTransport();
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
-        server_secure_channel.init(node.server,function(err){
+        server_secure_channel.init(node.server, function (err) {
 
             err.message.should.match(/Timeout/);
             done();
         });
 
-        server_secure_channel.on("abort",function(){
+        server_secure_channel.on("abort", function () {
 
         });
     });
 
-    it("should end with a timeout if HEL/ACK is OK but no further message is received from client",function(done){
+    it("should end with a timeout if HEL/ACK is OK but no further message is received from client", function (done) {
 
         var node = new DirectTransport();
 
         var server_has_emitted_the_abort_message = false;
 
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
 
-        server_secure_channel.init(node.server, function(err){
+        server_secure_channel.init(node.server, function (err) {
 
             err.message.should.match(/Timeout waiting for OpenChannelRequest/);
             server_has_emitted_the_abort_message.should.eql(true);
@@ -50,7 +50,7 @@ describe("testing ServerSecureChannelLayer ",function(){
 
         });
 
-        server_secure_channel.on("abort",function(){
+        server_secure_channel.on("abort", function () {
             server_has_emitted_the_abort_message = true;
         });
 
@@ -60,22 +60,22 @@ describe("testing ServerSecureChannelLayer ",function(){
 
     });
 
-    it("should return an error and shutdown if first message is not OpenSecureChannelRequest ",function(done){
+    it("should return an error and shutdown if first message is not OpenSecureChannelRequest ", function (done) {
 
         var node = new DirectTransport();
 
         var server_has_emitted_the_abort_message = false;
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
 
         server_secure_channel.timeout = 50;
-        server_secure_channel.init(node.server,function(err){
+        server_secure_channel.init(node.server, function (err) {
             err.message.should.match(/Expecting OpenSecureChannelRequest/);
             server_has_emitted_the_abort_message.should.equal(true);
             done();
         });
 
-        server_secure_channel.on("abort",function(){
+        server_secure_channel.on("abort", function () {
             server_has_emitted_the_abort_message = true;
         });
         var fake_HelloMessage = require("test/fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
@@ -85,15 +85,15 @@ describe("testing ServerSecureChannelLayer ",function(){
         node.client.write(fake_NotAOpenSecureChannelMessage);
     });
 
-    it("should handle a OpenSecureChannelRequest and pass no err in the init callback ",function(done){
+    it("should handle a OpenSecureChannelRequest and pass no err in the init callback ", function (done) {
 
         var node = new DirectTransport();
 
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
-        server_secure_channel.init(node.server,function(err){
-            should(err).not.exist;
+        server_secure_channel.init(node.server, function (err) {
+            should(err).eql(null);
             done();
         });
 
@@ -105,17 +105,17 @@ describe("testing ServerSecureChannelLayer ",function(){
 
     });
 
-    it("should handle a OpenSecureChannelRequest start emitting subsequent messages ",function(done){
+    it("should handle a OpenSecureChannelRequest start emitting subsequent messages ", function (done) {
 
         var node = new DirectTransport();
 
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
-        server_secure_channel.init(node.server,function(err){
-
+        server_secure_channel.init(node.server, function (err) {
+            should(err).eql(null);
         });
-        server_secure_channel.on("message",function(message){
+        server_secure_channel.on("message", function (message) {
             message.request._schema.name.should.equal("GetEndpointsRequest");
             done();
         });
@@ -131,27 +131,28 @@ describe("testing ServerSecureChannelLayer ",function(){
 
     });
 
-    it("should handle a CloseSecureChannelRequest directly and emit a abort event",function(done){
+    it("should handle a CloseSecureChannelRequest directly and emit a abort event", function (done) {
 
         var node = new DirectTransport();
 
         var server_secure_channel = new ServerSecureChannelLayer();
-        server_secure_channel.setSecurity("NONE","None");
+        server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
-        server_secure_channel.init(node.server,function(err){
+        server_secure_channel.init(node.server, function (err) {
+            should(err).eql(null);
         });
 
         var nb_on_message_calls = 0;
-        server_secure_channel.on("message",function(message){
+        server_secure_channel.on("message", function (message) {
 
             message.request._schema.name.should.not.equal("CloseSecureChannelRequest");
             nb_on_message_calls.should.equal(0);
-            nb_on_message_calls +=1;
+            nb_on_message_calls += 1;
 
             message.request._schema.name.should.equal("GetEndpointsRequest");
         });
 
-        server_secure_channel.on("abort",function(){
+        server_secure_channel.on("abort", function () {
             done();
         });
 

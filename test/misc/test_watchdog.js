@@ -15,7 +15,7 @@ function MyObject() {
 util.inherits(MyObject, EventEmitter);
 
 
-MyObject.prototype.watchdogReset = function() {
+MyObject.prototype.watchdogReset = function () {
     this.emit("watchdogReset");
 };
 
@@ -23,10 +23,10 @@ MyObject.prototype.watchdogReset = function() {
 // http://sinonjs.org/docs/#clock
 describe("watch dog", function () {
 
-    before(function(){
+    before(function () {
         resourceLeakDetector.start();
     });
-    after(function(){
+    after(function () {
         resourceLeakDetector.stop();
     });
 
@@ -49,7 +49,7 @@ describe("watch dog", function () {
         watchDog.subscriberCount.should.eql(0);
 
         var obj1 = new MyObject();
-        watchDog.addSubscriber(obj1,1000);
+        watchDog.addSubscriber(obj1, 1000);
 
         watchDog.subscriberCount.should.eql(1);
 
@@ -69,7 +69,7 @@ describe("watch dog", function () {
         should(watchDog._timer).equal(null);
 
         var obj1 = new MyObject();
-        watchDog.addSubscriber(obj1,1000);
+        watchDog.addSubscriber(obj1, 1000);
 
         should(watchDog._timer).not.equal(null);
 
@@ -81,10 +81,10 @@ describe("watch dog", function () {
         should(watchDog._timer).equal(null);
 
         var obj1 = new MyObject();
-        watchDog.addSubscriber(obj1,1000);
+        watchDog.addSubscriber(obj1, 1000);
         watchDog.removeSubscriber(obj1);
 
-        watchDog.addSubscriber(obj1,1000);
+        watchDog.addSubscriber(obj1, 1000);
         watchDog.removeSubscriber(obj1);
 
         should(watchDog._timer).equal(null);
@@ -92,8 +92,8 @@ describe("watch dog", function () {
 
     it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", function (done) {
 
-        should(function(){
-            watchDog.addSubscriber({},100);
+        should(function () {
+            watchDog.addSubscriber({}, 100);
         }).throwError();
         done();
     });
@@ -103,7 +103,7 @@ describe("watch dog", function () {
         var obj = new MyObject();
         should(_.isFunction(obj.keepAlive)).eql(false);
 
-        watchDog.addSubscriber(obj,100);
+        watchDog.addSubscriber(obj, 100);
         should(_.isFunction(obj.keepAlive)).eql(true);
 
         watchDog.removeSubscriber(obj);
@@ -116,11 +116,13 @@ describe("watch dog", function () {
     it("should call the watchdogReset method of a subscriber when timeout has expired", function (done) {
 
         var obj = new MyObject();
-        watchDog.addSubscriber(obj,100);
+        watchDog.addSubscriber(obj, 100);
 
-        setTimeout(function(){obj.keepAlive();},200);
+        setTimeout(function () {
+            obj.keepAlive();
+        }, 200);
 
-        obj.on("watchdogReset",done);
+        obj.on("watchdogReset", done);
 
         this.clock.tick(2000);
     });
@@ -130,18 +132,26 @@ describe("watch dog", function () {
         var obj1 = new MyObject();
         var obj2 = new MyObject();
 
-        watchDog.addSubscriber(obj1,1000);
-        watchDog.addSubscriber(obj2,1000);
+        watchDog.addSubscriber(obj1, 1000);
+        watchDog.addSubscriber(obj2, 1000);
 
-        var timer1 = setInterval(function(){obj1.keepAlive();},200);
-        var timer2 = setInterval(function(){obj2.keepAlive();},200);
+        var timer1 = setInterval(function () {
+            obj1.keepAlive();
+        }, 200);
+        var timer2 = setInterval(function () {
+            obj2.keepAlive();
+        }, 200);
 
         // Since our objects are sending a keepAlive signal on a very regular basic,
         // we should make sure object do not received a watchdogReset call by the WatchDog
-        obj1.on("watchdogReset",function(){ done(new Error("Received unexpected watchdogReset on object1"))});
-        obj2.on("watchdogReset",function(){ done(new Error("Received unexpected watchdogReset on object2"))});
+        obj1.on("watchdogReset", function () {
+            done(new Error("Received unexpected watchdogReset on object1"))
+        });
+        obj2.on("watchdogReset", function () {
+            done(new Error("Received unexpected watchdogReset on object2"))
+        });
 
-        setTimeout(function() {
+        setTimeout(function () {
 
             obj1._watchDogData.visitCount.should.greaterThan(8);
             obj2._watchDogData.visitCount.should.greaterThan(8);
@@ -153,15 +163,15 @@ describe("watch dog", function () {
             clearInterval(timer2);
         }, 10000);
 
-        setTimeout(done,15000);
+        setTimeout(done, 15000);
         this.clock.tick(20000);
     });
     it("should emit an event when it finds that some subscriber has reached the timeout period without sending a keepAlive signal", function (done) {
 
         var obj1 = new MyObject();
-        watchDog.addSubscriber(obj1,1000);
+        watchDog.addSubscriber(obj1, 1000);
 
-        watchDog.on("timeout",function(subscribers){
+        watchDog.on("timeout", function (subscribers) {
             subscribers.length.should.eql(1);
             done();
         });
@@ -171,7 +181,7 @@ describe("watch dog", function () {
 
 });
 
-describe("Watch Dog",function() {
+describe("Watch Dog", function () {
 
 
 })

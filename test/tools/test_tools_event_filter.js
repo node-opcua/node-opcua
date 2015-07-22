@@ -1,14 +1,14 @@
 "use strict";
 require("requirish")._(module);
-var should =require("should");
-var constructEventFilter =require("lib/tools/tools_event_filter").constructEventFilter;
-var schema_helpers =  require("lib/misc/factories_schema_helpers");
+var should = require("should");
+var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
+var schema_helpers = require("lib/misc/factories_schema_helpers");
 schema_helpers.doDebug = true;
 
-describe("test constructEventFilter",function() {
+describe("test constructEventFilter", function () {
 
 
-    it("should construct a simple event filter with a single string (with namespace)", function(){
+    it("should construct a simple event filter with a single string (with namespace)", function () {
 
         var ef = constructEventFilter("2:SourceName");
 
@@ -19,7 +19,7 @@ describe("test constructEventFilter",function() {
 
     });
 
-    it("should construct a simple event filter", function(){
+    it("should construct a simple event filter", function () {
 
         var ef = constructEventFilter(["SourceName"]);
 
@@ -30,9 +30,9 @@ describe("test constructEventFilter",function() {
 
     });
 
-    it("should construct a simple event filter with two clauses", function(){
+    it("should construct a simple event filter with two clauses", function () {
 
-        var ef = constructEventFilter(["SourceName","Time"]);
+        var ef = constructEventFilter(["SourceName", "Time"]);
 
         ef.selectClauses.length.should.eql(2);
 
@@ -46,7 +46,7 @@ describe("test constructEventFilter",function() {
 
     });
 
-    it("should construct a simple event filter with namespace", function(){
+    it("should construct a simple event filter with namespace", function () {
 
         var ef = constructEventFilter(["2:SourceName"]);
 
@@ -57,19 +57,9 @@ describe("test constructEventFilter",function() {
 
     });
 
-    it("should construct a simple event filter with a qualified name", function(){
+    it("should construct a simple event filter with a qualified name", function () {
 
-        var ef = constructEventFilter([{namespaceIndex:2, name:"SourceName"}]);
-
-        ef.selectClauses.length.should.eql(1);
-        ef.selectClauses[0].browsePath.length.should.eql(1);
-        ef.selectClauses[0].browsePath[0].name.should.eql("SourceName");
-        ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
-
-    });
-    it("should construct a simple event filter with a qualified name", function(){
-
-        var ef = constructEventFilter({namespaceIndex:2, name:"SourceName"});
+        var ef = constructEventFilter([{namespaceIndex: 2, name: "SourceName"}]);
 
         ef.selectClauses.length.should.eql(1);
         ef.selectClauses[0].browsePath.length.should.eql(1);
@@ -77,8 +67,18 @@ describe("test constructEventFilter",function() {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
 
     });
+    it("should construct a simple event filter with a qualified name", function () {
 
-    it("should construct a event filter with a 2 level browse path (form 1)", function(){
+        var ef = constructEventFilter({namespaceIndex: 2, name: "SourceName"});
+
+        ef.selectClauses.length.should.eql(1);
+        ef.selectClauses[0].browsePath.length.should.eql(1);
+        ef.selectClauses[0].browsePath[0].name.should.eql("SourceName");
+        ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
+
+    });
+
+    it("should construct a event filter with a 2 level browse path (form 1)", function () {
 
         var ef = constructEventFilter("2:Component1.3:Property1");
 
@@ -92,9 +92,9 @@ describe("test constructEventFilter",function() {
         ef.selectClauses[0].browsePath[1].namespaceIndex.should.eql(3);
 
     });
-    it("should construct a event filter with a 2 level browse path (form 2)", function(){
+    it("should construct a event filter with a 2 level browse path (form 2)", function () {
 
-        var ef = constructEventFilter([["2:Component1","3:Property1"]]);
+        var ef = constructEventFilter([["2:Component1", "3:Property1"]]);
 
         //xx console.log(ef.toString());
 

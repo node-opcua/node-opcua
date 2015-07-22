@@ -22,7 +22,7 @@
 function check_expecting_no_error_and_one_datavalue_with_statusGood(err,dataValues,extra_message , callback) {
 
     if (!err) {
-        if (dataValues.length != 1) {
+        if (dataValues.length !== 1) {
             err = new Error(" Expecting 1 value in dataValues but got " + dataValues.length + " instead " + extra_message);
         } else {
             if (dataValues[0].statusCode !== StatusCodes.Good) {
@@ -37,7 +37,7 @@ function check_statusCodes_are_expected(err,statusCodes,expectedStatusCodes,extr
 
         for( statusCode in statusCodes) {
 
-            var found = (expectedStatusCodes.indexOf(statusCodes) != -1)
+            var found = (expectedStatusCodes.indexOf(statusCodes) !== -1)
             if (found) {
                 err = new Error(" Expecting statusCode  " + statusCode.toString() + " to be one of  "+ expectedStatusCodes.toString() );
                 break;

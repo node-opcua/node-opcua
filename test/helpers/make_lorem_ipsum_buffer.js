@@ -1,5 +1,3 @@
-
-
 var loremIpsum = require("./lorem_ipsum").loremIpsum;
 
 function make_lorem_ipsum_buffer() {

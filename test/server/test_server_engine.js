@@ -3,7 +3,7 @@ require("requirish")._(module);
 /*global require,describe, it, before, after */
 var should = require("should");
 var server_engine = require("lib/server/server_engine");
-var ServerEngine =  server_engine.ServerEngine;
+var ServerEngine = server_engine.ServerEngine;
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
@@ -39,17 +39,17 @@ describe("testing ServerEngine", function () {
     var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
     var defaultBuildInfo = {
-        productName:"NODEOPCUA-SERVER",
-        softwareVersion:"1.0",
-        manufacturerName:"<Manufacturer>",
-        productUri:"URI:NODEOPCUA-SERVER"
+        productName: "NODEOPCUA-SERVER",
+        softwareVersion: "1.0",
+        manufacturerName: "<Manufacturer>",
+        productUri: "URI:NODEOPCUA-SERVER"
     };
     before(function (done) {
 
         resourceLeakDetector.start();
         engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
-        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
             FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;
@@ -97,7 +97,7 @@ describe("testing ServerEngine", function () {
                                 value: testArray
                             });
                         },
-                        set:  function(variant){
+                        set: function (variant) {
                             // Variation 1 : synchronous
                             // assert(_.isFunction(callback));
                             return StatusCodes.Good;
@@ -121,12 +121,12 @@ describe("testing ServerEngine", function () {
                                 value: testArray
                             });
                         },
-                        set:  function(variant){
+                        set: function (variant) {
                             // Variation 1 : synchronous
                             // assert(_.isFunction(callback));
-                            setTimeout(function() {
-                                callback(null,StatusCodes.Good);
-                            },20);
+                            setTimeout(function () {
+                                callback(null, StatusCodes.Good);
+                            }, 20);
                         }
                     }
                 }
@@ -347,7 +347,7 @@ describe("testing ServerEngine", function () {
         newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.should.equal(newFolder.nodeId);
 
-        newVariable.readValueAsync(function(err,dataValue){
+        newVariable.readValueAsync(function (err, dataValue) {
             if (!err) {
                 dataValue.statusCode.should.eql(StatusCodes.Good);
                 dataValue.value.should.be.instanceOf(Variant);
@@ -407,7 +407,7 @@ describe("testing ServerEngine", function () {
             });
 
 
-        newVariable.readValueAsync(function(err,dataValue){
+        newVariable.readValueAsync(function (err, dataValue) {
 
             if (!err) {
 
@@ -627,42 +627,43 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should provide results that conforms to browseDescription.resultMask",function() {
+    it("should provide results that conforms to browseDescription.resultMask", function () {
 
         var check_flag = require("lib/misc/utils").check_flag;
         var ResultMask = require("schemas/ResultMask_enum").ResultMask;
 
-        function test_referenceDescription(referenceDescription,resultMask) {
-            if ( check_flag(resultMask,ResultMask.ReferenceType)) {
+        function test_referenceDescription(referenceDescription, resultMask) {
+            if (check_flag(resultMask, ResultMask.ReferenceType)) {
                 should(referenceDescription.referenceTypeId).be.instanceOf(Object);
-            }else {
-                should(referenceDescription.referenceTypeId).be.eql(makeNodeId(0,0));
+            } else {
+                should(referenceDescription.referenceTypeId).be.eql(makeNodeId(0, 0));
             }
-            if ( check_flag(resultMask,ResultMask.BrowseName)) {
+            if (check_flag(resultMask, ResultMask.BrowseName)) {
                 should(referenceDescription.browseName).be.instanceOf(Object);
-            }else {
+            } else {
                 should(referenceDescription.browseName).be.eql(new QualifiedName({}));
             }
-            if ( check_flag(resultMask,ResultMask.NodeClass)) {
+            if (check_flag(resultMask, ResultMask.NodeClass)) {
                 should(referenceDescription.nodeClass).be.not.eql(NodeClass.Unspecified);
-            }else {
+            } else {
                 should(referenceDescription.nodeClass).be.eql(NodeClass.Unspecified);
             }
         }
+
         function test_result_mask(resultMask) {
 
             var browseDescription = {
-                browseDirection : browse_service.BrowseDirection.Both,
-                referenceTypeId : "HierarchicalReferences",
-                includeSubtypes : true,
-                nodeClassMask:  0, // 0 = all nodes
+                browseDirection: browse_service.BrowseDirection.Both,
+                referenceTypeId: "HierarchicalReferences",
+                includeSubtypes: true,
+                nodeClassMask: 0, // 0 = all nodes
                 resultMask: resultMask
             };
             var browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
 
             browseResult.references.length.should.be.greaterThan(1);
-            browseResult.references.forEach(function(referenceDescription){
-                test_referenceDescription(referenceDescription,resultMask.value);
+            browseResult.references.forEach(function (referenceDescription) {
+                test_referenceDescription(referenceDescription, resultMask.value);
             });
 
         }
@@ -1251,7 +1252,7 @@ describe("testing ServerEngine", function () {
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
                 dataValues[0].value.value.should.be.instanceOf(Float64Array);
                 dataValues[0].value.value.length.should.be.eql(4);
-                assert_arrays_are_equal(dataValues[0].value.value,new Float64Array([2.0, 3.0, 4.0, 5.0]));
+                assert_arrays_are_equal(dataValues[0].value.value, new Float64Array([2.0, 3.0, 4.0, 5.0]));
             }
             done(err);
         });
@@ -1515,7 +1516,7 @@ describe("testing ServerEngine", function () {
             assert(node !== null);
             should(node).not.eql(null);
 
-            var nodesToRead= [{
+            var nodesToRead = [{
                 nodeId: nodeid,
                 attributeId: AttributeIds.Value
             }];
@@ -1644,7 +1645,7 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            engine.writeSingleNode(nodeToWrite,function(err,statusCode){
+            engine.writeSingleNode(nodeToWrite, function (err, statusCode) {
                 statusCode.should.eql(StatusCodes.Good);
                 done(err);
             });
@@ -1663,7 +1664,7 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            engine.writeSingleNode(nodeToWrite,function(err,statusCode){
+            engine.writeSingleNode(nodeToWrite, function (err, statusCode) {
                 statusCode.should.eql(StatusCodes.BadNotWritable);
                 done(err);
             });
@@ -1697,7 +1698,7 @@ describe("testing ServerEngine", function () {
                 })
             ];
 
-            engine.write(nodesToWrite,function(err,results){
+            engine.write(nodesToWrite, function (err, results) {
                 results.length.should.eql(2);
                 results[0].should.eql(StatusCodes.Good);
                 results[1].should.eql(StatusCodes.Good);
@@ -1716,7 +1717,7 @@ describe("testing ServerEngine", function () {
                     value: null
                 }
             });
-            engine.writeSingleNode(nodeToWrite,function(err,statusCode){
+            engine.writeSingleNode(nodeToWrite, function (err, statusCode) {
                 statusCode.should.eql(StatusCodes.BadTypeMismatch);
                 done(err);
             });
@@ -1754,7 +1755,7 @@ describe("testing ServerEngine", function () {
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
-                    nodeId:"ns=1;s=FailingPLCValue",
+                    nodeId: "ns=1;s=FailingPLCValue",
                     attributeId: AttributeIds.Value
                 }]
             });
@@ -1785,18 +1786,18 @@ describe("testing ServerEngine", function () {
                     nodeId: "ns=1;s=RefreshedOnDemandValue",
                     dataType: "Double",
                     value: {
-                        refreshFunc: function(callback) {
+                        refreshFunc: function (callback) {
                             // add some delay to simulate a long operation to perform the asynchronous read
-                            setTimeout(function(){
-                                value1 +=1;
-                                var dataValue =new DataValue({
-                                    value:  {
+                            setTimeout(function () {
+                                value1 += 1;
+                                var dataValue = new DataValue({
+                                    value: {
                                         dataType: DataType.Double,
                                         value: value1
                                     }
                                 });
                                 callback(null, dataValue);
-                            },10)
+                            }, 10)
                         }
                     }
                 }
@@ -1809,14 +1810,14 @@ describe("testing ServerEngine", function () {
                     nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
                     dataType: "Double",
                     value: {
-                        refreshFunc: function(callback) {
-                            setTimeout(function(){
+                        refreshFunc: function (callback) {
+                            setTimeout(function () {
                                 value2 += 1;
-                                var dataValue= new DataValue({
+                                var dataValue = new DataValue({
                                     value: {dataType: DataType.Double, value: value2}
                                 });
-                                callback(null,dataValue);
-                            },10)
+                                callback(null, dataValue);
+                            }, 10)
                         }
                     }
                 }
@@ -1824,7 +1825,7 @@ describe("testing ServerEngine", function () {
         });
 
 
-        beforeEach(function(){
+        beforeEach(function () {
             // reset counters;
             value1 = 0;
             value2 = 0;
@@ -1832,22 +1833,22 @@ describe("testing ServerEngine", function () {
         });
 
 
-        it("should refresh a single variable value asynchronously",function(done){
+        it("should refresh a single variable value asynchronously", function (done) {
 
-            var nodesToRefresh = [{ nodeId: "ns=1;s=RefreshedOnDemandValue"}];
+            var nodesToRefresh = [{nodeId: "ns=1;s=RefreshedOnDemandValue"}];
 
-            var v = engine.readSingleNode(nodesToRefresh[0].nodeId,AttributeIds.Value);
+            var v = engine.readSingleNode(nodesToRefresh[0].nodeId, AttributeIds.Value);
             v.statusCode.should.equal(StatusCodes.UncertainInitialValue);
 
-            engine.refreshValues(nodesToRefresh,function(err,values){
+            engine.refreshValues(nodesToRefresh, function (err, values) {
 
-                if(!err) {
+                if (!err) {
                     values[0].value.value.should.equal(1);
 
                     value1.should.equal(1);
                     value2.should.equal(0);
 
-                    var dataValue = engine.readSingleNode(nodesToRefresh[0].nodeId,AttributeIds.Value);
+                    var dataValue = engine.readSingleNode(nodesToRefresh[0].nodeId, AttributeIds.Value);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.value.should.eql(1);
 
@@ -1856,17 +1857,17 @@ describe("testing ServerEngine", function () {
             })
         });
 
-        it("should refresh multiple variable values asynchronously",function(done){
+        it("should refresh multiple variable values asynchronously", function (done) {
 
 
             var nodesToRefresh = [
-                { nodeId: "ns=1;s=RefreshedOnDemandValue"},
-                { nodeId: "ns=1;s=OtherRefreshedOnDemandValue"}
+                {nodeId: "ns=1;s=RefreshedOnDemandValue"},
+                {nodeId: "ns=1;s=OtherRefreshedOnDemandValue"}
             ];
 
-            engine.refreshValues(nodesToRefresh,function(err,values) {
+            engine.refreshValues(nodesToRefresh, function (err, values) {
                 if (!err) {
-                    values.length.should.equal(2," expecting two node asynchronous refresh call");
+                    values.length.should.equal(2, " expecting two node asynchronous refresh call");
 
                     values[0].value.value.should.equal(1);
                     values[1].value.value.should.equal(1);
@@ -1878,17 +1879,17 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should  refresh nodes only once if they are duplicated ",function(done){
+        it("should  refresh nodes only once if they are duplicated ", function (done) {
 
             var nodesToRefresh = [
-                { nodeId: "ns=1;s=RefreshedOnDemandValue"},
-                { nodeId: "ns=1;s=RefreshedOnDemandValue"}, // <== duplicated node
-                { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId:AttributeIds.DisplayName }
+                {nodeId: "ns=1;s=RefreshedOnDemandValue"},
+                {nodeId: "ns=1;s=RefreshedOnDemandValue"}, // <== duplicated node
+                {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
             ];
-            engine.refreshValues(nodesToRefresh,function(err,values) {
+            engine.refreshValues(nodesToRefresh, function (err, values) {
 
-                if(!err) {
-                    values.length.should.equal(1," expecting only one node asynchronous refresh call");
+                if (!err) {
+                    values.length.should.equal(1, " expecting only one node asynchronous refresh call");
 
                     value1.should.equal(1);
                     value2.should.equal(0);
@@ -1898,14 +1899,14 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should ignore nodes with attributeId!=AttributeIds.Value ",function(done){
+        it("should ignore nodes with attributeId!=AttributeIds.Value ", function (done) {
 
             var nodesToRefresh = [
-                { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId:AttributeIds.DisplayName }
+                {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
             ];
-            engine.refreshValues(nodesToRefresh,function(err,values) {
+            engine.refreshValues(nodesToRefresh, function (err, values) {
                 if (!err) {
-                    values.length.should.equal(0," expecting no asynchronous refresh call");
+                    values.length.should.equal(0, " expecting no asynchronous refresh call");
                     value1.should.equal(0);
                     value2.should.equal(0);
                 }
@@ -1913,13 +1914,13 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should perform readValueAsync on Variable",function(done){
+        it("should perform readValueAsync on Variable", function (done) {
 
 
-            var variable = engine.findObject( "ns=1;s=RefreshedOnDemandValue");
+            var variable = engine.findObject("ns=1;s=RefreshedOnDemandValue");
 
             value1.should.equal(0);
-            variable.readValueAsync(function(err,value){
+            variable.readValueAsync(function (err, value) {
                 value1.should.equal(1);
 
                 done();
@@ -1932,7 +1933,7 @@ describe("testing ServerEngine", function () {
 });
 
 
-describe("ServerEngine advanced",function() {
+describe("ServerEngine advanced", function () {
 
     before(function (done) {
         resourceLeakDetector.start();
@@ -1942,9 +1943,9 @@ describe("ServerEngine advanced",function() {
         resourceLeakDetector.stop();
     });
 
-    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown",function(done) {
+    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function (done) {
 
-       var engine = new ServerEngine();
+        var engine = new ServerEngine();
 
         var sinon = require("sinon");
         var myFunc = new sinon.spy();
@@ -1958,12 +1959,12 @@ describe("ServerEngine advanced",function() {
         done();
     });
 
-    it("ServerEngine#shutdown engine should take care of disposing session on shutdown",function(done){
+    it("ServerEngine#shutdown engine should take care of disposing session on shutdown", function (done) {
 
         var engine = new ServerEngine();
-        var session1  = engine.createSession();
-        var session2  = engine.createSession();
-        var session3  = engine.createSession();
+        var session1 = engine.createSession();
+        var session2 = engine.createSession();
+        var session3 = engine.createSession();
 
         engine.shutdown();
         // leaks will be detected if engine failed to dispose session

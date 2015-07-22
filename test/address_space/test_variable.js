@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 
 var async = require("async");
@@ -300,7 +301,7 @@ describe("testing Variable#bindVariable", function () {
                 function read_simple_value(callback) {
 
                     //var
-                    variable.readValueAsync(function(err){
+                    variable.readValueAsync(function (err) {
                         if (!err) {
                             var dataValue_check = variable.readAttribute(AttributeIds.Value);
                             dataValue_check.should.be.instanceOf(DataValue);
@@ -351,7 +352,7 @@ describe("testing Variable#bindVariable", function () {
 
             var value_with_timestamp = new DataValue({
                 value: new Variant({dataType: DataType.Double, value: 987654.0}),
-                sourceTimestamp: new Date(1789,7,14),
+                sourceTimestamp: new Date(1789, 7, 14),
                 sourcePicoseconds: 0
             });
             var counter = 0;
@@ -369,13 +370,13 @@ describe("testing Variable#bindVariable", function () {
                 function read_simple_value(callback) {
 
                     counter = 0;
-                    variable.readValueAsync(function(err,dataValue_check){
-                        counter.should.eql(1,"expecting timestamped_get to have been called");
+                    variable.readValueAsync(function (err, dataValue_check) {
+                        counter.should.eql(1, "expecting timestamped_get to have been called");
                         if (!err) {
                             dataValue_check.should.be.instanceOf(DataValue);
                             dataValue_check.statusCode.should.eql(StatusCodes.Good);
                             dataValue_check.value.value.should.eql(987654);
-                            dataValue_check.sourceTimestamp.should.eql(new Date(1789,7,14));
+                            dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
                         }
                         callback(err);
 
@@ -395,11 +396,11 @@ describe("testing Variable#bindVariable", function () {
                 },
                 function read_simple_value(callback) {
 
-                    variable.readValueAsync(function(err,dataValue_check){
-                        if(!err) {
+                    variable.readValueAsync(function (err, dataValue_check) {
+                        if (!err) {
                             dataValue_check.should.be.instanceOf(DataValue);
                             dataValue_check.value.value.should.eql(987654);
-                            dataValue_check.sourceTimestamp.should.eql(new Date(1789,7,14));
+                            dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
                         }
                         callback(err);
                     });
@@ -427,7 +428,7 @@ describe("testing Variable#bindVariable", function () {
                             },
                             sourceTimestamp: new Date()
                         });
-                        callback(null,dataValue);
+                        callback(null, dataValue);
                     }, 10);
                 }
             };
@@ -464,9 +465,9 @@ describe("testing Variable#bindVariable", function () {
         });
     });
 
-    function read_double_and_check(variable,expected_value,expected_date,callback) {
+    function read_double_and_check(variable, expected_value, expected_date, callback) {
 
-        variable.readValueAsync(function(err,dataValue_check){
+        variable.readValueAsync(function (err, dataValue_check) {
             if (!err) {
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
@@ -480,9 +481,9 @@ describe("testing Variable#bindVariable", function () {
         });
     }
 
-    describe("testing Variable#bindVariable -> Setter",function() {
+    describe("testing Variable#bindVariable -> Setter", function () {
 
-        it("Q1 should create a variable with a sync  setter",function(done) {
+        it("Q1 should create a variable with a sync  setter", function (done) {
 
             var variable = the_address_space.addVariable(rootFolder, {
                 browseName: "SomeVariableQ1",
@@ -496,7 +497,9 @@ describe("testing Variable#bindVariable", function () {
                 sourcePicoseconds: 100
             };
             var options = {
-                get: function() { return value_with_timestamp.value; },
+                get: function () {
+                    return value_with_timestamp.value;
+                },
                 set: function (value) {
                     value_with_timestamp.value = value;
                     return StatusCodes.Good;
@@ -506,7 +509,7 @@ describe("testing Variable#bindVariable", function () {
 
             async.series([
 
-                read_double_and_check.bind(null,variable,100,null),
+                read_double_and_check.bind(null, variable, 100, null),
 
                 function write_simple_value(callback) {
                     var dataValue = new DataValue({
@@ -520,11 +523,11 @@ describe("testing Variable#bindVariable", function () {
                         callback(err);
                     });
                 },
-                read_double_and_check.bind(null,variable,200,null)
+                read_double_and_check.bind(null, variable, 200, null)
             ], done);
         });
 
-        it("Q2 should create a variable with a async  setter",function(done) {
+        it("Q2 should create a variable with a async  setter", function (done) {
 
             var variable = the_address_space.addVariable(rootFolder, {
                 browseName: "SomeVariableQ1",
@@ -538,19 +541,21 @@ describe("testing Variable#bindVariable", function () {
                 sourcePicoseconds: 100
             };
             var options = {
-                get: function() { return value_with_timestamp.value; },
-                set: function (value,callback) {
-                    setTimeout(function() {
+                get: function () {
+                    return value_with_timestamp.value;
+                },
+                set: function (value, callback) {
+                    setTimeout(function () {
                         value_with_timestamp.value = value;
-                        callback(null,StatusCodes.Good);
-                    },10);
+                        callback(null, StatusCodes.Good);
+                    }, 10);
                 }
             };
             variable.bindVariable(options);
 
             async.series([
 
-                read_double_and_check.bind(null,variable,100,null),
+                read_double_and_check.bind(null, variable, 100, null),
 
                 function write_simple_value(callback) {
                     var dataValue = new DataValue({
@@ -559,16 +564,16 @@ describe("testing Variable#bindVariable", function () {
                             value: 200
                         }
                     });
-                    variable.writeValue(dataValue,null,  function (err,statusCode) {
+                    variable.writeValue(dataValue, null, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.Good);
                         callback(err);
                     });
                 },
-                read_double_and_check.bind(null,variable,200,null)
+                read_double_and_check.bind(null, variable, 200, null)
             ], done);
         });
 
-        it("Q3 should create a variable with a sync timestamped setter",function(done) {
+        it("Q3 should create a variable with a sync timestamped setter", function (done) {
 
             var variable = the_address_space.addVariable(rootFolder, {
                 browseName: "SomeVariableQ1",
@@ -578,27 +583,27 @@ describe("testing Variable#bindVariable", function () {
 
             var value_with_timestamp = new DataValue({
                 value: new Variant({dataType: DataType.Double, value: 100}),
-                sourceTimestamp: new Date(1999,9,9),
+                sourceTimestamp: new Date(1999, 9, 9),
                 sourcePicoseconds: 100
             });
             var options = {
-                timestamped_get: function() {
+                timestamped_get: function () {
                     return value_with_timestamp;
                 },
-                timestamped_set: function (ts_value,callback) {
+                timestamped_set: function (ts_value, callback) {
                     value_with_timestamp.value = ts_value.value;
                     value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
-                    value_with_timestamp.sourcePicoseconds= ts_value.sourcePicoseconds;
-                    callback(null,StatusCodes.Good);
+                    value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
+                    callback(null, StatusCodes.Good);
                 }
             };
             variable.bindVariable(options);
 
-            var expected_date1= new Date(1999,9,9);
-            var expected_date2= new Date(2010,9,9);
+            var expected_date1 = new Date(1999, 9, 9);
+            var expected_date2 = new Date(2010, 9, 9);
             async.series([
 
-                read_double_and_check.bind(null,variable,100,expected_date1),
+                read_double_and_check.bind(null, variable, 100, expected_date1),
 
                 function write_simple_value(callback) {
                     var dataValue = new DataValue({
@@ -614,20 +619,19 @@ describe("testing Variable#bindVariable", function () {
                     });
                 },
 
-                read_double_and_check.bind(null,variable,200,expected_date2)
+                read_double_and_check.bind(null, variable, 200, expected_date2)
             ], done);
         });
 
     });
 
 
-
 });
 
 
-describe("testing Variable#writeValue Scalar",function() {
+describe("testing Variable#writeValue Scalar", function () {
 
-    var the_address_space, rootFolder,variable;
+    var the_address_space, rootFolder, variable;
 
     before(function (done) {
 
@@ -654,7 +658,7 @@ describe("testing Variable#writeValue Scalar",function() {
             done();
         });
     });
-    beforeEach(function(done){
+    beforeEach(function (done) {
 
         var dataValue = new DataValue({
             value: {
@@ -677,7 +681,7 @@ describe("testing Variable#writeValue Scalar",function() {
         rootFolder = null;
     });
 
-    it("should write a double in a Duration ",function(done){
+    it("should write a double in a Duration ", function (done) {
 
         var dataValue = new DataValue({
             value: {
@@ -696,9 +700,9 @@ describe("testing Variable#writeValue Scalar",function() {
 
 });
 
-describe("testing Variable#writeValue Array",function(){
+describe("testing Variable#writeValue Array", function () {
 
-    var the_address_space, rootFolder,variable;
+    var the_address_space, rootFolder, variable;
 
     before(function (done) {
         the_address_space = new address_space.AddressSpace();
@@ -727,19 +731,19 @@ describe("testing Variable#writeValue Array",function(){
             done();
         });
     });
-    beforeEach(function(done){
+    beforeEach(function (done) {
         var dataValue = new DataValue({
             value: {
                 dataType: DataType.Double,
                 arrayType: VariantArrayType.Array,
-                value: [ 1,2,3,4,5,6]
+                value: [1, 2, 3, 4, 5, 6]
             }
         });
 
         variable.writeValue(dataValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             var dataValue_check = variable.readAttribute(AttributeIds.Value);
-            dataValue_check.value.value.should.eql(new Float64Array([ 1,2,3,4,5,6]));
+            dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
             done(err);
         });
     });
@@ -749,16 +753,16 @@ describe("testing Variable#writeValue Array",function(){
         rootFolder = null;
     });
 
-     it("A1 should write an array ",function(done) {
+    it("A1 should write an array ", function (done) {
 
         async.series([
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 callback(null);
             },
 
@@ -768,7 +772,7 @@ describe("testing Variable#writeValue Array",function(){
                     value: {
                         dataType: DataType.Double,
                         arrayType: VariantArrayType.Array,
-                        value: [ 2,3,4,5,6,7]
+                        value: [2, 3, 4, 5, 6, 7]
                     }
                 });
 
@@ -778,28 +782,28 @@ describe("testing Variable#writeValue Array",function(){
                 });
             },
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([2,3,4,5,6,7]));
+                dataValue_check.value.value.should.eql(new Float64Array([2, 3, 4, 5, 6, 7]));
                 callback(null);
             }
 
-        ],done);
+        ], done);
     });
 
-    it("A2 should write an portion of an array ",function(done) {
+    it("A2 should write an portion of an array ", function (done) {
 
         async.series([
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 callback(null);
             },
 
@@ -809,7 +813,7 @@ describe("testing Variable#writeValue Array",function(){
                     value: {
                         dataType: DataType.Double,
                         arrayType: VariantArrayType.Array,
-                        value: [ 500 ]
+                        value: [500]
                     }
                 });
 
@@ -821,28 +825,28 @@ describe("testing Variable#writeValue Array",function(){
                 });
             },
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([1,500,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 500, 3, 4, 5, 6]));
                 callback(null);
             }
 
-        ],done);
+        ], done);
     });
 
-    it("A3 should write statusCode= GoodClamped and retrieve statusCode GoodClamped",function(done){
+    it("A3 should write statusCode= GoodClamped and retrieve statusCode GoodClamped", function (done) {
 
         async.series([
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 callback(null);
             },
             function (callback) {
@@ -852,7 +856,7 @@ describe("testing Variable#writeValue Array",function(){
                     value: {
                         dataType: DataType.Double,
                         arrayType: VariantArrayType.Array,
-                        value: [1,2,3,4,5,6]
+                        value: [1, 2, 3, 4, 5, 6]
                     }
                 });
 
@@ -861,28 +865,28 @@ describe("testing Variable#writeValue Array",function(){
                     callback(err);
                 });
             },
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
-                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 callback(null);
             }
 
-        ],done);
+        ], done);
 
     });
-    it("A4 should write statusCode= GoodClamped and retrieve statusCode GoodClamped with index range",function(done){
+    it("A4 should write statusCode= GoodClamped and retrieve statusCode GoodClamped with index range", function (done) {
 
         async.series([
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 callback(null);
             },
             function (callback) {
@@ -901,35 +905,35 @@ describe("testing Variable#writeValue Array",function(){
                     callback(err);
                 });
             },
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
-                dataValue_check.value.value.should.eql(new Float64Array([1,200,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 200, 3, 4, 5, 6]));
                 callback(null);
             }
 
-        ],done);
+        ], done);
 
     });
-    it("should write sourceTimestamp and retrieve sourceTimestamp",function(done){
+    it("should write sourceTimestamp and retrieve sourceTimestamp", function (done) {
 
         async.series([
 
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                dataValue_check.value.value.should.eql(new Float64Array([1,2,3,4,5,6]));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 callback(null);
             },
             function (callback) {
 
                 var dataValue = new DataValue({
                     statusCode: StatusCodes.GoodClamped,
-                    sourceTimestamp: new Date(1789,7,14),
+                    sourceTimestamp: new Date(1789, 7, 14),
                     sourcePicoseconds: 1234,
                     value: {
                         dataType: DataType.Double,
@@ -943,17 +947,17 @@ describe("testing Variable#writeValue Array",function(){
                     callback(err);
                 });
             },
-            function(callback) {
+            function (callback) {
 
                 var dataValue_check = variable.readAttribute(AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
-                dataValue_check.value.value.should.eql(new Float64Array([1,200,3,4,5,6]));
-                dataValue_check.sourceTimestamp.should.eql(new Date(1789,7,14));
+                dataValue_check.value.value.should.eql(new Float64Array([1, 200, 3, 4, 5, 6]));
+                dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
                 callback(null);
             }
 
-        ],done);
+        ], done);
 
     });
 
@@ -961,8 +965,7 @@ describe("testing Variable#writeValue Array",function(){
 });
 
 
-
-describe("testing Variable#writeValue on Integer",function() {
+describe("testing Variable#writeValue on Integer", function () {
 
     var the_address_space, rootFolder, variableInteger, variableInt32;
 
@@ -1018,7 +1021,7 @@ describe("testing Variable#writeValue on Integer",function() {
     });
 
 
-    function verify_badtypemismatch(variable,dataType,value,done) {
+    function verify_badtypemismatch(variable, dataType, value, done) {
         // same as CTT test write582err021 Err-011.js
         var dataValue = new DataValue({
             value: {
@@ -1032,7 +1035,8 @@ describe("testing Variable#writeValue on Integer",function() {
             done(err);
         });
     }
-    function verify_writeOK(variable,dataType,value,done) {
+
+    function verify_writeOK(variable, dataType, value, done) {
         // same as CTT test write582err021 Err-011.js
         var dataValue = new DataValue({
             value: {
@@ -1046,25 +1050,26 @@ describe("testing Variable#writeValue on Integer",function() {
             done(err);
         });
     }
-    it("Z1 should not be possible to write a Byte Value into an integer Variable",function(done){
-        verify_badtypemismatch(variableInteger,DataType.Byte,36,done);
+
+    it("Z1 should not be possible to write a Byte Value into an integer Variable", function (done) {
+        verify_badtypemismatch(variableInteger, DataType.Byte, 36, done);
     });
-    it("Z2 should not be possible to write a UInt16 Value into an integer Variable",function(done){
-        verify_badtypemismatch(variableInteger,DataType.UInt16,36,done);
+    it("Z2 should not be possible to write a UInt16 Value into an integer Variable", function (done) {
+        verify_badtypemismatch(variableInteger, DataType.UInt16, 36, done);
     });
-    it("Z3 should not be possible to write a UInt32 Value into an integer Variable",function(done){
-        verify_badtypemismatch(variableInteger,DataType.UInt32,36,done);
+    it("Z3 should not be possible to write a UInt32 Value into an integer Variable", function (done) {
+        verify_badtypemismatch(variableInteger, DataType.UInt32, 36, done);
     });
 
-    it("Z2 should not be possible to write a UInt16 Value into an Integer Variable",function(done){
-        verify_badtypemismatch(variableInteger,DataType.UInt16,36,done);
+    it("Z2 should not be possible to write a UInt16 Value into an Integer Variable", function (done) {
+        verify_badtypemismatch(variableInteger, DataType.UInt16, 36, done);
     });
-    it("Z3 should not be possible to write a UInt64 Value into an integer Variable",function(done){
-        verify_badtypemismatch(variableInteger,DataType.UInt64,36,done);
+    it("Z3 should not be possible to write a UInt64 Value into an integer Variable", function (done) {
+        verify_badtypemismatch(variableInteger, DataType.UInt64, 36, done);
     });
 
-    it("Z1 should not be possible to write a Byte Value into an Integer Variable",function(done){
-        verify_badtypemismatch(variableInteger,DataType.Byte,36,done);
+    it("Z1 should not be possible to write a Byte Value into an Integer Variable", function (done) {
+        verify_badtypemismatch(variableInteger, DataType.Byte, 36, done);
     });
 
 
@@ -1072,38 +1077,37 @@ describe("testing Variable#writeValue on Integer",function() {
     //xxx     perform_test(DataType.UInt64,36,done);
     //xxx});
 
-    it("Z1 should not be possible to write a Byte Value into an Int32 Variable",function(done){
-        verify_badtypemismatch(variableInt32,DataType.Byte,36,done);
+    it("Z1 should not be possible to write a Byte Value into an Int32 Variable", function (done) {
+        verify_badtypemismatch(variableInt32, DataType.Byte, 36, done);
     });
-    it("Z2 should not be possible to write a UInt16 Value into an Int32 Variable",function(done){
-        verify_badtypemismatch(variableInt32,DataType.UInt16,36,done);
+    it("Z2 should not be possible to write a UInt16 Value into an Int32 Variable", function (done) {
+        verify_badtypemismatch(variableInt32, DataType.UInt16, 36, done);
     });
-    it("Z3 should not be possible to write a UInt32 Value into an Int32 Variable",function(done){
-        verify_badtypemismatch(variableInt32,DataType.UInt32,36,done);
+    it("Z3 should not be possible to write a UInt32 Value into an Int32 Variable", function (done) {
+        verify_badtypemismatch(variableInt32, DataType.UInt32, 36, done);
     });
-    it("Z1 should not be possible to write a SByte Value into an Int32 Variable",function(done){
-        verify_badtypemismatch(variableInt32,DataType.SByte,36,done);
+    it("Z1 should not be possible to write a SByte Value into an Int32 Variable", function (done) {
+        verify_badtypemismatch(variableInt32, DataType.SByte, 36, done);
     });
-    it("Z2 should not be possible to write a Int16 Value into an Int32 Variable",function(done){
-        verify_badtypemismatch(variableInt32,DataType.Int16,36,done);
+    it("Z2 should not be possible to write a Int16 Value into an Int32 Variable", function (done) {
+        verify_badtypemismatch(variableInt32, DataType.Int16, 36, done);
     });
-    it("Z3 should not be possible to write a UInt32 Value into an Int32 Variable",function(done){
-        verify_badtypemismatch(variableInt32,DataType.UInt32,36,done);
+    it("Z3 should not be possible to write a UInt32 Value into an Int32 Variable", function (done) {
+        verify_badtypemismatch(variableInt32, DataType.UInt32, 36, done);
     });
 
-    it("Z3 should  possible to write a Int32 Value into an Int32 Variable",function(done){
-        verify_writeOK(variableInt32,DataType.Int32,36,done);
+    it("Z3 should  possible to write a Int32 Value into an Int32 Variable", function (done) {
+        verify_writeOK(variableInt32, DataType.Int32, 36, done);
     });
 });
 
 
-describe("testing Variable#clone ",function() {
+describe("testing Variable#clone ", function () {
 
 
     var the_address_space, rootFolder, variableInteger;
 
     before(function (done) {
-
 
 
         the_address_space = new address_space.AddressSpace();
@@ -1112,7 +1116,7 @@ describe("testing Variable#clone ",function() {
             if (!err) {
                 rootFolder = the_address_space.findObject("RootFolder");
 
-                variableInteger = the_address_space.addVariable(rootFolder,{
+                variableInteger = the_address_space.addVariable(rootFolder, {
                     browseName: "some INTEGER Variable",
                     minimumSamplingInterval: 10,
                     userAccessLevel: 0,
@@ -1129,7 +1133,7 @@ describe("testing Variable#clone ",function() {
         });
     });
 
-    it("should clone a variable",function() {
+    it("should clone a variable", function () {
 
         variableInteger.browseName.toString().should.eql("some INTEGER Variable");
         variableInteger._dataValue.value.dataType.should.eql(DataType.Int32);
@@ -1145,10 +1149,10 @@ describe("testing Variable#clone ",function() {
         variableIntegerClone._dataValue.value.should.eql(variableInteger._dataValue.value);
     });
 
-    it("#readValueAsync should cope with faulty refreshFunc -- calling callback with an error",function(done) {
+    it("#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", function (done) {
 
         rootFolder = the_address_space.findObject("RootFolder");
-        var temperatureVar =the_address_space.addVariable(rootFolder, {
+        var temperatureVar = the_address_space.addVariable(rootFolder, {
             browseName: "BadVar",
             nodeId: "ns=1;s=BadVar",
             dataType: "Double",
@@ -1166,35 +1170,35 @@ describe("testing Variable#clone ",function() {
                 }
             }
         });
-        temperatureVar.readValueAsync(function(err,value){
+        temperatureVar.readValueAsync(function (err, value) {
             should(err).not.eql(null);
-            console.log("err=",err);
+            console.log("err=", err);
             done();
         });
     });
-    it("#readValueAsync should cope with faulty refreshFunc - crashing inside refreshFunc",function(done) {
+    it("#readValueAsync should cope with faulty refreshFunc - crashing inside refreshFunc", function (done) {
 
         rootFolder = the_address_space.findObject("RootFolder");
-        var temperatureVar =the_address_space.addVariable(rootFolder, {
+        var temperatureVar = the_address_space.addVariable(rootFolder, {
             browseName: "BadVar2",
             nodeId: "ns=1;s=BadVar2",
             dataType: "Double",
             value: {
                 refreshFunc: function (callback) {
-                   throw new Error("Something goes wrong here");
+                    throw new Error("Something goes wrong here");
                 }
             }
         });
-        temperatureVar.readValueAsync(function(err,value){
+        temperatureVar.readValueAsync(function (err, value) {
             should(err).not.eql(null);
-            console.log("err=",err);
+            console.log("err=", err);
             done();
         });
 
     });
-    it("#readValueAsync  should be reentrant",function(done) {
+    it("#readValueAsync  should be reentrant", function (done) {
         rootFolder = the_address_space.findObject("RootFolder");
-        var temperatureVar =the_address_space.addVariable(rootFolder, {
+        var temperatureVar = the_address_space.addVariable(rootFolder, {
             browseName: "Temperature",
             nodeId: "ns=1;s=Temperature",
             dataType: "Double",
@@ -1207,25 +1211,27 @@ describe("testing Variable#clone ",function() {
                     var sourceTimestamp = new Date();
                     // simulate a asynchronous behaviour
                     setTimeout(function () {
-                        callback(null, new DataValue({ value:value, sourceTimestamp: sourceTimestamp}));
+                        callback(null, new DataValue({value: value, sourceTimestamp: sourceTimestamp}));
                     }, 100);
                 }
             }
         });
 
         var counter = 0;
-        var refValue =0;
-        function my_callback(err,value){
-            counter =counter +1;
+        var refValue = 0;
+
+        function my_callback(err, value) {
+            counter = counter + 1;
             if (counter === 1) {
                 refValue = value;
-            }else {
+            } else {
                 refValue.should.eql(value);
             }
-            if( counter === 4) {
+            if (counter === 4) {
                 done();
             }
         }
+
         // calling 4 times readValueAsync in parallel should cause the callback
         temperatureVar.readValueAsync(my_callback);
         temperatureVar.readValueAsync(my_callback);
@@ -1234,15 +1240,15 @@ describe("testing Variable#clone ",function() {
 
 
     });
-    it("#writeAttribute ",function(done){
+    it("#writeAttribute ", function (done) {
         var write_service = require("lib/services/write_service");
         var WriteValue = write_service.WriteValue;
 
         var v = new WriteValue({
             attributeId: AttributeIds.Description,
-            value: { value: { dataType: DataType.String,value: "New Description"}}
+            value: {value: {dataType: DataType.String, value: "New Description"}}
         });
-        variableInteger.writeAttribute(v,function(err,statusCode){
+        variableInteger.writeAttribute(v, function (err, statusCode) {
             done();
         });
 

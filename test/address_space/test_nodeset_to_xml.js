@@ -10,7 +10,7 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 //xx var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 var DataType = require("lib/datamodel/variant").DataType;
-var Variant =  require("lib/datamodel/variant").Variant;
+var Variant = require("lib/datamodel/variant").Variant;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
@@ -35,69 +35,67 @@ describe("testing nodeset to xml", function () {
         });
 
     });
-    afterEach(function() {
-       console.log("---------------------");
+    afterEach(function () {
+        console.log("---------------------");
     });
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
-    it("should output a standard extension object datatype to xml (Argument)",function() {
+    it("should output a standard extension object datatype to xml (Argument)", function () {
 
         var argumentDataType = address_space.findDataType("Argument");
         console.log(argumentDataType);
-        var str = dumpXml(argumentDataType,{});
+        var str = dumpXml(argumentDataType, {});
         console.log(str);
         str.should.match(/Argument/);
     });
 
-    it("should output a standard Enum node to xml (ServerState)",function() {
+    it("should output a standard Enum node to xml (ServerState)", function () {
         // TemperatureSensorType
         var serverStateType = address_space.findDataType("ServerState");
-        var str = dumpXml(serverStateType,{});
+        var str = dumpXml(serverStateType, {});
         console.log(str);
         str.should.match(/CommunicationFault/);
     });
 
-    it("should output a custom Enum node to xml (MyEnumType)",function() {
+    it("should output a custom Enum node to xml (MyEnumType)", function () {
 
         require("lib/address_space/address_space_add_enumeration_type");
 
         var myEnumType = address_space.addEnumerationType({
-            browseName:"MyEnumType",
+            browseName: "MyEnumType",
             enumeration: [
-                {name:"RUNNING",value:1,description: "the device is running"},
-                {name:"STOPPED",value:2,description: "the device is stopped"}
+                {name: "RUNNING", value: 1, description: "the device is running"},
+                {name: "STOPPED", value: 2, description: "the device is stopped"}
             ]
         });
 
         myEnumType.browseName.toString().should.eql("MyEnumType");
-        var str = dumpXml(myEnumType,{});
+        var str = dumpXml(myEnumType, {});
         console.log(str);
         str.should.match(/RUNNING/);
 
     });
 
-    it("should output a simple objecType node to xml",function() {
+    it("should output a simple objecType node to xml", function () {
         // TemperatureSensorType
         var temperatureSensorType = createTemperatureSensorType(address_space);
 
-        var str = dumpXml(temperatureSensorType,{});
+        var str = dumpXml(temperatureSensorType, {});
         console.log(str);
         str.should.match(/UAObjectType/);
     });
 
 
-
-
-    it("should output a instance of a new ObjectType  to xml",function() {
+    it("should output a instance of a new ObjectType  to xml", function () {
 
         // TemperatureSensorType
-        var temperatureSensorType = address_space.addObjectType({ browseName: "TemperatureSensorType" });
-        address_space.addVariable(temperatureSensorType,{
-            browseName:     "Temperature",
-            description:    "the temperature value of the sensor in Celsius <°C>",
-            dataType:       "Double",
-            modellingRule:  "Mandatory",
-            value: new Variant({ dataType: DataType.Double, value: 19.5})
+        var temperatureSensorType = address_space.addObjectType({browseName: "TemperatureSensorType"});
+        address_space.addVariable(temperatureSensorType, {
+            browseName: "Temperature",
+            description: "the temperature value of the sensor in Celsius <°C>",
+            dataType: "Double",
+            modellingRule: "Mandatory",
+            value: new Variant({dataType: DataType.Double, value: 19.5})
         });
 
         var parentFolder = address_space.findObject("RootFolder");
@@ -106,33 +104,32 @@ describe("testing nodeset to xml", function () {
         // variation 1
         var temperatureSensor = temperatureSensorType.instantiate({
             organizedBy: parentFolder,
-            browseName:"MyTemperatureSensor"
+            browseName: "MyTemperatureSensor"
         });
 
         // variation 2
         var temperatureSensor2 = temperatureSensorType.instantiate({
             organizedBy: "RootFolder",
-            browseName:  "MyTemperatureSensor"
+            browseName: "MyTemperatureSensor"
         });
 
 
-
-        var str = dumpXml(temperatureSensor,{});
+        var str = dumpXml(temperatureSensor, {});
         console.log(str);
         str.should.match(/UAObjectType/g);
 
     });
-    it("should output a instance of object with method  to xml",function() {
+    it("should output a instance of object with method  to xml", function () {
 
         var createCameraType = require("./fixture_camera_type").createCameraType;
 
         var cameraType = createCameraType(address_space);
 
         var camera1 = cameraType.instantiate({
-            organizedBy:"RootFolder",
-            browseName:"Camera1"
+            organizedBy: "RootFolder",
+            browseName: "Camera1"
         });
-        var str = dumpXml(camera1,{});
+        var str = dumpXml(camera1, {});
         console.log(str);
         str.should.match(/UAObjectType/g);
         str.should.match(/UAObjectType/g);

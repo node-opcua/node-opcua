@@ -1,9 +1,9 @@
 require("requirish")._(module);
 
 var s = require("lib/datamodel/structures");
-var sc= require("lib/services/secure_channel_service");
+var sc = require("lib/services/secure_channel_service");
 
-exports.fixture1 = (function(){
+exports.fixture1 = (function () {
 
     var securityHeader = new sc.AsymmetricAlgorithmSecurityHeader();
     securityHeader.securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None";

@@ -7,7 +7,7 @@ var hs = require("lib/services/historizing_service");
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
-describe("Historizing Service", function() {
+describe("Historizing Service", function () {
 
     it("should create a empty HistoryReadRequest", function () {
         var readRequest = new hs.HistoryReadRequest({});

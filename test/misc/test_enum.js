@@ -95,7 +95,7 @@ describe("Benchmarking Enums", function () {
 
         var bench = new Benchmarker();
 
-        var keys = _.isArray(params)? params: Object.keys(params);
+        var keys = _.isArray(params) ? params : Object.keys(params);
 
         function test_iteration(en) {
 
@@ -122,26 +122,26 @@ describe("Benchmarking Enums", function () {
             test_iteration(en);
 
         })
-        .add('fastEnum', function () {
+            .add('fastEnum', function () {
 
-            var en = new EnumFast(params);
-            test_iteration(en);
-        })
-        .on('cycle', function (message) {
-            console.log(message);
-        })
-        .on('complete', function () {
+                var en = new EnumFast(params);
+                test_iteration(en);
+            })
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+            .on('complete', function () {
 
-            console.log(' Fastest is ' + this.fastest.name);
-            console.log(' Speed Up : x', this.speedUp);
-            if (this.speedUp>1.5) {
-                // if the speedUp is greater than 1 ,
-                // our implementation should win
-                this.fastest.name.should.eql("fastEnum");
-            }
-            done();
-        })
-        .run();
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                if (this.speedUp > 1.5) {
+                    // if the speedUp is greater than 1 ,
+                    // our implementation should win
+                    this.fastest.name.should.eql("fastEnum");
+                }
+                done();
+            })
+            .run();
 
     }
 
@@ -162,8 +162,8 @@ describe("Benchmarking Enums", function () {
             {key: "CurrentWrite", value: 0x02},
             {key: "CurrentWrite | CurrentWrite", value: 0x02},
             {key: "CurrentRead | CurrentWrite | HistoryRead | HistoryWrite | SemanticChange", value: 0x1F},
-            {key: "CurrentRead",  value: 0x01},
-            {key: "HistoryRead",  value: 0x04},
+            {key: "CurrentRead", value: 0x01},
+            {key: "HistoryRead", value: 0x04},
             {key: "HistoryWrite", value: 0x08}
         ];
         perform_benchmark(AccessLevelFlag, checks, done);
@@ -177,8 +177,8 @@ describe("Benchmarking Enums", function () {
             DISCOVERYSERVER: 3  // The application is a DiscoveryServer
         };
         var checks = [
-            {key: "SERVER",          value: 0},
-            {key: "CLIENT",          value: 1},
+            {key: "SERVER", value: 0},
+            {key: "CLIENT", value: 1},
             {key: "CLIENTANDSERVER", value: 2},
             {key: "DISCOVERYSERVER", value: 3}
         ];

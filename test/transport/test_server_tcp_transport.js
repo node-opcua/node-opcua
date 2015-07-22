@@ -121,7 +121,6 @@ describe("testing ServerTCP_transport", function () {
         });
 
 
-
         transport.on("message", function (messageChunk) {
 
             utils.compare_buffers(messageChunk, openChannelRequest);
@@ -154,11 +153,11 @@ describe("testing ServerTCP_transport", function () {
 
     });
 
-    it("should handle HEL message broken in two chunks (bug#36)",function(done) {
+    it("should handle HEL message broken in two chunks (bug#36)", function (done) {
 
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
-        var helloMessage_part1 = helloMessage.slice(0,10);
+        var helloMessage_part1 = helloMessage.slice(0, 10);
         var helloMessage_part2 = helloMessage.slice(10);
 
         fake_socket.client.write(helloMessage_part1);
@@ -168,12 +167,12 @@ describe("testing ServerTCP_transport", function () {
 
     });
 
-    it("should handle broken HEL message in three chunks (bug#36)",function(done) {
+    it("should handle broken HEL message in three chunks (bug#36)", function (done) {
 
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
-        var helloMessage_part1 = helloMessage.slice(0,10);
-        var helloMessage_part2 = helloMessage.slice(10,25);
+        var helloMessage_part1 = helloMessage.slice(0, 10);
+        var helloMessage_part2 = helloMessage.slice(10, 25);
         var helloMessage_part3 = helloMessage.slice(25);
 
         fake_socket.client.write(helloMessage_part1);
@@ -184,11 +183,11 @@ describe("testing ServerTCP_transport", function () {
 
     });
 
-    it("should handle broken HEL message in many small chunks (bug#36)",function(done) {
+    it("should handle broken HEL message in many small chunks (bug#36)", function (done) {
 
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
-        for (var i=0;i<helloMessage.length;i++) {
-            var single_byte_chunk = helloMessage.slice(i,i+1);
+        for (var i = 0; i < helloMessage.length; i++) {
+            var single_byte_chunk = helloMessage.slice(i, i + 1);
             fake_socket.client.write(single_byte_chunk);
         }
         fake_socket.client.write(openChannelRequest);

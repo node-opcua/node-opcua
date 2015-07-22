@@ -1,3 +1,5 @@
+// "strict": [2, "always"]
+"use strict";
 require("requirish")._(module);
 var readline = require('readline');
 var treeify = require('treeify');

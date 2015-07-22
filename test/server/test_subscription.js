@@ -1,7 +1,7 @@
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 "use strict";
 require("requirish")._(module);
-var should =require("should");
+var should = require("should");
 var sinon = require("sinon");
 
 var subscription_service = require("lib/services/subscription_service");
@@ -17,22 +17,24 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = {
         pendingPublishRequestCount: 0,
-        send_notification_message: function() {},
-        send_keep_alive_response: function() {
-            if (this.pendingPublishRequestCount <=0) {
+        send_notification_message: function () {
+        },
+        send_keep_alive_response: function () {
+            if (this.pendingPublishRequestCount <= 0) {
                 return false;
             }
-            this.pendingPublishRequestCount -=1;
-            return true;            }
+            this.pendingPublishRequestCount -= 1;
+            return true;
+        }
     };
 
 }
 describe("Subscriptions", function () {
 
-    before(function() {
+    before(function () {
         resourceLeakDetector.start();
     });
-    after(function() {
+    after(function () {
         resourceLeakDetector.stop();
     });
     beforeEach(function () {
@@ -47,10 +49,10 @@ describe("Subscriptions", function () {
     it("a subscription will make sure that lifeTimeCount is at least 3 times  maxKeepAliveCount", function () {
 
         {
-           var subscription1 = new Subscription({
+            var subscription1 = new Subscription({
                 publishingInterval: 1000,
-                maxKeepAliveCount:  20,
-                lifeTimeCount:   60, // at least 3 times maxKeepAliveCount
+                maxKeepAliveCount: 20,
+                lifeTimeCount: 60, // at least 3 times maxKeepAliveCount
                 //
                 publishEngine: fake_publish_engine
             });
@@ -63,8 +65,8 @@ describe("Subscriptions", function () {
         {
             var subscription2 = new Subscription({
                 publishingInterval: 1000,
-                maxKeepAliveCount:  20,
-                lifeTimeCount:   1, // at least 3 times maxKeepAliveCount
+                maxKeepAliveCount: 20,
+                lifeTimeCount: 1, // at least 3 times maxKeepAliveCount
                 //
                 publishEngine: fake_publish_engine
             });
@@ -79,8 +81,8 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount:  20,
-            lifeTimeCount:   60, // at least 3 times maxKeepAliveCount
+            maxKeepAliveCount: 20,
+            lifeTimeCount: 60, // at least 3 times maxKeepAliveCount
             //
             publishEngine: fake_publish_engine
         });
@@ -118,8 +120,8 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,   // 1 second interval
-            lifeTimeCount:   100000, // very long lifeTimeCount not to be bother by client not pinging us
-            maxKeepAliveCount:  20,
+            lifeTimeCount: 100000, // very long lifeTimeCount not to be bother by client not pinging us
+            maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
         });
@@ -168,48 +170,50 @@ describe("Subscriptions", function () {
 
     });
 
-    describe("a subscription shall send its first notification as soon as the publish request is available",function() {
+    describe("a subscription shall send its first notification as soon as the publish request is available", function () {
         var server_engine = require("lib/server/server_engine");
         var DataType = require("lib/datamodel/variant").DataType;
 
         var address_space;
         var someVariableNode;
         var engine;
-        before(function(done) {
+        before(function (done) {
             engine = new server_engine.ServerEngine();
-            engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
+            engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
                 address_space = engine.address_space;
-                var node = address_space.addVariable("RootFolder",{
+                var node = address_space.addVariable("RootFolder", {
                     browseName: "SomeVariable",
-                    dataType:"UInt32",
-                    value: { dataType: DataType.UInt32,value: 0}
+                    dataType: "UInt32",
+                    value: {dataType: DataType.UInt32, value: 0}
                 });
                 someVariableNode = node.nodeId;
                 done();
             });
         });
-        after(function() {
+        after(function () {
             engine.shutdown();
             engine = null;
         });
 
         var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
         var publish_engine;
+
         function simulate_client_adding_publish_request(publishEngine, callback) {
             var publishRequest = new subscription_service.PublishRequest({});
             publishEngine._on_PublishRequest(publishRequest, callback);
         }
-        var subscription;
-        var notification_event_spy,keepalive_event_spy,expire_event_spy;
 
-        beforeEach(function(){
+        var subscription;
+        var notification_event_spy, keepalive_event_spy, expire_event_spy;
+
+        beforeEach(function () {
 
             publish_engine = new ServerSidePublishEngine();
             subscription = new Subscription({
                 publishingInterval: 100,
-                maxKeepAliveCount:   10,
-                lifeTimeCount:       30,
-                publishingEnabled:   true,
+                maxKeepAliveCount: 10,
+                lifeTimeCount: 30,
+                publishingEnabled: true,
                 publishEngine: publish_engine
             });
             subscription.id = 1000;
@@ -224,7 +228,7 @@ describe("Subscriptions", function () {
 
         });
 
-        afterEach(function(done) {
+        afterEach(function (done) {
             subscription.on("terminated", function () {
                 done();
             });
@@ -232,21 +236,21 @@ describe("Subscriptions", function () {
             subscription = null;
         });
 
-        it(" - case 1 - publish Request arrives before first publishInterval is over ",function(done){
+        it(" - case 1 - publish Request arrives before first publishInterval is over ", function (done) {
             // in this case the subscription received a first publish request before the first tick is processed
 
             simulate_client_adding_publish_request(subscription.publishEngine);
 
-            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
+            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);
             keepalive_event_spy.callCount.should.eql(1);
             this.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(1);
             done();
 
         });
-        it(" - case 2  - publish Request arrives late (after first publishInterval is over)",function(done){
+        it(" - case 2  - publish Request arrives late (after first publishInterval is over)", function (done) {
             // now simulate some data change
-            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
+            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);
 
             keepalive_event_spy.callCount.should.eql(0);
             simulate_client_adding_publish_request(subscription.publishEngine);
@@ -258,9 +262,9 @@ describe("Subscriptions", function () {
             done();
 
         });
-        it(" - case 3  - publish Request arrives late (after first publishInterval is over)",function(done){
+        it(" - case 3  - publish Request arrives late (after first publishInterval is over)", function (done) {
 
-            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
+            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);
             keepalive_event_spy.callCount.should.eql(0);
             subscription.state.key.should.eql("LATE");
 
@@ -283,7 +287,7 @@ describe("Subscriptions", function () {
             done();
 
         });
-        it(" - case 3(with monitoredItem) - publish Request arrives late (after first publishInterval is over)",function(done){
+        it(" - case 3(with monitoredItem) - publish Request arrives late (after first publishInterval is over)", function (done) {
 
             var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
             var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
@@ -295,15 +299,15 @@ describe("Subscriptions", function () {
                 itemToMonitor: {nodeId: someVariableNode},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
-                   clientHandle: 123,
-                   queueSize: 10,
-                   samplingInterval: 100
-               }
+                    clientHandle: 123,
+                    queueSize: 10,
+                    samplingInterval: 100
+                }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
-            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
+            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);
             keepalive_event_spy.callCount.should.eql(0);
             subscription.state.key.should.eql("LATE");
 
@@ -325,7 +329,7 @@ describe("Subscriptions", function () {
             done();
         });
 
-        it(" - case 3(with monitoredItem - 3x value writes) - publish Request arrives late (after first publishInterval is over)",function(done){
+        it(" - case 3(with monitoredItem - 3x value writes) - publish Request arrives late (after first publishInterval is over)", function (done) {
 
             var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
             var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
@@ -345,7 +349,7 @@ describe("Subscriptions", function () {
             var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
-            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount /2);
+            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);
             keepalive_event_spy.callCount.should.eql(0);
             subscription.state.key.should.eql("LATE");
 
@@ -379,7 +383,6 @@ describe("Subscriptions", function () {
             keepalive_event_spy.callCount.should.eql(0);
             done();
         });
-
 
 
     });
@@ -501,7 +504,7 @@ describe("Subscriptions", function () {
 
     });
 
-    it("a subscription shall maintain a retransmission queue of pending NotificationMessages.",function(){
+    it("a subscription shall maintain a retransmission queue of pending NotificationMessages.", function () {
 
         var subscription = new Subscription({
             id: 1234,
@@ -522,7 +525,7 @@ describe("Subscriptions", function () {
     });
 
     //OPC Unified Architecture, Part 4 74 Release 1.01
-    it("a subscription shall maintain a retransmission queue of sent NotificationMessages.",function(){
+    it("a subscription shall maintain a retransmission queue of sent NotificationMessages.", function () {
 
         var subscription = new Subscription({
             id: 1234,
@@ -548,9 +551,9 @@ describe("Subscriptions", function () {
 
 
     });
-    describe("NotificationMessages are retained in this queue until they are acknowledged or until they have been in the queue for a minimum of one keep-alive interval.",function(){
+    describe("NotificationMessages are retained in this queue until they are acknowledged or until they have been in the queue for a minimum of one keep-alive interval.", function () {
 
-        it("a NotificationMessage is retained in this queue until it is acknowledged",function(){
+        it("a NotificationMessage is retained in this queue until it is acknowledged", function () {
 
             var subscription = new Subscription({
                 id: 1234,
@@ -586,7 +589,7 @@ describe("Subscriptions", function () {
 
         });
 
-        it("A notificationMessage that hasn't been acknowledge should be accessiblef for republish",function() {
+        it("A notificationMessage that hasn't been acknowledge should be accessiblef for republish", function () {
             //#getMessageForSequenceNumber
             var subscription = new Subscription({
                 id: 1234,
@@ -613,7 +616,7 @@ describe("Subscriptions", function () {
 
 
             //
-                var notification2 = subscription.getMessageForSequenceNumber(seqNum);
+            var notification2 = subscription.getMessageForSequenceNumber(seqNum);
             notification2.sequenceNumber.should.eql(seqNum);
             notification2.should.eql(notification1);
 
@@ -642,17 +645,17 @@ describe("Subscriptions", function () {
             subscription.popNotificationToSend();
             subscription.sentNotificationsCount.should.equal(1);
 
-            this.clock.tick(1000*5);
+            this.clock.tick(1000 * 5);
             // create a notification at t=1000*5
             subscription.addNotificationMessage({});
             subscription.popNotificationToSend();
             subscription.sentNotificationsCount.should.equal(2);
 
-            this.clock.tick(1000*20);
+            this.clock.tick(1000 * 20);
             // now check that at t=1000*25 , old notification has been discarded
             subscription.sentNotificationsCount.should.equal(1);
 
-            this.clock.tick(1000*100);
+            this.clock.tick(1000 * 100);
             // now check that at t=1000*100 , old notification has been discarded
             subscription.sentNotificationsCount.should.equal(0);
 
@@ -669,8 +672,8 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 100,
-            maxKeepAliveCount:    5,
-            lifeTimeCount:    10,
+            maxKeepAliveCount: 5,
+            lifeTimeCount: 10,
             publishEngine: fake_publish_engine
         });
 
@@ -705,7 +708,7 @@ describe("Subscriptions", function () {
         subscription.terminate();
     });
 
-    it("a subscription send a first message at the end of the first publishing cycle without waiting for the maximum  count to be reached",function(){
+    it("a subscription send a first message at the end of the first publishing cycle without waiting for the maximum  count to be reached", function () {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
@@ -757,7 +760,7 @@ describe("Subscriptions", function () {
 
     });
 
-    it("the first Notification Message sent on a Subscription has a sequence number of 1.",function(){
+    it("the first Notification Message sent on a Subscription has a sequence number of 1.", function () {
         var subscription = new Subscription({
             publishEngine: fake_publish_engine
         });
@@ -770,7 +773,7 @@ describe("Subscriptions", function () {
         subscription.terminate();
     });
 
-    it("should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist",function(){
+    it("should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist", function () {
 
         var subscription = new Subscription({
             publishEngine: fake_publish_engine
@@ -780,14 +783,14 @@ describe("Subscriptions", function () {
         subscription.terminate();
 
     });
-    xit("closing a Subscription causes its MonitoredItems to be deleted. ",function(){
+    xit("closing a Subscription causes its MonitoredItems to be deleted. ", function () {
 
     });
 
 
 });
 
-describe("Subscription#setPublishingMode",function() {
+describe("Subscription#setPublishingMode", function () {
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
@@ -797,16 +800,16 @@ describe("Subscription#setPublishingMode",function() {
     afterEach(function () {
         this.clock.restore();
     });
-    it("a subscription created with publishingEnabled=true shall emit notification",function(done) {
+    it("a subscription created with publishingEnabled=true shall emit notification", function (done) {
 
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
         var subscription = new Subscription({
             publishingInterval: 100,
-            maxKeepAliveCount:    5,
-            lifeTimeCount:    10,
-            publishingEnabled:   true,              //  PUBLISHING IS ENABLED !!!
+            maxKeepAliveCount: 5,
+            lifeTimeCount: 10,
+            publishingEnabled: true,              //  PUBLISHING IS ENABLED !!!
             publishEngine: fake_publish_engine
         });
 
@@ -840,16 +843,16 @@ describe("Subscription#setPublishingMode",function() {
         done();
     });
 
-    it("a subscription created with publishingEnabled=false shall not emit notification (but keepalive)",function(done) {
+    it("a subscription created with publishingEnabled=false shall not emit notification (but keepalive)", function (done) {
 
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
         var subscription = new Subscription({
             publishingInterval: 100,
-            maxKeepAliveCount:    5,
-            lifeTimeCount:    10,
-            publishingEnabled:   false,              //  PUBLISHING IS DISABLED !!!
+            maxKeepAliveCount: 5,
+            lifeTimeCount: 10,
+            publishingEnabled: false,              //  PUBLISHING IS DISABLED !!!
             publishEngine: fake_publish_engine
 
         });
@@ -883,23 +886,24 @@ describe("Subscription#setPublishingMode",function() {
         done();
     });
 
-    it("a publishing subscription can be disabled and re-enabled",function(done){
+    it("a publishing subscription can be disabled and re-enabled", function (done) {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
         var subscription = new Subscription({
             publishingInterval: 100,
-            maxKeepAliveCount:    5,
-            lifeTimeCount:    10,
-            publishingEnabled:   true,              //  PUBLISHING IS ENABLED !!!
+            maxKeepAliveCount: 5,
+            lifeTimeCount: 10,
+            publishingEnabled: true,              //  PUBLISHING IS ENABLED !!!
             publishEngine: fake_publish_engine
         });
 
         // pretend that we already have notification messages
-        function push_some_notification(){
+        function push_some_notification() {
             subscription.addNotificationMessage({});
         }
-        var t = setInterval(push_some_notification,50);
+
+        var t = setInterval(push_some_notification, 50);
 
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
@@ -936,61 +940,61 @@ describe("Subscription#setPublishingMode",function() {
 });
 
 
-describe("Subscription#adjustSamplingInterval",function() {
+describe("Subscription#adjustSamplingInterval", function () {
 
-    it("should have a minimum sampling interval, with a strictly positive value ( which is the fastest possible rate)",function() {
+    it("should have a minimum sampling interval, with a strictly positive value ( which is the fastest possible rate)", function () {
         MonitoredItem.minimumSamplingInterval.should.be.greaterThan(4);
     });
 
-    it("should have a default sampling interval, greater than minimumSamplingInterval ",function() {
+    it("should have a default sampling interval, greater than minimumSamplingInterval ", function () {
         MonitoredItem.defaultSamplingInterval.should.be.greaterThan(MonitoredItem.minimumSamplingInterval);
     });
 
-    it("should have a maximum sampling interval, greater than defaultSamplingInterval ",function() {
+    it("should have a maximum sampling interval, greater than defaultSamplingInterval ", function () {
         MonitoredItem.maximumSamplingInterval.should.be.greaterThan(MonitoredItem.defaultSamplingInterval);
     });
 
-    it("should adjust sampling interval to subscription publish interval when requested sampling interval === -1",function() {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
+    it("should adjust sampling interval to subscription publish interval when requested sampling interval === -1", function () {
+        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(-1).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
     });
-    it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value != -1",function() {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
+    it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value !== -1", function () {
+        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(-2).should.eql(subscription.publishingInterval);
         subscription.adjustSamplingInterval(-0.02).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
     });
 
-    it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)",function() {
+    it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(0).should.eql(0);
         subscription.terminate();
     });
 
-    it("should adjust sampling interval to minimum when requested sampling interval === 1",function() {
+    it("should adjust sampling interval to minimum when requested sampling interval === 1", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(1).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
     });
 
-    it("should adjust sampling interval to maximum when requested sampling interval is too high",function() {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
+    it("should adjust sampling interval to maximum when requested sampling interval is too high", function () {
+        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(1E10).should.eql(MonitoredItem.maximumSamplingInterval);
         subscription.terminate();
     });
 
-    it("should return an unmodified sampling interval when requested sampling is in valid range",function() {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
-        var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval)/2.0;
+    it("should return an unmodified sampling interval when requested sampling is in valid range", function () {
+        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval) / 2.0;
         subscription.adjustSamplingInterval(someValidSamplingInterval).should.eql(someValidSamplingInterval);
         subscription.terminate();
     });
 
-    it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low",function() {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine });
+    it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low", function () {
+        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         var someVeryLowSamplingInterval = 1;
         subscription.adjustSamplingInterval(someVeryLowSamplingInterval).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();

@@ -3,14 +3,15 @@ var factories = require("lib/misc/factories");
 var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMap;
 
 var fs = require("fs");
+var path = require("path");
 var _ = require("underscore");
 
 function getFiles(dir, files_) {
     files_ = files_ || [];
-    if (typeof files_ === 'undefined') files_ = [];
+    if (typeof files_ === 'undefined') { files_ = []; }
     var files = fs.readdirSync(dir);
     for (var i in files) {
-        if (!files.hasOwnProperty(i)) continue;
+        if (!files.hasOwnProperty(i)) { continue; }
         var name = dir + '/' + files[i];
         if (fs.statSync(name).isDirectory()) {
             //xx getFiles(name,files_);
@@ -35,7 +36,7 @@ var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_tr
 
 var folder_for_generated_file = require("lib/misc/factory_code_generator").folder_for_generated_file;
 
-var services_folder = __dirname + "/../lib/services";
+var services_folder = path.join(__dirname,"../lib/services");
 
 if (fs.existsSync("../_generated_/_auto_generated_SCHEMA_ServerState")) {
     require("../_generated_/_auto_generated_SCHEMA_ServerState");
@@ -50,11 +51,13 @@ describe("testing all auto_generated Class", function () {
 
     var files = getFiles(folder_for_generated_file);
     files = files.filter(function (f) {
-        return (f.indexOf("_auto_generated_") > 0 && f.indexOf("SCHEMA") == -1);
+        return (f.indexOf("_auto_generated_") > 0 && f.indexOf("SCHEMA") === -1);
     });
 
     // remove Callxxxx class that requires a special treatment
-    files = files.filter(function (f) { return  ! (f.indexOf("_Call") > 0); });
+    files = files.filter(function (f) {
+        return !(f.indexOf("_Call") > 0);
+    });
 
 
     files.forEach(function (filename) {
@@ -102,6 +105,6 @@ describe("testing all auto_generated Class", function () {
 
         });
 
-    })
+    });
 
 });

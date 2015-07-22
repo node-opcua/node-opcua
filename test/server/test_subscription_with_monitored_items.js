@@ -34,28 +34,28 @@ var fake_publish_engine = {
 
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var server_engine = require("lib/server/server_engine");
-var ServerEngine =  server_engine.ServerEngine;
+var ServerEngine = server_engine.ServerEngine;
 
 describe("Subscriptions and MonitoredItems", function () {
 
     var address_space;
     var someVariableNode;
     var engine;
-    before(function(done) {
+    before(function (done) {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
             address_space = engine.address_space;
-            var node = address_space.addVariable("RootFolder",{
+            var node = address_space.addVariable("RootFolder", {
                 browseName: "SomeVariable",
-                dataType:"UInt32",
-                value: { dataType: DataType.UInt32,value: 0}
+                dataType: "UInt32",
+                value: {dataType: DataType.UInt32, value: 0}
             });
             someVariableNode = node.nodeId;
             done();
         });
     });
-    after(function() {
+    after(function () {
         engine.shutdown();
         engine = null;
         resourceLeakDetector.stop();
@@ -89,7 +89,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         //xx require("lib/utils").dump(monitoredItemCreateResult);
@@ -128,7 +128,7 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
@@ -197,7 +197,7 @@ describe("Subscriptions and MonitoredItems", function () {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -265,7 +265,7 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
@@ -280,7 +280,7 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
 
-    it("should return an error when filter is DataChangeFilter deadband is out of bound",function(done) {
+    it("should return an error when filter is DataChangeFilter deadband is out of bound", function (done) {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -306,15 +306,15 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
         var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
-        var monitoredItemCreateResult1 = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both,monitoredItemCreateRequest1);
+        var monitoredItemCreateResult1 = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest1);
         monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
         var monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
-        var monitoredItemCreateResult2 = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both,monitoredItemCreateRequest2);
+        var monitoredItemCreateResult2 = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest2);
         monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
         var monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
-        var monitoredItemCreateResult3 = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both,monitoredItemCreateRequest3);
+        var monitoredItemCreateResult3 = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest3);
         monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
 
         subscription.terminate();
@@ -331,22 +331,22 @@ describe("#maxNotificationsPerPublish", function () {
     var someVariableNode;
     var engine;
     var publishEngine;
-    before(function(done) {
+    before(function (done) {
         resourceLeakDetector.start();
         publishEngine = new ServerSidePublishEngine();
         engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename},function(){
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
             address_space = engine.address_space;
-            var node = address_space.addVariable("RootFolder",{
+            var node = address_space.addVariable("RootFolder", {
                 browseName: "SomeVariable",
-                dataType:"UInt32",
-                value: { dataType: DataType.UInt32,value: 0}
+                dataType: "UInt32",
+                value: {dataType: DataType.UInt32, value: 0}
             });
             someVariableNode = node.nodeId;
             done();
         });
     });
-    after(function() {
+    after(function () {
         engine.shutdown();
         engine = null;
         if (publishEngine) {
@@ -356,22 +356,22 @@ describe("#maxNotificationsPerPublish", function () {
     });
 
 
-
     function simulate_client_adding_publish_request(callback) {
-        var publishRequest= new subscription_service.PublishRequest({});
-        publishEngine._on_PublishRequest(publishRequest,callback);
+        var publishRequest = new subscription_service.PublishRequest({});
+        publishEngine._on_PublishRequest(publishRequest, callback);
     }
 
-    function __callback(err,publishResponse){
+    //function __callback(err, publishResponse) {
+    //    should(err).eql(null);
+    //    console.log(" subscription Id  ".yellow, publishResponse.subscriptionId);
+    //    console.log(" more notification  ".yellow, publishResponse.moreNotifications);
+    //
+    //    var notificationData = publishResponse.notificationMessage.notificationData;
+    //    //xx console.log(" PublishResponse with ",notificationData);
+    //    console.log(" PublishResponse with ".yellow, notificationData[0].monitoredItems.length, " notifications");
+    //
+    //}
 
-        console.log(" subscription Id  ".yellow,publishResponse.subscriptionId);
-        console.log(" more notification  ".yellow,publishResponse.moreNotifications);
-
-        var notificationData =publishResponse.notificationMessage.notificationData;
-        //xx console.log(" PublishResponse with ",notificationData);
-        console.log(" PublishResponse with ".yellow,notificationData[0].monitoredItems.length," notifications");
-
-    }
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
     });
@@ -397,9 +397,10 @@ describe("#maxNotificationsPerPublish", function () {
 
         return notificationData.reduce(function (accumulated, data) {
             return accumulated + data.monitoredItems.length;
-        }, 0)
+        }, 0);
     }
-    function createMonitoredItem(subscription,clientHandle) {
+
+    function createMonitoredItem(subscription, clientHandle) {
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
@@ -410,7 +411,7 @@ describe("#maxNotificationsPerPublish", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space,TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
@@ -436,10 +437,10 @@ describe("#maxNotificationsPerPublish", function () {
         //xx subscription.on("notification", spy_notification_event);
 
 
-        var monitoredItem1 = createMonitoredItem(subscription,123);
-        var monitoredItem2 = createMonitoredItem(subscription,124);
-        var monitoredItem3 = createMonitoredItem(subscription,125);
-        var monitoredItem4 = createMonitoredItem(subscription,126);
+        var monitoredItem1 = createMonitoredItem(subscription, 123);
+        var monitoredItem2 = createMonitoredItem(subscription, 124);
+        var monitoredItem3 = createMonitoredItem(subscription, 125);
+        var monitoredItem4 = createMonitoredItem(subscription, 126);
 
 
         var spy_callback = sinon.spy();
@@ -488,15 +489,15 @@ describe("#maxNotificationsPerPublish", function () {
 
         // verify that publishResponse has been send
         var publishResponse1 = spy_callback.getCall(0).args[1];
-        numberOfnotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish+1);
+        numberOfnotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
         publishResponse1.moreNotifications.should.eql(true);
 
         var publishResponse2 = spy_callback.getCall(1).args[1];
-        numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish+1);
+        numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
         publishResponse2.moreNotifications.should.eql(true);
 
         var publishResponse3 = spy_callback.getCall(3).args[1];
-        numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish+1);
+        numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
         publishResponse3.moreNotifications.should.eql(false);
 
 

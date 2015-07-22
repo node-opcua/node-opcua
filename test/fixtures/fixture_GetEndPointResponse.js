@@ -1,34 +1,34 @@
 require("requirish")._(module);
 
-var endpoints_service =  require("lib/services/get_endpoints_service");
+var endpoints_service = require("lib/services/get_endpoints_service");
 
 var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
-var EndpointDescription  = endpoints_service.EndpointDescription;
-var ApplicationType      = endpoints_service.ApplicationType;
-var MessageSecurityMode  = endpoints_service.MessageSecurityMode;
-var UserIdentityTokenType= endpoints_service.UserIdentityTokenType;
+var EndpointDescription = endpoints_service.EndpointDescription;
+var ApplicationType = endpoints_service.ApplicationType;
+var MessageSecurityMode = endpoints_service.MessageSecurityMode;
+var UserIdentityTokenType = endpoints_service.UserIdentityTokenType;
 
 var should = require("should");
 var assert = require("better-assert");
 
-exports.fixture1 = (function(){
+exports.fixture1 = (function () {
     // empty  GetEndpointsResponse
     return new GetEndpointsResponse();
 
 })();
 
-exports.makeEndPoint = function(){
+exports.makeEndPoint = function () {
 
-    var data=    {
+    var data = {
         endpointUrl: "toto",
 
         server: {
 
-            applicationUri :  "OPCUA  node-js",
-            productUri:       "some product uri",
-            applicationName:  { text: "Localised application name"},
-            applicationType:   ApplicationType.CLIENTANDSERVER,
-            gatewayServerUri:  "gatewayServerUri",
+            applicationUri: "OPCUA  node-js",
+            productUri: "some product uri",
+            applicationName: {text: "Localised application name"},
+            applicationType: ApplicationType.CLIENTANDSERVER,
+            gatewayServerUri: "gatewayServerUri",
             discoveryProfileUri: "discoveryProfileUri",
             discoveryUrls: [
                 "discoveryUrls1",
@@ -54,15 +54,15 @@ exports.makeEndPoint = function(){
             }
         ],
         transportProfileUri: "",
-        securityLevel:    36
+        securityLevel: 36
     };
-    var value =  new EndpointDescription(data);
+    var value = new EndpointDescription(data);
     assert(value.server);
     return value;
 };
 
 
-exports.fixture2 = (function(){
+exports.fixture2 = (function () {
 
 
     var endPointResponse = new GetEndpointsResponse();
@@ -79,7 +79,7 @@ exports.fixture2 = (function(){
 
 })();
 
-exports.fixture3 = (function(){
+exports.fixture3 = (function () {
 
 
     var endPointResponse = new GetEndpointsResponse();
@@ -99,7 +99,7 @@ exports.fixture3 = (function(){
 })();
 
 
-exports.fixture4 = (function(){
+exports.fixture4 = (function () {
 
 
     var endPointResponse = new GetEndpointsResponse();

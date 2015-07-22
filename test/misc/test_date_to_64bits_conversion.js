@@ -69,10 +69,10 @@ describe("check OPCUA Date conversion version 0", function () {
 
 describe("check OPCUA Date conversion version 2", function () {
 
-    it("should verify that Date.getTime returns the number of millisecond since January, 1st 1970 UTC",function(){
+    it("should verify that Date.getTime returns the number of millisecond since January, 1st 1970 UTC", function () {
 
         var january = 1;
-        var first_of_jan_1970_UTC = new Date(Date.UTC(1970, january-1, 1, 0, 0, 0));
+        var first_of_jan_1970_UTC = new Date(Date.UTC(1970, january - 1, 1, 0, 0, 0));
 
         //xx console.log("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
         //xx console.log(" Local Time",first_of_jan_1970_UTC.toString());
@@ -84,7 +84,7 @@ describe("check OPCUA Date conversion version 2", function () {
     });
 
     it("bn_dateToHundredNanoSecondFrom1601 should return n=(number of nanosecond in a single day) for January, 2nd 1601 00:00:00 UTC", function () {
-        var date = new Date(Date.UTC(1601, 0, 2, 0, 0, 0 ));
+        var date = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
         var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         var value = 24 * 60 * 60 * 1000 * 10000; // number of nanosecond in a single day
         nano[0].should.equal(Math.floor(value / 0x100000000));
@@ -122,16 +122,14 @@ describe("check OPCUA Date conversion version 2", function () {
         var t2 = date2.getTime();
         var q2 = date_time.bn_dateToHundredNanoSecondFrom1601(date2);
 
-        (t2 - t1).should.eql(713," there must be a difference of 713 milliseconds");
+        (t2 - t1).should.eql(713, " there must be a difference of 713 milliseconds");
 
-        (q2[1] - q1[1]).should.eql(7130000,"there must be a difference of 7130000 nanseconds");
+        (q2[1] - q1[1]).should.eql(7130000, "there must be a difference of 7130000 nanseconds");
 
     });
     //
     //  =>
 });
-
-
 
 
 var BigNumber = require("bignumber.js");
@@ -143,7 +141,7 @@ function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     var bn_value = new BigNumber(t).plus(offset).times(factor);
     var high = bn_value.div(0x100000000).floor();
     var low = bn_value.mod(0x100000000);
-    return [ parseInt(high.toString(), 10), parseInt(low.toString(), 10)];
+    return [parseInt(high.toString(), 10), parseInt(low.toString(), 10)];
 }
 
 function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
@@ -157,9 +155,9 @@ function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
 
 var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 
-describe("Benchmarking Date conversion routines",function(){
+describe("Benchmarking Date conversion routines", function () {
 
-    it("should check that slow and fast method produce same result",function() {
+    it("should check that slow and fast method produce same result", function () {
 
         var date = new Date(2014, 0, 1);
         var nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
@@ -167,91 +165,91 @@ describe("Benchmarking Date conversion routines",function(){
         nano1.should.eql(nano2);
     });
 
-    it("should ensure that fast method (bn_dateToHundredNanoSecondFrom1601) is faster than slow method",function(done) {
+    it("should ensure that fast method (bn_dateToHundredNanoSecondFrom1601) is faster than slow method", function (done) {
 
         var bench = new Benchmarker();
 
-        bench.add('bn_dateToHundredNanoSecondFrom1601_safe', function() {
+        bench.add('bn_dateToHundredNanoSecondFrom1601_safe', function () {
 
             var date = new Date(2014, 0, 1);
             var nano = bn_dateToHundredNanoSecondFrom1601_big_number(date);
 
         })
-        .add('bn_dateToHundredNanoSecondFrom1601_fast', function() {
+            .add('bn_dateToHundredNanoSecondFrom1601_fast', function () {
 
-            var date = new Date(2014, 0, 1);
-            var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+                var date = new Date(2014, 0, 1);
+                var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
 
-        })
-        .on('cycle', function(message) {
-            console.log(message);
-        })
-        .on('complete', function() {
+            })
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+            .on('complete', function () {
 
-            console.log(' Fastest is ' + this.fastest.name);
-            console.log(' Speed Up : x', this.speedUp);
-            this.fastest.name.should.eql("bn_dateToHundredNanoSecondFrom1601_fast");
-            done();
-        })
-        .run();
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                this.fastest.name.should.eql("bn_dateToHundredNanoSecondFrom1601_fast");
+                done();
+            })
+            .run();
     });
 
-    it("should ensure that fast method (bn_hundredNanoSecondFrom1601ToDate) is faster than slow method",function(done) {
+    it("should ensure that fast method (bn_hundredNanoSecondFrom1601ToDate) is faster than slow method", function (done) {
 
 
         var date = new Date(2014, 0, 1);
         var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
 
         var bench = new Benchmarker();
-        bench.add('bn_hundredNanoSecondFrom1601ToDate_safe', function() {
-            bn_hundredNanoSecondFrom1601ToDate_big_number(nano[0],nano[1]);
+        bench.add('bn_hundredNanoSecondFrom1601ToDate_safe', function () {
+            bn_hundredNanoSecondFrom1601ToDate_big_number(nano[0], nano[1]);
 
         })
-        .add('bn_hundredNanoSecondFrom1601ToDate_fast', function() {
-                date_time.bn_hundredNanoSecondFrom1601ToDate(nano[0],nano[1]);
-        })
-        .on('cycle', function(message) {
-            console.log(message);
-        })
-        .on('complete', function() {
+            .add('bn_hundredNanoSecondFrom1601ToDate_fast', function () {
+                date_time.bn_hundredNanoSecondFrom1601ToDate(nano[0], nano[1]);
+            })
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+            .on('complete', function () {
 
-            console.log(' Fastest is ' + this.fastest.name);
-            console.log(' Speed Up : x', this.speedUp);
-            this.fastest.name.should.eql("bn_hundredNanoSecondFrom1601ToDate_fast");
-            done();
-        })
-        .run();
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                this.fastest.name.should.eql("bn_hundredNanoSecondFrom1601ToDate_fast");
+                done();
+            })
+            .run();
 
     });
 
-    it("should convert any random date",function(){
+    it("should convert any random date", function () {
 
-        var dates_to_check =[
-            new Date(1,1,1601),
-            new Date(14,7,1789),
-            new Date(14,4,1929),
-            new Date(14,4,1968),
-            new Date(14,4,1972),
-            new Date(14,4,2172)
+        var dates_to_check = [
+            new Date(1, 1, 1601),
+            new Date(14, 7, 1789),
+            new Date(14, 4, 1929),
+            new Date(14, 4, 1968),
+            new Date(14, 4, 1972),
+            new Date(14, 4, 2172)
         ];
-        for(var i=0;i<100;i++) {
+        for (var i = 0; i < 100; i++) {
             dates_to_check.push(ec.randomDateTime());
         }
-        var date,check_date, check_date_bn;
+        var date, check_date, check_date_bn;
         var bs = new BinaryStream();
-        for(var i=0;i<dates_to_check.length;i++) {
+        for (var i = 0; i < dates_to_check.length; i++) {
             date = dates_to_check[i];
-            var hl  = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+            var hl = date_time.bn_dateToHundredNanoSecondFrom1601(date);
             var hl_bn = bn_dateToHundredNanoSecondFrom1601_big_number(date);
 
-            check_date    = date_time.bn_hundredNanoSecondFrom1601ToDate(hl[0],hl[1]);
-            check_date_bn = bn_hundredNanoSecondFrom1601ToDate_big_number(hl[0],hl[1]);
+            check_date = date_time.bn_hundredNanoSecondFrom1601ToDate(hl[0], hl[1]);
+            check_date_bn = bn_hundredNanoSecondFrom1601ToDate_big_number(hl[0], hl[1]);
 
             check_date.toString().should.eql(date.toString());
 
             ec.isValidUInt32(hl[0]).should.eql(true);
             ec.isValidUInt32(hl[1]).should.eql(true);
-            ec.encodeDateTime(date,bs);
+            ec.encodeDateTime(date, bs);
             bs.rewind();
         }
     });
@@ -277,9 +275,9 @@ describe("Benchmarking Date conversion routines",function(){
 
 });
 
-describe("understanding Javascript date",function(){
+describe("understanding Javascript date", function () {
 
-    it("should check that javascript doesn't deal with leap seconds.",function() {
+    it("should check that javascript doesn't deal with leap seconds.", function () {
 
         // http://en.wikipedia.org/wiki/Leap_second
         // http://blog.synyx.de/2012/11/properly-calculating-time-differences-in-javascript/
@@ -302,40 +300,41 @@ describe("understanding Javascript date",function(){
         // number of seconds that have elapsed since 00:00:00 Coordinated Universal Time (UTC), Thursday, 1 January 1970,
         // not counting leap seconds.
 
-        var date1 = new Date(Date.UTC(2010,2,25));
-        var date2 = new Date(Date.UTC(2011,2,25));
+        var date1 = new Date(Date.UTC(2010, 2, 25));
+        var date2 = new Date(Date.UTC(2011, 2, 25));
 
         // number of millisecond , not adjusted
-        var nms = 1000*60*60*24*365;
+        var nms = 1000 * 60 * 60 * 24 * 365;
 
         var diff1 = date2.getTime() - date1.getTime();
 
         // according to http://en.wikipedia.org/wiki/Leap_second
         // a leap second should have been introduced on 2012, June the 30th,
         // causing this year to be (1000*60*60*24*365 + 1000) milliseconds long
-        var date3 = new Date(Date.UTC(2012,2,25));
-        var date4 = new Date(Date.UTC(2013,2,25));
+        var date3 = new Date(Date.UTC(2012, 2, 25));
+        var date4 = new Date(Date.UTC(2013, 2, 25));
         var diff2 = date4.getTime() - date3.getTime();
-        (diff2 - nms).should.eql(0,"I though Javascript used a simplified version of UTC time , that ignore leap seconds");
+        (diff2 - nms).should.eql(0, "I though Javascript used a simplified version of UTC time , that ignore leap seconds");
 
     });
-    it("should have a expected number of millisecond in a year span (without leap seconds)",function(){
+    it("should have a expected number of millisecond in a year span (without leap seconds)", function () {
 
-        var n_leap    = 366 * 24*60*60 ;
-        var n_no_leap = 365 * 24*60*60 ;
+        var n_leap = 366 * 24 * 60 * 60;
+        var n_no_leap = 365 * 24 * 60 * 60;
 
         function inner_test(year) {
 
-            var date1 = new Date(Date.UTC(year,   1, 25)); // year February 25th
-            var date2 = new Date(Date.UTC(year+1, 1, 25)); // year February 25th
+            var date1 = new Date(Date.UTC(year, 1, 25)); // year February 25th
+            var date2 = new Date(Date.UTC(year + 1, 1, 25)); // year February 25th
 
             var n = ((year % 4 ) === 0) ? n_leap : n_no_leap;
 
-            var d = (date2.getTime()-date1.getTime()) / 1000;
-            (d -n).should.eql(0);
+            var d = (date2.getTime() - date1.getTime()) / 1000;
+            (d - n).should.eql(0);
             // console.log("year = ", year, date1.toUTCString(), " => ",d,n,d -n);
         }
-        for (var y=1970 ; y< 2020; y++) {
+
+        for (var y = 1970; y < 2020; y++) {
             inner_test(y);
         }
     })

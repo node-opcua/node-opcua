@@ -19,24 +19,24 @@ var should = require("should");
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
-describe("Server Side MonitoredItem",function(){
+describe("Server Side MonitoredItem", function () {
 
-    before(function() {
+    before(function () {
         resourceLeakDetector.start();
     });
-    after(function() {
+    after(function () {
         resourceLeakDetector.stop();
     });
 
-    beforeEach(function(){
+    beforeEach(function () {
         this.clock = sinon.useFakeTimers();
     });
 
-    afterEach(function(){
+    afterEach(function () {
         this.clock.restore();
     });
 
-    it("should create a MonitoredItem",function(done){
+    it("should create a MonitoredItem", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -59,7 +59,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("a MonitoredItem should trigger a read event according to sampling interval in Reporting mode",function(done){
+    it("a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -73,7 +73,7 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.oldValue = new Variant({dataType: DataType.UInt32, value: 42});
         var spy_samplingEventCall = sinon.spy();
-        monitoredItem.on("samplingEvent",spy_samplingEventCall);
+        monitoredItem.on("samplingEvent", spy_samplingEventCall);
 
         this.clock.tick(2000);
         spy_samplingEventCall.callCount.should.be.greaterThan(6);
@@ -82,7 +82,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("a MonitoredItem should record a new value and store it in a queue",function(done){
+    it("a MonitoredItem should record a new value and store it in a queue", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -95,14 +95,14 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(2000);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1000 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
         monitoredItem.queue.length.should.eql(1);
 
         monitoredItem.terminate();
         done();
     });
 
-    it("a MonitoredItem should discard old value from the queue when discardOldest is true",function(done){
+    it("a MonitoredItem should discard old value from the queue when discardOldest is true", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -115,19 +115,19 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1000 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1001 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1002 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1001);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -150,19 +150,19 @@ describe("Server Side MonitoredItem",function(){
 
         monitoredItem.queue.length.should.eql(0);
         this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1000 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1001 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
         this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value:{dataType: DataType.UInt32, value: 1002 }}));
+        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -172,7 +172,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("should set timestamp to the recorded value without timestamp (variation 1)", function(done){
+    it("should set timestamp to the recorded value without timestamp (variation 1)", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -188,7 +188,7 @@ describe("Server Side MonitoredItem",function(){
         var now = new Date();
 
         monitoredItem.recordValue(new DataValue({
-            value:{dataType: DataType.UInt32, value: 1000 },
+            value: {dataType: DataType.UInt32, value: 1000},
             serverTimestamp: now,
             sourceTimestamp: now
         }));
@@ -202,7 +202,7 @@ describe("Server Side MonitoredItem",function(){
     });
 
     // #21
-    it("should set timestamp to the recorded value with a given sourceTimestamp (variation 2)", function(done) {
+    it("should set timestamp to the recorded value with a given sourceTimestamp (variation 2)", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -217,14 +217,14 @@ describe("Server Side MonitoredItem",function(){
         this.clock.tick(100);
         var now = new Date();
 
-        var sourceTimestamp = new Date(Date.UTC(2000,0,1));
+        var sourceTimestamp = new Date(Date.UTC(2000, 0, 1));
         sourceTimestamp.setMilliseconds(100);
         var picoSeconds = 456;
 
         monitoredItem.recordValue(new DataValue({
             value: {dataType: DataType.UInt32, value: 1000},
             sourceTimestamp: sourceTimestamp,
-            sourcePicoseconds:picoSeconds,
+            sourcePicoseconds: picoSeconds,
             serverTimestamp: now
         }));
 
@@ -239,7 +239,7 @@ describe("Server Side MonitoredItem",function(){
     });
 
 
-    it("a MonitoredItem should trigger a read event according to sampling interval",function(done){
+    it("a MonitoredItem should trigger a read event according to sampling interval", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -253,12 +253,12 @@ describe("Server Side MonitoredItem",function(){
 
 
         var sample_value = 1;
-        monitoredItem.on("samplingEvent",function(oldValue){
-            sample_value ++;
+        monitoredItem.on("samplingEvent", function (oldValue) {
+            sample_value++;
             // read new value
             // check if different enough from old Value
             // if different enough : call recordValue
-            this.recordValue(new DataValue({value:{ dataType: DataType.UInt32,value: sample_value }})   );
+            this.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: sample_value}}));
 
             monitoredItem.terminate();
             done();
@@ -269,7 +269,7 @@ describe("Server Side MonitoredItem",function(){
 
     });
 
-    it("a MonitoredItem should not trigger any read event after terminate has been called",function(done){
+    it("a MonitoredItem should not trigger any read event after terminate has been called", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -283,7 +283,7 @@ describe("Server Side MonitoredItem",function(){
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
 
         var spy_samplingEventCall = sinon.spy();
-        monitoredItem.on("samplingEvent",spy_samplingEventCall);
+        monitoredItem.on("samplingEvent", spy_samplingEventCall);
 
         this.clock.tick(2000);
         spy_samplingEventCall.callCount.should.be.greaterThan(6);
@@ -296,7 +296,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("MonitoredItem#modify should cap queue size",function(done) {
+    it("MonitoredItem#modify should cap queue size", function (done) {
 
 
         var monitoredItem = new MonitoredItem({
@@ -308,8 +308,8 @@ describe("Server Side MonitoredItem",function(){
             monitoredItemId: 50
         });
 
-        var result ; // MonitoredItemModifyResult
-        result =monitoredItem.modify(null,new MonitoringParameters({
+        var result; // MonitoredItemModifyResult
+        result = monitoredItem.modify(null, new MonitoringParameters({
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
@@ -322,7 +322,7 @@ describe("Server Side MonitoredItem",function(){
         done();
     });
 
-    it("MonitoredItem#modify should cap samplingInterval",function(done) {
+    it("MonitoredItem#modify should cap samplingInterval", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -334,8 +334,8 @@ describe("Server Side MonitoredItem",function(){
         });
 
 
-        var result ; // MonitoredItemModifyResult
-        result =monitoredItem.modify(null,new MonitoringParameters({
+        var result; // MonitoredItemModifyResult
+        result = monitoredItem.modify(null, new MonitoringParameters({
             clientHandle: 1,
             samplingInterval: 0,
             discardOldest: true,
@@ -345,7 +345,7 @@ describe("Server Side MonitoredItem",function(){
         // setting
         result.revisedSamplingInterval.should.eql(0);
 
-        result =monitoredItem.modify(null,new MonitoringParameters({
+        result = monitoredItem.modify(null, new MonitoringParameters({
             clientHandle: 1,
             samplingInterval: -1,
             discardOldest: true,
@@ -362,19 +362,19 @@ var DataChangeFilter = subscription_service.DataChangeFilter;
 var DataChangeTrigger = subscription_service.DataChangeTrigger;
 var DeadbandType = subscription_service.DeadbandType;
 
-describe("MonitoredItem with DataChangeFilter",function(){
+describe("MonitoredItem with DataChangeFilter", function () {
 
-    var dataValue1 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 48}});
-    var dataValue2 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 49}}); // +1 =>
-    var dataValue3 = new DataValue({ statusCode: StatusCodes.GoodWithOverflowBit, value:{ value: 49}});
-    var dataValue4 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 49}});
-    var dataValue5 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 49}});
+    var dataValue1 = new DataValue({statusCode: StatusCodes.Good, value: {value: 48}});
+    var dataValue2 = new DataValue({statusCode: StatusCodes.Good, value: {value: 49}}); // +1 =>
+    var dataValue3 = new DataValue({statusCode: StatusCodes.GoodWithOverflowBit, value: {value: 49}});
+    var dataValue4 = new DataValue({statusCode: StatusCodes.Good, value: {value: 49}});
+    var dataValue5 = new DataValue({statusCode: StatusCodes.Good, value: {value: 49}});
     //
-    var dataValue6 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 59}}); // +10
-    var dataValue7 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 60}}); // +1
-    var dataValue8 = new DataValue({ statusCode: StatusCodes.Good, value:{ value: 10}}); // -50
+    var dataValue6 = new DataValue({statusCode: StatusCodes.Good, value: {value: 59}}); // +10
+    var dataValue7 = new DataValue({statusCode: StatusCodes.Good, value: {value: 60}}); // +1
+    var dataValue8 = new DataValue({statusCode: StatusCodes.Good, value: {value: 10}}); // -50
 
-    it("should only detect status change when dataChangeFilter trigger is DataChangeTrigger.Status ",function(){
+    it("should only detect status change when dataChangeFilter trigger is DataChangeTrigger.Status ", function () {
 
 
         var dataChangeFilter = new DataChangeFilter({
@@ -411,7 +411,7 @@ describe("MonitoredItem with DataChangeFilter",function(){
         monitoredItem.queue[2].should.eql(dataValue4);
     });
 
-    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue ",function(){
+    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue ", function () {
 
         var dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
@@ -452,7 +452,7 @@ describe("MonitoredItem with DataChangeFilter",function(){
 
     });
 
-    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8",function(){
+    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8", function () {
 
         var dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
@@ -512,12 +512,12 @@ describe("MonitoredItem with DataChangeFilter",function(){
 
     });
 
-    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 20%",function() {
+    it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 20%", function () {
 
-         var dataChangeFilter = new DataChangeFilter({
+        var dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
             deadbandType: DeadbandType.Percent, // percentage of the EURange
-             // see part 8
+            // see part 8
             deadbandValue: 10
         });
 

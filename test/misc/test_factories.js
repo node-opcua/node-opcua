@@ -1,7 +1,7 @@
 require("requirish")._(module);
 var factories = require("lib/misc/factories");
 var should = require("should");
-var BinaryStream =require("lib/misc/binaryStream").BinaryStream;
+var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var util = require("util");
 var ec = require("lib/misc/encode_decode");
 var _ = require("underscore");
@@ -10,17 +10,17 @@ var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-var QualifiedName   = require("lib/datamodel/qualified_name").QualifiedName;
-var LocalizedText   = require("lib/datamodel/localized_text").LocalizedText;
-var Variant         = require("lib/datamodel/variant").Variant;
+var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
+var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
+var Variant = require("lib/datamodel/variant").Variant;
 
 var Person_Schema = {
     id: factories.next_available_id(),
     name: "Person",
     fields: [
-        { name: "lastName" , fieldType: "UAString" },
-        { name: "address"  , fieldType: "UAString" },
-        { name: "age"      , fieldType: "Int32"  , defaultValue:  25  }
+        {name: "lastName", fieldType: "UAString"},
+        {name: "address", fieldType: "UAString"},
+        {name: "age", fieldType: "Int32", defaultValue: 25}
     ]
 };
 exports.Person_Schema = Person_Schema;
@@ -28,8 +28,8 @@ var Role_Schema = {
     id: factories.next_available_id(),
     name: "Role",
     fields: [
-        { name: "title" ,        fieldType: "UAString" },
-        { name: "description"  , fieldType: "UAString" }
+        {name: "title", fieldType: "UAString"},
+        {name: "description", fieldType: "UAString"}
     ]
 };
 exports.Role_Schema = Role_Schema;
@@ -39,9 +39,9 @@ var Employee_Schema = {
     name: "Employee",
     baseType: "Person",
     fields: [
-        { name: "role",    fieldType: "Role" },
-        { name: "service", fieldType: "UAString" },
-        { name: "salary",  fieldType: "Double", defaultValue: 1000.00  }
+        {name: "role", fieldType: "Role"},
+        {name: "service", fieldType: "UAString"},
+        {name: "salary", fieldType: "Double", defaultValue: 1000.00}
     ]
 };
 exports.Employee_Schema = Employee_Schema;
@@ -50,37 +50,35 @@ var Company_Schema = {
     id: factories.next_available_id(),
     name: "Company",
     fields: [
-        { name: "name",                          fieldType: "String"   },
-        { name: "employees",      isArray: true, fieldType: "Employee" },
-        { name: "company_values", isArray: true, fieldType: "String" }
+        {name: "name", fieldType: "String"},
+        {name: "employees", isArray: true, fieldType: "Employee"},
+        {name: "company_values", isArray: true, fieldType: "String"}
     ]
 };
 exports.Company_Schema = Company_Schema;
 
 
-
-var Person   = factories.registerObject(Person_Schema,"tmp");
-var Role     = factories.registerObject(Role_Schema,"tmp");
-var Employee = factories.registerObject(Employee_Schema,"tmp");
-var Company  = factories.registerObject(Company_Schema,"tmp");
-
+var Person = factories.registerObject(Person_Schema, "tmp");
+var Role = factories.registerObject(Role_Schema, "tmp");
+var Employee = factories.registerObject(Employee_Schema, "tmp");
+var Company = factories.registerObject(Company_Schema, "tmp");
 
 
-var ShapeType = factories.registerEnumeration( {
+var ShapeType = factories.registerEnumeration({
     name: "EnumShapeType",
     enumValues: {
-        CIRCLE:    1,
-        SQUARE:    2,
+        CIRCLE: 1,
+        SQUARE: 2,
         RECTANGLE: 3,
-        HEXAGON:   6
+        HEXAGON: 6
     }
 });
-var Color = factories.registerEnumeration( {
+var Color = factories.registerEnumeration({
     name: "EnumColor",
     enumValues: {
-        RED:     100,
-        BLUE:    200,
-        GREEN:   300
+        RED: 100,
+        BLUE: 200,
+        GREEN: 300
     }
 });
 
@@ -88,33 +86,40 @@ exports.Shape_Schema = {
     id: factories.next_available_id(),
     name: "Shape",
     fields: [
-        { name:"name",             fieldType: "String" , defaultValue: function() { return "my shape";} },
-        { name:"shapeType",        fieldType: "EnumShapeType" },
-        { name:"color",            fieldType: "EnumColor", defaultValue: Color.GREEN },
-        { name:"inner_color",      fieldType: "EnumColor", defaultValue: function() { return Color.BLUE; }}
+        {
+            name: "name", fieldType: "String", defaultValue: function () {
+            return "my shape";
+        }
+        },
+        {name: "shapeType", fieldType: "EnumShapeType"},
+        {name: "color", fieldType: "EnumColor", defaultValue: Color.GREEN},
+        {
+            name: "inner_color", fieldType: "EnumColor", defaultValue: function () {
+            return Color.BLUE;
+        }
+        }
     ]
 };
-var Shape = factories.registerObject(exports.Shape_Schema,"tmp");
+var Shape = factories.registerObject(exports.Shape_Schema, "tmp");
 
 
-describe("Factories: construction",function() {
+describe("Factories: construction", function () {
 
-    it("a schema should provide a list of possible fields",function() {
+    it("a schema should provide a list of possible fields", function () {
 
-        Person.possibleFields.should.eql(["lastName","address","age"]);
-        Employee.possibleFields.should.eql(["lastName","address","age","role","service","salary"]);
+        Person.possibleFields.should.eql(["lastName", "address", "age"]);
+        Employee.possibleFields.should.eql(["lastName", "address", "age", "role", "service", "salary"]);
     });
 });
 
 
-
 describe("Factories: testing object factory", function () {
 
-    after(function() {
+    after(function () {
         try {
             factories.unregisterType("MyInteger");
         }
-        catch(err) {
+        catch (err) {
 
         }
     });
@@ -133,7 +138,7 @@ describe("Factories: testing object factory", function () {
 
     it("should construct a new object with options from a simple Class Description", function () {
 
-        var person = new Person({lastName:"Joe"});
+        var person = new Person({lastName: "Joe"});
 
         person.lastName.should.equal("Joe");
         person.address.should.equal("");
@@ -142,7 +147,11 @@ describe("Factories: testing object factory", function () {
 
     it("should construct a new object from a complex Class Description", function () {
 
-        var employee = new Employee({ lastName: "John", service: "R&D" , role: { title: "developer", description: "create the awesome"} });
+        var employee = new Employee({
+            lastName: "John",
+            service: "R&D",
+            role: {title: "developer", description: "create the awesome"}
+        });
 
         employee.should.be.instanceOf(Person);
         employee.should.be.instanceOf(Employee);
@@ -169,9 +178,9 @@ describe("Factories: testing object factory", function () {
 
     });
 
-    it("should encode and decode a simple object created from the Factory",function(){
+    it("should encode and decode a simple object created from the Factory", function () {
 
-        var person = new Person({lastName:"Joe"});
+        var person = new Person({lastName: "Joe"});
         person.age = 50;
         person.address = "Paris";
 
@@ -183,24 +192,24 @@ describe("Factories: testing object factory", function () {
 
     });
 
-    it("should encode and decode a composite object created from the Factory",function(){
+    it("should encode and decode a composite object created from the Factory", function () {
 
-        var employee = new Employee({  lastName: "John" , service: "R&D" });
+        var employee = new Employee({lastName: "John", service: "R&D"});
         encode_decode_round_trip_test(employee);
 
     });
 
-    it("should encode and decode a composite object containing an array",function(){
+    it("should encode and decode a composite object containing an array", function () {
 
 
-        var company  = new Company({name: "ACME" });
+        var company = new Company({name: "ACME"});
         company.employees.length.should.equal(0);
 
 
-        var employee = new Employee({ lastName: "John", service: "R&D" });
+        var employee = new Employee({lastName: "John", service: "R&D"});
 
         company.employees.push(employee);
-        company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
+        company.employees.push(new Employee({lastName: "Peter", service: "R&D"}));
 
         company.employees.length.should.equal(2);
 
@@ -208,13 +217,13 @@ describe("Factories: testing object factory", function () {
 
     });
 
-    it("should create an Object with a containing an array of JSON object passed in the initializer",function(){
+    it("should create an Object with a containing an array of JSON object passed in the initializer", function () {
 
-        var company  = new Company({
+        var company = new Company({
             name: "ACME",
             employees: [
-                { lastName: "John",  age: 25 , service: "R&D" , role: {title: "manager",  description: "" } },
-                { lastName: "Peter", age: 56 , service: "R&D" , role: {title: "engineer", description: "" } }
+                {lastName: "John", age: 25, service: "R&D", role: {title: "manager", description: ""}},
+                {lastName: "Peter", age: 56, service: "R&D", role: {title: "engineer", description: ""}}
             ]
         });
 
@@ -225,9 +234,9 @@ describe("Factories: testing object factory", function () {
         encode_decode_round_trip_test(company);
     });
 
-    it("should create an Object with a containing an array of string passed in the initializer",function(){
+    it("should create an Object with a containing an array of string passed in the initializer", function () {
 
-        var company  = new Company({
+        var company = new Company({
             name: "ACME",
             company_values: [
                 "A commitment to sustainability and to acting in an environmentally friendly way",
@@ -237,14 +246,14 @@ describe("Factories: testing object factory", function () {
         });
 
         company.company_values.length.should.equal(3);
-        company.company_values[0].should.equal( "A commitment to sustainability and to acting in an environmentally friendly way");
+        company.company_values[0].should.equal("A commitment to sustainability and to acting in an environmentally friendly way");
 
         company.should.have.property("employees");
 
         encode_decode_round_trip_test(company);
     });
 
-    it("should handle subtype properly",function(){
+    it("should handle subtype properly", function () {
 
         factories.registerBasicType({
             name: "MyInteger",
@@ -258,21 +267,21 @@ describe("Factories: testing object factory", function () {
             name: "MyStruct",
             id: factories.next_available_id(),
             fields: [
-                { name: "value", fieldType: "MyInteger" }
+                {name: "value", fieldType: "MyInteger"}
             ]
         };
-        factories.unregisterObject(exports.MyStruct_Schema,"tmp");
-        var MyStruct = factories.registerObject(exports.MyStruct_Schema,"tmp");
+        factories.unregisterObject(exports.MyStruct_Schema, "tmp");
+        var MyStruct = factories.registerObject(exports.MyStruct_Schema, "tmp");
 
         var s = new MyStruct();
         s.should.have.property("value");
         s.value.should.equal(0);
 
-        factories.unregisterObject(exports.MyStruct_Schema,"tmp");
+        factories.unregisterObject(exports.MyStruct_Schema, "tmp");
 
     });
 
-    it("should handle StatusCode ",function(){
+    it("should handle StatusCode ", function () {
 
         var StatusCode = require("lib/datamodel/opcua_status_code").StatusCode;
         var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
@@ -282,13 +291,13 @@ describe("Factories: testing object factory", function () {
             name: "MyStruct2",
             id: factories.next_available_id(),
             fields: [
-                { name: "value",      fieldType: "MyInteger" },
-                { name: "statusCode", fieldType: "StatusCode" }
+                {name: "value", fieldType: "MyInteger"},
+                {name: "statusCode", fieldType: "StatusCode"}
             ]
         };
-        factories.unregisterObject(exports.MyStruct2_Schema,"tmp");
+        factories.unregisterObject(exports.MyStruct2_Schema, "tmp");
 
-        var MyStruct2 = factories.registerObject(exports.MyStruct2_Schema,"tmp");
+        var MyStruct2 = factories.registerObject(exports.MyStruct2_Schema, "tmp");
 
         var s = new MyStruct2();
         s.should.have.property("value");
@@ -297,11 +306,11 @@ describe("Factories: testing object factory", function () {
         s.statusCode.value.should.equal(0);
         s.statusCode.should.eql(StatusCodes.Good);
         // should.eql(StatusCode.Good);
-        factories.unregisterObject(exports.MyStruct2_Schema,"tmp");
+        factories.unregisterObject(exports.MyStruct2_Schema, "tmp");
 
     });
 
-    it('should handle enumeration properly',function(){
+    it('should handle enumeration properly', function () {
 
         var shape = new Shape();
 
@@ -314,42 +323,44 @@ describe("Factories: testing object factory", function () {
         shape.shapeType = ShapeType.RECTANGLE;
         shape.shapeType.should.equal(ShapeType.RECTANGLE);
 
-        (function(){
+        (function () {
             shape.shapeType = 34;
         }).should.throw();
 
     });
-    it('should allow enumeration value to be passed in options during construction',function(){
+    it('should allow enumeration value to be passed in options during construction', function () {
 
-        var shape1 = new Shape({ shapeType: ShapeType.HEXAGON});
+        var shape1 = new Shape({shapeType: ShapeType.HEXAGON});
         shape1.shapeType.should.eql(ShapeType.HEXAGON);
 
-        var shape2 = new Shape({ shapeType: ShapeType.RECTANGLE});
+        var shape2 = new Shape({shapeType: ShapeType.RECTANGLE});
         shape2.shapeType.should.eql(ShapeType.RECTANGLE);
     });
 
-    it("should encode and decode a structure containing a enumeration properly",function(){
+    it("should encode and decode a structure containing a enumeration properly", function () {
 
-        var shape = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , color: Color.BLUE });
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, color: Color.BLUE});
         encode_decode_round_trip_test(shape);
 
     });
 
-    xit("should raise an exception when trying to pass an invalid field to constructor",function(){
+    xit("should raise an exception when trying to pass an invalid field to constructor", function () {
 
 
         // redirect stdout to null as test will be noisy
         var old_process_stdout_write = process.stdout.write;
-        process.stdout.write = function() {};
+        process.stdout.write = function () {
+        };
 
-        (function() {
-           new Shape({
+        (function () {
+            new Shape({
 
                 this_invalid_field_should_cause_Shape_Constructor_to_raise_an_exception: "**bingo**",
 
-                name: "yo" ,
-                shapeType: ShapeType.HEXAGON ,
-                color: Color.BLUE });
+                name: "yo",
+                shapeType: ShapeType.HEXAGON,
+                color: Color.BLUE
+            });
 
         }).should.throw();
         // restore stdout
@@ -358,36 +369,36 @@ describe("Factories: testing object factory", function () {
 
 });
 
-describe("Factories: testing strong typed enums", function(){
+describe("Factories: testing strong typed enums", function () {
 
-    it("should throw if a invalid argument is passed for an enum",function() {
+    it("should throw if a invalid argument is passed for an enum", function () {
 
         ShapeType.CIRCLE.key.should.equal("CIRCLE");
         var value = ShapeType.CIRCLE;
         value.should.equal(ShapeType.CIRCLE);
 
-        var shape  = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});
 
-        (function() {
+        (function () {
             shape.shapeType = "toto";
         }).should.throw();
 
 
     });
 
-    it("should be possible to initialize enumeration with string values",function() {
+    it("should be possible to initialize enumeration with string values", function () {
 
-        var shape  = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
-        var shape2 = new Shape({name: "yo" , shapeType: "HEXAGON" , inner_color: "RED", color: "BLUE" });
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});
+        var shape2 = new Shape({name: "yo", shapeType: "HEXAGON", inner_color: "RED", color: "BLUE"});
 
         shape.should.eql(shape2);
 
     });
 
-    it("should be possible to initialize enumeration with integer values as well",function() {
+    it("should be possible to initialize enumeration with integer values as well", function () {
 
-        var shape  = new Shape({name: "yo" , shapeType: ShapeType.HEXAGON , inner_color: Color.RED, color: Color.BLUE });
-        var shape2 = new Shape({name: "yo" , shapeType: 6 , inner_color: 100, color: 200 });
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});
+        var shape2 = new Shape({name: "yo", shapeType: 6, inner_color: 100, color: 200});
 
         shape.should.eql(shape2);
 
@@ -395,27 +406,27 @@ describe("Factories: testing strong typed enums", function(){
 });
 
 
-describe("Factories: testing binaryStoreSize",function(){
+describe("Factories: testing binaryStoreSize", function () {
 
-    it("should implement binaryStoreSize",function(){
+    it("should implement binaryStoreSize", function () {
 
-        var shape = new  Shape();
+        var shape = new Shape();
 
         shape.binaryStoreSize().should.be.greaterThan(10);
 
     });
 });
 
-describe("Factories: testing encodingDefaultBinary and constructObject",function(){
+describe("Factories: testing encodingDefaultBinary and constructObject", function () {
 
-    it("a factory object should have a encodingDefaultBinary",function(){
+    it("a factory object should have a encodingDefaultBinary", function () {
 
         var company = new Company({name: "ACME"});
         company.encodingDefaultBinary.should.eql(ec.makeExpandedNodeId(Company_Schema.id));
 
     });
 
-    it("should create a object from a encodingDefaultBinaryId", function() {
+    it("should create a object from a encodingDefaultBinaryId", function () {
 
         var getObjectClassName = require("lib/misc/utils").getObjectClassName;
 
@@ -429,39 +440,38 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     });
 
 
-
-    it("should encode and decode a Object containing ByteString",function(done){
+    it("should encode and decode a Object containing ByteString", function (done) {
 
         exports.FakeBlob_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob",
             fields: [
-                { name: "name",                     fieldType: "String"     },
-                { name: "buffer0",                  fieldType: "ByteString" },
-                { name: "buffer1",                  fieldType: "ByteString" }
+                {name: "name", fieldType: "String"},
+                {name: "buffer0", fieldType: "ByteString"},
+                {name: "buffer1", fieldType: "ByteString"}
             ]
         };
-        factories.unregisterObject(exports.FakeBlob_Schema,"tmp");
+        factories.unregisterObject(exports.FakeBlob_Schema, "tmp");
 
-        var Blob = factories.registerObject(exports.FakeBlob_Schema,"tmp");
+        var Blob = factories.registerObject(exports.FakeBlob_Schema, "tmp");
 
-        var blob = new Blob({ buffer0: new Buffer(0), buffer1: new Buffer(1024) });
+        var blob = new Blob({buffer0: new Buffer(0), buffer1: new Buffer(1024)});
 
         encode_decode_round_trip_test(blob);
 
-        factories.unregisterObject(exports.FakeBlob_Schema,"tmp");
+        factories.unregisterObject(exports.FakeBlob_Schema, "tmp");
 
 
         done();
 
     });
-    it("should pretty print an object ",function(){
+    it("should pretty print an object ", function () {
 
-        redirectToFile("pretty_print.log",function() {
-            var company  = new Company({name: "ACME" });
-            var employee = new Employee({lastName: "John", service: "R&D" });
+        redirectToFile("pretty_print.log", function () {
+            var company = new Company({name: "ACME"});
+            var employee = new Employee({lastName: "John", service: "R&D"});
             company.employees.push(employee);
-            company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
+            company.employees.push(new Employee({lastName: "Peter", service: "R&D"}));
 
             var str = company.explore();
 
@@ -472,39 +482,38 @@ describe("Factories: testing encodingDefaultBinary and constructObject",function
     });
 
 
-
 });
 
-describe("PacketAnalyzer",function(){
+describe("PacketAnalyzer", function () {
 
-    it("should analyse a encoded object",function(done){
+    it("should analyse a encoded object", function (done) {
         var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
 
         var redirectToFile = require("lib/misc/utils").redirectToFile;
 
-        var company  = new Company({
+        var company = new Company({
             name: "ACME",
             employees: [
-                {  lastName: "John",  age: 25, service: "R&D" },
-                {  lastName: "Peter", age: 56, service: "R&D" }
+                {lastName: "John", age: 25, service: "R&D"},
+                {lastName: "Peter", age: 56, service: "R&D"}
             ]
         });
         var stream = new BinaryStream(company.binaryStoreSize());
         company.encode(stream);
 
-        redirectToFile("analyze_object_binary_encoding",function(){
+        redirectToFile("analyze_object_binary_encoding", function () {
             analyze_object_binary_encoding(company);
-        },done);
+        }, done);
     });
 });
 
 
-describe("Testing that objects created by factory can be persisted as JSON string",function() {
+describe("Testing that objects created by factory can be persisted as JSON string", function () {
 
 
     it("should persist and restore a object in JSON ", function () {
 
-        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});
 
         var str = JSON.stringify(shape);
 
@@ -520,14 +529,14 @@ describe("Testing that objects created by factory can be persisted as JSON strin
             id: factories.next_available_id(),
             name: "FakeBlob2",
             fields: [
-                { name: "name", fieldType: "String"     },
-                { name: "buffer0", fieldType: "ByteString" },
-                { name: "nodeId", fieldType: "NodeId"     },
-                { name: "createdOn", fieldType: "DateTime" }
+                {name: "name", fieldType: "String"},
+                {name: "buffer0", fieldType: "ByteString"},
+                {name: "nodeId", fieldType: "NodeId"},
+                {name: "createdOn", fieldType: "DateTime"}
             ]
         };
-        factories.unregisterObject(exports.FakeBlob2_Schema,"tmp");
-        var Blob = factories.registerObject(exports.FakeBlob2_Schema,"tmp");
+        factories.unregisterObject(exports.FakeBlob2_Schema, "tmp");
+        var Blob = factories.registerObject(exports.FakeBlob2_Schema, "tmp");
 
         var blob = new Blob({
             buffer0: new Buffer("00FF00AA", "hex"),
@@ -538,7 +547,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         var obj = new Blob(JSON.parse(str));
 
         obj.should.eql(blob);
-        factories.unregisterObject(exports.FakeBlob2_Schema,"tmp");
+        factories.unregisterObject(exports.FakeBlob2_Schema, "tmp");
     });
 
     it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior", function () {
@@ -547,17 +556,17 @@ describe("Testing that objects created by factory can be persisted as JSON strin
             id: factories.next_available_id(),
             name: "FakeBlob3",
             fields: [
-                { name: "name", fieldType: "String"     },
-                { name: "buffer0", isArray: true, fieldType: "ByteString" },
-                { name: "nodeId", isArray: true, fieldType: "NodeId"     }
+                {name: "name", fieldType: "String"},
+                {name: "buffer0", isArray: true, fieldType: "ByteString"},
+                {name: "nodeId", isArray: true, fieldType: "NodeId"}
             ]
         };
-        factories.unregisterObject(exports.FakeBlob3_Schema,"tmp");
-        var Blob = factories.registerObject(exports.FakeBlob3_Schema,"tmp");
+        factories.unregisterObject(exports.FakeBlob3_Schema, "tmp");
+        var Blob = factories.registerObject(exports.FakeBlob3_Schema, "tmp");
 
         var blob = new Blob({
-            buffer0: [ new Buffer("01020304", "hex"), [0, 1, 2, 3, 4] ],
-            nodeId: [ "ns=1;s=toto", "ns=2;i=1234" ]
+            buffer0: [new Buffer("01020304", "hex"), [0, 1, 2, 3, 4]],
+            nodeId: ["ns=1;s=toto", "ns=2;i=1234"]
         });
 
         blob.buffer0[0].should.be.instanceOf(Buffer);
@@ -573,7 +582,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         obj.buffer0[1].should.eql(blob.buffer0[1]);
         obj.should.eql(blob);
 
-        factories.unregisterObject(exports.FakeBlob3_Schema,"tmp");
+        factories.unregisterObject(exports.FakeBlob3_Schema, "tmp");
 
     });
 
@@ -584,19 +593,21 @@ describe("Testing that objects created by factory can be persisted as JSON strin
             name: "FakeQualifiedName",
             id: factories.next_available_id(),
             fields: [
-                { name: "namespaceIndex", fieldType: "UInt16", documentation: "The namespace index" },
-                { name: "name", fieldType: "String", defaultValue: function () {
+                {name: "namespaceIndex", fieldType: "UInt16", documentation: "The namespace index"},
+                {
+                    name: "name", fieldType: "String", defaultValue: function () {
                     return null;
-                }, documentation: "The name"  }
+                }, documentation: "The name"
+                }
             ],
 
             toString: function () {
                 return "ns=" + this.namespaceIndex + " name=" + this.name;
             }
         };
-        factories.unregisterObject(exports.FakeQualifiedName_Schema,"tmp");
+        factories.unregisterObject(exports.FakeQualifiedName_Schema, "tmp");
 
-        var QualifiedName = factories.registerObject(exports.FakeQualifiedName_Schema,"tmp");
+        var QualifiedName = factories.registerObject(exports.FakeQualifiedName_Schema, "tmp");
 
 
         var qname = new QualifiedName({
@@ -619,38 +630,38 @@ describe("Testing that objects created by factory can be persisted as JSON strin
 
         encode_decode_round_trip_test(qname);
 
-        factories.unregisterObject(exports.FakeQualifiedName_Schema,"tmp");
+        factories.unregisterObject(exports.FakeQualifiedName_Schema, "tmp");
     });
 });
-describe("factories testing advanced cases",function(){
+describe("factories testing advanced cases", function () {
 
-    it("should set a field to null when default value is specifically null and no value has been provided",function() {
+    it("should set a field to null when default value is specifically null and no value has been provided", function () {
 
         exports.Blob4_Schema = {
             name: "Blob4",
             id: factories.next_available_id(),
             fields: [
-                { name: "createdOn", fieldType: "DateTime", defaultValue: null}
+                {name: "createdOn", fieldType: "DateTime", defaultValue: null}
             ]
         };
-        factories.unregisterObject(exports.Blob4_Schema,"tmp");
-        var Blob4 = factories.registerObject(exports.Blob4_Schema,"tmp");
+        factories.unregisterObject(exports.Blob4_Schema, "tmp");
+        var Blob4 = factories.registerObject(exports.Blob4_Schema, "tmp");
 
         var blob4 = new Blob4({
             createdOn: null
         });
         should(blob4.createdOn).be.eql(null);
-        factories.unregisterObject(exports.Blob4_Schema,"tmp");
+        factories.unregisterObject(exports.Blob4_Schema, "tmp");
 
     });
 
-    it("should accept all basic types as field scalar or field arrays",function() {
+    it("should accept all basic types as field scalar or field arrays", function () {
 
         var utils = require("lib/misc/utils");
         var fs = require("fs");
         // delete existing file if any
         var filename = utils.getTempFilename("_auto_generated_Blob6.js");
-        if( fs.existsSync(filename)) {
+        if (fs.existsSync(filename)) {
             fs.unlinkSync(filename);
         }
 
@@ -659,49 +670,47 @@ describe("factories testing advanced cases",function(){
         exports.Blob6_Schema = {
             name: "Blob6",
             id: factories.next_available_id(),
-            fields: [
-
-            ]
+            fields: []
         };
 
         var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMap;
         var findBuiltInType = require("lib/misc/factories_builtin_types").findBuiltInType;
 
-        Object.keys(_defaultTypeMap).forEach(function(key){
+        Object.keys(_defaultTypeMap).forEach(function (key) {
             if (key === "Any") return;
 
-            exports.Blob6_Schema.fields.push({ name: "value_"+key , fieldType: key});
-            exports.Blob6_Schema.fields.push({ name: "array_"+key , fieldType: key ,isArray: true});
+            exports.Blob6_Schema.fields.push({name: "value_" + key, fieldType: key});
+            exports.Blob6_Schema.fields.push({name: "array_" + key, fieldType: key, isArray: true});
         });
 
 
         var options = {};
-        Object.keys(_defaultTypeMap).forEach(function(key) {
-            if (key === "Any" || key==="Null" || key==="AccessLevelFlag") return;
+        Object.keys(_defaultTypeMap).forEach(function (key) {
+            if (key === "Any" || key === "Null" || key === "AccessLevelFlag") return;
             var type = _defaultTypeMap[key];
 
-            var random  =type.random || ec["random"+ type.name];
+            var random = type.random || ec["random" + type.name];
 
             if (_.isFunction(random)) {
-                options["value_"+key] =  random();
-                options["array_"+key] =  [ random(), random()];
+                options["value_" + key] = random();
+                options["array_" + key] = [random(), random()];
             }
         });
 
-        var Blob6 = factories.registerObject(exports.Blob6_Schema,"tmp");
+        var Blob6 = factories.registerObject(exports.Blob6_Schema, "tmp");
 
         var blob = new Blob6(options);
         //xx console.log(blob);
         encode_decode_round_trip_test(blob);
 
-        factories.unregisterObject(exports.Blob6_Schema,"tmp");
+        factories.unregisterObject(exports.Blob6_Schema, "tmp");
     });
 
-    it("should help JSON.stringify",function(){
+    it("should help JSON.stringify", function () {
 
-        var someArray = [ new Person({}) ];
+        var someArray = [new Person({})];
 
-        var str = JSON.stringify({ stuff: someArray },null," ");
+        var str = JSON.stringify({stuff: someArray}, null, " ");
         //xx console.log("xxxx str =",str);
 
     });

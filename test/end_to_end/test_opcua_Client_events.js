@@ -36,7 +36,7 @@ describe("testing basic Client-Server communication", function () {
     before(function (done) {
 
         resourceLeakDetector.start();
-        server = build_server_with_temperature_device({ port: port}, function (err) {
+        server = build_server_with_temperature_device({port: port}, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done(err);
@@ -55,7 +55,7 @@ describe("testing basic Client-Server communication", function () {
     });
 
     after(function (done) {
-        server.shutdown(function() {
+        server.shutdown(function () {
             resourceLeakDetector.stop();
             done();
         });
@@ -70,7 +70,7 @@ describe("testing basic Client-Server communication", function () {
             //xx console.log(" Error ", err);
 
             should(err).eql(null, "No error shall be transmitted when client initiates the disconnection");
-            close_counter ++;
+            close_counter++;
         });
 
         async.series([
@@ -93,7 +93,6 @@ describe("testing basic Client-Server communication", function () {
 });
 
 
-
 describe("testing Client-Server : client behavior upon server disconnection", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
@@ -103,7 +102,7 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
 
         client = new OPCUAClient();
 
-        server = build_server_with_temperature_device({ port: port}, function (err) {
+        server = build_server_with_temperature_device({port: port}, function (err) {
 
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -113,7 +112,7 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
     });
 
     afterEach(function (done) {
-        client.disconnect(function(err){
+        client.disconnect(function (err) {
             client = null;
             done(err);
         });
@@ -137,12 +136,13 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
                 should(err).be.instanceOf(Error);
 
                 assert(_.isFunction(on_close_func));
-                client.removeListener("close",on_close_func);
+                client.removeListener("close", on_close_func);
 
                 setImmediate(callback);
             }
 
         }
+
         client.on("close", on_close_func);
 
         async.series([
@@ -156,7 +156,7 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
                 // delegate the call of the callback function of this step to when client has closed
                 the_pending_callback = callback;
 
-                server.shutdown( function() {
+                server.shutdown(function () {
                 });
 
             },

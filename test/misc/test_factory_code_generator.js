@@ -2,45 +2,45 @@ require("requirish")._(module);
 var should = require("should");
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
-describe("Code Generator",function(){
+describe("Code Generator", function () {
 
     var schema_file = __dirname + "/../fixtures/fixture_dummy_object_schema.js";
 
-    it("should produce the javascript for new complex type using template ",function() {
+    it("should produce the javascript for new complex type using template ", function () {
 
         // code should compile
         var DummyObject = require(schema_file).DummyObject;
         var SomeEnumeration = require(schema_file).SomeEnumeration;
 
         var dummy = new DummyObject({
-            viewVersion : 50,
+            viewVersion: 50,
             name: "Paris",
-            ArrayInt : [10,20,30],
+            ArrayInt: [10, 20, 30],
             typeEnum: 2
         });
         dummy.viewVersion.should.eql(50);
         dummy.name.should.eql("Paris");
-        dummy.ArrayInt.should.eql([10,20,30]);
+        dummy.ArrayInt.should.eql([10, 20, 30]);
         dummy.typeEnum.should.eql(SomeEnumeration.SQUARE);
 
         var dummy_reloaded = encode_decode_round_trip_test(dummy);
 
         dummy_reloaded.viewVersion.should.eql(dummy.viewVersion);
         dummy_reloaded.name.should.eql(dummy.name);
-        dummy_reloaded.ArrayInt.should.eql([10,20,30]);
+        dummy_reloaded.ArrayInt.should.eql([10, 20, 30]);
         dummy_reloaded.typeEnum.should.eql(dummy.typeEnum);
 
-        (function() {
+        (function () {
             dummy.typeEnum = "toto";
         }).should.throw();
 
     });
-    it("should handle new type with base class ",function() {
+    it("should handle new type with base class ", function () {
 
         var FooBarDerived = require(schema_file).FooBarDerived;
         var FooBar = require(schema_file).FooBar;
 
-        var fb = new FooBarDerived({ name: "toto" , name2:'titi' });
+        var fb = new FooBarDerived({name: "toto", name2: 'titi'});
         fb.name.should.eql("toto");
         fb.name2.should.eql("titi");
 
@@ -53,7 +53,7 @@ describe("Code Generator",function(){
     });
 
 
-    it("should handle Schema with recursion ",function() {
+    it("should handle Schema with recursion ", function () {
 
         //xx should(function(){
         var schema_file2 = __dirname + "/../fixtures/fixture_foo_object_with_recursion_schema.js";
@@ -66,7 +66,7 @@ describe("Code Generator",function(){
         // var foo_reloaded = encode_decode_round_trip_test(foo);
 
         var foo = new FooWithRecursion({
-            inner: { name:"inside level1"}
+            inner: {name: "inside level1"}
         });
 
         should(foo.inner).not.eql(null);
@@ -76,9 +76,9 @@ describe("Code Generator",function(){
 
         var foo = new FooWithRecursion({
             inner: {
-                name:"inside level1",
-                inner : {
-                    name:"inside level2"
+                name: "inside level1",
+                inner: {
+                    name: "inside level2"
                 }
 
             }

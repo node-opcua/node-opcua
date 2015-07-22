@@ -18,26 +18,26 @@ describe("ExtensionObject", function () {
         name: "MetaShapeForUnitTest",
         id: factories.next_available_id(),
         fields: [
-            { name: "name", fieldType: "String"          },
-            { name: "shape", fieldType: "ExtensionObject" },
-            { name: "comment", fieldType: "String" }
+            {name: "name", fieldType: "String"},
+            {name: "shape", fieldType: "ExtensionObject"},
+            {name: "comment", fieldType: "String"}
         ]
     };
 
-    var MetaShape = factories.registerObject(exports.MetaShapeForUnitTest_Schema,"tmp");
+    var MetaShape = factories.registerObject(exports.MetaShapeForUnitTest_Schema, "tmp");
 
 
-    var Potato_Schema_Id =0xF00001;
+    var Potato_Schema_Id = 0xF00001;
     exports.Potato_Schema = {
         name: "Potato",
         id: Potato_Schema_Id,
         fields: [
-            { name: "length", fieldType: "Double"          },
-            { name: "radius", fieldType: "Double"          }
+            {name: "length", fieldType: "Double"},
+            {name: "radius", fieldType: "Double"}
 
         ]
     };
-    var Potato = factories.registerObject(exports.Potato_Schema,"tmp");
+    var Potato = factories.registerObject(exports.Potato_Schema, "tmp");
 
     it("should encode an object with an embedded ExtensionObject set to null ", function () {
 

@@ -41,7 +41,6 @@
     </Aliases>
 
 
-
     <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
         <DisplayName>Enumeration</DisplayName>
         <Description>Describes a value that is an enumerated DataType.</Description>
@@ -50,20 +49,20 @@
         </References>
     </UADataType>
 
-  <UADataType NodeId="i=2" BrowseName="SByte">
-    <DisplayName>SByte</DisplayName>
-    <Description>Describes a value that is an integer between -128 and 127.</Description>
-    <References>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
-    </References>
-  </UADataType>
-  <UADataType NodeId="i=3" BrowseName="Byte">
-    <DisplayName>Byte</DisplayName>
-    <Description>Describes a value that is an integer between 0 and 255.</Description>
-    <References>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
-    </References>
-  </UADataType>
+    <UADataType NodeId="i=2" BrowseName="SByte">
+        <DisplayName>SByte</DisplayName>
+        <Description>Describes a value that is an integer between -128 and 127.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=3" BrowseName="Byte">
+        <DisplayName>Byte</DisplayName>
+        <Description>Describes a value that is an integer between 0 and 255.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
+        </References>
+    </UADataType>
 
     <UADataType NodeId="i=4" BrowseName="Int16">
         <DisplayName>Int16</DisplayName>
@@ -93,20 +92,22 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
         </References>
     </UADataType>
-  <UADataType NodeId="i=8" BrowseName="Int64">
-    <DisplayName>Int64</DisplayName>
-    <Description>Describes a value that is an integer between −9,223,372,036,854,775,808 and 9,223,372,036,854,775,807.</Description>
-    <References>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
-    </References>
-  </UADataType>
-  <UADataType NodeId="i=9" BrowseName="UInt64">
-    <DisplayName>UInt64</DisplayName>
-    <Description>Describes a value that is an integer between 0 and 18,446,744,073,709,551,615.</Description>
-    <References>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
-    </References>
-  </UADataType>
+    <UADataType NodeId="i=8" BrowseName="Int64">
+        <DisplayName>Int64</DisplayName>
+        <Description>Describes a value that is an integer between −9,223,372,036,854,775,808 and
+            9,223,372,036,854,775,807.
+        </Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=9" BrowseName="UInt64">
+        <DisplayName>UInt64</DisplayName>
+        <Description>Describes a value that is an integer between 0 and 18,446,744,073,709,551,615.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
+        </References>
+    </UADataType>
 
     <UADataType NodeId="i=10" BrowseName="Float">
         <DisplayName>Float</DisplayName>
@@ -136,13 +137,13 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
     </UADataType>
-      <UADataType NodeId="i=15" BrowseName="ByteString">
+    <UADataType NodeId="i=15" BrowseName="ByteString">
         <DisplayName>ByteString</DisplayName>
         <Description>Describes a value that is a sequence of bytes.</Description>
         <References>
-          <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
-      </UADataType>
+    </UADataType>
     <UADataType NodeId="i=16" BrowseName="XmlElement">
         <DisplayName>XmlElement</DisplayName>
         <Description>Describes a value that is an XML element.</Description>
@@ -166,7 +167,8 @@
     </UADataType>
     <UADataType NodeId="i=19" BrowseName="StatusCode">
         <DisplayName>StatusCode</DisplayName>
-        <Description>Describes a value that is a code representing the outcome of an operation by a Server.</Description>
+        <Description>Describes a value that is a code representing the outcome of an operation by a Server.
+        </Description>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
@@ -551,7 +553,9 @@
 
     <UAObjectType NodeId="i=77" BrowseName="ModellingRuleType">
         <DisplayName>ModellingRuleType</DisplayName>
-        <Description>The type for an object that describes how an instance declaration is used when a type is instantiated.</Description>
+        <Description>The type for an object that describes how an instance declaration is used when a type is
+            instantiated.
+        </Description>
         <References>
             <Reference ReferenceType="HasProperty">i=111</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
@@ -571,7 +575,9 @@
     </UAVariable>
     <UAObject NodeId="i=78" BrowseName="Mandatory" SymbolicName="ModellingRule_Mandatory">
         <DisplayName>Mandatory</DisplayName>
-        <Description>Specifies that an instance with the attributes and references of the instance declaration must appear when a type is instantiated.</Description>
+        <Description>Specifies that an instance with the attributes and references of the instance declaration must
+            appear when a type is instantiated.
+        </Description>
         <References>
             <Reference ReferenceType="HasProperty">i=112</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=77</Reference>
@@ -590,7 +596,9 @@
     </UAVariable>
     <UAObject NodeId="i=80" BrowseName="Optional" SymbolicName="ModellingRule_Optional">
         <DisplayName>Optional</DisplayName>
-        <Description>Specifies that an instance with the attributes and references of the instance declaration may appear when a type is instantiated.</Description>
+        <Description>Specifies that an instance with the attributes and references of the instance declaration may
+            appear when a type is instantiated.
+        </Description>
         <References>
             <Reference ReferenceType="HasProperty">i=113</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=77</Reference>
@@ -609,7 +617,8 @@
     </UAVariable>
     <UADataType NodeId="i=120" BrowseName="NamingRuleType">
         <DisplayName>NamingRuleType</DisplayName>
-        <Description>Describes a value that specifies the significance of the BrowseName for an instance declaration.</Description>
+        <Description>Describes a value that specifies the significance of the BrowseName for an instance declaration.
+        </Description>
         <References>
             <Reference ReferenceType="HasProperty">i=12169</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -622,7 +631,9 @@
                 <Description>The BrowseName may appear in an instance of the type.</Description>
             </Field>
             <Field Name="Constraint" Value="3">
-                <Description>The modelling rule defines a constraint and the BrowseName is not used in an instance of the type.</Description>
+                <Description>The modelling rule defines a constraint and the BrowseName is not used in an instance of
+                    the type.
+                </Description>
             </Field>
         </Definition>
     </UADataType>
@@ -669,7 +680,9 @@
                 <Description>Whether the argument is an array type and the rank of the array if it is.</Description>
             </Field>
             <Field Name="ArrayDimensions" DataType="i=7" ValueRank="1">
-                <Description>The number of dimensions if the argument is an array type and one or more dimensions have a fixed length.</Description>
+                <Description>The number of dimensions if the argument is an array type and one or more dimensions have a
+                    fixed length.
+                </Description>
             </Field>
             <Field Name="Description" DataType="i=21">
                 <Description>The description for the argument.</Description>
@@ -937,8 +950,8 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
         <Definition Name="TimeZoneDataType">
-            <Field Name="Offset" DataType="i=4" />
-            <Field Name="DaylightSavingInOffset" DataType="i=1" />
+            <Field Name="Offset" DataType="i=4"/>
+            <Field Name="DaylightSavingInOffset" DataType="i=1"/>
         </Definition>
     </UADataType>
 
@@ -1062,7 +1075,8 @@
     </UAVariable>
     <UAVariable NodeId="i=2054" BrowseName="Status" ParentNodeId="i=2052" DataType="Boolean">
         <DisplayName>Status</DisplayName>
-        <Description>If TRUE the action was performed. If FALSE the action failed and the server state did not change.</Description>
+        <Description>If TRUE the action was performed. If FALSE the action failed and the server state did not change.
+        </Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -1116,7 +1130,8 @@
         </References>
     </UAObjectType>
 
-    <UAVariable NodeId="i=2007" BrowseName="ServerStatus" ParentNodeId="i=2004" DataType="i=862" MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2007" BrowseName="ServerStatus" ParentNodeId="i=2004" DataType="i=862"
+                MinimumSamplingInterval="1000">
         <DisplayName>ServerStatus</DisplayName>
         <Description>The current status of the server.</Description>
         <References>
@@ -1315,7 +1330,8 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2289" BrowseName="SamplingIntervalDiagnosticsArray" ParentNodeId="i=2274" DataType="i=856" ValueRank="1">
+    <UAVariable NodeId="i=2289" BrowseName="SamplingIntervalDiagnosticsArray" ParentNodeId="i=2274" DataType="i=856"
+                ValueRank="1">
         <DisplayName>SamplingIntervalDiagnosticsArray</DisplayName>
         <Description>A list of diagnostics for each sampling interval supported by the server.</Description>
         <References>
@@ -1452,7 +1468,8 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=11704</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=11712" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11704" DataType="UInt32">
+    <UAVariable NodeId="i=11712" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11704"
+                DataType="UInt32">
         <DisplayName>MaxNodesPerTranslateBrowsePathsToNodeIds</DisplayName>
         <Description>The maximum number of operations in a single TranslateBrowsePathsToNodeIds request.</Description>
         <References>
@@ -1462,7 +1479,9 @@
     </UAVariable>
     <UAVariable NodeId="i=11713" BrowseName="MaxNodesPerNodeManagement" ParentNodeId="i=11704" DataType="UInt32">
         <DisplayName>MaxNodesPerNodeManagement</DisplayName>
-        <Description>The maximum number of operations in a single AddNodes, AddReferences, DeleteNodes or DeleteReferences request.</Description>
+        <Description>The maximum number of operations in a single AddNodes, AddReferences, DeleteNodes or
+            DeleteReferences request.
+        </Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">i=11704</Reference>
@@ -1486,7 +1505,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
         </References>
     </UAMethod>
-        <UAVariable NodeId="i=11493" BrowseName="InputArguments" ParentNodeId="i=11492" DataType="i=296" ValueRank="1">
+    <UAVariable NodeId="i=11493" BrowseName="InputArguments" ParentNodeId="i=11492" DataType="i=296" ValueRank="1">
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -1556,8 +1575,6 @@
             </ListOfExtensionObject>
         </Value>
     </UAVariable>
-
-
 
 
     <UAObjectType NodeId="i=11564" BrowseName="OperationLimitsType">
@@ -1660,7 +1677,8 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=11564</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=11572" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11564" DataType="UInt32">
+    <UAVariable NodeId="i=11572" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11564"
+                DataType="UInt32">
         <DisplayName>MaxNodesPerTranslateBrowsePathsToNodeIds</DisplayName>
         <Description>The maximum number of operations in a single TranslateBrowsePathsToNodeIds request.</Description>
         <References>
@@ -1671,7 +1689,9 @@
     </UAVariable>
     <UAVariable NodeId="i=11573" BrowseName="MaxNodesPerNodeManagement" ParentNodeId="i=11564" DataType="UInt32">
         <DisplayName>MaxNodesPerNodeManagement</DisplayName>
-        <Description>The maximum number of operations in a single AddNodes, AddReferences, DeleteNodes or DeleteReferences request.</Description>
+        <Description>The maximum number of operations in a single AddNodes, AddReferences, DeleteNodes or
+            DeleteReferences request.
+        </Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
@@ -1904,7 +1924,7 @@
 
 
     <UAVariable NodeId="i=7617" BrowseName="Opc.Ua" SymbolicName="OpcUa_BinarySchema" DataType="ByteString">
-    <DisplayName>Opc.Ua</DisplayName>
+        <DisplayName>Opc.Ua</DisplayName>
         <References>
             <Reference ReferenceType="HasProperty">i=7619</Reference>
         </References>
@@ -1921,7 +1941,6 @@
             <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</String>
         </Value>
     </UAVariable>
-
 
 
     <UAMethod NodeId="i=11489" BrowseName="GetMonitoredItems" ParentNodeId="i=2004">

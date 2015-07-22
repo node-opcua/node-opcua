@@ -4,20 +4,20 @@ var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var should = require("should");
 
 
-describe("testing message encoding and decoding",function(){
+describe("testing message encoding and decoding", function () {
 
-    it("should encode and decode HelloMessage ",function(){
+    it("should encode and decode HelloMessage ", function () {
 
         var helloMessage1 = new opcua.HelloMessage();
         //xx console.log(Object.getPrototypeOf(helloMessage1),opcua.HelloMessage);
 
 
-        var message = opcua.packTcpMessage('HEL',helloMessage1);
+        var message = opcua.packTcpMessage('HEL', helloMessage1);
 
 
         var stream = new BinaryStream(message);
 
-        var helloMessage2 = opcua.decodeMessage(stream,opcua.HelloMessage);
+        var helloMessage2 = opcua.decodeMessage(stream, opcua.HelloMessage);
         //xx console.log(helloMessage2);
 
         helloMessage1.should.eql(helloMessage2);
@@ -30,8 +30,8 @@ describe("testing message encoding and decoding",function(){
     });
 });
 
-describe("testing parseEndpointUrl",function(){
-    it(" should parse a endpoint ",function(){
+describe("testing parseEndpointUrl", function () {
+    it(" should parse a endpoint ", function () {
 
         var ep = opcua.parseEndpointUrl("opc.tcp://abcd1234:51210/UA/SampleServer");
 
@@ -41,7 +41,7 @@ describe("testing parseEndpointUrl",function(){
         ep.address.should.equal("/UA/SampleServer");
     });
 
-    it(" should parse this endpoint as well",function(){
+    it(" should parse this endpoint as well", function () {
 
         var ep = opcua.parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
 
@@ -51,7 +51,7 @@ describe("testing parseEndpointUrl",function(){
         ep.address.should.equal("/UA/SampleServer");
     });
 
-    it(" should parse this endpoint as well",function(){
+    it(" should parse this endpoint as well", function () {
 
         var ep = opcua.parseEndpointUrl("opc.tcp://portable-Precision-M4500:4841");
 

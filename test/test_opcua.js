@@ -1,15 +1,15 @@
 require("requirish")._(module);
 var should = require("should");
 var util = require("util");
-var s  = require("lib/datamodel/structures");
+var s = require("lib/datamodel/structures");
 var opcua = require("lib/nodeopcua");
 var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
-describe("testing OPCUA structures ",function() {
+describe("testing OPCUA structures ", function () {
 
 
-    it("should create a RequestHeader",function(){
+    it("should create a RequestHeader", function () {
 
 
         var requestHeader = new s.RequestHeader();
@@ -23,16 +23,17 @@ describe("testing OPCUA structures ",function() {
         requestHeader.should.have.property("additionalHeader");
 
     });
-    it("should create a ResponseHeader", function(){
+    it("should create a ResponseHeader", function () {
 
 
-        function get_current_date_with_delta_seconds(date,delta) {
+        function get_current_date_with_delta_seconds(date, delta) {
             var result = new Date(date);
-            result.setTime(date.getTime() + delta * 1000  );
+            result.setTime(date.getTime() + delta * 1000);
             return result;
 
         }
-        var date_before_construction = get_current_date_with_delta_seconds(new Date(),-1);
+
+        var date_before_construction = get_current_date_with_delta_seconds(new Date(), -1);
 
         var responseHeader = new s.ResponseHeader();
 
@@ -45,7 +46,7 @@ describe("testing OPCUA structures ",function() {
 
         responseHeader.timeStamp.should.be.instanceOf(Date);
 
-        var date_after_construction = get_current_date_with_delta_seconds(new Date(),1);
+        var date_after_construction = get_current_date_with_delta_seconds(new Date(), 1);
 
         //xx console.log("date_before_construction " ,date_before_construction , date_before_construction.getTime());
         //xx console.log("timestamp                " ,responseHeader.timeStamp , responseHeader.timeStamp.getTime());
@@ -57,26 +58,26 @@ describe("testing OPCUA structures ",function() {
 
 });
 
-describe("Testing ChannelSecurityToken", function(){
+describe("Testing ChannelSecurityToken", function () {
 
-    it("should exposed a expired property", function(){
+    it("should exposed a expired property", function () {
 
-        var channelSecurityToken = new  s.ChannelSecurityToken({});
+        var channelSecurityToken = new s.ChannelSecurityToken({});
 
         channelSecurityToken.revisedLifeTime.should.equal(30000);
-        channelSecurityToken.createdAt.getTime().should.be.lessThan((new Date().getTime() +1));
+        channelSecurityToken.createdAt.getTime().should.be.lessThan((new Date().getTime() + 1));
         (channelSecurityToken.expired).should.equal(false);
 
     });
-    it("a ChannelSecurityToken should expired after the revisedLifeTime", function(done){
-        var channelSecurityToken = new  s.ChannelSecurityToken({
+    it("a ChannelSecurityToken should expired after the revisedLifeTime", function (done) {
+        var channelSecurityToken = new s.ChannelSecurityToken({
             revisedLifeTime: 3
         });
         (channelSecurityToken.expired).should.equal(false);
-        setTimeout(function(){
+        setTimeout(function () {
             (channelSecurityToken.expired).should.equal(true);
             done();
-        },12);
+        }, 12);
     });
 
 

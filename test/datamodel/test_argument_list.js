@@ -16,25 +16,24 @@ function extractValues(arrayVariant) {
     return arrayVariant.map(_.property("value"));
 }
 
-describe("convertJavaScriptToVariant", function(){
+describe("convertJavaScriptToVariant", function () {
 
-    it("should convertJavaScriptToVariant",function(){
+    it("should convertJavaScriptToVariant", function () {
 
         var definition = [{dataType: DataType.UInt32}];
-        var arguments  = [100];
+        var arguments = [100];
 
-        var arguments_as_variant =  convertJavaScriptToVariant(definition,arguments);
+        var arguments_as_variant = convertJavaScriptToVariant(definition, arguments);
 
         arguments_as_variant.length.should.eql(1);
-        arguments_as_variant[0].should.eql(new Variant({dataType: DataType.UInt32,value: 100}));
+        arguments_as_variant[0].should.eql(new Variant({dataType: DataType.UInt32, value: 100}));
 
         extractValues(arguments_as_variant).should.eql([100]);
     });
 });
 
 
-describe("testing ArgumentList special encode/decode process",function() {
-
+describe("testing ArgumentList special encode/decode process", function () {
 
 
     it("should raise an error when trying to **encode** a ArgumentList without a definition", function () {
@@ -43,7 +42,7 @@ describe("testing ArgumentList special encode/decode process",function() {
         (function () {
             var arguments = [100];
             var definition = null;
-            encode_ArgumentList(definition,arguments,stream);
+            encode_ArgumentList(definition, arguments, stream);
         }).should.throw();
 
     });
@@ -53,7 +52,7 @@ describe("testing ArgumentList special encode/decode process",function() {
         var stream = new BinaryStream();
         (function () {
             var definition = null;
-            var arguments = decode_ArgumentList(definition,stream);
+            var arguments = decode_ArgumentList(definition, stream);
         }).should.throw();
 
     });
@@ -61,16 +60,16 @@ describe("testing ArgumentList special encode/decode process",function() {
     it("should encode/decode an ArgumentList (scalar)", function () {
 
         var definition = [{dataType: DataType.UInt32}];
-        var arguments  = [100];
+        var arguments = [100];
 
-        var size = binaryStoreSize_ArgumentList(definition,arguments);
+        var size = binaryStoreSize_ArgumentList(definition, arguments);
         size.should.equal(4, " the size of a single UInt32");
 
         var stream = new BinaryStream(size);
-        encode_ArgumentList(definition,arguments,stream);
+        encode_ArgumentList(definition, arguments, stream);
 
         stream.rewind();
-        var arguments_reloaded = decode_ArgumentList(definition,stream);
+        var arguments_reloaded = decode_ArgumentList(definition, stream);
 
         _.isArray(arguments_reloaded).should.equal(true);
         arguments_reloaded[0].should.eql(100);
@@ -79,16 +78,16 @@ describe("testing ArgumentList special encode/decode process",function() {
     it("should encode/decode an ArgumentList (array)", function () {
 
         var definition = [{dataType: DataType.UInt32, valueRank: 1}];
-        var arguments  = [[100, 200, 300]];
+        var arguments = [[100, 200, 300]];
 
-        var size = binaryStoreSize_ArgumentList(definition,arguments);
+        var size = binaryStoreSize_ArgumentList(definition, arguments);
         size.should.equal(3 * 4 + 4, " the size of a 3 x UInt32  + length");
 
         var stream = new BinaryStream(size);
-        encode_ArgumentList(definition,arguments,stream);
+        encode_ArgumentList(definition, arguments, stream);
 
         stream.rewind();
-        var arguments_reloaded = decode_ArgumentList(definition,stream);
+        var arguments_reloaded = decode_ArgumentList(definition, stream);
 
         _.isArray(arguments_reloaded).should.equal(true);
         arguments_reloaded.length.should.eql(1);
@@ -108,24 +107,23 @@ describe("testing ArgumentList special encode/decode process",function() {
             {dataType: DataType.String, name: "someText"}
         ];
 
-        var  arguments=  [10, [15, 20], "Hello"];
+        var arguments = [10, [15, 20], "Hello"];
 
-        var size = binaryStoreSize_ArgumentList(definition,arguments);
+        var size = binaryStoreSize_ArgumentList(definition, arguments);
 
         var stream = new BinaryStream(size);
-        encode_ArgumentList(definition,arguments,stream);
+        encode_ArgumentList(definition, arguments, stream);
 
 
         // here the base dataType is created with its definition before decode is called
         stream.rewind();
-        var arguments_reloaded = decode_ArgumentList(definition,stream);
+        var arguments_reloaded = decode_ArgumentList(definition, stream);
         arguments_reloaded[0].should.equal(10);
         arguments_reloaded[1][0].should.equal(15);
         arguments_reloaded[1][1].should.equal(20);
         arguments_reloaded[2].should.equal("Hello");
 
     });
-
 
 
 });

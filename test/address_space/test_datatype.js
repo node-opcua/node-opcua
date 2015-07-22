@@ -24,7 +24,7 @@ describe("testing UADataype -  Attribute", function () {
     it("UADataType#readAttribute", function () {
 
         var dataType = new UADataType({
-            browseName:  "MyDataType",
+            browseName: "MyDataType",
             address_space: the_address_space,
             isAbstract: true
         });
@@ -44,8 +44,8 @@ describe("testing UADataype -  Attribute", function () {
     describe("UADataType#isSupertypeOf", function () {
 
 
-        var number_dt,double_dt,float_dt,integer_dt,int16_dt,uint32_dt,duration_dt,uinteger_dt,uint64_dt,int64_dt;
-        before(function() {
+        var number_dt, double_dt, float_dt, integer_dt, int16_dt, uint32_dt, duration_dt, uinteger_dt, uint64_dt, int64_dt;
+        before(function () {
             // see table 120 OPCUA Spec part 5
             // BaseDataType   (i=24)
             //   +-->String   (i=12)
@@ -86,68 +86,67 @@ describe("testing UADataype -  Attribute", function () {
             (typeof duration_dt).should.equal("object");
         });
 
-        it("Number should not be a super type of Double",function() {
+        it("Number should not be a super type of Double", function () {
             number_dt.isSupertypeOf(double_dt).should.eql(false);
         });
 
-        it("Double should be a super type of Number",function() {
+        it("Double should be a super type of Number", function () {
             number_dt.isSupertypeOf(double_dt).should.eql(false);
         });
 
-        it("Int16 should be a super type of Integer",function() {
+        it("Int16 should be a super type of Integer", function () {
             int16_dt.isSupertypeOf(integer_dt).should.eql(true);
         });
-        it("Int16 should be a super type of Number",function() {
+        it("Int16 should be a super type of Number", function () {
             int16_dt.isSupertypeOf(number_dt).should.eql(true);
         });
 
-        it("Int16 should not be a super type of Float",function() {
+        it("Int16 should not be a super type of Float", function () {
             int16_dt.isSupertypeOf(float_dt).should.eql(false);
         });
-        it("Int16 should be a super type of Int16",function() {
+        it("Int16 should be a super type of Int16", function () {
             int16_dt.isSupertypeOf(int16_dt).should.eql(true);
         });
-        it("Duration should be a super type of Double",function() {
+        it("Duration should be a super type of Double", function () {
             duration_dt.isSupertypeOf(double_dt).should.eql(true);
         });
 
-        it("Double should *not* be a super type of Duration",function() {
+        it("Double should *not* be a super type of Duration", function () {
             double_dt.isSupertypeOf(duration_dt).should.eql(false);
         });
-        it("Integer should *not* be a super type of UInt32",function() {
+        it("Integer should *not* be a super type of UInt32", function () {
             integer_dt.isSupertypeOf(uint32_dt).should.eql(false);
         });
-        it("UInteger should *not* be a super type of Integer",function() {
+        it("UInteger should *not* be a super type of Integer", function () {
             uinteger_dt.isSupertypeOf(integer_dt).should.eql(false);
         });
 
-        it("UInt32 should be a super type of UInteger",function() {
+        it("UInt32 should be a super type of UInteger", function () {
             uint32_dt.isSupertypeOf(uinteger_dt).should.eql(true);
         });
-        it("UInt32 should *not* be a super type of Integer",function() {
+        it("UInt32 should *not* be a super type of Integer", function () {
             uint32_dt.isSupertypeOf(integer_dt).should.eql(false);
         });
-        it("UInt32 should be a super type of UInteger",function() {
+        it("UInt32 should be a super type of UInteger", function () {
             uint32_dt.isSupertypeOf(uinteger_dt).should.eql(true);
         });
 
-        it("UInt64 should be a super type of UInteger",function() {
+        it("UInt64 should be a super type of UInteger", function () {
             uint64_dt.isSupertypeOf(uinteger_dt).should.eql(true);
         });
-        it("int64 should be a super type of Integer",function() {
+        it("int64 should be a super type of Integer", function () {
             int64_dt.isSupertypeOf(integer_dt).should.eql(true);
         });
 
-        it("UInt64 should *not* be a super type of Integer",function() {
+        it("UInt64 should *not* be a super type of Integer", function () {
             uint64_dt.isSupertypeOf(integer_dt).should.eql(false);
         });
-        it("int64 should *not* be a super type of UInteger",function() {
+        it("int64 should *not* be a super type of UInteger", function () {
             int64_dt.isSupertypeOf(uinteger_dt).should.eql(false);
         });
 
 
     });
-
 
 
 });

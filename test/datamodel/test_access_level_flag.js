@@ -10,13 +10,13 @@ var factories = require("lib/misc/factories");
 var _ = require("underscore");
 
 
-var ObjWithAccessLevel  = factories.registerObject("test/fixtures/schemas|ObjWithAccessLevel","tmp");
+var ObjWithAccessLevel = factories.registerObject("test/fixtures/schemas|ObjWithAccessLevel", "tmp");
 
 assert(_.isFunction(ObjWithAccessLevel));
 
-describe("Testing AccessLevelFlag",function() {
+describe("Testing AccessLevelFlag", function () {
 
-    it("should create a access level flags from a string",function() {
+    it("should create a access level flags from a string", function () {
 
         makeAccessLevel("CurrentRead").value.should.equal(0x01);
         makeAccessLevel("CurrentWrite").value.should.equal(0x02);
@@ -31,17 +31,17 @@ describe("Testing AccessLevelFlag",function() {
         makeAccessLevel(makeAccessLevel("CurrentRead")).value.should.equal(0x01);
     });
 
-    it("should have a accessLevel Flag Basic Type",function() {
+    it("should have a accessLevel Flag Basic Type", function () {
         _.isObject(findBuiltInType("AccessLevelFlag")).should.equal(true);
     });
 
-    it("should create an object with access_level",function() {
+    it("should create an object with access_level", function () {
         var o = new ObjWithAccessLevel();
         o.should.have.property("accessLevel");
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
     });
 
-    it("should create an object with access_level defined as a 'string'",function() {
+    it("should create an object with access_level defined as a 'string'", function () {
 
         var o = new ObjWithAccessLevel({
             accessLevel: "HistoryWrite | SemanticChange"
@@ -51,7 +51,7 @@ describe("Testing AccessLevelFlag",function() {
 
     });
 
-    it("should create an object with access_level defined as a Int8'",function() {
+    it("should create an object with access_level defined as a Int8'", function () {
 
         var o = new ObjWithAccessLevel({
             accessLevel: 0x5
@@ -60,11 +60,9 @@ describe("Testing AccessLevelFlag",function() {
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | HistoryRead"));
     });
 
-    it("should persist a accessLevel Flag",function(){
+    it("should persist a accessLevel Flag", function () {
 
-        var o = new ObjWithAccessLevel({
-
-        });
+        var o = new ObjWithAccessLevel({});
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
 
         var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
@@ -73,7 +71,7 @@ describe("Testing AccessLevelFlag",function() {
 
     });
 
-    it("should provide a easy way to check if a flag is set or not",function(){
+    it("should provide a easy way to check if a flag is set or not", function () {
 
         var accessLevel = makeAccessLevel("CurrentWrite | CurrentRead");
 

@@ -17,10 +17,10 @@ var UserNameIdentityToken = session_service.UserNameIdentityToken;
 
 var userManager = {
 
-        isValidUser: function(userName,password) {
-            return  ( userName === "username" && password === "p@ssw0rd" );
-        }
-    };
+    isValidUser: function (userName, password) {
+        return ( userName === "username" && password === "p@ssw0rd" );
+    }
+};
 
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
@@ -29,7 +29,7 @@ if (!crypto_utils.isFullySupported()) {
 
     describe("testing Client-Server with UserName/Password identity token", function () {
 
-        var server, client, temperatureVariableId, endpointUrl,serverCertificate;
+        var server, client, temperatureVariableId, endpointUrl, serverCertificate;
 
         var port = 2001;
         before(function (done) {
@@ -68,7 +68,7 @@ if (!crypto_utils.isFullySupported()) {
             server.shutdown(done);
         });
 
-        function perform_simple_connection(connectionOption,credentials, done) {
+        function perform_simple_connection(connectionOption, credentials, done) {
 
             var the_session;
 
@@ -111,7 +111,7 @@ if (!crypto_utils.isFullySupported()) {
 
         it("should not anonymously connect to a server that forbids anonymous connection : anonymous connection", function (done) {
 
-            perform_simple_connection({},{}, function (err) {
+            perform_simple_connection({}, {}, function (err) {
                 should(err).be.instanceOf(Error);
                 err.message.should.match(/Cannot find ANONYMOUS user token policy in end point description/);
                 done();
@@ -122,7 +122,7 @@ if (!crypto_utils.isFullySupported()) {
 
             var userName = "username";
             var password = "***invalid password***";
-            perform_simple_connection({},{userName: userName, password: password}, function (err) {
+            perform_simple_connection({}, {userName: userName, password: password}, function (err) {
                 should(err).be.instanceOf(Error);
                 err.message.should.match(/BadUserAccessDenied/);
                 done();
@@ -135,7 +135,7 @@ if (!crypto_utils.isFullySupported()) {
 
             var userName = "username";
             var password = "p@ssw0rd";
-            perform_simple_connection({},{userName: userName, password: password}, done);
+            perform_simple_connection({}, {userName: userName, password: password}, done);
 
         });
 
@@ -148,7 +148,7 @@ if (!crypto_utils.isFullySupported()) {
                 securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                 serverCertificate: serverCertificate
             };
-            perform_simple_connection(options,{userName: userName, password: password}, done);
+            perform_simple_connection(options, {userName: userName, password: password}, done);
 
         });
 

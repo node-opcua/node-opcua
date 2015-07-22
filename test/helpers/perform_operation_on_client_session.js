@@ -35,18 +35,18 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
 
         // connect
 
-        function(callback) {
+        function (callback) {
             //xx console.log("xxxxx connecting to server ...");
-            client.connect(endpointUrl, function(err) {
+            client.connect(endpointUrl, function (err) {
                 //xx console.log("xxxxx connection OK");
                 callback(err);
             });
         },
 
         // create session
-        function(callback) {
+        function (callback) {
             //xx console.log("xxxxx creating session ...");
-            client.createSession(function(err, session) {
+            client.createSession(function (err, session) {
                 if (!err) {
                     //xx console.log("xxxxx session  created ...");
                     the_session = session;
@@ -56,20 +56,20 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
         },
 
         // call the user provided func
-        function(callback) {
+        function (callback) {
             func(the_session, callback);
         },
 
         // closing session
-        function(callback) {
-            the_session.close(function(err) {
+        function (callback) {
+            the_session.close(function (err) {
                 callback(err);
             });
         },
 
         // disconnect
-        function(callback) {
-            client.disconnect(function() {
+        function (callback) {
+            client.disconnect(function () {
                 callback();
             });
         }
@@ -100,12 +100,12 @@ exports.perform_operation_on_client_session = perform_operation_on_client_sessio
 // callback function(session, subscriptionId,done)
 function perform_operation_on_subscription(client, endpointUrl, do_func, done_func) {
 
-    perform_operation_on_client_session(client, endpointUrl, function(session, done) {
+    perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
         var subscription;
         async.series([
 
-            function(callback) {
+            function (callback) {
                 subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 10 * 60,
@@ -114,20 +114,20 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
                     publishingEnabled: true,
                     priority: 6
                 });
-                subscription.on("started", function() {
+                subscription.on("started", function () {
                     callback();
                 });
             },
 
-            function(callback) {
+            function (callback) {
                 do_func(session, subscription, callback);
             },
 
-            function(callback) {
+            function (callback) {
                 subscription.on("terminated", callback);
                 subscription.terminate();
             }
-        ], function(err) {
+        ], function (err) {
             done(err);
         });
 
@@ -138,11 +138,11 @@ exports.perform_operation_on_subscription = perform_operation_on_subscription;
 
 function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId, func, done_func) {
 
-    perform_operation_on_subscription(client, endpointUrl, function(session, subscription, inner_done) {
+    perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
         var monitoredItem;
         async.series([
-            function(callback) {
+            function (callback) {
                 monitoredItem = subscription.monitor({
                     nodeId: resolveNodeId(monitoredItemId),
                     attributeId: AttributeIds.Value
@@ -152,15 +152,15 @@ function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId
                     queueSize: 1
                 });
 
-                monitoredItem.on("initialized", function() {
+                monitoredItem.on("initialized", function () {
                     callback();
                 });
             },
-            function(callback) {
+            function (callback) {
                 func(session, subscription, monitoredItem, callback);
             },
-            function(callback) {
-                monitoredItem.terminate(function() {
+            function (callback) {
+                monitoredItem.terminate(function () {
                     callback();
                 });
             }

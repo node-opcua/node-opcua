@@ -12,7 +12,7 @@ var opcua = require("index");
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 
 var makeNodeId = opcua.makeNodeId;
-var coerceNodeId  =opcua.coerceNodeId;
+var coerceNodeId = opcua.coerceNodeId;
 
 var DataType = opcua.DataType;
 var Variant = opcua.Variant;
@@ -33,8 +33,7 @@ var address_space_for_conformance_testing = require("lib/simulation/address_spac
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var address_space = require("lib/address_space/address_space");
-var server_engine = require("lib/server/server_engine");4
-
+var server_engine = require("lib/server/server_engine");
 
 
 
@@ -62,7 +61,7 @@ describe("testing address space for conformance testing", function () {
             server_engine.mini_nodeset_filename,
             server_engine.part8_nodeset_filename
         ];
-        engine.initialize({nodeset_filename:nodeset_filename }, function () {
+        engine.initialize({nodeset_filename: nodeset_filename}, function () {
             build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
             // address space variable change for conformance testing are changing randomly
@@ -157,7 +156,7 @@ describe("testing address space for conformance testing", function () {
                     callback(err);
                 });
             }
-        ], done)
+        ], done);
     });
 
     it("should be able to write a array of double on Scalar_Static_Array_Double", function (done) {
@@ -303,7 +302,7 @@ describe("testing address space for conformance testing", function () {
 
     });
 
-    function writeValueRange(nodeId, dataType, value, range,callback) {
+    function writeValueRange(nodeId, dataType, value, range, callback) {
         var request = new WriteValue({
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
@@ -321,9 +320,10 @@ describe("testing address space for conformance testing", function () {
         });
 
     }
+
     function writeValue(nodeId, dataType, value, callback) {
 
-        writeValueRange(nodeId,dataType,value,null,callback);
+        writeValueRange(nodeId, dataType, value, null, callback);
     }
 
     function readValue(nodeId, callback) {
@@ -381,12 +381,12 @@ describe("testing address space for conformance testing", function () {
         dataValue.value.value[0].should.eql(false);
 
         // -------------------------------------------------------------------------------------------------------------
-        var request = new ReadValueId({
+        request = new ReadValueId({
             nodeId: nodeId,
             indexRange: "1",
             attributeId: AttributeIds.Value
         });
-        var dataValue = engine._readSingleNode(request);
+        dataValue = engine._readSingleNode(request);
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.be.instanceOf(Array);
         dataValue.value.value.length.should.eql(1);
@@ -440,10 +440,10 @@ describe("testing address space for conformance testing", function () {
         var data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         writeValueArray(nodeId, DataType.Int32, null, data, function (err, value) {
-
+            should(err).eql(null);
             readValueArray(nodeId, "3:4", function (err, value) {
                 value.length.should.eql(2);
-                assert_arrays_are_equal(value,new Int32Array([4, 5]));
+                assert_arrays_are_equal(value, new Int32Array([4, 5]));
                 done(err);
             });
         });
@@ -456,10 +456,10 @@ describe("testing address space for conformance testing", function () {
         var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
         writeValueArray(nodeId, DataType.Int32, null, data, function (err, value) {
-
+            should(err).eql(null);
             readValueArray(nodeId, "7:9", function (err, value) {
                 value.length.should.eql(3);
-                assert_arrays_are_equal(value,new Int32Array([7, 8, 9]));
+                assert_arrays_are_equal(value, new Int32Array([7, 8, 9]));
                 done(err);
             });
         });
@@ -485,7 +485,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
-                    assert_arrays_are_equal(value,new Int32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+                    assert_arrays_are_equal(value, new Int32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
                     callback(err);
                 });
             },
@@ -494,7 +494,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, "3", function (err, value) {
                     value.length.should.eql(1);
-                    assert_arrays_are_equal(value,new Int32Array([4]));
+                    assert_arrays_are_equal(value, new Int32Array([4]));
                     callback(err);
                 });
             },
@@ -511,7 +511,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, "3:4", function (err, value) {
                     value.length.should.eql(2);
-                    assert_arrays_are_equal(value,new Int32Array([4, 5]));
+                    assert_arrays_are_equal(value, new Int32Array([4, 5]));
                     callback(err);
                 });
             },
@@ -532,7 +532,7 @@ describe("testing address space for conformance testing", function () {
                 readValueArray(nodeId, null, function (err, value) {
                     value.length.should.eql(10);
                     //xx console.log(" =>", value);
-                    assert_arrays_are_equal(value,new Int32Array([1, 2, 123, 345, 5, 6, 7, 8, 9, 10]));
+                    assert_arrays_are_equal(value, new Int32Array([1, 2, 123, 345, 5, 6, 7, 8, 9, 10]));
                     callback(err);
                 });
             }
@@ -587,14 +587,14 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 readValueArray(nodeId, "4", function (err, value) {
                     value.length.should.eql(1);
-                    assert_arrays_are_equal(value,new Int16Array([l_value[4]]));
+                    assert_arrays_are_equal(value, new Int16Array([l_value[4]]));
                     callback(err);
                 });
             },
             function (callback) {
                 readValueArray(nodeId, "3:5", function (err, value) {
                     value.length.should.eql(3);
-                    assert_arrays_are_equal(value,new Int16Array([l_value[3], l_value[4], l_value[5]]));
+                    assert_arrays_are_equal(value, new Int16Array([l_value[3], l_value[4], l_value[5]]));
                     callback(err);
                 });
             }
@@ -622,7 +622,7 @@ describe("testing address space for conformance testing", function () {
                 var newValue = new Buffer("Lorem ipsu");
                 writeValue(nodeId, DataType.ByteString, newValue, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
-                    callback(err)
+                    callback(err);
                 });
             }
 
@@ -645,10 +645,10 @@ describe("testing address space for conformance testing", function () {
                 });
             },
             function (callback) {
-                var buf = [0,1,2,3,4,5,6,9];
-                writeValue(nodeId, DataType.ByteString, buf,function (err, statusCode) {
+                var buf = [0, 1, 2, 3, 4, 5, 6, 9];
+                writeValue(nodeId, DataType.ByteString, buf, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
-                    callback(err)
+                    callback(err);
                 });
             },
             function (callback) {
@@ -663,22 +663,22 @@ describe("testing address space for conformance testing", function () {
                 readValueArray(nodeId, "3:5", function (err, value) {
                     l_value = value;
                     l_value.length.should.eql(3);
-                    l_value.should.eql(new Uint8Array([3,4,5]));
+                    l_value.should.eql(new Uint8Array([3, 4, 5]));
                     callback(err);
                 });
             },
             function (callback) {
                 var buf = new Buffer("LoremIpsum");
-                writeValue(nodeId, DataType.ByteString, buf,function (err, statusCode) {
+                writeValue(nodeId, DataType.ByteString, buf, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
-                    callback(err)
+                    callback(err);
                 });
             },
             function (callback) {
                 var buf = new Buffer("OREM");
-                writeValueRange(nodeId, DataType.ByteString, buf,"1:4",function (err, statusCode) {
+                writeValueRange(nodeId, DataType.ByteString, buf, "1:4", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
-                    callback(err)
+                    callback(err);
                 });
             },
             function (callback) {
@@ -695,8 +695,6 @@ describe("testing address space for conformance testing", function () {
 });
 
 
-
-
 describe("testing address space with large number of nodes", function () {
 
     var engine;
@@ -710,7 +708,7 @@ describe("testing address space with large number of nodes", function () {
             server_engine.mini_nodeset_filename,
             server_engine.part8_nodeset_filename
         ];
-        engine.initialize({nodeset_filename:nodeset_filename }, function () {
+        engine.initialize({nodeset_filename: nodeset_filename}, function () {
             build_address_space_for_conformance_testing(engine, {mass_variables: true});
 
             // address space variable change for conformance testing are changing randomly
@@ -727,13 +725,12 @@ describe("testing address space with large number of nodes", function () {
     });
 
 
-
     it("should create mass variables", function (done) {
 
         var a = engine.findObjectByBrowseName("Scalar_Mass_UInt32");
         should(a).not.eql(null);
 
-        engine.findObject(coerceNodeId("ns="+namespaceIndex + ";s=Scalar_Mass_Time"));
+        engine.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
         should(a).not.eql(null);
         done();
     });

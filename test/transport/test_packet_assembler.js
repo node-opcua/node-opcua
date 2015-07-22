@@ -27,7 +27,7 @@ function makeMessage(msgType, length) {
 function readerHeader(data) {
     var msgType = String.fromCharCode(data.readUInt8(0));
     var length = data.readUInt32LE(1);
-    return { length: length, extra: msgType};
+    return {length: length, extra: msgType};
 }
 
 
@@ -103,10 +103,10 @@ describe("PacketAssembler", function () {
                 info.length.should.equal(message.length);
                 info.length.should.equal(200 + 5);
                 counter += 1;
-                if (counter == 1) {
+                if (counter === 1) {
                     info.extra.should.equal("A");
                 }
-                if (counter == 2) {
+                if (counter === 2) {
                     info.extra.should.equal("B");
                     done();
                 }

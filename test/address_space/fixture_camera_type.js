@@ -8,29 +8,29 @@ var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 exports.createCameraType = function createCameraType(address_space) {
 
 
-    var cameraType = address_space.addObjectType({ browseName: "1:CameraType" });
+    var cameraType = address_space.addObjectType({browseName: "1:CameraType"});
 
     // MachineType.HeaderSwitch
-    var triggerMethod = address_space.addMethod(cameraType,{
+    var triggerMethod = address_space.addMethod(cameraType, {
         browseName: "1:Trigger",
 
-        inputArguments:  [
+        inputArguments: [
             {
-                name:"ShutterLag",
-                description: { text: "specifies the number of seconds to wait before the picture is taken " },
+                name: "ShutterLag",
+                description: {text: "specifies the number of seconds to wait before the picture is taken "},
                 dataType: DataType.UInt32
             }
         ],
 
         outputArguments: [
             {
-                name:"Image",
-                description:{ text: "the generated image" },
+                name: "Image",
+                description: {text: "the generated image"},
                 dataType: "Image"
             }
         ]
     });
     triggerMethod.browseName.toString().should.eql("1:Trigger");
-    triggerMethod.browseName.should.eql(new QualifiedName({name:"Trigger",namespaceIndex:1}));
+    triggerMethod.browseName.should.eql(new QualifiedName({name: "Trigger", namespaceIndex: 1}));
     return cameraType;
 };

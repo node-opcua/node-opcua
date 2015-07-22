@@ -1,21 +1,20 @@
 require("requirish")._(module);
 var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
-var should  = require("should");
+var should = require("should");
 var assert = require("better-assert");
 
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
-var MockTransport           = require("test/mocks/mock_transport").MockTransport;
+var MockTransport = require("test/mocks/mock_transport").MockTransport;
 var fake_AcknowledgeMessage = require("test/mocks/mock_transport").fake_AcknowledgeMessage;
 
 var endpoints_service = require("lib/services/get_endpoints_service");
 var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
 
 
+describe("testing ClientSecureChannelLayer ", function () {
 
-describe("testing ClientSecureChannelLayer ",function(){
-
-    it("should create a ClientSecureChannelLayer",function(done){
+    it("should create a ClientSecureChannelLayer", function (done) {
 
         var mock = new MockTransport([
 
@@ -24,18 +23,18 @@ describe("testing ClientSecureChannelLayer ",function(){
 
             require("test/fixtures/fixture_full_tcp_packets").packet_sc_2 // OpenChannelResponse
 
-        ],done);
+        ], done);
 
         require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
-        secureChannel.create("fake://localhost:2033/SomeAddress",function(err){
+        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
             done(err);
         });
     });
 
-    it("should close a ClientSecureChannelLayer",function(done){
+    it("should close a ClientSecureChannelLayer", function (done) {
 
         var mock = new MockTransport([
 
@@ -52,25 +51,29 @@ describe("testing ClientSecureChannelLayer ",function(){
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function() { this.fake_socket.server.end(); },
+            function () {
+                this.fake_socket.server.end();
+            },
 
-            function() { done(new Error("no more packet to mock")); }
+            function () {
+                done(new Error("no more packet to mock"));
+            }
 
-        ],done);
+        ], done);
 
         require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
-        secureChannel.create("fake://localhost:2033/SomeAddress",function(err){
-            secureChannel.close(function(err){
+        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
+            secureChannel.close(function (err) {
                 done(err);
             });
         });
     });
 
 
-    it("should use token provided by server in messages",function(done){
+    it("should use token provided by server in messages", function (done) {
 
         var mock = new MockTransport([
             // ---------------------------------------------------- Transaction 1
@@ -86,9 +89,11 @@ describe("testing ClientSecureChannelLayer ",function(){
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function() { this.fake_socket.server.end(); }
+            function () {
+                this.fake_socket.server.end();
+            }
 
-        ],done);
+        ], done);
 
         require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
@@ -97,7 +102,7 @@ describe("testing ClientSecureChannelLayer ",function(){
         // before connection the securityToken shall not exist
         should(secureChannel.securityToken).equal(undefined);
 
-        secureChannel.create("fake://localhost:2033/SomeAddress",function(err){
+        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
 
             // after connection client holds the security token provided by the server
             should(secureChannel.securityToken).not.equal(undefined);
@@ -106,28 +111,27 @@ describe("testing ClientSecureChannelLayer ",function(){
             secureChannel.securityToken.tokenId.should.equal(1);
 
 
-            secureChannel.close(function(err){
+            secureChannel.close(function (err) {
                 done(err);
             });
         });
 
 
-
     });
 
-    it("should callback with an error if performMessageTransaction is called before connection",function(done){
+    it("should callback with an error if performMessageTransaction is called before connection", function (done) {
 
         var secureChannel = new ClientSecureChannelLayer();
         var s = require("lib/datamodel/structures");
         var message = new GetEndpointsRequest();
-        secureChannel.performMessageTransaction(message,function(err/*, response*/){
+        secureChannel.performMessageTransaction(message, function (err/*, response*/) {
             err.message.should.equal("Client not connected");
             done();
         });
 
     });
 
-    it("should expose the total number of bytes read and written",function(done){
+    it("should expose the total number of bytes read and written", function (done) {
 
         var mock = new MockTransport([
             // ---------------------------------------------------- Transaction 1
@@ -143,9 +147,11 @@ describe("testing ClientSecureChannelLayer ",function(){
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function() { this.fake_socket.server.end(); }
+            function () {
+                this.fake_socket.server.end();
+            }
 
-        ],done);
+        ], done);
 
         require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
         var secureChannel = new ClientSecureChannelLayer();
@@ -153,7 +159,7 @@ describe("testing ClientSecureChannelLayer ",function(){
         secureChannel.bytesRead.should.equal(0);
         secureChannel.bytesWritten.should.equal(0);
 
-        secureChannel.create("fake://localhost:2033/SomeAddress",function(err){
+        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
 
             secureChannel.bytesRead.should.be.greaterThan(0);
             secureChannel.bytesWritten.should.be.greaterThan(0);
@@ -162,7 +168,7 @@ describe("testing ClientSecureChannelLayer ",function(){
             secureChannel.isTransactionInProgress().should.eql(false);
 
 
-            secureChannel.close(function(err){
+            secureChannel.close(function (err) {
                 done(err);
             });
         });

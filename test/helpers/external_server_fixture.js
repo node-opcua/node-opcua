@@ -14,35 +14,38 @@ var _ = require("underscore");
  * @param callback.data.serverCertificate
  *
  */
-function start_simple_server(options,callback) {
+function start_simple_server(options, callback) {
 
-    if (_.isFunction(options)){
-        callback=options; options = null;
+    if (_.isFunction(options)) {
+        callback = options;
+        options = null;
     }
 
-    options = options||{};
+    options = options || {};
 
     var spawn = require("child_process").spawn;
 
     options.env = options.env || {};
 
-    _.extend(options.env,process.env);
+    _.extend(options.env, process.env);
 
     //xx options.env.DEBUG = "ALL";
 
-    var server_exec  = spawn('node', ['./bin/simple_server' ,'-p','2223'],options);
+    var server_exec = spawn('node', ['./bin/simple_server', '-p', '2223'], options);
 
-    var serverCertificateFilename = path.join(__dirname,"../../certificates/server_cert_1024.pem");
+    var serverCertificateFilename = path.join(__dirname, "../../certificates/server_cert_1024.pem");
 
-    console.log(" node ","./bin/simple_server");
+    console.log(" node ", "./bin/simple_server");
 
-    function detect_early_termination(code,signal) {
-        console.log('child process terminated due to receipt of signal '+signal);
+    function detect_early_termination(code, signal) {
+        console.log('child process terminated due to receipt of signal ' + signal);
         callback(new Error("Process has terminated unexpectedly with code=" + code + " signal=" + signal));
     }
+
     var callback_called = false;
 
     var pid_collected = 0;
+
     function detect_ready_message(data) {
         if (!callback_called) {
             if (/server PID/.test(data)) {
@@ -53,38 +56,39 @@ function start_simple_server(options,callback) {
                 var m = data.match(/([0-9]+)$/);
                 pid_collected = parseInt(m[1]);
             }
-            if ( /server now waiting for connections./.test(data))  {
+            if (/server now waiting for connections./.test(data)) {
 
                 server_exec.removeListener("close", detect_early_termination);
                 callback_called = true;
 
-                setTimeout(function(){
+                setTimeout(function () {
 
-                    callback(null,{
+                    callback(null, {
                         process: server_exec,
                         pid_collected: pid_collected,
                         endpointUrl: "opc.tcp://localhost:26543/UA/SampleServer",
                         serverCertificate: crypto_utils.readCertificate(serverCertificateFilename)
                     });
 
-                },100);
+                }, 100);
             }
         }
     }
 
     server_exec.on("close", detect_early_termination);
 
-    server_exec.on("error",function(err){
+    server_exec.on("error", function (err) {
         console.log("xxxx child process terminated due to receipt of signal ");
     });
 
 
-
-    function dumpData(prolog,data) {
+    function dumpData(prolog, data) {
         data = "" + data;
         data = data.split("\n");
 
-        data.filter(function(a) {return a.length>0}).forEach(function(data) {
+        data.filter(function (a) {
+            return a.length > 0
+        }).forEach(function (data) {
 
             detect_ready_message(data);
             console.log(prolog + data);
@@ -101,12 +105,12 @@ function start_simple_server(options,callback) {
 
 }
 
-function stop_simple_server(serverHandle,callback) {
+function stop_simple_server(serverHandle, callback) {
 
     // note : it looks like kill is not working on windows
 
-    if(!serverHandle) {
-        return  callback(null);
+    if (!serverHandle) {
+        return callback(null);
     }
     console.log(" SHUTTING DOWN : killed = ", serverHandle.process.killed,
         " pid = ", serverHandle.process.pid,
@@ -114,7 +118,7 @@ function stop_simple_server(serverHandle,callback) {
 
     serverHandle.process.on("close", function (/*err*/) {
         //xx console.log('XXXXX child process terminated due to receipt of signal ');
-        setTimeout(callback,100);
+        setTimeout(callback, 100);
     });
 
     process.kill(serverHandle.process.pid, "SIGKILL");

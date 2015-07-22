@@ -319,7 +319,7 @@ describe("testing built-in type encoding", function () {
             nodeId,
             ec.encodeNodeId,
             ec.decodeNodeId,
-                4 + 9 + 2 + 1
+            4 + 9 + 2 + 1
         );
 
     });
@@ -332,7 +332,7 @@ describe("testing built-in type encoding", function () {
             nodeId,
             ec.encodeNodeId,
             ec.decodeNodeId,
-                16 + 2 + 1
+            16 + 2 + 1
         );
 
 
@@ -417,7 +417,7 @@ describe("testing built-in type encoding", function () {
     it("should encode and decode a UInt64 EightBytes", function () {
 
         test_encode_decode(
-            [356,234],
+            [356, 234],
             ec.encodeUInt64,
             ec.decodeUInt64,
             8
@@ -427,7 +427,7 @@ describe("testing built-in type encoding", function () {
     it("should encode and decode a Int64 EightBytes", function () {
 
         test_encode_decode(
-            [356,234],
+            [356, 234],
             ec.encodeInt64,
             ec.decodeInt64,
             8
@@ -435,35 +435,35 @@ describe("testing built-in type encoding", function () {
     });
 });
 
-describe("encoding and decoding string",function(){
+describe("encoding and decoding string", function () {
 
-    it("should encode and decode a simple ascii String",function(){
+    it("should encode and decode a simple ascii String", function () {
         test_encode_decode(
             "hello world",
             ec.encodeString,
             ec.decodeString,
-            11+4
+            11 + 4
         );
     });
-    it("should encode and decode a utf-8 containing double bytes characters",function(){
+    it("should encode and decode a utf-8 containing double bytes characters", function () {
         test_encode_decode(
             "°C",
             ec.encodeString,
             ec.decodeString,
-            3+4 // (°=2 bytes charaters + 1)
-            ,function verify_buffer_func(buffer) {
-                console.log(require("lib/misc/utils").hexDump(buffer.slice(0,7)));
+            3 + 4 // (°=2 bytes charaters + 1)
+            , function verify_buffer_func(buffer) {
+                console.log(require("lib/misc/utils").hexDump(buffer.slice(0, 7)));
             }
         );
     });
-    it("should encode and decode a utf-8 containing chinesse characters",function(){
+    it("should encode and decode a utf-8 containing chinesse characters", function () {
         test_encode_decode(
             "你好世界", // hello world
             ec.encodeString,
             ec.decodeString,
-            16 ,
+            16,
             function verify_buffer_func(buffer) {
-                console.log(require("lib/misc/utils").hexDump(buffer.slice(0,16)));
+                console.log(require("lib/misc/utils").hexDump(buffer.slice(0, 16)));
             }
         );
     });
@@ -471,26 +471,30 @@ describe("encoding and decoding string",function(){
 describe("encoding and decoding arrays", function () {
 
 
-    it("should encode and decode an array of integer",function(){
+    it("should encode and decode an array of integer", function () {
 
-        function encode_array_float(arr,stream) {
-            ec.encodeArray(arr,stream,ec.encodeFloat);
+        function encode_array_float(arr, stream) {
+            ec.encodeArray(arr, stream, ec.encodeFloat);
         }
+
         function decode_array_float(stream) {
-            return ec.decodeArray(stream,ec.decodeFloat);
+            return ec.decodeArray(stream, ec.decodeFloat);
         }
-        test_encode_decode([10,20,30,40],encode_array_float,decode_array_float, 4*3 + 8);
+
+        test_encode_decode([10, 20, 30, 40], encode_array_float, decode_array_float, 4 * 3 + 8);
     });
 
-    it("should encode and decode an array of strings",function(){
+    it("should encode and decode an array of strings", function () {
 
-        function encode_array_string(arr,stream) {
-            ec.encodeArray(arr,stream,ec.encodeString);
+        function encode_array_string(arr, stream) {
+            ec.encodeArray(arr, stream, ec.encodeString);
         }
+
         function decode_array_string(stream) {
-            return ec.decodeArray(stream,ec.decodeString);
+            return ec.decodeArray(stream, ec.decodeString);
         }
-        test_encode_decode(["Hoo","Hello","World","你好世界","привет мир","こんにちは世界"],encode_array_string,decode_array_string, 93);
+
+        test_encode_decode(["Hoo", "Hello", "World", "你好世界", "привет мир", "こんにちは世界"], encode_array_string, decode_array_string, 93);
     });
 
 });
@@ -558,7 +562,7 @@ describe("check coerce various types", function () {
 //        "NodeId",
 //        "ByteString",
 
-    it("should have a coerce method for boolean",function() {
+    it("should have a coerce method for boolean", function () {
 
         ec.coerceBoolean("false").should.equal(false);
         ec.coerceBoolean("true").should.equal(true);
@@ -613,12 +617,13 @@ describe("check coerce various types", function () {
         });
     });
 
-    function w(str,l) {
-        return(str+ "                        ").substring(0,l);
+    function w(str, l) {
+        return (str + "                        ").substring(0, l);
     }
+
     types.forEach(function (type) {
 
-        it("coerce" + w(type,8) + " should preserves null or undefined values ", function () {
+        it("coerce" + w(type, 8) + " should preserves null or undefined values ", function () {
 
             var coerceFunc = ec["coerce" + type];
 
@@ -637,23 +642,23 @@ describe("check coerce various types", function () {
     });
 });
 
-describe("UInt64",function(){
+describe("UInt64", function () {
 
-    it("should coerce an Int32 into Int64",function(){
-        ec.coerceUInt64(0xFF1000).should.eql([0x0,0xFF1000]);
+    it("should coerce an Int32 into Int64", function () {
+        ec.coerceUInt64(0xFF1000).should.eql([0x0, 0xFF1000]);
     });
-    it("should coerce an long number into Int64",function(){
-        ec.coerceUInt64(0x1020000000).should.eql([0x10,0x20000000]);
+    it("should coerce an long number into Int64", function () {
+        ec.coerceUInt64(0x1020000000).should.eql([0x10, 0x20000000]);
     });
-    it("should coerce an long number into Int64",function(){
-        ec.coerceUInt64(0x100020000000).should.eql([0x1000,0x20000000]);
+    it("should coerce an long number into Int64", function () {
+        ec.coerceUInt64(0x100020000000).should.eql([0x1000, 0x20000000]);
     });
 });
 
 
-describe("Float",function(){
+describe("Float", function () {
 
-    it("should encode float (0)",function() {
+    it("should encode float (0)", function () {
 
         var buffer = new Buffer(4);
         buffer[0] = 0x1;
@@ -661,7 +666,7 @@ describe("Float",function(){
         buffer[0] = 0x3;
         buffer[0] = 0x4;
 
-        buffer.writeFloatLE(0.0,0);
+        buffer.writeFloatLE(0.0, 0);
 
         console.log(buffer.toString("hex"));
 
@@ -670,10 +675,10 @@ describe("Float",function(){
 
     })
 
-    it("should encode float (0)",function() {
+    it("should encode float (0)", function () {
 
-        var stream= new BinaryStream(4);
-        ec.encodeFloat(0.0,stream);
+        var stream = new BinaryStream(4);
+        ec.encodeFloat(0.0, stream);
 
         console.log(stream._buffer.toString("hex"));
 
@@ -682,10 +687,10 @@ describe("Float",function(){
         value.should.eql(0.0);
 
     })
-    it("should decode zero from a buffer with 4 bytes set to zero",function(){
+    it("should decode zero from a buffer with 4 bytes set to zero", function () {
 
         var buf = new Buffer(4);
-        buf.writeUInt32LE(0,0);
+        buf.writeUInt32LE(0, 0);
         var stream = new BinaryStream(buf);
 
         var value = ec.decodeFloat(stream);

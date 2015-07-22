@@ -1,6 +1,6 @@
 require("requirish")._(module);
 
-var opcua  =require("index");
+var opcua = require("index");
 var should = require("should");
 var util = require("util");
 var async = require("async");
@@ -10,7 +10,7 @@ var assert = require("better-assert");
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 var OPCUAServer = opcua.OPCUAServer;
-var OPCUADiscoveryServer =  require("lib/server/opcua_discovery_server").OPCUADiscoveryServer;
+var OPCUADiscoveryServer = require("lib/server/opcua_discovery_server").OPCUADiscoveryServer;
 var perform_findServersRequest = require("lib/findservers").perform_findServersRequest;
 
 var crypto_utils = require("lib/misc/crypto_utils");

@@ -32,7 +32,7 @@ describe("OPCUA Object creation", function () {
         var applicationDescription = new ApplicationDescription({
             applicationUri: "application:uri",
             productUri: "uri:product",
-            applicationName: { text: "MyApplication"},
+            applicationName: {text: "MyApplication"},
             applicationType: ApplicationType.CLIENT,
             gatewayServerUri: undefined,
             discoveryProfileUri: undefined,
@@ -129,8 +129,7 @@ describe("testing DataValue encoding decoding", function () {
 
     it("should encode and decode a empty DataValue 1/3", function (done) {
 
-        var dataValue1 = new DataValue({
-        });
+        var dataValue1 = new DataValue({});
 
         encode_decode_round_trip_test(dataValue1, function (buf) {
             buf.length.should.eql(1);
@@ -141,7 +140,7 @@ describe("testing DataValue encoding decoding", function () {
 
     it("should encode and decode a DataValue with only value field 2/3", function (done) {
         var dataValue1 = new DataValue({
-            value: {dataType: DataType.Double, value: 37.5 }
+            value: {dataType: DataType.Double, value: 37.5}
         });
         encode_decode_round_trip_test(dataValue1);
         done();
@@ -154,7 +153,7 @@ describe("testing DataValue encoding decoding", function () {
             serverTimestamp: new Date(),
             serverPicoseconds: 110,
             statusCode: StatusCodes.BadApplicationSignatureInvalid,
-            value: {dataType: DataType.Double, value: 37.5 }
+            value: {dataType: DataType.Double, value: 37.5}
         });
 
         dataValue1.value.should.be.instanceOf(Variant);
@@ -173,15 +172,15 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
         // a real OpenSecureChannelRequest captured with wireshark
         var ws_OpenSecureChannelRequest = makebuffer(
-                "4f 50 4e 46 85 00 00 00 00 00 00 00 2f 00 00 00 " + // OPNF ...
-                "68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 " +
-                "74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 " +
-                "72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 ff " +
-                "ff ff ff ff ff ff ff 33 00 00 00 01 00 00 00 01 " +
-                "00 be 01 00 00 92 c2 53 d3 0c f7 ce 01 00 00 00 " +
-                "00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 " +
-                "00 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 " +
-                "00 e0 93 04 00"
+            "4f 50 4e 46 85 00 00 00 00 00 00 00 2f 00 00 00 " + // OPNF ...
+            "68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 " +
+            "74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 " +
+            "72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 ff " +
+            "ff ff ff ff ff ff ff 33 00 00 00 01 00 00 00 01 " +
+            "00 be 01 00 00 92 c2 53 d3 0c f7 ce 01 00 00 00 " +
+            "00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 " +
+            "00 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 " +
+            "00 e0 93 04 00"
         );
 
         redirectToFile("OpenSecureChannelResponse1.log", function () {
@@ -194,15 +193,15 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_OpenSecureChannelResponse = makebuffer(
-                "4f 50 4e 46 87 00 00 00 01 00 " +                      // OPNF ...
-                "00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 " +
-                "66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 " +
-                "41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 " +
-                "23 4e 6f 6e 65 ff ff ff ff ff ff ff ff 00 00 00 " +
-                "00 01 00 00 00 01 00 c1 01 a2 e9 53 d3 0c f7 ce " +
-                "01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 " +
-                "00 00 00 00 00 01 00 00 00 02 00 00 00 a2 e9 53 " +
-                "d3 0c f7 ce 01 60 ea 00 00 ff ff ff ff"
+            "4f 50 4e 46 87 00 00 00 01 00 " +                      // OPNF ...
+            "00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 " +
+            "66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 " +
+            "41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 " +
+            "23 4e 6f 6e 65 ff ff ff ff ff ff ff ff 00 00 00 " +
+            "00 01 00 00 00 01 00 c1 01 a2 e9 53 d3 0c f7 ce " +
+            "01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 " +
+            "00 00 00 00 00 01 00 00 00 02 00 00 00 a2 e9 53 " +
+            "d3 0c f7 ce 01 60 ea 00 00 ff ff ff ff"
         );
 
         redirectToFile("OpenSecureChannelResponse2.log", function () {
@@ -215,13 +214,13 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_message = makebuffer(
-                "4d 53 47 46 60 00 00 00 01 00 " +
-                "00 00 02 00 00 00 34 00 00 00 02 00 00 00 01 00 " +
-                "a6 01 00 00 62 2c 63 d3 0c f7 ce 01 01 00 00 00 " +
-                "00 00 00 00 ff ff ff ff 10 27 00 00 00 00 00 1b " +
-                "00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 31 39 32 " +
-                "2e 31 36 38 2e 32 2e 36 30 3a 34 38 34 30 00 00 " +
-                "00 00 00 00 00 00"
+            "4d 53 47 46 60 00 00 00 01 00 " +
+            "00 00 02 00 00 00 34 00 00 00 02 00 00 00 01 00 " +
+            "a6 01 00 00 62 2c 63 d3 0c f7 ce 01 01 00 00 00 " +
+            "00 00 00 00 ff ff ff ff 10 27 00 00 00 00 00 1b " +
+            "00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 31 39 32 " +
+            "2e 31 36 38 2e 32 2e 36 30 3a 34 38 34 30 00 00 " +
+            "00 00 00 00 00 00"
         );
 
         redirectToFile("FindServersRequest.log", function () {
@@ -234,18 +233,18 @@ describe("checking decoding real message bodies captured with WireShark ", funct
 
         // a real OpenSecureChannelResponse captured with wireshark
         var ws_message = makebuffer(
-                "4d 53 47 46 b9 00 00 00 01 00 " +
-                "00 00 02 00 00 00 01 00 00 00 02 00 00 00 01 00 " +
-                "a9 01 e2 2b 63 d3 0c f7 ce 01 01 00 00 00 00 00 " +
-                "00 00 00 00 00 00 00 00 00 00 01 00 00 00 1c 00 " +
-                "00 00 75 75 75 75 75 75 75 75 75 75 75 75 75 75 " +
-                "75 75 75 75 75 75 75 75 75 75 75 75 75 75 1f 00 " +
-                "00 00 68 74 74 70 3a 2f 2f 77 77 77 2e 75 75 75 " +
-                "75 75 75 75 75 75 75 75 75 75 75 75 75 75 2e 75 " +
-                "75 02 0a 00 00 00 53 49 50 4c 55 47 34 4f 50 43 " +
-                "00 00 00 00 ff ff ff ff ff ff ff ff 01 00 00 00 " +
-                "1b 00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 31 39 " +
-                "32 2e 31 36 38 2e 32 2e 36 30 3a 34 38 34 30"
+            "4d 53 47 46 b9 00 00 00 01 00 " +
+            "00 00 02 00 00 00 01 00 00 00 02 00 00 00 01 00 " +
+            "a9 01 e2 2b 63 d3 0c f7 ce 01 01 00 00 00 00 00 " +
+            "00 00 00 00 00 00 00 00 00 00 01 00 00 00 1c 00 " +
+            "00 00 75 75 75 75 75 75 75 75 75 75 75 75 75 75 " +
+            "75 75 75 75 75 75 75 75 75 75 75 75 75 75 1f 00 " +
+            "00 00 68 74 74 70 3a 2f 2f 77 77 77 2e 75 75 75 " +
+            "75 75 75 75 75 75 75 75 75 75 75 75 75 75 2e 75 " +
+            "75 02 0a 00 00 00 53 49 50 4c 55 47 34 4f 50 43 " +
+            "00 00 00 00 ff ff ff ff ff ff ff ff 01 00 00 00 " +
+            "1b 00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 31 39 " +
+            "32 2e 31 36 38 2e 32 2e 36 30 3a 34 38 34 30"
         );
 
         redirectToFile("FindServersResponse.log", function () {

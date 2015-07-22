@@ -2038,7 +2038,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         var async = require("async");
         var VALID_SUBSCRIPTION;
-        var VALID_RETRANSMIT_SEQNUM =0;
+        var VALID_RETRANSMIT_SEQNUM = 0;
         var INVALID_SUBSCRIPTION = 1234;
         var INVALID_RETRANSMIT_SEQNUM = 1234;
 
@@ -2046,7 +2046,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         var subscription_service = opcua.subscription_service;
         var read_service = opcua.read_service;
         var g_session;
-        var client,fanSpeed;
+        var client, fanSpeed;
         before(function (done) {
 
             VALID_RETRANSMIT_SEQNUM = 0;

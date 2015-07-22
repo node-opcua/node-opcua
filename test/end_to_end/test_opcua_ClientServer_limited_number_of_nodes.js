@@ -72,7 +72,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             function (callback) {
                 server.shutdown(callback);
             },
-            function(callback) {
+            function (callback) {
                 OPCUAServer.getRunningServerCount().should.eql(0);
                 callback();
             }
@@ -92,20 +92,20 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             server.engine.serverCapabilities.operationLimits.maxNodesPerRead.should.eql(10);
 
-            var n1 = opcua.VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead ;
+            var n1 = opcua.VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead;
             var n2 = opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
 
-            var nodeId1 =  opcua.makeNodeId(n1);
-            var nodesToRead=[
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
+            var nodeId1 = opcua.makeNodeId(n1);
+            var nodesToRead = [
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
             ];
-            session.read(nodesToRead,function(err,a,results){
+            session.read(nodesToRead, function (err, a, results) {
                 // console.log(results);
                 results[0].value.value.should.eql(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
                 done(err);
             });
 
-        },done);
+        }, done);
 
 
     });
@@ -116,36 +116,36 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             server.engine.serverCapabilities.operationLimits.maxNodesPerRead.should.eql(10);
 
-            var n1 = opcua.VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead ;
+            var n1 = opcua.VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead;
             var n2 = opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
 
-            var nodeId1 =  opcua.makeNodeId(n1);
-            var nodeId2 =  opcua.makeNodeId(n2);
+            var nodeId1 = opcua.makeNodeId(n1);
+            var nodeId2 = opcua.makeNodeId(n2);
             console.log(nodeId1.toString());
-            var nodesToRead=[
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId2, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId2, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId2, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId2, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId2, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId1, attributeId: opcua.AttributeIds.Value },
-                { nodeId : nodeId2, attributeId: opcua.AttributeIds.Value }
+            var nodesToRead = [
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value}
             ];
             nodesToRead.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
 
-            session.read(nodesToRead,function(err,a,results){
+            session.read(nodesToRead, function (err, a, results) {
                 if (!err) {
                     results.length.should.eql(10);
                 }
                 done(err);
             });
 
-        },done);
+        }, done);
 
 
     });
@@ -155,7 +155,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
         server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse.should.equal(2);
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
-            var browseRequest=[];
+            var browseRequest = [];
 
             var bad_referenceid_node = "ns=3;i=3500";
             var browseDesc = {
@@ -171,49 +171,49 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             browseRequest.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse);
 
-            session.browse(browseRequest,function(err,results){
-                 if(!err) {
-                     results.length.should.eql(server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse);
-                 }
+            session.browse(browseRequest, function (err, results) {
+                if (!err) {
+                    results.length.should.eql(server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse);
+                }
                 done(err);
-            }) ;
-        },done);
+            });
+        }, done);
 
     });
 
-    it("crawler shall work even if server has a low limit the number of node in Read and Browse request",function(done){
+    it("crawler shall work even if server has a low limit the number of node in Read and Browse request", function (done) {
 
         var NodeCrawler = opcua.NodeCrawler;
         var redirectToFile = require("lib/misc/utils").redirectToFile;
 
         //xx redirectToFile("crawler_display_tree1.log",function(done){
 
-            var treeify = require('treeify');
+        var treeify = require('treeify');
 
-            perform_operation_on_client_session(client,endpointUrl,function(the_session,callback) {
+        perform_operation_on_client_session(client, endpointUrl, function (the_session, callback) {
 
-                var crawler = new NodeCrawler(the_session);
+            var crawler = new NodeCrawler(the_session);
 
-                crawler.on("browsed",function(element){
-                });
+            crawler.on("browsed", function (element) {
+            });
 
-                var nodeId = "ObjectsFolder";
-                crawler.read(nodeId, function (err, obj) {
-                    if (!err) {
-                    }
-                    callback(err);
-                });
+            var nodeId = "ObjectsFolder";
+            crawler.read(nodeId, function (err, obj) {
+                if (!err) {
+                }
+                callback(err);
+            });
 
-            },done);
+        }, done);
         //xx },done);
 
     });
 
-    it("should crawl a server cyclic-node ",function(done){
+    it("should crawl a server cyclic-node ", function (done) {
 
 
-        server.subFolder1 = server.engine.addFolder("RootFolder","SubFolder1");
-        server.subFolder2 = server.engine.addFolder("SubFolder1","SubFolder2");
+        server.subFolder1 = server.engine.addFolder("RootFolder", "SubFolder1");
+        server.subFolder2 = server.engine.addFolder("SubFolder1", "SubFolder2");
         //xx server.engine.addComponentInFolder(server.subFolder2, server.subFolder1);
         done();
     });

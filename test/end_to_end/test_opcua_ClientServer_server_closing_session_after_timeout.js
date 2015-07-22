@@ -65,7 +65,7 @@ describe("testing server dropping session after timeout if no activity has been 
             function (callback) {
                 server.shutdown(callback);
             },
-            function(callback) {
+            function (callback) {
                 OPCUAServer.getRunningServerCount().should.eql(0);
                 callback();
             }
@@ -132,7 +132,7 @@ describe("testing server dropping session after timeout if no activity has been 
             function (callback) {
 
                 server.currentSessionCount.should.eql(0);
-                l_session.read(readRequest.nodesToRead,function(err,results){
+                l_session.read(readRequest.nodesToRead, function (err, results) {
                     err.message.should.match(/BadSessionIdInvalid/);
                     callback(null);
                 });

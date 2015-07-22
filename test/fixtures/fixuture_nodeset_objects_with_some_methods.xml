@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-           Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
-           xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet
+        Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
+        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
 
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
@@ -41,10 +41,10 @@
         <Alias Alias="HasDescription">i=39</Alias>
     </Aliases>
 
-<!--                         standard stuff -->
+    <!--                         standard stuff -->
     <UADataType NodeId="i=6" BrowseName="Int32">
         <DisplayName>Int32</DisplayName>
-        <Description>Describes a value that is an integer between −2,147,483,648  and 2,147,483,647.</Description>
+        <Description>Describes a value that is an integer between −2,147,483,648 and 2,147,483,647.</Description>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
         </References>
@@ -81,7 +81,8 @@
 
     <UADataType NodeId="i=22" BrowseName="Structure" IsAbstract="true">
         <DisplayName>Structure</DisplayName>
-        <Description>Describes a value that is any type of structure that can be described with a data encoding.</Description>
+        <Description>Describes a value that is any type of structure that can be described with a data encoding.
+        </Description>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
@@ -91,7 +92,7 @@
     <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
         <DisplayName>BaseDataType</DisplayName>
         <Description>Describes a value that can have any valid DataType.</Description>
-        <References />
+        <References/>
     </UADataType>
 
     <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">
@@ -121,7 +122,7 @@
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
         <Description>The abstract base type for all references.</Description>
-        <References />
+        <References/>
         <InverseName>References</InverseName>
     </UAReferenceType>
 
@@ -171,7 +172,9 @@
 
     <UAReferenceType NodeId="i=44" BrowseName="Aggregates">
         <DisplayName>Aggregates</DisplayName>
-        <Description>The type for non-looping hierarchical references that are used to aggregate nodes into complex types.</Description>
+        <Description>The type for non-looping hierarchical references that are used to aggregate nodes into complex
+            types.
+        </Description>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=34</Reference>
         </References>
@@ -204,11 +207,11 @@
         </References>
         <InverseName>ComponentOf</InverseName>
     </UAReferenceType>
-    
+
     <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
         <DisplayName>BaseObjectType</DisplayName>
         <Description>The base type for all object nodes.</Description>
-        <References />
+        <References/>
     </UAObjectType>
 
     <UADataType NodeId="i=296" BrowseName="Argument">
@@ -228,7 +231,9 @@
                 <Description>Whether the argument is an array type and the rank of the array if it is.</Description>
             </Field>
             <Field Name="ArrayDimensions" DataType="i=7" ValueRank="1">
-                <Description>The number of dimensions if the argument is an array type and one or more dimensions have a fixed length.</Description>
+                <Description>The number of dimensions if the argument is an array type and one or more dimensions have a
+                    fixed length.
+                </Description>
             </Field>
             <Field Name="Description" DataType="i=21">
                 <Description>The description for the argument.</Description>
@@ -236,7 +241,7 @@
         </Definition>
     </UADataType>
 
-<!--                         custom stuff -->
+    <!--                         custom stuff -->
 
     <UAObject NodeId="i=999990" BrowseName="MyObject" EventNotifier="1">
         <DisplayName>MyObject</DisplayName>
@@ -285,8 +290,8 @@
                                 <Identifier>i=7</Identifier>
                             </DataType>
                             <ValueRank>-1</ValueRank>
-                            <ArrayDimensions />
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+                            <ArrayDimensions/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -313,8 +318,8 @@
                                 <Identifier>i=7</Identifier>
                             </DataType>
                             <ValueRank>1</ValueRank>
-                            <ArrayDimensions />
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+                            <ArrayDimensions/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>
@@ -329,8 +334,8 @@
                                 <Identifier>i=7</Identifier>
                             </DataType>
                             <ValueRank>1</ValueRank>
-                            <ArrayDimensions />
-                            <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+                            <ArrayDimensions/>
+                            <Description xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" p5:nil="true"/>
                         </Argument>
                     </Body>
                 </ExtensionObject>

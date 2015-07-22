@@ -42,7 +42,7 @@
 //            var encodeFunc = myfindBuiltInType(def.dataType).encode;
 //
 //            // xx console.log(" cxxxxxxxxxxc ",def);
-//            // assert((def.valueRank == -1) || (def.valueRank === 0));
+//            // assert((def.valueRank === -1) || (def.valueRank === 0));
 //            var isArray = ( def.valueRank === 1 || def.valueRank === -1) ? true : false;
 //
 //            if (isArray) {
@@ -70,7 +70,7 @@
 //
 //            var decodeFunc = myfindBuiltInType(def.dataType).decode;
 //
-//            //xx assert(def.valueRank == -1 || def.valueRank==0);
+//            //xx assert(def.valueRank === -1 || def.valueRank==0);
 //            var isArray = ( def.valueRank === 1 || def.valueRank === -1) ? true : false;
 //
 //            if (isArray) {

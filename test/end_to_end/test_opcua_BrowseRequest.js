@@ -11,19 +11,19 @@ var resolveNodeId = opcua.resolveNodeId;
 
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
-var Variant =  opcua.Variant ;
+var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
-var debugLog  = opcua.utils.make_debugLog(__filename);
+var debugLog = opcua.utils.make_debugLog(__filename);
 
 var port = 2000;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
-describe("Test Browse Request",function() {
+describe("Test Browse Request", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 
@@ -40,10 +40,12 @@ describe("Test Browse Request",function() {
     beforeEach(function (done) {
 
         client = new OPCUAClient();
-        client.connect(endpointUrl,function(err){
-            if (err) { done(err);}
+        client.connect(endpointUrl, function (err) {
+            if (err) {
+                done(err);
+            }
             else {
-                client.createSession(function(err,session){
+                client.createSession(function (err, session) {
                     g_session = session;
                     done(err);
                 });
@@ -52,8 +54,8 @@ describe("Test Browse Request",function() {
 
     });
 
-    afterEach(function(done){
-        g_session.close(function(){
+    afterEach(function (done) {
+        g_session.close(function () {
             client.disconnect(done);
         });
     });
@@ -66,13 +68,13 @@ describe("Test Browse Request",function() {
     });
 
 
-    it("T1 - #Browse should return BadNothingToDo if nodesToBrowse is empty ",function(done) {
+    it("T1 - #Browse should return BadNothingToDo if nodesToBrowse is empty ", function (done) {
 
 
         var browseRequest = new opcua.browse_service.BrowseRequest({
             nodesToBrowse: []
         });
-        g_session.performMessageTransaction(browseRequest,function(err,result) {
+        g_session.performMessageTransaction(browseRequest, function (err, result) {
             err.message.should.match(/BadNothingToDo/);
             // todo
             done();
@@ -80,7 +82,7 @@ describe("Test Browse Request",function() {
 
     });
 
-    it("T2 - #Browse should return BadViewIdInvalid if viewId is invalid",function(done) {
+    it("T2 - #Browse should return BadViewIdInvalid if viewId is invalid", function (done) {
 
         var browseDesc = {
             nodeId: resolveNodeId("RootFolder"),
@@ -92,15 +94,15 @@ describe("Test Browse Request",function() {
             view: {
                 viewId: 'ns=1256;i=1' //<< invalid viewId
             },
-            nodesToBrowse: [browseDesc ]
+            nodesToBrowse: [browseDesc]
         });
-        g_session.performMessageTransaction(browseRequest,function(err,result) {
+        g_session.performMessageTransaction(browseRequest, function (err, result) {
             err.message.should.match(/BadViewIdUnknown/);
             done();
         });
     });
 
-    it("T3 - #Browse should return BadViewUnknown if object referenced by viewId is not a view",function(done) {
+    it("T3 - #Browse should return BadViewUnknown if object referenced by viewId is not a view", function (done) {
 
         var browseDesc = {
             nodeId: resolveNodeId("RootFolder"),
@@ -112,16 +114,16 @@ describe("Test Browse Request",function() {
             view: {
                 viewId: 'ns=0;i=85',
             },
-            nodesToBrowse: [browseDesc ]
+            nodesToBrowse: [browseDesc]
         });
-        g_session.performMessageTransaction(browseRequest,function(err,result) {
+        g_session.performMessageTransaction(browseRequest, function (err, result) {
             // todo
             err.message.should.match(/BadViewIdUnknown/);
             done();
         });
     });
 
-    it("T4 - #Browse server should respect Browse maxReferencesPerNode ",function(done) {
+    it("T4 - #Browse server should respect Browse maxReferencesPerNode ", function (done) {
 
         var browseDesc = {
             nodeId: resolveNodeId("RootFolder"),
@@ -133,13 +135,13 @@ describe("Test Browse Request",function() {
 
         async.series([
 
-            function(callback) {
+            function (callback) {
                 var browseRequest1 = new opcua.browse_service.BrowseRequest({
                     view: null,//{ viewId: 'ns=0;i=85'},
                     requestedMaxReferencesPerNode: 10,
-                    nodesToBrowse: [browseDesc ]
+                    nodesToBrowse: [browseDesc]
                 });
-                g_session.performMessageTransaction(browseRequest1,function(err,response){
+                g_session.performMessageTransaction(browseRequest1, function (err, response) {
                     // console.log(response.toString());
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                     response.results[0].references.length.should.be.greaterThan(3);
@@ -147,13 +149,13 @@ describe("Test Browse Request",function() {
                     callback();
                 });
             },
-            function(callback) {
+            function (callback) {
                 var browseRequest2 = new opcua.browse_service.BrowseRequest({
                     view: null,//{ viewId: 'ns=0;i=85'},
                     requestedMaxReferencesPerNode: 1,
-                    nodesToBrowse: [browseDesc ]
+                    nodesToBrowse: [browseDesc]
                 });
-                g_session.performMessageTransaction(browseRequest2,function(err,response){
+                g_session.performMessageTransaction(browseRequest2, function (err, response) {
                     //xx console.log(response.toString());
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                     response.results[0].references.length.should.be.eql(1);
@@ -161,27 +163,27 @@ describe("Test Browse Request",function() {
                     callback();
                 });
             }
-        ],done);
+        ], done);
 
 
     });
 
-    it("T5 - #BrowseNext response should have serviceResult=BadNothingToDo if request have no continuationPoints",function(done){
+    it("T5 - #BrowseNext response should have serviceResult=BadNothingToDo if request have no continuationPoints", function (done) {
         async.series([
 
-            function(callback) {
+            function (callback) {
                 var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                     continuationPoints: null,
                 });
-                g_session.performMessageTransaction(browseNextRequest,function(err,response){
+                g_session.performMessageTransaction(browseNextRequest, function (err, response) {
                     // console.log(response.toString());
                     response.responseHeader.serviceResult.should.equal(StatusCodes.BadNothingToDo);
                     callback();
                 });
             }
-        ],done);
+        ], done);
     });
-    it("T6 - #BrowseNext response ",function(done){
+    it("T6 - #BrowseNext response ", function (done) {
         var browseDesc = {
             nodeId: resolveNodeId("RootFolder"),
             referenceTypeId: null,
@@ -194,30 +196,30 @@ describe("Test Browse Request",function() {
         var continuationPoint;
         async.series([
 
-            function(callback) {
+            function (callback) {
                 var browseRequest1 = new opcua.browse_service.BrowseRequest({
                     view: null,//{ viewId: 'ns=0;i=85'},
                     requestedMaxReferencesPerNode: 10,
-                    nodesToBrowse: [browseDesc ]
+                    nodesToBrowse: [browseDesc]
                 });
-                g_session.performMessageTransaction(browseRequest1,function(err,response){
+                g_session.performMessageTransaction(browseRequest1, function (err, response) {
                     // console.log(response.toString());
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                     response.results[0].references.length.should.be.greaterThan(3); // want 4 at lest
                     should(response.results[0].continuationPoint).eql(null);
-                    allReferences =response.results[0].references;
+                    allReferences = response.results[0].references;
                     callback();
                 });
             },
 
-            function(callback) {
+            function (callback) {
                 var browseRequest2 = new opcua.browse_service.BrowseRequest({
                     view: null,//{ viewId: 'ns=0;i=85'},
                     requestedMaxReferencesPerNode: 2,
-                    nodesToBrowse: [browseDesc ]
+                    nodesToBrowse: [browseDesc]
                 });
-                g_session.performMessageTransaction(browseRequest2,function(err,response){
-                   //xx console.log(response.toString());
+                g_session.performMessageTransaction(browseRequest2, function (err, response) {
+                    //xx console.log(response.toString());
 
                     response.results.length.should.eql(1);
                     response.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -232,11 +234,11 @@ describe("Test Browse Request",function() {
                 });
             },
 
-            function(callback) {
+            function (callback) {
                 var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                     continuationPoints: [continuationPoint],
                 });
-                g_session.performMessageTransaction(browseNextRequest,function(err,response){
+                g_session.performMessageTransaction(browseNextRequest, function (err, response) {
                     // console.log(response.toString());
                     response.responseHeader.serviceResult.should.equal(StatusCodes.Good);
 
@@ -257,7 +259,7 @@ describe("Test Browse Request",function() {
             },
 
             // we reach the end of the sequence. continuationPoint shall not be usable anymore
-            function(callback) {
+            function (callback) {
                 var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                     continuationPoints: [continuationPoint],
                 });
@@ -271,7 +273,7 @@ describe("Test Browse Request",function() {
             }
 
 
-                    ],done);
+        ], done);
 
     });
 

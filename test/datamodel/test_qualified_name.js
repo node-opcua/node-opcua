@@ -6,7 +6,7 @@ var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
 var coerceQualifiedName = require("lib/datamodel/qualified_name").coerceQualifyName;
 
-describe("QualifedName",function() {
+describe("QualifedName", function () {
 
 
     it("should construct a qualified name", function () {
@@ -19,7 +19,7 @@ describe("QualifedName",function() {
         qn.toString().should.eql("Hello");
     });
     it("testing qualified name toString", function () {
-        var qn = new QualifiedName({namespaceIndex: 2,name: "Hello"});
+        var qn = new QualifiedName({namespaceIndex: 2, name: "Hello"});
         qn.toString().should.eql("2:Hello");
     });
     it("should coerce a string into a qualified name ", function () {

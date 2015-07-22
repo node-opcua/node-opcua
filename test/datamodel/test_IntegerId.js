@@ -7,12 +7,12 @@ var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_tr
 var _ = require("underscore");
 
 
-var ObjWithIntegerId  = factories.registerObject("test/fixtures/schemas|ObjWithIntegerId","tmp");
+var ObjWithIntegerId = factories.registerObject("test/fixtures/schemas|ObjWithIntegerId", "tmp");
 
 
-describe("Testing IntegerId",function() {
+describe("Testing IntegerId", function () {
 
-    it("should persist a IntegerId === 0",function(){
+    it("should persist a IntegerId === 0", function () {
 
         var o = new ObjWithIntegerId({
             requestHandle: 0
@@ -23,7 +23,7 @@ describe("Testing IntegerId",function() {
         obj_reloaded.requestHandle.should.eql(0);
 
     });
-    it("should persist a IntegerId != 0",function(){
+    it("should persist a IntegerId !== 0", function () {
 
         var o = new ObjWithIntegerId({
             requestHandle: 1

@@ -13,14 +13,14 @@ var DataType = opcua.DataType;
 var AttributeIds = opcua.AttributeIds;
 var OPCUAClient = opcua.OPCUAClient;
 
-var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-function sameVariant(v1,v2) {
-    if (v1.dataType != v2.dataType) {
+function sameVariant(v1, v2) {
+    if (v1.dataType !== v2.dataType) {
         return false;
     }
-    if (v1.arrayType != v2.arrayType) {
+    if (v1.arrayType !== v2.arrayType) {
         return false;
     }
     if (v1.value !== v2.value) {
@@ -29,24 +29,28 @@ function sameVariant(v1,v2) {
     return true;
 }
 
-function sameDate(d1,d2) {
-    if (!d1) { return !d2;}
-    if (!d2) { return !d1;}
-    return d1.getTime()=== d2.getTime();
+function sameDate(d1, d2) {
+    if (!d1) {
+        return !d2;
+    }
+    if (!d2) {
+        return !d1;
+    }
+    return d1.getTime() === d2.getTime();
 }
 
-function sameDataValue(dv1,dv2) {
+function sameDataValue(dv1, dv2) {
 
-    if (dv1.statusCode!==dv2.statusCode) {
+    if (dv1.statusCode !== dv2.statusCode) {
         return false;
     }
 
-    if (!sameVariant(dv1.statusCode,dv2.statusCode)) {
+    if (!sameVariant(dv1.statusCode, dv2.statusCode)) {
         return false;
     }
     return true;
 }
-describe("end-to-end testing of read and write operation on a Variable",function() {
+describe("end-to-end testing of read and write operation on a Variable", function () {
     var server, client, temperatureVariableId, endpointUrl;
 
     var port = 2555;
@@ -79,7 +83,7 @@ describe("end-to-end testing of read and write operation on a Variable",function
     var namespaceIndex = 411;
 
 
-    function test_write_read_cycle(client,dataValue,done) {
+    function test_write_read_cycle(client, dataValue, done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -93,7 +97,7 @@ describe("end-to-end testing of read and write operation on a Variable",function
                     value: dataValue
                 }
             ];
-            session.write(nodesToWrite,function(err,results){
+            session.write(nodesToWrite, function (err, results) {
 
                 if (err) {
                     return inner_done(err);
@@ -109,11 +113,11 @@ describe("end-to-end testing of read and write operation on a Variable",function
                         dataEncoding: null
                     }
                 ];
-                session.read(nodesToRead,function(err,r,results) {
+                session.read(nodesToRead, function (err, r, results) {
                     console.log(results[0].toString());
 
                     // verify that value and status codes are identical
-                    if  (!sameDataValue(dataValue,results[0])) {
+                    if (!sameDataValue(dataValue, results[0])) {
                         console.log(" ------- > expected".yellow);
                         console.log(dataValue.toString().yellow);
                         console.log(" ------- > actuel".cyan);
@@ -129,41 +133,41 @@ describe("end-to-end testing of read and write operation on a Variable",function
                 });
             });
 
-        },done);
+        }, done);
 
     }
 
-    it("writing dataValue case 1",function(done) {
+    it("writing dataValue case 1", function (done) {
 
         var dataValue = new opcua.DataValue({
-            serverTimestamp: new Date(2015,5,2),
+            serverTimestamp: new Date(2015, 5, 2),
             serverPicoseconds: 20,
-            sourceTimestamp: new Date(2015,5,3),
+            sourceTimestamp: new Date(2015, 5, 3),
             sourcePicoseconds: 30,
             value: {
                 dataType: opcua.DataType.Float,
                 value: 32.0
             }
         });
-        test_write_read_cycle(client,dataValue,done);
+        test_write_read_cycle(client, dataValue, done);
 
     });
-    it("writing dataValue case 2",function(done) {
+    it("writing dataValue case 2", function (done) {
 
         var dataValue = new opcua.DataValue({
             serverTimestamp: null,
             serverPicoseconds: 0,
-            sourceTimestamp: new Date(2015,5,3),
+            sourceTimestamp: new Date(2015, 5, 3),
             sourcePicoseconds: 30,
             value: {
                 dataType: opcua.DataType.Float,
                 value: 32.0
             }
         });
-        test_write_read_cycle(client,dataValue,done);
+        test_write_read_cycle(client, dataValue, done);
 
     });
-    it("writing dataValue case 3",function(done) {
+    it("writing dataValue case 3", function (done) {
 
         var dataValue = new opcua.DataValue({
             serverTimestamp: null,
@@ -175,11 +179,11 @@ describe("end-to-end testing of read and write operation on a Variable",function
                 value: 32.0
             }
         });
-        test_write_read_cycle(client,dataValue,done);
+        test_write_read_cycle(client, dataValue, done);
 
     });
 
-    it("ZZZ reading ns=411;s=Scalar_Static_Int16 ",function(done){
+    it("ZZZ reading ns=411;s=Scalar_Static_Int16 ", function (done) {
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
 
@@ -235,16 +239,16 @@ describe("end-to-end testing of read and write operation on a Variable",function
                     });
                 }
             ], inner_done);
-        },done);
+        }, done);
     });
 
-    xit("#read test maxAge",function(done) {
+    xit("#read test maxAge", function (done) {
         done();
     });
 
-    describe("Performance of reading large array",function() {
+    describe("Performance of reading large array", function () {
 
-        it("PERF - READ testing performance of large array",function(done) {
+        it("PERF - READ testing performance of large array", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -258,16 +262,16 @@ describe("end-to-end testing of read and write operation on a Variable",function
                         dataEncoding: null
                     }
                 ];
-                session.read(nodesToRead,function(err,r,results) {
+                session.read(nodesToRead, function (err, r, results) {
                     console.log(results[0].toString());
 
                     inner_done(err);
                 });
 
 
-            },done);
+            }, done);
         });
-        it("PERF - WRITE testing performance of large array",function(done) {
+        it("PERF - WRITE testing performance of large array", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -280,7 +284,7 @@ describe("end-to-end testing of read and write operation on a Variable",function
                         dataEncoding: null
                     }
                 ];
-                session.read(nodesToRead,function(err,r,results) {
+                session.read(nodesToRead, function (err, r, results) {
                     console.log(results[0].toString());
 
                     var variant = results[0].value;
@@ -296,14 +300,14 @@ describe("end-to-end testing of read and write operation on a Variable",function
                             value: results[0]
                         }
                     ];
-                    session.write(nodesToWrite,function(err) {
+                    session.write(nodesToWrite, function (err) {
 
                         console.log(nodesToWrite[0].value.value.value.constructor.name);
 
                         assert(nodesToWrite[0].value.value.value instanceof Float32Array);
-                        nodesToWrite[0].value.value.value = new Float32Array(1024*1024);
-                        session.write(nodesToWrite,function(err) {
-                            session.read(nodesToRead,function(err,r,results) {
+                        nodesToWrite[0].value.value.value = new Float32Array(1024 * 1024);
+                        session.write(nodesToWrite, function (err) {
+                            session.read(nodesToRead, function (err, r, results) {
                                 console.log(results[0].toString());
                                 inner_done(err);
                             });
@@ -311,7 +315,7 @@ describe("end-to-end testing of read and write operation on a Variable",function
                     });
 
                 });
-            },done);
+            }, done);
         });
     });
 });

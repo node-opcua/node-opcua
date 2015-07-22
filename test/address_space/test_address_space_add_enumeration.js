@@ -15,6 +15,7 @@ var assert = require("better-assert");
 
 var Enum = require("lib/misc/enum");
 
+var path = require("path");
 
 require("lib/address_space/address_space_add_enumeration_type");
 
@@ -24,7 +25,7 @@ describe("AddressSpace : testing add enumeration ", function () {
     before(function (done) {
         address_space = new AddressSpace();
 
-        var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
+        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(address_space, xml_file, function (err) {
@@ -35,18 +36,19 @@ describe("AddressSpace : testing add enumeration ", function () {
 
 
     function convert(enumDescription) {
-        return enumDescription.enums.map(function(enumItem){
+        return enumDescription.enums.map(function (enumItem) {
             return {
                 name: enumItem.key,
                 value: enumItem.value
             };
         });
     }
-    it("should add a new Enumeration type into an address space",function() {
+
+    it("should add a new Enumeration type into an address space", function () {
 
         var myEnumType = address_space.addEnumerationType({
-            browseName:"MyEnumType",
-            enumeration: convert(new Enum(["RUNNING","BLOCKED"]))
+            browseName: "MyEnumType",
+            enumeration: convert(new Enum(["RUNNING", "BLOCKED"]))
 
         });
 

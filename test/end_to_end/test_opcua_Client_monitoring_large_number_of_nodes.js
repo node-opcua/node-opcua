@@ -14,7 +14,7 @@ var resolveNodeId = opcua.resolveNodeId;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var _port = 2000;
@@ -22,7 +22,7 @@ var _port = 2000;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
-describe("Testing client with many monitored items",function() {
+describe("Testing client with many monitored items", function () {
 
     this.timeout(50000);
 
@@ -34,7 +34,7 @@ describe("Testing client with many monitored items",function() {
         // no left over in the tcp pipe that could generate an error
         server = build_server_with_temperature_device({port: _port}, function (err) {
 
-            build_address_space_for_conformance_testing(server.engine,{ mass_variables: false});
+            build_address_space_for_conformance_testing(server.engine, {mass_variables: false});
 
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -53,7 +53,7 @@ describe("Testing client with many monitored items",function() {
     });
 
     after(function (done) {
-        server.shutdown(function(err){
+        server.shutdown(function (err) {
             resourceLeakDetector.stop();
             done(err);
         });
@@ -63,16 +63,18 @@ describe("Testing client with many monitored items",function() {
     it("should monitor a large number of node (see #69)", function (done) {
 
 
-        var changeByNodes= {};
+        var changeByNodes = {};
+
         function make_callback(_nodeId) {
 
             var nodeId = _nodeId;
-            return  function(dataValue) {
+            return function (dataValue) {
                 //Xx console.log(nodeId.toString() , "\t value : ",dataValue.value.value.toString());
                 var idx = nodeId.toString();
                 changeByNodes[idx] = changeByNodes[idx] ? changeByNodes[idx] + 1 : 1;
-           };
+            };
         }
+
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             assert(session instanceof ClientSession);
@@ -94,24 +96,24 @@ describe("Testing client with many monitored items",function() {
 
             var ids = [
                 "Scalar_Simulation_Double",
-                "Scalar_Simulation_Boolean" ,
+                "Scalar_Simulation_Boolean",
                 "Scalar_Simulation_String",
                 "Scalar_Simulation_Int64",
                 "Scalar_Simulation_LocalizedText"
             ];
-            ids.forEach(function(id){
-                var nodeId = "ns=411;s="+id;
+            ids.forEach(function (id) {
+                var nodeId = "ns=411;s=" + id;
                 var monitoredItem = subscription.monitor(
                     {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                     {samplingInterval: 10, discardOldest: true, queueSize: 1});
-                monitoredItem.on("changed",make_callback(nodeId));
+                monitoredItem.on("changed", make_callback(nodeId));
             });
 
-            subscription.once("started",function(subscriptionId) {
-                setTimeout(function() {
+            subscription.once("started", function (subscriptionId) {
+                setTimeout(function () {
                     subscription.terminate();
                     Object.keys(changeByNodes).length.should.eql(ids.length);
-                },3000);
+                }, 3000);
 
             });
 

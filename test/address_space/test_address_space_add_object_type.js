@@ -13,6 +13,7 @@ var _ = require("underscore");
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var assert = require("better-assert");
+var path = require("path");
 
 describe("testing add new DataType ", function () {
 
@@ -20,7 +21,7 @@ describe("testing add new DataType ", function () {
     before(function (done) {
         address_space = new AddressSpace();
 
-        var xml_file = __dirname + "/../../lib/server/mini.Node.Set2.xml";
+        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(address_space, xml_file, function (err) {
@@ -40,7 +41,7 @@ describe("testing add new DataType ", function () {
         var temperatureSensorType = createTemperatureSensorType(address_space);
 
         // -------------------------------------------- MachineType
-        var machineTypeNode = address_space.addObjectType({ browseName: "MachineType" });
+        var machineTypeNode = address_space.addObjectType({browseName: "MachineType"});
 
         var machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
             componentOf: machineTypeNode,
@@ -49,11 +50,11 @@ describe("testing add new DataType ", function () {
         assert(machineTypeNode.temperatureSensor);
 
         // MachineType.HeaderSwitch
-        var machineTypeHeaderSwitchNode = address_space.addProperty(machineTypeNode,{
+        var machineTypeHeaderSwitchNode = address_space.addProperty(machineTypeNode, {
             browseName: "HeaterSwitch",
             dataType: "Boolean",
             hasTypeDefinition: baseDataVariableType,
-            value: { dataType: DataType.Boolean, value: false}
+            value: {dataType: DataType.Boolean, value: false}
         });
         //xx machineTypeHeaderSwitchNode.propagate_back_references(address_space);
 
@@ -63,17 +64,16 @@ describe("testing add new DataType ", function () {
     }
 
 
+    it("should create a new TemperatureSensorType", function (done) {
 
-    it("should create a new TemperatureSensorType",function(done) {
 
-
-        var machineTypeNode  = createMachineType(address_space);
+        var machineTypeNode = createMachineType(address_space);
 
         // perform some verification on temperatureSensorType
         var temperatureSensorType = address_space.findObjectType("TemperatureSensorType");
         should(temperatureSensorType.temperature).not.eql(0);
 
-        var temperatureSensor = temperatureSensorType.instantiate({ organizedBy: "RootFolder", browseName: "Test"});
+        var temperatureSensor = temperatureSensorType.instantiate({organizedBy: "RootFolder", browseName: "Test"});
         should(temperatureSensor.temperature).not.eql(0);
 
         // perform some verification
@@ -81,17 +81,17 @@ describe("testing add new DataType ", function () {
         temperatureSensor.temperature.hasTypeDefinition.should.eql(baseDataVariableType.nodeId);
 
 
-        var folder =address_space.addFolder("RootFolder",{ browseName: "MyDevices"});
+        var folder = address_space.addFolder("RootFolder", {browseName: "MyDevices"});
         assert(folder.nodeId);
 
-        var machine1 = machineTypeNode.instantiate({organizedBy: folder,browseName: "Machine1"});
+        var machine1 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine1"});
 
         should(machine1.temperatureSensor).be.instanceOf(Object);
         should(machine1.heaterSwitch).be.instanceOf(Object);
 
-        console.log(" Machine 1 = ",machine1.toString());
+        console.log(" Machine 1 = ", machine1.toString());
 
-        var machine2 = machineTypeNode.instantiate({organizedBy: folder,browseName: "Machine2"});
+        var machine2 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine2"});
 
 
         function createSpecialTempSensorType(address_space) {
@@ -110,16 +110,16 @@ describe("testing add new DataType ", function () {
         //xx console.log(specialTemperatureSensorTypeNode.toString());
 
         //xx specialTemperatureSensorTypeNode.should.not.have.property("typeDefinitionObj");
-        should(specialTemperatureSensorTypeNode.typeDefinitionObj).eql(null,"ObjectType should not have TypeDefinition");
+        should(specialTemperatureSensorTypeNode.typeDefinitionObj).eql(null, "ObjectType should not have TypeDefinition");
         specialTemperatureSensorTypeNode.subtypeOfObj.browseName.toString().should.eql("TemperatureSensorType");
 
-        var specialSensor= specialTemperatureSensorTypeNode.instantiate({
-            organizedBy:"RootFolder",
-            browseName:"mySpecialSensor"
+        var specialSensor = specialTemperatureSensorTypeNode.instantiate({
+            organizedBy: "RootFolder",
+            browseName: "mySpecialSensor"
         });
 
         specialSensor.should.have.property("typeDefinitionObj");
-        specialSensor.should.not.have.property("subtypeOfObj","Object should not have SubType");
+        specialSensor.should.not.have.property("subtypeOfObj", "Object should not have SubType");
         specialSensor.typeDefinitionObj.browseName.toString().should.eql("SpecialTemperatureSensorType");
         should(specialSensor.temperature).not.eql(0);
 
@@ -128,14 +128,14 @@ describe("testing add new DataType ", function () {
 
     });
 
-    it("should create a new CameraType with Method",function(done) {
+    it("should create a new CameraType with Method", function (done) {
 
         var createCameraType = require("./fixture_camera_type").createCameraType;
         var cameraType = createCameraType(address_space);
 
         var camera1 = cameraType.instantiate({
-            organizedBy:"RootFolder",
-            browseName:"Camera1"
+            organizedBy: "RootFolder",
+            browseName: "Camera1"
         });
 
         camera1.browseName.toString().should.eql("Camera1");

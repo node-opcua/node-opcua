@@ -9,14 +9,13 @@ var _ = require("underscore");
 var opcua = require("index");
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
-var Variant =  opcua.Variant ;
+var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 var AttributeIds = opcua.AttributeIds;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
-var debugLog  = opcua.utils.make_debugLog(__filename);
-
+var debugLog = opcua.utils.make_debugLog(__filename);
 
 
 var port = 2000;
@@ -24,7 +23,7 @@ var port = 2000;
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
-describe("testing UAAnalogItem on client side",function() {
+describe("testing UAAnalogItem on client side", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 
@@ -61,7 +60,12 @@ describe("testing UAAnalogItem on client side",function() {
         async.series([
             function (callback) {
                 debugLog("closing session");
-                if (g_session) { g_session.close(callback);g_session=null; } else { callback(null);}
+                if (g_session) {
+                    g_session.close(callback);
+                    g_session = null;
+                } else {
+                    callback(null);
+                }
             },
             function (callback) {
                 client.disconnect(callback);
@@ -79,7 +83,7 @@ describe("testing UAAnalogItem on client side",function() {
 
 
         var nodeId = "ns=4;s=TemperatureAnalogItem";
-        client_utils.readUAAnalogItem(g_session,nodeId,function(err,data ){
+        client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
 
             data.should.have.ownProperty("engineeringUnits");
             data.should.have.ownProperty("engineeringUnitsRange");
@@ -94,7 +98,7 @@ describe("testing UAAnalogItem on client side",function() {
     });
     it("readUAAnalogItem should return an error if not doesn't exist", function (done) {
         var nodeId = "ns=4;s=invalidnode";
-        client_utils.readUAAnalogItem(g_session,nodeId,function(err,data ) {
+        client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
             should(err).not.eql(null);
             done();
         });
@@ -107,7 +111,7 @@ describe("testing UAAnalogItem on client side",function() {
      * @param browseName
      * @param callback
      */
-    function findProperty(g_session,nodeId,browseName,callback) {
+    function findProperty(g_session, nodeId, browseName, callback) {
 
         var browseDescription = {
             nodeId: nodeId,
@@ -115,32 +119,36 @@ describe("testing UAAnalogItem on client side",function() {
             browseDirection: BrowseDirection.Forward,
             resultMask: 0x3F
         };
-        g_session.browse(browseDescription,function(err,result) {
+        g_session.browse(browseDescription, function (err, result) {
 
             result = result[0];
             if (result.statusCode !== StatusCodes.Good) {
-                return callback(null,null);
+                return callback(null, null);
             }
 
-            var tmp = _.filter(result.references,function(e){
-                console.log("     ",e.nodeId.toString(),e.browseName.name.yellow);
+            var tmp = _.filter(result.references, function (e) {
+                console.log("     ", e.nodeId.toString(), e.browseName.name.yellow);
                 return e.browseName.name === browseName;
             });
-            tmp = tmp.map(function(e) { return e.nodeId; });
-            var found = (tmp.length == 1) ? tmp[0] : null;
-            callback(null,found);
+            tmp = tmp.map(function (e) {
+                return e.nodeId;
+            });
+            var found = (tmp.length === 1) ? tmp[0] : null;
+            callback(null, found);
 
         });
     }
 
 
-    it("should read the EUrange property of an analog item",function(done){
+    it("should read the EUrange property of an analog item", function (done) {
 
         var nodeId = "ns=4;s=TemperatureAnalogItem";
 
-        findProperty(g_session,nodeId,"EURange",function(err,propertyId){
+        findProperty(g_session, nodeId, "EURange", function (err, propertyId) {
 
-            if (err) { return callback(err); }
+            if (err) {
+                return callback(err);
+            }
 
             should(propertyId).not.eql(null);
 
@@ -148,10 +156,12 @@ describe("testing UAAnalogItem on client side",function() {
                 nodeId: propertyId,
                 attributeId: AttributeIds.Value
             };
-            console.log("propertyId = ",propertyId.toString());
-            g_session.read([nodeToRead],function(err,nodeToRead,results){
-                if (err) { return callback(err); }
-                var result =results[0];
+            console.log("propertyId = ", propertyId.toString());
+            g_session.read([nodeToRead], function (err, nodeToRead, results) {
+                if (err) {
+                    return callback(err);
+                }
+                var result = results[0];
                 //xx console.log("result = ",result.toString());
                 result.value.dataType.should.eql(DataType.ExtensionObject);
 

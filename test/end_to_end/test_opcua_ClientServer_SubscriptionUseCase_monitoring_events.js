@@ -29,7 +29,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 
 // make sure extra error checking is made on object constructions
-var schema_helpers =  require("lib/misc/factories_schema_helpers");
+var schema_helpers = require("lib/misc/factories_schema_helpers");
 schema_helpers.doDebug = true;
 
 describe("Client Subscription", function () {
@@ -72,12 +72,12 @@ describe("Client Subscription", function () {
 
     it("CreateMonitoredItemsRequest: server should not accept filter if node attribute to monitor is not Event or Value", function (done) {
 
-        var filter = constructEventFilter(["SourceName","EventId","ReceiveTime"]);
+        var filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
             var itemToMonitor = new opcua.read_service.ReadValueId({
-                nodeId:  opcua.makeNodeId(ObjectTypeIds.BaseEventType),
+                nodeId: opcua.makeNodeId(ObjectTypeIds.BaseEventType),
                 attributeId: AttributeIds.Value
             });
 
@@ -93,9 +93,9 @@ describe("Client Subscription", function () {
                 subscriptionId: subscription.subscriptionId,
                 timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
                 itemsToCreate: [{
-                    itemToMonitor:       itemToMonitor,
+                    itemToMonitor: itemToMonitor,
                     requestedParameters: parameters,
-                    monitoringMode:      MonitoringMode.Reporting
+                    monitoringMode: MonitoringMode.Reporting
                 }]
             });
 
@@ -105,7 +105,9 @@ describe("Client Subscription", function () {
                     createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.BadMonitoredItemFilterInvalid);
                     should(createMonitoredItemsResponse.results[0].filterResult).eql(null);
                 }
-                catch(err) { return callback(err);}
+                catch (err) {
+                    return callback(err);
+                }
                 callback();
             });
 
@@ -116,11 +118,11 @@ describe("Client Subscription", function () {
     });
 
     // check if nodeID exists
-   it("XXX should create a monitoredItem on a event with a Filter ", function (done) {
+    it("XXX should create a monitoredItem on a event with a Filter ", function (done) {
 
         var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
 
-        var filter = constructEventFilter(["SourceName","EventId","ReceiveTime"]);
+        var filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -141,18 +143,18 @@ describe("Client Subscription", function () {
                 subscriptionId: subscription.subscriptionId,
                 timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
                 itemsToCreate: [{
-                    itemToMonitor:       itemToMonitor,
+                    itemToMonitor: itemToMonitor,
                     requestedParameters: parameters,
-                    monitoringMode:      MonitoringMode.Reporting
+                    monitoringMode: MonitoringMode.Reporting
                 }]
             });
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                 try {
-                    console.log("createMonitoredItemsResponse",createMonitoredItemsResponse.toString());
+                    console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
                     createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                     createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
 
-                    should(createMonitoredItemsResponse.results[0].filterResult).not.eql(null,"a filter result is requested");
+                    should(createMonitoredItemsResponse.results[0].filterResult).not.eql(null, "a filter result is requested");
 
 
                     var filterResult = createMonitoredItemsResponse.results[0].filterResult;
@@ -167,7 +169,9 @@ describe("Client Subscription", function () {
                     filterResult.whereClauseResult.should.be.instanceof(ContentFilterResult);
 
                 }
-                catch(err) { return callback(err);}
+                catch (err) {
+                    return callback(err);
+                }
                 callback();
             });
 
@@ -186,21 +190,21 @@ describe("Client Subscription", function () {
                 nodeId: resolveNodeId("Server"),
                 attributeId: AttributeIds.BrowseName // << NOT (Value or EventNotifier)
             };
-            var requestedParameters= {
+            var requestedParameters = {
                 samplingInterval: 10,
                 discardOldest: true,
                 queueSize: 1,
 
                 filter: new opcua.subscription_service.DataChangeFilter({}) // FILTER !
             };
-            var monitoredItem = subscription.monitor(readValue,requestedParameters,TimestampsToReturn.Both,function(err){
+            var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                 should(err).not.eql(null);
                 err.message.should.match(/no filter expected/);
                 console.log(err.message);
                 callback();
             });
 
-        },done);
+        }, done);
     });
 
     it("Client: should raised a error if filter is not of type EventFilter when monitoring an event", function (done) {
@@ -211,7 +215,7 @@ describe("Client Subscription", function () {
                 nodeId: resolveNodeId("Server"),
                 attributeId: AttributeIds.EventNotifier // << EventNotifier
             };
-            var requestedParameters= {
+            var requestedParameters = {
                 samplingInterval: 10,
                 discardOldest: true,
                 queueSize: 1,
@@ -219,14 +223,14 @@ describe("Client Subscription", function () {
                 filter: new opcua.subscription_service.DataChangeFilter({}) // intentionally wrong :not an EventFilter
 
             };
-            var monitoredItem = subscription.monitor(readValue,requestedParameters,TimestampsToReturn.Both,function(err){
+            var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                 should(err).not.eql(null);
                 err.message.should.match(/Got a DataChangeFilter but a EventFilter/);
                 console.log(err.message);
                 callback();
             });
 
-        },done);
+        }, done);
     });
 
 });

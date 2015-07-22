@@ -36,7 +36,7 @@ describe("ServerEngine - addMethod", function () {
 
         engine = new server_engine.ServerEngine();
 
-        engine.initialize({nodeset_filename:server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
             FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;
@@ -52,29 +52,29 @@ describe("ServerEngine - addMethod", function () {
         engine = null;
     });
 
-    it("should be able to attach a method on a object of the address space and call it",function(done) {
+    it("should be able to attach a method on a object of the address space and call it", function (done) {
 
 
         var objectFolder = engine.findObject("ObjectsFolder");
 
-        var object = engine.addObjectInFolder(objectFolder,{browseName: "MyObject",nodeId: "ns=1;s=MyObject"});
+        var object = engine.addObjectInFolder(objectFolder, {browseName: "MyObject", nodeId: "ns=1;s=MyObject"});
 
-        var method = engine.addMethod(object,{
+        var method = engine.addMethod(object, {
             browseName: "Bark",
 
-            inputArguments:  [
+            inputArguments: [
                 {
-                name:"nbBarks",
-                description: { text: "specifies the number of time I should bark" },
-                dataType: DataType.UInt32
+                    name: "nbBarks",
+                    description: {text: "specifies the number of time I should bark"},
+                    dataType: DataType.UInt32
                 }
             ],
 
             outputArguments: [
                 {
-                    name:"Barks",
-                    description:{ text: "the generated barks" },
-                    dataType: DataType.String ,
+                    name: "Barks",
+                    description: {text: "the generated barks"},
+                    dataType: DataType.String,
                     valueRank: 1
 
                 }
@@ -87,7 +87,7 @@ describe("ServerEngine - addMethod", function () {
         var objectMethod = object.getMethodById(method.nodeId);
         _.isObject(objectMethod).should.eql(true);
 
-        var arg = getMethodDeclaration_ArgumentList(engine.address_space,object.nodeId,method.nodeId);
+        var arg = getMethodDeclaration_ArgumentList(engine.address_space, object.nodeId, method.nodeId);
 
         arg.statusCode.should.eql(StatusCodes.Good);
         arg.methodDeclaration.should.eql(objectMethod);
@@ -98,33 +98,36 @@ describe("ServerEngine - addMethod", function () {
         var methodOutputArguments = objectMethod.getOutputArguments();
         _.isArray(methodOutputArguments).should.eql(true);
 
-        engine.bindMethod(method.nodeId,function(inputArguments,context,callback) {
+        engine.bindMethod(method.nodeId, function (inputArguments, context, callback) {
 
             var nbBarks = inputArguments[0].value;
-            console.log("Hello World ! I will bark ",nbBarks,"times");
-            var barks = []; for(var i=0;i<nbBarks;i++){ barks.push("Whaff");}
+            console.log("Hello World ! I will bark ", nbBarks, "times");
+            var barks = [];
+            for (var i = 0; i < nbBarks; i++) {
+                barks.push("Whaff");
+            }
             var callMethodResult = {
                 statusCode: StatusCodes.Good,
                 outputArguments: [
                     {
                         dataType: DataType.String,
                         arrayType: VariantArrayType.Array,
-                        value :barks
+                        value: barks
                     }
                 ]
             };
-            callback(null,callMethodResult);
+            callback(null, callMethodResult);
         });
         // now call it
-        var inputArguments = [{ dataType: DataType.UInt32, value: 3}];
+        var inputArguments = [{dataType: DataType.UInt32, value: 3}];
         var context = {};
-
 
 
         // it should be possible to find the InputArguments and OutputArguments property
         // using translate browse path
 
-        var hasPropertyRefId = resolveNodeId("HasProperty");/* NodeId  ns=0;i=46*/
+        var hasPropertyRefId = resolveNodeId("HasProperty");
+        /* NodeId  ns=0;i=46*/
         var browsePath = [{
             startingNode: /* NodeId  */ method.nodeId,
             relativePath: /* RelativePath   */  {
@@ -133,7 +136,7 @@ describe("ServerEngine - addMethod", function () {
                         referenceTypeId: hasPropertyRefId,
                         isInverse: false,
                         includeSubtypes: false,
-                        targetName: { namespaceIndex: 0, name: "InputArguments" }
+                        targetName: {namespaceIndex: 0, name: "InputArguments"}
                     }
                 ]
             }
@@ -145,7 +148,7 @@ describe("ServerEngine - addMethod", function () {
                         referenceTypeId: hasPropertyRefId,
                         isInverse: false,
                         includeSubtypes: false,
-                        targetName: {   name: "OutputArguments" }
+                        targetName: {name: "OutputArguments"}
                     }
                 ]
             }
@@ -158,13 +161,13 @@ describe("ServerEngine - addMethod", function () {
         result = engine.browsePath(new translate_service.BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        objectMethod.execute(inputArguments,context,function(err,callMethodResponse) {
+        objectMethod.execute(inputArguments, context, function (err, callMethodResponse) {
 
             done(err);
             callMethodResponse.statusCode.should.eql(StatusCodes.Good);
             callMethodResponse.outputArguments.length.should.eql(1);
-            callMethodResponse.outputArguments[0].value.should.eql(["Whaff","Whaff","Whaff"]);
-            console.log(" Result = ",callMethodResponse.outputArguments[0].value);
+            callMethodResponse.outputArguments[0].value.should.eql(["Whaff", "Whaff", "Whaff"]);
+            console.log(" Result = ", callMethodResponse.outputArguments[0].value);
         });
 
     });

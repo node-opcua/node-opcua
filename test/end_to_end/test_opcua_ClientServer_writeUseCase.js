@@ -13,18 +13,18 @@ var DataType = opcua.DataType;
 var AttributeIds = opcua.AttributeIds;
 var OPCUAClient = opcua.OPCUAClient;
 
-var address_space_for_conformance_testing  = require("lib/simulation/address_space_for_conformance_testing");
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-describe("end-to-end testing of a write operation between a client and a server (session#write)",function() {
-    var server , client,temperatureVariableId,endpointUrl ;
+describe("end-to-end testing of a write operation between a client and a server (session#write)", function () {
+    var server, client, temperatureVariableId, endpointUrl;
 
     var port = 2555;
 
-    before(function(done){
-        server = build_server_with_temperature_device({ port:port},function(err) {
+    before(function (done) {
+        server = build_server_with_temperature_device({port: port}, function (err) {
 
-            build_address_space_for_conformance_testing(server.engine,{ mass_variables: false});
+            build_address_space_for_conformance_testing(server.engine, {mass_variables: false});
 
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -32,35 +32,35 @@ describe("end-to-end testing of a write operation between a client and a server 
         });
     });
 
-    beforeEach(function(done){
+    beforeEach(function (done) {
         client = new OPCUAClient();
         done();
     });
 
-    afterEach(function(done){
+    afterEach(function (done) {
         client = null;
         done();
     });
 
-    after(function(done){
+    after(function (done) {
         server.shutdown(done);
     });
-    it("should return BadNodeIdUnknown if nodeId is unknown ",function(done){
+    it("should return BadNodeIdUnknown if nodeId is unknown ", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            var unknown_nodeid = makeNodeId(7777,8788);
+            var unknown_nodeid = makeNodeId(7777, 8788);
             var nodesToWrite = [
                 {
                     nodeId: unknown_nodeid,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: { /* Variant */dataType: DataType.Double, value: 10.0  }
+                        value: {/* Variant */dataType: DataType.Double, value: 10.0}
                     }
                 }
             ];
 
-            session.write(nodesToWrite,function(err,statusCodes){
+            session.write(nodesToWrite, function (err, statusCodes) {
                 if (!err) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.BadNodeIdUnknown);
@@ -68,12 +68,12 @@ describe("end-to-end testing of a write operation between a client and a server 
                 done(err);
             });
 
-        },done);
+        }, done);
     });
 
-    it("should return Good if nodeId is known but not writeable ",function(done) {
+    it("should return Good if nodeId is known but not writeable ", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
 
@@ -82,12 +82,12 @@ describe("end-to-end testing of a write operation between a client and a server 
                     nodeId: pumpSpeedId,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: { /* Variant */dataType: DataType.Double, value: 10.0  }
+                        value: {/* Variant */dataType: DataType.Double, value: 10.0}
                     }
                 }
             ];
 
-            session.write(nodesToWrite,function(err,statusCodes){
+            session.write(nodesToWrite, function (err, statusCodes) {
                 if (!err) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.BadNotWritable);
@@ -95,13 +95,13 @@ describe("end-to-end testing of a write operation between a client and a server 
                 done(err);
             });
 
-        },done);
+        }, done);
 
     });
 
-    it("should return Good if nodeId is known and writeable ",function(done){
+    it("should return Good if nodeId is known and writeable ", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
 
@@ -110,26 +110,26 @@ describe("end-to-end testing of a write operation between a client and a server 
                     nodeId: setPointTemperatureId,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: { /* Variant */dataType: DataType.Double, value: 10.0  }
+                        value: {/* Variant */dataType: DataType.Double, value: 10.0}
                     }
                 }
             ];
 
-            session.write(nodesToWrite,function(err,statusCodes){
-                if(!err) {
+            session.write(nodesToWrite, function (err, statusCodes) {
+                if (!err) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.Good);
                 }
                 done(err);
             });
 
-        },done);
+        }, done);
     });
 
 
-    it("should return an error if value to write has a wrong dataType",function(done){
+    it("should return an error if value to write has a wrong dataType", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
 
@@ -138,26 +138,30 @@ describe("end-to-end testing of a write operation between a client and a server 
                     nodeId: setPointTemperatureId,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: { /* Variant */dataType: DataType.String, value:"This is a string, but should be a Float"  }
+                        value: {
+                            /* Variant */
+                            dataType: DataType.String,
+                            value: "This is a string, but should be a Float"
+                        }
                     }
                 }
             ];
 
-            session.write(nodesToWrite,function(err,statusCodes){
-                if(!err) {
+            session.write(nodesToWrite, function (err, statusCodes) {
+                if (!err) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.BadTypeMismatch);
                 }
                 done(err);
             });
 
-        },done);
+        }, done);
 
     });
 
-    it("should return an error if value to write has a wrong dataType ( Double  instead of Float)",function(done){
+    it("should return an error if value to write has a wrong dataType ( Double  instead of Float)", function (done) {
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             var float_Node = "ns=411;s=Scalar_Simulation_Float";
 
@@ -166,12 +170,12 @@ describe("end-to-end testing of a write operation between a client and a server 
                     nodeId: float_Node,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: { /* Variant */dataType: DataType.Double, value: 2  }
+                        value: {/* Variant */dataType: DataType.Double, value: 2}
                     }
                 }
             ];
 
-            session.write(nodesToWrite,function(err,statusCodes){
+            session.write(nodesToWrite, function (err, statusCodes) {
                 if (!err) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.BadTypeMismatch);
@@ -179,17 +183,17 @@ describe("end-to-end testing of a write operation between a client and a server 
                 done(err);
             });
 
-        },done);
+        }, done);
 
     });
 
-    it("server should return Good_CompletesAsynchronously if the  variable write operation happens asynchronously",function(done){
+    it("server should return Good_CompletesAsynchronously if the  variable write operation happens asynchronously", function (done) {
 
         // The value was successfully written to an intermediate system but the Server does not know if
         // the data source was updated properly.
 
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             var asyncNodeId = "ns=4;s=AsynchronousVariable";
 
@@ -198,12 +202,12 @@ describe("end-to-end testing of a write operation between a client and a server 
                     nodeId: asyncNodeId,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: { /* Variant */dataType: DataType.Double, value: 23.0 }
+                        value: {/* Variant */dataType: DataType.Double, value: 23.0}
                     }
                 }
             ];
 
-            session.write(nodesToWrite,function(err,statusCodes){
+            session.write(nodesToWrite, function (err, statusCodes) {
                 if (!err) {
                     console.log(statusCodes);
                     statusCodes.length.should.equal(nodesToWrite.length);
@@ -212,21 +216,21 @@ describe("end-to-end testing of a write operation between a client and a server 
                 done(err);
             });
 
-        },done);
+        }, done);
 
     });
-    
-    it("should return BadNothingToDo if writeRequest is empty",function(done){
-          perform_operation_on_client_session(client,endpointUrl,function(session,done) {
 
-            var nodesToWrite = [ ];
+    it("should return BadNothingToDo if writeRequest is empty", function (done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-            session.write(nodesToWrite,function(err,statusCodes){
+            var nodesToWrite = [];
+
+            session.write(nodesToWrite, function (err, statusCodes) {
                 err.message.should.match(/BadNothingToDo/);
                 done();
             });
 
-        },done);
+        }, done);
     });
-    
+
 });

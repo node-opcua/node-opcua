@@ -1,4 +1,3 @@
-
 "use strict";
 require("requirish")._(module);
 var should = require("should");
@@ -6,11 +5,11 @@ var util = require("util");
 var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
 var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
 
-describe("LocalizedText",function() {
+describe("LocalizedText", function () {
 
-    it("should create a LocalizeText" , function() {
+    it("should create a LocalizeText", function () {
 
-        var ltext = new LocalizedText({text: "HelloWorld" , locale: "en-US"});
+        var ltext = new LocalizedText({text: "HelloWorld", locale: "en-US"});
         ltext.should.have.property("text");
         ltext.should.have.property("locale");
         ltext.text.should.equal("HelloWorld");
@@ -18,9 +17,9 @@ describe("LocalizedText",function() {
 
     });
 
-    it("should encode and decode a LocalizeText that have both text and locale" , function() {
+    it("should encode and decode a LocalizeText that have both text and locale", function () {
 
-        var ltext = new LocalizedText({text: "HelloWorld" , locale: "en-US"});
+        var ltext = new LocalizedText({text: "HelloWorld", locale: "en-US"});
 
         var stream = new BinaryStream();
         stream.length.should.equal(0);
@@ -41,9 +40,9 @@ describe("LocalizedText",function() {
 
     });
 
-    it("should encode and decode a LocalizeText that have text but no locale" , function() {
+    it("should encode and decode a LocalizeText that have text but no locale", function () {
 
-        var ltext = new LocalizedText({text: "HelloWorld" , locale: null });
+        var ltext = new LocalizedText({text: "HelloWorld", locale: null});
 
         ltext.should.have.property("locale");
         should(ltext.locale).equal(null);
@@ -65,9 +64,9 @@ describe("LocalizedText",function() {
 
     });
 
-    it("should encode and decode a LocalizeText that have no text but a locale" , function() {
+    it("should encode and decode a LocalizeText that have no text but a locale", function () {
 
-        var ltext = new LocalizedText({text: null , locale: "en-US" });
+        var ltext = new LocalizedText({text: null, locale: "en-US"});
 
         ltext.should.have.property("text");
         should(ltext.text).equal(null);
@@ -92,17 +91,17 @@ describe("LocalizedText",function() {
     });
 
     var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
-    it("#coerceLocalizedText - null",function() {
+    it("#coerceLocalizedText - null", function () {
 
         should(coerceLocalizedText(null)).eql(null);
     });
-    it("#coerceLocalizedText - string",function() {
+    it("#coerceLocalizedText - string", function () {
 
-        should(coerceLocalizedText("Hello World")).eql({locale:null, text:"Hello World"});
+        should(coerceLocalizedText("Hello World")).eql({locale: null, text: "Hello World"});
     });
-    it("#coerceLocalizedText - LocalizedText",function() {
+    it("#coerceLocalizedText - LocalizedText", function () {
 
-        should(coerceLocalizedText(new LocalizedText({text: "Hello World" }))).eql({locale:null, text:"Hello World"});
+        should(coerceLocalizedText(new LocalizedText({text: "Hello World"}))).eql({locale: null, text: "Hello World"});
     });
 
 });

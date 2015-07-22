@@ -35,7 +35,7 @@ var stop_simple_server = require("test/helpers/external_server_fixture").stop_si
 
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
-function start_inner_server_local(options,callback) {
+function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
 
     options = options || {};
@@ -66,9 +66,9 @@ function stop_inner_server_local(data, callback) {
 }
 
 
-function start_server1(options,callback) {
+function start_server1(options, callback) {
     // Given a server that have a signed end point
-    start_simple_server(options,function (err, data) {
+    start_simple_server(options, function (err, data) {
         if (err) {
             return callback(err, null);
         }
@@ -90,9 +90,9 @@ function get_server_channel_security_token_change_count(server) {
     var sessions = _.values(server.engine._sessions);
     sessions.length.should.eql(1);
 
-    var count =  server.endpoints.reduce(function(accumulated,endpoint){
+    var count = server.endpoints.reduce(function (accumulated, endpoint) {
         return accumulated + endpoint.securityTokenCount;
-    },0);
+    }, 0);
 
     return count;
 
@@ -102,12 +102,13 @@ function stop_server1(data, callback) {
     stop_simple_server(data, callback);
 }
 
-function start_server(options,callback) {
+function start_server(options, callback) {
     if (_.isFunction(options) && !callback) {
-        callback = options; options =null;
+        callback = options;
+        options = null;
     }
     // Given a server that have a signed end point
-    start_inner_server_local(options,function (err, data) {
+    start_inner_server_local(options, function (err, data) {
         if (err) {
             return callback(err, null);
         }
@@ -118,22 +119,22 @@ function start_server(options,callback) {
     });
 }
 
-var start_server_with_1024bits_certificate = function(callback) {
+var start_server_with_1024bits_certificate = function (callback) {
     var options = {};
-    start_server(options,callback);
+    start_server(options, callback);
 };
 
-var start_server_with_2048bits_certificate = function(callback) {
+var start_server_with_2048bits_certificate = function (callback) {
 
     var path = require("path");
-    var server_certificate256_pem_file = path.join(__dirname,"../fixtures/certs/demo_client_cert256.pem");
-    var server_certificate256_privatekey_file = path.join(__dirname,"../fixtures/certs/demo_client_key256.pem");
+    var server_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
+    var server_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
 
     var options = {
         certificateFile: server_certificate256_pem_file,
-        privateKeyFile:  server_certificate256_privatekey_file
+        privateKeyFile: server_certificate256_privatekey_file
     };
-    start_server(options,callback);
+    start_server(options, callback);
 };
 
 
@@ -146,7 +147,7 @@ function stop_server(data, callback) {
 var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
 
-function keep_monitoring_some_variable(session,  duration, done) {
+function keep_monitoring_some_variable(session, duration, done) {
 
     assert(session instanceof ClientSession);
 
@@ -190,11 +191,11 @@ function keep_monitoring_some_variable(session,  duration, done) {
 
 var g_defaultSecureTokenLifetime = 1000;
 var g_cycleNumber = 3;
-var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber  + 4);
+var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 4);
 
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
-       console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
+    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
 } else {
 
 
@@ -284,15 +285,15 @@ if (!crypto_utils.isFullySupported()) {
 
     var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
-    function common_test(securityPolicy, securityMode, options,done) {
+    function common_test(securityPolicy, securityMode, options, done) {
 
         //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
         opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
 
 
-        options = options|| {};
-        options = _.extend(options,{
+        options = options || {};
+        options = _.extend(options, {
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate
@@ -323,10 +324,10 @@ if (!crypto_utils.isFullySupported()) {
         });
     }
 
-    function check_open_secure_channel_fails(securityPolicy, securityMode, options,done) {
+    function check_open_secure_channel_fails(securityPolicy, securityMode, options, done) {
 
-        options = options|| {};
-        options = _.extend(options,{
+        options = options || {};
+        options = _.extend(options, {
             securityMode: opcua.MessageSecurityMode.get(securityMode),
             securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
             serverCertificate: serverCertificate,
@@ -363,7 +364,7 @@ if (!crypto_utils.isFullySupported()) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(session,  g_defaultTestDuration, function (err) {
+            keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
                 inner_done(err);
             });
         }, function (err) {
@@ -424,14 +425,14 @@ if (!crypto_utils.isFullySupported()) {
     });
 
 
-    function perform_collection_of_test_with_client_configuration(message,options) {
+    function perform_collection_of_test_with_client_configuration(message, options) {
 
         it('should succeed with Basic128Rsa15 with Sign  ' + message, function (done) {
-            common_test("Basic128Rsa15", "SIGN", options,done);
+            common_test("Basic128Rsa15", "SIGN", options, done);
         });
 
         it('should succeed with Basic128Rsa15 with Sign ' + message, function (done) {
-            common_test("Basic128Rsa15", "SIGN", options,done);
+            common_test("Basic128Rsa15", "SIGN", options, done);
         });
 
         it('should succeed with Basic128Rsa15 with SignAndEncrypt ' + message, function (done) {
@@ -439,7 +440,7 @@ if (!crypto_utils.isFullySupported()) {
         });
 
         it('should succeed with Basic256 with Sign ' + message, function (done) {
-            common_test("Basic256", "SIGN",  options,done);
+            common_test("Basic256", "SIGN", options, done);
         });
 
         it('should succeed with Basic256 with SignAndEncrypt ' + message, function (done) {
@@ -447,26 +448,26 @@ if (!crypto_utils.isFullySupported()) {
         });
 
         it('should fail with Basic256Rsa15 with Sign ' + message, function (done) {
-            check_open_secure_channel_fails("Basic256Rsa15", "SIGN",  options,done);
+            check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
         });
 
         it('should fail with Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
-            check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT",  options,done);
+            check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
         });
     }
 
     function perform_collection_of_test_with_various_client_configuration(prefix) {
 
-        prefix = prefix || "" ;
-        var client_certificate256_pem_file = path.join(__dirname,"../fixtures/certs/demo_client_cert256.pem");
-        var client_certificate256_privatekey_file = path.join(__dirname,"../fixtures/certs/demo_client_key256.pem");
+        prefix = prefix || "";
+        var client_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
+        var client_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
 
         var options = {
             certificateFile: client_certificate256_pem_file,
-            privateKeyFile:  client_certificate256_privatekey_file
+            privateKeyFile: client_certificate256_privatekey_file
         };
-        perform_collection_of_test_with_client_configuration(prefix +"(2048 bits certificate on client)",options);
-        perform_collection_of_test_with_client_configuration(prefix +"(1024 bits certificate on client)",null);
+        perform_collection_of_test_with_client_configuration(prefix + "(2048 bits certificate on client)", options);
+        perform_collection_of_test_with_client_configuration(prefix + "(1024 bits certificate on client)", null);
 
 
     }
@@ -530,7 +531,7 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    describe("testing with various client certificates",function(){
+    describe("testing with various client certificates", function () {
 
         this.timeout(20000);
 
@@ -548,47 +549,47 @@ if (!crypto_utils.isFullySupported()) {
             });
         });
 
-        var client_privatekey_file              = path.join(__dirname,"../../certificates/client_key_1024.pem");
+        var client_privatekey_file = path.join(__dirname, "../../certificates/client_key_1024.pem");
 
-        var client_certificate_ok               = path.join(__dirname,"../../certificates/client_cert_1024.pem");
-        var client_certificate_out_of_date      = path.join(__dirname,"../../certificates/client_cert_1024_outofdate.pem");
-        var client_certificate_not_active_yet   = path.join(__dirname,"../../certificates/client_cert_1024_not_active_yet.pem");
-        var client_certificate_revoked          = path.join(__dirname,"../../certificates/client_cert_1024_revoked.pem");
+        var client_certificate_ok = path.join(__dirname, "../../certificates/client_cert_1024.pem");
+        var client_certificate_out_of_date = path.join(__dirname, "../../certificates/client_cert_1024_outofdate.pem");
+        var client_certificate_not_active_yet = path.join(__dirname, "../../certificates/client_cert_1024_not_active_yet.pem");
+        var client_certificate_revoked = path.join(__dirname, "../../certificates/client_cert_1024_revoked.pem");
 
         it("Server should allow a client with a valid certificate to connect", function (done) {
 
             var options = {
                 certificateFile: client_certificate_ok,
-                privateKeyFile:  client_privatekey_file
+                privateKeyFile: client_privatekey_file
             };
-            common_test("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+            common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
         });
 
         it("Server should not allow a client with a out of date certificate to connect", function (done) {
 
             var options = {
                 certificateFile: client_certificate_out_of_date,
-                privateKeyFile:  client_privatekey_file
+                privateKeyFile: client_privatekey_file
             };
-            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
         });
 
         it("Server should not allow a client to connect when the certificate is not active yet", function (done) {
 
             var options = {
                 certificateFile: client_certificate_not_active_yet,
-                privateKeyFile:  client_privatekey_file
+                privateKeyFile: client_privatekey_file
             };
-            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
         });
 
         xit("Server should not allow a client to connect with a revoked certificate", function (done) {
             // todo : implement a mechanism in server code to check certificate against CRL ( Certificate Revocation List)
             var options = {
                 certificateFile: client_certificate_revoked,
-                privateKeyFile:  client_privatekey_file
+                privateKeyFile: client_privatekey_file
             };
-            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options,done);
+            check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
         });
 
 

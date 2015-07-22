@@ -6,9 +6,9 @@ var ObjWithIntegerId_Schema = {
     id: factories.next_available_id(),
     name: "ObjWithIntegerId",
     fields: [
-        { name: "title" ,        fieldType: "UAString" },
+        {name: "title", fieldType: "UAString"},
         {
-            name: "requestHandle"  , fieldType: "IntegerId"
+            name: "requestHandle", fieldType: "IntegerId"
         }
     ]
 };

@@ -55,7 +55,7 @@ if (!crypto_utils.isFullySupported()) {
 
             async.series([
                 function (callback) {
-                    server.shutdown(function(err){
+                    server.shutdown(function (err) {
                         OPCUAServer.getRunningServerCount().should.eql(0);
                         callback(err);
                     });
@@ -160,8 +160,8 @@ if (!crypto_utils.isFullySupported()) {
 
             var crypto = require("crypto");
             var bad_nonce = 0;
-            server.makeServerNonce = function() {
-                bad_nonce +=1;
+            server.makeServerNonce = function () {
+                bad_nonce += 1;
                 return crypto.randomBytes(31); //<< instead of 32  !!!
             };
             var options = {
@@ -176,36 +176,34 @@ if (!crypto_utils.isFullySupported()) {
         });
 
 
-        it("TA -#createSession Server  shall return an error if requestHeader.clientNonce has less than 32 bytes",function(done) {
+        it("TA -#createSession Server  shall return an error if requestHeader.clientNonce has less than 32 bytes", function (done) {
 
             var client = new OPCUAClient(options);
 
             async.series([
 
-                function(callback) {
+                function (callback) {
                     client.endpoint_must_exist = true;
-                    client.connect(endpointUrl,callback);
+                    client.connect(endpointUrl, callback);
                 },
 
-                function(callback) {
+                function (callback) {
 
                     var createSessionRequest = new opcua.session_service.CreateSessionRequest({
-                        requestHeader : {
-
-                        },
+                        requestHeader: {},
                         clientNonce: new Buffer(31)
                     });
-                    client.performMessageTransaction(createSessionRequest,function(err,response){
+                    client.performMessageTransaction(createSessionRequest, function (err, response) {
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
                         callback();
                     });
                 },
 
-                function(callback) {
+                function (callback) {
                     client.disconnect(callback);
                 }
 
-            ],done);
+            ], done);
         });
     });
 }

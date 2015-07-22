@@ -16,7 +16,7 @@ var ObjWithNumericRange_Schema = {
     id: factories.next_available_id(),
     name: "ObjWithNumericRange",
     fields: [
-        { name: "title", fieldType: "UAString" },
+        {name: "title", fieldType: "UAString"},
         {
             name: "numericRange",
             fieldType: "NumericRange"
@@ -158,14 +158,14 @@ describe("Testing numerical range", function () {
             var nr = new NumericRange("1,2");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
-            nr.value.should.eql([[1,1], [2,2]]);
+            nr.value.should.eql([[1, 1], [2, 2]]);
         });
 
         it("should be an Matrix when constructed with  string : '1,2:3' ", function () {
             var nr = new NumericRange("1,2:3");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
-            nr.value.should.eql([[1,1], [2,3]]);
+            nr.value.should.eql([[1, 1], [2, 3]]);
             nr.toEncodeableString().should.eql("1,2:3");
         });
 
@@ -200,7 +200,7 @@ describe("Testing numerical range", function () {
             referenceString.length.should.eql(11);
         });
 
-        it("it should extract a sub matrix when indexRange is a NumericRange.Matrix", function() {
+        it("it should extract a sub matrix when indexRange is a NumericRange.Matrix", function () {
 
             var matrixString = [
                 "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam ",
@@ -208,7 +208,7 @@ describe("Testing numerical range", function () {
                 "volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ",
                 "ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.",
                 "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse ",
-             ];
+            ];
 
             var nr = new NumericRange("1:2,3:5");
 
@@ -254,7 +254,7 @@ describe("Testing numerical range", function () {
     });
     describe("extracting ranges from array", function () {
 
-        var array = [ 0, 1, 2, 3, 4, 5];
+        var array = [0, 1, 2, 3, 4, 5];
 
         it("it should extract a single element with a range defined with a individual integer", function () {
             array.length.should.eql(6);
@@ -277,29 +277,29 @@ describe("Testing numerical range", function () {
 
         it("it should extract a sub array with the requested element with a empty NumericRange", function () {
             var nr = new NumericRange();
-            nr.extract_values(array).array.should.eql([ 0, 1, 2, 3, 4, 5]);
+            nr.extract_values(array).array.should.eql([0, 1, 2, 3, 4, 5]);
         });
 
         it("it should extract the last 3 elements of an array", function () {
             var nr = new NumericRange("3:5");
             var r = nr.extract_values(array);
             r.statusCode.should.eql(StatusCodes.Good);
-            assert_arrays_are_equal(r.array,[ 3, 4, 5]);
+            assert_arrays_are_equal(r.array, [3, 4, 5]);
         });
 
-        it("it should return BadIndexRangeNoData  if single value Range is outside array boundary",function() {
+        it("it should return BadIndexRangeNoData  if single value Range is outside array boundary", function () {
             var nr = new NumericRange("1000");
             var r = nr.extract_values(array);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         });
 
-        it("should handle null array",function() {
+        it("should handle null array", function () {
             var nr = new NumericRange("1000");
             var r = nr.extract_values(null);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         });
 
-        it("should handle null array",function() {
+        it("should handle null array", function () {
             var nr = new NumericRange();
             var r = nr.extract_values(null);
             r.array = array;
@@ -310,13 +310,15 @@ describe("Testing numerical range", function () {
 
     function makeBuffer(values) {
         var buff = new Buffer(values.length);
-        for(var i=0;i<values.length;i++) { buff[i] = values[i]; }
+        for (var i = 0; i < values.length; i++) {
+            buff[i] = values[i];
+        }
         return buff;
     }
 
     describe("extracting ranges from a typed array", function () {
 
-        function test(name,createArray) {
+        function test(name, createArray) {
 
             var array = createArray([0, 1, 2, 3, 4, 5]);
 
@@ -332,7 +334,7 @@ describe("Testing numerical range", function () {
                 var nr = new NumericRange(2);
                 var r = nr.extract_values(array);
 
-                assert_arrays_are_equal(r.array,createArray([2]));
+                assert_arrays_are_equal(r.array, createArray([2]));
 
                 should(r.array instanceof array.constructor).equal(true);
             });
@@ -342,19 +344,19 @@ describe("Testing numerical range", function () {
                 var nr = new NumericRange(2, 4);
 
                 var r = nr.extract_values(array);
-                assert_arrays_are_equal(r.array,createArray([2, 3, 4]));
+                assert_arrays_are_equal(r.array, createArray([2, 3, 4]));
             });
             it(name + " Z3 - it should extract a sub array with the requested element with a empty NumericRange", function () {
                 var nr = new NumericRange();
                 var r = nr.extract_values(array);
-                assert_arrays_are_equal(r.array,createArray([0, 1, 2, 3, 4, 5]));
+                assert_arrays_are_equal(r.array, createArray([0, 1, 2, 3, 4, 5]));
             });
 
             it(name + " Z4 - it should extract the last 3 elements of an array", function () {
                 var nr = new NumericRange("3:5");
                 var r = nr.extract_values(array);
                 r.statusCode.should.eql(StatusCodes.Good);
-                assert_arrays_are_equal(r.array,createArray([3, 4, 5]));
+                assert_arrays_are_equal(r.array, createArray([3, 4, 5]));
             });
 
             it(name + " Z5 - it should return BadIndexRangeNoData if range is outside array boundary", function () {
@@ -375,82 +377,103 @@ describe("Testing numerical range", function () {
                 r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             });
         }
-        test("Float32Array",function(values) {return new Float32Array(values); });
-        test("Float64Array",function(values) {return new Float64Array(values); });
-        test("Uint32Array",function(values)  {return new Uint32Array(values); });
-        test("Uint16Array",function(values)  {return new Uint16Array(values); });
-        test("Int16Array",function(values)   {return new Int16Array(values); });
-        test("Int32Array",function(values)   {return new Int32Array(values); });
-        test("Uint8Array",function(values)   {return new Uint8Array(values); });
-        test("Int8Array",function(values)    {return new Int8Array(values); });
 
-        test("BLOB",function(values)    {return values.map(function(v){  return { value: v.toString()}; }); });
-        test("Uint8Array",makeBuffer);
+        test("Float32Array", function (values) {
+            return new Float32Array(values);
+        });
+        test("Float64Array", function (values) {
+            return new Float64Array(values);
+        });
+        test("Uint32Array", function (values) {
+            return new Uint32Array(values);
+        });
+        test("Uint16Array", function (values) {
+            return new Uint16Array(values);
+        });
+        test("Int16Array", function (values) {
+            return new Int16Array(values);
+        });
+        test("Int32Array", function (values) {
+            return new Int32Array(values);
+        });
+        test("Uint8Array", function (values) {
+            return new Uint8Array(values);
+        });
+        test("Int8Array", function (values) {
+            return new Int8Array(values);
+        });
+
+        test("BLOB", function (values) {
+            return values.map(function (v) {
+                return {value: v.toString()};
+            });
+        });
+        test("Uint8Array", makeBuffer);
     });
 
     describe("setting range of an array", function () {
         var array;
-        beforeEach(function() {
-            array = [ 0, 1,2,3,4,5,6,7,8,9,10];
+        beforeEach(function () {
+            array = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         });
-        it("S1 - should replace the old array with the provided array when numeric range is empty",function() {
+        it("S1 - should replace the old array with the provided array when numeric range is empty", function () {
             var nr = new NumericRange();
-            nr.set_values(array,[20,30,40]).array.should.eql([20,30,40]);
-            array.should.eql([20,30,40]);
+            nr.set_values(array, [20, 30, 40]).array.should.eql([20, 30, 40]);
+            array.should.eql([20, 30, 40]);
         });
 
-        it("S2 - should replace a single element when numeric range is a single value",function() {
+        it("S2 - should replace a single element when numeric range is a single value", function () {
             var nr = new NumericRange("4");
-            nr.set_values(array,[40]).array.should.eql([0,1,2,3,40,5,6,7,8,9,10]);
+            nr.set_values(array, [40]).array.should.eql([0, 1, 2, 3, 40, 5, 6, 7, 8, 9, 10]);
 
-            array.should.eql([0,1,2,3,40,5,6,7,8,9,10]);
+            array.should.eql([0, 1, 2, 3, 40, 5, 6, 7, 8, 9, 10]);
         });
 
-        it("S3 - should replace a single element when numeric range is a simple range",function() {
+        it("S3 - should replace a single element when numeric range is a simple range", function () {
             var nr = new NumericRange("4:6");
-            nr.set_values(array,[40,50,60]).array.should.eql([0,1,2,3,40,50,60,7,8,9,10]);
-            array.should.eql([0,1,2,3,40,50,60,7,8,9,10]);
+            nr.set_values(array, [40, 50, 60]).array.should.eql([0, 1, 2, 3, 40, 50, 60, 7, 8, 9, 10]);
+            array.should.eql([0, 1, 2, 3, 40, 50, 60, 7, 8, 9, 10]);
         });
 
-        it("S4 - should replace a single element when numeric range is a pair of values matching the first two elements",function() {
+        it("S4 - should replace a single element when numeric range is a pair of values matching the first two elements", function () {
             var nr = new NumericRange("0:2");
-            nr.set_values(array,[-3,-2,-1]).array.should.eql([-3,-2,-1,3,4,5,6,7,8,9,10]);
-            array.should.eql([-3,-2,-1,3,4,5,6,7,8,9,10]);
+            nr.set_values(array, [-3, -2, -1]).array.should.eql([-3, -2, -1, 3, 4, 5, 6, 7, 8, 9, 10]);
+            array.should.eql([-3, -2, -1, 3, 4, 5, 6, 7, 8, 9, 10]);
         });
-        it("S5 - should replace a single element when numeric range is a single value matching the last element",function() {
+        it("S5 - should replace a single element when numeric range is a single value matching the last element", function () {
             var nr = new NumericRange("10");
-            nr.set_values(array,[-100]).array.should.eql([0,1,2,3,4,5,6,7,8,9,-100]);
-            array.should.eql([0,1,2,3,4,5,6,7,8,9,-100]);
+            nr.set_values(array, [-100]).array.should.eql([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -100]);
+            array.should.eql([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -100]);
         });
-        it("S6 - should replace a single element when numeric range is a pair of values matching the last two elements",function() {
+        it("S6 - should replace a single element when numeric range is a pair of values matching the last two elements", function () {
             var nr = new NumericRange("9:10");
-            nr.set_values(array,[-90,-100]).array.should.eql([0,1,2,3,4,5,6,7,8,-90,-100]);
-            array.should.eql([0,1,2,3,4,5,6,7,8,-90,-100]);
+            nr.set_values(array, [-90, -100]).array.should.eql([0, 1, 2, 3, 4, 5, 6, 7, 8, -90, -100]);
+            array.should.eql([0, 1, 2, 3, 4, 5, 6, 7, 8, -90, -100]);
         });
-        it("S7 - should replace a single element when numeric range is a pair of values matching the whole array",function() {
+        it("S7 - should replace a single element when numeric range is a pair of values matching the whole array", function () {
             var nr = new NumericRange("0:10");
-            nr.set_values(array,[-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]).array.should.eql([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]);
-            array.should.eql([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]);
+            nr.set_values(array, [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]).array.should.eql([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]);
+            array.should.eql([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]);
         });
         it("S8 - should write the last 3 elements of an array", function () {
             var nr = new NumericRange("8:10");
-            var r = nr.set_values(array,[80,90,100]);
+            var r = nr.set_values(array, [80, 90, 100]);
             r.statusCode.should.eql(StatusCodes.Good);
-            assert_arrays_are_equal(r.array,[0,1,2, 3, 4, 5,6,7,80,90,100]);
+            assert_arrays_are_equal(r.array, [0, 1, 2, 3, 4, 5, 6, 7, 80, 90, 100]);
         });
-        it("S9 - should return BadIndexRangeNoData  if range is outside array boundary",function() {
+        it("S9 - should return BadIndexRangeNoData  if range is outside array boundary", function () {
             var nr = new NumericRange("1000:1010");
-            var r = nr.set_values(array,[80,90,100]);
+            var r = nr.set_values(array, [80, 90, 100]);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         });
-        it("S10 - should return BadIndexRangeInvalid  if range is invalid",function() {
+        it("S10 - should return BadIndexRangeInvalid  if range is invalid", function () {
             var nr = new NumericRange("-1000:1010");
-            var r = nr.set_values(array,[80,90,100]);
+            var r = nr.set_values(array, [80, 90, 100]);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         });
-        it("S11 - should return BadIndexRangeInvalid if range does'nt match new array size",function() {
+        it("S11 - should return BadIndexRangeInvalid if range does'nt match new array size", function () {
             var nr = new NumericRange("2:2");
-            var r = nr.set_values(array,[80,90,100]);
+            var r = nr.set_values(array, [80, 90, 100]);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         });
 
@@ -458,51 +481,51 @@ describe("Testing numerical range", function () {
 
     describe("setting range of a typed  array", function () {
 
-        function test(name,createArray) {
+        function test(name, createArray) {
             var array;
-            beforeEach(function() {
-                array = createArray([ 0, 1,2,3,4,5,6,7,8,9,10]);
+            beforeEach(function () {
+                array = createArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
             });
 
-            it(name+"-S1 - should replace the old array with the provided array when numeric range is empty",function() {
+            it(name + "-S1 - should replace the old array with the provided array when numeric range is empty", function () {
                 var nr = new NumericRange();
-                var r = nr.set_values(array,createArray([20,30,40]));
-                assert_arrays_are_equal(r.array,createArray([20,30,40]));
+                var r = nr.set_values(array, createArray([20, 30, 40]));
+                assert_arrays_are_equal(r.array, createArray([20, 30, 40]));
                 should(r.array instanceof array.constructor).be.eql(true);
             });
 
-            it(name+"-S2 - should replace a single element when numeric range is a single value",function() {
+            it(name + "-S2 - should replace a single element when numeric range is a single value", function () {
                 var nr = new NumericRange("4");
-                nr.set_values(array,createArray([40])).array.should.eql(createArray([0,1,2,3,40,5,6,7,8,9,10]));
+                nr.set_values(array, createArray([40])).array.should.eql(createArray([0, 1, 2, 3, 40, 5, 6, 7, 8, 9, 10]));
             });
 
-            it(name+"-S3 - should replace a single element when numeric range is a simple range",function() {
+            it(name + "-S3 - should replace a single element when numeric range is a simple range", function () {
                 var nr = new NumericRange("4:6");
-                nr.set_values(array,createArray([40,50,60])).array.should.eql(createArray([0,1,2,3,40,50,60,7,8,9,10]));
+                nr.set_values(array, createArray([40, 50, 60])).array.should.eql(createArray([0, 1, 2, 3, 40, 50, 60, 7, 8, 9, 10]));
             });
 
-            it(name+"-S4 - should replace a single element when numeric range is a pair of values matching the first two elements",function() {
+            it(name + "-S4 - should replace a single element when numeric range is a pair of values matching the first two elements", function () {
                 var nr = new NumericRange("0:2");
-                nr.set_values(array,createArray([-3,-2,-1])).array.should.eql(createArray([-3,-2,-1,3,4,5,6,7,8,9,10]));
+                nr.set_values(array, createArray([-3, -2, -1])).array.should.eql(createArray([-3, -2, -1, 3, 4, 5, 6, 7, 8, 9, 10]));
             });
-            it(name+"-S5 - should replace a single element when numeric range is a single value matching the last element",function() {
+            it(name + "-S5 - should replace a single element when numeric range is a single value matching the last element", function () {
                 var nr = new NumericRange("10");
-                nr.set_values(array,createArray([-100])).array.should.eql(createArray([0,1,2,3,4,5,6,7,8,9,-100]));
+                nr.set_values(array, createArray([-100])).array.should.eql(createArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -100]));
             });
-            it(name+"-S6 - should replace a single element when numeric range is a pair of values matching the last two elements",function() {
+            it(name + "-S6 - should replace a single element when numeric range is a pair of values matching the last two elements", function () {
                 var nr = new NumericRange("9:10");
-                nr.set_values(array,createArray([-90,-100])).array.should.eql(createArray([0,1,2,3,4,5,6,7,8,-90,-100]));
+                nr.set_values(array, createArray([-90, -100])).array.should.eql(createArray([0, 1, 2, 3, 4, 5, 6, 7, 8, -90, -100]));
             });
-            it(name+"-S7 - should replace a single element when numeric range is a pair of values matching the whole array",function() {
+            it(name + "-S7 - should replace a single element when numeric range is a pair of values matching the whole array", function () {
                 var nr = new NumericRange("0:10");
-                var r = nr.set_values(array,createArray([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]));
-                assert_arrays_are_equal(r.array,createArray([-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11]));
+                var r = nr.set_values(array, createArray([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]));
+                assert_arrays_are_equal(r.array, createArray([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]));
             });
-            it(name+"-S8 - should write the last 3 elements of an array", function () {
+            it(name + "-S8 - should write the last 3 elements of an array", function () {
                 var nr = new NumericRange("8:10");
-                var r = nr.set_values(array,createArray([80,90,100]));
+                var r = nr.set_values(array, createArray([80, 90, 100]));
                 r.statusCode.should.eql(StatusCodes.Good);
-                assert_arrays_are_equal(r.array,createArray([0,1,2, 3, 4, 5,6,7,80,90,100]));
+                assert_arrays_are_equal(r.array, createArray([0, 1, 2, 3, 4, 5, 6, 7, 80, 90, 100]));
             });
 
             it(name + "-S9 - should return BadIndexRangeNoData if range is a matrix range and value is an array", function () {
@@ -514,28 +537,48 @@ describe("Testing numerical range", function () {
 
         }
 
-        test("Float32Array",function(values) {return new Float32Array(values); });
-        test("Float64Array",function(values) {return new Float64Array(values); });
-        test("Uint32Array",function(values)  {return new Uint32Array(values); });
-        test("Uint16Array",function(values)  {return new Uint16Array(values); });
-        test("Int16Array",function(values)   {return new Int16Array(values); });
-        test("Int32Array",function(values)   {return new Int32Array(values); });
-        test("Uint8Array",function(values)   {return new Uint8Array(values); });
-        test("Int8Array",function(values)    {return new Int8Array(values); });
+        test("Float32Array", function (values) {
+            return new Float32Array(values);
+        });
+        test("Float64Array", function (values) {
+            return new Float64Array(values);
+        });
+        test("Uint32Array", function (values) {
+            return new Uint32Array(values);
+        });
+        test("Uint16Array", function (values) {
+            return new Uint16Array(values);
+        });
+        test("Int16Array", function (values) {
+            return new Int16Array(values);
+        });
+        test("Int32Array", function (values) {
+            return new Int32Array(values);
+        });
+        test("Uint8Array", function (values) {
+            return new Uint8Array(values);
+        });
+        test("Int8Array", function (values) {
+            return new Int8Array(values);
+        });
 
-        test("BLOB",function(values)    {return values.map(function(v){  return { value: v.toString()}; }); });
+        test("BLOB", function (values) {
+            return values.map(function (v) {
+                return {value: v.toString()};
+            });
+        });
 
-        test("Int8Array",makeBuffer);
+        test("Int8Array", makeBuffer);
 
     });
 
     describe(" encoding / decoding", function () {
 
         var ObjWithNumericRange;
-        before(function(){
-            ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema,"tmp");
+        before(function () {
+            ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema, "tmp");
         });
-        after(function(){
+        after(function () {
             factories.unregisterObject(ObjWithNumericRange_Schema);
         });
         var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;

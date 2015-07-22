@@ -18,7 +18,7 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 
 var should = require("should");
-
+var path = require("path");
 
 describe("testing CallMethodRequest", function () {
 
@@ -27,7 +27,7 @@ describe("testing CallMethodRequest", function () {
         var callMethodRequest = new opcua.call_service.CallMethodRequest({
             objectId: opcua.coerceNodeId("ns=0;i=1"),  // Object
             methodId: opcua.coerceNodeId("ns=0;i=2"),  // Method
-            inputArguments: [ { dataType: DataType.UInt32, value: 123} ]
+            inputArguments: [{dataType: DataType.UInt32, value: 123}]
         });
 
         encode_decode_round_trip_test(callMethodRequest);
@@ -37,7 +37,7 @@ describe("testing CallMethodRequest", function () {
         var callMethodRequest = new opcua.call_service.CallMethodRequest({
             objectId: opcua.coerceNodeId("ns=0;i=1"),  // Object
             methodId: opcua.coerceNodeId("ns=0;i=2"),  // Method
-            inputArguments: [ { dataType: DataType.UInt32, value: [123]} ]
+            inputArguments: [{dataType: DataType.UInt32, value: [123]}]
         });
 
         encode_decode_round_trip_test(callMethodRequest);
@@ -66,7 +66,7 @@ describe("CallMethodRequest with address space", function () {
         var callMethodRequest = new opcua.call_service.CallMethodRequest({
             objectId: opcua.coerceNodeId("ns=0;i=2253"),  // SERVER
             methodId: opcua.coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
-            inputArguments: [ new Variant({ dataType: DataType.UInt32,value:123}) ]
+            inputArguments: [new Variant({dataType: DataType.UInt32, value: 123})]
         });
         encode_decode_round_trip_test(callMethodRequest);
     });
@@ -75,12 +75,12 @@ describe("CallMethodRequest with address space", function () {
 
         var callMethodResult = new opcua.call_service.CallMethodResult({
             statusCode: StatusCodes.Good,
-            inputArgumentResults:[
+            inputArgumentResults: [
                 StatusCodes.Good,
                 StatusCodes.Good
             ],
             inputArgumentDiagnosticInfos: [],
-            outputArguments: [{dataType: DataType.UInt32,value: 10}]
+            outputArguments: [{dataType: DataType.UInt32, value: 10}]
         });
 
         encode_decode_round_trip_test(callMethodResult);
@@ -89,14 +89,13 @@ describe("CallMethodRequest with address space", function () {
 });
 
 
-
 describe("CallRequest on custom method", function () {
 
     var address_space = new AddressSpace();
 
     before(function (done) {
 
-        var xml_file = __dirname + "/../fixtures/fixuture_nodeset_objects_with_some_methods.xml";
+        var xml_file = path.join(__dirname,"../fixtures/fixuture_nodeset_objects_with_some_methods.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         opcua.generate_address_space(address_space, xml_file, function (err) {
@@ -128,19 +127,19 @@ describe("CallRequest on custom method", function () {
             methodsToCall: [{
                 objectId: objectId,
                 methodId: methodId,
-                inputArguments:  [{ dataType: DataType.UInt32, value: [0xAA, 0xAB, 0xAC] } ]
+                inputArguments: [{dataType: DataType.UInt32, value: [0xAA, 0xAB, 0xAC]}]
             }]
         });
 
-        var retrieveInputArgumentsDefinition =  build_retrieveInputArgumentsDefinition(address_space);
+        var retrieveInputArgumentsDefinition = build_retrieveInputArgumentsDefinition(address_space);
 
         //xx callRequest.factory = factory;
 
         var options = {retrieveInputArgumentsDefinition: retrieveInputArgumentsDefinition};
         var size = callRequest.binaryStoreSize(options);
 
-        var stream = new BinaryStream(size,options);
-        callRequest.encode(stream,options);
+        var stream = new BinaryStream(size, options);
+        callRequest.encode(stream, options);
 
         console.log(utils.hexDump(stream._buffer));
 
@@ -148,7 +147,7 @@ describe("CallRequest on custom method", function () {
         var callRequest_reloaded = new opcua.call_service.CallRequest();
         stream.address_space = {};
         stream.rewind();
-        callRequest_reloaded.decode(stream,options);
+        callRequest_reloaded.decode(stream, options);
 
         done();
 

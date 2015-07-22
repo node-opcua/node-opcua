@@ -7,8 +7,7 @@ var should = require("should");
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
-
-describe("OPCUAServer",function() {
+describe("OPCUAServer", function () {
 
     before(function (done) {
         resourceLeakDetector.start();
@@ -18,7 +17,7 @@ describe("OPCUAServer",function() {
         resourceLeakDetector.stop();
     });
 
-    it("should dismiss all existing session upon termination",function(done){
+    it("should dismiss all existing session upon termination", function (done) {
 
         var server = new OPCUAServer({});
         server.engine.currentSessionCount.should.equal(0);
@@ -31,7 +30,7 @@ describe("OPCUAServer",function() {
         server.engine.cumulatedSessionCount.should.equal(1);
 
 
-        server.shutdown(function(){
+        server.shutdown(function () {
             session = null;
             server.engine.currentSessionCount.should.equal(0);
             server.engine.cumulatedSessionCount.should.equal(1);

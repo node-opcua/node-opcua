@@ -12,7 +12,7 @@ describe("MessageBuilder", function () {
     it('should raise a message event after reassembling and decoding a message ', function (done) {
 
         var messageBuilder = new MessageBuilder();
-        messageBuilder.setSecurity('NONE','None');
+        messageBuilder.setSecurity('NONE', 'None');
 
         var full_message_body_event_received = false;
         var on_message__received = false;

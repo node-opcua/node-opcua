@@ -19,8 +19,6 @@ describe("testing ExpandedNodeId", function () {
     });
 
 
-
-
     it("should create a ExpandedNodeId from a NodeId", function () {
 
         var nodeId = makeNodeId("some_text", 2);

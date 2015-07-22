@@ -47,7 +47,9 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
             executable: true
         });
 
-        function fakeMethod(){}
+        function fakeMethod() {
+        }
+
         method.bindMethod(fakeMethod);
 
         var value;
@@ -89,7 +91,7 @@ describe("testing Method in address space", function () {
 
     });
 
-    it("should provide a input Parameter variable",function() {
+    it("should provide a input Parameter variable", function () {
 
         var method = address_space.findMethod("ns=0;i=11489");
         method.should.be.instanceOf(UAMethod);
@@ -97,7 +99,7 @@ describe("testing Method in address space", function () {
         inputArguments.should.be.instanceOf(Object);
 
     });
-    it("should provide a output Parameter variable",function() {
+    it("should provide a output Parameter variable", function () {
 
         var method = address_space.findMethod("ns=0;i=11489");
         method.should.be.instanceOf(UAMethod);
@@ -123,7 +125,7 @@ describe("testing Method binding", function () {
         });
     });
 
-    function fake_getMonitoredItemId(inputArguments,context,callback) {
+    function fake_getMonitoredItemId(inputArguments, context, callback) {
 
         var self = this;
 
@@ -135,23 +137,24 @@ describe("testing Method binding", function () {
         inputArguments[0].value.should.eql(5);
 
         var myResult = {
-            statusCode : StatusCodes.BadBoundNotFound,
+            statusCode: StatusCodes.BadBoundNotFound,
             outputArguments: [
-                { dataType: DataType.UInt32, value: [1,2,3] },
-                { dataType: DataType.UInt32, value: [4,5,6] }
+                {dataType: DataType.UInt32, value: [1, 2, 3]},
+                {dataType: DataType.UInt32, value: [4, 5, 6]}
             ]
         };
         callback(null, myResult);
 
     }
-    it("should bind a method  ",function(done){
+
+    it("should bind a method  ", function (done) {
 
         rootFolder.objects.server.getMonitoredItems.bindMethod(fake_getMonitoredItemId.bind(this));
 
-        var inputArguments = [{dataType:DataType.UInt32,value:5}];
+        var inputArguments = [{dataType: DataType.UInt32, value: 5}];
         var context = {};
 
-        rootFolder.objects.server.getMonitoredItems.execute(inputArguments,context,function(err,result){
+        rootFolder.objects.server.getMonitoredItems.execute(inputArguments, context, function (err, result) {
 
             done(err);
         });

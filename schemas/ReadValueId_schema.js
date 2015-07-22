@@ -13,7 +13,7 @@ var ReadValueId_Schema = {
         { name: "nodeId" ,       fieldType: "NodeId"},
         { name: "attributeId" ,  fieldType: "IntegerId" ,
             validate:function(value){
-                return is_valid_attributeId(value) || value == AttributeIds.INVALID;
+                return is_valid_attributeId(value) || value === AttributeIds.INVALID;
             },
             defaultValue: AttributeIds.Value
         }, // see AttributeIds

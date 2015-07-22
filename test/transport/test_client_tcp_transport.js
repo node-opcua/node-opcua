@@ -28,11 +28,11 @@ describe("testing ClientTCP_transport", function () {
     });
 
     var fake_AcknowledgeMessage = new opcua.AcknowledgeMessage({
-        protocolVersion:    0,
-        receiveBufferSize:  8192,
-        sendBufferSize:     8192,
-        maxMessageSize:     100000,
-        maxChunkCount:      600000
+        protocolVersion: 0,
+        receiveBufferSize: 8192,
+        sendBufferSize: 8192,
+        maxMessageSize: 100000,
+        maxChunkCount: 600000
     });
 
     it("should create and connect to a client TCP", function (done) {
@@ -89,6 +89,7 @@ describe("testing ClientTCP_transport", function () {
 
         fake_socket.server.on("data", function (data) {
 
+            should(data).not.eql(null);
             // received Fake HEL Message
 
             // Pretend the message is malformed or that the server crashed for some reason : abort now !
@@ -111,7 +112,7 @@ describe("testing ClientTCP_transport", function () {
 
     function makeError(statusCode) {
         assert(statusCode instanceof StatusCode);
-        return new s.TCPErrorMessage({ name: statusCode.value, reason: statusCode.description});
+        return new s.TCPErrorMessage({name: statusCode.value, reason: statusCode.description});
     }
 
     it("should report an error if the server reports a protocol version mismatch", function (done) {
@@ -274,7 +275,7 @@ describe("testing ClientTCP_transport", function () {
                 }, 10);
 
             } else if (counter === 2) {
-
+                //
             } else {
                 assert(false, "unexpected data received");
             }
@@ -289,7 +290,7 @@ describe("testing ClientTCP_transport", function () {
 
             //xx console.log(" XXXXX where are we ?", (new Error()).stack);
 
-            transport_confirms_that_close_event_has_been_processed.should.eql(false,"close event shall only be received once");
+            transport_confirms_that_close_event_has_been_processed.should.eql(false, "close event shall only be received once");
 
             transport_confirms_that_close_event_has_been_processed = true;
 
@@ -307,7 +308,7 @@ describe("testing ClientTCP_transport", function () {
     });
 
 
-    it("should returns an error if url has invalid port",function(done){
+    it("should returns an error if url has invalid port", function (done) {
 
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {

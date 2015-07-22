@@ -19,20 +19,20 @@ describe("Benchmarking Factory Implementation", function (done) {
             dataType: DataType.Double,
             value: 24
         });
-        variant.dataType.should.eql( DataType.Double);
+        variant.dataType.should.eql(DataType.Double);
 
         variant.dataType = DataType.Variant.value;
 
-        variant.dataType.should.eql( DataType.Variant);
+        variant.dataType.should.eql(DataType.Variant);
 
-        should(function() {
+        should(function () {
             variant.dataType = 34;
         }).throw();
 
         var variant2 = new VariantX(variant);
 
-        (variant.hasOwnProperty("dataType")  ||
-            VariantX.prototype.hasOwnProperty("dataType")).should.eql(true);
+        (variant.hasOwnProperty("dataType") ||
+        VariantX.prototype.hasOwnProperty("dataType")).should.eql(true);
 
         var variant2 = new VariantX(variant);
 
@@ -41,19 +41,20 @@ describe("Benchmarking Factory Implementation", function (done) {
         variant2.value.should.eql(variant.value);
 
     }
-    it("Variant1 should work as expected",function(done){
+
+    it("Variant1 should work as expected", function (done) {
         test_variant(Variant1);
         done();
     });
-    it("Variant2 should work as expected",function(done){
+    it("Variant2 should work as expected", function (done) {
         test_variant(Variant2);
         done();
     });
-    it("Variant3 should work as expected",function(done){
+    it("Variant3 should work as expected", function (done) {
         test_variant(Variant3);
         done();
     });
-    it("Variant should work as expected",function(done){
+    it("Variant should work as expected", function (done) {
         test_variant(Variant);
         done();
     });
@@ -71,25 +72,34 @@ describe("Benchmarking Factory Implementation", function (done) {
             });
         }
 
-        bench.add('Variant1', function () { test_iteration(Variant1);})
-             .add('Variant2', function () { test_iteration(Variant2); })
-             .add('Variant3', function () { test_iteration(Variant3); })
-             .add('Variant', function () { test_iteration(Variant); })
-        .on('cycle', function (message) {
-            console.log(message);
+        bench.add('Variant1', function () {
+            test_iteration(Variant1);
         })
-        .on('complete', function () {
+            .add('Variant2', function () {
+                test_iteration(Variant2);
+            })
+            .add('Variant3', function () {
+                test_iteration(Variant3);
+            })
+            .add('Variant', function () {
+                test_iteration(Variant);
+            })
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+            .on('complete', function () {
 
-            console.log(' Fastest is ' + this.fastest.name);
-            console.log(' Speed Up : x', this.speedUp);
-            ["Variant3","Variant"].indexOf(this.fastest.name).should.not.eql(-1);
-            done();
-        })
-        .run();
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                ["Variant3", "Variant"].indexOf(this.fastest.name).should.not.eql(-1);
+                done();
+            })
+            .run();
 
     }
-    it("should",function(done){
-        perform_benchmark(null,null,done);
+
+    it("should", function (done) {
+        perform_benchmark(null, null, done);
     })
 
 });

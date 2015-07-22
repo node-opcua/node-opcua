@@ -12,7 +12,7 @@ var async = require("async");
 
 var compare_buffers = require("lib/misc/utils").compare_buffers;
 var clone_buffer = require("lib/misc/utils").clone_buffer;
-var hexDump =  require("lib/misc/utils").hexDump;
+var hexDump = require("lib/misc/utils").hexDump;
 
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
@@ -47,7 +47,7 @@ describe("SecureMessageChunkManager", function () {
                     if (messageChunk) {
                         chunk_stack.push(clone_buffer(messageChunk));
                     } else {
-                        fullBufferForVerif =clone_buffer(chunker._stream._buffer);
+                        fullBufferForVerif = clone_buffer(chunker._stream._buffer);
                         callback();
                     }
                 });

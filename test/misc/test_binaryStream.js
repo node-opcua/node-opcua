@@ -88,13 +88,13 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         for (var i = 0; i < n; i++) {
             largeArray[i] = ( i * 0.14 );
         }
-        largeArray[10].should.eql( 10* 0.14);
-        largeArray[100].should.eql( 100 *0.14);
+        largeArray[10].should.eql(10 * 0.14);
+        largeArray[100].should.eql(100 * 0.14);
     });
 
 
     function isValidBuffer(buf) {
-        if (buf.length!=n) {
+        if (buf.length !== n) {
             return false;
         }
         for (var i = 0; i < buf.length; i++) {
@@ -107,32 +107,33 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
     it("should provide a working writeArrayBuffer", function () {
 
-        function  perform(binStream_writeArrayBuffer,binStream_readArrayBuffer) {
+        function perform(binStream_writeArrayBuffer, binStream_readArrayBuffer) {
 
-            largeArray[10].should.eql(   10* 0.14);
-            largeArray[100].should.eql( 100* 0.14);
+            largeArray[10].should.eql(10 * 0.14);
+            largeArray[100].should.eql(100 * 0.14);
             var binStream = new BinaryStream(new Buffer(n * 8 + 20));
 
             largeArray.length.should.eql(n);
             largeArray.byteLength.should.eql(n * 8);
 
-            binStream_writeArrayBuffer.call(binStream,largeArray.buffer, 0, largeArray.byteLength);
+            binStream_writeArrayBuffer.call(binStream, largeArray.buffer, 0, largeArray.byteLength);
             //xx console.log(binStream._buffer.slice(0,100).toString("hex"));
 
             binStream.rewind();
-            var arr = binStream_readArrayBuffer.call(binStream,largeArray.byteLength);
+            var arr = binStream_readArrayBuffer.call(binStream, largeArray.byteLength);
             arr.length.should.eql(largeArray.byteLength);
             var reloaded = new Float64Array(arr.buffer);
 
             reloaded.length.should.eql(largeArray.length);
 
-            reloaded[10].should.eql(   10* 0.14);
-            reloaded[100].should.eql( 100* 0.14);
-            isValidBuffer(reloaded,largeArray).should.eql(true);
+            reloaded[10].should.eql(10 * 0.14);
+            reloaded[100].should.eql(100 * 0.14);
+            isValidBuffer(reloaded, largeArray).should.eql(true);
         }
-        perform(BinaryStream.prototype.writeArrayBuffer,BinaryStream.prototype.readArrayBuffer);
 
-        perform(BinaryStream.prototype.writeArrayBuffer_old,BinaryStream.prototype.readArrayBuffer_old );
+        perform(BinaryStream.prototype.writeArrayBuffer, BinaryStream.prototype.readArrayBuffer);
+
+        perform(BinaryStream.prototype.writeArrayBuffer_old, BinaryStream.prototype.readArrayBuffer_old);
 
     });
 
@@ -180,12 +181,12 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
             .add("readArrayBuffer_old (old version with byte copy)", function () {
                 binStream1.rewind();
                 var arr = binStream1.readArrayBuffer_old(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer),largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
             })
             .add("readArrayBuffer", function () {
                 binStream2.rewind();
                 var arr = binStream2.readArrayBuffer(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer),largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
             })
             .on('cycle', function (message) {
                 console.log(message);
@@ -217,14 +218,14 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
                 binStream1.writeArrayBuffer_old(largeArray.buffer, 0, largeArray.byteLength);
                 binStream1.rewind();
                 var arr = binStream1.readArrayBuffer_old(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer),largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
             })
             .add("writeArrayBuffer/readArrayBuffer", function () {
                 binStream2.rewind();
                 binStream2.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
                 binStream2.rewind();
                 var arr = binStream2.readArrayBuffer(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer),largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
             })
             .on('cycle', function (message) {
                 console.log(message);

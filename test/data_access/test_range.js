@@ -2,7 +2,7 @@ require("requirish")._(module);
 var _ = require("underscore");
 var should = require("should");
 var assert = require("better-assert");
-var Range =  require("lib/data_access/Range").Range;
+var Range = require("lib/data_access/Range").Range;
 // DeadbandType = PercentDeadband
 // For this type of deadband the  deadbandValue  is defined  as the percentage of the  EURange.   That is,
 // it applies only to  AnalogItems   with  an  EURange  Property  that define s  the   typical value   range for
@@ -17,7 +17,7 @@ var Range =  require("lib/data_access/Range").Range;
 // each element of the array. If an element that requires a DataChange is found, then no further
 // deadband checking is necessary and the  entire array shall be returned
 
-function get_deadband_percent(euRange,deadBandValue) {
+function get_deadband_percent(euRange, deadBandValue) {
     assert(euRange instanceof Range);
     assert(_.isFinite(euRange.low));
     assert(_.isFinite(euRange.high));
@@ -25,30 +25,30 @@ function get_deadband_percent(euRange,deadBandValue) {
     return (euRange.high - euRange.low) * deadBandValue / 100.0;
 }
 
-function check_change_deadband(euRange,deadBandValue,delta) {
-    assert((deadBandValue>=0 && deadBandValue<=100)); // return { statusCode: StatusCodes.BadDeadbandFilterInvalid };
-    return Math.abs(delta) >get_deadband_percent(euRange,deadBandValue);
+function check_change_deadband(euRange, deadBandValue, delta) {
+    assert((deadBandValue >= 0 && deadBandValue <= 100)); // return { statusCode: StatusCodes.BadDeadbandFilterInvalid };
+    return Math.abs(delta) > get_deadband_percent(euRange, deadBandValue);
 }
-describe("PercentDeadband with EURange",function() {
+describe("PercentDeadband with EURange", function () {
 
-    it("detect a change when range is [0,100], deadband 10% ",function() {
-        var range = new Range({low:0,high:100});
-        get_deadband_percent(range,10).should.eql(10);
+    it("detect a change when range is [0,100], deadband 10% ", function () {
+        var range = new Range({low: 0, high: 100});
+        get_deadband_percent(range, 10).should.eql(10);
 
-        check_change_deadband(range,10 /*%*/,5).should.eql(false);
-        check_change_deadband(range,10 /*%*/,11).should.eql(true);
+        check_change_deadband(range, 10 /*%*/, 5).should.eql(false);
+        check_change_deadband(range, 10 /*%*/, 11).should.eql(true);
     });
-    it("detect a change when range is [-100,100], deadband 10% ",function() {
-        var range = new Range({low:-100,high:100});
-        check_change_deadband(range,10 /*%*/,5).should.eql(false);
-        check_change_deadband(range,10 /*%*/,11).should.eql(false);
-        check_change_deadband(range,10 /*%*/,21).should.eql(true);
+    it("detect a change when range is [-100,100], deadband 10% ", function () {
+        var range = new Range({low: -100, high: 100});
+        check_change_deadband(range, 10 /*%*/, 5).should.eql(false);
+        check_change_deadband(range, 10 /*%*/, 11).should.eql(false);
+        check_change_deadband(range, 10 /*%*/, 21).should.eql(true);
     });
-    it("detect a change when range is [-100,100], deadband 50% ",function() {
-        var range = new Range({low:-100,high:100});
-        check_change_deadband(range,50 /*%*/,5).should.eql(false);
-        check_change_deadband(range,50 /*%*/,11).should.eql(false);
-        check_change_deadband(range,50 /*%*/,51).should.eql(false);
-        check_change_deadband(range,50 /*%*/,101).should.eql(true);
+    it("detect a change when range is [-100,100], deadband 50% ", function () {
+        var range = new Range({low: -100, high: 100});
+        check_change_deadband(range, 50 /*%*/, 5).should.eql(false);
+        check_change_deadband(range, 50 /*%*/, 11).should.eql(false);
+        check_change_deadband(range, 50 /*%*/, 51).should.eql(false);
+        check_change_deadband(range, 50 /*%*/, 101).should.eql(true);
     });
 });

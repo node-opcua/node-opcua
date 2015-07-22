@@ -1,9 +1,9 @@
 require("requirish")._(module);
 var hexDump = require("lib/misc/utils").hexDump;
 var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
-var debugLog  = require("lib/misc/utils").make_debugLog(__filename);
+var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 var _ = require("underscore");
-var s  = require("lib/datamodel/structures");
+var s = require("lib/datamodel/structures");
 var packet_analyzer = require("lib/misc/packet_analyzer").packet_analyzer;
 var assert = require("better-assert");
 var display_trace_from_this_projet_only = require("lib/misc/utils").display_trace_from_this_projet_only;
@@ -13,30 +13,28 @@ var CloseSecureChannelResponse = opcua.secure_channel_service.CloseSecureChannel
 var OpenSecureChannelResponse = opcua.secure_channel_service.OpenSecureChannelResponse;
 
 
-var GetEndpointsResponse =opcua.endpoints_service.GetEndpointsResponse;
+var GetEndpointsResponse = opcua.endpoints_service.GetEndpointsResponse;
 
-var fake_AcknowledgeMessage =  new opcua.AcknowledgeMessage({
-    protocolVersion:      0,
-    receiveBufferSize:    8192,
-    sendBufferSize:       8192,
-    maxMessageSize:     100000,
-    maxChunkCount:      600000
+var fake_AcknowledgeMessage = new opcua.AcknowledgeMessage({
+    protocolVersion: 0,
+    receiveBufferSize: 8192,
+    sendBufferSize: 8192,
+    maxMessageSize: 100000,
+    maxChunkCount: 600000
 });
 
-var fake_CloseSecureChannelResponse = new CloseSecureChannelResponse({
-
-});
+var fake_CloseSecureChannelResponse = new CloseSecureChannelResponse({});
 
 
 var fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
     serverProtocolVersion: 0,
     securityToken: {
         secureChannelId: 23,
-        tokenId:         1,
-        createdAt:       new Date(), // now
+        tokenId: 1,
+        createdAt: new Date(), // now
         revisedLifeTime: 30000
     },
-    serverNonce:  new Buffer("qwerty")
+    serverNonce: new Buffer("qwerty")
 });
 
 var fake_GetEndpointsResponse = new GetEndpointsResponse({
@@ -53,14 +51,14 @@ var ActivateSessionResponse = require("lib/services/session_service").ActivateSe
 var fake_ActivateSessionResponse = new ActivateSessionResponse();
 
 
-function MockTransport(promised_replies,done) {
+function MockTransport(promised_replies, done) {
 
     this._replies = promised_replies;
     this._counter = 0;
     this.fake_socket = new DirectTransport();
 
     var self = this;
-    this.fake_socket.server.on("data",function(data){
+    this.fake_socket.server.on("data", function (data) {
 
         var reply = self._replies[self._counter];
         self._counter++;
@@ -77,14 +75,14 @@ function MockTransport(promised_replies,done) {
             debugLog("\nFAKE SERVER RECEIVED");
             debugLog(hexDump(data).blue);
 
-            var replies= [];
+            var replies = [];
             if (reply instanceof Buffer) {
                 replies.push(reply);
             } else {
                 replies = reply;
             }
-            assert(replies.length>=1 , " expecting at least one reply " + JSON.stringify(reply));
-            replies.forEach(function(reply){
+            assert(replies.length >= 1, " expecting at least one reply " + JSON.stringify(reply));
+            replies.forEach(function (reply) {
                 debugLog("\nFAKE SERVER SEND");
                 debugLog(hexDump(reply).red);
                 self.fake_socket.server.write(reply);

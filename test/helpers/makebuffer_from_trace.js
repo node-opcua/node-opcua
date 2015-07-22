@@ -1,28 +1,31 @@
 require("requirish")._(module);
 
-var deprecated_trim  = function(str) {
+var deprecated_trim = function (str) {
     return str.replace(/^\s+|\s+$/g, "");
 };
 
 function inlineText(f) {
-    return f.toString().
+
+    var k = f.toString().
         replace(/^[^\/]+\/\*!?/, '').
         replace(/\*\/[^\/]+$/, '');
+    k = k.split("\n").map(function(t){  t = t.trim(); return t; }).join("\n");
+    return k;
 }
 var makebuffer = require("lib/misc/utils").makebuffer;
 
-var hexString = function(str) {
+var hexString = function (str) {
 
-    var hexline ="";
+    var hexline = "";
     var lines = str.split("\n");
-    lines.forEach(function(line){
+    lines.forEach(function (line) {
 
         line = line.trim();
         if (line.length > 80) {
-            line = line.substr(10,98).trim();
+            line = line.substr(10, 98).trim();
             hexline = hexline ? hexline + " " + line : line;
-        } else if ( line.length > 60) {
-            line = line.substr(7,48).trim();
+        } else if (line.length > 60) {
+            line = line.substr(7, 48).trim();
             hexline = hexline ? hexline + " " + line : line;
         }
     });

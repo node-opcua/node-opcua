@@ -6,16 +6,14 @@ var should = require("should");
 var assert = require("assert");
 
 
-
-
-function InstallTestFor(Transport) {
+function installTestFor(Transport) {
 
     describe("Testing behavior of  " + Transport.name + "  to emulate client/server communication in tests", function () {
 
         var transport = null;
 
         beforeEach(function (done) {
-            transport = new Transport(function() {
+            transport = new Transport(function () {
                 assert(transport.client);
                 assert(transport.server);
                 done();
@@ -85,5 +83,6 @@ function InstallTestFor(Transport) {
     });
 }
 
-InstallTestFor(SocketTransport);
-InstallTestFor(DirectTransport);
+installTestFor(SocketTransport);
+installTestFor(DirectTransport);
+
