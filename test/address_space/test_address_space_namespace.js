@@ -69,6 +69,46 @@ describe("testing  address space namespace loading", function () {
         });
     });
 
+    it("should process multiple xml files that reference each other", function (done) {
+        var address_space = new AddressSpace();
+        var xml_files = [
+            path.join(__dirname, "../../lib/server/mini.Node.Set2.xml"),
+            path.join(__dirname, "../fixtures/fixture_custom_nodeset.xml"),
+            path.join(__dirname, "../fixtures/fixture_custom_nodeset_extension.xml")
+        ];
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
+
+        address_space.registerNamespace("ServerNamespaceURI");
+        address_space.getNamespaceArray().length.should.eql(2);
+
+        generate_address_space(address_space, xml_files, function (err) {
+
+            address_space.getNamespaceArray().length.should.eql(5);
+            address_space.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
+            address_space.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
+            address_space.getNamespaceArray()[4].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
+
+            address_space.findObject("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
+            address_space.findObject("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+
+            address_space.findObject("ns=2;i=1000").browseName.toString().should.eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
+            address_space.findObject("ns=3;i=1000").browseName.toString().should.eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
+
+            address_space.findObject("ns=4;i=1").browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
+
+            address_space.getNamespaceArray().should.eql([
+                "http://opcfoundation.org/UA/",
+                "ServerNamespaceURI",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/"
+            ]);
+            done(err);
+        });
+    });
+
+
     it("should process namespaces with DI", function (done) {
 
         var address_space = new AddressSpace();
