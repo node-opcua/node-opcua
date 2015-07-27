@@ -1233,6 +1233,14 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
         </References>
     </UAObject>
+    <UAVariable NodeId="i=2294" BrowseName="EnabledFlag" ParentNodeId="i=2274" DataType="Boolean" AccessLevel="3" UserAccessLevel="3">
+        <DisplayName>EnabledFlag</DisplayName>
+        <Description>If TRUE the diagnostics collection is enabled.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2274</Reference>
+        </References>
+    </UAVariable>
     <UAVariable NodeId="i=2275" BrowseName="ServerDiagnosticsSummary" ParentNodeId="i=2274" DataType="i=859">
         <DisplayName>ServerDiagnosticsSummary</DisplayName>
         <Description>A summary of server level diagnostics.</Description>
