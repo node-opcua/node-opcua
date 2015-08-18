@@ -30,6 +30,7 @@ exports.createCameraType = function createCameraType(address_space) {
             }
         ]
     });
+    should(triggerMethod.hasTypeDefinition).eql(null);
     triggerMethod.browseName.toString().should.eql("1:Trigger");
     triggerMethod.browseName.should.eql(new QualifiedName({name: "Trigger", namespaceIndex: 1}));
     return cameraType;

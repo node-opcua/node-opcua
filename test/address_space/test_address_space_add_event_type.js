@@ -25,7 +25,7 @@ describe("AddressSpace : add event type ", function () {
     before(function (done) {
         address_space = new AddressSpace();
 
-        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
+        var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(address_space, xml_file, function (err) {
@@ -41,6 +41,18 @@ describe("AddressSpace : add event type ", function () {
 
     });
 
+    it("#generateEventId should generate event id sequentially",function() {
+
+        var id1 = address_space.generateEventId();
+        var id2 = address_space.generateEventId();
+        var id3 = address_space.generateEventId();
+        console.log(id1.value.toString("hex"));
+        console.log(id2.value.toString("hex"));
+        console.log(id3.value.toString("hex"));
+        id1.value.toString("hex").should.not.eql(id2.value.toString("hex"));
+        id1.value.toString("hex").should.not.eql(id3.value.toString("hex"));
+    });
+
     it("should find BaseEventType", function () {
         address_space.findEventType("BaseEventType").nodeId.toString().should.eql("ns=0;i=2041");
     });
@@ -51,9 +63,10 @@ describe("AddressSpace : add event type ", function () {
         baseEventType.isAbstract.should.eql(true);
     });
 
-
     it("should find AuditEventType", function () {
-        address_space.findEventType("AuditEventType").nodeId.toString().should.eql("ns=0;i=2052");
+        var auditEventType = address_space.findEventType("AuditEventType");
+        auditEventType.nodeId.toString().should.eql("ns=0;i=2052");
+        auditEventType.isAbstract.should.eql(true);
     });
 
     it("should verify that AuditEventType is a superType of BaseEventType", function () {
@@ -70,7 +83,6 @@ describe("AddressSpace : add event type ", function () {
 
         var eventType = address_space.addEventType({
             browseName: "__EventTypeForTest1",
-            //isAbstract:false,
             subtypeOf: "BaseEventType" // should be implicit
         });
         eventType.browseName.toString().should.eql("__EventTypeForTest1");
@@ -81,13 +93,85 @@ describe("AddressSpace : add event type ", function () {
 
     });
 
-    it("added EventType should be abstact", function () {
+    it("added EventType should be abstract by default", function () {
         var eventType = address_space.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
         eventType.isAbstract.should.eql(true);
     });
 
-    it("should add an basic event type", function () {
+    it("should be possible to add a non-abstract event type",function(){
+
+        var eventType = address_space.addEventType({
+            browseName: "MyConcreteCustomEvent",
+            isAbstract: false,
+        });
+        eventType.browseName.toString().should.eql("MyConcreteCustomEvent");
+        eventType.isAbstract.should.eql(false);
+    });
+
+
+
+    it("should instantiate event efficiently ( more than 1000 per second on a decent computer)", function (done) {
+
+        var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
+        var bench = new Benchmarker();
+
+        var eventType = address_space.addEventType({
+            browseName: "MyConcreteCustomEvent2",
+            isAbstract: false
+        });
+        bench.add('test', function () {
+
+            var event = address_space.instantiateEvent(eventType, {
+                sourceName: {dataType: "String", value: "HelloWorld"},
+                receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
+            });
+        })
+
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+
+            .on('complete', function () {
+
+                console.log(' Fastest is ' + this.fastest.name);
+                //xx console.log(' count    :  ', this.fastest.count);
+                done();
+            })
+
+            .run({max_time: 0.1});
+
+    });
+
+    it("#constructEventData ", function () {
+
+        var auditEventType = address_space.findObjectType("AuditEventType");
+
+        var data = address_space.constructEventData(auditEventType);
+
+        var expected_fields = [
+            "__nodes",
+            "actionTimeStamp",
+            "clientAuditEntryId",
+            "clientUserId",
+            "eventId",
+            "eventType",
+            "localTime",
+            "message",
+            "receiveTime",
+            "serverId",
+            "severity",
+            "sourceName",
+            "sourceNode",
+            "status",
+            "time"
+        ];
+
+        Object.keys(data).sort().should.eql(expected_fields);
+        //xx console.log(JSON.stringify(data,null," "));
+    });
+
+    xit("#createEventData should add an basic event type", function () {
 
         var eventType = address_space.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
@@ -99,9 +183,9 @@ describe("AddressSpace : add event type ", function () {
             value: {dataType: DataType.Double, value: 1.0}
         });
 
-        var event = address_space.instantiateEvent("MyCustomEvent", {
+        var event = address_space.createEventData("MyCustomEvent", {
             sourceName: {dataType: "String", value: "HelloWorld"},
-            receiveTime: {dataType: "DateTime", value: new Date(14, 7, 1789)}
+            receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
         });
 
         // event shall have property of BaseEventType
@@ -127,32 +211,26 @@ describe("AddressSpace : add event type ", function () {
         event.should.have.property("message");
         event.should.have.property("severity");
 
+        //  var UAVariable = require("lib/address_space/ua_variable").UAVariable;
+        var Variant = require("lib/datamodel/variant").Variant;
+        event.eventId.should.be.instanceof(Variant);
+
+        event.eventId.dataType.should.eql(DataType.ByteString);
+        event.sourceName.value.should.eql("HelloWorld");
+        event.receiveTime.value.should.eql(new Date(1789, 6, 14));
+
     });
+    xit("#createEventData ", function () {
 
-    it("should instantiate event efficiently ( more than 1000 per second on a decent computer)", function (done) {
+        var auditEventType = address_space.findObjectType("AuditEventType");
 
-        var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
-        var bench = new Benchmarker();
+        var data = {
+            sourceName: {dataType: "String", value: "HelloWorld"},
+            receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
+        };
 
-        bench.add('test', function () {
+        var fullData = address_space.deprecated_createEventData(auditEventType, data);
 
-            var event = address_space.instantiateEvent("MyCustomEvent", {
-                sourceName: {dataType: "String", value: "HelloWorld"},
-                receiveTime: {dataType: "DateTime", value: new Date(14, 7, 1789)}
-            });
-        })
-
-            .on('cycle', function (message) {
-                console.log(message);
-            })
-            .on('complete', function () {
-
-                console.log(' Fastest is ' + this.fastest.name);
-                //xx console.log(' count    :  ', this.fastest.count);
-                done();
-            })
-            .run({max_time: 0.1});
-
+        fullData.sourceName.value.should.eql("HelloWorld");
     });
 });
-

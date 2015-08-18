@@ -571,13 +571,13 @@ describe("testing server and subscription", function () {
 
     });
 
-    it("should return BadNodeIdUnknown  if the client tries to monitored an invalid attribute", function (done) {
+    it("should return BadNodeIdUnknown  if the client tries to monitored an non-existent node", function (done) {
 
         this.timeout(5000);
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
             var monitoredItem = subscription.monitor({
-                nodeId: resolveNodeId("ns=0;s=**inexistant**"),
+                nodeId: resolveNodeId("ns=0;s=**unknown**"),
                 attributeId: AttributeIds.Value
             }, {
                 samplingInterval: 10,
@@ -587,7 +587,7 @@ describe("testing server and subscription", function () {
 
             monitoredItem.on("err", function (statusMessage) {
 
-                console.log(" ERR event received");
+                //xx console.log(" ERR event received");
 
                 statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
                 callback();
@@ -619,7 +619,7 @@ describe("testing server and subscription", function () {
 
             monitoredItem.on("err", function (statusMessage) {
 
-                console.log(" ERR event received");
+                //xx console.log(" ERR event received");
 
                 statusMessage.should.eql(StatusCodes.BadAttributeIdInvalid.toString());
                 callback();

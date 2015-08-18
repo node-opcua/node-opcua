@@ -292,7 +292,13 @@ var Variant_Schema = {
   construct_hook: function(options) {
 
     assert(options);
-
+    options.dataType = options.dataType || DataType.Null;
+    assert(options.dataType);
+    // dataType couldbe a string
+    if (typeof options.dataType === "string" ) {
+      options.dataType = DataType[options.dataType];
+      assert(options.dataType !== null);
+    }
     if (options.arrayType && options.arrayType !== VariantArrayType.Scalar) {
       /* istanbul ignore else */
       if (options.arrayType === VariantArrayType.Array) {
@@ -311,7 +317,7 @@ var Variant_Schema = {
 
       /* istanbul ignore next */
       if (!isValidVariant(options.arrayType, options.dataType, options.value)) {
-        throw new Error("Invalid variant " + options.arrayType.toString() + "  " + options.dataType.toString() + " " + options.value);
+         throw new Error("Invalid variant " + options.arrayType.toString() + "  " + options.dataType.toString() + " " + options.value);
       }
     }
     return options;

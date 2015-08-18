@@ -33,7 +33,9 @@ var pingTimeout = 10 * 1000; //  interval  between two keepalive pings
 var endpoints_history = [];
 
 function add_endpoint_to_history(endpoint) {
-    if (endpoints_history.indexOf(endpoint) >= 0) { return;  }
+    if (endpoints_history.indexOf(endpoint) >= 0) {
+        return;
+    }
     endpoints_history.push(endpoint);
     save_endpoint_history();
 }
@@ -317,7 +319,9 @@ function process_line(line) {
         case "FindServers":
             rl.pause();
             client.findServers({}, function (err, servers) {
-                if(err) { console.log(err.message); }
+                if (err) {
+                    console.log(err.message);
+                }
                 console.log(treeify.asTree(servers, true));
                 rl.resume();
                 rl.prompt(">");
@@ -327,7 +331,9 @@ function process_line(line) {
         case 'getEndpoints':
             rl.pause();
             client.getEndpointsRequest(function (err, endpoints) {
-                if(err) { console.log(err.message); }
+                if (err) {
+                    console.log(err.message);
+                }
                 endpoints = utils.replaceBufferWithHexDump(endpoints);
                 console.log(treeify.asTree(endpoints, true));
 
@@ -464,7 +470,9 @@ function process_line(line) {
                 var path = args[1];
                 rl.pause();
                 the_session.translateBrowsePath(path, function (err, results) {
-                    if(err) { console.log(err.message); }
+                    if (err) {
+                        console.log(err.message);
+                    }
                     console.log(" Path ", path, " is ");
                     console.log(util.inspect(results, {colors: true, depth: 100}));
                     rl.resume();
@@ -489,6 +497,7 @@ function process_line(line) {
                 rl.pause();
                 crawler.read(nodeId, function (err, obj) {
                     if (!err) {
+                        console.log(" crawling done ");
                         // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
                         //xx console.log(treeify.asTree(obj, true));
                         treeify.asLines(obj, true, true, function (line) {
@@ -497,6 +506,7 @@ function process_line(line) {
                     } else {
                         console.log("err ", err.message);
                     }
+                    crawler = null;
                     rl.resume();
                     rl.prompt(">");
                 });

@@ -148,6 +148,12 @@ describe("testing add new DataType ", function () {
         c[0].should.be.instanceOf(UAMethod);
         c[0].browseName.toString().should.eql("1:Trigger");
 
+        cameraType.getComponents()[0].should.be.instanceOf(UAMethod);
+
+        cameraType.getComponents()[0].nodeId.toString().should.not.eql(c[0].nodeId.toString());
+        console.log(cameraType.getComponents()[0].nodeId.toString());
+        console.log(c[0].nodeId.toString());
+
         done();
     });
 

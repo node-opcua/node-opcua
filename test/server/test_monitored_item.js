@@ -364,15 +364,15 @@ var DeadbandType = subscription_service.DeadbandType;
 
 describe("MonitoredItem with DataChangeFilter", function () {
 
-    var dataValue1 = new DataValue({statusCode: StatusCodes.Good, value: {value: 48}});
-    var dataValue2 = new DataValue({statusCode: StatusCodes.Good, value: {value: 49}}); // +1 =>
-    var dataValue3 = new DataValue({statusCode: StatusCodes.GoodWithOverflowBit, value: {value: 49}});
-    var dataValue4 = new DataValue({statusCode: StatusCodes.Good, value: {value: 49}});
-    var dataValue5 = new DataValue({statusCode: StatusCodes.Good, value: {value: 49}});
+    var dataValue1 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 48}});
+    var dataValue2 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 49}}); // +1 =>
+    var dataValue3 = new DataValue({statusCode: StatusCodes.GoodWithOverflowBit, value: {dataType:"UInt16", value: 49}});
+    var dataValue4 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 49}});
+    var dataValue5 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 49}});
     //
-    var dataValue6 = new DataValue({statusCode: StatusCodes.Good, value: {value: 59}}); // +10
-    var dataValue7 = new DataValue({statusCode: StatusCodes.Good, value: {value: 60}}); // +1
-    var dataValue8 = new DataValue({statusCode: StatusCodes.Good, value: {value: 10}}); // -50
+    var dataValue6 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 59}}); // +10
+    var dataValue7 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 60}}); // +1
+    var dataValue8 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 10}}); // -50
 
     it("should only detect status change when dataChangeFilter trigger is DataChangeTrigger.Status ", function () {
 

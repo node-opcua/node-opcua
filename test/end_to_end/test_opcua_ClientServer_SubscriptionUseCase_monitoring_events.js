@@ -119,7 +119,7 @@ describe("Client Subscription", function () {
     });
 
     // check if nodeID exists
-    it("XXX should create a monitoredItem on a event with a Filter ", function (done) {
+    it("should create a monitoredItem on a event with a Filter ", function (done) {
 
         var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
 
@@ -165,6 +165,9 @@ describe("Client Subscription", function () {
                     // verify selectClauseResults count
                     filter.selectClauses.length.should.eql(3);
                     filterResult.selectClauseResults.length.should.eql(filter.selectClauses.length);
+                    filterResult.selectClauseResults[0].should.eql(StatusCodes.Good);
+                    filterResult.selectClauseResults[1].should.eql(StatusCodes.Good);
+                    filterResult.selectClauseResults[2].should.eql(StatusCodes.Good);
 
                     // verify whereClauseResult
                     var ContentFilterResult = opcua.subscription_service.ContentFilterResult;
@@ -184,7 +187,7 @@ describe("Client Subscription", function () {
 
     var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 
-    it("Client: should raised a error if a filter is specified when monitoring some attributes which are not Value or EventNotifier", function (done) {
+    it("Client: should raise a error if a filter is specified when monitoring some attributes which are not Value or EventNotifier", function (done) {
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -209,7 +212,7 @@ describe("Client Subscription", function () {
         }, done);
     });
 
-    it("Client: should raised a error if filter is not of type EventFilter when monitoring an event", function (done) {
+    it("Client: should raise a error if filter is not of type EventFilter when monitoring an event", function (done) {
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 

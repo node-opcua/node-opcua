@@ -335,17 +335,19 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
             }, done);
 
         });
+
         it("T4 GetMonitoredItem must have the Executable attribute set", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
+                var getMonitoredItemMethodId ="ns=0;i=11492";
                 var nodesToRead = [
                     {
-                        nodeId: "ns=0;i=11492",
+                        nodeId: getMonitoredItemMethodId,
                         attributeId: AttributeIds.Executable
                     },
                     {
-                        nodeId: "ns=0;i=11492",
+                        nodeId: getMonitoredItemMethodId,
                         attributeId: AttributeIds.UserExecutable
                     }
                 ];
@@ -366,10 +368,9 @@ describe("testing CALL SERVICE on a fake server exposing the temperature device"
         });
     });
 
-    it("should find the OutputArguments and InputArguments Properties with a translate browse path reaquest ( like UAEpxert)", function (done) {
+    it("should find the OutputArguments and InputArguments Properties with a translate browse path request (like UAExpert)", function (done) {
 
         // note : this is how UAExpert tries to figure out what are the input and output arguments definition
-        //
         var getMonitoredItemMethodId = coerceNodeId("ns=0;i=11492");
 
         var hasPropertyRefId = resolveNodeId("HasProperty");

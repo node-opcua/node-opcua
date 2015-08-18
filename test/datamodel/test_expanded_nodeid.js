@@ -5,6 +5,7 @@ var coerceExpandedNodeId = require("lib/datamodel/expanded_nodeid").coerceExpand
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var NodeIdType = require("lib/datamodel/nodeid").NodeIdType;
 var should = require("should");
+var ExpandedNodeId = require("lib/datamodel/expanded_nodeid").ExpandedNodeId;
 
 describe("testing ExpandedNodeId", function () {
 
@@ -18,6 +19,11 @@ describe("testing ExpandedNodeId", function () {
         exnodeId.toString().should.eql("ns=0;i=1");
     });
 
+    it("should create a ExpandedNodeId from a integer", function () {
+
+        var exnodeId = makeExpandedNodeId(1);
+
+    });
 
     it("should create a ExpandedNodeId from a NodeId", function () {
 
@@ -40,5 +46,13 @@ describe("testing ExpandedNodeId", function () {
         exNodeId.toString().should.eql("ns=0;i=10");
 
     });
+    it("coerceExpandedNodeId should coerce an ExpandedNodeId", function () {
+
+        var exNodeId = coerceExpandedNodeId("ns=0;i=10");
+        var exNodeId2 = coerceExpandedNodeId(exNodeId);
+        exNodeId2.toString().should.eql("ns=0;i=10");
+
+    });
+
 
 });
