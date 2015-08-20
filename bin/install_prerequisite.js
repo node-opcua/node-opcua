@@ -77,8 +77,8 @@ function win32or64() {
 function download_openssl(callback) {
 
     var url = (win32or64() === 64 )
-            ? "http://indy.fulgan.com/SSL/openssl-1.0.2a-x64_86-win64.zip"
-            : "http://indy.fulgan.com/SSL/openssl-1.0.2a-i386-win32.zip"
+            ? "http://indy.fulgan.com/SSL/openssl-1.0.2d-x64_86-win64.zip"
+            : "http://indy.fulgan.com/SSL/openssl-1.0.2d-i386-win32.zip"
         ;
     var output_filename = path.basename(url);
 
