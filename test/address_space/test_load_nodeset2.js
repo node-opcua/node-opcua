@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
@@ -81,4 +82,39 @@ describe("testing NodeSet XML file loading", function () {
         });
     });
 
+    it("should read accessLevel and userAccessLevel attributes", function(done) {
+
+        this.timeout(400000);
+
+        var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_various_access_level_nodeset.xml");
+
+        var xml_files = [
+            path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
+            xml_file
+        ];
+        require("fs").existsSync(xml_files[0]).should.be.eql(true);
+        require("fs").existsSync(xml_files[1]).should.be.eql(true);
+
+        generate_address_space(address_space, xml_files, function (err) {
+
+
+            var someVariable = address_space.findObject("ns=1;i=2");
+            someVariable.browseName.toString().should.eql("1:SomeVariable");
+            someVariable.userAccessLevel.toString().should.eql("CurrentRead");
+
+
+            var readOnlyVar = address_space.findObject("ns=1;i=3");
+            readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
+            readOnlyVar.userAccessLevel.toString().should.eql("CurrentRead");
+
+
+
+            var readWriteVar = address_space.findObject("ns=1;i=4");
+            readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
+            readWriteVar.userAccessLevel.toString().should.eql("CurrentRead | CurrentWrite");
+
+
+            done(err);
+        });
+    });
 });
