@@ -278,6 +278,23 @@ describe("testing session  transfer to different channel", function () {
                     callback(err);
                 });
             },
+            // but server shall access request on new channel
+            function (callback) {
+                // coerce nodeIds
+                var request = new opcua.read_service.ReadRequest({
+                    nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
+                    maxAge: 0,
+                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
+                });
+                request.requestHeader.authenticationToken = session1.authenticationToken;
+                client2.performMessageTransaction(request, function (err, response) {
+                    if (!err) {
+                        response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    }
+                    callback(err);
+                });
+            },
+
 
             // terminate
             function (callback) {
