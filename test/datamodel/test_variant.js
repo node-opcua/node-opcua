@@ -666,9 +666,21 @@ describe("Variant with Advanced Array", function () {
 describe("Variant with enumeration",function() {
 
     var ServerState = require("schemas/ServerState_enum").ServerState;
+    before(function() {
+        should(ServerState.Running).not.eql(null);
+    });
+
+    it("should fail to create a variant from a enumeration item if dataType is not Int32",function() {
+        should(function() {
+            var v = new Variant({
+                dataType: DataType.UInt32,
+                value: ServerState.Running
+            });
+            v.value.should.eql(0);
+        }).throw();
+    });
 
     it("should create a variant from a enumeration item",function() {
-
         should(ServerState.Running).not.eql(null);
         var v = new Variant({
             dataType: DataType.Int32,
@@ -677,12 +689,15 @@ describe("Variant with enumeration",function() {
         console.log(v.toString());
         v.value.should.eql(0);
 
-        v = new Variant({
-            dataType: DataType.UInt32,
-            value: ServerState.Running
-        });
-        v.value.should.eql(0);
+    });
 
+    xit("should not be necessary to specify the dataType for  a variant containing  enumeration item",function() {
+        var v = new Variant({
+             value: ServerState.Failed
+        });
+        console.log(v.toString());
+        v.value.should.eql(1);
+        v.dataType.should.eql(DataType.Int32);
     });
 
 });
