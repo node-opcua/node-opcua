@@ -1,3 +1,4 @@
+"use strict";
 /* global Buffer */
 require("requirish")._(module);
 var should = require("should");
@@ -501,6 +502,11 @@ describe("encoding and decoding arrays", function () {
 
 describe("check isValid and random for various types", function () {
 
+    it("should test isValid on Int32",function() {
+
+        ec.isValidInt32(0).should.eql(true);
+        ec.isValidInt32(-10).should.eql(true);
+    });
     it("should test isValid on UInt16", function () {
 
         ec.isValidUInt16(0).should.eql(true);
