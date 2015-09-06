@@ -11,8 +11,8 @@
 [Temperature{bg:yellow}],
 [Temperature{bg:yellow}], ,
 [BaseVariabeType]^[BaseDataVariabeType],
-[BaseObjectType]^subTypeOf-[TemperatureSensorType],
-[BaseObjectType]^subTypeOf-[MachineType],
+[BaseObjectType]^subtypeOf-[TemperatureSensorType],
+[BaseObjectType]^subtypeOf-[MachineType],
 [BaseDataVariabeType]^-instantiate-[Temperature],
 [BaseDataVariabeType]^-instantiate-[HeaterSwitch],
 [MachineType] ++--hasComponent [TemperatureSensor],
@@ -30,8 +30,8 @@
 [BaseDataVariabeType{bg:green}],
 [BaseVariabeType{bg:green}],
 [Temperature{bg:yellow}],
-[BaseVariabeType]^subTypeOf-[BaseDataVariabeType],
-[BaseObjectType]^subTypeOf-[TemperatureSensorType],
+[BaseVariabeType]^subtypeOf-[BaseDataVariabeType],
+[BaseObjectType]^subtypeOf-[TemperatureSensorType],
 [BaseDataVariabeType]^instantiate-[Temperature],
 [TemperatureSensorType] ++--hasComponent [Temperature]. )
 

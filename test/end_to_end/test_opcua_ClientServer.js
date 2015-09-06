@@ -401,7 +401,7 @@ describe("testing basic Client-Server communication", function () {
             });
         });
 
-        it("T8-15 #read hould return BadNothingToDo when reading an empty nodeToRead array", function (done) {
+        it("T8-15 #read should return BadNothingToDo when reading an empty nodeToRead array", function (done) {
 
             var nodesToRead = [];
 
@@ -619,7 +619,7 @@ describe("testing ability for client to reconnect when server close connection",
         }
 
         function verify_that_client_is_connected(done) {
-            // to do : do something usefull here
+            // to do : do something useful here
             done();
         }
 
