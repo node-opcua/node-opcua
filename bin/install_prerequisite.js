@@ -64,10 +64,17 @@ function check_openssl(callback) {
 var ProgressBar = require('progress');
 var wget = require("wget-improved");
 
+/**
+ * detect whether windows OS is a 64 bits or 32 bits
+ * http://ss64.com/nt/syntax-64bit.html
+ * @returns {number}
+ */
 function win32or64() {
-    if (process.arch === "x64") {
+    console.log(" process.env.PROCESSOR_ARCHITEW6432  =",process.env.PROCESSOR_ARCHITEW6432 );
+    if (process.env.PROCESSOR_ARCHITECTURE === "x86" && process.env.PROCESSOR_ARCHITEW6432 ) {
         return 64;
     }
+
     // check if we are running nodejs x32 on a x64 arch
     if (process.env.CURRENT_CPU === "x64") {
         return 64;
