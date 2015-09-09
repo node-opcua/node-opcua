@@ -7,8 +7,8 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var assert = require("better-assert");
 var generateAddressSpace = require("lib/address_space/load_nodeset2").generate_address_space;
 var nodeId = require("lib/datamodel/nodeid");
-var nodesetFilename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 var path = require("path");
+var nodesetFilename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104",function() {
 
