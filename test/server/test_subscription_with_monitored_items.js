@@ -32,6 +32,28 @@ var fake_publish_engine = {
     }
 };
 
+
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+var DataType = require("lib/datamodel/variant").DataType;
+
+var dataSourceFrozen = false
+function freeze_data_source() { dataSourceFrozen = true;}
+function unfreeze_data_source() { dataSourceFrozen = false;}
+
+function install_spying_samplingFunc() {
+    unfreeze_data_source();
+    var sample_value=0;
+    var spy_samplingEventCall = sinon.spy(function(oldValue,callback){
+        if (!dataSourceFrozen) {
+            sample_value++;
+        }
+        var dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
+        callback(null,dataValue);
+    });
+    return spy_samplingEventCall;
+}
+
+
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var server_engine = require("lib/server/server_engine");
 var ServerEngine = server_engine.ServerEngine;
@@ -74,6 +96,9 @@ describe("Subscriptions and MonitoredItems", function () {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
+        });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
 
@@ -118,6 +143,10 @@ describe("Subscriptions and MonitoredItems", function () {
             publishEngine: fake_publish_engine
         });
 
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
@@ -130,26 +159,23 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
-        // at first, collectDataChangeNotification  should collect nothing
+        // at first, collectDataChangeNotification  should has 1 notification with current dataItem value
         var notifications = subscription.collectDataChangeNotification();
-        should(notifications.length).equal(0);
+        should(notifications.length).equal(1);
 
         // now simulate some data change
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+        this.clock.tick(500);
 
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
-
-        monitoredItem.queue.length.should.eql(2);
+        monitoredItem.queue.length.should.eql(5);
 
         // then, collectDataChangeNotification  should collect at least 2 values
         notifications = subscription.collectDataChangeNotification();
         notifications.length.should.eql(1);
-        notifications[0].monitoredItems.length.should.eql(2);
+        notifications[0].monitoredItems.length.should.eql(5);
         notifications[0].monitoredItems[0].clientHandle.should.eql(monitoredItem.clientHandle);
 
         subscription.on("terminated", function () {
@@ -176,6 +202,10 @@ describe("Subscriptions and MonitoredItems", function () {
             publishEngine: publishEngine,
             publishingEnabled: true
         });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
         subscription.id = 1000;
         publishEngine.add_subscription(subscription);
 
@@ -204,17 +234,14 @@ describe("Subscriptions and MonitoredItems", function () {
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
         monitoredItem.samplingInterval.should.eql(100);
 
+
+        // initial value shall  allready be in the queue
+        monitoredItem.queue.length.should.eql(1);
         // now simulate some data change
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+        this.clock.tick(3 * 100);
+        monitoredItem.queue.length.should.eql(4);
 
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
-
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
-        monitoredItem.queue.length.should.eql(3);
-
+        freeze_data_source();
 
         this.clock.tick(800);
 
@@ -223,21 +250,19 @@ describe("Subscriptions and MonitoredItems", function () {
 
         //xx dump(subscription._pending_notifications);
 
+        unfreeze_data_source();
+
         // now let the subscription send a PublishResponse to the client
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2000}}));
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2001}}));
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2002}}));
+        this.clock.tick(3 * 100);
         monitoredItem.queue.length.should.eql(3);
+
+        freeze_data_source();
         this.clock.tick(800);
 
         // monitoredItem values should have been harvested by subscription timer by now
         monitoredItem.queue.length.should.eql(0);
 
         spy_notification_event.callCount.should.be.equal(2);
-
 
         subscription.on("terminated", function () {
             done();
@@ -254,6 +279,10 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
 
         var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
@@ -287,6 +316,10 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
 
         function _create_MonitoredItemCreateRequest_with_deadbandValue(value) {
             return new MonitoredItemCreateRequest({
@@ -383,6 +416,10 @@ describe("#maxNotificationsPerPublish", function () {
         var subscription = new Subscription({
             publishEngine: publishEngine
         });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
         subscription.id = 1;
         publishEngine.add_subscription(subscription);
         subscription.maxNotificationsPerPublish.should.eql(0);
@@ -425,12 +462,16 @@ describe("#maxNotificationsPerPublish", function () {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: publishEngine,
-            maxNotificationsPerPublish: 3,
+            maxNotificationsPerPublish: 4
         });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
         subscription.id = 2;
         publishEngine.add_subscription(subscription);
 
-        subscription.maxNotificationsPerPublish.should.eql(3);
+        subscription.maxNotificationsPerPublish.should.eql(4);
 
         //xx // let spy the notifications event handler
         //xx var spy_notification_event = sinon.spy();
@@ -458,25 +499,17 @@ describe("#maxNotificationsPerPublish", function () {
 
         // now simulate some data change on monitored items
         this.clock.tick(100);
-        monitoredItem1.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
-        monitoredItem2.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2000}}));
-        monitoredItem3.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 3000}}));
-        monitoredItem4.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 4000}}));
-        this.clock.tick(100);
-        monitoredItem1.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
-        monitoredItem2.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2001}}));
-        monitoredItem3.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 3001}}));
-        monitoredItem4.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 4001}}));
-        this.clock.tick(100);
-        monitoredItem1.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
-        monitoredItem2.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 2002}}));
-        monitoredItem3.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 3002}}));
-        monitoredItem4.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 4002}}));
 
-        monitoredItem1.queue.length.should.eql(3);
-        monitoredItem2.queue.length.should.eql(3);
-        monitoredItem3.queue.length.should.eql(3);
-        monitoredItem4.queue.length.should.eql(3);
+        this.clock.tick(100);
+
+        this.clock.tick(100);
+
+        freeze_data_source();
+
+        monitoredItem1.queue.length.should.eql(4);
+        monitoredItem2.queue.length.should.eql(4);
+        monitoredItem3.queue.length.should.eql(4);
+        monitoredItem4.queue.length.should.eql(4);
 
         this.clock.tick(800);
 
@@ -502,6 +535,7 @@ describe("#maxNotificationsPerPublish", function () {
 
 
         publishEngine.remove_subscription(subscription);
+
         subscription.terminate();
         done();
     });

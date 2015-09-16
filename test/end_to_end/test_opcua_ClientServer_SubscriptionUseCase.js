@@ -1,6 +1,11 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
+
 require("requirish")._(module);
+var schema_helpers =  require("lib/misc/factories_schema_helpers");
+schema_helpers.doDebug = true;
+
+
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
@@ -17,12 +22,16 @@ var StatusCodes = opcua.StatusCodes;
 var DataType = opcua.DataType;
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 var MonitoringMode = opcua.subscription_service.MonitoringMode;
+var makeNodeId= opcua.makeNodeId;
+
+var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 var perform_operation_on_monitoredItem = require("test/helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+
 
 var _port = 2000;
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
@@ -884,9 +893,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     var server, client, temperatureVariableId, endpointUrl;
 
-    var nodeIdVariant = "ns=1234;s=SomeDouble";
+    var nodeIdVariant    = "ns=1234;s=SomeDouble";
     var nodeIdByteString = "ns=1234;s=ByteString";
-    var nodeIdString = "ns=1234;s=String";
+    var nodeIdString     = "ns=1234;s=String";
 
     var port = _port + 1;
     before(function (done) {
@@ -901,8 +910,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             var rootFolder = server.engine.getFolder("RootFolder");
 
-
-            server.engine.addVariable(rootFolder, {
+            // Variable with dataItem capable of sending data change notification events
+            // this type of variable can be continuously monitored.
+            var n1 = server.engine.addVariable(rootFolder, {
                 browseName: "SomeDouble",
                 nodeId: nodeIdVariant,
                 dataType: "Double",
@@ -911,6 +921,16 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     value: 0.0
                 }
             });
+            n1.minimumSamplingInterval.should.eql(0);
+
+            var changeDetected = 0;
+            n1.on("value_changed",function(dataValue) {
+                changeDetected+=1;
+            });
+            n1.setValueFromSource({dataType: DataType.Double, value: 3.14},StatusCodes.Good);
+            changeDetected.should.equal(1);
+
+
 
             server.engine.addVariable(rootFolder, {
                 browseName: "SomeByteString",
@@ -1391,6 +1411,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 nodeId: resolveNodeId("Server"),
                 attributeId: AttributeIds.DisplayName
             };
+
             var monitoredItem = subscription.monitor(readValue, {
                     samplingInterval: 10,
                     discardOldest: true,
@@ -1401,21 +1422,203 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             monitoredItem.on("err", function (err) {
                 should(err).eql(null);
             });
+
             var change_count = 0;
+
             monitoredItem.on("changed", function (dataValue) {
                 console.log("dataValue = ", dataValue.toString());
                 change_count += 1;
             });
 
-            setTimeout(function () {
-                change_count.should.equal(1);
-                subscription.terminate();
-            }, 300);
+            async.series([
+
+
+                function (callback) {
+                    setTimeout(function () {
+                        change_count.should.equal(1);
+                        callback();
+                    }, 1000);
+                },
+                function (callback) {
+                    // on server side : modify displayName
+                    var node = server.engine.findObject(readValue.nodeId);
+                    node.displayName = "Changed Value";
+                    callback();
+                },
+
+                function (callback) {
+                    setTimeout(function () {
+                        change_count.should.equal(2);
+                        callback();
+                    }, 1000);
+                },
+
+                function(callback) {
+                    subscription.terminate();
+                    callback();
+                }
+            ],function(err) {
+                if (err) {
+                    done(err);
+                }
+            })
+
 
         }, done);
 
 
     });
+
+    it("ZZ1 Server should revise publishingInterval to be at least server minimum publishing interval",function(done) {
+
+        var server_minimumPublishingInterval = 100;
+        var too_small_PublishingInterval = 30;
+        var server_actualPublishingInterval = 100;
+
+        var subscriptionId = -1;
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            async.series([
+
+                function (callback) {
+
+                    var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+                        requestedPublishingInterval: too_small_PublishingInterval,
+                        requestedLifetimeCount: 60,
+                        requestedMaxKeepAliveCount: 10,
+                        maxNotificationsPerPublish: 10,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
+
+                    session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+
+                        subscriptionId = response.subscriptionId;
+                        response.revisedPublishingInterval.should.eql(server_minimumPublishingInterval);
+
+                        callback(err);
+                    });
+                }
+
+            ], inner_done);
+
+        },done);
+    });
+
+    // If the Server specifies a value for the
+    // MinimumSamplingInterval Attribute it shall always return a revisedSamplingInterval that is equal or
+    // higher than the MinimumSamplingInterval if the Client subscribes to the Value Attribute.
+
+
+    function test_revised_sampling_interval(requestedPublishingInterval,requestedSamplingInterval,revisedSamplingInterval,done) {
+
+        var namespaceIndex = 411;
+        var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
+        nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
+
+        var node = server.engine.findObject(nodeId);
+
+        //xx console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".cyan,node.toString());
+
+        var itemToMonitor = new opcua.read_service.ReadValueId({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value
+        });
+        var subscriptionId = -1;
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            async.series([
+                function (callback) {
+
+
+                    var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+                        requestedPublishingInterval: requestedPublishingInterval,
+                        requestedLifetimeCount: 60,
+                        requestedMaxKeepAliveCount: 10,
+                        maxNotificationsPerPublish: 10,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
+
+                    session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+
+                        subscriptionId = response.subscriptionId;
+                        callback(err);
+                    });
+                },
+
+                function(callback) {
+
+                    var parameters = {
+                        samplingInterval: requestedSamplingInterval,
+                        discardOldest: false,
+                        queueSize: 1
+                    };
+                    var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+
+                        subscriptionId: subscriptionId,
+                        timestampsToReturn: TimestampsToReturn.Both,
+                        itemsToCreate: [{
+                            itemToMonitor: itemToMonitor,
+                            requestedParameters: parameters,
+                            monitoringMode: MonitoringMode.Reporting
+                        }]
+                    });
+
+                    console.log("createMonitoredItemsRequest = ",createMonitoredItemsRequest.toString());
+
+                    session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
+                        response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+
+                        console.log(response.results[0].toString());
+
+                        response.results[0].statusCode.should.eql(StatusCodes.Good);
+                        samplingInterval = response.results[0].revisedSamplingInterval;
+                        samplingInterval.should.eql(revisedSamplingInterval);
+
+                        callback(err);
+                    });
+
+                }
+
+            ], inner_done);
+
+        },done);
+
+    }
+
+    var fastest_possible_sampling_rate = MonitoredItem.minimumSamplingInterval;
+
+    it("ZZ2 when createMonitored Item samplingInterval is Zero server shall return the fastest possible sampling rate",function(done) {
+
+        // Spec : OpcUA 1.03 part 4 page 125 7.16 MonitoringParameters:
+        // The interval that defines the fastest rate at which the MonitoredItem(s) should be accessed and evaluated.
+        // This interval is defined in milliseconds.
+        // The value 0 indicates that the Server should use the fastest practical rate.
+        test_revised_sampling_interval(0,0,fastest_possible_sampling_rate,done);
+    });
+
+    it("ZZ3 when createMonitored Item samplingInterval is -1 (minus one) server shall return the sampling rate of the subscription 1/2",function(done) {
+
+        // Spec : OpcUA 1.03 part 4 page 125 7.16 MonitoringParameters:
+        // The value -1 indicates that the default sampling interval defined by the publishing interval of the
+        // Subscription is requested.
+        // A different sampling interval is used if the publishing interval is not a
+        // supported sampling interval.
+        // Any negative number is interpreted as -1. The sampling interval is not changed
+        // if the publishing interval is changed by a subsequent call to the ModifySubscription Service.
+        test_revised_sampling_interval(100, -1, 100, done);
+    });
+
+    it("ZZ3 when createMonitored Item samplingInterval is -1 (minus one) server shall return the sampling rate of the subscription 2/2",function(done){
+        test_revised_sampling_interval(200,-1,200,done);
+    });
+
+    it("ZZ4 when createMonitored Item samplingInterval is too small, server shall return the sampling rate of the subscription",function(done){
+        // Spec : OpcUA 1.03 part 4 page 125 7.16 MonitoringParameters:
+        test_revised_sampling_interval(100,10,fastest_possible_sampling_rate,done);
+    });
+
 
     xit("When a user adds a monitored item that the user is denied read access to, the add operation for the" +
         " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
@@ -1455,12 +1658,18 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     function sendPublishRequest(session, callback) {
         var publishRequest = new opcua.subscription_service.PublishRequest({});
         session.performMessageTransaction(publishRequest, function (err, response) {
-            callback(err, response);
+
+            try {
+                callback(err, response);
+            }
+            catch(err) {
+                callback(err);
+            }
         });
     }
 
     function createSubscription(session, callback) {
-        var publishingInterval = 30;
+        var publishingInterval = 100;
         var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: publishingInterval,
             requestedLifetimeCount: 60,
@@ -1475,7 +1684,12 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         });
     }
 
+    var samplingInterval = -1;
     function createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback) {
+
+        /* backdoor */
+        var node = server.engine.findObject(nodeId);
+        node.minimumSamplingInterval.should.eql(0); // exception-based change notification
 
 
         var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
@@ -1491,6 +1705,12 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
         session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+
+            //xx console.log("xxx",response.results[0].toString());
+
+            samplingInterval = response.results[0].revisedSamplingInterval;
+            //xx samplingInterval.should.be.greaterThan(10);
+
             callback(err);
         });
     }
@@ -1550,13 +1770,18 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 function (callback) {
                     sendPublishRequest(session, function (err, response) {
 
-                        var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                        //xx console.log("notification= ", notification.toString().red);
+                        if (!err) {
+                            response.notificationMessage.notificationData.length.should.eql(1);
 
-                        notification.value.value.value.should.eql(7);
+                            var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                            //xx console.log("notification= ", notification.toString().red);
 
-                        parameters.queueSize.should.eql(1);
-                        notification.value.statusCode.should.eql(StatusCodes.Good, "OverFlow bit shall not be set when queueSize =1");
+                            notification.value.value.value.should.eql(7);
+
+                            parameters.queueSize.should.eql(1);
+                            notification.value.statusCode.should.eql(StatusCodes.Good, "OverFlow bit shall not be set when queueSize =1");
+
+                        }
                         callback(err);
                     });
                 }
@@ -1569,7 +1794,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
     it("#CTT1 - should make sure that only the latest value is returned when queue size is one and discard oldest is false", function (done) {
 
-        var samplingInterval = 0;
+        var samplingInterval = 0; // exception based
         var parameters = {
             samplingInterval: samplingInterval,
             discardOldest: false,
@@ -1580,7 +1805,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     });
     it("#CTT2 - should make sure that only the latest value is returned when queue size is one and discard oldest is true", function (done) {
 
-        var samplingInterval = 0;
+        var samplingInterval = 0; // exception based
         var parameters = {
             samplingInterval: samplingInterval,
             discardOldest: true,

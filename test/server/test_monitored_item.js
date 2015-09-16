@@ -69,20 +69,24 @@ describe("Server Side MonitoredItem", function () {
             // added by the server:
             monitoredItemId: 50
         });
+
+        // set up spying samplingFunc
+        var spy_samplingEventCall = sinon.spy(function(oldValue,callback){
+            callback(null,new DataValue({}));
+        });
+        monitoredItem.samplingFunc = spy_samplingEventCall;
+
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
 
-        monitoredItem.oldValue = new Variant({dataType: DataType.UInt32, value: 42});
-        var spy_samplingEventCall = sinon.spy();
-        monitoredItem.on("samplingEvent", spy_samplingEventCall);
-
         this.clock.tick(2000);
+
         spy_samplingEventCall.callCount.should.be.greaterThan(6);
 
         monitoredItem.terminate();
         done();
     });
 
-    it("a MonitoredItem should record a new value and store it in a queue", function (done) {
+    it("a MonitoredItem should enqueue a new value and store it in a queue", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -94,12 +98,15 @@ describe("Server Side MonitoredItem", function () {
         });
 
         monitoredItem.queue.length.should.eql(0);
-        this.clock.tick(2000);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
-        monitoredItem.queue.length.should.eql(1);
 
+        var dataValue = new DataValue({value: {dataType: DataType.UInt32, value: 1000}});
+
+        monitoredItem._enqueue_value(dataValue);
+
+        monitoredItem.queue.length.should.eql(1);
         monitoredItem.terminate();
         done();
+
     });
 
     it("a MonitoredItem should discard old value from the queue when discardOldest is true", function (done) {
@@ -114,20 +121,19 @@ describe("Server Side MonitoredItem", function () {
         });
 
         monitoredItem.queue.length.should.eql(0);
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+
+
+        monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
+        monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
+        monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1001);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -149,20 +155,18 @@ describe("Server Side MonitoredItem", function () {
         });
 
         monitoredItem.queue.length.should.eql(0);
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+
+        monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.overflow.should.eql(false);
 
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
+        monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1001}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1001);
         monitoredItem.overflow.should.eql(false);
 
-        this.clock.tick(100);
-        monitoredItem.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
+        monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1002}}));
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue[0].value.value.should.eql(1000);
         monitoredItem.queue[1].value.value.should.eql(1002);
@@ -184,10 +188,9 @@ describe("Server Side MonitoredItem", function () {
             timestampsToReturn: TimestampsToReturn.Both
         });
 
-        this.clock.tick(100);
         var now = new Date();
 
-        monitoredItem.recordValue(new DataValue({
+        monitoredItem._enqueue_value(new DataValue({
             value: {dataType: DataType.UInt32, value: 1000},
             serverTimestamp: now,
             sourceTimestamp: now
@@ -221,7 +224,7 @@ describe("Server Side MonitoredItem", function () {
         sourceTimestamp.setMilliseconds(100);
         var picoSeconds = 456;
 
-        monitoredItem.recordValue(new DataValue({
+        monitoredItem._enqueue_value(new DataValue({
             value: {dataType: DataType.UInt32, value: 1000},
             sourceTimestamp: sourceTimestamp,
             sourcePicoseconds: picoSeconds,
@@ -232,12 +235,22 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].serverTimestamp.should.eql(now);
 
         monitoredItem.queue[0].sourceTimestamp.should.eql(sourceTimestamp);
+        monitoredItem.queue[0].sourcePicoseconds.should.eql(picoSeconds);
 
         monitoredItem.terminate();
         done();
 
     });
 
+    function install_spying_samplingFunc() {
+        var sample_value=0;
+        var spy_samplingEventCall = sinon.spy(function(oldValue,callback){
+            sample_value++;
+            var dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
+            callback(null,dataValue);
+        });
+        return spy_samplingEventCall;
+    }
 
     it("a MonitoredItem should trigger a read event according to sampling interval", function (done) {
 
@@ -249,25 +262,26 @@ describe("Server Side MonitoredItem", function () {
             // added by the server:
             monitoredItemId: 50
         });
+
+        // set up spying samplingFunc
+        monitoredItem.samplingFunc = install_spying_samplingFunc();
+
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
 
+        // wait 2 x samplingInterval
 
-        var sample_value = 1;
-        monitoredItem.on("samplingEvent", function (oldValue) {
-            sample_value++;
-            // read new value
-            // check if different enough from old Value
-            // if different enough : call recordValue
-            this.recordValue(new DataValue({value: {dataType: DataType.UInt32, value: sample_value}}));
-
-            monitoredItem.terminate();
-            done();
-        });
+        this.clock.tick(180);
+        monitoredItem.samplingFunc.callCount.should.eql(2);
 
         this.clock.tick(200);
-        sample_value.should.eql(2);
+        monitoredItem.samplingFunc.callCount.should.eql(4);
+
+        monitoredItem.terminate();
+        done();
 
     });
+
+
 
     it("a MonitoredItem should not trigger any read event after terminate has been called", function (done) {
 
@@ -280,18 +294,18 @@ describe("Server Side MonitoredItem", function () {
             monitoredItemId: 50
         });
 
+        monitoredItem.samplingFunc = install_spying_samplingFunc();
+
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
 
-        var spy_samplingEventCall = sinon.spy();
-        monitoredItem.on("samplingEvent", spy_samplingEventCall);
-
         this.clock.tick(2000);
-        spy_samplingEventCall.callCount.should.be.greaterThan(6);
-        var nbCalls = spy_samplingEventCall.callCount;
+        monitoredItem.samplingFunc.callCount.should.be.greaterThan(6);
+
+        var nbCalls = monitoredItem.samplingFunc.callCount;
 
         monitoredItem.terminate();
         this.clock.tick(2000);
-        spy_samplingEventCall.callCount.should.eql(nbCalls);
+        monitoredItem.samplingFunc.callCount.should.eql(nbCalls);
 
         done();
     });
@@ -347,11 +361,11 @@ describe("Server Side MonitoredItem", function () {
 
         result = monitoredItem.modify(null, new MonitoringParameters({
             clientHandle: 1,
-            samplingInterval: -1,
+            samplingInterval: 1,
             discardOldest: true,
             queueSize: 10
         }));
-        result.revisedSamplingInterval.should.not.eql(-1);
+        result.revisedSamplingInterval.should.not.eql(1);
         done();
     });
 

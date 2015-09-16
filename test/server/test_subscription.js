@@ -9,6 +9,7 @@ var subscription_service = require("lib/services/subscription_service");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var Subscription = require("lib/server/subscription").Subscription;
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
+var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 
 var fake_publish_engine = {};
 
@@ -27,8 +28,21 @@ function reconstruct_fake_publish_engine() {
             return true;
         }
     };
-
 }
+
+var DataValue = require("lib/datamodel/datavalue").DataValue;
+var DataType = require("lib/datamodel/variant").DataType;
+
+function install_spying_samplingFunc() {
+    var sample_value=0;
+    var spy_samplingEventCall = sinon.spy(function(oldValue,callback){
+        sample_value++;
+        var dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
+        callback(null,dataValue);
+    });
+    return spy_samplingEventCall;
+}
+
 describe("Subscriptions", function () {
 
     before(function () {
@@ -226,6 +240,11 @@ describe("Subscriptions", function () {
             subscription.on("keepalive", keepalive_event_spy);
             subscription.on("expired", expire_event_spy);
 
+            subscription.on("monitoredItem", function (monitoredItem) {
+                monitoredItem.samplingFunc = install_spying_samplingFunc();
+            });
+
+
         });
 
         afterEach(function (done) {
@@ -305,7 +324,9 @@ describe("Subscriptions", function () {
                 }
             });
             var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
 
             this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);
             keepalive_event_spy.callCount.should.eql(0);
@@ -960,43 +981,52 @@ describe("Subscription#adjustSamplingInterval", function () {
 
         subscription.terminate();
     });
+
+    var fake_node = {
+        readAttribute: function(attributeId) {
+
+            attributeId.should.eql(AttributeIds.MinimumSamplingInterval);
+            return  new DataValue({value: {dataType: DataType.UInt32, value: 0 }});
+        }
+    };
+
     it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value !== -1", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        subscription.adjustSamplingInterval(-2).should.eql(subscription.publishingInterval);
-        subscription.adjustSamplingInterval(-0.02).should.eql(subscription.publishingInterval);
+        subscription.adjustSamplingInterval(-2,fake_node).should.eql(subscription.publishingInterval);
+        subscription.adjustSamplingInterval(-0.02,fake_node).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
     });
 
     it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        subscription.adjustSamplingInterval(0).should.eql(0);
+        subscription.adjustSamplingInterval(0,fake_node).should.eql(0);
         subscription.terminate();
     });
 
     it("should adjust sampling interval to minimum when requested sampling interval === 1", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        subscription.adjustSamplingInterval(1).should.eql(MonitoredItem.minimumSamplingInterval);
+        subscription.adjustSamplingInterval(1,fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
     });
 
     it("should adjust sampling interval to maximum when requested sampling interval is too high", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        subscription.adjustSamplingInterval(1E10).should.eql(MonitoredItem.maximumSamplingInterval);
+        subscription.adjustSamplingInterval(1E10,fake_node).should.eql(MonitoredItem.maximumSamplingInterval);
         subscription.terminate();
     });
 
     it("should return an unmodified sampling interval when requested sampling is in valid range", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval) / 2.0;
-        subscription.adjustSamplingInterval(someValidSamplingInterval).should.eql(someValidSamplingInterval);
+        subscription.adjustSamplingInterval(someValidSamplingInterval,fake_node).should.eql(someValidSamplingInterval);
         subscription.terminate();
     });
 
     it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         var someVeryLowSamplingInterval = 1;
-        subscription.adjustSamplingInterval(someVeryLowSamplingInterval).should.eql(MonitoredItem.minimumSamplingInterval);
+        subscription.adjustSamplingInterval(someVeryLowSamplingInterval,fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
     });
 
