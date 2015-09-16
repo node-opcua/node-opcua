@@ -565,7 +565,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 publicKey: alice_certificate
             };
             var signVerif = crypto_utils.verifyMessageChunkSignature(chunk, signature, options2);
-            signVerif.should.eql(true);
+            signVerif.should.eql(true,"Verification has failed");
         });
 
 
@@ -594,7 +594,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 publicKey: alice_certificate
             };
             var signVerif = crypto_utils.verifyMessageChunkSignature(chunk, signature, options2);
-            signVerif.should.eql(true);
+            signVerif.should.eql(true, "Verification of message chunk signature should succeed signatureLength="+length);
 
 
         });

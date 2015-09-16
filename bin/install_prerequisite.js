@@ -67,7 +67,7 @@ var wget = require("wget-improved");
 /**
  * detect whether windows OS is a 64 bits or 32 bits
  * http://ss64.com/nt/syntax-64bit.html
- * @returns {number}
+ * @return {number}
  */
 function win32or64() {
     console.log(" process.env.PROCESSOR_ARCHITEW6432  =",process.env.PROCESSOR_ARCHITEW6432 );
