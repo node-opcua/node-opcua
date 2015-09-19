@@ -163,11 +163,12 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
             var count = 1;
             var v = server.engine.findObject(nodeId);
             v.setValueFromSource( new Variant({dataType: DataType.Double, value:count}));
+
+
             var timerId = setInterval(function() {
                 count +=1;
                 v.setValueFromSource( new Variant({dataType: DataType.Double, value:count}));
             },20); // high rate !!!
-
 
 
             var monitoredItem = subscription.monitor(
@@ -194,14 +195,14 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
                     function(callback) {
                         setTimeout(function () {
                             //xx console.log(change_count);
-                            change_count.should.eql(1);
+                            change_count.should.be.within(1,2);
                             callback();
                         },500);
                     },
                     function(callback) {
                         setTimeout(function () {
                             //xx console.log(change_count);
-                            change_count.should.eql(2);
+                            change_count.should.be.within(2,4);
                             callback();
                         } , 500);
                     },
@@ -209,7 +210,10 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
                     function(callback) {
                         setTimeout(function () {
-                            change_count.should.be.within(4,5);
+                            change_count.should.be.within(4,6);
+
+                            count.should.be.greaterThan(50);
+
                             clearInterval(timerId);
                             subscription.terminate();
                             callback();
