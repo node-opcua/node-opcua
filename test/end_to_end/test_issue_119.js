@@ -27,7 +27,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
-describe("Testing bug #119 - Verify that monitored item only reports expected value change notifications", function () {
+describe("Testing bug #119 - Verify that monitored item only reports expected value change notifications :", function () {
 
     this.timeout(50000);
 
@@ -209,7 +209,7 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
                     function(callback) {
                         setTimeout(function () {
-                            change_count.should.eql(4);
+                            change_count.should.be.within(4,5);
                             clearInterval(timerId);
                             subscription.terminate();
                             callback();
