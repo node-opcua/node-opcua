@@ -33,18 +33,24 @@ var argv = require('yargs')
 
     .string("userName")
     .describe("userName", "specify the user name of a UserNameIdentityToken ")
+
     .string("password")
     .describe("password", "specify the password of a UserNameIdentityToken")
+
+    .string("node")
+    .describe("node","the nodeId of the value to monitor")
 
     .alias('e', 'endpoint')
     .alias('s', 'securityMode')
     .alias('P', 'securityPolicy')
     .alias("u", 'userName')
     .alias("p", 'password')
+    .alias("n", 'node')
 
-    .example("simple_client  --endpoint opc.tcp://localhost:49230")
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
+    .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
+
 
     .argv;
 
@@ -63,7 +69,7 @@ var client = null;
 
 var endpointUrl = argv.endpoint;
 
-var monitored_node = argv.node || "ns=2;s=PumpSpeed"; //"ns=1;s=Temperature";
+var monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 
 console.log(" monitoring node id ", monitored_node);
 
@@ -154,7 +160,7 @@ async.series([
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 2000
+            defaultSecureTokenLifetime: 10000
         };
         console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
@@ -192,8 +198,7 @@ async.series([
 
         var server_NamespaceArray_Id = opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
 
-        the_session.readVariableValue(server_NamespaceArray_Id, function (err, results, diagnosticsInfo) {
-            var dataValue = results[0];
+        the_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue, diagnosticsInfo) {
 
             console.log(" --- NAMESPACE ARRAY ---");
             if (!err) {
@@ -313,10 +318,10 @@ async.series([
             console.log("monitoredItem initialized");
         });
         monitoredItem.on("changed", function (dataValue) {
-            console.log(monitored_node, " value has changed to " + dataValue.value.value);
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.value);
         });
         monitoredItem.on("err", function (err_message) {
-            console.log(monitored_node, " ERROR".red, err_message);
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
         });
 
         // ---------------------------------------------------------------
@@ -354,7 +359,7 @@ async.series([
         });
 
         event_monitoringItem.on("changed", function (value) {
-            console.log(event_monitoringItem, " value has changed to " + value.toString());
+            console.log(event_monitoringItem.itemToMonitor.nodeId.toString(), " value has changed to " + value.toString());
         });
         event_monitoringItem.on("err", function (err_message) {
             console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);

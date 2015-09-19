@@ -302,6 +302,7 @@ function t(d) {
 }
 
 server.on("response", function (response) {
+
     console.log(t(response.responseHeader.timeStamp), response.responseHeader.requestHandle,
         response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {

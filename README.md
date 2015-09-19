@@ -17,7 +17,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 [![Gitter chat](https://badges.gitter.im/node-opcua/node-opcua.png)](https://gitter.im/node-opcua/node-opcua)
 
-Node-opcua is an full OPC-UA stack written in NodeJS.
+[Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
 
 Why NodeJS ?
 
@@ -33,6 +33,23 @@ installing node-opcua
     $ npm install node-opcua
 
 
+running the demo server
+-----------------------
+
+    $ git clone https://github.com/node-opcua/node-opcua.git
+    $ cd node-opcua
+    $ npm init
+    $ node bin/simple_server
+    
+running the demo client
+-----------------------
+
+    $ git clone https://github.com/node-opcua/node-opcua.git
+    $ cd node-opcua
+    $ npm init
+    $ node bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
+        
+        
 Tutorials
 ---------
 

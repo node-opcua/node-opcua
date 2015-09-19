@@ -341,7 +341,7 @@ describe("testing basic Client-Server communication", function () {
 
         it("T8-3 should read a Variable", function (done) {
 
-            g_session.readVariableValue("RootFolder", function (err, dataValues, diagnosticInfos) {
+            g_session.readVariableValue(["RootFolder"], function (err, dataValues, diagnosticInfos) {
                 if (!err) {
                     dataValues.length.should.equal(1);
                     dataValues[0]._schema.name.should.equal("DataValue");
@@ -394,7 +394,7 @@ describe("testing basic Client-Server communication", function () {
 
         it("T8-14 #readVariableValue should return a appropriate status code if nodeid to read doesn't exists", function (done) {
 
-            g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist", function (err, dataValues, diagnosticInfos) {
+            g_session.readVariableValue(["ns=1;s=this_node_id_does_not_exist"], function (err, dataValues, diagnosticInfos) {
                 should(err).eql(null);
                 dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
                 done();
@@ -439,7 +439,7 @@ describe("testing basic Client-Server communication", function () {
 
         it("T8-17 #readVariableValue - should read the TemperatureTarget value", function (done) {
 
-            g_session.readVariableValue(temperatureVariableId.nodeId, function (err, dataValues, diagnosticInfos) {
+            g_session.readVariableValue([temperatureVariableId.nodeId], function (err, dataValues, diagnosticInfos) {
 
                 if (!err) {
                     dataValues.length.should.equal(1);
@@ -508,11 +508,10 @@ describe("testing basic Client-Server communication", function () {
                 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
                 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
                 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
-                g_session.readVariableValue(server_NamespaceArray_Id, function (err, results, diagnosticsInfo) {
+                g_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue, diagnosticsInfo) {
                     if (err) {
                         return done(err);
                     }
-                    var dataValue = results[0];
                     dataValue.should.be.instanceOf(DataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.String);
@@ -529,11 +528,10 @@ describe("testing basic Client-Server communication", function () {
             it("T9-3 - ServerStatus object shall be accessible as a ExtensionObject", function (done) {
 
                 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
-                g_session.readVariableValue(server_NamespaceArray_Id, function (err, results, diagnosticsInfo) {
+                g_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue, diagnosticsInfo) {
                     if (err) {
                         return done(err);
                     }
-                    var dataValue = results[0];
                     dataValue.should.be.instanceOf(DataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);

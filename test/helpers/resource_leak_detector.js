@@ -1,5 +1,6 @@
 require("requirish")._(module);
 var assert = require("better-assert");
+var _ = require("underscore");
 
 var opcua = require("index.js");
 
@@ -56,7 +57,8 @@ exports.resourceLeakDetector = {
         if (trace) {
             console.log(" stop resourceLeakDetector");
         }
-        assert(this.setInterval_old !== null);
+        assert(_.isFunction(this.setInterval_old)," did you forget to call resourceLeakDetector.start() ?");
+
         GLOBAL.setInterval = this.setInterval_old;
         this.setInterval_old = null;
         GLOBAL.clearInterval = this.clearInterval_old;

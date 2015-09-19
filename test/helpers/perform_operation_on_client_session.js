@@ -57,7 +57,12 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
 
         // call the user provided func
         function (callback) {
-            func(the_session, callback);
+            try {
+                func(the_session, callback);
+            }
+            catch(err) {
+                callback(err);
+            }
         },
 
         // closing session

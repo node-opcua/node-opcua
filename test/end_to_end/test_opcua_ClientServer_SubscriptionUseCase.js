@@ -459,7 +459,7 @@ describe("testing server and subscription", function () {
                         });
                     },
                     function (callback) {
-                        session.readVariableValue("RootFolder", function (err, dataValues, diagnosticInfos) {
+                        session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
                             callback(err);
                         });
                     },
@@ -479,7 +479,7 @@ describe("testing server and subscription", function () {
                         callback();
                     },
                     function (callback) {
-                        session.readVariableValue("RootFolder", function (err, dataValues, diagnosticInfos) {
+                        session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
                             callback(err);
                         });
                     },
