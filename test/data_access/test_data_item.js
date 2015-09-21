@@ -164,9 +164,8 @@ describe("DataAccess", function () {
         analogItem.engineeringUnits.browseName.toString().should.eql("EngineeringUnits");
 
 
-        // accessing data with shortcuts
-        analogItem.$instrumentRange.low.should.eql(-100);
-        analogItem.$instrumentRange.high.should.eql(200);
+        analogItem.instrumentRange.readValue().value.value.low.should.eql(-100);
+        analogItem.instrumentRange.readValue().value.value.high.should.eql(200);
 
         // browsing variable
         var browseDescription = {

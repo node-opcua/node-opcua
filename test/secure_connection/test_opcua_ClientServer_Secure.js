@@ -352,7 +352,7 @@ if (!crypto_utils.isFullySupported()) {
     describe("testing Secure Client-Server communication", function () {
 
 
-        this.timeout(10000);
+        this.timeout(20000);
 
         var serverHandle, client;
         before(function (done) {

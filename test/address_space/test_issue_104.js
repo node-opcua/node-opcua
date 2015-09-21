@@ -9,6 +9,7 @@ var generateAddressSpace = require("lib/address_space/load_nodeset2").generate_a
 var nodeId = require("lib/datamodel/nodeid");
 var path = require("path");
 var nodesetFilename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
+var DataType = require("lib/datamodel/variant").DataType;
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104",function() {
 
@@ -28,7 +29,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
             {
                 browseName: "var1",
                 dataType: "Double",
-                value: {}
+                value: { dataType: DataType.Double , value: 0 }
             });
 
         assert(var1.nodeId.identifierType === nodeId.NodeIdType.NUMERIC);
@@ -39,7 +40,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
                 nodeId: new nodeId.NodeId(var1.nodeId.identifierType, var1.nodeId.value + 1, var1.nodeId.namespace),
                 browseName: "var2",
                 dataType: "Double",
-                value: {}
+                value: {dataType: DataType.Double , value: 0 }
             });
 
         should(var2.nodeId.identifierType).eql(nodeId.NodeIdType.NUMERIC);
@@ -51,7 +52,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
                 nodeId: new nodeId.NodeId(var1.nodeId.identifierType, var1.nodeId.value + 2, var1.nodeId.namespace),
                 browseName: "var3",
                 dataType: "Double",
-                value: {}
+                value: {dataType: DataType.Double , value: 0 }
             });
 
         should(var3.nodeId.identifierType).eql(nodeId.NodeIdType.NUMERIC);
@@ -64,7 +65,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
             {
                 browseName: "var4",
                 dataType: "Double",
-                value: {}
+                value: {dataType: DataType.Double , value: 0 }
             });
 
         should(var4.nodeId.identifierType).eql(nodeId.NodeIdType.NUMERIC);
