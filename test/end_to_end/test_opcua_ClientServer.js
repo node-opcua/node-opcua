@@ -1,3 +1,4 @@
+"use strict";
 require("requirish")._(module);
 
 var should = require("should");
@@ -417,6 +418,51 @@ describe("testing basic Client-Server communication", function () {
             });
         });
 
+        it("T8-15b #read :should return BadNothingToDo if nodesToRead is empty", function (done) {
+
+            // CTT : Attribute ERR-011.js
+            var readRequest = new opcua.read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
+                nodesToRead: []
+            });
+
+            g_session.performMessageTransaction(readRequest,function(err,response){
+                if(err) {
+                    err.message.should.match(/BadNothingToDo/);
+                    done();
+                } else {
+                    done(new Error("expecting BadNothingToDo"));
+                }
+
+            });
+
+        });
+
+        it("T8-15c #read :should return BadNothingToDo if nodesToRead is null", function (done) {
+
+            // CTT : Attribute ERR-011.js
+            var readRequest = new opcua.read_service.ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
+                nodesToRead: null
+            });
+
+            // make sure nodesToRead is really null !
+            readRequest.nodesToRead = null;
+
+            g_session.performMessageTransaction(readRequest,function(err,response){
+                if(err) {
+                    err.message.should.match(/BadNothingToDo/);
+                    done();
+                } else {
+                    done(new Error("expecting BadNothingToDo"));
+                }
+
+            });
+
+        });
+
         it("T8-16 #read should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function (done) {
 
             var nodesToRead = [
@@ -543,7 +589,8 @@ describe("testing basic Client-Server communication", function () {
         });
     });
 
-});
+})
+;
 
 describe("testing ability for client to reconnect when server close connection", function () {
 
@@ -585,7 +632,9 @@ describe("testing ability for client to reconnect when server close connection",
 
             client_has_received_close_event = 0;
             client.on("close", function (err) {
-                if(err) { console.log("err=",err.message); }
+                if (err) {
+                    console.log("err=", err.message);
+                }
                 //xx console.log(" client has received close event");
                 client_has_received_close_event += 1;
             });
