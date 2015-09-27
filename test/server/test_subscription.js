@@ -813,6 +813,13 @@ describe("Subscriptions", function () {
 
 describe("Subscription#setPublishingMode", function () {
 
+    before(function () {
+        resourceLeakDetector.start();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
+
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
@@ -960,8 +967,14 @@ describe("Subscription#setPublishingMode", function () {
 
 });
 
-
 describe("Subscription#adjustSamplingInterval", function () {
+
+    before(function () {
+        resourceLeakDetector.start();
+    });
+    after(function () {
+        resourceLeakDetector.stop();
+    });
 
     it("should have a minimum sampling interval, with a strictly positive value ( which is the fastest possible rate)", function () {
         MonitoredItem.minimumSamplingInterval.should.be.greaterThan(4);

@@ -660,6 +660,27 @@ describe("Variant with Advanced Array", function () {
 
     });
 
+    it("should be possible to read a sub matrix of a array of byte strings",function() {
+
+        var v = new Variant({
+            dataType: DataType.ByteString,
+            arrayType: VariantArrayType.Array,
+            value: [ "ABCDEFGHIJKL" , "BCDEFGHIJKLA" , "CDEFGHIJKLAB" , "DEFGHIJKLABC" , "EFGHIJKLABCD" , "FGHIJKLABCDE" ]
+
+        });
+        var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
+        var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+        var nr = new NumericRange("3:4,1:3");
+
+        nr.isValid().should.eql(true);
+
+        var results = nr.extract_values(v.value);
+        results.statusCode.should.eql(StatusCodes.Good);
+
+        results.array.should.eql([ "EFG","FGH"]);
+
+    });
+
 
 });
 

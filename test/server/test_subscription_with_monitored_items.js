@@ -16,6 +16,7 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 var DataType = require("lib/datamodel/variant").DataType;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
+var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
@@ -37,18 +38,22 @@ var DataValue = require("lib/datamodel/datavalue").DataValue;
 var DataType = require("lib/datamodel/variant").DataType;
 
 var dataSourceFrozen = false
-function freeze_data_source() { dataSourceFrozen = true;}
-function unfreeze_data_source() { dataSourceFrozen = false;}
+function freeze_data_source() {
+    dataSourceFrozen = true;
+}
+function unfreeze_data_source() {
+    dataSourceFrozen = false;
+}
 
 function install_spying_samplingFunc() {
     unfreeze_data_source();
-    var sample_value=0;
-    var spy_samplingEventCall = sinon.spy(function(oldValue,callback){
+    var sample_value = 0;
+    var spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
         var dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
-        callback(null,dataValue);
+        callback(null, dataValue);
     });
     return spy_samplingEventCall;
 }
@@ -57,23 +62,59 @@ function install_spying_samplingFunc() {
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var server_engine = require("lib/server/server_engine");
 var ServerEngine = server_engine.ServerEngine;
+var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
+var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 describe("Subscriptions and MonitoredItems", function () {
 
+    this.timeout(30000);
+
     var address_space;
     var someVariableNode;
+
     var engine;
     before(function (done) {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
             address_space = engine.address_space;
+
+            // build_address_space_for_conformance_testing(engine, {mass_variables: false});
+
             var node = address_space.addVariable("RootFolder", {
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: {dataType: DataType.UInt32, value: 0}
             });
+
             someVariableNode = node.nodeId;
+
+
+            function addVar(typeName, value) {
+                address_space.addVariable("RootFolder", {
+                    nodeId: "ns=100;s=Static_" + typeName,
+                    browseName: "Static_" + typeName,
+                    dataType: typeName,
+                    value: {dataType: DataType[typeName], value: value}
+                });
+
+            }
+
+            addVar("LocalizedText", {text: "Hello"});
+            addVar("ByteString", new Buffer("AZERTY"));
+            addVar("SByte", 0);
+            addVar("Int16", 0);
+            addVar("Int32", 0);
+            addVar("Int64", 0);
+            addVar("Byte", 0);
+            addVar("UInt16", 0);
+            addVar("UInt32", 0);
+            addVar("UInt64", 0);
+//xx            addVar("Duration"     , 0);
+            addVar("Float", 0);
+            addVar("Double", 0);
+
+
             done();
         });
     });
@@ -133,7 +174,6 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.terminate();
 
     });
-
 
     it("a subscription should collect monitored item notification with collectDataChangeNotification", function (done) {
 
@@ -271,7 +311,6 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-
     it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", function (done) {
 
         var subscription = new Subscription({
@@ -308,7 +347,6 @@ describe("Subscriptions and MonitoredItems", function () {
         done();
     });
 
-
     it("should return an error when filter is DataChangeFilter deadband is out of bound", function (done) {
 
         var subscription = new Subscription({
@@ -323,7 +361,10 @@ describe("Subscriptions and MonitoredItems", function () {
 
         function _create_MonitoredItemCreateRequest_with_deadbandValue(value) {
             return new MonitoredItemCreateRequest({
-                itemToMonitor: {nodeId: someVariableNode},
+                itemToMonitor: {
+                    nodeId: someVariableNode,
+                    attributeId: AttributeIds.Value
+                },
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
@@ -354,7 +395,262 @@ describe("Subscriptions and MonitoredItems", function () {
         done();
     });
 
+    it("should return BadFilterNotAllowed if a DataChangeFilter is specified on a non-Value Attribute monitored item", function () {
+
+        var subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
+        });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
+        function test_with_attributeId(attributeId, statusCode) {
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: someVariableNode,
+                    attributeId: attributeId
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 100,
+                    filter: new subscription_service.DataChangeFilter({
+                        trigger: subscription_service.DataChangeTrigger.Status,
+                        deadbandType: subscription_service.DeadbandType.Percent,
+                        deadbandValue: 10
+                    })
+                }
+            });
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            return monitoredItemCreateResult.statusCode;
+        }
+
+
+        test_with_attributeId(AttributeIds.BrowseName).should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_attributeId(AttributeIds.AccessLevel).should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_attributeId(AttributeIds.ArrayDimensions).should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_attributeId(AttributeIds.DataType).should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_attributeId(AttributeIds.DisplayName).should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_attributeId(AttributeIds.EventNotifier).should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_attributeId(AttributeIds.Historizing).should.eql(StatusCodes.BadFilterNotAllowed);
+
+        test_with_attributeId(AttributeIds.Value).should.eql(StatusCodes.Good);
+        subscription.terminate();
+
+    });
+
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on non-Numeric value monitored item", function () {
+
+
+        var subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
+        });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
+        function test_with_nodeId(nodeId, statusCode) {
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 100,
+                    filter: new subscription_service.DataChangeFilter({
+                        trigger: subscription_service.DataChangeTrigger.Status,
+                        deadbandType: subscription_service.DeadbandType.Percent,
+                        deadbandValue: 10
+                    })
+                }
+            });
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            return monitoredItemCreateResult.statusCode;
+        }
+
+
+        test_with_nodeId("ns=100;s=Static_ByteString").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=100;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
+
+        subscription.terminate();
+
+    });
+
+    describe("DeadBandFilter !!!", function () {
+
+        var subscription = null;
+
+        var test = this;
+
+        before(function () {
+
+            test = this;
+
+            subscription = new Subscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine
+            });
+            subscription.id = 1000;
+            //xx publishEngine.add_subscription(subscription);
+
+            // let spy the notifications event handler
+            var spy_notification_event = sinon.spy();
+            subscription.on("notification", spy_notification_event);
+
+            subscription.on("monitoredItem", function (monitoredItem) {
+                monitoredItem.samplingFunc = function () {
+                };//install_spying_samplingFunc();
+
+                monitoredItem.node = address_space.findObject(monitoredItem.itemToMonitor.nodeId);
+            });
+            this.clock = sinon.useFakeTimers();
+
+        });
+        after(function (done) {
+            this.clock.restore();
+            subscription.terminate();
+            subscription = null;
+            done();
+        });
+
+        var integerDeadband = 2;
+        var integerWritesFail = [8, 7, 10];
+        var integerWritesPass = [3, 6, 13];
+
+        var floatDeadband = 2.2;
+        var floatWritesFail = [2.3, 4.4, 1.6];
+        var floatWritesPass = [6.4, 4.1, 8.4];
+
+
+        /*
+         Specify a filter using a deadband absolute.
+         - Set the deadband value to 2.
+         - Write numerous values to the item that will cause event notifications to be sent, and for some items to be filtered.
+         - call Publish() to verify the deadband is correctly filtering values.
+         */
+        function test_deadband(dataType, deadband, writesPass, writesFail) {
+
+            var nodeId = "ns=100;s=Static_" + dataType;
+            var node = engine.address_space.findObject(nodeId);
+            should(!!node).not.eql(false);
+
+            function simulate_nodevalue_change(currentValue) {
+                var v = new Variant({dataType: DataType[dataType], value: currentValue});
+                node.setValueFromSource(v);
+            }
+
+            var notifs;
+
+            var currentValue = writesFail[0];
+            simulate_nodevalue_change(currentValue);
+
+            // create monitor item
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 0,
+                    filter: new subscription_service.DataChangeFilter({
+                        trigger: subscription_service.DataChangeTrigger.StatusValue,
+                        deadbandType: subscription_service.DeadbandType.Absolute,
+                        deadbandValue: deadband
+                    })
+                }
+            });
+
+
+            var monitoredItemCreateResult = subscription.createMonitoredItem(
+                address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            monitoredItem.node = node;
+            monitoredItem.queueSize.should.eql(10);
+            monitoredItem.queue.length.should.eql(1);
+
+
+
+            function simulate_publish_request_and_check_one(expectedValue) {
+                test.clock.tick(100);
+
+                // process publish
+                notifs = monitoredItem.extractMonitoredItemNotifications();
+                monitoredItem.queue.length.should.eql(0);
+
+                if (expectedValue === undefined) {
+
+                    notifs.length.should.eql(0);
+
+                } else {
+                    var encode_decode = require("lib/misc/encode_decode");
+
+                    var expectedValue = encode_decode["coerce"+ dataType](expectedValue);
+                    notifs.length.should.eql(1);
+                    // verify that value matches expected value
+                    notifs[0].value.value.value.should.eql(expectedValue);
+
+                }
+            }
+
+            simulate_publish_request_and_check_one(writesFail[0]);
+
+            // write second value to node
+            currentValue = writesFail[1];
+            simulate_nodevalue_change(currentValue);
+            simulate_publish_request_and_check_one(undefined);
+
+
+            // write third value to node
+            currentValue = writesFail[2];
+            simulate_nodevalue_change(currentValue);
+            simulate_publish_request_and_check_one(undefined);
+
+            // ---------------------------------------------------------------------------------------------------------
+            currentValue = writesPass[0];
+            simulate_nodevalue_change(currentValue);
+            simulate_publish_request_and_check_one(currentValue);
+
+            currentValue = writesPass[1];
+            simulate_nodevalue_change(currentValue);
+            simulate_publish_request_and_check_one(currentValue);
+
+            currentValue = writesPass[2];
+            simulate_nodevalue_change(currentValue);
+            simulate_publish_request_and_check_one(currentValue);
+
+        }
+
+
+        ["SByte", "Int16" ,"Int32" , "Int64", "Byte", "UInt16","UInt32","UInt64"].forEach(function (dataType) {
+
+            it("testing with " + dataType, function () {
+                test_deadband(dataType, integerDeadband, integerWritesPass, integerWritesFail);
+            });
+
+        });
+        ["Float","Double"].forEach(function (dataType) {
+
+            it("testing with " + dataType, function () {
+                test_deadband(dataType, floatDeadband, floatWritesPass, floatWritesFail);
+            });
+
+        });
+
+    });
+
 });
+
+
 
 var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
 

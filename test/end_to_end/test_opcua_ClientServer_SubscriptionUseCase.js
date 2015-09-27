@@ -33,6 +33,19 @@ var perform_operation_on_monitoredItem = require("test/helpers/perform_operation
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
+function trace_console_log() {
+    var log1 = GLOBAL.console.log;
+    GLOBAL.console.log = function() {
+        var t = (new Error()).stack.split("\n")[2];
+        if (t.match(/opcua/)) {
+            log1.call(console, t.cyan);
+        }
+        log1.apply(console,arguments);
+    };
+}
+//xx trace_console_log();
+
+
 var _port = 2000;
 describe("testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
 
@@ -1250,7 +1263,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             var modifyMonitoredItemsRequest = {
                 subscriptionId: 999,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                itemsToModify: []
             };
 
             session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err) {
@@ -1259,6 +1273,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             });
         }, done);
     });
+
 
     it("#ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
 
@@ -1327,9 +1342,9 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         }, done);
     });
 
-    it("#ModifyMonitoredItemsRequest : a client should be able to modify a monitored item", function (done) {
 
-        var itemToMonitor = "ns=0;i=2258";
+    function test_modify_monitored_item(itemToMonitor,parameters,inner_func,done) {
+
 
         perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
 
@@ -1354,29 +1369,159 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                         callback();
                     }, 400);
                 },
+
+
                 function (callback) {
-                    monitoredItem.modify({
-                        samplingInterval: 20,
-                        discardOldest: false,
-                        queueSize: 1
-                    }, function (err, result) {
-                        callback(err);
-                        if (!err) {
-                            result.revisedSamplingInterval.should.be.greaterThan(19);
+                    monitoredItem.modify(parameters,
+
+                        function (err, result) {
+                            inner_func(err, result, callback);
                         }
-                    });
+                    );
                 },
+
                 function (callback) {
                     // wait 400 ms and verify that the subscription is not sending notification.
                     setTimeout(function () {
                         change_count.should.be.greaterThan(1);
                         callback();
-                    }, 3000); // wait at least 3 second as date resolution is 1 sec.
+                    }, 2000); // wait at least 2 seconds as date resolution is 1 sec.
                 }
             ], inner_done);
 
         }, done); //
+    }
+    it("#ModifyMonitoredItemRequest : server should handle samplingInterval === -1", function (done) {
+        var itemToMonitor = "ns=0;i=2258";
+
+        var parameters = {
+            samplingInterval: -1, // SAMPLING INTERVAL = -1
+            discardOldest: false,
+            queueSize: 1
+         };
+        test_modify_monitored_item(itemToMonitor,parameters,function(err,results,callback) {
+
+            callback(err);
+        },done);
+
     });
+    it("ZZ1 #ModifyMonitoredItemRequest : server should handle samplingInterval === 0", function (done) {
+        var itemToMonitor = "ns=0;i=2258";
+
+        var parameters = {
+            samplingInterval: 0, // SAMPLING INTERVAL = 0 => use fastest allowed by server
+            discardOldest: false,
+            queueSize: 1
+        };
+        test_modify_monitored_item(itemToMonitor,parameters,function(err,results,callback) {
+
+            callback(err);
+        },done);
+
+    });
+    it("ZZ2 #ModifyMonitoredItemsRequest : a client should be able to modify a monitored item", function (done) {
+
+        var itemToMonitor = "ns=0;i=2258";
+        var parameters = {
+            samplingInterval: 20,
+            discardOldest: false,
+            queueSize: 1
+        };
+        test_modify_monitored_item(itemToMonitor,parameters,function(err,results,callback) {
+
+            if (!err) {
+                results.revisedSamplingInterval.should.be.greaterThan(19);
+            }
+            callback(err);
+        },done);
+
+    });
+    function test_modify_monitored_item_on_noValue_attribute(parameters,done) {
+        var nodeId = "ns=0;i=2258";
+        var itemToMonitor ={
+            nodeId: resolveNodeId(nodeId),
+            attributeId: AttributeIds.BrowseName
+        };
+
+
+        perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
+
+            var change_count = 0;
+            monitoredItem.on("changed", function (dataValue) {
+                console.log("xx changed",dataValue.value.toString());
+                dataValue.value.toString().should.eql("Variant(Scalar<QualifiedName>, value: CurrentTime)");
+                change_count += 1;
+            });
+            async.series([
+                function(callback) {
+                    setTimeout(function() {
+                        change_count.should.eql(1);
+                        callback();
+                    },1000);
+                },
+                function(callback) {
+                    monitoredItem.modify(parameters,     function (err, result) {
+                        callback(err);
+                    });
+                },
+                function(callback) {
+                    // modifying monitoredItem parameters shall not cause the monitored Item to resend a data notification
+                    setTimeout(function() {
+                        change_count.should.eql(1);
+                        callback();
+                    },1000);
+                },
+
+                // setting mode to disable
+                function(callback) {
+                    monitoredItem.setMonitoringMode(MonitoringMode.Disabled,callback);
+                },
+                // setting mode to disable
+                function(callback) {
+                    monitoredItem.setMonitoringMode(MonitoringMode.Reporting,callback);
+
+                },
+                function(callback) {
+                    // Changing mode from Disabled to Reporting shall cause the monitored Item to resend a data notification
+                    setTimeout(function() {
+                        change_count.should.eql(2);
+                        callback();
+                    },1000);
+                },
+
+            ],inner_done)
+        },done);
+
+    }
+
+    it("ZZA #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
+        var parameters = {
+            samplingInterval: 0, // SAMPLING INTERVAL = 0 => use fastest allowed by server or event base
+            discardOldest: false,
+            queueSize: 1
+        };
+        test_modify_monitored_item_on_noValue_attribute(parameters,done);
+    });
+
+    it("ZZA #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
+        var parameters = {
+            samplingInterval: 10,
+            discardOldest: false,
+            queueSize: 1
+        };
+        test_modify_monitored_item_on_noValue_attribute(parameters,done);
+    });
+
+    it("ZZA #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
+        var parameters = {
+            samplingInterval: -1,
+            discardOldest: false,
+            queueSize: 1
+        };
+        test_modify_monitored_item_on_noValue_attribute(parameters,done);
+    });
+
+
 
     /**
      * see CTT createMonitoredItems591064
@@ -1565,12 +1710,12 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                         }]
                     });
 
-                    console.log("createMonitoredItemsRequest = ",createMonitoredItemsRequest.toString());
+                    //xx console.log("createMonitoredItemsRequest = ",createMonitoredItemsRequest.toString());
 
                     session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
                         response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
-                        console.log(response.results[0].toString());
+                        //xx console.log(response.results[0].toString());
 
                         response.results[0].statusCode.should.eql(StatusCodes.Good);
                         samplingInterval = response.results[0].revisedSamplingInterval;
@@ -1814,7 +1959,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         _test_with_queue_size_of_one(parameters, done);
     });
 
-    function _test_with_queue_size_of_two(parameters, expected_values, done) {
+    function _test_with_queue_size_of_two(parameters, expected_values, expected_statusCodes, done) {
 
         var nodeId = nodeIdVariant;
         var itemToMonitor = new opcua.read_service.ReadValueId({
@@ -1864,22 +2009,29 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 },
 
                 function (callback) {
+
                     sendPublishRequest(session, function (err, response) {
 
-                        response.notificationMessage.notificationData.length.should.eql(1);
+                        if (!err) {
+                            should(!!response.notificationMessage.notificationData).eql(true);
+                            response.notificationMessage.notificationData.length.should.eql(1);
 
-                        // we should have 2 elements in queue
-                        response.notificationMessage.notificationData[0].monitoredItems.length.should.eql(2);
+                            // we should have 2 elements in queue
+                            response.notificationMessage.notificationData[0].monitoredItems.length.should.eql(2);
 
-                        var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                        //xx console.log(notification.value.value.value);
-                        notification.value.value.value.should.eql(expected_values[0]);
+                            var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                            //xx console.log(notification.value.value.value);
+                            notification.value.value.value.should.eql(expected_values[0]);
+                            notification.value.statusCode.should.eql(expected_statusCodes[0]);
 
-                        notification = response.notificationMessage.notificationData[0].monitoredItems[1];
-                        //xx console.log(notification.value.value.value);
-                        notification.value.value.value.should.eql(expected_values[1]);
-                        parameters.queueSize.should.eql(2);
-                        notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit, "OverFlow bit shall not be set when queueSize =2");
+                            notification = response.notificationMessage.notificationData[0].monitoredItems[1];
+                            //xx console.log(notification.value.value.value);
+                            notification.value.value.value.should.eql(expected_values[1]);
+                            notification.value.statusCode.should.eql(expected_statusCodes[1]);
+                            //xx parameters.queueSize.should.eql(2);
+                            //xx notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit, "OverFlow bit shall not be set when queueSize =2");
+
+                        }
                         callback(err);
                     });
                 },
@@ -1898,7 +2050,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             discardOldest: true,
             queueSize: 2
         };
-        _test_with_queue_size_of_two(parameters, [6, 7], done);
+
+        _test_with_queue_size_of_two(parameters, [6, 7], [StatusCodes.GoodWithOverflowBit,StatusCodes.Good] , done);
 
     });
 
@@ -1910,12 +2063,67 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             discardOldest: false,
             queueSize: 2
         };
-        _test_with_queue_size_of_two(parameters, [1, 7], done);
+        _test_with_queue_size_of_two(parameters, [1, 7], [StatusCodes.Good,StatusCodes.GoodWithOverflowBit], done);
+    });
+
+
+
+
+    it("#CTT5 Monitoring a non-Variable node with delayed PublishRequest:",function(done) {
+        // CTT Monitored Item Service / Monitor Basic / 001.js
+        // Description:
+        //     Create a monitored item with the nodeId set to that of a non-Variable node and
+        //     the attributeId set to a non-Value attribute. call Publish().
+        //  Expected Results:
+        //      All service and operation level results are Good. Publish response contains a DataChangeNotification.
+
+
+        var parameters = {
+            samplingInterval: 10,
+            discardOldest: true,
+            queueSize: 1
+        };
+
+        var nodeId = nodeIdVariant;
+
+        var itemToMonitor = new opcua.read_service.ReadValueId({
+            nodeId: nodeId,
+            attributeId: AttributeIds.Description
+        });
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                async.series([
+                    function (callback) {
+                        createSubscription(session, callback);
+                    },
+
+                    function (callback) {
+                        createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
+                    },
+
+                    function (callback) {
+                        sendPublishRequest(session, function (err, response) {
+                            if (!err) {
+                                response.notificationMessage.notificationData.length.should.eql(1);
+
+                                console.log("xxxx ",response.notificationMessage.notificationData.toString());
+
+                                //Xx var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
+                            }
+                            callback(err);
+                        });
+                    },
+
+
+                ], inner_done);
+
+        }, done);
+
     });
 
 
     describe("#CTT - Monitored Value Change", function () {
-
 
         it("should monitor a substring ", function (done) {
 

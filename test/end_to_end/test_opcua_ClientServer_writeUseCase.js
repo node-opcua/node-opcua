@@ -233,4 +233,18 @@ describe("end-to-end testing of a write operation between a client and a server 
         }, done);
     });
 
+
+    it("should return BadNothingToDo if writeRequest is null", function (done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+            var request = new opcua.write_service.WriteRequest({nodesToWrite: []});
+            request.nodesToWrite  = null;
+            session.performMessageTransaction(request, function (err, response) {
+                err.message.should.match(/BadNothingToDo/);
+                done();
+            });
+
+        }, done);
+    });
+
 });

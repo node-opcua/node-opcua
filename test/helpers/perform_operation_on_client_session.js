@@ -143,15 +143,22 @@ exports.perform_operation_on_subscription = perform_operation_on_subscription;
 
 function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId, func, done_func) {
 
+    var itemToMonitor;
+    if (typeof monitoredItemId === "string") {
+        itemToMonitor ={
+            nodeId: resolveNodeId(monitoredItemId),
+            attributeId: AttributeIds.Value
+        };
+    } else {
+        itemToMonitor = monitoredItemId;
+    }
     perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
         var monitoredItem;
         async.series([
             function (callback) {
-                monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId(monitoredItemId),
-                    attributeId: AttributeIds.Value
-                }, {
+
+                monitoredItem = subscription.monitor(itemToMonitor, {
                     samplingInterval: 1000,
                     discardOldest: true,
                     queueSize: 1

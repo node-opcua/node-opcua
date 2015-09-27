@@ -103,7 +103,7 @@ describe("Client Subscription", function () {
                 if(err) { return callback(err); }
                 try {
                     createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                    createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.BadMonitoredItemFilterInvalid);
+                    createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
                     should(createMonitoredItemsResponse.results[0].filterResult).eql(null);
                 }
                 catch (err) {
