@@ -339,16 +339,20 @@ server.on("request", function (request, channel) {
             break;
         case "ReadRequest":
             var str = "    ";
-            request.nodesToRead.map(function (node) {
-                str += node.nodeId.toString() + " " + node.attributeId + " " + node.indexRange;
-            });
+            if (request.nodesToRead) {
+                request.nodesToRead.map(function (node) {
+                    str += node.nodeId.toString() + " " + node.attributeId + " " + node.indexRange;
+                });
+            }
             console.log(str);
             break;
         case "WriteRequest":
-            var lines = request.nodesToWrite.map(function (node) {
-                return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
-            });
-            console.log(lines.join("\n"));
+            if (request.nodesToWrite) {
+                var lines = request.nodesToWrite.map(function (node) {
+                    return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
+                });
+                console.log(lines.join("\n"));
+            }
             break;
 
         case "TranslateBrowsePathsToNodeIdsRequest":
