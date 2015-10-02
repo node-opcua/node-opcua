@@ -40,12 +40,21 @@ var argv = require('yargs')
     .string("node")
     .describe("node","the nodeId of the value to monitor")
 
+    .string("timeout")
+    .describe("timeout"," the timeout of the session in second =>  (-1 for infinity)")
+
+    .string("debug")
+    .describe("debug"," display more verbose information")
+
     .alias('e', 'endpoint')
     .alias('s', 'securityMode')
     .alias('P', 'securityPolicy')
     .alias("u", 'userName')
     .alias("p", 'password')
     .alias("n", 'node')
+    .alias("t", 'timeout')
+
+    .alias("d", "debug")
 
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
@@ -61,17 +70,20 @@ var securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
 
 //xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
+var timeout = parseInt(argv.timeout) * 1000 || 20000;
+
+var monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 
 console.log("securityMode   = ".cyan, securityMode.toString());
 console.log("securityPolicy = ".cyan, securityPolicy.toString());
-
+console.log("timeout         = ".cyan, timeout ? timeout : " Infinity " )
+console.log(" monitoring node id ", monitored_node);
 var client = null;
 
 var endpointUrl = argv.endpoint;
 
-var monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 
-console.log(" monitoring node id ", monitored_node);
+
 
 if (!endpointUrl) {
     require('optimist').showHelp();
@@ -102,7 +114,7 @@ async.series([
     function (callback) {
         client.getEndpointsRequest(function (err, endpoints) {
 
-            if (argv.d) {
+            if (argv.debug) {
                 fs.writeFile("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));
                 console.log(treeify.asTree(endpoints, true));
             }
@@ -268,9 +280,12 @@ async.series([
             priority: 10
         });
 
-        var timerId = setTimeout(function () {
-            the_subscription.terminate();
-        }, 20000);
+        var timerId;
+        if (timeout > 0) {
+            timerId = setTimeout(function () {
+                the_subscription.terminate();
+            }, timeout);
+        }
 
         the_subscription.on("started", function () {
 
@@ -380,6 +395,8 @@ async.series([
     }
 ], function (err) {
 
+    console.log(" disconnected".cyan);
+
     if (err) {
         console.log(" client : process terminated with an error".red.bold);
         console.log(" error", err);
@@ -391,9 +408,20 @@ async.series([
     if (client) {
         client.disconnect(function () {
             var exit = require("exit");
+            console.log("Exiting");
             exit();
         });
     }
 });
 
 
+process.on('SIGINT', function () {
+    if (the_subscription) {
+
+        console.log(" Received client interruption from user ".red.bold);
+        console.log(" shutting down ...".red.bold);
+
+        the_subscription.terminate();
+        the_subscription = null;
+    }
+});
