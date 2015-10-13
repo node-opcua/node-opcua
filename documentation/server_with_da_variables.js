@@ -2,7 +2,6 @@
 var opcua = require("node-opcua");
 
 opcua.standardUnits = require("node-opcua/lib/data_access/EUInformation").standardUnits;
-opcua.addAnalogDataItem = require("node-opcua/lib/data_access/UAAnalogItem").addAnalogDataItem;
 
 var server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server

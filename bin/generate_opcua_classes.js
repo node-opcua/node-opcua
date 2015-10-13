@@ -115,7 +115,6 @@ registerObject("UserTokenPolicy");
 registerObject("EndpointDescription");
 registerObject("GetEndpointsRequest");
 registerObject("GetEndpointsResponse");
-registerObject("ApplicationInstanceCertificate");
 
 registerObject("OpenSecureChannelRequest");
 registerObject("ChannelSecurityToken");
@@ -154,6 +153,7 @@ registerObject("ReadValueId");
 registerObject("ReadRequest");
 registerObject("ReadResponse");
 
+registerObject("EnumValueType");
 
 // subscription service
 //xx registerObject("MonitoringMode");
