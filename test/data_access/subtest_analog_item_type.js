@@ -22,7 +22,7 @@ var async = require("async");
 
 module.exports = function(engine) {
 
-    describe("DataAccess - addAnalogDataItem",function() {
+    describe("AnalogDataItem",function() {
 
     it("should add an analog data item in the addresss_space",function(done) {
 

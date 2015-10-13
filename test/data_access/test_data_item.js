@@ -18,13 +18,14 @@ var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 var async = require("async");
 
 var path = require("path");
-var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
+
+
 describe("DataAccess", function () {
 
     var engine;
-    before(function (done) {
+    engine = new server_engine.ServerEngine();
 
-        engine = new server_engine.ServerEngine();
+    before(function (done) {
 
         var xmlFiles = [
             path.join(__dirname, "../../lib/server/mini.Node.Set2.xml"),
@@ -38,6 +39,7 @@ describe("DataAccess", function () {
         });
 
     });
+
     after(function () {
         engine.shutdown();
         engine = null;
@@ -125,106 +127,8 @@ describe("DataAccess", function () {
         xyArrayItemType.arrayDimensions.should.eql([0, 0, 0]);
     });
 
-    it("should create a analogItemType", function (done) {
-
-        var address_space = engine.address_space;
-
-        var rootFolder = address_space.findObject("ObjectsFolder");
-        rootFolder.browseName.toString().should.eql("Objects");
-
-        var fakeValue = 1;
-
-        var analogItem = addAnalogDataItem(rootFolder, {
-            browseName: "TemperatureSensor",
-            definition: "(tempA -25) + tempB",
-            valuePrecision: 0.5,
-            engineeringUnitsRange: {low: 100, high: 200},
-            instrumentRange: {low: -100, high: +200},
-            engineeringUnits: standardUnits.degree_celsius,
-
-            dataType: "Double",
-            value: {
-                get: function () {
-                    return new Variant({
-                        dataType: DataType.Double,
-                        value: fakeValue
-                    });
-                }
-            }
-
-        });
-
-        //xx console.log(JSON.stringify(analogItem,null," "));
-        // analogItem.dataType.should.eql(address_space.findVariableType("AnalogItemType").nodeId);
-
-        analogItem.definition.browseName.toString().should.eql("Definition");
-        analogItem.valuePrecision.browseName.toString().should.eql("ValuePrecision");
-        analogItem.eURange.browseName.toString().should.eql("EURange");
-        analogItem.instrumentRange.browseName.toString().should.eql("InstrumentRange");
-        analogItem.engineeringUnits.browseName.toString().should.eql("EngineeringUnits");
-
-
-        analogItem.instrumentRange.readValue().value.value.low.should.eql(-100);
-        analogItem.instrumentRange.readValue().value.value.high.should.eql(200);
-
-        // browsing variable
-        var browseDescription = {
-            nodeClassMask: 0, // 0 = all nodes
-            referenceTypeId: 0,
-            resultMask: 0x3F
-        };
-        var browseResult = engine.browseSingleNode(analogItem.nodeId, browseDescription);
-        browseResult.references.length.should.eql(6);
-
-        async.series([
-
-            function (callback) {
-                analogItem.instrumentRange.readValueAsync(function (err, dataValue) {
-                    if (!err) {
-                        dataValue.statusCode.should.eql(StatusCodes.Good);
-                        dataValue.value.dataType.should.eql(DataType.ExtensionObject);
-                        dataValue.value.value.should.be.instanceOf(Range);
-                        dataValue.value.value.low.should.eql(-100);
-                        dataValue.value.value.high.should.eql(200);
-                    }
-                    callback(err);
-                });
-
-            },
-
-            function (callback) {
-                //xx console.log(analogItem._dataValue);
-                analogItem.readValueAsync(function (err, dataValue) {
-                    if (!err) {
-                        dataValue.statusCode.should.eql(StatusCodes.Good);
-                        dataValue.value.dataType.should.eql(DataType.Double);
-                        dataValue.value.value.should.eql(fakeValue);
-                    }
-                    callback(err);
-                });
-            },
-            function (callback) {
-
-                fakeValue = 2.0;
-
-                analogItem.readValueAsync(function (err, dataValue) {
-                    //xx console.log(analogItem._dataValue);
-                    if (!err) {
-                        dataValue.statusCode.should.eql(StatusCodes.Good);
-                        dataValue.value.dataType.should.eql(DataType.Double);
-                        dataValue.value.value.should.eql(fakeValue);
-                    }
-                    callback(err);
-                });
-            }
-
-        ], done);
-
-
-    });
     it("should encode and decode a string containing fancy characters", function () {
         var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-
         var engineeringUnits = standardUnits.degree_celsius;
         encode_decode_round_trip_test(engineeringUnits, function (buffer, id) {
             buffer.length.should.equal(35);
@@ -232,60 +136,15 @@ describe("DataAccess", function () {
 
     });
 
-    it("Writing a value exceeding InstrumentRange shall return BadOutOfRange", function (done) {
+    require("./subtest_analog_item_type")(engine);
 
-        var address_space = engine.address_space;
+    require("./subtest_data_item_PercentDeadband")(engine);
 
-        var rootFolder = address_space.findObject("ObjectsFolder");
+    require("./subtest_two_state_discrete_type")(engine);
 
-        var analogItem = addAnalogDataItem(rootFolder, {
-            browseName: "TemperatureSensor",
-            definition: "(tempA -25) + tempB",
-            valuePrecision: 0.5,
-            engineeringUnitsRange: {low: -2000, high: 2000},
-            instrumentRange: {low: -100, high: 200},
-            engineeringUnits: standardUnits.degree_celsius,
-            dataType: "Double",
-            value: new Variant({dataType: DataType.Double, value: 10.0})
-        });
+    require("./subtest_multi_state_discrete_type")(engine);
 
-        var dataValue = new DataValue({
-            value: new Variant({dataType: DataType.Double, value: -1000.0})// out of range
-        });
-
-        analogItem.writeValue(dataValue, null, function (err, statusCode) {
-            statusCode.should.eql(StatusCodes.BadOutOfRange);
-            done(err);
-        });
-
-    });
-
-    it("Writing a value within InstrumentRange shall return Good", function (done) {
-
-        var address_space = engine.address_space;
-        var rootFolder = address_space.findObject("ObjectsFolder");
-
-        var analogItem = addAnalogDataItem(rootFolder, {
-            browseName: "TemperatureSensor",
-            definition: "(tempA -25) + tempB",
-            valuePrecision: 0.5,
-            engineeringUnitsRange: {low: -2000, high: 2000},
-            instrumentRange: {low: -100, high: 200},
-            engineeringUnits: standardUnits.degree_celsius,
-            dataType: "Double",
-            value: new Variant({dataType: DataType.Double, value: 10.0})
-        });
-
-        var dataValue = new DataValue({
-            value: new Variant({dataType: DataType.Double, value: 150})// in range
-        });
-
-        analogItem.writeValue(dataValue, null, function (err, statusCode) {
-            statusCode.should.eql(StatusCodes.Good);
-            done(err);
-        });
-
-    });
+    require("./subtest_multi_state_value_discrete_type")(engine);
 
 });
 

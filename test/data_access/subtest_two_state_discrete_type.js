@@ -23,53 +23,33 @@ var addTwoStateDiscreteType = require("lib/data_access/UATwoStateDiscreteType").
 
 
 
-describe("TwoStateDiscreteType", function () {
+module.exports = function(engine) {
 
-    var engine;
-    before(function (done) {
+    describe("TwoStateDiscreteType", function () {
 
-        engine = new server_engine.ServerEngine();
+        it("should add a TwoStateDiscreteType variable",function() {
 
-        var xmlFiles = [
-            path.join(__dirname, "../../lib/server/mini.Node.Set2.xml"),
-            path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.Part8.xml")
-        ];
-        var options = {nodeset_filename: xmlFiles};
+            var address_space = engine.address_space;
+            var rootFolder = address_space.findObject("ObjectsFolder");
+            rootFolder.browseName.toString().should.eql("Objects");
 
-        engine.initialize(options, function () {
+            var prop = addTwoStateDiscreteType(rootFolder,{
+                browseName: "MySwitch",
+                trueState: "busy",
+                falseState: "idle",
+                value: false
+            });
+            prop.browseName.toString().should.eql("MySwitch");
 
-            done();
+            prop.getPropertyByName("TrueState").readValue().value.toString()
+                .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");
+
+            prop.getPropertyByName("FalseState").readValue().value.toString()
+                .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=idle)");
+
+            prop.readValue().value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
         });
 
     });
 
-    after(function () {
-        engine.shutdown();
-        engine = null;
-    });
-
-
-    it("should add a TwoStateDiscreteType variable",function() {
-
-        var address_space = engine.address_space;
-        var rootFolder = address_space.findObject("ObjectsFolder");
-        rootFolder.browseName.toString().should.eql("Objects");
-
-        var prop = addTwoStateDiscreteType(rootFolder,{
-            browseName: "MySwitch",
-            trueState: "busy",
-            falseState: "idle",
-            value: false
-        });
-        prop.browseName.toString().should.eql("MySwitch");
-
-        prop.getPropertyByName("TrueState").readValue().value.toString()
-            .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");
-
-        prop.getPropertyByName("FalseState").readValue().value.toString()
-            .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=idle)");
-
-        prop.readValue().value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
-    });
-
-});
+};
