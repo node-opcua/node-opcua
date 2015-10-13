@@ -124,10 +124,13 @@ async.series([
                 endpoints.forEach(function (endpoint, i) {
                     table.cell('endpoint', endpoint.endpointUrl + "");
                     table.cell('Application URI', endpoint.server.applicationUri);
-                    table.cell('Security Mode', endpoint.securityMode);
+                    table.cell('Product URI', endpoint.server.productUri);
+                    table.cell('Application Name', endpoint.server.applicationName.text);
+                    table.cell('Security Mode', endpoint.securityMode.toString());
                     table.cell('securityPolicyUri', endpoint.securityPolicyUri);
                     table.cell('Type', endpoint.server.applicationType.key);
                     table.cell('certificate', "..." /*endpoint.serverCertificate*/);
+                    table.cell('discoveryUrls',endpoint.server.discoveryUrls.join(" - "));
 
                     serverCertificate = endpoint.serverCertificate;
 
@@ -139,6 +142,7 @@ async.series([
                 console.log(table.toString());
 
                 endpoints.forEach(function (endpoint, i) {
+                    console.log('Identify Token for : Security Mode=', endpoint.securityMode.toString(),' Policy=', endpoint.securityPolicyUri);
                     var table2 = new Table();
                     endpoint.userIdentityTokens.forEach(function (token) {
                         table2.cell('policyId', token.policyId);

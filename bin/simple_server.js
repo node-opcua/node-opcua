@@ -47,10 +47,18 @@ var userManager = {
 
 var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
+var path = require("path");
+var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
+//xx var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_1024.pem");
+var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_1024.pem");
+
 var server_options = {
 
+    certificateFile: server_certificate_file,
+    privateKeyFile: server_certificate_privatekey_file,
+
     port: port,
-    resourcePath: "UA/Server",
+    //xx (not used: causes UAExpert to get confused) resourcePath: "UA/Server",
 
     maxAllowedSessionNumber: 1500,
 
@@ -61,8 +69,8 @@ var server_options = {
 
     serverInfo: {
         applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
-        productUri: "NodeOPCUA-SimpleDemoServer",
-        applicationName: {text: "applicationName"},
+        productUri: "NodeOPCUA-Server",
+        applicationName: {text: "NodeOPCUA"},
         gatewayServerUri: null,
         discoveryProfileUri: null,
         discoveryUrls: []
@@ -124,7 +132,7 @@ server.on("post_initialize", function () {
      *
      * Add a variable in folder using a single get function witch returns the up to date variable value in Variant.
      * The server will set the timestamps automatically for us.
-     * Use this variation when the variable value is controled by the getter function
+     * Use this variation when the variable value is controlled by the getter function
      * Avoid using this variation if the variable has to be made writable, as the server will call the getter
      * function prior to returning its value upon client read requests.
      */
