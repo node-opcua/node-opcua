@@ -2,6 +2,8 @@ require("requirish")._(module);
 var should = require("should");
 var path = require("path");
 var fs = require("fs");
+var util = require("util");
+
 var crypto_utils = require("lib/misc/crypto_utils");
 var assert = require("better-assert");
 var hexDump = require("lib/misc/utils").hexDump;
@@ -27,7 +29,7 @@ describe(" exploring Certificates", function () {
         console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions.subjectAltName.dNSName);
 
         //xx console.log(require("util").inspect(certificate_info,{colors:true, depth:10}));
-        certificate_info.tbsCertificate.version.should.eql(2);
+        certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(128);
         certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
 
@@ -41,13 +43,13 @@ describe(" exploring Certificates", function () {
         // console.log(hexDump(certificate))
         var certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(2);
+        certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(256);
         certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
 
     });
 
-    it("should read a certificate containing extra information", function () {
+    it("should read a V3 X509 certificate (with extensions)", function () {
 
         var filename = path.join(__dirname, "../fixtures/certs/demo_certificate.pem");
         fs.existsSync(filename).should.equal(true);
@@ -56,24 +58,55 @@ describe(" exploring Certificates", function () {
         //xx console.log(certificate.toString("base64"));
 
         var certificate_info = exploreCertificate(certificate);
-        //xx console.log(certificate_info);
-        //xx console.log(" Version                   : ",certificate_info.tbsCertificate.version);
+
+        certificate_info.tbsCertificate.version.should.eql(3);
+
+        // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
+        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions.authorityCertIssuer,{colors:true,depth:10}));
+        certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.authorityCertIssuer.directoryName.countryName.should.eql("FR");
+        certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.authorityCertIssuer.directoryName.localityName.should.eql("Paris");
+
+        certificate_info.tbsCertificate.extensions.subjectKeyIdentifier.should.eql('74:38:fd:90:b1:f1:90:51:0e:9c:65:d6:aa:ac:63:9e:bc:dc:58:2f');
+    });
+
+    it("should read a V1 X509 certificate",function() {
+
+        // note : http://stackoverflow.com/questions/26788244/how-to-create-a-legacy-v1-or-v2-x-509-cert-for-testing
+
+        var filename = path.join(__dirname, "../fixtures/certs/demo_certificate_x509_V1.pem");
+        fs.existsSync(filename).should.equal(true,"cerficate file must exist");
+
+        var certificate = crypto_utils.readCertificate(filename);
+        //xx console.log(certificate.toString("base64"));
+        var certificate_info = exploreCertificate(certificate);
+
+        certificate_info.tbsCertificate.version.should.eql(1);
+        should(certificate_info.tbsCertificate.extensions).eql(null);
+
+        // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
 
     });
 });
+
+var fs = require("fs");
 
 describe("exploring certificate chains", function () {
 
     var combine_der = require("lib/misc/crypto_explore_certificate").combine_der;
     var split_der = require("lib/misc/crypto_explore_certificate").split_der;
 
-    xit("should combine certificates in a single block", function () {
+    it("should combine certificates in a single block", function () {
 
-        var cert1_name = path.join(__dirname, "../fixtures/certs/client_cert_2048.pem");
+        var cert1_name = path.join(__dirname, "../fixtures/certs/client_cert_1024.pem");
         var cert2_name = path.join(__dirname, "../fixtures/certs/server_cert_1024.pem");
 
-        var cert1 = crypto_utils.readPEM(cert1_name);
-        var cert2 = crypto_utils.readPEM(cert2_name);
+        fs.existsSync(cert1_name).should.eql(true);
+        fs.existsSync(cert2_name).should.eql(true);
+
+        var cert1 = crypto_utils.readCertificate(cert1_name);
+        var cert2 = crypto_utils.readCertificate(cert2_name);
+        //xx console.log("cert1 = ",cert1.toString("base64"));
+        //xx console.log("cert2 = ",cert2.toString("base64"));
 
         var combined = combine_der([cert1, cert2]);
         combined.toString("hex").should.equal(cert1.toString("hex") + cert2.toString("hex"));
@@ -84,15 +117,18 @@ describe("exploring certificate chains", function () {
 
         chain.length.should.eql(2);
 
-        console.log(chain[0].toString("hex"));
-        console.log(cert1.toString("hex"));
-        console.log("-------");
-        console.log(chain[1].toString("hex"));
-        console.log(cert2.toString("hex"));
-
+        if(false) {
+            console.log(chain[0].toString("hex"));
+            console.log(cert1.toString("hex"));
+            console.log("-------");
+            console.log(chain[1].toString("hex"));
+            console.log(cert2.toString("hex"));
+        }
         chain[0].length.should.eql(cert1.length);
         chain[1].length.should.eql(cert2.length);
 
+        chain[0].toString("hex").should.eql(cert1.toString("hex"));
+        chain[1].toString("hex").should.eql(cert2.toString("hex"));
     });
 });
 
@@ -135,7 +171,7 @@ var ctt_certif = makebuffer_from_trace(
     });
 
 describe("exploring CTT Client certificate", function () {
-    it("should extract application uri from cerficate", function () {
+    it("should extract application uri from certificate", function () {
 
         var certificate_info = exploreCertificate(ctt_certif);
         //xx console.log(certificate_info.tbsCertificate);
@@ -143,6 +179,11 @@ describe("exploring CTT Client certificate", function () {
         console.log(" issuer.commonName         : ", certificate_info.tbsCertificate.issuer.commonName);
         console.log(" uniformResourceIdentifier : ", certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier);
         console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions.subjectAltName.dNSName);
+
+        certificate_info.tbsCertificate.version.should.eql(3);
+        certificate_info.tbsCertificate.issuer.commonName.should.eql("UA_Compliance_Test_Tool");
+        certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.should.eql(["urn:localhost:UA_Compliance_Test_Tool"]);
+        certificate_info.tbsCertificate.extensions.subjectAltName.dNSName.should.eql(["localhost"]);
 
     });
 });
