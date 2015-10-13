@@ -9,13 +9,50 @@ var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 var addAnalogDataItem = opcua.addAnalogDataItem;
-
+var addTwoStateDiscreteType = opcua.addTwoStateDiscreteType;
+assert(_.isFunction(addTwoStateDiscreteType));
+/***
+ * @method createHVACSystem
+ *
+ * @startuml
+ *
+ * class HVACModuleType {
+ * }
+ * HVACModuleType -up-> ObjectType
+ * HVACModuleType o-down-> ExteriorTemperatureSensor     << (P,#F0F0FF)TemperatureSensorType >>
+ * HVACModuleType o-down-> InteriorTemperatureSensor     << (P,#F0F0FF)TemperatureSensorType >>
+ * HVACModuleType o-down-> TargetTemperature     << (P,#F0F0FF)TemperatureSensorType >>
+ * HVACModuleType o-down-> HVACEnabledEventType  << (E,#00F0FF)BaseEventType >>
+ * HVACModuleType o-down-> HVACDisabledEventType << (E,#00F0FF)BaseEventType >>
+ * HVACModuleType o-left-> SetTargetTemperature<< (M,#ABFFF0) >>
+ * HVACModuleType o-left---> Enable  << (M,#ABFFF0) >>
+ * HVACModuleType o-left---> Disable << (M,#ABFFF0) >>
+ * AnalogItemType -up-> DataItemType
+ * DataItemType -up-> BaseDataVariableType
+ * @enduml
+ *
+ * compact version
+ * @startuml
+ *
+ * class HVACModuleType << (C,F0F0F0)ObjectType >> {
+ *   ExteriorTemperatureSensor: AnalogItemType
+ *   InteriorTemperatureSensor: AnalogItemType
+ *   TargetTemperature : Variable
+ *   --------
+ *   HVACEnabledEventType
+ *   HVACDisabledEventType
+ *   --------
+ *   SetTargetTemperature
+ *   Enable
+ *   Disable
+ * }
+ * @enduml
+ *
+ * @param address_space
+ * @returns {*}
+ */
 exports.createHVACSystem = function(address_space) {
 
-
-    var TemperatureSensorType = address_space.addObjectType({
-        browseName:"TemperatureSensor"
-    });
 
     var HVACEnabledEventType = address_space.addEventType({
         browseName:"HVACEnabledEventType"
@@ -32,23 +69,28 @@ exports.createHVACSystem = function(address_space) {
 
     addAnalogDataItem(HVACModuleType,{
         browseName: "ExteriorTemperature",
+        accessLevel: "CurrentRead",
         valuePrecision: 0.01,
         instrumentRange: { low: -70, high: 120},
         engineeringUnitsRange: { low: -100, high: 200},
         engineeringUnits: "° Celsius",
         description: "External temperature Sensor",
-        dataType: "Double"
-    });
-
-
-
-    address_space.addVariable(HVACModuleType,{
-        browseName: "InteriorTemperature",
-        accessLevel: "CurrentRead",
-        hasTypeDefinition: TemperatureSensorType,
         minimumSamplingInterval: 500,
         dataType: "Double"
     });
+
+    addAnalogDataItem(HVACModuleType,{
+        browseName: "InteriorTemperature",
+        accessLevel: "CurrentRead",
+        valuePrecision: 0.01,
+        instrumentRange: { low: -70, high: 120},
+        engineeringUnitsRange: { low: -100, high: 200},
+        engineeringUnits: "° Celsius",
+        description: "External temperature Sensor",
+        minimumSamplingInterval: 500,
+        dataType: "Double"
+    });
+
 
     // EURange (10,+27)
     addAnalogDataItem(HVACModuleType,{
@@ -87,14 +129,22 @@ exports.createHVACSystem = function(address_space) {
         outputArguments: []
     });
 
+    addTwoStateDiscreteType(HVACModuleType,{
+        browseName: "MainSwitch",
+        trueState: "Up/ON",
+        falseState: "Down/OFF",
+        value: false
+    });
+
+
     var myHVAC = HVACModuleType.instantiate({
         browseName: "MyHVAC1"
     });
 
-    // initalize interiorTemperature :
-    myHVAC.interiorTemperature.bindVariable({dataType:DataType.Double,value:16});
+    // initialize interiorTemperature :
+    myHVAC.interiorTemperature.setValueFromSource({dataType:DataType.Double,value:16});
 
-    myHVAC.targetTemperature.bindVariable({dataType:DataType.Double,value:16});
+    myHVAC.targetTemperature.setValueFromSource({dataType:DataType.Double,value:16});
 
     // bind the method
     myHVAC.enable.bindMethod(function(inputArguments, context, callback) {

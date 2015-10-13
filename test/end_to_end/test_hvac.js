@@ -205,7 +205,7 @@ describe("testing client Proxy", function () {
         }, done);
     });
 
-    it("one can subscribe to proxy object property change", function (done) {
+    it("AA one can subscribe to proxy object property change", function (done) {
 
         this.timeout(40000);
 
@@ -242,7 +242,7 @@ describe("testing client Proxy", function () {
 //                          console.log("Interior temperature",hvac.interiorTemperature.dataValue);
 
                             hvac.interiorTemperature.on("value_changed",function(value){
-                                console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
+                              //  console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
                             });
                             hvac.targetTemperature.on("value_changed",function(value){
                                 console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
@@ -264,11 +264,13 @@ describe("testing client Proxy", function () {
 
                 function (callback) {
 
+                    console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
+
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
                     hvac.interiorTemperature.set({
                         value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
                     },function(err) {
-                        should(err).not.eql(null);
+                        should(err).not.eql(null," it should not be possible to set readonyl interiorTemperature");
                         err.message.should.match(/BadNotWritable/);
                         callback();
                     });
@@ -321,6 +323,7 @@ describe("testing client Proxy", function () {
                     setTimeout(callback,2000);
                 },
                 function (callback) {
+                    console.log("stopping proxy")
                     proxyManager.stop(callback);
                 }
 
