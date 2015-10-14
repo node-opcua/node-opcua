@@ -21,6 +21,8 @@ var UAProxyManager = require("lib/client/proxy").UAProxyManager;
 
 describe("testing client Proxy", function () {
 
+    this.timeout(20000);
+
     var server, client, temperatureVariableId, endpointUrl;
 
     var HVAC_on_server = null;
@@ -80,9 +82,10 @@ describe("testing client Proxy", function () {
 
                             hvac.interiorTemperature.get(function(err,value){
                                 console.log(" Interior temperature updated ...",value.toString());
+				callback(err);
                             });
 
-
+                            return;
                         }
                         callback(err);
                     })
