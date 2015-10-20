@@ -1,5 +1,6 @@
 require("requirish")._(module);
 var assert = require("better-assert");
+var _ = require("underscore");
 
 var opcua = require("index.js");
 
@@ -11,14 +12,38 @@ var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixture_empty_nodeset2.xml");
 
 
-function build_client_server_session(done) {
+/**
+ *
+ * @param done
+ * @returns {{g_session: null, g_server: (*|OPCUAServer), shutdown: shutdown}}
+ *
+ * @example
+ * before(function (done) {
+ *    client_server = build_client_server_session(server_options,function (err) {
+ *       if (!err) {
+ *         g_session = client_server.g_session;
+ *       }
+ *       done(err);
+ *     });
+ *
+ * });
+ * after(function (done) {
+ *       client_server.shutdown(done);
+ * });
+ *
+ */
+function build_client_server_session(options,done) {
+
     var server, client;
     var endpointUrl;
 
-    var options = {
-        port: 2001,
-        nodeset_filename: empty_nodeset_filename
-    };
+    if (_.isFunction(options)) {
+        done = options;
+        options = {
+            port: 2001,
+            nodeset_filename: empty_nodeset_filename
+        };
+    }
 
     server = new OPCUAServer(options);
     // we will connect to first server end point
