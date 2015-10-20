@@ -82,7 +82,7 @@ describe("testing client Proxy", function () {
 
                             hvac.interiorTemperature.get(function(err,value){
                                 console.log(" Interior temperature updated ...",value.toString());
-				callback(err);
+				                callback(err);
                             });
 
                             return;

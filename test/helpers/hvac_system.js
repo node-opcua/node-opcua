@@ -8,8 +8,11 @@ var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
+var standardUnits = opcua.standardUnits;
+
 var addAnalogDataItem = opcua.addAnalogDataItem;
 var addTwoStateDiscreteType = opcua.addTwoStateDiscreteType;
+
 assert(_.isFunction(addTwoStateDiscreteType));
 /***
  * @method createHVACSystem
@@ -73,7 +76,7 @@ exports.createHVACSystem = function(address_space) {
         valuePrecision: 0.01,
         instrumentRange: { low: -70, high: 120},
         engineeringUnitsRange: { low: -100, high: 200},
-        engineeringUnits: "° Celsius",
+        engineeringUnits: standardUnits.degree_celsius, // ° Celsius
         description: "External temperature Sensor",
         minimumSamplingInterval: 500,
         dataType: "Double"
@@ -85,7 +88,7 @@ exports.createHVACSystem = function(address_space) {
         valuePrecision: 0.01,
         instrumentRange: { low: -70, high: 120},
         engineeringUnitsRange: { low: -100, high: 200},
-        engineeringUnits: "° Celsius",
+        engineeringUnits: standardUnits.degree_celsius,
         description: "External temperature Sensor",
         minimumSamplingInterval: 500,
         dataType: "Double"
