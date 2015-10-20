@@ -205,6 +205,10 @@ registerObject("HistoryReadResult");
 registerObject("HistoryReadResponse");
 registerObject("HistoryReadDetails");
 registerObject("MonitoringFilter");
+// history
+registerObject("ModificationInfo");
+registerObject("HistoryData");
+registerObject("HistoryModifiedData");
 
 
 // translate_browse_path_to_node_is
@@ -268,10 +272,6 @@ registerObject("WriteValue");
 registerObject("WriteRequest");
 registerObject("WriteResponse");
 
-// history
-registerObject("ModificationInfo");
-registerObject("HistoryData");
-registerObject("HistoryModifiedData");
 
 
 // -------------------------------------------------------------------------

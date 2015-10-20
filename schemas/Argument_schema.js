@@ -26,55 +26,43 @@
  </UADataType>
  */
 require("requirish")._(module);
-var factories = require("lib/misc/factories");
-var NodeId = require("lib/datamodel/nodeid").NodeId;
-var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var _ = require("underscore");
 var assert = require("better-assert");
 
-var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMap;
-var encode_NodeId = _defaultTypeMap.NodeId.encode;
-var decode_NodeId = _defaultTypeMap.NodeId.decode;
-
-
-function _dataType_encodeAsNodeId(dataType, stream) {
-
-    var nodeId = dataType;
-    if (!(dataType instanceof NodeId)) {
-        //xx console.log("xxxx dataType.value ", dataType.value);
-        nodeId = makeNodeId(dataType.value, 0);
-    }
-    encode_NodeId(nodeId, stream);
-}
-function _dataType_encodeAsNodeIdXML(xw,value){
-    xw.text(value.toString());
-}
+var factories = require("lib/misc/factories");
+var NodeId = require("lib/datamodel/nodeid").NodeId;
+var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
 
 var DataType = require("lib/datamodel/variant").DataType;
-function _dataType_decodeAsNodeId(stream) {
-    var nodeId = decode_NodeId(stream);
-    assert(_.isFinite(nodeId.value));
-    return DataType.get(nodeId.value);
-}
-
-factories.registerBuiltInType({
-    name: "DataTypeAsNodeId",
-    encode: _dataType_encodeAsNodeId,
-    decode: _dataType_decodeAsNodeId,
-    encodeXML: _dataType_encodeAsNodeIdXML,
-    defaultValue: DataType.Null
-});
-
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
 var Argument_Schema = {
     name: "Argument",
     documentation: "An argument for a method.",
+    construct_hook: function(options) {
+
+        var dataType = options.dataType;
+        if (dataType) {
+            if (typeof dataType === "string") {
+                dataType = makeNodeId(dataType.value, 0);
+                //dataType = coerceNodeId(DataType[dataType].value);
+            } else {
+                dataType = coerceNodeId(dataType.value);
+            }
+           options.dataType = dataType;
+        }
+        return options;
+    },
     fields: [
         {name: "name", fieldType: "String", documentation: "The name of the argument."},
-        {name: "dataType", fieldType: "DataTypeAsNodeId", documentation: "The data type of the argument."},
+        {name: "dataType", fieldType: "NodeId", documentation: "The nodeId of the Data type of the argument."},
 
-    /*
+    /**
+     * @class Argument
+     *
+     * @property valueRank {Integer}
+     *
      * valueRank (5.6.2 Variable NodeClass part 3)
      * This Attribute indicates whether the Value Attribute of the Variable is
      * an array and how many dimensions the array has.
