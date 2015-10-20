@@ -7,15 +7,20 @@ var url =require("url");
 
 var force = true;
 
+function wget(dest_folder,file_url) {
 
-function wget(file_url) {
+    dest_folder = dest_folder || "1.02";
+
+    if (!fs.existsSync(dest_folder)) {
+        fs.mkdirSync(dest_folder);
+    }
 
     var https = require('https');
     var http  = require('http');
     if (file_url.substr(0,5)==="https") {  http = https;   }
 
     var path = require("path");
-    var filename = path.basename(file_url); // + path.extname(url);
+    var filename = path.join(dest_folder,path.basename(file_url)); // + path.extname(url);
 
     if (fs.existsSync(filename) && !force)  {
         console.log("  " + filename +" already downloaded " + file_url);
@@ -23,7 +28,7 @@ function wget(file_url) {
     }
     console.log(" downloading " + filename + " from " + file_url);
 
-    var stream = fs.createWriteStream(filename,"w");
+    var stream = fs.createWriteStream(filename,{ flag: "w" });
 
     var request_options = url.parse(file_url);
 
@@ -101,42 +106,81 @@ OPC UA Attribute Ids	              The numeric identifier for all OPC UA Node at
 OPC UA Status Codes	                  The numeric identifier for all StatusCodes defined in the OPC UA specifications.  StatusCode.csv	            http://opcfoundation.org/UA/schemas/1.02/StatusCode.csv
 OPC UA NodeIds	                      The numeric identifier for all NodeIds defined in the OPC UA specifications.	    NodeIds.csv	                http://opcfoundation.org/UA/schemas/1.02/NodeIds.csv
 */
-wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd.xml");
-wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.StatusCodes.csv");
 
-wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part8.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.StatusCodes.csv");
 
-if(0) {
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part8.xml");
 
 
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
-    wget("https://opcfoundation.org/UA/2008/02/Types.xsd");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.xsd");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Services.wsdl");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Endpoints.wsdl");
-    wget("https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.xsd");
-    wget("https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.xsd");
-    wget("https://opcfoundation.org/UA/schemas/1.02/SecuredApplication.xsd");
 
-    wget("https://opcfoundation.org/UA/schemas/1.02/UANodeSet.xsd");
-    wget("https://opcfoundation.org/UA/schemas/1.02/UAVariant.xsd");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part3.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part4.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part5.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part8.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part9.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part10.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part11.xml");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part13.xml");
-    wget("https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.NodeSet2.xml");
-    wget("https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.NodeSet2.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
+wget("1.02","https://opcfoundation.org/UA/2008/02/Types.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Services.wsdl");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Endpoints.wsdl");
+wget("1.02","https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/SecuredApplication.xsd");
 
-    wget("https://opcfoundation.org/UA/schemas/1.02/OPCBinarySchema.xsd");
-    wget("https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd");
-    wget("https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.bsd");
-    wget("https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.bsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/UANodeSet.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/UAVariant.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part3.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part4.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part5.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part8.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part9.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part10.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part11.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.NodeSet2.Part13.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.NodeSet2.xml");
+wget("1.02","https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.NodeSet2.xml");
 
-    wget("https://opcfoundation.org/UA/schemas/1.02/AttributeIds.csv");
-    wget("https://opcfoundation.org/UA/schemas/1.02/NodeIds.csv");
-}
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/OPCBinarySchema.xsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.bsd");
+wget("1.02","https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.bsd");
+
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/AttributeIds.csv");
+wget("1.02","https://opcfoundation.org/UA/schemas/1.02/NodeIds.csv");
+
+
+
+
+///
+wget("1.03","https://opcfoundation.org/UA/2008/02/Types.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.Types.bsd.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.StatusCodes.csv");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part8.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.Types.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.Services.wsdl");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.Endpoints.wsdl");
+
+
+wget("1.03","https://www.opcfoundation.org/UADevices/1.1/Opc.Ua.Di.NodeSet2.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/DI/1.00/Opc.Ua.Di.Types.bsd");
+
+wget("1.03","https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.NodeSet2.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/ADI/1.00/Opc.Ua.Adi.Types.bsd");
+
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/SecuredApplication.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/UANodeSet.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/UAVariant.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part3.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part4.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part5.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part8.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part9.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part10.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part11.xml");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.Part13.xml");
+
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/OPCBinarySchema.xsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.Types.bsd");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/AttributeIds.csv");
+wget("1.03","https://opcfoundation.org/UA/schemas/1.03/NodeIds.csv");
