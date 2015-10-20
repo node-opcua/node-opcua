@@ -72,17 +72,17 @@ describe("testing nodeset to xml", function () {
 
         myEnumType.browseName.toString().should.eql("MyEnumType");
         var str = dumpXml(myEnumType, {});
-        console.log(str);
+        //xx console.log(str);
         str.should.match(/RUNNING/);
 
     });
 
-    it("should output a simple objecType node to xml", function () {
+    it("should output a simple objectType node to xml", function () {
         // TemperatureSensorType
         var temperatureSensorType = createTemperatureSensorType(address_space);
 
         var str = dumpXml(temperatureSensorType, {});
-        console.log(str);
+        //xx console.log(str);
         str.should.match(/UAObjectType/);
     });
 
@@ -116,7 +116,7 @@ describe("testing nodeset to xml", function () {
 
 
         var str = dumpXml(temperatureSensor, {});
-        console.log(str);
+        //xx console.log(str);
         str.should.match(/UAObjectType/g);
 
     });
@@ -131,7 +131,7 @@ describe("testing nodeset to xml", function () {
             browseName: "Camera1"
         });
         var str = dumpXml(camera1, {});
-        console.log(str);
+        //xx console.log(str);
         str.should.match(/UAObjectType/g);
         str.should.match(/UAObjectType/g);
     });
