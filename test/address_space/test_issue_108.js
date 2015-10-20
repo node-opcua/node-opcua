@@ -49,12 +49,14 @@ describe("testing add new DataType ", function () {
         // -------------------------------------------- MachineType
         var customTypeNode = address_space.addObjectType({browseName: "CustomType"});
 
+        var standardUnits = require("lib/data_access/EUInformation").standardUnits;
+
         addAnalogDataItem(customTypeNode, {
             browseName: "Temperature",
             valuePrecision: 0.01,
             instrumentRange: {low: -70, high: 120},
             engineeringUnitsRange: {low: -100, high: 200},
-            engineeringUnits: "° Celsius",
+            engineeringUnits: standardUnits.degree_celsius,
             description: "Temperature",
             dataType: "Double"
         });

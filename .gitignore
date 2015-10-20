@@ -39,3 +39,7 @@ CTT/
 dist/
 bin/.history*
 test_support/
+code_gen/1.02
+code_gen/1.03
+code_gen/old
+out
