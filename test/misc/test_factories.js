@@ -343,15 +343,16 @@ describe("Factories: testing object factory", function () {
 
     });
 
-    xit("should raise an exception when trying to pass an invalid field to constructor", function () {
+    it("should raise an exception when trying to pass an invalid field to constructor", function () {
 
+        var schema_helpers =  require("lib/misc/factories_schema_helpers");
 
+        var old_schema_helpers_doDebug = schema_helpers.doDebug;
+        schema_helpers.doDebug = true;
         // redirect stdout to null as test will be noisy
         var old_process_stdout_write = process.stdout.write;
-        process.stdout.write = function () {
-        };
 
-        (function () {
+        (function test_constructor_with_invalid_args() {
             var a = new Shape({
 
                 this_invalid_field_should_cause_Shape_Constructor_to_raise_an_exception: "**bingo**",
@@ -362,15 +363,16 @@ describe("Factories: testing object factory", function () {
             });
 
         }).should.throw();
-        // restore stdout
-        process.stdout.write = old_process_stdout_write;
-    });
+
+        schema_helpers.doDebug = old_schema_helpers_doDebug;
+     });
 
 });
 
 describe("Factories: testing strong typed enums", function () {
 
     it("should throw if a invalid argument is passed for an enum", function () {
+
 
         ShapeType.CIRCLE.key.should.equal("CIRCLE");
         var value = ShapeType.CIRCLE;

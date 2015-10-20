@@ -38,3 +38,4 @@ open*win*.zip
 CTT/
 dist/
 bin/.history*
+test_support/
