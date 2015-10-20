@@ -24,6 +24,7 @@ var DataType = opcua.DataType;
 
 var UAProxyManager = require("lib/client/proxy").UAProxyManager;
 
+var UAProxyManager = require("lib/client/state_machine_proxy").UAProxyManager;
 
 
 describe("testing client Proxy", function () {
