@@ -2,6 +2,11 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
+
+var _ = require("underscore");
+var assert = require("better-assert");
+var path = require("path");
+
 var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
@@ -9,11 +14,8 @@ var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
-var _ = require("underscore");
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
-var assert = require("better-assert");
-var path = require("path");
 
 describe("testing add new DataType ", function () {
 
