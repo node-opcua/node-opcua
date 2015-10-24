@@ -103,6 +103,10 @@ describe("testing address space", function () {
         it("should findCorrespondingBasicDataType variation 3 - nodeId as NodeId",function() {
             addressSpace.findCorrespondingBasicDataType(makeNodeId(DataTypeIds.BuildInfo)).should.eql(DataType.ExtensionObject);
         });
+
+        it("should findCorrespondingBasicDataType i=852 (Enumeration ServerState) => UInt32",function() {
+            addressSpace.findCorrespondingBasicDataType(makeNodeId(DataTypeIds.ServerState)).should.eql(DataType.Int32);
+        });
     });
 
 });
