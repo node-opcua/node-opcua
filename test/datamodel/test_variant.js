@@ -686,7 +686,7 @@ describe("Variant with Advanced Array", function () {
 
 describe("Variant with enumeration",function() {
 
-    var ServerState = require("schemas/ServerState_enum").ServerState;
+    var ServerState = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
     before(function() {
         should(ServerState.Running).not.eql(null);
     });

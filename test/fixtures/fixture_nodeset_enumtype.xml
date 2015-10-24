@@ -48,6 +48,13 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
         </References>
     </UADataType>
+    <UADataType NodeId="i=11" BrowseName="Double">
+        <DisplayName>Double</DisplayName>
+        <Description>Describes a value that is an IEEE 754-1985 double precision floating point number.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
+        </References>
+    </UADataType>
     <UADataType NodeId="i=12" BrowseName="String">
         <DisplayName>String</DisplayName>
         <Description>Describes a value that is a sequence of printable Unicode characters.</Description>
@@ -335,7 +342,14 @@
             </Field>
         </Definition>
     </UADataType>
-
+    <UAObject NodeId="i=310" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=308</Reference>
+            <Reference ReferenceType="HasDescription">i=7665</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
     <UAObject NodeId="i=7616" BrowseName="Default XML" SymbolicName="DefaultXml">
         <DisplayName>Default XML</DisplayName>
         <References>
@@ -734,6 +748,15 @@
             <Field Name="BuildDate" DataType="i=294"/>
         </Definition>
     </UADataType>
+
+    <UAObject NodeId="i=340" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=338</Reference>
+            <Reference ReferenceType="HasDescription">i=7692</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
 
     <UAObject NodeId="i=866" BrowseName="Default XML" SymbolicName="DefaultXml">
         <DisplayName>Default XML</DisplayName>

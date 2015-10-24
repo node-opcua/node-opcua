@@ -58,7 +58,7 @@ module.exports.OPCUAServer        = require("lib/server/opcua_server").OPCUAServ
 module.exports.ServerEngine       = require("lib/server/server_engine").ServerEngine;
 module.exports.generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 module.exports.AddressSpace       = require("lib/address_space/address_space").AddressSpace;
-module.exports.ServerState = require("schemas/ServerState_enum").ServerState;
+module.exports.ServerState = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
 module.exports.SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
 
 module.exports.AnonymousIdentityToken = module.exports.session_service.AnonymousIdentityToken;

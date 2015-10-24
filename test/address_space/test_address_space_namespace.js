@@ -133,6 +133,35 @@ describe("testing  address space namespace loading", function () {
                 "ServerNamespaceURI",             // 1
                 "http://opcfoundation.org/UA/DI/",// 2
             ]);
+
+            var di_ns = address_space.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+            di_ns.should.eql(2);
+
+            // now try to retrieve some VariableType from DI namespace
+            var UIElementType = address_space.findVariableType("UIElementType",di_ns);
+            UIElementType.browseName.toString().should.eql("2:UIElementType");
+            should(address_space.findVariableType("UIElementType")).eql(undefined,"namespace is not provided");
+            should(address_space.findVariableType("2:UIElementType")).eql(UIElementType);
+
+
+            // now extract some ObjectType From DI namespace
+            var TransferServicesType = address_space.findObjectType("TransferServicesType",di_ns);
+            TransferServicesType.browseName.toString().should.eql("2:TransferServicesType");
+            should(address_space.findObjectType("TransferServicesType")).eql(undefined,"namespace is not provided");
+            should(address_space.findObjectType("2:TransferServicesType")).eql(TransferServicesType);
+
+            // now extract some ReferenceType
+            var ConnectsToRefType = address_space.findReferenceType("ConnectsTo",di_ns);
+            ConnectsToRefType.browseName.toString().should.eql("2:ConnectsTo");
+            should(address_space.findReferenceType("ConnectsTo")).eql(undefined,"namespace is not provided");
+            should(address_space.findReferenceType("2:ConnectsTo")).eql(ConnectsToRefType);
+
+            // now extract some DataType
+            var ParameterResultDataType = address_space.findDataType("ParameterResultDataType",di_ns);
+            ParameterResultDataType.browseName.toString().should.eql("2:ParameterResultDataType");
+            should(address_space.findDataType("ParameterResultDataType")).eql(undefined,"namespace is not provided");
+            should(address_space.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);
+
             done();
         });
     });

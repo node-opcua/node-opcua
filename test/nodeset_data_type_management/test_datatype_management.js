@@ -52,7 +52,7 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable", fun
     it("should create an enumeration from the  ServerState object", function (done) {
 
         var test_value = nodeset.ServerState.NoConfiguration;
-
+        console.log(nodeset.ServerState);
         test_value.value.should.eql(2);
         done();
 

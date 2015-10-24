@@ -66,7 +66,13 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
         console.log = function () { };
 
-        functor();
+        try {
+            functor();
+        }
+        catch(err) {
+            console.log = old;
+            throw err;
+        }
         console.log = old;
 
     }

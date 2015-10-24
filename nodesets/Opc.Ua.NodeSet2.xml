@@ -23724,14 +23724,14 @@
       <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
     </References>
   </UAObject>
-  <UAObject NodeId="i=599" BrowseName="Default XML" SymbolicName="DefaultXml">
-    <DisplayName>Default XML</DisplayName>
-    <References>
-      <Reference ReferenceType="HasEncoding" IsForward="false">i=598</Reference>
-      <Reference ReferenceType="HasDescription">i=8579</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-    </References>
-  </UAObject>
+<UAObject NodeId="i=599" BrowseName="Default XML" SymbolicName="DefaultXml">
+  <DisplayName>Default XML</DisplayName>
+  <References>
+    <Reference ReferenceType="HasEncoding" IsForward="false">i=598</Reference>
+    <Reference ReferenceType="HasDescription">i=8579</Reference>
+    <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+  </References>
+</UAObject>
   <UAObject NodeId="i=602" BrowseName="Default XML" SymbolicName="DefaultXml">
     <DisplayName>Default XML</DisplayName>
     <References>

@@ -127,11 +127,12 @@ describe("DataAccess", function () {
         xyArrayItemType.arrayDimensions.should.eql([0, 0, 0]);
     });
 
-    it("should encode and decode a string containing fancy characters", function () {
+    it("should encode and decode a string containing fancy characters", function (done) {
         var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
         var engineeringUnits = standardUnits.degree_celsius;
         encode_decode_round_trip_test(engineeringUnits, function (buffer, id) {
-            buffer.length.should.equal(35);
+            buffer.length.should.equal(82);
+            done();
         });
 
     });

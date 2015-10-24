@@ -145,9 +145,13 @@ registerObject("IssuedIdentityToken");
 
 registerObject("DataValue");
 
-registerObject("EUInformation");
-registerObject("Range");
-registerObject("AxisInformation");
+registerObject("lib/data_access/schemas|Range");
+registerObject("lib/data_access/schemas|EUInformation");
+registerObject("lib/data_access/schemas|AxisInformation");
+//xxregisterObject("lib/data_access/schemas|ComplexNumber");
+//xxregisterObject("lib/data_access/schemas|DoubleComplexNumber");
+//xxregisterObject("lib/data_access/schemas|XVType");
+
 
 registerObject("ReadValueId");
 registerObject("ReadRequest");
@@ -285,15 +289,14 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
 
 
-var aspace = new AddressSpace();
+var addressSpace = new AddressSpace();
 
-generate_address_space(aspace, filename, function () {
+generate_address_space(addressSpace, filename, function () {
 
-    makeServerStatus(aspace);
+    makeServerStatus(addressSpace);
 
 });
 
-registerObject("lib/data_access/schemas|Range");
-registerObject("lib/data_access/schemas|EUInformation");
+
 
 console.log("done");

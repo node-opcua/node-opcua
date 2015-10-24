@@ -69,8 +69,9 @@ describe("OPCUA Object creation", function () {
 
 
 describe("OPCUA Structure encoding and decoding", function () {
-    it("should encode and decode a EndPointDescription", function (done) {
 
+
+    it("should encode and decode a EndPointDescription", function (done) {
         var obj = require("test/fixtures/fixture_GetEndPointResponse").makeEndPoint();
         encode_decode_round_trip_test(obj);
         done();

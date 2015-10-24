@@ -28,8 +28,8 @@ require("lib/datamodel/buildinfo");
 require("lib/services/browse_service");
 require("lib/services/historizing_service");
 require("lib/datamodel/opcua_status_code");
-require("schemas/ServerState_enum");
-require("schemas/ServerStatus");
+require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum");
+require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerStatus");
 require("lib/services/write_service");
 
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;

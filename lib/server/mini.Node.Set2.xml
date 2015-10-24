@@ -867,6 +867,15 @@
         </Definition>
     </UADataType>
 
+    <UAObject NodeId="i=340" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=338</Reference>
+            <Reference ReferenceType="HasDescription">i=7692</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
     <UADataType NodeId="i=852" BrowseName="ServerState">
         <DisplayName>ServerState</DisplayName>
         <References>
@@ -2059,4 +2068,147 @@
             </ListOfExtensionObject>
         </Value>
     </UAVariable>
+
+    <UADataType NodeId="i=291" BrowseName="NumericRange">
+        <DisplayName>NumericRange</DisplayName>
+        <Description>Specifies a range of array indexes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="i=589" BrowseName="FilterOperand">
+        <DisplayName>FilterOperand</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+
+    <UAObject NodeId="i=590" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=589</Reference>
+            <Reference ReferenceType="HasDescription">i=8570</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+    <UAObject NodeId="i=591" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=589</Reference>
+            <Reference ReferenceType="HasDescription">i=7935</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+
+    <UADataType NodeId="i=288" BrowseName="IntegerId">
+        <DisplayName>IntegerId</DisplayName>
+        <Description>A numeric identifier for an object.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=7</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="i=537" BrowseName="RelativePathElement">
+        <DisplayName>RelativePathElement</DisplayName>
+        <Description>An element in a relative path.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="RelativePathElement">
+            <Field Name="ReferenceTypeId" DataType="i=17">
+                <Description>The type of reference to follow.</Description>
+            </Field>
+            <Field Name="IsInverse" DataType="i=1">
+                <Description>If TRUE the reverse reference is followed.</Description>
+            </Field>
+            <Field Name="IncludeSubtypes" DataType="i=1">
+                <Description>If TRUE then subtypes of the reference type are followed.</Description>
+            </Field>
+            <Field Name="TargetName" DataType="i=20">
+                <Description>The browse name of the target.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="i=538" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=537</Reference>
+            <Reference ReferenceType="HasDescription">i=12712</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=539" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=537</Reference>
+            <Reference ReferenceType="HasDescription">i=12718</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+    <UADataType NodeId="i=540" BrowseName="RelativePath">
+        <DisplayName>RelativePath</DisplayName>
+        <Description>A relative path constructed from reference types and browse names.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="RelativePath">
+            <Field Name="Elements" DataType="i=537" ValueRank="1">
+                <Description>A list of elements in the path.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+
+    <UAObject NodeId="i=541" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=540</Reference>
+            <Reference ReferenceType="HasDescription">i=12715</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=542" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=540</Reference>
+            <Reference ReferenceType="HasDescription">i=12721</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+    <UADataType NodeId="i=598" BrowseName="AttributeOperand">
+        <DisplayName>AttributeOperand</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=589</Reference>
+        </References>
+        <Definition Name="AttributeOperand" BaseType="AttributeOperand">
+            <Field Name="NodeId" DataType="i=17" />
+            <Field Name="Alias" DataType="i=12" />
+            <Field Name="BrowsePath" DataType="i=540" />
+            <Field Name="AttributeId" DataType="i=288" />
+            <Field Name="IndexRange" DataType="i=291" />
+        </Definition>
+    </UADataType>
+
+    <UAObject NodeId="i=599" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=598</Reference>
+            <Reference ReferenceType="HasDescription">i=8579</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+    <UAObject NodeId="i=600" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=598</Reference>
+            <Reference ReferenceType="HasDescription">i=7944</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
 </UANodeSet>
