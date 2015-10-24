@@ -72,8 +72,10 @@ describe("testing nodeset to xml", function () {
 
         myEnumType.browseName.toString().should.eql("MyEnumType");
         var str = dumpXml(myEnumType, {});
-        //xx console.log(str);
+        console.log(str);
         str.should.match(/RUNNING/);
+        str.should.match(/<Field Name=\"RUNNING\" Value=\"1\">/);
+        str.should.match(/<Field Name=\"STOPPED\" Value=\"2\">/);
 
     });
 
