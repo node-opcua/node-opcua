@@ -158,8 +158,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItem.on("initialized", function () {
-
-                    console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
+                    //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
                 });
                 monitoredItem.on("changed", function (dataValue) {
                     debugLog(" client ", name, " received value change ", dataValue.value.value);
@@ -202,8 +201,6 @@ describe("Functional test : one server with many concurrent clients", function (
         var nb_clients = server.maxAllowedSessionNumber;
 
         nb_clients.should.eql(10);
-
-        nb_clients =1;
 
         var clients = [];
 
