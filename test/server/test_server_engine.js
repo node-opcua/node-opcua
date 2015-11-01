@@ -24,6 +24,7 @@ var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
 
 var VariableIds = require("lib/opcua_node_ids").VariableIds;
+var ObjectIds= require("lib/opcua_node_ids").ObjectIds;
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 
@@ -32,7 +33,8 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
 var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
-
+var UAVariable = require("lib/address_space/ua_variable").UAVariable;
+var UAObject = require("lib/address_space/ua_object").UAObject;
 
 describe("testing ServerEngine", function () {
 
@@ -1976,7 +1978,7 @@ describe("ServerEngine advanced", function () {
 
 
 
-describe("ServerEngine ServerStatus",function() {
+describe("ServerEngine ServerStatus & ServerCapabilities",function() {
 
     var sinon = require("sinon");
 
@@ -1989,6 +1991,7 @@ describe("ServerEngine ServerStatus",function() {
         productUri: "URI:NODEOPCUA-SERVER"
     };
 
+    this.timeout(40000);
     var test;
     before(function (done) {
 
@@ -1997,9 +2000,7 @@ describe("ServerEngine ServerStatus",function() {
         resourceLeakDetector.start();
         engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
-
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-            test.clock = sinon.useFakeTimers((new Date(2015,10,1,10,0,0)).getTime());;
+        engine.initialize({nodeset_filename: server_engine.standard_nodeset_file}, function () {
             done();
         });
 
@@ -2007,32 +2008,52 @@ describe("ServerEngine ServerStatus",function() {
     after(function () {
         engine.shutdown();
         engine = null;
-        test.clock.restore();
         resourceLeakDetector.stop();
 
+    });
+    beforeEach(function() {
+        test.clock = sinon.useFakeTimers(Date.now());
+
+    });
+    afterEach(function(){
+        test.clock.restore();
+    });
+
+    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ",function(done){
+
+        var serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
+        serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
+
+        var address_space = engine.address_space;
+        var serverCapabilitiesNode = address_space.findObject(serverCapabilitiesId);
+
+        should(serverCapabilitiesNode).be.instanceOf(UAObject);
+
+
+        // ->
+        done();
     });
 
     it("ServerEngine#ServerStatus should expose currentTime",function(done) {
 
         var currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
+        currentTimeId.value.should.eql(2258);
 
         var address_space = engine.address_space;
         var currentTimeNode = address_space.findObject(currentTimeId);
-        var d = currentTimeNode.readValue();
-
-        console.log(d.toString());
+        var d1 = currentTimeNode.readValue();
 
         test.clock.tick(1000);
-        var d = currentTimeNode.readValue();
-        console.log(d.toString());
+        var d2 = currentTimeNode.readValue();
+        d2.value.value.getTime().should.be.greaterThan(d1.value.value.getTime()+900);
 
         test.clock.tick(1000);
-        var d = currentTimeNode.readValue();
-        console.log(d.toString());
+        var d3 = currentTimeNode.readValue();
+        d3.value.value.getTime().should.be.greaterThan(d2.value.value.getTime()+900);
 
         test.clock.tick(1000);
-        var d = currentTimeNode.readValue();
-        console.log(d.toString());
+        var d4 = currentTimeNode.readValue();
+        d4.value.value.getTime().should.be.greaterThan(d3.value.value.getTime()+900);
 
         done();
     });

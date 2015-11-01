@@ -689,6 +689,46 @@
             </Field>
         </Definition>
     </UADataType>
+
+
+    <UADataType NodeId="i=859" BrowseName="ServerDiagnosticsSummaryDataType">
+        <DisplayName>ServerDiagnosticsSummaryDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="ServerDiagnosticsSummaryDataType">
+            <Field Name="ServerViewCount" DataType="i=7" />
+            <Field Name="CurrentSessionCount" DataType="i=7" />
+            <Field Name="CumulatedSessionCount" DataType="i=7" />
+            <Field Name="SecurityRejectedSessionCount" DataType="i=7" />
+            <Field Name="RejectedSessionCount" DataType="i=7" />
+            <Field Name="SessionTimeoutCount" DataType="i=7" />
+            <Field Name="SessionAbortCount" DataType="i=7" />
+            <Field Name="CurrentSubscriptionCount" DataType="i=7" />
+            <Field Name="CumulatedSubscriptionCount" DataType="i=7" />
+            <Field Name="PublishingIntervalCount" DataType="i=7" />
+            <Field Name="SecurityRejectedRequestsCount" DataType="i=7" />
+            <Field Name="RejectedRequestsCount" DataType="i=7" />
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="i=860" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=859</Reference>
+            <Reference ReferenceType="HasDescription">i=8849</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="i=861" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=859</Reference>
+            <Reference ReferenceType="HasDescription">i=8214</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+
     <UAObject NodeId="i=2253" BrowseName="Server" EventNotifier="1">
         <DisplayName>Server</DisplayName>
         <References>
