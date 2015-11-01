@@ -329,8 +329,16 @@ var Variant_Schema = {
 
     var self = this;
 
+    function toString(value) {
+      switch(self.dataType) {
+        case DataType.DateTime:
+              return  value.toISOString();
+        default:
+              return value.toString();
+      }
+    }
     function f(value) {
-      return (value === null) ? "<null>" : value.toString();
+      return (value === null) ? "<null>" : toString(value);
     }
 
     var data = self.arrayType.toString();

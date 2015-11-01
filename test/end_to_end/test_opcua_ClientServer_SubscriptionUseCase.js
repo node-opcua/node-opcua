@@ -940,6 +940,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             n1.on("value_changed",function(dataValue) {
                 changeDetected+=1;
             });
+
             n1.setValueFromSource({dataType: DataType.Double, value: 3.14},StatusCodes.Good);
             changeDetected.should.equal(1);
 
@@ -1072,26 +1073,6 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             }, 1000);
 
         }, done);
-    });
-
-    it("#rejectedSessionCount", function () {
-        server.rejectedSessionCount.should.eql(server.engine.rejectedSessionCount);
-    });
-
-    it("#rejectedRequestsCount", function () {
-        server.rejectedRequestsCount.should.eql(server.engine.rejectedRequestsCount);
-    });
-
-    it("#sessionAbortCount", function () {
-        server.sessionAbortCount.should.eql(server.engine.sessionAbortCount);
-    });
-
-    it("#publishingIntervalCount", function () {
-        server.publishingIntervalCount.should.eql(server.engine.publishingIntervalCount);
-    });
-
-    it("#buildInfo", function () {
-        server.buildInfo.should.eql(server.engine.buildInfo);
     });
 
     it("#bytesRead #transactionsCount #bytesWritten", function (done) {

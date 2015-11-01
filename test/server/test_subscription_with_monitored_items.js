@@ -19,6 +19,9 @@ var Variant = require("lib/datamodel/variant").Variant;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var encode_decode = require("lib/misc/encode_decode");
+
+var now = (new Date()).getTime();
 
 var fake_publish_engine = {
     pendingPublishRequestCount: 0,
@@ -125,7 +128,7 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
     beforeEach(function () {
-        this.clock = sinon.useFakeTimers();
+        this.clock = sinon.useFakeTimers(now);
     });
     afterEach(function () {
         this.clock.restore();
@@ -510,11 +513,9 @@ describe("Subscriptions and MonitoredItems", function () {
 
                 monitoredItem.node = address_space.findObject(monitoredItem.itemToMonitor.nodeId);
             });
-            this.clock = sinon.useFakeTimers();
 
         });
         after(function (done) {
-            this.clock.restore();
             subscription.terminate();
             subscription = null;
             done();
@@ -528,6 +529,9 @@ describe("Subscriptions and MonitoredItems", function () {
         var floatWritesFail = [2.3, 4.4, 1.6];
         var floatWritesPass = [6.4, 4.1, 8.4];
 
+        var integer64Deadband = 2;
+        var integer64WritesFail = [ [0,8], [0,7], [0,10]];
+        var integer64WritesPass = [ [0,3], [0,6], [0,13]];
 
         /*
          Specify a filter using a deadband absolute.
@@ -540,10 +544,16 @@ describe("Subscriptions and MonitoredItems", function () {
             var nodeId = "ns=100;s=Static_" + dataType;
             var node = engine.address_space.findObject(nodeId);
             should(!!node).not.eql(false);
+            node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
             function simulate_nodevalue_change(currentValue) {
+
                 var v = new Variant({dataType: DataType[dataType], value: currentValue});
+
+                test.clock.tick(1000);
+
                 node.setValueFromSource(v);
+                node.readValue().value.value.should.eql(currentValue,"value must have been recorded");
             }
 
             var notifs;
@@ -585,17 +595,20 @@ describe("Subscriptions and MonitoredItems", function () {
 
                 // process publish
                 notifs = monitoredItem.extractMonitoredItemNotifications();
+
                 monitoredItem.queue.length.should.eql(0);
 
                 if (expectedValue === undefined) {
 
-                    notifs.length.should.eql(0);
+                    notifs.length.should.eql(0, "should have no pending notification");
 
                 } else {
-                    var encode_decode = require("lib/misc/encode_decode");
+
+                    notifs.length.should.eql(1," should have one pending notification");
 
                     var expectedValue = encode_decode["coerce"+ dataType](expectedValue);
-                    notifs.length.should.eql(1);
+
+
                     // verify that value matches expected value
                     notifs[0].value.value.value.should.eql(expectedValue);
 
@@ -631,7 +644,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        ["SByte", "Int16" ,"Int32" , "Int64", "Byte", "UInt16","UInt32","UInt64"].forEach(function (dataType) {
+        ["SByte", "Int16" ,"Int32" , "Byte", "UInt16","UInt32"].forEach(function (dataType) {
 
             it("testing with " + dataType, function () {
                 test_deadband(dataType, integerDeadband, integerWritesPass, integerWritesFail);
@@ -642,6 +655,14 @@ describe("Subscriptions and MonitoredItems", function () {
 
             it("testing with " + dataType, function () {
                 test_deadband(dataType, floatDeadband, floatWritesPass, floatWritesFail);
+            });
+
+        });
+
+        ["Int64", "UInt64"].forEach(function (dataType) {
+
+            it("testing with " + dataType, function () {
+                test_deadband(dataType, integer64Deadband, integer64WritesPass, integer64WritesFail);
             });
 
         });
@@ -702,7 +723,7 @@ describe("#maxNotificationsPerPublish", function () {
     //}
 
     beforeEach(function () {
-        this.clock = sinon.useFakeTimers();
+        this.clock = sinon.useFakeTimers(now);
     });
     afterEach(function () {
         this.clock.restore();

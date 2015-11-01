@@ -65,26 +65,30 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
         server = null;
     });
 
-    it("monitoring variables shall only reports real value changes : fixing bug #1xx", function (done) {
+    it("monitoring variables shall only reports real value changes : fixing bug #119", function (done) {
+
+        var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+        var VariableIds = require("lib/opcua_node_ids").VariableIds;
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             assert(session instanceof ClientSession);
 
             var subscription = new ClientSubscription(session, {
-                requestedPublishingInterval: 150,
-                requestedLifetimeCount: 10 * 60 * 10,
-                requestedMaxKeepAliveCount: 10,
-                maxNotificationsPerPublish: 2,
-                publishingEnabled: true,
-                priority: 6
+                requestedPublishingInterval:     150,
+                requestedLifetimeCount:          10 * 60 * 10,
+                requestedMaxKeepAliveCount:      10,
+                maxNotificationsPerPublish:       2,
+                publishingEnabled:             true,
+                priority:                         6
             });
 
             subscription.once("terminated", function () {
                 inner_done();
             });
 
-            var nodeId = "ns=0;i=2257"; // Server.StartTime
+            var nodeId = makeNodeId(VariableIds.Server_ServerStatus_BuildInfo_ProductName); // "ns=0;i=2261"; // Server.StartTime
+
             var monitoredItem = subscription.monitor(
                 {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                 {samplingInterval: 10, discardOldest: true, queueSize: 1});
@@ -112,16 +116,20 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
                             callback();
                         } , 500);
                     },
+
                     function(callback) {
 
-                        //  change server startTime ( from the server side)
-                        server.engine.startTime = new Date();
+                        var s = server.engine.findObject(nodeId);
+
+                        //  change server productName ( from the server side)
+                        server.engine.serverStatus.buildInfo.productName += "Modified";
 
                         setTimeout(function () {
-                            // check that the change has been identified
+                            // check that the change has been identified, but reported only once !
                             change_count.should.eql(2);
                             callback();
-                        } , 200);
+                        } , 3000);
+
                     },
 
                     function(callback) {
@@ -129,7 +137,7 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
                             change_count.should.eql(2);
                             subscription.terminate();
                             callback();
-                        }, 500);
+                        }, 1500);
                     }
 
                 ]);
@@ -138,7 +146,7 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
     });
 
-    it("a server that have a fast sampling rate shall not report value changed faster on monitored " +
+    it("a server that have a fast sampling rate shall not report 'value changes' on monitored " +
         "item faster than the sampling rate imposed by the client",function(done){
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -147,11 +155,11 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
             var subscription = new ClientSubscription(session, {
                 requestedPublishingInterval: 250,
-                requestedLifetimeCount: 10 * 60 * 10,
-                requestedMaxKeepAliveCount: 10,
-                maxNotificationsPerPublish: 2,
-                publishingEnabled: true,
-                priority: 6
+                requestedLifetimeCount:      10 * 60 * 10,
+                requestedMaxKeepAliveCount:  10,
+                maxNotificationsPerPublish:   2,
+                publishingEnabled:         true,
+                priority:                     6
             });
 
             subscription.once("terminated", function () {
@@ -160,11 +168,13 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
             var nodeId = "ns=411;s=Scalar_Static_Double";
 
-            var count = 1;
+            var count = 1.0;
+
             var v = server.engine.findObject(nodeId);
             v.setValueFromSource( new Variant({dataType: DataType.Double, value:count}));
 
 
+            // change the underlying value at a very fast rate (every 20ms)
             var timerId = setInterval(function() {
                 count +=1;
                 v.setValueFromSource( new Variant({dataType: DataType.Double, value:count}));
@@ -193,11 +203,13 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
                 async.series([
 
                     function(callback) {
+
                         setTimeout(function () {
                             //xx console.log(change_count);
                             change_count.should.be.within(1,2);
                             callback();
                         },500);
+
                     },
                     function(callback) {
                         setTimeout(function () {

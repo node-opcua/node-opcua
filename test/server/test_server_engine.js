@@ -1024,7 +1024,7 @@ describe("testing ServerEngine", function () {
                     dataEncoding: null /* */
                 },
                 {
-                    nodeId: resolveNodeId("ns=0;i=2259"),
+                    nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
                     attributeId: AttributeIds.Value,
                     indexRange: null, /* ???? */
                     dataEncoding: null /* */
@@ -1086,16 +1086,19 @@ describe("testing ServerEngine", function () {
             dataValues[1].should.be.instanceOf(DataValue);
             dataValues[2].should.be.instanceOf(DataValue);
 
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[0].serverTimestamp).be.instanceOf(Date);
             should(dataValues[0].sourceTimestamp).be.eql(null);
             should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
 
+            dataValues[1].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[1].serverTimestamp).be.instanceOf(Date);
             should(dataValues[1].sourceTimestamp).be.eql(null);
             should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
 
+            dataValues[2].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[2].serverTimestamp).be.instanceOf(Date);
             should(dataValues[2].sourceTimestamp).be.eql(null);
             should(dataValues[2].serverPicoseconds).be.eql(0);
@@ -1118,6 +1121,10 @@ describe("testing ServerEngine", function () {
             dataValues[0].should.be.instanceOf(DataValue);
             dataValues[1].should.be.instanceOf(DataValue);
             dataValues[2].should.be.instanceOf(DataValue);
+
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+            dataValues[1].statusCode.should.eql(StatusCodes.Good);
+            dataValues[2].statusCode.should.eql(StatusCodes.Good);
 
             should(dataValues[0].serverTimestamp).be.eql(null);
             should(dataValues[0].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
@@ -1465,7 +1472,7 @@ describe("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_BuildInfo_BuildNumber", function (done) {
 
-            engine.buildInfo.buildNumber = "1234";
+            engine.serverStatus.buildInfo.buildNumber = "1234";
 
             var readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
@@ -1488,7 +1495,7 @@ describe("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_BuildInfo_BuildNumber (2nd)", function () {
 
-            engine.buildInfo.buildNumber = "1234";
+            engine.serverStatus.buildInfo.buildNumber = "1234";
 
             var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
             var node = engine.findObject(nodeid);
@@ -1744,6 +1751,7 @@ describe("testing ServerEngine", function () {
                 }
             );
         });
+
         it("ZZ should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function (done) {
 
             var readRequest = new read_service.ReadRequest({
@@ -1910,7 +1918,6 @@ describe("testing ServerEngine", function () {
 
         it("should perform readValueAsync on Variable", function (done) {
 
-
             var variable = engine.findObject("ns=1;s=RefreshedOnDemandValue");
 
             value1.should.equal(0);
@@ -1964,5 +1971,71 @@ describe("ServerEngine advanced", function () {
         // leaks will be detected if engine failed to dispose session
         done();
     });
+
+});
+
+
+
+describe("ServerEngine ServerStatus",function() {
+
+    var sinon = require("sinon");
+
+    var engine;
+
+    var defaultBuildInfo = {
+        productName: "NODEOPCUA-SERVER",
+        softwareVersion: "1.0",
+        manufacturerName: "<Manufacturer>",
+        productUri: "URI:NODEOPCUA-SERVER"
+    };
+
+    var test;
+    before(function (done) {
+
+        test =this;
+
+        resourceLeakDetector.start();
+        engine = new ServerEngine({buildInfo: defaultBuildInfo});
+
+
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+            test.clock = sinon.useFakeTimers((new Date(2015,10,1,10,0,0)).getTime());;
+            done();
+        });
+
+    });
+    after(function () {
+        engine.shutdown();
+        engine = null;
+        test.clock.restore();
+        resourceLeakDetector.stop();
+
+    });
+
+    it("ServerEngine#ServerStatus should expose currentTime",function(done) {
+
+        var currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
+
+        var address_space = engine.address_space;
+        var currentTimeNode = address_space.findObject(currentTimeId);
+        var d = currentTimeNode.readValue();
+
+        console.log(d.toString());
+
+        test.clock.tick(1000);
+        var d = currentTimeNode.readValue();
+        console.log(d.toString());
+
+        test.clock.tick(1000);
+        var d = currentTimeNode.readValue();
+        console.log(d.toString());
+
+        test.clock.tick(1000);
+        var d = currentTimeNode.readValue();
+        console.log(d.toString());
+
+        done();
+    });
+
 
 });

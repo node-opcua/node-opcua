@@ -272,6 +272,67 @@ describe("testing Variable#bindVariable", function () {
 
         });
 
+        it("should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value", function (done) {
+
+            var sinon = require("sinon");
+
+            var sameDataValue = require("lib/datamodel/datavalue").sameDataValue;
+
+            var variable = the_address_space.addVariable(rootFolder, {
+                browseName: "Variable37",
+                dataType: "Double",
+                typeDefinition: makeNodeId(68)
+            });
+
+            var value = 100.0;
+
+           var getFunc = sinon.spy(function() {
+                return new Variant({
+                    dataType: DataType.Double,
+                    value: value
+                });
+            });
+            var options = {
+                get: getFunc,
+                set: function (variant) {
+                    variant.should.be.instanceOf(Variant);
+                    value = variant.value;
+                    return StatusCodes.Good;
+                }
+            };
+            variable.bindVariable(options);
+
+
+            var base = options.get.callCount;
+
+            var dataValue1 = variable.readValue();
+            console.log("Value1" ,dataValue1.toString().green);
+
+            options.get.callCount.should.eql(1 + base);
+
+            var dataValue2 = variable.readValue();
+            console.log("Value2" ,dataValue2.toString().green);
+            options.get.callCount.should.eql(2 + base);
+
+            sameDataValue(dataValue1,dataValue2).should.eql(true);
+            dataValue1.serverTimestamp.getTime().should.eql(dataValue2.serverTimestamp.getTime());
+
+
+            // now change data value
+            value = value +200;
+
+            var dataValue3 = variable.readValue();
+            console.log("Value3" ,dataValue3.toString().green);
+            options.get.callCount.should.eql(3 + base);
+            sameDataValue(dataValue1,dataValue3).should.eql(false); // dataValue must have changed
+
+            dataValue1.serverTimestamp.getTime().should.be.below(dataValue3.serverTimestamp.getTime());
+
+
+
+            done();
+        });
+
         it("T2 should create a variable with synchronous get and set functor", function (done) {
 
             var variable = the_address_space.addVariable(rootFolder, {
@@ -316,7 +377,6 @@ describe("testing Variable#bindVariable", function () {
 
                 },
                 function write_simple_value(callback) {
-
 
                     var dataValue = new DataValue({
                         value: {
@@ -1103,7 +1163,7 @@ describe("testing Variable#writeValue on Integer", function () {
 });
 
 
-describe("testing Variable#clone ", function () {
+describe("testing UAVariable ", function () {
 
 
     var the_address_space, rootFolder, variableInteger;
@@ -1134,7 +1194,7 @@ describe("testing Variable#clone ", function () {
         });
     });
 
-    it("should clone a variable", function () {
+    it("#clone should clone a variable", function () {
 
         variableInteger.browseName.toString().should.eql("some INTEGER Variable");
         variableInteger._dataValue.value.dataType.should.eql(DataType.Int32);
@@ -1256,4 +1316,58 @@ describe("testing Variable#clone ", function () {
         });
 
     });
+
+    it("#setValueFromSource should cause 'value_changed' event to be raised",function(done) {
+
+        var rootFolder = the_address_space.findObject("RootFolder");
+
+        var temperatureVar = the_address_space.addVariable(rootFolder, {
+            browseName: "Testing#setValueFromSource",
+            dataType: "Double",
+            value: {
+                dataType: DataType.Double,
+                value: 0.0
+            }
+        });
+        temperatureVar.minimumSamplingInterval.should.eql(0);
+
+        var changeDetected = 0;
+        temperatureVar.on("value_changed",function(dataValue) {
+            changeDetected+=1;
+        });
+
+        function wait_a_little_bit(callback) { setTimeout(callback,100);}
+        async.series([
+            function (callback) {
+                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 3.14},StatusCodes.Good);
+                changeDetected.should.equal(1);
+
+                callback();
+            },
+            wait_a_little_bit,
+
+            function (callback) {
+                // calling setValueFromSource with same variant will cause change event, as in fact timestamps are also updated
+                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 3.14},StatusCodes.Good);
+                changeDetected.should.equal(2);
+                callback();
+
+
+            },
+
+            wait_a_little_bit,
+
+            function (callback) {
+                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 6.28},StatusCodes.Good);
+                changeDetected.should.equal(3);
+                callback();
+            }
+
+
+        ],done);
+
+    });
 });
+
+
+

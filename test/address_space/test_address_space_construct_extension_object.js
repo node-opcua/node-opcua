@@ -11,7 +11,7 @@
 "use strict";
 require("requirish")._(module);
 var should = require("should");
-var assert = require("assert");
+var assert = require("better-assert");
 var path = require("path");
 
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
@@ -33,7 +33,9 @@ var UAObject = require("lib/address_space/ua_object").UAObject;
 
 
 
-describe("testing  address space namespace loading", function () {
+describe("testing address space namespace loading", function () {
+
+    this.timeout(30000); // could be time consuming
 
     var address_space = new AddressSpace();
     before(function (done) {
@@ -150,5 +152,20 @@ describe("testing  address space namespace loading", function () {
             done(err);
         });
     });
+
+    it("should bind an xml-preloaded Extension Object Variable : ServerStatus ",function(done) {
+        // in this test, we verify that we can easily bind the Server_ServerStatus object
+        // the process shall automatically bind variables and substructures recursively
+        var VariableIds = require("lib/opcua_node_ids").VariableIds;
+        var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+
+        var serverStatus = address_space.findObject(makeNodeId(VariableIds.Server_ServerStatus));
+        serverStatus.browseName.toString().should.eql("ServerStatus");
+
+        serverStatus.bindExtensionObject();
+
+        done();
+    });
+
 });
 

@@ -9,17 +9,17 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 describe("OPCUAServer", function () {
 
-    before(function (done) {
+    before(function () {
         resourceLeakDetector.start();
-        done();
     });
     after(function () {
         resourceLeakDetector.stop();
     });
 
+    var server = new OPCUAServer({});
+
     it("should dismiss all existing session upon termination", function (done) {
 
-        var server = new OPCUAServer({});
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists
@@ -38,6 +38,27 @@ describe("OPCUAServer", function () {
         });
 
     });
+
+    it("#rejectedSessionCount", function () {
+        server.rejectedSessionCount.should.eql(server.engine.rejectedSessionCount);
+    });
+
+    it("#rejectedRequestsCount", function () {
+        server.rejectedRequestsCount.should.eql(server.engine.rejectedRequestsCount);
+    });
+
+    it("#sessionAbortCount", function () {
+        server.sessionAbortCount.should.eql(server.engine.sessionAbortCount);
+    });
+
+    it("#publishingIntervalCount", function () {
+        server.publishingIntervalCount.should.eql(server.engine.publishingIntervalCount);
+    });
+
+    it("#buildInfo", function () {
+        server.buildInfo.should.eql(server.engine.buildInfo);
+    });
+
 
 
 });

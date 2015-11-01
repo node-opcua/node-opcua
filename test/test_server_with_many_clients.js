@@ -23,6 +23,8 @@ var resolveNodeId = opcua.resolveNodeId;
 var AttributeIds = opcua.AttributeIds;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
+var makeNodeId = opcua.makeNodeId;
+var VariableIds = opcua.VariableIds;
 
 //xx opcua.utils.setDebugFlag(__filename,true);
 var debugLog = opcua.utils.make_debugLog(__filename);
@@ -147,11 +149,17 @@ describe("Functional test : one server with many concurrent clients", function (
                 });
 
                 var monitoredItem = subscription.monitor(
-                    {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
+                    {
+                        nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
+                        attributeId: AttributeIds.Value
+                    },
                     {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItem.on("initialized", function () {
+
+                    console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
                 });
                 monitoredItem.on("changed", function (dataValue) {
                     debugLog(" client ", name, " received value change ", dataValue.value.value);
@@ -192,8 +200,10 @@ describe("Functional test : one server with many concurrent clients", function (
 
 
         var nb_clients = server.maxAllowedSessionNumber;
+
         nb_clients.should.eql(10);
 
+        nb_clients =1;
 
         var clients = [];
 
