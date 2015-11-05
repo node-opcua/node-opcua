@@ -85,10 +85,11 @@ describe("NodeCrawler after write",function(){
                         if (!err) {
                             console.log('read success');
                             obj.browseName.toString().should.equal("Root");
-                            obj.organizes.length.should.equal(3);
+                            obj.organizes.length.should.equal(4);
                             obj.organizes[0].browseName.toString().should.eql("Objects");
                             obj.organizes[1].browseName.toString().should.eql("Types");
                             obj.organizes[2].browseName.toString().should.eql("Views");
+                            obj.organizes[3].browseName.toString().should.eql("Scalar_Static_Large_Array");
                             obj.hasTypeDefinition.should.eql("FolderType");
                         }
                         inner_done(err);
@@ -133,10 +134,11 @@ describe("NodeCrawler after write",function(){
                         if (!err) {
                             console.log('read success');
                             obj.browseName.toString().should.equal("Root");
-                            obj.organizes.length.should.equal(3);
+                            obj.organizes.length.should.equal(4);
                             obj.organizes[0].browseName.toString().should.eql("Objects");
                             obj.organizes[1].browseName.toString().should.eql("Types");
                             obj.organizes[2].browseName.toString().should.eql("Views");
+                            obj.organizes[3].browseName.toString().should.eql("Scalar_Static_Large_Array");
                             obj.hasTypeDefinition.should.eql("FolderType");
                         }
                         inner_done(err);

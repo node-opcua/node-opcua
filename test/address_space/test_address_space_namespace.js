@@ -108,6 +108,7 @@ describe("testing  address space namespace loading", function () {
         });
     });
 
+    this.timeout(40000);
 
     it("should process namespaces with DI", function (done) {
 

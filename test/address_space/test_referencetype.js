@@ -109,7 +109,11 @@ describe("testing ReferenceType", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         });
-        references.length.should.equal(4);
+        references.length.should.be.greaterThan(2);
+
+        var names =references.map(function(ref){ return address_space.findObject(ref.nodeId).browseName.toString(); });
+        var expectedNames = ["FolderType", "Objects", "Types", "Views"];
+        _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
 
     it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ", function () {
@@ -133,7 +137,11 @@ describe("testing ReferenceType", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         });
-        references.length.should.equal(3);
+        references.length.should.be.greaterThan(2);
+
+        var names =references.map(function(ref){ return address_space.findObject(ref.nodeId).browseName.toString(); });
+        var expectedNames = ["Objects", "Types", "Views"];
+        _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
 
     it("should return 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ", function () {
@@ -166,7 +174,7 @@ describe("testing ReferenceType", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         });
-        references.length.should.equal(3);
+        references.length.should.be.greaterThan(2);
     });
 
     it("should return 6 refs for browseNode on ServerStatus (BrowseDirection.Forward)", function () {
@@ -184,7 +192,7 @@ describe("testing ReferenceType", function () {
         var browseNames = references.map(function (r) {
             return r.browseName.name;
         });
-        console.log("              " + browseNames.join(" , "));
+        //xx console.log("              " + browseNames.join(" , "));
 
         references.length.should.equal(6);
 
