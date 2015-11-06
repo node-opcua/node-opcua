@@ -82,11 +82,45 @@ describe("ServerEngine Subscriptions service", function () {
         subscription.terminate();
     });
 
+    it("session should emit a new_subscription and subscription_terminated event", function () {
+
+        var sinon= require("sinon");
+        session.currentSubscriptionCount.should.equal(0);
+        session.cumulatedSubscriptionCount.should.equal(0);
+
+        var spyNew = sinon.spy();
+        var spyTerminated = sinon.spy();
+
+        session.on("new_subscription",spyNew);
+        session.on("subscription_terminated",spyTerminated);
+
+
+        var subscription = session.createSubscription({
+            requestedPublishingInterval: 1000,  // Duration
+            requestedLifetimeCount: 10,         // Counter
+            requestedMaxKeepAliveCount: 10,     // Counter
+            maxNotificationsPerPublish: 10,     // Counter
+            publishingEnabled: true,            // Boolean
+            priority: 14                        // Byte
+        });
+
+        spyNew.callCount.should.eql(1);
+        spyTerminated.callCount.should.eql(0);
+
+        var statusCode = session.deleteSubscription(subscription.id);
+
+        spyNew.callCount.should.eql(1);
+        spyTerminated.callCount.should.eql(1);
+
+        session.removeListener("new_subscription",spyNew);
+        session.removeListener("subscription_terminated",spyTerminated);
+    });
+
     it("should maintain the correct number of cumulatedSubscriptionCount at the engine level", function () {
 
         var subscription_parameters = {
             requestedPublishingInterval: 1000,  // Duration
-            requestedLifetimeCount: 10,     // Counter
+            requestedLifetimeCount: 10,         // Counter
             requestedMaxKeepAliveCount: 10,     // Counter
             maxNotificationsPerPublish: 10,     // Counter
             publishingEnabled: true,            // Boolean

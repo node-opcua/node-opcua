@@ -865,6 +865,138 @@ describe("#maxNotificationsPerPublish", function () {
         done();
     });
 
+
+    describe("Subscription.subscriptionDiagnostics",function() {
+
+
+        var subscription;
+        beforeEach(function(){
+            fake_publish_engine.pendingPublishRequestCount = 1000;
+
+            subscription = new Subscription({
+                priority: 10,
+                publishingInterval: 100,
+                maxNotificationsPerPublish: 123,
+                maxKeepAliveCount: 5,
+                lifeTimeCount: 17,
+                publishingEnabled: true,              //  PUBLISHING IS ENABLED !!!
+                publishEngine: fake_publish_engine
+            });
+
+            subscription.sessionId = 100;
+
+            subscription.on("monitoredItem", function (monitoredItem) {
+                monitoredItem.samplingFunc = install_spying_samplingFunc();
+            });
+
+        });
+        function add_monitored_item() {
+            var nodeId = "i=2258";
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {nodeId: nodeId },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 100
+                }
+            });
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+            return monitoredItem;
+        }
+
+        afterEach(function() {
+
+            subscription.terminate();
+            subscription = null;
+        });
+
+        var MonitoringMode = subscription_service.MonitoringMode;
+
+
+        it("should update Subscription.subscriptionDiagnostics.sessionId",function() {
+            subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.sessionId);
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.subscriptionId",function() {
+            subscription.subscriptionDiagnostics.subscriptionId.should.eql(subscription.id);
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.priority",function() {
+            subscription.priority.should.eql(10);
+            subscription.subscriptionDiagnostics.priority.should.eql(subscription.priority);
+        });
+        it("should update Subscription.subscriptionDiagnostics.publishingInterval",function() {
+            subscription.publishingInterval.should.eql(100);
+            subscription.subscriptionDiagnostics.publishingInterval.should.eql(subscription.publishingInterval);
+        });
+        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount",function() {
+            subscription.lifeTimeCount.should.eql(17);
+            subscription.subscriptionDiagnostics.maxLifetimeCount.should.eql(subscription.lifeTimeCount);
+        });
+        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount",function() {
+            subscription.maxKeepAliveCount.should.eql(5);
+            subscription.subscriptionDiagnostics.maxKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
+        });
+        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish",function() {
+            subscription.maxNotificationsPerPublish.should.eql(123);
+            subscription.subscriptionDiagnostics.maxNotificationsPerPublish.should.eql(subscription.maxNotificationsPerPublish);
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.publishingEnabled",function() {
+            subscription.publishingEnabled.should.eql(true);
+            subscription.subscriptionDiagnostics.publishingEnabled.should.eql(subscription.publishingEnabled);
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber",function() {
+            subscription._get_future_sequence_number().should.eql(1);
+            subscription.subscriptionDiagnostics.nextSequenceNumber.should.eql(subscription._get_future_sequence_number());
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.disabledMonitoredItemCount",function() {
+
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
+            subscription.monitoredItemCount.should.eql(0);
+
+            var m1  = add_monitored_item();
+            var m2  = add_monitored_item();
+            var m3  = add_monitored_item();
+
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(3);
+            subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(0);
+
+            m1.setMonitoringMode(MonitoringMode.Disabled);
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(3);
+            subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(1);
+
+            m2.setMonitoringMode(MonitoringMode.Disabled);
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(3);
+            subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(2);
+
+        });
+        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount",function() {
+
+
+
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
+            subscription.monitoredItemCount.should.eql(0);
+
+            add_monitored_item();
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(1);
+            subscription.monitoredItemCount.should.eql(1);
+
+            add_monitored_item();
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(2);
+            subscription.monitoredItemCount.should.eql(2);
+
+
+        });
+
+    })
 });
+
 
 

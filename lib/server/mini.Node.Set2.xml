@@ -728,6 +728,7 @@
         </References>
     </UAObject>
 
+
     <UADataType NodeId="i=874" BrowseName="SubscriptionDiagnosticsDataType">
         <DisplayName>SubscriptionDiagnosticsDataType</DisplayName>
         <References>
@@ -783,6 +784,15 @@
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
+
+    <UAVariableType NodeId="i=2171" BrowseName="SubscriptionDiagnosticsArrayType" DataType="i=874" ValueRank="1">
+        <DisplayName>SubscriptionDiagnosticsArrayType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">i=12784</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+    </UAVariableType>
+
     <UAVariable NodeId="i=8229" BrowseName="SubscriptionDiagnosticsDataType" ParentNodeId="i=7617" DataType="String">
         <DisplayName>SubscriptionDiagnosticsDataType</DisplayName>
         <References>
@@ -2616,5 +2626,41 @@
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
+
+    <UAVariable NodeId="i=2290" BrowseName="SubscriptionDiagnosticsArray" ParentNodeId="i=2274" DataType="i=874" ValueRank="1">
+        <DisplayName>SubscriptionDiagnosticsArray</DisplayName>
+        <Description>A list of diagnostics for each active subscription.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=2171</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2274</Reference>
+        </References>
+    </UAVariable>
+
+    <UAObject NodeId="i=3706" BrowseName="SessionsDiagnosticsSummary" ParentNodeId="i=2274">
+        <DisplayName>SessionsDiagnosticsSummary</DisplayName>
+        <Description>A summary of session level diagnostics.</Description>
+        <References>
+            <Reference ReferenceType="HasComponent">i=3707</Reference>
+            <Reference ReferenceType="HasComponent">i=3708</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=2026</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2274</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="i=3707" BrowseName="SessionDiagnosticsArray" ParentNodeId="i=3706" DataType="i=865" ValueRank="1">
+        <DisplayName>SessionDiagnosticsArray</DisplayName>
+        <Description>A list of diagnostics for each active session.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=2196</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=3706</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=3708" BrowseName="SessionSecurityDiagnosticsArray" ParentNodeId="i=3706" DataType="i=868" ValueRank="1">
+        <DisplayName>SessionSecurityDiagnosticsArray</DisplayName>
+        <Description>A list of security related diagnostics for each active session.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=2243</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=3706</Reference>
+        </References>
+    </UAVariable>
 
 </UANodeSet>

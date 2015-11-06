@@ -1932,6 +1932,14 @@ describe("testing ServerEngine", function () {
         });
     });
 
+    describe("ServerEngine Diagnostic",function () {
+
+        it("should have ServerDiagnosticObject",function() {
+
+            var serverObject = engine.findObjectByBrowseName("Server");
+            serverObject.browseName.toString().should.eql("Server");
+        });
+    });
 
 });
 

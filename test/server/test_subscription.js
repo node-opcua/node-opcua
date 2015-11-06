@@ -1044,3 +1044,4 @@ describe("Subscription#adjustSamplingInterval", function () {
     });
 
 });
+
