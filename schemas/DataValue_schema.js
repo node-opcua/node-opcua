@@ -54,7 +54,7 @@ var DataValue_Schema = {
 
         var encoding_mask = getDataValue_EncodingByte(dataValue);
 
-        assert(_.isFinite(encoding_mask));
+        assert(_.isFinite(encoding_mask) && encoding_mask>=0 && encoding_mask<= 0x3F);
 
         // write encoding byte
         ec.encodeUInt8(encoding_mask,stream);
@@ -98,13 +98,15 @@ var DataValue_Schema = {
 
         var cur = stream.length;
         var encoding_mask = ec.decodeUInt8(stream);
+        assert(encoding_mask<=0x3F);
 
+        tracer.trace("member", "encodingByte", "0x" + encoding_mask.toString(16), cur, stream.length, "Mask");
         tracer.encoding_byte(encoding_mask,DataValueEncodingByte,cur,stream.length);
 
         if( check_flag(encoding_mask,DataValueEncodingByte.Value)) {
             //xx var Variant = require("./variant").Variant;
             dataValue.value = new Variant();
-            dataValue.value.decode(stream,options);
+            dataValue.value.decode_debug(stream,options);
             //xx if (tracer) { tracer.trace("member","statusCode", dataValue.value,cur,stream.length,"Variant"); }
         }
         // read statusCode
@@ -135,7 +137,7 @@ var DataValue_Schema = {
         cur = stream.length;
         if (check_flag(encoding_mask,DataValueEncodingByte.ServerPicoseconds)) {
             dataValue.serverPicoseconds  = ec.decodeUInt16(stream);
-            tracer.trace("member","sourcePicoseconds", dataValue.serverPicoseconds,cur,stream.length,"UInt16");
+            tracer.trace("member","serverPicoseconds", dataValue.serverPicoseconds,cur,stream.length,"UInt16");
         }
     },
 
