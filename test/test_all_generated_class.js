@@ -67,6 +67,11 @@ describe("testing all auto_generated Class", function () {
         var name = re.exec(filename)[1];
         //xx console.log(name);
 
+        if (name === "Variant") {
+            // ignore variant as Variant use specifics consistency rules in constructor
+            // that cannot be easily randomly checked here -  Variant are fully tested in dedicated test anyway.
+            return;
+        }
         it("verify auto generated class encoding and decoding " + name, function () {
 
             var CLASSCONSTRUCTOR = require(filename)[name];

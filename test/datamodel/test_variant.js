@@ -24,6 +24,9 @@ var Variant_TypeMask = 0x3F;
 var factories = require("lib/misc/factories");
 
 
+var schema_helpers =  require("lib/misc/factories_schema_helpers");
+schema_helpers.doDebug = true;
+
 describe("Variant", function () {
 
     it("should create a empty Variant", function () {
@@ -32,6 +35,7 @@ describe("Variant", function () {
         var1.dataType.should.eql(DataType.Null);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
         should(var1.value).be.equal(null);
+        should(var1.dimensions).be.equal(null);
 
         encode_decode_round_trip_test(var1, function (stream) {
             stream.length.should.equal(1);
@@ -219,6 +223,44 @@ describe("Variant", function () {
         //xx var1.toString().should.eql("Variant(Array<UInt32>, l= 4, value=[2,3,Bad!,5])");
     });
 
+    it ("should create a Variant as a Matrix (2x3) of UInt32 ",function() {
+        var var1 = new Variant({
+            dataType: DataType.UInt32,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [ 2,3],
+            value : [ 0x000,0x001,0x002,0x010,0x011,0x012]
+        });
+
+        var1.arrayType.should.eql(VariantArrayType.Matrix);
+        var1.dimensions.should.eql([2,3]);
+        var1.value.length.should.eql(6);
+        var1.dataType.should.eql(DataType.UInt32);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            // 1  encoding byte          1
+            // 1  UInt32 => ArrayLength  4
+            // 6  UInt32                 6*4
+            // 1  Uint32                 4
+            // 3  Uint32 (dimension)     2*4
+            //                           ----
+            //                           41
+            stream.length.should.equal(41);
+        });
+
+        var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
+    });
+    it ("should raise an exception when construction a Matrix with incorrect element size",function() {
+
+        should(function construct_matrix_variant_with_invalid_value() {
+            var var1 = new Variant({
+                dataType: DataType.UInt32,
+                arrayType: VariantArrayType.Matrix,
+                dimensions: [ 2,3],
+                value : [ 0x000 ] // wrong size !
+            });
+        }).throwError();
+
+    });
 
 });
 

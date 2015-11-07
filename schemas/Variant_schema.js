@@ -20,6 +20,9 @@ var isValidVariant = variant_tools.isValidVariant;
 exports.isValidVariant = isValidVariant;
 
 
+function calculate_product(array) {
+  return array.reduce(function(n,p){ return n*p; },1);
+}
 
 function get_encoder(dataType) {
   var encode = factories.findBuiltInType(dataType.key).encode;
@@ -198,6 +201,13 @@ function _decodeVariantArrayDebug(stream, decode, tracer, dataType) {
   tracer.trace("end_array", "Variant", stream.length);
 }
 
+function decodeDimension(stream) {
+  return decodeGeneralArray(DataType.UInt32,stream);
+}
+function encodeDimension(dimensions,stream) {
+  return encodeGeneralArray(DataType.UInt32,stream,dimensions);
+}
+
 var Variant_Schema = {
   name: "Variant",
   id: factories.next_available_id(),
@@ -214,23 +224,37 @@ var Variant_Schema = {
     name: "value",
     fieldType: "Any",
     defaultValue: null
+  }, {
+    name: "dimensions",
+    fieldType: "UInt32",
+    defaultValue: null,
+    isArray: true,
+    documentation: "the matrix dimensions"
   }],
   encode: function(variant, stream) {
 
     var encodingByte = variant.dataType.value;
 
-    if (variant.arrayType === VariantArrayType.Array) {
+    if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
       encodingByte |= Variant_ArrayMask;
+    }
+    if (variant.dimensions) {
+      encodingByte |= Variant_ArrayDimensionsMask;
     }
     ec.encodeUInt8(encodingByte, stream);
 
-    if (variant.arrayType === VariantArrayType.Array) {
+    if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
       encodeVariantArray(variant.dataType, stream, variant.value);
     }
     else {
       var encode = get_encoder(variant.dataType);
       encode(variant.value, stream);
     }
+
+    if (variant.dimensions) {
+      encodeDimension(variant.dimensions,stream);
+    }
+
   },
   decode_debug: function(self, stream, options) {
 
@@ -238,14 +262,14 @@ var Variant_Schema = {
 
     var encodingByte = ec.decodeUInt8(stream);
 
-    var isArray = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
-    var dimension = ((encodingByte & Variant_ArrayDimensionsMask) === Variant_ArrayDimensionsMask);
+    var isArray      = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
+    var hasDimension = ((encodingByte & Variant_ArrayDimensionsMask) === Variant_ArrayDimensionsMask);
 
     self.dataType = DataType.get(encodingByte & Variant_TypeMask);
 
     tracer.dump("dataType:  ", self.dataType);
     tracer.dump("isArray:   ", isArray ? "true" : "false");
-    tracer.dump("dimension: ", dimension);
+    tracer.dump("dimension: ", hasDimension);
 
     var decode = factories.findBuiltInType(self.dataType.key).decode;
 
@@ -257,9 +281,8 @@ var Variant_Schema = {
     var cursor_before = stream.length;
 
     if (isArray) {
-      self.arrayType = VariantArrayType.Array;
+      self.arrayType = hasDimension ? VariantArrayType.Matrix : VariantArrayType.Array;
       _decodeVariantArrayDebug(stream, decode, tracer, self.dataType);
-
     }
     else {
       self.arrayType = VariantArrayType.Scalar;
@@ -267,6 +290,16 @@ var Variant_Schema = {
       tracer.trace("member", "Variant", self.value, cursor_before, stream.length, self.dataType.key);
     }
 
+    // ArrayDimensions
+    // Int32[]
+    //  The length of each dimension.
+    //    This field is only present if the array dimensions flag is set in the encoding mask. The lower rank dimensions appear first in the array.
+    //    All dimensions shall be specified and shall be greater than zero.
+    //    If ArrayDimensions are inconsistent with the ArrayLength then the decoder shall stop and raise a Bad_DecodingError.
+    if (hasDimension) {
+      self.dimensions =  decodeDimension(stream);
+      var verification = calculate_product(self.dimensions);
+    }
   },
   decode: function(self, stream) {
 
@@ -274,18 +307,28 @@ var Variant_Schema = {
 
     var isArray = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
 
-    //xx var dimension    = (( encodingByte & Variant_ArrayDimensionsMask  ) === Variant_ArrayDimensionsMask);
+    var hasDimension    = (( encodingByte & Variant_ArrayDimensionsMask  ) === Variant_ArrayDimensionsMask);
 
     self.dataType = DataType.get(encodingByte & Variant_TypeMask);
 
+    if (!self.dataType) {
+      throw new Error("cannot find DataType for encodingByte = 0x" + (encodingByte & Variant_TypeMask).toString(16) );
+    }
     if (isArray) {
-      self.arrayType = VariantArrayType.Array;
+      self.arrayType = hasDimension ? VariantArrayType.Matrix : VariantArrayType.Array;
       self.value = decodeVariantArray(self.dataType, stream);
     }
     else {
       self.arrayType = VariantArrayType.Scalar;
       var decode = get_decoder(self.dataType);
       self.value = decode(stream);
+    }
+    if (hasDimension) {
+      self.dimensions =  decodeDimension(stream);
+      var verification = calculate_product(self.dimensions);
+      if (verification !== self.value.length) {
+        throw new Error("BadDecodingError");
+      }
     }
   },
 
@@ -305,9 +348,15 @@ var Variant_Schema = {
 
         options.value = options.value || [];
         options.value = coerceVariantArray(options.dataType, options.value);
-      }
-      else {
-        throw new Error("Not implemented Yet");
+      } else {
+
+        assert(options.arrayType === VariantArrayType.Matrix);
+        options.value = options.value || [];
+        options.value = coerceVariantArray(options.dataType, options.value);
+
+        if (options.value.length !== calculate_product(options.dimensions)) {
+          throw new Error("Matrix Variant : invalid value size");
+        }
       }
     }
     else {
@@ -320,6 +369,9 @@ var Variant_Schema = {
          throw new Error("Invalid variant " + options.arrayType.toString() + "  " + options.dataType.toString() + " " + options.value);
       }
     }
+    if (options.dimensions) {
+      assert(options.arrayType === VariantArrayType.Matrix, "dimension can only provided if variant is a matrix");
+    }
     return options;
   },
   isValid: function(self) {
@@ -331,23 +383,31 @@ var Variant_Schema = {
 
     function toString(value) {
       switch(self.dataType) {
+        case DataType.Null:
+              return "<null>";
         case DataType.DateTime:
               return  value.toISOString();
         default:
-              return value.toString();
+              return value ? value.toString() : "<null>";
       }
     }
     function f(value) {
-      return (value === null) ? "<null>" : toString(value);
+      if (value === null && typeof value === "object") { return "<null>"; }
+      return value.toString();
     }
 
     var data = self.arrayType.toString();
 
+    if (self.dimensions && self.dimensions.length>0) {
+      data += "[ " + self.dimensions.join(",") + " ]";
+    }
+
     data += "<" + self.dataType.toString() + ">";
     if (self.arrayType === VariantArrayType.Scalar) {
       data += ", value: " + f(self.value);
-    }
-    else if (self.arrayType === VariantArrayType.Array) {
+
+    } else if ( (self.arrayType === VariantArrayType.Array)  ||  (self.arrayType === VariantArrayType.Matrix)) {
+
       assert(_.isArray(self.value) || (self.value.buffer instanceof ArrayBuffer));
       var a = [];
       for (var i = 0; i < Math.min(10, self.value.length); i++) {
