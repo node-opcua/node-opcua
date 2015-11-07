@@ -1,5 +1,7 @@
 require("requirish")._(module);
 
+var should = require("should");
+
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 var DiagnosticInfo = require("lib/datamodel/diagnostic_info").DiagnosticInfo;
@@ -18,6 +20,14 @@ describe("DiagnosticInfo", function () {
     it("should encode default DiagnosticInfo in a single byte", function () {
 
         var diag = new DiagnosticInfo();
+
+
+        diag.symbolicId.should.eql(-1);
+        diag.locale.should.eql(-1);
+        diag.localizedText.should.eql(-1);
+        should(diag.additionalInfo).eql(null);
+        diag.innerStatusCode.should.eql(StatusCodes.Good);
+        should(diag.innerDiagnosticInfo).eql(null);
 
         encode_decode_round_trip_test(diag, function (buffer, id) {
             buffer.length.should.equal(1);

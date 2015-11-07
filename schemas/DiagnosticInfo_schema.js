@@ -10,19 +10,19 @@ var assert = require('better-assert');
 
 var QualifiedName   = require("lib/datamodel/qualified_name").QualifiedName;
 var LocalizedText   = require("lib/datamodel/localized_text").LocalizedText;
-
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 assert(QualifiedName, " expecting QualifiedName here to be defined");
 assert(LocalizedText, " expecting Localized Text here to be defined");
 
 var DiagnosticInfo_EncodingByte_Schema = {
     name: "DiagnosticInfo_EncodingByte",
     enumValues: {
-        SymbolicId: 0x01,
-        NamespaceUri: 0x02,
-        LocalizedText: 0x04,
-        Locale: 0x08,
-        AdditionalInfo: 0x10,
-        InnerStatusCode: 0x20,
+        SymbolicId:          0x01,
+        NamespaceUri:        0x02,
+        LocalizedText:       0x04,
+        Locale:              0x08,
+        AdditionalInfo:      0x10,
+        InnerStatusCode:     0x20,
         InnerDiagnosticInfo: 0x40
     }
 };
@@ -36,25 +36,25 @@ function getDiagnosticInfoEncodingByte(diagnosticInfo) {
 
     var encoding_mask = 0;
 
-    if (diagnosticInfo.namespaceUri) {
-        encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.NamespaceUri);
-    }
-    if (diagnosticInfo.symbolicId) {
+    if (diagnosticInfo.symbolicId  >=0) {
         encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.SymbolicId);
     }
-    if (diagnosticInfo.locale) {
-        encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.Locale);
+    if (diagnosticInfo.namespaceUri >=0) {
+        encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.NamespaceUri);
     }
-    if (diagnosticInfo.localizedText) {
+    if (diagnosticInfo.localizedText >=0) {
         encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.LocalizedText);
+    }
+    if (diagnosticInfo.locale >= 0) {
+        encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.Locale);
     }
     if (diagnosticInfo.additionalInfo) {
         encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.AdditionalInfo);
     }
-    if (diagnosticInfo.innerStatusCode !== null) {
+    if (diagnosticInfo.innerStatusCode && diagnosticInfo.innerStatusCode !== StatusCodes.Good) {
         encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.InnerStatusCode);
     }
-    if (diagnosticInfo.innerDiagnosticInfo !== null) {
+    if (diagnosticInfo.innerDiagnosticInfo) {
         encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.InnerDiagnosticInfo);
     }
     return encoding_mask;
@@ -63,21 +63,25 @@ function getDiagnosticInfoEncodingByte(diagnosticInfo) {
 var set_flag = require("lib/misc/utils").set_flag;
 var check_flag = require("lib/misc/utils").check_flag;
 
+// Note:
+// the SymbolicId, NamespaceUri, LocalizedText and Locale fields are indexes in a string table which is returned
+// in the response header. Only the index of the corresponding string in the string table is encoded. An index
+// of −1 indicates that there is no value for the string.
+//
 
 var DiagnosticInfo_Schema = {
     name: "DiagnosticInfo",
     fields: [
-        { name: "namespaceUri",        fieldType: "Int32", defaultValue: null ,  documentation: "The symbolicId is defined within the context of a namespace."},
-        { name: "symbolicId",          fieldType: "Int32", defaultValue: null , documentation : "The symbolicId shall be used to identify a vendor-specific error or condition"},
-        { name: "locale",              fieldType: "Int32", defaultValue: null , documentation: "The locale part of the vendor-specific localized text describing the symbolic id."},
-        { name: "localizedText",       fieldType: "Int32", defaultValue: null },
+        { name: "namespaceUri",        fieldType: "Int32",  defaultValue: -1 ,  documentation: "The symbolicId is defined within the context of a namespace."},
+        { name: "symbolicId",          fieldType: "Int32",  defaultValue: -1 , documentation : "The symbolicId shall be used to identify a vendor-specific error or condition"},
+        { name: "locale",              fieldType: "Int32",  defaultValue: -1 , documentation: "The locale part of the vendor-specific localized text describing the symbolic id."},
+        { name: "localizedText",       fieldType: "Int32",  defaultValue: -1 },
         { name: "additionalInfo",      fieldType: "String", defaultValue: null , documentation: "Vendor-specific diagnostic information."},
-        { name: "innerStatusCode",     fieldType: "StatusCode", defaultValue: null, documentation: "The StatusCode from the inner operation."},
+        { name: "innerStatusCode",     fieldType: "StatusCode", defaultValue: StatusCodes.Good, documentation: "The StatusCode from the inner operation."},
         { name: "innerDiagnosticInfo", fieldType: "DiagnosticInfo", defaultValue: null, documentation: "The diagnostic info associated with the inner StatusCode." }
     ],
 
     id:  25 ,
-
     encode: function (diagnosticInfo, stream) {
 
         var encoding_mask = getDiagnosticInfoEncodingByte(diagnosticInfo);
@@ -126,6 +130,9 @@ var DiagnosticInfo_Schema = {
         var encoding_mask = ec.decodeByte(stream);
 
         tracer.trace("member", "encodingByte", "0x" + encoding_mask.toString(16), cursor_before, stream.length, "Mask");
+        tracer.encoding_byte(encoding_mask,DiagnosticInfo_EncodingByte,cursor_before,stream.length);
+
+
         cursor_before = stream.length;
 
         // read symbolic id
