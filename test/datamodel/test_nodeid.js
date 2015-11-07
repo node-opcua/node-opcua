@@ -21,6 +21,20 @@ describe("testing NodeIds", function () {
 
     });
 
+    it("should create a NUMERIC nodeID with the largest possible values", function () {
+        var nodeId = new NodeId(NodeIdType.NUMERIC, 0xFFFFFFFF, 0xFFFF);
+        nodeId.value.should.equal(0xFFFFFFFF);
+        nodeId.namespace.should.equal(0xFFFF);
+        nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
+        nodeId.toString().should.eql("ns=65535;i=4294967295");
+    });
+    it("should raise an error for  NUMERIC nodeID with invalid  values", function () {
+
+        should(function() {
+            var nodeId = new NodeId(NodeIdType.NUMERIC, -1, -1);
+        }).throwError();
+    });
+
     it("should create a STRING nodeID", function () {
         var nodeId = new NodeId(NodeIdType.STRING, "TemperatureSensor", 4);
         nodeId.value.should.equal("TemperatureSensor");
