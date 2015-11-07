@@ -326,7 +326,7 @@ describe("testing Variable#bindVariable", function () {
             options.get.callCount.should.eql(3 + base);
             sameDataValue(dataValue1,dataValue3).should.eql(false); // dataValue must have changed
 
-            dataValue1.serverTimestamp.getTime().should.be.below(dataValue3.serverTimestamp.getTime());
+            dataValue1.serverTimestamp.getTime().should.be.belowOrEqual(dataValue3.serverTimestamp.getTime());
 
 
 
