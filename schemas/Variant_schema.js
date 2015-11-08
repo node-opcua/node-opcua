@@ -392,7 +392,7 @@ var Variant_Schema = {
       }
     }
     function f(value) {
-      if (value === null && typeof value === "object") { return "<null>"; }
+      if (value === undefined || (value === null && typeof value === "object")) { return "<null>"; }
       return value.toString();
     }
 
