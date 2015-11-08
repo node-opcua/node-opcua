@@ -194,7 +194,7 @@ describe("MessageBuilder", function () {
         require("../..");
 
         var ec = require("lib/misc/encode_decode");
-        var BinaryStream= require("lib/misc/binarystream").BinaryStream;
+        var BinaryStream= require("lib/misc/binaryStream").BinaryStream;
 
         var full_message_body = require("test/fixtures/fixture_problematic_ReadResponse.js").packet_ReadResponse;
         var binaryStream = new BinaryStream(full_message_body);
