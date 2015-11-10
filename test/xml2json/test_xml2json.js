@@ -70,4 +70,28 @@ describe("XMLToJSON", function () {
         });
     });
 
+    it("should parse a escaped string",function (done) {
+
+        var displayName = null;
+        var parser = new Xml2Json({
+            parser: {
+                'DisplayName': {
+                    finish: function () {
+                        displayName = this.text;
+                    }
+                }
+            }
+        });
+
+        parser.parseString(
+            "<object>" +
+            "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" +
+            "</object>", function () {
+                displayName.should.eql("<HelloWorld>");
+                done();
+            });
+
+
+    });
+
 });
