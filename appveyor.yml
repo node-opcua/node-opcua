@@ -1,11 +1,8 @@
 # Test against this version of Node.js
 environment:
   matrix:
-  - nodejs_version: "0.10"
-  - nodejs_version: "0.11"
   - nodejs_version: "0.12"
-  # io.js
-  - nodejs_version: "1.0"
+  - nodejs_version: "4.2"
 
 platform:
   - x86
