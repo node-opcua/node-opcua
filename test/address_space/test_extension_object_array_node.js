@@ -25,7 +25,7 @@ var SubscriptionDiagnostics = require("schemas/39394884f696ff0bf66bacc9a8032cc07
 
 var eoan = require("lib/address_space/extension_object_array_node");
 
-describe("Extension Object Array Node",function() {
+describe("Extension Object Array Node (or Complex Variable)",function() {
 
 
     var address_space;

@@ -13,7 +13,7 @@ function createTemperatureSensorType(address_space) {
 
     address_space.addVariable(temperatureSensorTypeNode, {
         browseName: "Temperature",
-        description: "the temperature value of the sensor in Celsius <°C>",
+        description: "the temperature value of the sensor in Celsius <Â°C>",
         dataType: "Double",
         modellingRule: "Mandatory",
         value: new Variant({dataType: DataType.Double, value: 19.5})

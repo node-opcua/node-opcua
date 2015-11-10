@@ -188,7 +188,7 @@ describe("MessageBuilder", function () {
 
     });
 
-    it("hould decode this problematic ReadResponse ", function (done) {
+    it("should decode this problematic ReadResponse ", function (done) {
 
         //
         require("../..");
