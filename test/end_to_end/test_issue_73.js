@@ -32,7 +32,7 @@ describe("Testing bug #73 -  Server resets sequence number after secure channel 
         defaultSecureTokenLifetime: 100   // << Use a very small secure token lifetime to speed up test !
     };
 
-    this.timeout(5000);
+    this.timeout(Math.max(200000,this._timeout));
 
     var server, client, temperatureVariableId, endpointUrl;
 

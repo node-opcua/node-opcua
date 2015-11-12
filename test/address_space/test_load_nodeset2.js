@@ -42,7 +42,7 @@ describe("testing NodeSet XML file loading", function () {
     it("should load a large nodeset xml file", function (done) {
 
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
-        this.timeout(400000);
+        this.timeout(Math.max(400000,this._timeout));
 
         var xml_file = path.join(__dirname,"../../nodesets/Opc.Ua.NodeSet2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
@@ -84,7 +84,7 @@ describe("testing NodeSet XML file loading", function () {
 
     it("should read accessLevel and userAccessLevel attributes", function(done) {
 
-        this.timeout(400000);
+        this.timeout(Math.max(400000,this._timeout));
 
         var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_various_access_level_nodeset.xml");
 

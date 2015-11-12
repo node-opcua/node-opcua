@@ -29,7 +29,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 describe("Testing bug #119 - Verify that monitored item only reports expected value change notifications :", function () {
 
-    this.timeout(50000);
+    this.timeout(Math.max(200000,this._timeout));
 
     var server, client, temperatureVariableId, endpointUrl;
 

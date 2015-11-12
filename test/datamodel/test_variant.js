@@ -269,7 +269,7 @@ var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze
 describe("Variant - Analyser", function () {
 
     // increase timeout to cope with istanbul
-    this.timeout(200000);
+    this.timeout(Math.max(400000,this._timeout));
 
     var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
@@ -384,7 +384,7 @@ describe("Variant - Analyser", function () {
 
     it("should check the performance of encode/decode a very large array of Float", function () {
 
-        this.timeout(30000);
+        this.timeout(Math.max(300000,this._timeout));
 
         var length = 500 * 1024;
 
@@ -535,7 +535,7 @@ describe("benchmarking variant encode", function () {
 
 describe("benchmarking float Array encode/decode", function () {
 
-    this.timeout(200000);
+    this.timeout(Math.max(200000,this._timeout));
 
     function test_1(stream, arr) {
 

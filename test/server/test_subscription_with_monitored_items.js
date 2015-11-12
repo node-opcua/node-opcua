@@ -70,7 +70,7 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
 
 describe("Subscriptions and MonitoredItems", function () {
 
-    this.timeout(30000);
+    this.timeout(Math.max(300000,this._timeout));
 
     var address_space;
     var someVariableNode;

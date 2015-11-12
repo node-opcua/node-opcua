@@ -40,7 +40,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
     var server, temperatureVariableId, endpointUrl;
 
-    this.timeout(10000);
+    this.timeout(Math.max(20000,this._timeout));
 
     before(function (done) {
 

@@ -35,7 +35,7 @@ var UAObject = require("lib/address_space/ua_object").UAObject;
 
 describe("testing address space namespace loading", function () {
 
-    this.timeout(30000); // could be time consuming
+    this.timeout(Math.max(300000,this._timeout));
 
     var address_space = new AddressSpace();
     before(function (done) {
@@ -132,10 +132,14 @@ describe("testing address space namespace loading", function () {
         var folder = address_space.addFolder("RootFolder", {browseName: "MyDevices"});
         assert(folder.nodeId);
         folder.should.be.instanceOf(UAObject);
+
+
         var myVar = myStructureType.instantiate({
             browseName:"MyVar",
             organizedBy: folder
         });
+
+
         myVar.browseName.toString().should.eql("MyVar");
 
         myVar.readValue().value.value.should.be.instanceOf(op.constructor);

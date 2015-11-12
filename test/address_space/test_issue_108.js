@@ -21,7 +21,7 @@ var addAnalogDataItem = opcua.addAnalogDataItem;
 
 describe("testing add new DataType ", function () {
 
-    this.timeout(100000);
+    this.timeout(Math.max(300000,this._timeout));
 
     var address_space;
     before(function (done) {

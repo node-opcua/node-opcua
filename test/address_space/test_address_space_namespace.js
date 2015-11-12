@@ -108,7 +108,8 @@ describe("testing  address space namespace loading", function () {
         });
     });
 
-    this.timeout(40000);
+    // increase test timeout as test may take time on slow arm computers
+    this.timeout(Math.max(100000,this._timeout));
 
     it("should process namespaces with DI", function (done) {
 

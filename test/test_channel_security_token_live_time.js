@@ -26,7 +26,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 describe("Testing ChannelSecurityToken lifetime", function () {
 
-    this.timeout(100000);
+    this.timeout(Math.max(100000,this._timeout));
 
     var server, client;
     var endpointUrl;
