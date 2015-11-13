@@ -9,7 +9,7 @@
         <opc:Field TypeName="opc:Int32" Name="Id"/>
         <opc:Field TypeName="opc:Double" Name="HighValue"/>
         <opc:Field TypeName="opc:Double" Name="LowValue"/>
-        <opc:Field TypeName="ua:LocalizedText" Name="Description"/>
+        <opc:Field TypeName="ua:LocalizedText" Name="ExtraInformation"/>
         <opc:Field TypeName="ua:EUInformation" Name="EngineeringUnits"/>
     </opc:StructuredType>
 </opc:TypeDictionary>

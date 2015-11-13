@@ -34,7 +34,7 @@
             <Field DataType="Int32" Name="Id"/>
             <Field DataType="Double" Name="HighValue"/>
             <Field DataType="Double" Name="LowValue"/>
-            <Field DataType="LocalizedText" Name="Description"/>
+            <Field DataType="LocalizedText" Name="ExtraInformation"/>
             <Field DataType="EUInformation" Name="EngineeringUnits"/>
         </Definition>
     </UADataType>
@@ -114,8 +114,8 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
         </References>
     </UAVariableType>
-    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6010" BrowseName="1:Description">
-        <DisplayName>Description</DisplayName>
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6010" BrowseName="1:ExtraInformation">
+        <DisplayName>ExtraInformation</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
