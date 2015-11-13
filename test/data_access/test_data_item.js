@@ -84,7 +84,7 @@ describe("DataAccess", function () {
     it("should find a DiscreteItemType in the address_space", function () {
         var discreteItemType = engine.address_space.findVariableType("DiscreteItemType");
         discreteItemType.browseName.toString().should.eql("DiscreteItemType");
-        discreteItemType.isAbstract.should.eql(false);
+        discreteItemType.isAbstract.should.eql(true);
     });
 
     it("should find a TwoStateDiscreteType in the address_space", function () {
