@@ -7,6 +7,7 @@ require('colors');
 var sprintf = require('sprintf');
 
 var opcua = require("..");
+var UAProxyManager = require("lib/client/proxy").UAProxyManager;
 
 
 var utils = require('lib/misc/utils');
@@ -19,7 +20,10 @@ var _ = require("underscore");
 console.log(" Version ", opcua.version);
 
 var client = new opcua.OPCUAClient();
+
 var the_session = null;
+var proxyManager = null;
+var rootFolder = null;
 var crawler = null;
 
 var dumpPacket = false;
@@ -64,13 +68,52 @@ function save_history(callback) {
     callback();
 }
 
-function completer(line) {
+
+function log()
+{
+    rl.pause();
+    rl.clearLine(process.stdout);
+    console.log(Object.values(arguments).join(" "));
+    //xx rl.write(Object.values(arguments).join(" ")+"\n");
+    rl.resume();
+    rl.prompt(true);
+
+}
+
+
+function get_root_folder(callback) {
+
+    if(!rootFolder) {
+
+        proxyManager.getObject(opcua.makeNodeId(opcua.ObjectIds.RootFolder),function(err,data) {
+
+            log(" GOT ROOT_FOLDER")
+            rootFolder = data;
+            the_prompt += ".rootFolder".yellow;
+            callback();
+        });
+    } else {
+        callback();
+
+    }
+}
+
+
+function completer(line,callback) {
 
     var completions, hits;
 
+    if ((line.trim() === "rootFolder" + "." )&& rootFolder) {
+
+        var completions = Object.keys(rootFolder.$components);
+        console.log(" completions ",completions);
+        return callback(null, [ completions, line]);
+
+    }
+
     if ("open".match(new RegExp("^" + line.trim()))) {
         completions = ["open localhost:port"];
-        return [completions, line];
+        return callback(null, [ completions, line]);
 
     } else {
         if (the_session === null) {
@@ -87,7 +130,7 @@ function completer(line) {
     hits = completions.filter(function (c) {
         return c.indexOf(line) === 0;
     });
-    return [hits.length ? hits : completions, line];
+    return callback(null,[hits.length ? hits : completions, line]);
 }
 
 var rl = readline.createInterface({
@@ -110,15 +153,16 @@ client.on("receive_chunk", function (message_chunk) {
 
 client.on("send_request", function (message) {
     if (dumpPacket) {
-        console.log(" sending request".red);
+        log(" sending request".red);
         var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
         analyze_object_binary_encoding(message);
     }
 });
+
 client.on("receive_response", function (message) {
     if (dumpPacket) {
         assert(message);
-        console.log(" receive response".cyan.bold);
+        log(" receive response".cyan.bold);
         var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
         analyze_object_binary_encoding(message);
     }
@@ -127,7 +171,7 @@ client.on("receive_response", function (message) {
 
 function dumpNodeResult(node) {
     var str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
-    console.log(str);
+    log(str);
 }
 function colorize(value) {
     return ("" + value).yellow.bold;
@@ -161,43 +205,63 @@ process.on('uncaughtException', function (e) {
     rl.prompt();
 });
 
-rl.prompt(">");
+var the_prompt = ">".cyan;
+rl.setPrompt(the_prompt);
 
+rl.prompt();
 
 rl.on('line', function (line) {
 
     try {
         process_line(line);
+        rl.prompt();
     }
     catch (err) {
-        console.log("------------------------------------------------".red);
-        console.log(err.message.bgRed.yellow.bold);
-        console.log(err.stack);
-        console.log("------------------------------------------------".red);
+        log("------------------------------------------------".red);
+        log(err.message.bgRed.yellow.bold);
+        log(err.stack);
+        log("------------------------------------------------".red);
         rl.resume();
     }
 });
 
-function apply_on_valid_session(cmd, func) {
+
+function apply_command(cmd,func,callback) {
+    callback = callback || function(){};
+    rl.pause();
+    func(function(err) {
+        callback();
+        rl.resume();
+        rl.prompt(the_prompt);
+    });
+}
+
+function apply_on_valid_session(cmd, func ,callback) {
+
+    assert(_.isFunction(func));
+    assert(func.length === 2);
+
     if (the_session) {
-        func(the_session);
+        apply_command(cmd,function(callback) {
+            func(the_session,callback);
+        });
     } else {
-        console.log("command : ", cmd.yellow, " requires a valid session , use createSession first");
+        log("command : ", cmd.yellow, " requires a valid session , use createSession first");
     }
 }
 
 function dump_dataValues(nodesToRead, dataValues) {
     for (var i = 0; i < dataValues.length; i++) {
         var dataValue = dataValues[i];
-        console.log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold, nodesToRead[i].attributeId.toString());
+        log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold, nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
-            console.log("           type : ", colorize(dataValue.value.dataType.key));
-            console.log("           value: ", colorize(dataValue.value.value));
+            log("           type : ", colorize(dataValue.value.dataType.key));
+            log("           value: ", colorize(dataValue.value.value));
         } else {
-            console.log("           value: <null>");
+            log("           value: <null>");
         }
-        console.log("      statusCode: 0x", dataValue.statusCode.toString(16));
-        console.log(" sourceTimestamp: ", dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
+        log("      statusCode: 0x", dataValue.statusCode.toString(16));
+        log(" sourceTimestamp: ", dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
     }
 
 }
@@ -226,12 +290,12 @@ function ping_server(callback) {
     var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
     the_session.readVariableValue(nodes, function (err, dataValues) {
         if (err) {
-            console.log(" warning : ".cyan, err.message.yellow);
+            log(" warning : ".cyan, err.message.yellow);
             return close_session(callback);
         } else {
             var newState = opcua.ServerState.get(dataValues[0].value.value);
             if (newState !== lastKnownState) {
-                console.log(" Server State = ", newState.toString());
+                log(" Server State = ", newState.toString());
             }
             lastKnownState = newState;
         }
@@ -250,12 +314,57 @@ function stop_ping() {
     }
 }
 
-function close_session(callback) {
-    apply_on_valid_session("closeSession", function (session) {
+
+function open_session(callback) {
+
+
+    if (the_session !== null) {
+        log(" a session exists already ! use closeSession First");
+        return callback();
+
+    } else {
+
+        client.requestedSessionTimeout = sessionTimeout;
+        client.createSession(function (err, session) {
+            if (err) {
+                log("Error : ".red, err);
+            } else {
+
+                the_session = session;
+                log("session created ", session.sessionId.toString());
+                proxyManager = new UAProxyManager(the_session);
+
+                the_prompt = "session:".cyan + the_session.sessionId.toString().yellow + ">".cyan;
+                rl.setPrompt(the_prompt);
+
+                assert(!crawler);
+                start_ping();
+
+                rl.prompt(the_prompt);
+
+            }
+            callback();
+        });
+        client.on("close", function () {
+            log(" Server has disconnected ".red);
+            the_session = null;
+            crawler = null;
+        });
+    }
+}
+
+function close_session(outer_callback) {
+    apply_on_valid_session("closeSession", function (session,inner_callback) {
         stop_ping();
         session.close(function (err) {
             the_session = null;
-            callback(err);
+            crawler = null;
+            if (!outer_callback) {
+                inner_callback(err);
+            } else {
+                assert(_.isFunction(outer_callback));
+                outer_callback(inner_callback);
+            }
         });
     });
 }
@@ -264,11 +373,11 @@ function set_debug(flag) {
     if (flag) {
         dumpPacket = true;
         process.env.DEBUG = "ALL";
-        console.log(" Debug is ON");
+        log(" Debug is ON");
     } else {
         dumpPacket = true;
         delete process.env.DEBUG;
-        console.log(" Debug is OFF");
+        log(" Debug is OFF");
     }
 }
 
@@ -281,10 +390,8 @@ function process_line(line) {
         case 'debug':
             var flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
             set_debug(flag);
-            rl.prompt(">");
             break;
         case 'open':
-
             var endpoint_url = args[1];
             if (!endpoint_url.match(/^opc.tcp:\/\//)) {
                 endpoint_url = "opc.tcp://" + endpoint_url;
@@ -292,94 +399,70 @@ function process_line(line) {
             var p = opcua.parseEndpointUrl(endpoint_url);
             var hostname = p.hostname;
             var port = p.port;
-            console.log(" open    url :", endpoint_url);
-            console.log("    hostname :", (hostname || "<null>").yellow);
-            console.log("        port : ", port.yellow);
-            rl.pause();
-            client.connect(endpoint_url, function (err) {
-                if (err) {
-                    console.log("client connected err=", err);
-                } else {
-                    console.log("client connected : ", "OK".green);
+            log(" open    url : ", endpoint_url);
+            log("    hostname : ", (hostname || "<null>").yellow);
+            log("        port : ", port.yellow);
+
+            apply_command(cmd,function(callback) {
 
 
-                    add_endpoint_to_history(endpoint_url);
+                client.connect(endpoint_url, function (err) {
+                    if (err) {
+                        log("client connected err=", err);
+                    } else {
+                        log("client connected : ", "OK".green);
 
-                    save_history(function () {
-                    });
+                        add_endpoint_to_history(endpoint_url);
 
-
-                }
-                rl.resume();
-                rl.prompt();
+                        save_history(function () {
+                        });
+                    }
+                    callback(err);
+                });
             });
             break;
 
         case 'fs':
         case "FindServers":
-            rl.pause();
-            client.findServers({}, function (err, servers) {
-                if (err) {
-                    console.log(err.message);
-                }
-                console.log(treeify.asTree(servers, true));
-                rl.resume();
-                rl.prompt(">");
+            apply_command(cmd,function(callback){
+                client.findServers({}, function (err, servers) {
+                    if (err) {
+                        log(err.message);
+                    }
+                    log(treeify.asTree(servers, true));
+                    callback(err);
+                });
             });
             break;
         case 'gep':
         case 'getEndpoints':
-            rl.pause();
-            client.getEndpointsRequest(function (err, endpoints) {
-                if (err) {
-                    console.log(err.message);
-                }
-                endpoints = utils.replaceBufferWithHexDump(endpoints);
-                console.log(treeify.asTree(endpoints, true));
-
-                rl.resume();
-                rl.prompt(">");
+            apply_command(cmd,function(callback){
+                client.getEndpointsRequest(function (err, endpoints) {
+                    if (err) {
+                        log(err.message);
+                    }
+                    endpoints = utils.replaceBufferWithHexDump(endpoints);
+                    log(treeify.asTree(endpoints, true));
+                    callback(err);
+                });
             });
             break;
+
         case 'createSession':
         case 'cs':
-            if (the_session !== null) {
-                console.log(" a session exists already ! use closeSession First");
-            } else {
-                rl.pause();
-                client.requestedSessionTimeout = sessionTimeout;
-                client.createSession(function (err, session) {
-                    if (err) {
-                        console.log("Error : ".red, err);
-                    } else {
-                        //xx  console.log("Session  : ", session);
-                        the_session = session;
-                        console.log("session created ", session.sessionId.toString());
-
-                        start_ping();
-                    }
-                    rl.resume();
-                    rl.prompt(">");
-                });
-                client.on("close", function () {
-                    console.log(" Server has disconnected ".red);
-                    the_session = null;
-                });
-            }
+            apply_command(cmd,open_session);
             break;
+
         case 'closeSession':
-            close_session(function () {
-                assert(the_session === null);
-                rl.resume();
-                rl.prompt(">");
-            });
+            close_session(function() { });
             break;
 
         case 'disconnect':
             if (the_session) {
-                close_session(function () {
+                close_session(function (callback) {
                     client.disconnect(function () {
                         rl.write("client disconnected");
+                        callback();
                     });
                 });
             } else {
@@ -387,52 +470,55 @@ function process_line(line) {
                     rl.write("client disconnected");
                 });
             }
-            rl.resume();
-            rl.prompt(">");
             break;
+
         case 'b':
         case 'browse':
-            apply_on_valid_session(cmd, function (the_session) {
-
-                rl.pause();
+            apply_on_valid_session(cmd, function (the_session,callback) {
 
                 nodes = [args[1]];
 
                 the_session.browse(nodes, function (err, nodeResults) {
 
                     if (err) {
-                        console.log(err);
-                        console.log(nodeResults);
+                        log(err);
+                        log(nodeResults);
                     } else {
 
                         save_history(function () {
                         });
 
                         for (var i = 0; i < nodeResults.length; i++) {
-                            console.log("Node: ", nodes[i]);
-                            console.log(" StatusCode =", nodeResults[i].statusCode.toString(16));
+                            log("Node: ", nodes[i]);
+                            log(" StatusCode =", nodeResults[i].statusCode.toString(16));
                             nodeResults[i].references.forEach(dumpNodeResult);
                         }
                     }
-                    rl.resume();
-                    rl.prompt(">");
+                    callback();
                 });
 
             });
 
             break;
 
+        case 'rootFolder':
+
+            apply_on_valid_session(cmd, function (the_session,callback) {
+
+                get_root_folder(callback);
+            });
+            break;
         case 'r':
         case 'read':
-            apply_on_valid_session(cmd, function (the_session) {
-                rl.pause();
+            apply_on_valid_session(cmd, function (the_session,callback ) {
+
                 nodes = [args[1]];
                 nodes = nodes.map(opcua.coerceNodeId);
 
                 the_session.readVariableValue(nodes, function (err, dataValues) {
                     if (err) {
-                        console.log(err);
-                        console.log(dataValues);
+                        log(err);
+                        log(dataValues);
                     } else {
                         save_history(function () {
                         });
@@ -441,15 +527,13 @@ function process_line(line) {
                             attributeId: 13
                         }], dataValues);
                     }
-                    rl.resume();
-                    rl.prompt(">");
+                    callback();
                 });
             });
             break;
         case 'ra':
         case 'readall':
-            apply_on_valid_session(cmd, function (the_session) {
-                rl.pause();
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 nodes = [args[1]];
 
                 the_session.readAllAttributes(nodes, function (err, nodesToRead, dataValues/*,diagnosticInfos*/) {
@@ -458,66 +542,63 @@ function process_line(line) {
                         });
                         dump_dataValues(nodesToRead, dataValues);
                     }
-                    rl.resume();
-                    rl.prompt(">");
+                    callback();
                 });
             });
             break;
 
         case 'tb':
-            apply_on_valid_session(cmd, function (the_session) {
+            apply_on_valid_session(cmd, function (the_session, callback) {
 
                 var path = args[1];
-                rl.pause();
                 the_session.translateBrowsePath(path, function (err, results) {
                     if (err) {
-                        console.log(err.message);
+                        log(err.message);
                     }
-                    console.log(" Path ", path, " is ");
-                    console.log(util.inspect(results, {colors: true, depth: 100}));
-                    rl.resume();
-                    rl.prompt(">");
+                    log(" Path ", path, " is ");
+                    log(util.inspect(results, {colors: true, depth: 100}));
+
+                    callback();
                 });
             });
             break;
         case 'crawl':
         {
-            apply_on_valid_session(cmd, function (the_session) {
+            apply_on_valid_session(cmd, function (the_session, callback) {
 
                 if (!crawler) {
                     crawler = new opcua.NodeCrawler(the_session);
                     crawler.on("browsed", function (element) {
-                        // console.log("->",element.browseName.name,element.nodeId.toString());
+                        // log("->",element.browseName.name,element.nodeId.toString());
                     });
 
                 }
 
                 var nodeId = args[1] || "ObjectsFolder";
-                console.log("now crawling " + nodeId.yellow + " ...please wait...");
-                rl.pause();
+                log("now crawling " + nodeId.yellow + " ...please wait...");
                 crawler.read(nodeId, function (err, obj) {
                     if (!err) {
-                        console.log(" crawling done ");
+                        log(" crawling done ");
                         // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
-                        //xx console.log(treeify.asTree(obj, true));
+                        //xx log(treeify.asTree(obj, true));
                         treeify.asLines(obj, true, true, function (line) {
-                            console.log(line);
+                            log(line);
                         });
                     } else {
-                        console.log("err ", err.message);
+                        log("err ", err.message);
                     }
                     crawler = null;
-                    rl.resume();
-                    rl.prompt(">");
+                    callback();
                 });
             });
         }
             break;
-        case "info":
 
-            console.log("            bytesRead  ", client.bytesRead, " bytes");
-            console.log("         bytesWritten  ", client.bytesWritten, " bytes");
-            console.log("transactionsPerformed  ", client.transactionsPerformed, "");
+        case ".info":
+
+            log("            bytesRead  ", client.bytesRead, " bytes");
+            log("         bytesWritten  ", client.bytesWritten, " bytes");
+            log("transactionsPerformed  ", client.transactionsPerformed, "");
             // -----------------------------------------------------------------------
             // number of subscriptions
             // -----------------------------------------------------------------------
@@ -528,10 +609,11 @@ function process_line(line) {
             process.exit(0);
             break;
         default:
-            console.log('Say what? I might have heard `' + cmd.trim() + '`');
+            if (cmd.trim().length>0) {
+                log('Say what? I might have heard `' + cmd.trim() + '`');
+            }
             break;
     }
-    rl.prompt();
 }
 
 

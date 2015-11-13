@@ -175,7 +175,7 @@ describe("NodeCrawler", function () {
                     obj.organizes[0].browseName.toString().should.eql("Objects");
                     obj.organizes[1].browseName.toString().should.eql("Types");
                     obj.organizes[2].browseName.toString().should.eql("Views");
-                    obj.hasTypeDefinition.should.eql("FolderType");
+                    obj.typeDefinition.should.eql("FolderType");
                 }
                 done(err);
             });

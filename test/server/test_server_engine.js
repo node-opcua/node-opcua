@@ -200,7 +200,7 @@ describe("testing ServerEngine", function () {
 
     it("should have a rootFolder ", function () {
 
-        engine.rootFolder.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        engine.rootFolder.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
 
     });
 
@@ -208,7 +208,7 @@ describe("testing ServerEngine", function () {
 
         var browseNode = engine.findObject("RootFolder");
 
-        browseNode.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        browseNode.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         browseNode.should.equal(engine.rootFolder);
 
     });
@@ -217,7 +217,7 @@ describe("testing ServerEngine", function () {
 
         var browseNode = engine.findObject("i=84");
 
-        browseNode.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        browseNode.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         browseNode.should.equal(engine.rootFolder);
 
     });
@@ -237,7 +237,7 @@ describe("testing ServerEngine", function () {
 
         var serverObject = engine.findObjectByBrowseName("Server");
         var objectFolder = engine.findObjectByBrowseName("Objects");
-        objectFolder.hasTypeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        objectFolder.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         assert(serverObject !== null);
         serverObject.parent.should.eql(objectFolder.nodeId);
 
@@ -281,7 +281,7 @@ describe("testing ServerEngine", function () {
         var newFolder = engine.addFolder("ObjectsFolder", "MyNewFolder");
         assert(newFolder);
 
-        newFolder.hasTypeDefinition.should.eql(FolderTypeId);
+        newFolder.typeDefinition.should.eql(FolderTypeId);
         newFolder.nodeClass.should.eql(NodeClass.Object);
 
 //xx        console.log(require("util").inspect(newFolder));
@@ -340,7 +340,7 @@ describe("testing ServerEngine", function () {
                 }
 
             });
-        newVariable.hasTypeDefinition.should.equal(BaseDataVariableTypeId);
+        newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.should.equal(newFolder.nodeId);
 
         newVariable.readValueAsync(function (err, dataValue) {

@@ -55,7 +55,6 @@ describe("testing add new DataType ", function () {
         var machineTypeHeaderSwitchNode = address_space.addProperty(machineTypeNode, {
             browseName: "HeaterSwitch",
             dataType: "Boolean",
-            hasTypeDefinition: baseDataVariableType,
             value: {dataType: DataType.Boolean, value: false}
         });
         //xx machineTypeHeaderSwitchNode.propagate_back_references(address_space);
@@ -80,7 +79,7 @@ describe("testing add new DataType ", function () {
 
         // perform some verification
         var baseDataVariableType = address_space.findVariableType("BaseDataVariableType");
-        temperatureSensor.temperature.hasTypeDefinition.should.eql(baseDataVariableType.nodeId);
+        temperatureSensor.temperature.typeDefinition.should.eql(baseDataVariableType.nodeId);
 
 
         var folder = address_space.addFolder("RootFolder", {browseName: "MyDevices"});

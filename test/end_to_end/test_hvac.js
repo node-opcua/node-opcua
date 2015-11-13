@@ -21,7 +21,7 @@ var UAProxyManager = require("lib/client/proxy").UAProxyManager;
 
 describe("testing client Proxy", function () {
 
-    this.timeout(20000);
+    this.timeout(Math.max(200000,this._timeout));
 
     var server, client, temperatureVariableId, endpointUrl;
 
@@ -80,7 +80,7 @@ describe("testing client Proxy", function () {
 
                             console.log("Interior temperature",hvac.interiorTemperature.value);
 
-                            hvac.interiorTemperature.get(function(err,value){
+                            hvac.interiorTemperature.readValue(function(err,value){
                                 console.log(" Interior temperature updated ...",value.toString());
 				                callback(err);
                             });
@@ -152,28 +152,28 @@ describe("testing client Proxy", function () {
 
                 function (callback) {
 
-                    serverObject.serverStatus.currentTime.get(function(err,dataValue){
+                    serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
                         console.log("currentTime = ",dataValue.toString());
                         callback();
                     });
                 },
                 function (callback) {
 
-                    serverObject.serverArray.get(function(err,dataValue){
+                    serverObject.serverArray.readValue(function(err,dataValue){
                         console.log("ServerArray = ",dataValue.toString());
                         callback();
                     });
                 },
                 function (callback) {
 
-                    serverObject.serverStatus.get(function(err,dataValue){
+                    serverObject.serverStatus.readValue(function(err,dataValue){
                         console.log("serverStatus = ",dataValue.toString());
                         callback();
                     });
                 },
                 function (callback) {
 
-                    serverObject.serverStatus.buildInfo.get(function(err,dataValue){
+                    serverObject.serverStatus.buildInfo.readValue(function(err,dataValue){
                         console.log("serverStatus = ",dataValue.toString());
                         callback();
                     });
@@ -184,7 +184,7 @@ describe("testing client Proxy", function () {
 
                 function (callback) {
 
-                    serverObject.serverStatus.currentTime.get(function(err,dataValue){
+                    serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
                         console.log("currentTime = ",dataValue.toString());
                         callback();
                     });
@@ -210,7 +210,7 @@ describe("testing client Proxy", function () {
 
     it("AA one can subscribe to proxy object property change", function (done) {
 
-        this.timeout(40000);
+        this.timeout(Math.max(200000,this._timeout));
 
         var proxyManager;
 
@@ -228,6 +228,7 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     proxyManager.getObject(hvacNodeId,function(err,data){
+
                         if(!err){
 
                             hvac = data;
@@ -259,7 +260,7 @@ describe("testing client Proxy", function () {
 
                 function (callback) {
 
-                    hvac.interiorTemperature.get(function (err, value) {
+                    hvac.interiorTemperature.readValue(function (err, value) {
                         console.log(" reading Interior temperature, got = ...", value.toString());
                         callback();
                     });
@@ -270,7 +271,7 @@ describe("testing client Proxy", function () {
                     console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
 
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
-                    hvac.interiorTemperature.set({
+                    hvac.interiorTemperature.writeValue({
                         value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
                     },function(err) {
                         should(err).not.eql(null," it should not be possible to set readonyl interiorTemperature");
@@ -283,7 +284,7 @@ describe("testing client Proxy", function () {
                 // it should  be possible to set the targetTemperature
                 function(callback) {
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
-                    hvac.interiorTemperature.set({
+                    hvac.interiorTemperature.writeValue({
                         value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
                     },function(err) {
                         should(err).not.eql(null);
@@ -336,5 +337,80 @@ describe("testing client Proxy", function () {
     });
 
 
+    it("ZZ1 should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", function(done) {
+
+        var proxyManager;
+
+        //xx endpointUrl = "opc.tcp://localhost:48010";
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            proxyManager = new UAProxyManager(session);
+
+            var makeNodeId = opcua.makeNodeId;
+
+            var subscriptionDiagnosticsArray =null;
+
+            var subscriptionId =null;
+
+            async.series([
+                function (callback) {
+                    proxyManager.start(callback);
+                },
+                function (callback) {
+
+                    proxyManager.getObject(makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray), function (err, data) {
+
+                        if (!err) {
+                            subscriptionDiagnosticsArray = data;
+                        }
+                        callback(err);
+                    });
+                },
+                function (callback) {
+
+                    // subscriptionDiagnosticsArray should have no elements this time
+                    //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
+                    subscriptionDiagnosticsArray.$components.length.should.eql(0);
+                    //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
+
+                    callback();
+                },
+
+                // now create a subscription
+                function (callback) {
+
+                    session.createSubscription({
+                        requestedPublishingInterval: 100, // Duration
+                        requestedLifetimeCount: 10,    // Counter
+                        requestedMaxKeepAliveCount: 10, // Counter
+                        maxNotificationsPerPublish: 10, // Counter
+                        publishingEnabled: true, // Boolean
+                        priority: 14 // Byte
+                    }, function (err, response) {
+
+                        if (!err) {
+                            subscriptionId =response.subscriptionId;
+                        }
+                        callback(err);
+                    });
+                },
+
+                // verify that we have a subscription diagnostics array now
+                function (callback) {
+
+                    // subscriptionDiagnosticsArray should have no elements this time
+                    //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
+                    //xx subscriptionDiagnosticsArray.$components.length.should.eql(0);
+                    //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
+
+                    callback();
+                },
+
+            ], inner_done);
+
+        },done);
+
+    });
 });
 

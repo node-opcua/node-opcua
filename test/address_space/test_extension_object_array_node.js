@@ -62,7 +62,7 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
 
         address_space.findObject(arr.dataType).should.be.instanceOf(UADataType);
         var expectedType = address_space.findVariableType("SubscriptionDiagnosticsArrayType");
-        arr.hasTypeDefinition.toString().should.eql(expectedType.nodeId.toString());
+        arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString());
 
         var dv  = arr.readValue();
         should(dv.value.value).eql([]);

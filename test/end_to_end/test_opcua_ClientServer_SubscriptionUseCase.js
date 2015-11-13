@@ -1429,7 +1429,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             var change_count = 0;
             monitoredItem.on("changed", function (dataValue) {
-                console.log("xx changed",dataValue.value.toString());
+                //xx console.log("xx changed",dataValue.value.toString());
                 dataValue.value.toString().should.eql("Variant(Scalar<QualifiedName>, value: CurrentTime)");
                 change_count += 1;
             });

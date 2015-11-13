@@ -90,7 +90,7 @@ describe("NodeCrawler after write",function(){
                             obj.organizes[1].browseName.toString().should.eql("Types");
                             obj.organizes[2].browseName.toString().should.eql("Views");
                             obj.organizes[3].browseName.toString().should.eql("Scalar_Static_Large_Array");
-                            obj.hasTypeDefinition.should.eql("FolderType");
+                            obj.typeDefinition.should.eql("FolderType");
                         }
                         inner_done(err);
                     });
@@ -139,7 +139,7 @@ describe("NodeCrawler after write",function(){
                             obj.organizes[1].browseName.toString().should.eql("Types");
                             obj.organizes[2].browseName.toString().should.eql("Views");
                             obj.organizes[3].browseName.toString().should.eql("Scalar_Static_Large_Array");
-                            obj.hasTypeDefinition.should.eql("FolderType");
+                            obj.typeDefinition.should.eql("FolderType");
                         }
                         inner_done(err);
                     });

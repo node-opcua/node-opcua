@@ -179,7 +179,6 @@ describe("AddressSpace : add event type ", function () {
         address_space.addProperty(eventType, {
             browseName: "MyCustomEventProperty",
             dataType: "Double",
-            hasTypeDefinition: "BaseDataVariableType", // ???
             value: {dataType: DataType.Double, value: 1.0}
         });
 

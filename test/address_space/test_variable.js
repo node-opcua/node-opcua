@@ -153,8 +153,8 @@ describe("Address Space : add Variable :  testing various variations for specify
             dataType: "Double",
             typeDefinition: "PropertyType"
         });
-        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
-        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+        nodeVar.typeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
 
     });
 
@@ -167,8 +167,8 @@ describe("Address Space : add Variable :  testing various variations for specify
             dataType: "Double",
             typeDefinition: VariableTypeIds.PropertyType
         });
-        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
-        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+        nodeVar.typeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
 
     });
     it("addVariable should accept a typeDefinition as a NodeId object", function () {
@@ -177,8 +177,8 @@ describe("Address Space : add Variable :  testing various variations for specify
             dataType: "Double",
             typeDefinition: makeNodeId(68)
         });
-        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
-        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+        nodeVar.typeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
     });
     it("addVariable should accept a typeDefinition as a NodeId string", function () {
         var nodeVar = the_address_space.addVariable(rootFolder, {
@@ -186,8 +186,8 @@ describe("Address Space : add Variable :  testing various variations for specify
             dataType: "Double",
             typeDefinition: "ns=0;i=68"
         });
-        nodeVar.hasTypeDefinition.should.be.instanceOf(NodeId);
-        nodeVar.hasTypeDefinition.toString().should.eql("ns=0;i=68");
+        nodeVar.typeDefinition.should.be.instanceOf(NodeId);
+        nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
     });
     it("addVariable should throw if typeDefinition is invalid", function () {
         should(function () {
