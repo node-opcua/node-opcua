@@ -6,6 +6,9 @@ var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
 var should = require("should");
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var opcua = require(".");
+var NodeId = opcua.NodeId;
+
 
 describe("OPCUAServer", function () {
 
@@ -16,7 +19,32 @@ describe("OPCUAServer", function () {
         resourceLeakDetector.stop();
     });
 
-    var server = new OPCUAServer({});
+    var server;
+
+    beforeEach(function(done) {
+        var options ={};
+        options.nodeset_filename = [
+                opcua.mini_nodeset_filename
+            ];
+
+        server = new OPCUAServer({});
+        server.start(function (err) {
+            done(err);
+        })
+    });
+    afterEach(function(done) {
+        if (server) {
+            server.shutdown(function () {
+
+                server = null;
+                done();
+            });
+
+        } else {
+            server = null;
+            done();
+        }
+    });
 
     it("should dismiss all existing session upon termination", function (done) {
 
@@ -31,9 +59,10 @@ describe("OPCUAServer", function () {
 
 
         server.shutdown(function () {
-            session = null;
             server.engine.currentSessionCount.should.equal(0);
             server.engine.cumulatedSessionCount.should.equal(1);
+            server = null;
+            session = null;
             done();
         });
 
@@ -60,5 +89,31 @@ describe("OPCUAServer", function () {
     });
 
 
+    it("server address space have a node matching session.nodeId", function (done) {
+
+        server.engine.currentSessionCount.should.equal(0);
+
+        // let make sure that no session exists
+        // (session and subscriptions )
+        var session = server.createSession();
+
+        session.sessionName = "SessionNameGivenByClient";
+        // activate session
+        session.status = "active";
+
+        session.nodeId.should.be.instanceOf(NodeId);
+
+        //xx session.nodeId.identifierType.should.eql(NodeId.NodeIdType.GUID);
+
+        var sessionNode = server.engine.findObject(session.nodeId);
+
+        should(!!sessionNode).eql(true," a session node must be found");
+
+        sessionNode.nodeId.should.eql(session.nodeId);
+
+        sessionNode.browseName.toString().should.eql("SessionNameGivenByClient");
+        done();
+
+    });
 
 });
