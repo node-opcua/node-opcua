@@ -57,7 +57,6 @@ describe("testing add new DataType ", function () {
             dataType: "Boolean",
             value: {dataType: DataType.Boolean, value: false}
         });
-        //xx machineTypeHeaderSwitchNode.propagate_back_references(address_space);
 
         assert(machineTypeNode.heaterSwitch);
         console.log(machineTypeNode.heaterSwitch.nodeId.toString());

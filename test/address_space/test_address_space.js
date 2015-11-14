@@ -39,7 +39,7 @@ describe("testing address space", function () {
         findReference(references, object.nodeId).length.should.eql(1);
 
 
-        // root folder must have c
+        // root folder should organize the object
         rootFolder.getFolderElementByName("SomeObject").browseName.toString().should.eql("SomeObject");
 
         // ------------------------------------- NOW DELETE THE OBJECT
