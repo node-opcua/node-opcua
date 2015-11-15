@@ -33,6 +33,10 @@ module.exports.historizing_service    = require("lib/services/historizing_servic
 module.exports.register_server_service = require("lib/services/register_server_service");
 module.exports.secure_channel_service  = require("lib/services/secure_channel_service");
 
+module.exports.query_service           = require("lib/services/query_service");
+module.exports.node_managment_service  = require("lib/services/node_management_service");
+
+
 module.exports.EndpointDescription =  module.exports.get_endpoints_service.EndpointDescription;
 
 module.exports.utils              = require("lib/misc/utils");

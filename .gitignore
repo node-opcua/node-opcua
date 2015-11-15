@@ -25,7 +25,6 @@ output2.bin
 _generated_
 pending_*
 
-schemas/[0-9a-f]*
 schemas/ServerState_enum.js
 schemas/ServerStatus_schema.js
 schemas/ServiceCounter.js

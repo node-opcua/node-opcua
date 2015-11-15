@@ -194,6 +194,11 @@ registerObject("SetMonitoringModeResponse");
 registerObject("EventField");
 registerObject("EventNotificationList");
 registerObject("StatusChangeNotification");
+registerObject("SetTriggeringRequest");
+registerObject("SetTriggeringResponse");
+registerObject("TransferResult");
+registerObject("TransferSubscriptionsRequest");
+registerObject("TransferSubscriptionsResponse");
 
 
 // secure_channel_service
@@ -214,6 +219,9 @@ registerObject("ModificationInfo");
 registerObject("HistoryData");
 registerObject("HistoryModifiedData");
 
+registerObject("HistoryUpdateResult");
+registerObject("HistoryUpdateRequest");
+registerObject("HistoryUpdateResponse");
 
 // translate_browse_path_to_node_is
 registerObject("RelativePathElement");
@@ -276,6 +284,37 @@ registerObject("WriteValue");
 registerObject("WriteRequest");
 registerObject("WriteResponse");
 
+// node Management service
+registerObject("AddNodesItem");
+registerObject("AddNodesRequest");
+
+registerObject("AddNodesResult");
+registerObject("AddNodesResponse");
+
+registerObject("AddReferencesItem");
+registerObject("AddReferencesRequest");
+registerObject("AddReferencesResponse");
+
+registerObject("DeleteNodesItem");
+registerObject("DeleteNodesRequest");
+registerObject("DeleteNodesResponse");
+
+registerObject("DeleteReferencesItem");
+registerObject("DeleteReferencesRequest");
+registerObject("DeleteReferencesResponse");
+
+// query service
+// -- already registerObject("ContentFilterResult");
+registerObject("ParsingResult");
+registerObject("QueryDataDescription");
+registerObject("NodeTypeDescription");
+registerObject("QueryFirstRequest");
+registerObject("QueryDataSet");
+registerObject("QueryFirstResponse");
+
+
+registerObject("QueryNextRequest");
+registerObject("QueryNextResponse");
 
 
 // -------------------------------------------------------------------------
