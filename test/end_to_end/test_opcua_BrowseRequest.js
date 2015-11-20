@@ -242,6 +242,7 @@ describe("Test Browse Request", function () {
             function (callback) {
                 var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                     continuationPoints: [continuationPoint],
+//xx                    releaseContinuationPoints: true
                 });
                 g_session.performMessageTransaction(browseNextRequest, function (err, response) {
                     if (err) { return callback(err); }
@@ -268,6 +269,7 @@ describe("Test Browse Request", function () {
             function (callback) {
                 var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                     continuationPoints: [continuationPoint],
+                    releaseContinuationPoints: true
                 });
                 g_session.performMessageTransaction(browseNextRequest, function (err, response) {
                     if (err) { return callback(err); }
@@ -284,5 +286,144 @@ describe("Test Browse Request", function () {
 
     });
 
+    it("T7 - #BrowseNext with releaseContinuousPoint set to false then set to true",function(done) {
+        /*
+         * inspired by    Test 5.7.2-9 prepared by Dale Pope dale.pope@matrikon.com
+         * Description:
+         *   Given one node to browse
+         *     And the node exists
+         *     And the node has at least three references of the same ReferenceType's subtype
+         *     And RequestedMaxReferencesPerNode is 1
+         *     And ReferenceTypeId is set to a ReferenceType NodeId
+         *     And IncludeSubtypes is true
+         *     And Browse has been called
+         *  When BrowseNext is called
+         *     And ReleaseContinuationPoints is false
+         *  Then the server returns the second reference
+         *     And ContinuationPoint is not empty
+         *     Validation is accomplished by first browsing all references of a type
+         *     on a node, then performing the test and comparing the second
+         *     reference to the reference returned by the BrowseNext call. So this
+         *     test only validates that Browse two references is consistent with
+         *     Browse one reference followed by BrowseNext.
+         */
+
+        function test_5_7_2__9(nodeId, done) {
+
+            //     And RequestedMaxReferencesPerNode is 1
+            //     And ReferenceTypeId is set to a ReferenceType NodeId
+            //     And IncludeSubtypes is true
+            //     And Browse has been called
+
+            //  Given one node to browse
+            nodeId = resolveNodeId(nodeId);
+            //     And the node exists
+            var obj = server.engine.findObject(nodeId,BrowseDirection.Forward);
+            should(obj).not.eql(null);
+
+            var browseDesc = new opcua.browse_service.BrowseDescription({
+                nodeId: nodeId,
+                referenceTypeId: "i=47", // HasComponents
+                includeSubtypes: true,
+                browseDirection: BrowseDirection.Forward,
+                resultMask: 63
+            });
+
+
+            var continuationPoint;
+
+            var allReferences;
+
+            async.series([
+
+                // browse all references
+                function (callback) {
+                    var browseRequestAll = new opcua.browse_service.BrowseRequest({
+                        view: null,//{ viewId: 'ns=0;i=85'},
+                        requestedMaxReferencesPerNode: 10,
+                        nodesToBrowse: [browseDesc]
+                    });
+                    g_session.performMessageTransaction(browseRequestAll, function (err, response) {
+                        if (err) { return callback(err); }
+                        // console.log(response.toString());
+                        response.results[0].statusCode.should.eql(StatusCodes.Good);
+                        response.results[0].references.length.should.be.greaterThan(3); // want 4 at lest
+                        should(response.results[0].continuationPoint).eql(null);
+                        allReferences = response.results[0].references;
+                        callback();
+                    });
+                },
+
+                function (callback) {
+
+                    var browseRequest1 = new opcua.browse_service.BrowseRequest({
+                        view: null,
+                        requestedMaxReferencesPerNode: 1,
+                        nodesToBrowse: [browseDesc]
+                    });
+
+                    g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                        if (err) { return callback(err); }
+                        //xx console.log(response.toString());
+
+                        response.results.length.should.eql(1);
+                        response.results[0].statusCode.should.eql(StatusCodes.Good);
+                        response.results[0].references.length.should.be.eql(1);
+                        should(response.results[0].continuationPoint).not.eql(null);
+                        assert(response.results[0].references[0].should.eql(allReferences[0]));
+                        continuationPoint = response.results[0].continuationPoint;
+                        callback();
+                    });
+                },
+
+                function (callback) {
+                    var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                        releaseContinuationPoints: false,
+                        continuationPoints: [continuationPoint]
+                    });
+                    g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                        if (err) { return callback(err); }
+                        // console.log(response.toString());
+                        response.responseHeader.serviceResult.should.equal(StatusCodes.Good);
+
+                        response.results.length.should.eql(1);
+                        response.results[0].statusCode.should.eql(StatusCodes.Good);
+                        response.results[0].references.length.should.be.eql(1);
+
+                        // continuation point should not be null
+                        should(response.results[0].continuationPoint).not.eql(null);
+                        assert(response.results[0].references[0].should.eql(allReferences[1]));
+                        callback();
+
+                    });
+
+                },
+                function (callback) {
+                    var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                        releaseContinuationPoints: true,
+                        continuationPoints: [continuationPoint]
+                    });
+                    g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                        if (err) { return callback(err); }
+                        // console.log(response.toString());
+                        response.responseHeader.serviceResult.should.equal(StatusCodes.Good);
+
+                        response.results.length.should.eql(1);
+                        response.results[0].statusCode.should.eql(StatusCodes.Good);
+                        response.results[0].references.length.should.be.eql(0);
+
+                        should(response.results[0].continuationPoint).eql(null);
+                        callback();
+
+                    });
+
+                },
+
+            ],done);
+
+        }
+        test_5_7_2__9("ns=0;i=2253",done);
+
+    })
 
 });
