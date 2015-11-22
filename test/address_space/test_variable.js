@@ -28,9 +28,9 @@ describe("testing Variables ", function () {
             browseName: "some variable",
             address_space: the_address_space,
             minimumSamplingInterval: 10,
-            userAccessLevel: 0,
             arrayDimensions: [1, 2, 3],
-            accessLevel: 0
+            userAccessLevel: "CurrentRead",
+            accessLevel: "CurrentRead"
         });
 
         var value;
@@ -705,8 +705,8 @@ describe("testing Variable#writeValue Scalar", function () {
                 browseName: "some variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
-                userAccessLevel: 0,
-                accessLevel: 0,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
                 dataType: "Duration",
 
                 value: new Variant({
@@ -776,9 +776,9 @@ describe("testing Variable#writeValue Array", function () {
                 browseName: "some variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
-                userAccessLevel: 0,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
                 arrayDimensions: [1, 2, 3],
-                accessLevel: 0,
                 dataType: "Double",
 
                 value: new Variant({
@@ -1041,9 +1041,9 @@ describe("testing Variable#writeValue on Integer", function () {
                 browseName: "some INTEGER Variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
-                userAccessLevel: 0,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
                 arrayDimensions: [1, 2, 3],
-                accessLevel: 0,
                 dataType: "Integer",
 
                 value: new Variant({
@@ -1057,9 +1057,9 @@ describe("testing Variable#writeValue on Integer", function () {
                 browseName: "some Int32 Variable",
                 address_space: the_address_space,
                 minimumSamplingInterval: 10,
-                userAccessLevel: 0,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
                 arrayDimensions: [1, 2, 3],
-                accessLevel: 0,
                 dataType: "Int32",
 
                 value: new Variant({
@@ -1168,6 +1168,8 @@ describe("testing UAVariable ", function () {
 
     var the_address_space, rootFolder, variableInteger;
 
+    var variable_not_readable;
+
     before(function (done) {
 
 
@@ -1180,14 +1182,27 @@ describe("testing UAVariable ", function () {
                 variableInteger = the_address_space.addVariable(rootFolder, {
                     browseName: "some INTEGER Variable",
                     minimumSamplingInterval: 10,
-                    userAccessLevel: 0,
+                    userAccessLevel: "CurrentRead | CurrentWrite",
+                    accessLevel: "CurrentRead | CurrentWrite",
                     arrayDimensions: [1, 2, 3],
-                    accessLevel: 0,
                     dataType: "Integer",
                     value: new Variant({
                         dataType: DataType.Int32,
                         value: 1
                     })
+                });
+
+                variable_not_readable = the_address_space.addVariable(rootFolder, {
+
+                    browseName: "NotReadableVariable",
+                    userAccessLevel: "CurrentWrite",
+                    accessLevel: "CurrentWrite",
+                    dataType: "Integer",
+                    value: new Variant({
+                        dataType: DataType.Int32,
+                        value: 2
+                    })
+
                 });
             }
             done(err);
@@ -1209,6 +1224,35 @@ describe("testing UAVariable ", function () {
         variableIntegerClone._dataValue.value.value.should.eql(1);
         variableIntegerClone._dataValue.value.should.eql(variableInteger._dataValue.value);
     });
+
+    it("#readValue should return an error if value is not readable",function() {
+
+        variable_not_readable._dataValue.value.dataType.should.eql(DataType.Int32);
+        variable_not_readable._dataValue.value.value.should.eql(2);
+        variable_not_readable._dataValue.statusCode.should.eql(StatusCodes.Good);
+
+        var dataValue = variable_not_readable.readValue();
+        dataValue.statusCode.should.eql(StatusCodes.BadNotReadable);
+        should(dataValue.value).eql(null);
+        should(dataValue.serverTimestamp).eql(null);
+        should(dataValue.sourceTimestamp).eql(null);
+    });
+
+    it("#readValueAsync should return an error if value is not readable",function(done) {
+
+        variable_not_readable._dataValue.value.dataType.should.eql(DataType.Int32);
+        variable_not_readable._dataValue.value.value.should.eql(2);
+        variable_not_readable._dataValue.statusCode.should.eql(StatusCodes.Good);
+
+        variable_not_readable.readValueAsync(function(err,dataValue){
+            dataValue.statusCode.should.eql(StatusCodes.BadNotReadable);
+            should(dataValue.value).eql(null);
+            should(dataValue.serverTimestamp).eql(null);
+            should(dataValue.sourceTimestamp).eql(null);
+            done();
+        });
+    });
+
 
     it("#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", function (done) {
 

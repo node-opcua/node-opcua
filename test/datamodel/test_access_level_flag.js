@@ -31,6 +31,22 @@ describe("Testing AccessLevelFlag", function () {
         makeAccessLevel(makeAccessLevel("CurrentRead")).value.should.equal(0x01);
     });
 
+    it("should create a flag with no bit set", function () {
+        var accessLevel = makeAccessLevel("");
+        accessLevel.key.should.eql("NONE");
+        accessLevel.value.should.equal(AccessLevelFlag.NONE.value);
+        accessLevel.has("CurrentRead").should.eql(false);
+        accessLevel.has("CurrentWrite").should.eql(false);
+
+    });
+    it("should create a flag with no bit set -> 0", function () {
+        var accessLevel = makeAccessLevel(0);
+        accessLevel.key.should.eql("NONE");
+        accessLevel.value.should.equal(AccessLevelFlag.NONE.value);
+        accessLevel.has("CurrentRead").should.eql(false);
+        accessLevel.has("CurrentWrite").should.eql(false);
+
+    });
     it("should have a accessLevel Flag Basic Type", function () {
         _.isObject(findBuiltInType("AccessLevelFlag")).should.equal(true);
     });

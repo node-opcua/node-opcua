@@ -16,7 +16,10 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 var DataType = require("lib/datamodel/variant").DataType;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;
+var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
+var NodeId = require("lib/datamodel/nodeid").NodeId;
+
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 var encode_decode = require("lib/misc/encode_decode");
@@ -40,7 +43,7 @@ var fake_publish_engine = {
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var DataType = require("lib/datamodel/variant").DataType;
 
-var dataSourceFrozen = false
+var dataSourceFrozen = false;
 function freeze_data_source() {
     dataSourceFrozen = true;
 }
@@ -74,6 +77,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     var address_space;
     var someVariableNode;
+    var accessLevel_CurrentRead_NotUserNode;
 
     var engine;
     before(function (done) {
@@ -117,6 +121,28 @@ describe("Subscriptions and MonitoredItems", function () {
             addVar("Float", 0);
             addVar("Double", 0);
 
+
+            var name = "AccessLevel_CurrentRead_NotUser";
+            var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
+            var namespaceIndex = 100;
+
+            accessLevel_CurrentRead_NotUserNode = address_space.addVariable("RootFolder", {
+                browseName: name,
+                description: {locale: "en", text: name},
+                nodeId: makeNodeId(name, namespaceIndex),
+                dataType: "Int32",
+                valueRank: -1,
+
+                accessLevel: "CurrentRead",
+
+                userAccessLevel: "",
+
+                value: new Variant({
+                    dataType: DataType.Int32,
+                    arrayType: VariantArrayType.Scalar,
+                    value: 36
+                })
+            });
 
             done();
         });
@@ -485,6 +511,106 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
+
+    describe("Access",function() {
+
+
+        var subscription = null;
+
+        var test = this;
+
+        before(function () {
+
+            test = this;
+
+            subscription = new Subscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine
+            });
+            subscription.id = 1000;
+            //xx publishEngine.add_subscription(subscription);
+
+            // let spy the notifications event handler
+            var spy_notification_event = sinon.spy();
+            subscription.on("notification", spy_notification_event);
+
+            subscription.on("monitoredItem", function (monitoredItem) {
+
+                monitoredItem.samplingFunc = sinon.spy(function (oldValue, callback) {
+                    assert(monitoredItem.node);
+                    var dataValue = monitoredItem.node.readAttribute(monitoredItem.attributeId);
+                    console.log(" dataValue ",dataValue.toString());
+                    callback(null, dataValue);
+                });
+
+                monitoredItem.node.should.eql(address_space.findObject(monitoredItem.itemToMonitor.nodeId));
+            });
+
+        });
+        after(function (done) {
+            subscription.terminate();
+            subscription = null;
+            done();
+        });
+
+        it("CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ",function() {
+
+            console.log(accessLevel_CurrentRead_NotUserNode.toString());
+            accessLevel_CurrentRead_NotUserNode.isReadable().should.eql(false);
+
+            var nodeId = accessLevel_CurrentRead_NotUserNode.nodeId;
+            nodeId.should.be.instanceOf(NodeId);
+
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 0,
+                }
+            });
+
+
+            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+
+            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+            monitoredItem.queueSize.should.eql(10);
+            //xx monitoredItem.queue.length.should.eql(1);
+
+            function simulate_publish_request_expected_statusCode(expectedStatusCode) {
+
+                test.clock.tick(100);
+
+                // process publish
+                var notifs = monitoredItem.extractMonitoredItemNotifications();
+
+                monitoredItem.queue.length.should.eql(0);
+
+                if (expectedStatusCode === undefined) {
+
+                    notifs.length.should.eql(0, "should have no pending notification");
+
+                } else {
+
+                    notifs.length.should.eql(1," should have one pending notification");
+                    notifs[0].value.statusCode.should.eql(expectedStatusCode);
+
+                    console.log(notifs[0].value.toString());
+                }
+            }
+
+            simulate_publish_request_expected_statusCode(StatusCodes.BadNotReadable);
+
+        });
+
+    });
     describe("DeadBandFilter !!!", function () {
 
         var subscription = null;
@@ -511,7 +637,7 @@ describe("Subscriptions and MonitoredItems", function () {
                 monitoredItem.samplingFunc = function () {
                 };//install_spying_samplingFunc();
 
-                monitoredItem.node = address_space.findObject(monitoredItem.itemToMonitor.nodeId);
+                monitoredItem.node.nodeId.should.eql(monitoredItem.itemToMonitor.nodeId);
             });
 
         });
@@ -584,7 +710,7 @@ describe("Subscriptions and MonitoredItems", function () {
                 address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
-            monitoredItem.node = node;
+
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
 
