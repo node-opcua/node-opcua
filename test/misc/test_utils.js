@@ -8,13 +8,16 @@ describe("testing utility functions", function () {
 
     var old_console_log;
     beforeEach(function () {
+        return;
         old_console_log = console.log;
         console.log = function () {
         };
     });
     afterEach(function () {
+        return;
         console.log = old_console_log;
     });
+
     it("replaceBufferWithHexDump", function () {
 
         var obj = {stuff: new Buffer("ABCDEF")};
@@ -50,8 +53,8 @@ describe("testing utility functions", function () {
         utils.compare_buffers(buf1, buf2);
 
     });
-    it("dumpIf", function () {
 
+    it("dumpIf", function () {
         utils.dumpIf(true, {"hello": "world"});
     });
 
@@ -111,5 +114,19 @@ describe("testing redirectToFile", function () {
             done();
         });
     });
+});
+describe("lowerFirstLetter",function() {
 
+    it("should lowerize a simple string",function() {
+
+        // easy case
+        utils.lowerFirstLetter("HelloWorld").should.eql("helloWorld");
+
+        // string starts with 2 upper case letter => first one is lowered
+        utils.lowerFirstLetter("XAxis").should.eql("xAxis");
+
+        // string starts with 3  upper case letter => the two first are lowered
+        utils.lowerFirstLetter("EURange").should.eql("euRange");
+
+    })
 });

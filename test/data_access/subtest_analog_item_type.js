@@ -58,10 +58,12 @@ module.exports = function(engine) {
 
         analogItem.definition.browseName.toString().should.eql("Definition");
         analogItem.valuePrecision.browseName.toString().should.eql("ValuePrecision");
-        analogItem.eURange.browseName.toString().should.eql("EURange");
+        analogItem.euRange.browseName.toString().should.eql("EURange");
         analogItem.instrumentRange.browseName.toString().should.eql("InstrumentRange");
         analogItem.engineeringUnits.browseName.toString().should.eql("EngineeringUnits");
 
+        analogItem.euRange.readValue().value.value.low.should.eql(100);
+        analogItem.euRange.readValue().value.value.high.should.eql(200);
 
         analogItem.instrumentRange.readValue().value.value.low.should.eql(-100);
         analogItem.instrumentRange.readValue().value.value.high.should.eql(200);
