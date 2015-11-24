@@ -17,7 +17,7 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
-describe("testing add new DataType ", function () {
+describe("testing add new ObjectType ", function () {
 
     var address_space;
     before(function (done) {
@@ -98,7 +98,7 @@ describe("testing add new DataType ", function () {
 
             var specialTemperatureSensorTypeNode = address_space.addObjectType({
                 browseName: "SpecialTemperatureSensorType",
-                subtypeOf: "TemperatureSensorType"
+                subtypeOf: address_space.findObjectType("TemperatureSensorType")
             });
             return specialTemperatureSensorTypeNode;
         }

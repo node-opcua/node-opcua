@@ -37,7 +37,7 @@ function create_analyser_device(addressSpace) {
 
     var myAnalyserDeviceType = addressSpace.addObjectType({
         browseName: "MyAnalyserDeviceType",
-        subtypeOf: ns(adi_namespace,"AnalyserDeviceType")
+        subtypeOf: analyserDeviceType
     });
 
 
