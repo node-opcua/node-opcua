@@ -27,7 +27,13 @@ describe("Historizing Service", function () {
 
     it("should create a HistoryReadRequest with historyReadDetails as a ReadRawModifiedDetails", function () {
         var readRequest = new hs.HistoryReadRequest({
-            historyReadDetails: new hs.ReadRawModifiedDetails({})
+            historyReadDetails: new hs.ReadRawModifiedDetails({
+                isReadModified: true,
+                startTime: new Date(2015,10,13),
+                endTime: new Date(2015,11,10),
+                numValuesPerNode: 1200,
+                returnBounds: false
+            })
         });
         readRequest.timestampsToReturn.should.eql(TimestampsToReturn.Neither);
         readRequest.nodesToRead.length.should.equal(0);

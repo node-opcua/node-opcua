@@ -271,7 +271,23 @@ async.series([
 
 
     },
+    // create Read
+    function (callback) {
 
+        var now = Date.now();
+        var start = now-1000*1; // read 1 seconds of history
+        var end   = now;
+        the_session.readHistoryValue(monitored_node,start,end,function(err,historicalReadResult) {
+
+            if(!err)  {
+                console.log(" historicalReadResult =",historicalReadResult.toString());
+            } else {
+                console.log(" ERROR",err.toString());
+            }
+            callback();
+
+        })
+    },
     // -----------------------------------------
     // create subscription
     function (callback) {
