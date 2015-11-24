@@ -17,6 +17,9 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
+var browse_service = require("lib/services/browse_service");
+var BrowseDirection = browse_service.BrowseDirection;
+
 describe("testing add new ObjectType ", function () {
 
     var address_space;

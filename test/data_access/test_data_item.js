@@ -1,4 +1,9 @@
 require("requirish")._(module);
+
+var schema_helpers =  require("lib/misc/factories_schema_helpers");
+schema_helpers.doDebug = true;
+
+
 var _ = require("underscore");
 var should = require("should");
 var server_engine = require("lib/server/server_engine");

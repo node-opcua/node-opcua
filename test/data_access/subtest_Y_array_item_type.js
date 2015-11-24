@@ -25,9 +25,6 @@ var addYArrayItem = require("lib/data_access/UAYArrayItem").addYArrayItem;
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
 
-var schema_helpers =  require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
-
 module.exports = function(engine) {
 
     describe("YArrayItemType", function () {
