@@ -86,11 +86,14 @@ module.exports.addYArrayItem                  = require("lib/data_access/UAYArra
 
 // version
 module.exports.version               = require("./package.json").version;
-module.exports.standard_nodeset_file = require("lib/server/server_engine").standard_nodeset_file;
+module.exports.standard_nodeset_file  = require("lib/server/server_engine").standard_nodeset_file;
+module.exports.di_nodeset_filename    = require("lib/server/server_engine").di_nodeset_filename;
+module.exports.adi_nodeset_filename   = require("lib/server/server_engine").adi_nodeset_filename;
 
 // an incomplete but sufficient nodeset file used during testing
-module.exports.mini_nodeset_filename = require("lib/server/server_engine").mini_nodeset_filename;
+module.exports.mini_nodeset_filename  = require("lib/server/server_engine").mini_nodeset_filename;
 module.exports.part8_nodeset_filename = require("lib/server/server_engine").part8_nodeset_filename;
+
 
 module.exports.is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpointUrl;
 
