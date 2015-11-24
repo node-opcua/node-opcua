@@ -19,7 +19,9 @@ module.exports.NodeId           = require("lib/datamodel/nodeid").NodeId;
 module.exports.NumericRange     = require("lib/datamodel/numeric_range").NumericRange;
 module.exports.AccessLevelFlag  = require("lib/datamodel/access_level").AccessLevelFlag;
 
-
+//
+module.exports.get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
+module.exports.makeApplicationUrn              = require("lib/misc/applicationurn").makeApplicationUrn;
 
 // services
 module.exports.browse_service   = require("lib/services/browse_service");
