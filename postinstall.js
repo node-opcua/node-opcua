@@ -9,7 +9,7 @@ function exec(cmd,callback) {
         callback(err);
     });
 
-    child.stdout.pipe(process.stdout);
+    //xx child.stdout.pipe(process.stdout);
 
     child.on('close', function(code) {
         console.log('closing code: ' + code);
