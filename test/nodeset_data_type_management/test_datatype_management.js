@@ -26,24 +26,24 @@ require("lib/datamodel/buildinfo");
 
 describe("ComplexType read from XML NodeSET file shall be binary Encodable", function () {
 
-    var address_space;
+    var addressSpace;
 
     before(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname,"../fixtures/fixture_nodeset_enumtype.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        opcua.generate_address_space(address_space, xml_file, function (err) {
+        opcua.generate_address_space(addressSpace, xml_file, function (err) {
 
-            makeServerStatus(address_space);
+            makeServerStatus(addressSpace);
             done(err);
         });
     });
 
     it("a DataType should provide a DefaultBinary Encoding object", function () {
 
-        var serverStatusType = address_space.findDataType("ServerStatusDataType");
+        var serverStatusType = addressSpace.findDataType("ServerStatusDataType");
         serverStatusType.getEncodingNodeId("Default Binary").nodeId.toString().should.eql("ns=0;i=864");
 
     });

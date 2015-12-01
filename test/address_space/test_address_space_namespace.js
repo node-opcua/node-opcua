@@ -14,16 +14,16 @@ describe("testing address space namespace", function () {
 
     it("#getNamespaceUri : should have namespace 0", function () {
 
-        var address_space = new AddressSpace();
-        address_space.getNamespaceUri(0).should.eql("http://opcfoundation.org/UA/");
+        var addressSpace = new AddressSpace();
+        addressSpace.getNamespaceUri(0).should.eql("http://opcfoundation.org/UA/");
 
     });
     it("#registerNamespace should register new namespace", function () {
-        var address_space = new AddressSpace();
+        var addressSpace = new AddressSpace();
         var namespaceUri = "http://MyNEWNameSpace";
-        address_space.getNamespaceIndex(namespaceUri).should.eql(-1);
-        var index = address_space.registerNamespace(namespaceUri);
-        address_space.getNamespaceIndex(namespaceUri).should.eql(index);
+        addressSpace.getNamespaceIndex(namespaceUri).should.eql(-1);
+        var index = addressSpace.registerNamespace(namespaceUri);
+        addressSpace.getNamespaceIndex(namespaceUri).should.eql(index);
     });
 
 });
@@ -39,7 +39,7 @@ describe("testing  address space namespace loading", function () {
     });
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
 
-        var address_space = new AddressSpace();
+        var addressSpace = new AddressSpace();
         var xml_files = [
             path.join(__dirname, "../../lib/server/mini.Node.Set2.xml"),
             path.join(__dirname, "../fixtures/fixture_custom_nodeset.xml")
@@ -47,19 +47,19 @@ describe("testing  address space namespace loading", function () {
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        address_space.registerNamespace("ServerNamespaceURI");
-        address_space.getNamespaceArray().length.should.eql(2);
+        addressSpace.registerNamespace("ServerNamespaceURI");
+        addressSpace.getNamespaceArray().length.should.eql(2);
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
 
-            address_space.getNamespaceArray().length.should.eql(4);
-            address_space.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
-            address_space.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
+            addressSpace.getNamespaceArray().length.should.eql(4);
+            addressSpace.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
+            addressSpace.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
 
-            address_space.findObject("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
-            address_space.findObject("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+            addressSpace.findObject("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
+            addressSpace.findObject("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
-            address_space.getNamespaceArray().should.eql([
+            addressSpace.getNamespaceArray().should.eql([
                 "http://opcfoundation.org/UA/",
                 "ServerNamespaceURI",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
@@ -70,7 +70,7 @@ describe("testing  address space namespace loading", function () {
     });
 
     it("should process multiple xml files that reference each other", function (done) {
-        var address_space = new AddressSpace();
+        var addressSpace = new AddressSpace();
         var xml_files = [
             path.join(__dirname, "../../lib/server/mini.Node.Set2.xml"),
             path.join(__dirname, "../fixtures/fixture_custom_nodeset.xml"),
@@ -79,25 +79,25 @@ describe("testing  address space namespace loading", function () {
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        address_space.registerNamespace("ServerNamespaceURI");
-        address_space.getNamespaceArray().length.should.eql(2);
+        addressSpace.registerNamespace("ServerNamespaceURI");
+        addressSpace.getNamespaceArray().length.should.eql(2);
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
 
-            address_space.getNamespaceArray().length.should.eql(5);
-            address_space.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
-            address_space.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
-            address_space.getNamespaceArray()[4].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
+            addressSpace.getNamespaceArray().length.should.eql(5);
+            addressSpace.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
+            addressSpace.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
+            addressSpace.getNamespaceArray()[4].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
 
-            address_space.findObject("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
-            address_space.findObject("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+            addressSpace.findObject("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
+            addressSpace.findObject("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
-            address_space.findObject("ns=2;i=1000").browseName.toString().should.eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
-            address_space.findObject("ns=3;i=1000").browseName.toString().should.eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
+            addressSpace.findObject("ns=2;i=1000").browseName.toString().should.eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
+            addressSpace.findObject("ns=3;i=1000").browseName.toString().should.eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
 
-            address_space.findObject("ns=4;i=1").browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
+            addressSpace.findObject("ns=4;i=1").browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
 
-            address_space.getNamespaceArray().should.eql([
+            addressSpace.getNamespaceArray().should.eql([
                 "http://opcfoundation.org/UA/",
                 "ServerNamespaceURI",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
@@ -113,7 +113,7 @@ describe("testing  address space namespace loading", function () {
 
     it("should process namespaces with DI", function (done) {
 
-        var address_space = new AddressSpace();
+        var addressSpace = new AddressSpace();
         var xml_files = [
             path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
             path.join(__dirname, "../../nodesets/Opc.Ua.Di.NodeSet2.xml")
@@ -121,48 +121,48 @@ describe("testing  address space namespace loading", function () {
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        address_space.registerNamespace("ServerNamespaceURI");
-        address_space.getNamespaceArray().length.should.eql(2);
+        addressSpace.registerNamespace("ServerNamespaceURI");
+        addressSpace.getNamespaceArray().length.should.eql(2);
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
 
             should(err).eql(null);
-            address_space.getNamespaceArray().length.should.eql(3);
-            address_space.getNamespaceArray()[2].should.eql("http://opcfoundation.org/UA/DI/");
+            addressSpace.getNamespaceArray().length.should.eql(3);
+            addressSpace.getNamespaceArray()[2].should.eql("http://opcfoundation.org/UA/DI/");
 
-            address_space.getNamespaceArray().should.eql([
+            addressSpace.getNamespaceArray().should.eql([
                 "http://opcfoundation.org/UA/",   // 0
                 "ServerNamespaceURI",             // 1
                 "http://opcfoundation.org/UA/DI/",// 2
             ]);
 
-            var di_ns = address_space.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+            var di_ns = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
             di_ns.should.eql(2);
 
             // now try to retrieve some VariableType from DI namespace
-            var UIElementType = address_space.findVariableType("UIElementType",di_ns);
+            var UIElementType = addressSpace.findVariableType("UIElementType",di_ns);
             UIElementType.browseName.toString().should.eql("2:UIElementType");
-            should(address_space.findVariableType("UIElementType")).eql(undefined,"namespace is not provided");
-            should(address_space.findVariableType("2:UIElementType")).eql(UIElementType);
+            should(addressSpace.findVariableType("UIElementType")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findVariableType("2:UIElementType")).eql(UIElementType);
 
 
             // now extract some ObjectType From DI namespace
-            var TransferServicesType = address_space.findObjectType("TransferServicesType",di_ns);
+            var TransferServicesType = addressSpace.findObjectType("TransferServicesType",di_ns);
             TransferServicesType.browseName.toString().should.eql("2:TransferServicesType");
-            should(address_space.findObjectType("TransferServicesType")).eql(undefined,"namespace is not provided");
-            should(address_space.findObjectType("2:TransferServicesType")).eql(TransferServicesType);
+            should(addressSpace.findObjectType("TransferServicesType")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findObjectType("2:TransferServicesType")).eql(TransferServicesType);
 
             // now extract some ReferenceType
-            var ConnectsToRefType = address_space.findReferenceType("ConnectsTo",di_ns);
+            var ConnectsToRefType = addressSpace.findReferenceType("ConnectsTo",di_ns);
             ConnectsToRefType.browseName.toString().should.eql("2:ConnectsTo");
-            should(address_space.findReferenceType("ConnectsTo")).eql(undefined,"namespace is not provided");
-            should(address_space.findReferenceType("2:ConnectsTo")).eql(ConnectsToRefType);
+            should(addressSpace.findReferenceType("ConnectsTo")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findReferenceType("2:ConnectsTo")).eql(ConnectsToRefType);
 
             // now extract some DataType
-            var ParameterResultDataType = address_space.findDataType("ParameterResultDataType",di_ns);
+            var ParameterResultDataType = addressSpace.findDataType("ParameterResultDataType",di_ns);
             ParameterResultDataType.browseName.toString().should.eql("2:ParameterResultDataType");
-            should(address_space.findDataType("ParameterResultDataType")).eql(undefined,"namespace is not provided");
-            should(address_space.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);
+            should(addressSpace.findDataType("ParameterResultDataType")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);
 
             done();
         });

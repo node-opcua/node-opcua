@@ -8,17 +8,17 @@ var path = require("path");
 describe("testing NodeSet XML file loading", function () {
 
 
-    var address_space;
+    var addressSpace;
 
     beforeEach(function () {
 
-        address_space = new AddressSpace();
-        Object.keys(address_space._aliases).length.should.equal(0);
-        Object.keys(address_space._objectMap).length.should.equal(0);
-        Object.keys(address_space._variableTypeMap).length.should.equal(0);
-        Object.keys(address_space._referenceTypeMap).length.should.equal(0);
-        Object.keys(address_space._dataTypeMap).length.should.equal(0);
-        Object.keys(address_space._objectTypeMap).length.should.equal(0);
+        addressSpace = new AddressSpace();
+        Object.keys(addressSpace._aliases).length.should.equal(0);
+        Object.keys(addressSpace._objectMap).length.should.equal(0);
+        Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
+        Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
+        Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
+        Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
     });
 
     it("should load a nodeset xml file", function (done) {
@@ -27,14 +27,14 @@ describe("testing NodeSet XML file loading", function () {
 
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
 
-            Object.keys(address_space._aliases).length.should.be.greaterThan(10);
-            Object.keys(address_space._objectMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._variableTypeMap).length.should.be.greaterThan(3);
-            Object.keys(address_space._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._dataTypeMap).length.should.be.greaterThan(2);
-            Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(1);
+            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._objectMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(3);
+            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(2);
+            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(1);
             done(err);
         });
     });
@@ -47,14 +47,14 @@ describe("testing NodeSet XML file loading", function () {
         var xml_file = path.join(__dirname,"../../nodesets/Opc.Ua.NodeSet2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
 
-            Object.keys(address_space._aliases).length.should.be.greaterThan(10);
-            Object.keys(address_space._objectMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._variableTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._dataTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._objectMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(10);
 
             done(err);
         });
@@ -69,14 +69,14 @@ describe("testing NodeSet XML file loading", function () {
         require("fs").existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         require("fs").existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
 
-            Object.keys(address_space._aliases).length.should.be.greaterThan(10);
-            Object.keys(address_space._objectMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._variableTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._dataTypeMap).length.should.be.greaterThan(10);
-            Object.keys(address_space._objectTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._objectMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(10);
+            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(10);
 
             done(err);
         });
@@ -95,21 +95,21 @@ describe("testing NodeSet XML file loading", function () {
         require("fs").existsSync(xml_files[0]).should.be.eql(true);
         require("fs").existsSync(xml_files[1]).should.be.eql(true);
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
 
 
-            var someVariable = address_space.findObject("ns=1;i=2");
+            var someVariable = addressSpace.findObject("ns=1;i=2");
             someVariable.browseName.toString().should.eql("1:SomeVariable");
             someVariable.userAccessLevel.toString().should.eql("CurrentRead");
 
 
-            var readOnlyVar = address_space.findObject("ns=1;i=3");
+            var readOnlyVar = addressSpace.findObject("ns=1;i=3");
             readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
             readOnlyVar.userAccessLevel.toString().should.eql("CurrentRead");
 
 
 
-            var readWriteVar = address_space.findObject("ns=1;i=4");
+            var readWriteVar = addressSpace.findObject("ns=1;i=4");
             readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
             readWriteVar.userAccessLevel.toString().should.eql("CurrentRead | CurrentWrite");
 

@@ -925,7 +925,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
             // Variable with dataItem capable of sending data change notification events
             // this type of variable can be continuously monitored.
-            var n1 = server.engine.addVariable(rootFolder, {
+            var n1 = server.engine.addVariable({
+                organizedBy: rootFolder,
                 browseName: "SomeDouble",
                 nodeId: nodeIdVariant,
                 dataType: "Double",
@@ -946,7 +947,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
 
 
 
-            server.engine.addVariable(rootFolder, {
+            server.engine.addVariable({
+                organizedBy: rootFolder,
                 browseName: "SomeByteString",
                 nodeId: nodeIdByteString,
                 dataType: "ByteString",
@@ -955,7 +957,8 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                     value: new Buffer("Lorem ipsum", "ascii")
                 }
             });
-            server.engine.addVariable(rootFolder, {
+            server.engine.addVariable({
+                organizedBy: rootFolder,
                 browseName: "Some String",
                 nodeId: nodeIdString,
                 dataType: "String",

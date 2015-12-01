@@ -11,16 +11,20 @@ function post_initialize() {
 
     var myDevice = server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
     var fakeValue = 1;
-    
-    var analogItem = opcua.addAnalogDataItem(myDevice,{
-          browseName: "TemperatureSensor",
-          definition: "(tempA -25) + tempB",
-          valuePrecision: 0.5,
-          engineeringUnitsRange: { low: 100 , high: 200},
-          instrumentRange: { low: -100 , high: +200},
-          engineeringUnits: opcua.standardUnits.degree_celsius,
-          dataType: "Double",
-          value: { get: function(){return new opcua.Variant({dataType: opcua.DataType.Double , value: fakeValue}); } }
+
+    var addressSpace = serve.engine.addressSpace;
+    var analogItem = addressSpace.addAnalogDataItem({
+
+        organizedBy: myDevice,
+
+        browseName: "TemperatureSensor",
+        definition: "(tempA -25) + tempB",
+        valuePrecision: 0.5,
+        engineeringUnitsRange: { low: 100 , high: 200},
+        instrumentRange: { low: -100 , high: +200},
+        engineeringUnits: opcua.standardUnits.degree_celsius,
+        dataType: "Double",
+        value: { get: function(){return new opcua.Variant({dataType: opcua.DataType.Double , value: fakeValue}); } }
     });
 
 } 

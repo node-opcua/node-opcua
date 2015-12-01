@@ -21,14 +21,14 @@ require("lib/address_space/address_space_add_enumeration_type");
 
 describe("AddressSpace : testing add enumeration ", function () {
 
-    var address_space;
+    var addressSpace;
     before(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
             done(err);
         });
 
@@ -46,7 +46,7 @@ describe("AddressSpace : testing add enumeration ", function () {
 
     it("should add a new Enumeration type into an address space", function () {
 
-        var myEnumType = address_space.addEnumerationType({
+        var myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: convert(new Enum(["RUNNING", "BLOCKED"]))
 

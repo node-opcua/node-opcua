@@ -78,7 +78,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
         server = build_server_with_temperature_device(server_options, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
-            addressSpace = server.engine.address_space;
+            addressSpace = server.engine.addressSpace;
 
             done(err);
         });
@@ -193,7 +193,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
     });
 
     it("should create a analyser device",function() {
-        analyser_device = create_analyser_device(server.engine.address_space);
+        analyser_device = create_analyser_device(server.engine.addressSpace);
 
     });
 

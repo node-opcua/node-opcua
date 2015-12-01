@@ -23,15 +23,15 @@ var assert = require("better-assert");
 var dumpXml = require("lib/address_space/nodeset_to_xml").dumpXml;
 
 describe("testing nodeset to xml", function () {
-    var address_space;
+    var addressSpace;
 
     beforeEach(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
         var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
             done(err);
         });
 
@@ -43,7 +43,7 @@ describe("testing nodeset to xml", function () {
 
     it("should output a standard extension object datatype to xml (Argument)", function () {
 
-        var argumentDataType = address_space.findDataType("Argument");
+        var argumentDataType = addressSpace.findDataType("Argument");
         console.log(argumentDataType);
         var str = dumpXml(argumentDataType, {});
         console.log(str);
@@ -52,7 +52,7 @@ describe("testing nodeset to xml", function () {
 
     it("should output a standard Enum node to xml (ServerState)", function () {
         // TemperatureSensorType
-        var serverStateType = address_space.findDataType("ServerState");
+        var serverStateType = addressSpace.findDataType("ServerState");
         var str = dumpXml(serverStateType, {});
         console.log(str);
         str.should.match(/CommunicationFault/);
@@ -62,7 +62,7 @@ describe("testing nodeset to xml", function () {
 
         require("lib/address_space/address_space_add_enumeration_type");
 
-        var myEnumType = address_space.addEnumerationType({
+        var myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
                 {name: "RUNNING", value: 1, description: "the device is running"},
@@ -81,7 +81,7 @@ describe("testing nodeset to xml", function () {
 
     it("should output a simple objectType node to xml", function () {
         // TemperatureSensorType
-        var temperatureSensorType = createTemperatureSensorType(address_space);
+        var temperatureSensorType = createTemperatureSensorType(addressSpace);
 
         var str = dumpXml(temperatureSensorType, {});
         //xx console.log(str);
@@ -92,16 +92,17 @@ describe("testing nodeset to xml", function () {
     it("should output a instance of a new ObjectType  to xml", function () {
 
         // TemperatureSensorType
-        var temperatureSensorType = address_space.addObjectType({browseName: "TemperatureSensorType"});
-        address_space.addVariable(temperatureSensorType, {
+        var temperatureSensorType = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
+        addressSpace.addVariable({
+            componentOf:temperatureSensorType,
             browseName: "Temperature",
-            description: "the temperature value of the sensor in Celsius <°C>",
+            description: "the temperature value of the sensor in Celsius <ï¿½C>",
             dataType: "Double",
             modellingRule: "Mandatory",
             value: new Variant({dataType: DataType.Double, value: 19.5})
         });
 
-        var parentFolder = address_space.findObject("RootFolder");
+        var parentFolder = addressSpace.findObject("RootFolder");
         parentFolder.browseName.toString().should.eql("Root");
 
         // variation 1
@@ -126,7 +127,7 @@ describe("testing nodeset to xml", function () {
 
         var createCameraType = require("./fixture_camera_type").createCameraType;
 
-        var cameraType = createCameraType(address_space);
+        var cameraType = createCameraType(addressSpace);
 
         var camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",

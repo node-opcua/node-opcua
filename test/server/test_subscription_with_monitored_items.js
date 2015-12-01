@@ -75,7 +75,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000,this._timeout));
 
-    var address_space;
+    var addressSpace;
     var someVariableNode;
     var accessLevel_CurrentRead_NotUserNode;
 
@@ -84,11 +84,12 @@ describe("Subscriptions and MonitoredItems", function () {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-            address_space = engine.address_space;
+            addressSpace = engine.addressSpace;
 
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
-            var node = address_space.addVariable("RootFolder", {
+            var node = addressSpace.addVariable({
+                organizedBy:"RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: {dataType: DataType.UInt32, value: 0}
@@ -98,7 +99,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
 
             function addVar(typeName, value) {
-                address_space.addVariable("RootFolder", {
+                addressSpace.addVariable({
+                    organizedBy:"RootFolder",
                     nodeId: "ns=100;s=Static_" + typeName,
                     browseName: "Static_" + typeName,
                     dataType: typeName,
@@ -126,7 +128,8 @@ describe("Subscriptions and MonitoredItems", function () {
             var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
             var namespaceIndex = 100;
 
-            accessLevel_CurrentRead_NotUserNode = address_space.addVariable("RootFolder", {
+            accessLevel_CurrentRead_NotUserNode = addressSpace.addVariable({
+                organizedBy:"RootFolder",
                 browseName: name,
                 description: {locale: "en", text: name},
                 nodeId: makeNodeId(name, namespaceIndex),
@@ -184,7 +187,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         //xx require("lib/utils").dump(monitoredItemCreateResult);
@@ -226,7 +229,7 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
         monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
 
@@ -296,7 +299,7 @@ describe("Subscriptions and MonitoredItems", function () {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -362,7 +365,7 @@ describe("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
@@ -409,15 +412,15 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
         var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
-        var monitoredItemCreateResult1 = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+        var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
         monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
         var monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
-        var monitoredItemCreateResult2 = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest2);
+        var monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
         monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
         var monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
-        var monitoredItemCreateResult3 = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest3);
+        var monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
         monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
 
         subscription.terminate();
@@ -452,7 +455,7 @@ describe("Subscriptions and MonitoredItems", function () {
                     })
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             return monitoredItemCreateResult.statusCode;
         }
 
@@ -499,7 +502,7 @@ describe("Subscriptions and MonitoredItems", function () {
                     })
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             return monitoredItemCreateResult.statusCode;
         }
 
@@ -544,7 +547,7 @@ describe("Subscriptions and MonitoredItems", function () {
                     callback(null, dataValue);
                 });
 
-                monitoredItem.node.should.eql(address_space.findObject(monitoredItem.itemToMonitor.nodeId));
+                monitoredItem.node.should.eql(addressSpace.findObject(monitoredItem.itemToMonitor.nodeId));
             });
 
         });
@@ -575,7 +578,7 @@ describe("Subscriptions and MonitoredItems", function () {
             });
 
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -668,7 +671,7 @@ describe("Subscriptions and MonitoredItems", function () {
         function test_deadband(dataType, deadband, writesPass, writesFail) {
 
             var nodeId = "ns=100;s=Static_" + dataType;
-            var node = engine.address_space.findObject(nodeId);
+            var node = engine.addressSpace.findObject(nodeId);
             should(!!node).not.eql(false);
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
@@ -707,7 +710,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
 
             var monitoredItemCreateResult = subscription.createMonitoredItem(
-                address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
@@ -803,7 +806,7 @@ var ServerSidePublishEngine = require("lib/server/server_publish_engine").Server
 
 describe("#maxNotificationsPerPublish", function () {
 
-    var address_space;
+    var addressSpace;
     var someVariableNode;
     var engine;
     var publishEngine;
@@ -812,8 +815,9 @@ describe("#maxNotificationsPerPublish", function () {
         publishEngine = new ServerSidePublishEngine();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-            address_space = engine.address_space;
-            var node = address_space.addVariable("RootFolder", {
+            addressSpace = engine.addressSpace;
+            var node = addressSpace.addVariable({
+                organizedBy:"RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: {dataType: DataType.UInt32, value: 0}
@@ -891,7 +895,7 @@ describe("#maxNotificationsPerPublish", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
@@ -1027,7 +1031,7 @@ describe("#maxNotificationsPerPublish", function () {
                     samplingInterval: 100
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 

@@ -12,16 +12,16 @@ var _ = require("underscore");
 
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
-    var the_address_space;
+    var addressSpace;
     before(function () {
-        the_address_space = new address_space.AddressSpace();
+        addressSpace = new address_space.AddressSpace();
     });
 
     it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
         var method = new UAMethod({
             browseName: "MyMethod1",
-            address_space: the_address_space,
+            addressSpace: addressSpace,
             userExecutable: false,
             executable: true
         });
@@ -42,7 +42,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
 
         var method = new UAMethod({
             browseName: "MyMethod2",
-            address_space: the_address_space,
+            addressSpace: addressSpace,
             userExecutable: false,
             executable: true
         });
@@ -70,30 +70,30 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
 describe("testing Method in address space", function () {
 
 
-    var address_space = null;
+    var addressSpace = null;
     before(function (done) {
         get_mini_address_space(function (err, data) {
-            address_space = data;
+            addressSpace = data;
             done(err);
         });
     });
 
     it("should provide a way to find a Method object by nodeId", function () {
 
-        should(address_space.findMethod("ns=0;i=11489")).be.instanceOf(UAMethod);
-        should(address_space.findObject("ns=0;i=11489")).be.instanceOf(UAMethod);
+        should(addressSpace.findMethod("ns=0;i=11489")).be.instanceOf(UAMethod);
+        should(addressSpace.findObject("ns=0;i=11489")).be.instanceOf(UAMethod);
 
     });
     it("should provide a way to find a Method object by nodeId", function () {
 
-        should(address_space.findMethod("ns=0;i=11492")).be.instanceOf(UAMethod);
-        should(address_space.findObject("ns=0;i=11492")).be.instanceOf(UAMethod);
+        should(addressSpace.findMethod("ns=0;i=11492")).be.instanceOf(UAMethod);
+        should(addressSpace.findObject("ns=0;i=11492")).be.instanceOf(UAMethod);
 
     });
 
     it("should provide a input Parameter variable", function () {
 
-        var method = address_space.findMethod("ns=0;i=11489");
+        var method = addressSpace.findMethod("ns=0;i=11489");
         method.should.be.instanceOf(UAMethod);
         var inputArguments = method.getInputArguments();
         inputArguments.should.be.instanceOf(Object);
@@ -101,7 +101,7 @@ describe("testing Method in address space", function () {
     });
     it("should provide a output Parameter variable", function () {
 
-        var method = address_space.findMethod("ns=0;i=11489");
+        var method = addressSpace.findMethod("ns=0;i=11489");
         method.should.be.instanceOf(UAMethod);
 
         var outputArguments = method.getOutputArguments();
@@ -113,13 +113,13 @@ describe("testing Method in address space", function () {
 
 });
 describe("testing Method binding", function () {
-    var address_space = null;
+    var addressSpace = null;
     var rootFolder;
 
     before(function (done) {
         get_mini_address_space(function (err, data) {
-            address_space = data;
-            rootFolder = address_space.findObjectByBrowseName("Root");
+            addressSpace = data;
+            rootFolder = addressSpace.findObjectByBrowseName("Root");
             rootFolder.browseName.toString().should.equal("Root");
             done(err);
         });

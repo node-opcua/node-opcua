@@ -21,15 +21,15 @@ require("lib/address_space/address_space_add_enumeration_type");
 
 describe("AddressSpace : add event type ", function () {
 
-    var address_space;
+    var addressSpace;
     before(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
-            var eventType = address_space.addEventType({
+        generate_address_space(addressSpace, xml_file, function (err) {
+            var eventType = addressSpace.addEventType({
                 browseName: "MyCustomEvent",
                 //isAbstract:false,
                 subtypeOf: "BaseEventType" // should be implicit
@@ -43,9 +43,9 @@ describe("AddressSpace : add event type ", function () {
 
     it("#generateEventId should generate event id sequentially",function() {
 
-        var id1 = address_space.generateEventId();
-        var id2 = address_space.generateEventId();
-        var id3 = address_space.generateEventId();
+        var id1 = addressSpace.generateEventId();
+        var id2 = addressSpace.generateEventId();
+        var id3 = addressSpace.generateEventId();
         console.log(id1.value.toString("hex"));
         console.log(id2.value.toString("hex"));
         console.log(id3.value.toString("hex"));
@@ -54,54 +54,54 @@ describe("AddressSpace : add event type ", function () {
     });
 
     it("should find BaseEventType", function () {
-        address_space.findEventType("BaseEventType").nodeId.toString().should.eql("ns=0;i=2041");
+        addressSpace.findEventType("BaseEventType").nodeId.toString().should.eql("ns=0;i=2041");
     });
 
     it("BaseEventType should be abstract ", function () {
-        var baseEventType = address_space.findEventType("BaseEventType");
+        var baseEventType = addressSpace.findEventType("BaseEventType");
         baseEventType.nodeId.toString().should.eql("ns=0;i=2041");
         baseEventType.isAbstract.should.eql(true);
     });
 
     it("should find AuditEventType", function () {
-        var auditEventType = address_space.findEventType("AuditEventType");
+        var auditEventType = addressSpace.findEventType("AuditEventType");
         auditEventType.nodeId.toString().should.eql("ns=0;i=2052");
         auditEventType.isAbstract.should.eql(true);
     });
 
     it("should verify that AuditEventType is a superType of BaseEventType", function () {
 
-        var baseEventType = address_space.findObjectType("BaseEventType");
-        var auditEventType = address_space.findObjectType("AuditEventType");
+        var baseEventType = addressSpace.findObjectType("BaseEventType");
+        var auditEventType = addressSpace.findObjectType("AuditEventType");
         auditEventType.isSupertypeOf(baseEventType).should.eql(true);
         baseEventType.isSupertypeOf(auditEventType).should.eql(false);
     });
 
     it("should find a newly added EventType", function () {
 
-        should(address_space.findEventType("__EventTypeForTest1")).eql(null);
+        should(addressSpace.findEventType("__EventTypeForTest1")).eql(null);
 
-        var eventType = address_space.addEventType({
+        var eventType = addressSpace.addEventType({
             browseName: "__EventTypeForTest1",
             subtypeOf: "BaseEventType" // should be implicit
         });
         eventType.browseName.toString().should.eql("__EventTypeForTest1");
 
-        var reloaded = address_space.findEventType("__EventTypeForTest1");
+        var reloaded = addressSpace.findEventType("__EventTypeForTest1");
         should(reloaded).not.eql(null, "cannot findEventType " + "__EventTypeForTest1");
         reloaded.nodeId.should.eql(eventType.nodeId);
 
     });
 
     it("added EventType should be abstract by default", function () {
-        var eventType = address_space.findEventType("MyCustomEvent");
+        var eventType = addressSpace.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
         eventType.isAbstract.should.eql(true);
     });
 
     it("should be possible to add a non-abstract event type",function(){
 
-        var eventType = address_space.addEventType({
+        var eventType = addressSpace.addEventType({
             browseName: "MyConcreteCustomEvent",
             isAbstract: false,
         });
@@ -116,13 +116,13 @@ describe("AddressSpace : add event type ", function () {
         var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
         var bench = new Benchmarker();
 
-        var eventType = address_space.addEventType({
+        var eventType = addressSpace.addEventType({
             browseName: "MyConcreteCustomEvent2",
             isAbstract: false
         });
         bench.add('test', function () {
 
-            var event = address_space.instantiateEvent(eventType, {
+            var event = addressSpace.instantiateEvent(eventType, {
                 sourceName: {dataType: "String", value: "HelloWorld"},
                 receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
             });
@@ -145,9 +145,9 @@ describe("AddressSpace : add event type ", function () {
 
     it("#constructEventData ", function () {
 
-        var auditEventType = address_space.findObjectType("AuditEventType");
+        var auditEventType = addressSpace.findObjectType("AuditEventType");
 
-        var data = address_space.constructEventData(auditEventType);
+        var data = addressSpace.constructEventData(auditEventType);
 
         var expected_fields = [
             "__nodes",
@@ -173,16 +173,17 @@ describe("AddressSpace : add event type ", function () {
 
     xit("#createEventData should add an basic event type", function () {
 
-        var eventType = address_space.findEventType("MyCustomEvent");
+        var eventType = addressSpace.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
 
-        address_space.addProperty(eventType, {
+        addressSpace.addVariable( {
+            propertyOf: eventType,
             browseName: "MyCustomEventProperty",
             dataType: "Double",
             value: {dataType: DataType.Double, value: 1.0}
         });
 
-        var event = address_space.createEventData("MyCustomEvent", {
+        var event = addressSpace.createEventData("MyCustomEvent", {
             sourceName: {dataType: "String", value: "HelloWorld"},
             receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
         });
@@ -221,14 +222,14 @@ describe("AddressSpace : add event type ", function () {
     });
     xit("#createEventData ", function () {
 
-        var auditEventType = address_space.findObjectType("AuditEventType");
+        var auditEventType = addressSpace.findObjectType("AuditEventType");
 
         var data = {
             sourceName: {dataType: "String", value: "HelloWorld"},
             receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
         };
 
-        var fullData = address_space.deprecated_createEventData(auditEventType, data);
+        var fullData = addressSpace.deprecated_createEventData(auditEventType, data);
 
         fullData.sourceName.value.should.eql("HelloWorld");
     });

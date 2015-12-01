@@ -20,6 +20,8 @@ var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
+var get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
+var makeApplicationUrn = opcua.makeApplicationUrn;
 
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -28,7 +30,6 @@ var install_optional_cpu_and_memory_usage_node = require("lib/server/vendor_diag
 
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
-var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 
 var port = parseInt(argv.port) || 26543;
 
@@ -44,8 +45,6 @@ var userManager = {
         return false;
     }
 };
-
-var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
 var path = require("path");
 //var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
@@ -104,6 +103,8 @@ server.on("post_initialize", function () {
 
     install_optional_cpu_and_memory_usage_node(server);
 
+    var addressSpace = server.engine.addressSpace;
+
     var myDevices = server.engine.addFolder("Objects", {browseName: "MyDevices"});
 
     /**
@@ -113,7 +114,8 @@ server.on("post_initialize", function () {
      * Add a variable in folder using a raw Variant.
      * Use this variation when the variable has to be read or written by the OPCUA clients
      */
-    var variable0 = server.engine.addVariable(myDevices, {
+    var variable0 = server.engine.addVariable({
+        organizedBy: myDevices,
         browseName: "FanSpeed",
         nodeId: "ns=1;s=FanSpeed",
         dataType: "Double",
@@ -136,7 +138,8 @@ server.on("post_initialize", function () {
      * Avoid using this variation if the variable has to be made writable, as the server will call the getter
      * function prior to returning its value upon client read requests.
      */
-    server.engine.addVariable(myDevices, {
+    server.engine.addVariable({
+        organizedBy: myDevices,
         browseName: "PumpSpeed",
         nodeId: "ns=1;s=PumpSpeed",
         dataType: "Double",
@@ -153,7 +156,8 @@ server.on("post_initialize", function () {
         }
     });
 
-    server.engine.addVariable(myDevices, {
+    server.engine.addVariable({
+        organizedBy: myDevices,
         browseName: "SomeDate",
         nodeId: "ns=1;s=SomeDate",
         dataType: "DateTime",
@@ -183,7 +187,8 @@ server.on("post_initialize", function () {
         external_value_with_sourceTimestamp.sourceTimestamp = new Date();
     }, 1000);
 
-    server.engine.addVariable(myDevices, {
+    server.engine.addVariable({
+        organizedBy: myDevices,
         browseName: "Pressure",
         nodeId: "ns=1;s=Pressure",
         dataType: "Double",
@@ -205,7 +210,8 @@ server.on("post_initialize", function () {
      *
      */
 
-    server.engine.addVariable(myDevices, {
+    server.engine.addVariable({
+        organizedBy: myDevices,
         browseName: "Temperature",
         nodeId: "ns=1;s=Temperature",
         dataType: "Double",
@@ -227,7 +233,10 @@ server.on("post_initialize", function () {
 
     // UAAnalogItem
     // add a UAAnalogItem
-    var node = opcua.addAnalogDataItem(myDevices, {
+    var node = addressSpace.addAnalogDataItem({
+
+        organizedBy: myDevices,
+
         nodeId: "ns=1;s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",

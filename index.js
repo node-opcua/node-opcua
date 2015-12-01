@@ -78,11 +78,12 @@ module.exports.MessageSecurityMode = module.exports.get_endpoints_service.Messag
 // DA
 module.exports.standardUnits                  = require("lib/data_access/EUInformation").standardUnits;
 module.exports.makeEUInformation              = require("lib/data_access/EUInformation").makeEUInformation;
-module.exports.addAnalogDataItem              = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
-module.exports.addTwoStateDiscreteType        = require("lib/data_access/UATwoStateDiscreteType").addTwoStateDiscreteType;
-module.exports.addMultiStateDiscreteType      = require("lib/data_access/UAMultiStateDiscreteType").addMultiStateDiscreteType;
-module.exports.addMultiStateValueDiscreteType = require("lib/data_access/UAMultiStateValueDiscreteType").addMultiStateValueDiscreteType;
-module.exports.addYArrayItem                  = require("lib/data_access/UAYArrayItem").addYArrayItem;
+
+//module.exports.addAnalogDataItem              = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
+//module.exports.addTwoStateDiscreteType        = require("lib/data_access/UATwoStateDiscreteType").addTwoStateDiscreteType;
+//module.exports.addMultiStateDiscreteType      = require("lib/data_access/UAMultiStateDiscreteType").addMultiStateDiscreteType;
+//module.exports.addMultiStateValueDiscreteType = require("lib/data_access/UAMultiStateValueDiscreteType").addMultiStateValueDiscreteType;
+//xx module.exports.addYArrayItem                  = require("lib/data_access/UAYArrayItem").addYArrayItem;
 
 // version
 module.exports.version               = require("./package.json").version;

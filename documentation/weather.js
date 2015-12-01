@@ -99,18 +99,21 @@ function post_initialize() {
            // declare the city node
            server.engine.addFolder("Cities",{ browseName: city_name });
        
-           server.engine.addVariable(city_name,{
+           server.engine.addVariable({
+               componentOf: city_name,
                browseName: "Temperature",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"temperature"); } }
            });
-           server.engine.addVariable(city_name,{
+           server.engine.addVariable({
+               componentOf: city_name,
                browseName: "Humidity",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"humidity"); } }
            
            });
-           server.engine.addVariable(city_name,{
+           server.engine.addVariable({
+               componentOf: city_name,
                browseName: "Pressure",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"pressure"); } }

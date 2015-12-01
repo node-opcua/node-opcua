@@ -53,10 +53,10 @@ var convertJavaScriptToVariant = require("lib/datamodel/argument_list").convertJ
 
 describe("CallMethodRequest with address space", function () {
 
-    var address_space = null;
+    var addressSpace = null;
     before(function (done) {
         get_mini_address_space(function (err, data) {
-            address_space = data;
+            addressSpace = data;
             done(err);
         });
     });
@@ -91,14 +91,14 @@ describe("CallMethodRequest with address space", function () {
 
 describe("CallRequest on custom method", function () {
 
-    var address_space = new AddressSpace();
+    var addressSpace = new AddressSpace();
 
     before(function (done) {
 
         var xml_file = path.join(__dirname,"../fixtures/fixuture_nodeset_objects_with_some_methods.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        opcua.generate_address_space(address_space, xml_file, function (err) {
+        opcua.generate_address_space(addressSpace, xml_file, function (err) {
             done(err);
         });
     });
@@ -112,7 +112,7 @@ describe("CallRequest on custom method", function () {
         var methodId = opcua.makeNodeId(999992, 0);
 
 
-        var obj = address_space.findObject(objectId);
+        var obj = addressSpace.findObject(objectId);
         obj.should.be.instanceOf(UAObject);
 
         var method = obj.getMethodById(methodId);
@@ -131,7 +131,7 @@ describe("CallRequest on custom method", function () {
             }]
         });
 
-        var retrieveInputArgumentsDefinition = build_retrieveInputArgumentsDefinition(address_space);
+        var retrieveInputArgumentsDefinition = build_retrieveInputArgumentsDefinition(addressSpace);
 
         //xx callRequest.factory = factory;
 
@@ -145,7 +145,7 @@ describe("CallRequest on custom method", function () {
 
         // now decode
         var callRequest_reloaded = new opcua.call_service.CallRequest();
-        stream.address_space = {};
+        stream.addressSpace = {};
         stream.rewind();
         callRequest_reloaded.decode(stream, options);
 

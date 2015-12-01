@@ -38,9 +38,9 @@ describe("ServerEngine - addMethod", function () {
 
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
-            FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;
-            ref_Organizes_Id = engine.address_space.findReferenceType("Organizes").nodeId;
+            FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
+            BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
+            ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
             done();
@@ -87,7 +87,7 @@ describe("ServerEngine - addMethod", function () {
         var objectMethod = object.getMethodById(method.nodeId);
         _.isObject(objectMethod).should.eql(true);
 
-        var arg = getMethodDeclaration_ArgumentList(engine.address_space, object.nodeId, method.nodeId);
+        var arg = getMethodDeclaration_ArgumentList(engine.addressSpace, object.nodeId, method.nodeId);
 
         arg.statusCode.should.eql(StatusCodes.Good);
         arg.methodDeclaration.should.eql(objectMethod);

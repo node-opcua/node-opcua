@@ -19,7 +19,6 @@ var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var async = require("async");
 
 var path = require("path");
-var addYArrayItem = require("lib/data_access/UAYArrayItem").addYArrayItem;
 
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
@@ -30,22 +29,25 @@ module.exports = function(engine) {
     describe("YArrayItemType", function () {
 
         var rootFolder;
-        var address_space;
+        var addressSpace;
         before(function() {
-            address_space = engine.address_space;
-            rootFolder = address_space.findObject("ObjectsFolder");
+            addressSpace = engine.addressSpace;
+            rootFolder = addressSpace.findObject("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
         });
 
         it("YArrayItemType should not be abstract",function() {
 
-            var YArrayItemType = address_space.findVariableType("YArrayItemType");
+            var YArrayItemType = addressSpace.findVariableType("YArrayItemType");
             YArrayItemType.isAbstract.should.eql(false);
 
         });
         it("should add a YArrayItem",function() {
 
-            var yArrayItem = addYArrayItem(rootFolder,{
+            var yArrayItem = addressSpace.addYArrayItem({
+
+                componentOf: rootFolder,
+
                 browseName: "MyYArrayItem",
 
                 title: "My Little YArray Item",
@@ -107,7 +109,10 @@ module.exports = function(engine) {
         });
         it("should add a YArrayItem with optional instrument range",function() {
 
-            var prop = addYArrayItem(rootFolder,{
+            var prop = addressSpace.addYArrayItem({
+
+                componentOf: rootFolder,
+
                 browseName: "MyYArrayItem",
 
                 engineeringUnitsRange: {low: 100, high: 200},

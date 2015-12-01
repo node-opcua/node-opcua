@@ -35,6 +35,7 @@ var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_
 var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 var UAVariable = require("lib/address_space/ua_variable").UAVariable;
 var UAObject = require("lib/address_space/ua_object").UAObject;
+var Reference = require("lib/address_space/reference").Reference;
 
 describe("testing ServerEngine", function () {
 
@@ -53,9 +54,9 @@ describe("testing ServerEngine", function () {
 
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
-            FolderTypeId = engine.address_space.findObjectType("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.address_space.findVariableType("BaseDataVariableType").nodeId;
-            ref_Organizes_Id = engine.address_space.findReferenceType("Organizes").nodeId;
+            FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
+            BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
+            ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
 
@@ -65,10 +66,9 @@ describe("testing ServerEngine", function () {
                 testArray.push(i * 1.0);
             }
 
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
-                    browseName: "TestArray",
+            engine.addVariable({
+                    organizedBy: engine.findObject("ObjectsFolder"),
+                     browseName: "TestArray",
                     nodeId: "ns=1;s=TestArray",
                     dataType: "Double",
                     value: {
@@ -85,9 +85,8 @@ describe("testing ServerEngine", function () {
             );
 
             // add a writable Int32
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
+            engine.addVariable({
+                    organizedBy: engine.findObject("ObjectsFolder"),
                     browseName: "WriteableInt32",
                     nodeId: "ns=1;s=WriteableInt32",
                     dataType: "Int32",
@@ -109,10 +108,9 @@ describe("testing ServerEngine", function () {
             );
 
             // add a writable Int32
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
-                    browseName: "WriteableUInt32Async",
+            engine.addVariable({
+                organizedBy: engine.findObject("ObjectsFolder"),
+                browseName: "WriteableUInt32Async",
                     nodeId: "ns=1;s=WriteableUInt32Async",
                     dataType: "UInt32",
                     value: {
@@ -140,59 +138,59 @@ describe("testing ServerEngine", function () {
     describe("findReferenceType findReferenceTypeFromInverseName", function () {
 
         it("should provide a way to access a referenceType from its inverse name", function () {
-            var address_space = engine.address_space;
-            var n1 = address_space.findReferenceType("Organizes").nodeId;
-            should(address_space.findReferenceType("OrganizedBy")).eql(undefined);
+            var addressSpace = engine.addressSpace;
+            var n1 = addressSpace.findReferenceType("Organizes").nodeId;
+            should(addressSpace.findReferenceType("OrganizedBy")).eql(undefined);
 
-            var n2 = address_space.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
-            should(address_space.findReferenceTypeFromInverseName("Organizes")).eql(undefined);
+            var n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
+            should(addressSpace.findReferenceTypeFromInverseName("Organizes")).eql(undefined);
 
             n1.should.equal(n2);
 
         });
 
         it("should normalize a {referenceType/isForward} combination", function () {
-            var address_space = engine.address_space;
+            var addresSpace = engine.addressSpace;
 
-            address_space.normalizeReferenceType(
+            addresSpace.normalizeReferenceType(
                 {referenceType: "OrganizedBy", isForward: true}).should.eql(
-                {referenceType: "Organizes", isForward: false}
+                new Reference({referenceType: "Organizes", isForward: false})
             );
 
-            address_space.normalizeReferenceType(
+            addresSpace.normalizeReferenceType(
                 {referenceType: "OrganizedBy", isForward: false}).should.eql(
-                {referenceType: "Organizes", isForward: true}
+                new Reference({referenceType: "Organizes", isForward: true})
             );
-            address_space.normalizeReferenceType(
+            addresSpace.normalizeReferenceType(
                 {referenceType: "Organizes", isForward: false}).should.eql(
-                {referenceType: "Organizes", isForward: false}
+                new Reference({referenceType: "Organizes", isForward: false})
             );
-            address_space.normalizeReferenceType(
+            addresSpace.normalizeReferenceType(
                 {referenceType: "Organizes", isForward: true}).should.eql(
-                {referenceType: "Organizes", isForward: true}
+                new Reference({referenceType: "Organizes", isForward: true})
             );
         });
 
         it("should provide a easy way to get the inverse name of a Reference Type", function () {
-            var address_space = engine.address_space;
+            var addressSpace = engine.addressSpace;
 
-            address_space.inverseReferenceType("Organizes").should.eql("OrganizedBy");
-            address_space.inverseReferenceType("ChildOf").should.eql("HasChild");
-            address_space.inverseReferenceType("AggregatedBy").should.eql("Aggregates");
-            address_space.inverseReferenceType("PropertyOf").should.eql("HasProperty");
-            address_space.inverseReferenceType("ComponentOf").should.eql("HasComponent");
-            address_space.inverseReferenceType("HistoricalConfigurationOf").should.eql("HasHistoricalConfiguration");
-            address_space.inverseReferenceType("HasSupertype").should.eql("HasSubtype");
-            address_space.inverseReferenceType("EventSourceOf").should.eql("HasEventSource");
+            addressSpace.inverseReferenceType("Organizes").should.eql("OrganizedBy");
+            addressSpace.inverseReferenceType("ChildOf").should.eql("HasChild");
+            addressSpace.inverseReferenceType("AggregatedBy").should.eql("Aggregates");
+            addressSpace.inverseReferenceType("PropertyOf").should.eql("HasProperty");
+            addressSpace.inverseReferenceType("ComponentOf").should.eql("HasComponent");
+            addressSpace.inverseReferenceType("HistoricalConfigurationOf").should.eql("HasHistoricalConfiguration");
+            addressSpace.inverseReferenceType("HasSupertype").should.eql("HasSubtype");
+            addressSpace.inverseReferenceType("EventSourceOf").should.eql("HasEventSource");
 
-            address_space.inverseReferenceType("OrganizedBy").should.eql("Organizes");
-            address_space.inverseReferenceType("HasChild").should.eql("ChildOf");
-            address_space.inverseReferenceType("Aggregates").should.eql("AggregatedBy");
-            address_space.inverseReferenceType("HasProperty").should.eql("PropertyOf");
-            address_space.inverseReferenceType("HasComponent").should.eql("ComponentOf");
-            address_space.inverseReferenceType("HasHistoricalConfiguration").should.eql("HistoricalConfigurationOf");
-            address_space.inverseReferenceType("HasSubtype").should.eql("HasSupertype");
-            address_space.inverseReferenceType("HasEventSource").should.eql("EventSourceOf");
+            addressSpace.inverseReferenceType("OrganizedBy").should.eql("Organizes");
+            addressSpace.inverseReferenceType("HasChild").should.eql("ChildOf");
+            addressSpace.inverseReferenceType("Aggregates").should.eql("AggregatedBy");
+            addressSpace.inverseReferenceType("HasProperty").should.eql("PropertyOf");
+            addressSpace.inverseReferenceType("HasComponent").should.eql("ComponentOf");
+            addressSpace.inverseReferenceType("HasHistoricalConfiguration").should.eql("HistoricalConfigurationOf");
+            addressSpace.inverseReferenceType("HasSubtype").should.eql("HasSupertype");
+            addressSpace.inverseReferenceType("HasEventSource").should.eql("EventSourceOf");
         });
 
 
@@ -326,8 +324,9 @@ describe("testing ServerEngine", function () {
 
         var newFolder = engine.addFolder("ObjectsFolder", "MyNewFolder1");
 
-        var newVariable = engine.addVariable("MyNewFolder1",
+        var newVariable = engine.addVariable(
             {
+                componentOf: "MyNewFolder1",
                 browseName: "Temperature",
                 dataType: "Float",
                 value: {
@@ -359,8 +358,8 @@ describe("testing ServerEngine", function () {
 
         engine.addFolder("ObjectsFolder", "MyNewFolder3");
 
-        var newVariable = engine.addVariable("MyNewFolder3",
-            {
+        var newVariable = engine.addVariable({
+                componentOf: "MyNewFolder3",
                 nodeId: "ns=4;b=01020304ffaa",  // << fancy node id here !
                 browseName: "Temperature",
                 dataType: "Double",
@@ -391,8 +390,8 @@ describe("testing ServerEngine", function () {
             sourcePicoseconds: 10
         });
 
-        var newVariable = engine.addVariable("MyNewFolder4",
-            {
+        var newVariable = engine.addVariable({
+                componentOf: "MyNewFolder4",
                 browseName: "TemperatureWithSourceTimestamps",
                 dataType: "Double",
                 value: {
@@ -524,7 +523,7 @@ describe("testing ServerEngine", function () {
 
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", function () {
 
-        var ref_hierarchical_Ref_Id = engine.address_space.findReferenceType("HierarchicalReferences").nodeId;
+        var ref_hierarchical_Ref_Id = engine.addressSpace.findReferenceType("HierarchicalReferences").nodeId;
         ref_hierarchical_Ref_Id.toString().should.eql("ns=0;i=33");
 
         var browseDescription = new browse_service.BrowseDescription({
@@ -751,7 +750,7 @@ describe("testing ServerEngine", function () {
 
         var ref_Organizes_nodeId;
         beforeEach(function () {
-            ref_Organizes_nodeId = engine.address_space.findReferenceType("Organizes").nodeId;
+            ref_Organizes_nodeId = engine.addressSpace.findReferenceType("Organizes").nodeId;
         });
 
         //  --- on reference Type ....
@@ -885,13 +884,13 @@ describe("testing ServerEngine", function () {
     describe("readSingleNode on DataType", function () {
         // for views
         it("should have ServerStatusDataType dataType exposed", function () {
-            var obj = engine.address_space.findDataType("ServerStatusDataType");
+            var obj = engine.addressSpace.findDataType("ServerStatusDataType");
             obj.browseName.toString().should.eql("ServerStatusDataType");
             obj.nodeClass.should.eql(NodeClass.DataType);
         });
         it("should handle a readSingleNode - ServerStatusDataType - BrowseName", function () {
 
-            var obj = engine.address_space.findDataType("ServerStatusDataType");
+            var obj = engine.addressSpace.findDataType("ServerStatusDataType");
             var serverStatusDataType_id = obj.nodeId;
             var readResult = engine.readSingleNode(serverStatusDataType_id, AttributeIds.BrowseName);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
@@ -900,7 +899,7 @@ describe("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - ServerStatusDataType - Description", function () {
 
-            var obj = engine.address_space.findDataType("ServerStatusDataType");
+            var obj = engine.addressSpace.findDataType("ServerStatusDataType");
             var serverStatusDataType_id = obj.nodeId;
             var readResult = engine.readSingleNode(serverStatusDataType_id, AttributeIds.Description);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
@@ -942,9 +941,8 @@ describe("testing ServerEngine", function () {
 
         var nodeId = "ns=1;s=TestVar";
         before(function () {
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
+            engine.addVariable({
+                componentOf: engine.findObject("ObjectsFolder"),
                     browseName: "TestVar",
                     nodeId: nodeId,
                     dataType: "Double",
@@ -1736,9 +1734,8 @@ describe("testing ServerEngine", function () {
             // we simulate the scenario where the variable represent a PLC value,
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
+            engine.addVariable({
+                    componentOf: engine.findObject("ObjectsFolder"),
                     browseName: "FailingPLCValue",
                     nodeId: "ns=1;s=FailingPLCValue",
                     dataType: "Double",
@@ -1783,9 +1780,8 @@ describe("testing ServerEngine", function () {
         before(function () {
 
             // add a variable that provide a on demand refresh function
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
+            engine.addVariable({
+                    componentOf: engine.findObject("ObjectsFolder"),
                     browseName: "RefreshedOnDemandValue",
                     nodeId: "ns=1;s=RefreshedOnDemandValue",
                     dataType: "Double",
@@ -1807,9 +1803,8 @@ describe("testing ServerEngine", function () {
                 }
             );
             // add an other variable that provide a on demand refresh function
-            engine.addVariable(
-                engine.findObject("ObjectsFolder"),
-                {
+            engine.addVariable({
+                    componentOf: engine.findObject("ObjectsFolder"),
                     browseName: "OtherRefreshedOnDemandValue",
                     nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
                     dataType: "Double",
@@ -2032,8 +2027,8 @@ describe("ServerEngine ServerStatus & ServerCapabilities",function() {
         var serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
         serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
 
-        var address_space = engine.address_space;
-        var serverCapabilitiesNode = address_space.findObject(serverCapabilitiesId);
+        var addressSpace = engine.addressSpace;
+        var serverCapabilitiesNode = addressSpace.findObject(serverCapabilitiesId);
 
         should(serverCapabilitiesNode).be.instanceOf(UAObject);
 
@@ -2047,8 +2042,8 @@ describe("ServerEngine ServerStatus & ServerCapabilities",function() {
         var currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
         currentTimeId.value.should.eql(2258);
 
-        var address_space = engine.address_space;
-        var currentTimeNode = address_space.findObject(currentTimeId);
+        var addressSpace = engine.addressSpace;
+        var currentTimeNode = addressSpace.findObject(currentTimeId);
         var d1 = currentTimeNode.readValue();
 
         test.clock.tick(1000);

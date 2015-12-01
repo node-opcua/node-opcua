@@ -188,14 +188,15 @@ describe("Subscriptions", function () {
         var server_engine = require("lib/server/server_engine");
         var DataType = require("lib/datamodel/variant").DataType;
 
-        var address_space;
+        var addressSpace;
         var someVariableNode;
         var engine;
         before(function (done) {
             engine = new server_engine.ServerEngine();
             engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-                address_space = engine.address_space;
-                var node = address_space.addVariable("RootFolder", {
+                addressSpace = engine.addressSpace;
+                var node = addressSpace.addVariable({
+                    componentOf: "RootFolder",
                     browseName: "SomeVariable",
                     dataType: "UInt32",
                     value: {dataType: DataType.UInt32, value: 0}
@@ -323,7 +324,7 @@ describe("Subscriptions", function () {
                     samplingInterval: 100
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
@@ -367,7 +368,7 @@ describe("Subscriptions", function () {
                     samplingInterval: 100
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(address_space, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount / 2);

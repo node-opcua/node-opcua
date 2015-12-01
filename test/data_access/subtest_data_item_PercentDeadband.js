@@ -19,7 +19,6 @@ var async = require("async");
 
 var path = require("path");
 
-var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
 
 
 module.exports = function (engine) {
@@ -28,11 +27,12 @@ module.exports = function (engine) {
 
         it("should provide a mechanism to operate PercentDeadband ", function (done) {
 
-            var address_space = engine.address_space;
+            var addressSpace = engine.addressSpace;
 
-            var rootFolder = address_space.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findObject("ObjectsFolder");
 
-            var analogItem = addAnalogDataItem(rootFolder, {
+            var analogItem = addressSpace.addAnalogDataItem({
+                organizedBy: rootFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
                 valuePrecision: 0.5,

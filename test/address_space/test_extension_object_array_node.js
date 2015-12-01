@@ -28,16 +28,16 @@ var eoan = require("lib/address_space/extension_object_array_node");
 describe("Extension Object Array Node (or Complex Variable)",function() {
 
 
-    var address_space;
+    var addressSpace;
 
     before(function(done){
 
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
             done(err);
         });
     });
@@ -49,7 +49,7 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         // given a address space
         // give a DataType
 
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = addressSpace.findObject("RootFolder");
 
 
         var arr = eoan.createExtObjArrayNode(rootFolder,{
@@ -60,8 +60,8 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         });
 
 
-        address_space.findObject(arr.dataType).should.be.instanceOf(UADataType);
-        var expectedType = address_space.findVariableType("SubscriptionDiagnosticsArrayType");
+        addressSpace.findObject(arr.dataType).should.be.instanceOf(UADataType);
+        var expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
         arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString());
 
         var dv  = arr.readValue();
@@ -103,7 +103,7 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
 
     it("should be possible to add more than one element in the Extension Object variable node",function() {
 
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = addressSpace.findObject("RootFolder");
 
         var arr = eoan.createExtObjArrayNode(rootFolder,{
             browseName:          "SubscriptionDiagnosticArrayForTest2",
@@ -125,7 +125,7 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
     });
     it("should be possible to remove some element in the Extension Object variable node",function() {
 
-        var rootFolder = address_space.findObject("RootFolder");
+        var rootFolder = addressSpace.findObject("RootFolder");
 
         var arr = eoan.createExtObjArrayNode(rootFolder,{
             browseName:          "SubscriptionDiagnosticArrayForTest3",

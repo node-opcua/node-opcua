@@ -29,6 +29,7 @@ describe("testing address space", function () {
     it("should be possible to remove an object previously added to the address space", function () {
 
         var options = {browseName: "SomeObject"};
+
         var object = addressSpace.addObjectInFolder("RootFolder", options);
 
         // object shall  be found with a global nodeId search
@@ -65,7 +66,7 @@ describe("testing address space", function () {
             object.findReferencesEx("HierarchicalReferences",BrowseDirection.Inverse).length.should.eql(1,"Object must be child of one parent");
             object.findReferencesEx("HierarchicalReferences",BrowseDirection.Forward).length.should.eql(0,"Object must not have children yet");
 
-            var comp1 = addressSpace.addVariable(object, {browseName: "Component1", dataType: "String"});
+            var comp1 = addressSpace.addVariable({ componentOf: object,browseName: "Component1", dataType: "String"});
             object.findReferencesEx("HierarchicalReferences",BrowseDirection.Forward).length.should.eql(1,"Object must now have one child");
 
             object.findReferencesEx("HasChild",    BrowseDirection.Forward).length.should.eql(1,"Object must now have one child");
@@ -87,7 +88,7 @@ describe("testing address space", function () {
 
             var options = {browseName: "SomeObject"};
             var object = addressSpace.addObjectInFolder("RootFolder", options);
-            var innerVar = addressSpace.addVariable(object, {browseName: "Hello", dataType: "String"});
+            var innerVar = addressSpace.addVariable({ componentOf: object,browseName: "Hello", dataType: "String"});
 
             // objects shall  be found with a global nodeId search
             addressSpace.findObject(object.nodeId).should.eql(object);
@@ -118,8 +119,8 @@ describe("testing address space", function () {
 
             // let's construct some properties and some components gradually, and verify that the caches
             // work as expected.
-            var comp1 = addressSpace.addVariable(object, {browseName: "Component1", dataType: "String"});
-            var prop1 = addressSpace.addProperty(object, {browseName: "Property1", dataType: "String"});
+            var comp1 = addressSpace.addVariable({ componentOf: object,browseName: "Component1", dataType: "String"});
+            var prop1 = addressSpace.addVariable({ propertyOf:  object,browseName: "Property1",  dataType: "String"});
 
             object.getComponents().length.should.eql(1);
             object.getComponents()[0].browseName.toString().should.eql("Component1");
@@ -127,8 +128,8 @@ describe("testing address space", function () {
             object.getProperties().length.should.eql(1);
             object.getProperties()[0].browseName.toString().should.eql("Property1");
 
-            var comp2 = addressSpace.addVariable(object, {browseName: "Component2", dataType: "String"});
-            var prop2 = addressSpace.addProperty(object, {browseName: "Property2", dataType: "String"});
+            var comp2 = addressSpace.addVariable({ componentOf: object,browseName: "Component2", dataType: "String"});
+            var prop2 = addressSpace.addVariable({ propertyOf:  object,browseName: "Property2",  dataType: "String"});
 
             object.getComponents().length.should.eql(2);
             object.getComponents()[0].browseName.toString().should.eql("Component1");

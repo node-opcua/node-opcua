@@ -3,8 +3,8 @@
 // id out of the address_space
 //
 // For instance if ServerStatus
-//    var ServerStatusDataType = address_space.findDataType("ServerStatus");
-//    var serverStatus  = address_space.constructExtensionObject(ServerStatusDataType);
+//    var ServerStatusDataType = addressSpace.findDataType("ServerStatus");
+//    var serverStatus  = addressSpace.constructExtensionObject(ServerStatusDataType);
 //    serverStatus.constructor.name.should.eql("ServerStatus");
 //
 //
@@ -37,7 +37,7 @@ describe("testing address space namespace loading", function () {
 
     this.timeout(Math.max(300000,this._timeout));
 
-    var address_space = new AddressSpace();
+    var addressSpace = new AddressSpace();
     before(function (done) {
 
         var xml_files = [
@@ -47,10 +47,10 @@ describe("testing address space namespace loading", function () {
         fs.existsSync(xml_files[0]).should.be.eql(true);
         //Xx fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        address_space.registerNamespace("ServerNamespaceURI");
-        address_space.getNamespaceArray().length.should.eql(2);
+        addressSpace.registerNamespace("ServerNamespaceURI");
+        addressSpace.getNamespaceArray().length.should.eql(2);
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
             done(err);
         });
     });
@@ -59,12 +59,12 @@ describe("testing address space namespace loading", function () {
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
 
 
-        var serverStatusDataType = address_space.findDataType("ServerStatusDataType");
+        var serverStatusDataType = addressSpace.findDataType("ServerStatusDataType");
         serverStatusDataType.should.be.instanceOf(UADataType);
 
         serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
 
-        var serverStatus  = address_space.constructExtensionObject(serverStatusDataType);
+        var serverStatus  = addressSpace.constructExtensionObject(serverStatusDataType);
         serverStatus.constructor.name.should.eql("ServerStatus");
 
         serverStatus.should.have.property("startTime");
@@ -84,12 +84,12 @@ describe("testing address space namespace loading", function () {
         //              - AttributeOperand
         //
 
-        var attributeOperand = address_space.findDataType("AttributeOperand");
+        var attributeOperand = addressSpace.findDataType("AttributeOperand");
         attributeOperand.should.be.instanceOf(UADataType);
 
         attributeOperand.browseName.toString().should.eql("AttributeOperand");
 
-        var op  = address_space.constructExtensionObject(attributeOperand);
+        var op  = addressSpace.constructExtensionObject(attributeOperand);
         op.constructor.name.should.eql("AttributeOperand");
 
         op.should.have.property("attributeId");
@@ -106,15 +106,15 @@ describe("testing address space namespace loading", function () {
     it("should create a arbitrary structure from a second name space",function(done){
 
         var r = require("lib/data_access/EUInformation");
-        var ns = address_space.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+        var ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         ns.should.eql(2);
-        var myStructureDataType = address_space.findDataType("MyStructureDataType",ns);
+        var myStructureDataType = addressSpace.findDataType("MyStructureDataType",ns);
         myStructureDataType.should.be.instanceOf(UADataType);
 
         //------------------------------------------------------------------------------
         // create an extension object
         //------------------------------------------------------------------------------
-        var op  = address_space.constructExtensionObject(myStructureDataType);
+        var op  = addressSpace.constructExtensionObject(myStructureDataType);
         op.constructor.name.should.eql("MyStructure");
 
         op.should.have.property("lowValue");
@@ -126,10 +126,10 @@ describe("testing address space namespace loading", function () {
         //------------------------------------------------------------------------------
         // create a variable
         //------------------------------------------------------------------------------
-        var myStructureType = address_space.findVariableType("MyStructureType",ns);
+        var myStructureType = addressSpace.findVariableType("MyStructureType",ns);
         myStructureType.should.be.instanceOf(UAVariableType);
 
-        var folder = address_space.addFolder("RootFolder", {browseName: "MyDevices"});
+        var folder = addressSpace.addFolder("RootFolder", {browseName: "MyDevices"});
         assert(folder.nodeId);
         folder.should.be.instanceOf(UAObject);
 
@@ -163,7 +163,7 @@ describe("testing address space namespace loading", function () {
         var VariableIds = require("lib/opcua_node_ids").VariableIds;
         var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
-        var serverStatus = address_space.findObject(makeNodeId(VariableIds.Server_ServerStatus));
+        var serverStatus = addressSpace.findObject(makeNodeId(VariableIds.Server_ServerStatus));
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         serverStatus.bindExtensionObject();

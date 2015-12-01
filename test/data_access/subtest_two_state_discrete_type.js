@@ -13,13 +13,10 @@ var AttributeIds = read_service.AttributeIds;
 
 var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
-var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
 var async = require("async");
 
 var path = require("path");
-var addAnalogDataItem = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
-var addTwoStateDiscreteType = require("lib/data_access/UATwoStateDiscreteType").addTwoStateDiscreteType;
 
 
 
@@ -29,11 +26,12 @@ module.exports = function(engine) {
 
         it("should add a TwoStateDiscreteType variable",function() {
 
-            var address_space = engine.address_space;
-            var rootFolder = address_space.findObject("ObjectsFolder");
+            var addressSpace = engine.addressSpace;
+            var rootFolder = addressSpace.findObject("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addTwoStateDiscreteType(rootFolder,{
+            var prop = addressSpace.addTwoStateDiscreteType({
+                organizedBy: rootFolder,
                 browseName: "MySwitch",
                 trueState: "busy",
                 falseState: "idle",

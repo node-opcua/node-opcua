@@ -17,8 +17,6 @@ var address_space_for_conformance_testing = require("lib/simulation/address_spac
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
-var addAnalogDataItem = opcua.addAnalogDataItem;
-var standardUnits = opcua.standardUnits;
 
 
 /**
@@ -28,8 +26,12 @@ var standardUnits = opcua.standardUnits;
  * @param parentNode
  */
 function addTestUAAnalogItem(parentNode) {
+
+    var addressSpace = parentNode.__address_space;
+
     // add a UAAnalogItem
-    var node = addAnalogDataItem(parentNode, {
+    var node = addressSpace.addAnalogDataItem({
+        componentOf: parentNode,
         nodeId: "ns=4;s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
@@ -113,7 +115,8 @@ function build_server_with_temperature_device(options, done) {
             assert(server.engine.status === "initialized");
             var myDevices = server.engine.addFolder("Objects", {browseName: "MyDevices"});
 
-            var variable0 = server.engine.addVariable(myDevices, {
+            var variable0 = server.engine.addVariable({
+                componentOf: myDevices,
                 browseName: "FanSpeed",
                 nodeId: "ns=2;s=FanSpeed",
                 dataType: "Double",
@@ -122,8 +125,8 @@ function build_server_with_temperature_device(options, done) {
 
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
             // install a Read/Write variable representing a temperature set point of a temperature controller.
-            server.temperatureVariableId = server.engine.addVariable(myDevices,
-                {
+            server.temperatureVariableId = server.engine.addVariable({
+                    componentOf: myDevices,
                     browseName: "SetPointTemperature",
                     nodeId: setPointTemperatureId,
                     dataType: "Double",
@@ -142,8 +145,8 @@ function build_server_with_temperature_device(options, done) {
             // install a Read-Only variable defined with a fancy Opaque nodeid
             var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
 
-            server.pumpSpeed = server.engine.addVariable(myDevices,
-                {
+            server.pumpSpeed = server.engine.addVariable({
+                    componentOf: myDevices,
                     browseName: "PumpSpeed",
                     nodeId: pumpSpeedId,
                     dataType: "Double",
@@ -175,7 +178,8 @@ function build_server_with_temperature_device(options, done) {
             var asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
             var asyncValue = 46;
 
-            server.asyncWriteNode = server.engine.addVariable(myDevices, {
+            server.asyncWriteNode = server.engine.addVariable({
+                componentOf: myDevices,
                 browseName: "AsynchronousVariable",
                 nodeId: asyncWriteNodeId,
                 dataType: "Double",

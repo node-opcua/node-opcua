@@ -34,7 +34,7 @@ describe("testing client Proxy", function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
-            HVAC_on_server = createHVACSystem(server.engine.address_space);
+            HVAC_on_server = createHVACSystem(server.engine.addressSpace);
 
             done(err);
         });

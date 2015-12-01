@@ -19,17 +19,17 @@ var browse_service = require("lib/services/browse_service");
 
 
 describe("testing ReferenceType", function () {
-    var address_space;
+    var adressSpace;
     var rootFolder;
     before(function (done) {
         get_mini_address_space(function (err, data) {
 
             if (err) { return done(err); }
 
-            address_space = data;
-            address_space.should.be.instanceOf(AddressSpace);
+            adressSpace = data;
+            adressSpace.should.be.instanceOf(AddressSpace);
 
-            rootFolder = address_space.findObjectByBrowseName("Root");
+            rootFolder = adressSpace.findObjectByBrowseName("Root");
             rootFolder.browseName.toString().should.equal("Root");
 
             done();
@@ -38,7 +38,7 @@ describe("testing ReferenceType", function () {
 
     it("should find 'HierarchicalReferences'", function () {
 
-        var hr = address_space.findReferenceType("HierarchicalReferences");
+        var hr = adressSpace.findReferenceType("HierarchicalReferences");
         hr.browseName.toString().should.equal("HierarchicalReferences");
         hr.nodeId.should.eql(nodeid.makeNodeId(33));
 
@@ -46,7 +46,7 @@ describe("testing ReferenceType", function () {
 
     it("HierarchicalReferences should have an Abstract attribute set to true ", function () {
 
-        var hr = address_space.findReferenceType("HierarchicalReferences");
+        var hr = adressSpace.findReferenceType("HierarchicalReferences");
         var v = hr.readAttribute(AttributeIds.IsAbstract);
         v.statusCode.should.eql(StatusCodes.Good);
         v.value.dataType.should.eql(DataType.Boolean);
@@ -56,7 +56,7 @@ describe("testing ReferenceType", function () {
 
     it("Organizes should have an Abstract attribute set to true ", function () {
 
-        var hr = address_space.findReferenceType("Organizes");
+        var hr = adressSpace.findReferenceType("Organizes");
         var v = hr.readAttribute(AttributeIds.IsAbstract);
         v.statusCode.should.eql(StatusCodes.Good);
         v.value.dataType.should.eql(DataType.Boolean);
@@ -64,15 +64,15 @@ describe("testing ReferenceType", function () {
     });
 
     it("should find 'Organizes'", function () {
-        var organizes_refId = address_space.findReferenceType("Organizes");
+        var organizes_refId = adressSpace.findReferenceType("Organizes");
         organizes_refId.browseName.toString().should.equal("Organizes");
         organizes_refId.nodeId.should.eql(nodeid.makeNodeId(35));
     });
 
     it("'Organizes' should be a super type of 'HierarchicalReferences'", function () {
 
-        var hr = address_space.findReferenceType("HierarchicalReferences");
-        var organizes_refId = address_space.findReferenceType("Organizes");
+        var hr = adressSpace.findReferenceType("HierarchicalReferences");
+        var organizes_refId = adressSpace.findReferenceType("Organizes");
 
         organizes_refId.isSupertypeOf(hr).should.eql(true);
         hr.isSupertypeOf(organizes_refId).should.eql(false);
@@ -81,8 +81,8 @@ describe("testing ReferenceType", function () {
 
     it("'HasTypeDefinition' should *not* be a super-type of 'HierarchicalReferences'", function () {
 
-        var hr = address_space.findReferenceType("HierarchicalReferences");
-        var hasTypeDefinition_refId = address_space.findReferenceType("HasTypeDefinition");
+        var hr = adressSpace.findReferenceType("HierarchicalReferences");
+        var hasTypeDefinition_refId = adressSpace.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition_refId.isSupertypeOf(hr).should.eql(false);
         hr.isSupertypeOf(hasTypeDefinition_refId).should.eql(false);
@@ -91,8 +91,8 @@ describe("testing ReferenceType", function () {
 
     it("'HasTypeDefinition' should  be a super-type of 'NonHierarchicalReferences'", function () {
 
-        var nhr = address_space.findReferenceType("NonHierarchicalReferences");
-        var hasTypeDefinition_refId = address_space.findReferenceType("HasTypeDefinition");
+        var nhr = adressSpace.findReferenceType("NonHierarchicalReferences");
+        var hasTypeDefinition_refId = adressSpace.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition_refId.isSupertypeOf(nhr).should.eql(true);
         nhr.isSupertypeOf(hasTypeDefinition_refId).should.eql(false);
@@ -111,7 +111,7 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names =references.map(function(ref){ return address_space.findObject(ref.nodeId).browseName.toString(); });
+        var names =references.map(function(ref){ return adressSpace.findObject(ref.nodeId).browseName.toString(); });
         var expectedNames = ["FolderType", "Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
@@ -139,7 +139,7 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names =references.map(function(ref){ return address_space.findObject(ref.nodeId).browseName.toString(); });
+        var names =references.map(function(ref){ return adressSpace.findObject(ref.nodeId).browseName.toString(); });
         var expectedNames = ["Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
@@ -247,7 +247,7 @@ describe("testing ReferenceType", function () {
         redirectToFile("ReferenceDescription1.log", function () {
             assert(_.isArray(references));
             var dump = require("lib/address_space/base_node").dumpReferenceDescriptions;
-            dump(address_space, references);
+            dump(adressSpace, references);
         }, done);
     });
 
@@ -275,7 +275,7 @@ describe("testing ReferenceType", function () {
         redirectToFile("ReferenceDescription2.log", function () {
             assert(_.isArray(references));
             var dump = require("lib/address_space/base_node").dumpReferenceDescriptions;
-            dump(address_space, references);
+            dump(adressSpace, references);
         }, done);
 
     });
@@ -328,13 +328,13 @@ describe("testing ReferenceType", function () {
     });
 
     it("ReferenceType should have a toString (HierarchicalReferences)", function () {
-        var hr = address_space.findReferenceType("HierarchicalReferences");
+        var hr = adressSpace.findReferenceType("HierarchicalReferences");
 
         hr.toString().should.eql("A  HierarchicalReferences/HierarchicalReferences ns=0;i=33");
     });
 
     it("ReferenceType should have a toString (Organizes)", function () {
-        var hr = address_space.findReferenceType("Organizes");
+        var hr = adressSpace.findReferenceType("Organizes");
 
         hr.toString().should.eql("   Organizes/OrganizedBy ns=0;i=35");
     });
@@ -364,16 +364,16 @@ describe(" improving performance of isSupertypeOf", function () {
     var referenceTypeNames = Object.keys(require("lib/opcua_node_ids").ReferenceTypeIds);
 
     var referenceTypes = [];
-    var address_space;
+    var addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, data) {
 
             if (err) { return done(err); }
 
-            address_space = data;
+            addressSpace = data;
 
             referenceTypes = referenceTypeNames.map(function (referenceTypeName) {
-                return address_space.findReferenceType(referenceTypeName);
+                return addressSpace.findReferenceType(referenceTypeName);
             });
             referenceTypes = referenceTypes.filter(function (e) {
                 return e !== undefined;

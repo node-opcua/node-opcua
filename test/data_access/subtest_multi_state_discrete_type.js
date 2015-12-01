@@ -13,13 +13,11 @@ var AttributeIds = read_service.AttributeIds;
 
 var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
-var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
 var async = require("async");
 
 var path = require("path");
 
-var addMultiStateDiscreteType = require("lib/data_access/UAMultiStateDiscreteType").addMultiStateDiscreteType;
 
 module.exports = function(engine) {
 
@@ -27,19 +25,20 @@ module.exports = function(engine) {
 
         it("MultiStateDiscreteType should not be abstract",function() {
 
-            var address_space = engine.address_space;
-            var multiStateDiscreteType = address_space.findVariableType("MultiStateDiscreteType");
+            var addressSpace = engine.addressSpace;
+            var multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
             multiStateDiscreteType.isAbstract.should.eql(false);
 
         });
 
         it("should add a MultiStateDiscreteType variable",function() {
 
-            var address_space = engine.address_space;
-            var rootFolder = address_space.findObject("ObjectsFolder");
+            var addressSpace = engine.addressSpace;
+            var rootFolder = addressSpace.findObject("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addMultiStateDiscreteType(rootFolder,{
+            var prop = addressSpace.addMultiStateDiscreteType({
+                componentOf: rootFolder,
                 browseName: "MyMultiStateVariable",
                 enumStrings: [ "Red","Orange","Green"],
                 value: 1 // Orange
@@ -61,10 +60,11 @@ module.exports = function(engine) {
 
             var multiState;
             before(function() {
-                var address_space = engine.address_space;
-                var rootFolder = address_space.findObject("ObjectsFolder");
+                var addressSpace = engine.addressSpace;
+                var rootFolder = addressSpace.findObject("ObjectsFolder");
                 rootFolder.browseName.toString().should.eql("Objects");
-                multiState = addMultiStateDiscreteType(rootFolder,{
+                multiState = addressSpace.addMultiStateDiscreteType({
+                    organizedBy: rootFolder,
                     browseName: "MyMultiStateVariable",
                     enumStrings: [ "Red","Orange","Green"],
                     value: 1 // Orange

@@ -17,21 +17,19 @@ var path = require("path");
 
 
 var opcua = require("index.js");
-var addAnalogDataItem = opcua.addAnalogDataItem;
 
 describe("testing add new DataType ", function () {
 
     this.timeout(Math.max(300000,this._timeout));
 
-    var address_space;
+    var addressSpace;
     before(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
-
+        generate_address_space(addressSpace, xml_file, function (err) {
 
             done(err);
         });
@@ -41,17 +39,18 @@ describe("testing add new DataType ", function () {
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
 
-    function createCustomeType(address_space) {
+    function createCustomeType(addressSpace) {
 
-        var baseObjectType = address_space.findObjectType("BaseObjectType");
-        var baseDataVariableType = address_space.findVariableType("BaseDataVariableType");
+        var baseObjectType = addressSpace.findObjectType("BaseObjectType");
+        var baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
 
         // -------------------------------------------- MachineType
-        var customTypeNode = address_space.addObjectType({browseName: "CustomType"});
+        var customTypeNode = addressSpace.addObjectType({browseName: "CustomType"});
 
         var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
-        addAnalogDataItem(customTypeNode, {
+        addressSpace.addAnalogDataItem({
+            componentOf: customTypeNode,
             browseName: "Temperature",
             valuePrecision: 0.01,
             instrumentRange: {low: -70, high: 120},
@@ -61,13 +60,16 @@ describe("testing add new DataType ", function () {
             dataType: "Double"
         });
 
+        customTypeNode.getComponentByName("Temperature").browseName.toString().should.eql("Temperature");
+
+        assert(customTypeNode.temperature.browseName.toString() === "Temperature");
         return customTypeNode;
     }
 
 
     it("should instantiate an object whose type defines an analog item", function (done) {
 
-        var customType = createCustomeType(address_space);
+        var customType = createCustomeType(addressSpace);
         customType.temperature.browseName.toString().should.eql("Temperature");
         customType.temperature.valuePrecision.browseName.toString().should.eql("ValuePrecision");
         customType.temperature.instrumentRange.browseName.toString().should.eql("InstrumentRange");
@@ -93,7 +95,7 @@ describe("testing add new DataType ", function () {
     it("should verify that UAObjectType.instantiate works for complex ObjectTypes like DI and ADI (issue 108)", function (done) {
 
 
-        var address_space = new AddressSpace();
+        var addressSpace = new AddressSpace();
 
         var xml_files = [
             path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"), // 0
@@ -109,14 +111,14 @@ describe("testing add new DataType ", function () {
         require("fs").existsSync(xml_files[3]).should.be.eql(true);
         require("fs").existsSync(xml_files[0]).should.be.eql(true);
 
-        generate_address_space(address_space, xml_files, function (err) {
+        generate_address_space(addressSpace, xml_files, function (err) {
 
 
-            var deviceSet = address_space.findObject("RootFolder");
+            var deviceSet = addressSpace.findObject("RootFolder");
 
-            //xx Object.keys(address_space._objectTypeMap).forEach(function(a) { console.log(a); });
+            //xx Object.keys(addressSpace._objectTypeMap).forEach(function(a) { console.log(a); });
 
-            var ftnirType = address_space.findObjectType("3:FTNIRSimulatorDeviceType");
+            var ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType");
 
             //xx console.log(" ftnirType = ",ftnirType.toString());
             should(ftnirType).not.eql(undefined);

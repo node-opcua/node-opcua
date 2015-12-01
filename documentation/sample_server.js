@@ -26,7 +26,8 @@ function post_initialize() {
         // emulate variable1 changing every 500 ms
         setInterval(function(){  variable1+=1; }, 500);
         
-        server.nodeVariable1 = server.engine.addVariable("MyDevice",{
+        server.nodeVariable1 = server.engine.addVariable({
+                componentOf: "MyDevice",
                 browseName: "MyVariable1",
                 dataType: "Double",
                 value: {
@@ -39,8 +40,9 @@ function post_initialize() {
         
         // add a variable named MyVariable2 to the newly created folder "MyDevice"
         var variable2 = 10.0;
-        server.nodeVariable2 = server.engine.addVariable("MyDevice",{
-        
+        server.nodeVariable2 = server.engine.addVariable({
+            componentOf: "MyDevice",
+
             nodeId: "ns=4;b=1020FFAA", // some opaque NodeId in namespace 4
             browseName: "MyVariable2",
             dataType: "Double",    
@@ -66,7 +68,8 @@ function post_initialize() {
             return percentageMemUsed;
         }
         
-        server.nodeVariable3 = server.engine.addVariable("MyDevice", {
+        server.nodeVariable3 = server.engine.addVariable({
+            componentOf: "MyDevice",
             nodeId: "ns=4;s=free_memory", // a string nodeID
             browseName: "FreeMemory",
             dataType: "Double",    

@@ -1,7 +1,7 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
-var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
+var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
@@ -12,59 +12,63 @@ var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
 var create_minimalist_address_space_nodeset = require("../helpers/create_minimalist_address_space_nodeset");
 
-describe("testing UAObjectType", function () {
+describe("testing UAVariableType", function () {
 
     var addressSpace;
     before(function () {
+
+
         addressSpace = new address_space.AddressSpace();
         create_minimalist_address_space_nodeset(addressSpace);
+
     });
 
-    it("should read Attribute IsAbstract on UAObjectType ", function () {
+    it("should read Attribute IsAbstract on UAVariableType ", function () {
 
-        var objType = new UAObjectType({
-            browseName: "MyObject",
+        var variableType = new UAVariableType({
+            browseName: "MyVariableType1",
             addressSpace: addressSpace,
             isAbstract: false
         });
 
         var value;
-        value = objType.readAttribute(AttributeIds.IsAbstract);
+        value = variableType.readAttribute(AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(false);
 
     });
-    it("should read Attribute IsAbstract on Abstract UAObjectType ", function () {
+    it("should read Attribute IsAbstract on Abstract UAVariableType ", function () {
 
-        var objType = new UAObjectType({
-            browseName: "MyObject2",
+        var variableType = new UAVariableType({
+            browseName: "MyVariable2",
             addressSpace: addressSpace,
             isAbstract: true
         });
 
         var value;
-        value = objType.readAttribute(AttributeIds.IsAbstract);
+        value = variableType.readAttribute(AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(true);
 
 
-        value = objType.readAttribute(AttributeIds.NodeId);
+        value = variableType.readAttribute(AttributeIds.NodeId);
 
     });
 
-    it("UAObjectType#instantiate should be possible to instantiate a ObjectType (nodeid not specified)",function() {
+    it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeid not specified)",function() {
 
 
-        var objType = addressSpace.addObjectType({
-            browseName: "MyObject3",
-            subtypeOf: "BaseObjectType",
+        var variableType = addressSpace.addVariableType({
+            browseName: "MyVariable3",
+            subtypeOf: "BaseVariableType",
             isAbstract: false
         });
 
-        var obj = objType.instantiate({
-            browseName: "Instance3"
+        var obj = variableType.instantiate({
+            browseName: "Instance3",
+            dataType: "Int32",
         });
 
         obj.browseName.toString().should.eql("Instance3");
@@ -73,17 +77,18 @@ describe("testing UAObjectType", function () {
 
     });
 
-    it("UAObjectType#instantiate should be possible to instantiate a ObjectType and specify its nodeId)",function() {
+    it("UAVariableType#instantiate should be possible to instantiate a VariableType and specify its nodeId)",function() {
 
-        var objType = addressSpace.addObjectType({
-            browseName: "MyObject4",
-            subtypeOf: "BaseObjectType",
+        var variableType = addressSpace.addVariableType({
+            browseName: "MyVariable4",
+            subtypeOf: "BaseVariableType",
             isAbstract: false
         });
 
-        var obj = objType.instantiate({
+        var obj = variableType.instantiate({
             browseName: "Instance4",
-            nodeId: "ns=3;s=HelloWorld"
+            nodeId: "ns=3;s=HelloWorld",
+            dataType: "Int32",
         });
 
         obj.browseName.toString().should.eql("Instance4");

@@ -6,16 +6,17 @@ var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;
 
 
-function createTemperatureSensorType(address_space) {
+function createTemperatureSensorType(addressSpace) {
 
     // TemperatureSensorType
-    var temperatureSensorTypeNode = address_space.addObjectType({browseName: "TemperatureSensorType"});
+    var temperatureSensorTypeNode = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
 
-    address_space.addVariable(temperatureSensorTypeNode, {
-        browseName: "Temperature",
-        description: "the temperature value of the sensor in Celsius <°C>",
-        dataType: "Double",
-        modellingRule: "Mandatory",
+    addressSpace.addVariable({
+        componentOf:    temperatureSensorTypeNode,
+        browseName:     "Temperature",
+        description:    "the temperature value of the sensor in Celsius <°C>",
+        dataType:       "Double",
+        modellingRule:  "Mandatory",
         value: new Variant({dataType: DataType.Double, value: 19.5})
     });
 

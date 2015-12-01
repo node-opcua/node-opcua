@@ -22,28 +22,28 @@ var BrowseDirection = browse_service.BrowseDirection;
 
 describe("testing add new ObjectType ", function () {
 
-    var address_space;
+    var addressSpace;
     before(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
             done(err);
         });
 
     });
     it("should add a new ObjectType (=> BaseObjectType)",function() {
 
-        var myObjectType = address_space.addObjectType({ browseName: "MyObjectType"});
+        var myObjectType = addressSpace.addObjectType({ browseName: "MyObjectType"});
         myObjectType.browseName.toString().should.eql("MyObjectType");
         myObjectType.subtypeOfObj.browseName.toString().should.eql("BaseObjectType");
         myObjectType.nodeClass.should.eql(NodeClass.ObjectType);
     });
     it("should add a new VariableType (=> BaseVariableType)",function() {
 
-        var myVariableType = address_space.addVariableType({ browseName: "MyVariableType"});
+        var myVariableType = addressSpace.addVariableType({ browseName: "MyVariableType"});
         myVariableType.browseName.toString().should.eql("MyVariableType");
         myVariableType.subtypeOfObj.browseName.toString().should.eql("BaseVariableType");
         myVariableType.nodeClass.should.eql(NodeClass.VariableType);
@@ -51,7 +51,7 @@ describe("testing add new ObjectType ", function () {
     });
     it("should add a new VariableType (=> BaseDataVariableType)",function() {
 
-        var myVariableType = address_space.addVariableType({
+        var myVariableType = addressSpace.addVariableType({
             browseName: "MyVariableType2",
             subtypeOf: "BaseDataVariableType"
         });

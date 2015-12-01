@@ -17,10 +17,10 @@ var makeExpandedNodeId = require("lib/datamodel/expanded_nodeid").makeExpandedNo
 describe("constructBrowsePath and simpleBrowsePath", function () {
 
     var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
-    var address_space = new AddressSpace();
+    var addressSpace = new AddressSpace();
 
     before(function (done) {
-        generate_address_space(address_space, nodeset_filename, function () {
+        generate_address_space(addressSpace, nodeset_filename, function () {
             done();
         });
     });
@@ -43,9 +43,9 @@ describe("constructBrowsePath and simpleBrowsePath", function () {
     });
     it("should browse some path", function () {
 
-        var nodeId = address_space.simpleBrowsePath("/", "Objects.Server");
+        var nodeId = addressSpace.simpleBrowsePath("/", "Objects.Server");
         nodeId.should.eql(makeExpandedNodeId(2253));
-        address_space.findObject(nodeId).browseName.toString().should.eql("Server");
+        addressSpace.findObject(nodeId).browseName.toString().should.eql("Server");
     });
 
 });

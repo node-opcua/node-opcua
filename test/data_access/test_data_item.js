@@ -65,70 +65,70 @@ describe("DataAccess", function () {
     //                                           |                 |                   |
     //                                TwoStateDiscreteType  MultiStateDiscreteType  MultiStateValueDiscreteType
 
-    it("should find a BaseDataVariableType in the address_space", function () {
-        var baseDataVariableType = engine.address_space.findVariableType("BaseDataVariableType");
+    it("should find a BaseDataVariableType in the addressSpace", function () {
+        var baseDataVariableType = engine.addressSpace.findVariableType("BaseDataVariableType");
         baseDataVariableType.browseName.toString().should.eql("BaseDataVariableType");
         //xx baseDataVariableType.isAbstract.should.eql(true); ?
     });
 
-    it("should find a DataItemType in the address_space", function () {
-        var dataItemType = engine.address_space.findVariableType("DataItemType");
+    it("should find a DataItemType in the addressSpace", function () {
+        var dataItemType = engine.addressSpace.findVariableType("DataItemType");
         dataItemType.browseName.toString().should.eql("DataItemType");
         //xxx dataItemType.isAbstract.should.eql(true);
     });
 
-    it("should find a ArrayItemType in the address_space", function () {
-        var arrayItemType = engine.address_space.findVariableType("ArrayItemType");
+    it("should find a ArrayItemType in the addressSpace", function () {
+        var arrayItemType = engine.addressSpace.findVariableType("ArrayItemType");
         arrayItemType.browseName.toString().toString().should.eql("ArrayItemType");
     });
 
-    it("should find a AnalogItemType in the address_space", function () {
-        var analogItemType = engine.address_space.findVariableType("AnalogItemType");
+    it("should find a AnalogItemType in the addressSpace", function () {
+        var analogItemType = engine.addressSpace.findVariableType("AnalogItemType");
         analogItemType.browseName.toString().should.eql("AnalogItemType");
     });
-    it("should find a DiscreteItemType in the address_space", function () {
-        var discreteItemType = engine.address_space.findVariableType("DiscreteItemType");
+    it("should find a DiscreteItemType in the addressSpace", function () {
+        var discreteItemType = engine.addressSpace.findVariableType("DiscreteItemType");
         discreteItemType.browseName.toString().should.eql("DiscreteItemType");
         discreteItemType.isAbstract.should.eql(true);
     });
 
-    it("should find a TwoStateDiscreteType in the address_space", function () {
-        var twoStateDiscreteType = engine.address_space.findVariableType("TwoStateDiscreteType");
+    it("should find a TwoStateDiscreteType in the addressSpace", function () {
+        var twoStateDiscreteType = engine.addressSpace.findVariableType("TwoStateDiscreteType");
         twoStateDiscreteType.browseName.toString().should.eql("TwoStateDiscreteType");
     });
-    it("should find a MultiStateDiscreteType in the address_space", function () {
-        var multiStateDiscreteType = engine.address_space.findVariableType("MultiStateDiscreteType");
+    it("should find a MultiStateDiscreteType in the addressSpace", function () {
+        var multiStateDiscreteType = engine.addressSpace.findVariableType("MultiStateDiscreteType");
         multiStateDiscreteType.browseName.toString().should.eql("MultiStateDiscreteType");
     });
 
-    it("should find a MultiStateValueDiscreteType in the address_space", function () {
-        var multiStateValueDiscreteType = engine.address_space.findVariableType("MultiStateValueDiscreteType");
+    it("should find a MultiStateValueDiscreteType in the addressSpace", function () {
+        var multiStateValueDiscreteType = engine.addressSpace.findVariableType("MultiStateValueDiscreteType");
         multiStateValueDiscreteType.browseName.toString().should.eql("MultiStateValueDiscreteType");
     });
 
 
-    it("should find a EUInformation in the address_space", function () {
-        var _EUInformation = engine.address_space.findDataType("EUInformation");
+    it("should find a EUInformation in the addressSpace", function () {
+        var _EUInformation = engine.addressSpace.findDataType("EUInformation");
         _EUInformation.browseName.toString().should.eql("EUInformation");
     });
 
-    it("should find a Range in the address_space", function () {
-        var range = engine.address_space.findDataType("Range");
+    it("should find a Range in the addressSpace", function () {
+        var range = engine.addressSpace.findDataType("Range");
         range.browseName.toString().should.eql("Range");
     });
 
     it("should have a UAVariableType XYArrayItemType", function () {
-        var xyArrayItemType = engine.address_space.findVariableType("XYArrayItemType");
+        var xyArrayItemType = engine.addressSpace.findVariableType("XYArrayItemType");
         xyArrayItemType.arrayDimensions.should.eql([0]);
     });
 
     it("should have a ImageItemType ", function () {
-        var xyArrayItemType = engine.address_space.findVariableType("ImageItemType");
+        var xyArrayItemType = engine.addressSpace.findVariableType("ImageItemType");
         xyArrayItemType.arrayDimensions.should.eql([0, 0]);
     });
 
     it("should have a CubeItemType ", function () {
-        var xyArrayItemType = engine.address_space.findVariableType("CubeItemType");
+        var xyArrayItemType = engine.addressSpace.findVariableType("CubeItemType");
         xyArrayItemType.arrayDimensions.should.eql([0, 0, 0]);
     });
 

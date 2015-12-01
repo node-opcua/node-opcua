@@ -14,13 +14,11 @@ var AttributeIds = read_service.AttributeIds;
 
 var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
-var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
 var async = require("async");
 
 var path = require("path");
 
-var addMultiStateValueDiscreteType = require("lib/data_access/UAMultiStateValueDiscreteType").addMultiStateValueDiscreteType;
 
 module.exports = function(engine) {
 
@@ -28,19 +26,20 @@ module.exports = function(engine) {
 
         it("MultiStateValueDiscreteType should not be abstract",function() {
 
-            var address_space = engine.address_space;
-            var multiStateValueDiscreteType = address_space.findVariableType("MultiStateValueDiscreteType");
+            var addressSpace = engine.addressSpace;
+            var multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
             multiStateValueDiscreteType.isAbstract.should.eql(false);
 
         });
 
         it("should add a MultiStateValueDiscreteType variable - form 1",function() {
 
-            var address_space = engine.address_space;
-            var rootFolder = address_space.findObject("ObjectsFolder");
+            var addressSpace = engine.addressSpace;
+            var rootFolder = addressSpace.findObject("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addMultiStateValueDiscreteType(rootFolder,{
+            var prop = addressSpace.addMultiStateValueDiscreteType({
+                componentOf: rootFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
                 value: 0xFF0000 // Red
@@ -65,11 +64,12 @@ module.exports = function(engine) {
         });
         it("should add a MultiStateValueDiscreteType variable - form 2",function() {
 
-            var address_space = engine.address_space;
-            var rootFolder = address_space.findObject("ObjectsFolder");
+            var addressSpace = engine.addressSpace;
+            var rootFolder = addressSpace.findObject("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addMultiStateValueDiscreteType(rootFolder, {
+            var prop = addressSpace.addMultiStateValueDiscreteType({
+                componentOf: rootFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: [
                     { displayName: "Red",    value: 0xFF0000},
@@ -84,10 +84,11 @@ module.exports = function(engine) {
 
             var multiStateValue;
             before(function() {
-                var address_space = engine.address_space;
-                var rootFolder = address_space.findObject("ObjectsFolder");
+                var addressSpace = engine.addressSpace;
+                var rootFolder = addressSpace.findObject("ObjectsFolder");
                 rootFolder.browseName.toString().should.eql("Objects");
-                multiStateValue = addMultiStateValueDiscreteType(rootFolder,{
+                multiStateValue = addressSpace.addMultiStateValueDiscreteType({
+                    componentOf: rootFolder,
                     browseName: "MyMultiStateValueVariable",
                     enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
                     value: 0xFF0000 // Red
@@ -142,14 +143,15 @@ module.exports = function(engine) {
 
         it("ZZ2 should instantiate a DataType containing a MultiStateValueDiscreteType",function(done) {
 
-            var address_space = engine.address_space;
+            var addressSpace = engine.addressSpace;
             // create a new DataType
-            var myObjectType = address_space.addObjectType({
+            var myObjectType = addressSpace.addObjectType({
                 browseName: "MyObjectWithMultiStateValueDiscreteType"
             });
-            var multiStateValue = addMultiStateValueDiscreteType(myObjectType,{
-                browseName: "Color",
-                enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
+            var multiStateValue = addressSpace.addMultiStateValueDiscreteType({
+                componentOf: myObjectType,
+                browseName:  "Color",
+                enumValues:  { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
                 value: 0xFF0000 // Red
             });
 

@@ -11,11 +11,11 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 
 describe("testing UADataype -  Attribute", function () {
 
-    var the_address_space;
+    var addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, data) {
-            the_address_space = data;
-            the_address_space.should.be.instanceOf(address_space.AddressSpace);
+            addressSpace = data;
+            addressSpace.should.be.instanceOf(address_space.AddressSpace);
             done(err);
         });
     });
@@ -25,7 +25,7 @@ describe("testing UADataype -  Attribute", function () {
 
         var dataType = new UADataType({
             browseName: "MyDataType",
-            address_space: the_address_space,
+            addressSpace: addressSpace,
             isAbstract: true
         });
 
@@ -64,18 +64,18 @@ describe("testing UADataype -  Attribute", function () {
             //              +--> UInt16 (i=5)
             //              +--> UInt32 (i=7)
             //              +--> UInt64 (i=9)
-            number_dt = the_address_space.findDataType("Number");
+            number_dt = addressSpace.findDataType("Number");
 
 
-            double_dt = the_address_space.findDataType("Double");
-            float_dt = the_address_space.findDataType("Float");
-            integer_dt = the_address_space.findDataType("Integer");
-            uinteger_dt = the_address_space.findDataType("UInteger");
-            int16_dt = the_address_space.findDataType("Int16");
-            uint32_dt = the_address_space.findDataType("UInt32");
-            uint64_dt = the_address_space.findDataType("UInt64");
-            int64_dt = the_address_space.findDataType("Int64");
-            duration_dt = the_address_space.findDataType("Duration");
+            double_dt = addressSpace.findDataType("Double");
+            float_dt = addressSpace.findDataType("Float");
+            integer_dt = addressSpace.findDataType("Integer");
+            uinteger_dt = addressSpace.findDataType("UInteger");
+            int16_dt = addressSpace.findDataType("Int16");
+            uint32_dt = addressSpace.findDataType("UInt32");
+            uint64_dt = addressSpace.findDataType("UInt64");
+            int64_dt = addressSpace.findDataType("Int64");
+            duration_dt = addressSpace.findDataType("Duration");
 
             (typeof number_dt).should.equal("object");
             (typeof float_dt).should.equal("object");

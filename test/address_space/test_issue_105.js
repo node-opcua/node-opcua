@@ -16,19 +16,21 @@ var assert = require("better-assert");
 var path = require("path");
 var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
+var assertHasMatchingReference = require("../helpers/assertHasMatchingReference");
+
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105",function() {
 
-    var address_space;
+    var addressSpace;
     before(function (done) {
-        address_space = new AddressSpace();
+        addressSpace = new AddressSpace();
 
         var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
         require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(address_space, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
 
             // lets declare a custom folder Type
-            var myFolderType = address_space.addObjectType({browseName: "MyFolderType",subtypeOf: "FolderType"});
+            var myFolderType = addressSpace.addObjectType({browseName: "MyFolderType",subtypeOf: "FolderType"});
             myFolderType.browseName.toString().should.eql("MyFolderType");
             myFolderType.subtypeOfObj.browseName.toString().should.eql("FolderType");
 
@@ -40,17 +42,21 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
     it("should be possible to create an object organized by a folder whose type is a subtype of FolderType",function(){
 
-        var temperatureSensorType = createTemperatureSensorType(address_space);
+        var temperatureSensorType = createTemperatureSensorType(addressSpace);
 
-        //xx var folderType = address_space.findObjectType("FolderType");
+        //xx var folderType = addressSpace.findObjectType("FolderType");
 
-        var myFolderType = address_space.findObjectType("MyFolderType");
+        var myFolderType = addressSpace.findObjectType("MyFolderType");
 
-        // now create a folder of type MyFolderType inside the RootFolder
-        var myFolder = myFolderType.instantiate({browseName:"MyFolder",organizedBy:"RootFolder" });
+        // now create a folder of type MyFolderType inside the Objects Folder
+        var myFolder = myFolderType.instantiate({browseName:"MyFolder",organizedBy:"ObjectsFolder" });
 
         // now create a simple var inside the new folder (method 1)
-        var myObject = address_space.addVariable(myFolder,{browseName:"Obj1",dataType:"Double"});
+        var myObject = addressSpace.addVariable({
+            organizedBy: myFolder,
+            browseName:  "Obj1",
+            dataType:    "Double"
+        });
         myObject.browseName.toString().should.eql("Obj1");
 
         // now create a simple var isnide the new folder (method 2)
@@ -58,71 +64,73 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
         myObject2.browseName.toString().should.eql("Obj2");
 
+        assertHasMatchingReference(myFolder,{ referenceType: "Organizes",  nodeId: myObject2.nodeId });
+
     });
 
     it("AddressSpace#getFolder should handle folder whose type is FolderType",function() {
 
-        var folderType = address_space.findObjectType("FolderType");
+        var folderType = addressSpace.findObjectType("FolderType");
 
         var myFolder = folderType.instantiate({browseName:"MyFolderOfTypeFolderType",organizedBy:"RootFolder" });
         myFolder.browseName.toString().should.eql("MyFolderOfTypeFolderType");
 
-        var verif1 = address_space.getFolder("MyFolderOfTypeFolderType");
+        var verif1 = addressSpace.getFolder("MyFolderOfTypeFolderType");
         verif1.browseName.toString().should.eql("MyFolderOfTypeFolderType");
 
-        var verif2 = address_space.getFolder(myFolder);
+        var verif2 = addressSpace.getFolder(myFolder);
         verif2.browseName.toString().should.eql("MyFolderOfTypeFolderType");
 
-        var verif3 = address_space.getFolder(myFolder.nodeId);
+        var verif3 = addressSpace.getFolder(myFolder.nodeId);
         verif3.browseName.toString().should.eql("MyFolderOfTypeFolderType");
 
-        var verif4 = address_space.getFolder(myFolder.nodeId.toString());
+        var verif4 = addressSpace.getFolder(myFolder.nodeId.toString());
         verif4.browseName.toString().should.eql("MyFolderOfTypeFolderType");
     });
 
     it("AddressSpace#getFolder should handle folder whose type is a subtype of FolderType",function() {
 
-        var myFolderType = address_space.findObjectType("MyFolderType");
+        var myFolderType = addressSpace.findObjectType("MyFolderType");
 
         // now create a folder of type MyFolderType inside the RootFolder
         var myFolderOfTypeMyFolderType = myFolderType.instantiate({browseName:"MyFolderOfTypeMyFolderType",organizedBy:"RootFolder" });
         myFolderOfTypeMyFolderType.browseName.toString().should.eql("MyFolderOfTypeMyFolderType");
 
 
-        var verif1 = address_space.getFolder("MyFolderOfTypeMyFolderType");
+        var verif1 = addressSpace.getFolder("MyFolderOfTypeMyFolderType");
         verif1.browseName.toString().should.eql("MyFolderOfTypeMyFolderType");
 
-        var verif2 = address_space.getFolder(myFolderOfTypeMyFolderType);
+        var verif2 = addressSpace.getFolder(myFolderOfTypeMyFolderType);
         verif2.browseName.toString().should.eql("MyFolderOfTypeMyFolderType");
 
-        var verif3 = address_space.getFolder(myFolderOfTypeMyFolderType.nodeId);
+        var verif3 = addressSpace.getFolder(myFolderOfTypeMyFolderType.nodeId);
         verif3.browseName.toString().should.eql("MyFolderOfTypeMyFolderType");
 
-        var verif4 = address_space.getFolder(myFolderOfTypeMyFolderType.nodeId.toString());
+        var verif4 = addressSpace.getFolder(myFolderOfTypeMyFolderType.nodeId.toString());
         verif4.browseName.toString().should.eql("MyFolderOfTypeMyFolderType");
     });
 
     it("AddressSpace#getFolder should return null folder cannot be found",function() {
 
-        should(address_space.getFolder("ns=1;s=UnknownFolder")).eql(null);
+        should(addressSpace.getFolder("ns=1;s=UnknownFolder")).eql(null);
     });
 
 
     it("AddressSpace#getFolder should raise an exception if argunement does'nt resolved to a folder",function() {
 
-        var serverObj =  address_space.findObject("Server");
+        var serverObj =  addressSpace.findObject("Server");
         serverObj.nodeId.toString().should.eql("ns=0;i=2253");
 
         should(function() {
-            address_space.getFolder(serverObj);
+            addressSpace.getFolder(serverObj);
         }).throwError();
 
         should(function() {
-            address_space.getFolder(serverObj.browseName.toString());
+            addressSpace.getFolder(serverObj.browseName.toString());
         }).throwError();
 
         should(function() {
-            address_space.getFolder(serverObj.nodeId.toString());
+            addressSpace.getFolder(serverObj.nodeId.toString());
         }).throwError();
 
     });

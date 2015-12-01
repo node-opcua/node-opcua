@@ -5,13 +5,13 @@ var should = require("should");
 var DataType = require("lib/datamodel/variant").DataType;
 var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
-exports.createCameraType = function createCameraType(address_space) {
+exports.createCameraType = function createCameraType(addressSpace) {
 
 
-    var cameraType = address_space.addObjectType({browseName: "1:CameraType"});
+    var cameraType = addressSpace.addObjectType({browseName: "1:CameraType"});
 
     // MachineType.HeaderSwitch
-    var triggerMethod = address_space.addMethod(cameraType, {
+    var triggerMethod = addressSpace.addMethod(cameraType, {
         browseName: "1:Trigger",
 
         inputArguments: [

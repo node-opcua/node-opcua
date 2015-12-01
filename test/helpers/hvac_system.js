@@ -10,10 +10,6 @@ var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 var standardUnits = opcua.standardUnits;
 
-var addAnalogDataItem = opcua.addAnalogDataItem;
-var addTwoStateDiscreteType = opcua.addTwoStateDiscreteType;
-
-assert(_.isFunction(addTwoStateDiscreteType));
 /***
  * @method createHVACSystem
  *
@@ -51,38 +47,40 @@ assert(_.isFunction(addTwoStateDiscreteType));
  * }
  * @enduml
  *
- * @param address_space
+ * @param addressSpace
  * @returns {*}
  */
-exports.createHVACSystem = function(address_space) {
+exports.createHVACSystem = function(addressSpace) {
 
 
-    var HVACEnabledEventType = address_space.addEventType({
+    var HVACEnabledEventType = addressSpace.addEventType({
         browseName:"HVACEnabledEventType"
     });
 
-    var HVACDisabledEventType = address_space.addEventType({
+    var HVACDisabledEventType = addressSpace.addEventType({
         browseName:"HVACDisabledEventType"
     });
 
-    var HVACModuleType = address_space.addObjectType({
+    var HVACModuleType = addressSpace.addObjectType({
         browseName: "HVACModuleType"
     });
 
 
-    addAnalogDataItem(HVACModuleType,{
+    addressSpace.addAnalogDataItem({
+        componentOf: HVACModuleType,
         browseName: "ExteriorTemperature",
         accessLevel: "CurrentRead",
         valuePrecision: 0.01,
         instrumentRange: { low: -70, high: 120},
         engineeringUnitsRange: { low: -100, high: 200},
-        engineeringUnits: standardUnits.degree_celsius, // ° Celsius
+        engineeringUnits: standardUnits.degree_celsius, // ï¿½ Celsius
         description: "External temperature Sensor",
         minimumSamplingInterval: 500,
         dataType: "Double"
     });
 
-    addAnalogDataItem(HVACModuleType,{
+    addressSpace.addAnalogDataItem({
+        componentOf: HVACModuleType,
         browseName: "InteriorTemperature",
         accessLevel: "CurrentRead",
         valuePrecision: 0.01,
@@ -96,7 +94,8 @@ exports.createHVACSystem = function(address_space) {
 
 
     // EURange (10,+27)
-    addAnalogDataItem(HVACModuleType,{
+    addressSpace.addAnalogDataItem({
+        componentOf: HVACModuleType,
         browseName: "TargetTemperature",
         minimumSamplingInterval: 0, // could be event Based
         dataType: "Double",
@@ -104,7 +103,7 @@ exports.createHVACSystem = function(address_space) {
         engineeringUnitsRange: { low: -100, high: 200}
     });
 
-    address_space.addMethod(HVACModuleType,{
+    addressSpace.addMethod(HVACModuleType,{
         browseName: "Enable",
         description: "Enable the hvac system",
         alwaysGeneratesEvent: HVACEnabledEventType,
@@ -112,7 +111,7 @@ exports.createHVACSystem = function(address_space) {
         outputArguments: []
     });
 
-    address_space.addMethod(HVACModuleType,{
+    addressSpace.addMethod(HVACModuleType,{
         browseName: "Disable",
         description: "Disable the hvac system",
         alwaysGeneratesEvent: HVACDisabledEventType,
@@ -120,7 +119,7 @@ exports.createHVACSystem = function(address_space) {
         outputArguments: []
     });
 
-    address_space.addMethod(HVACModuleType,{
+    addressSpace.addMethod(HVACModuleType,{
         browseName: "SetTargetTemperature",
         inputArguments: [
             {
@@ -132,7 +131,8 @@ exports.createHVACSystem = function(address_space) {
         outputArguments: []
     });
 
-    addTwoStateDiscreteType(HVACModuleType,{
+    addressSpace.addTwoStateDiscreteType({
+        componentOf: HVACModuleType,
         browseName: "MainSwitch",
         trueState: "Up/ON",
         falseState: "Down/OFF",
