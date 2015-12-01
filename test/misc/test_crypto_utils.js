@@ -41,7 +41,20 @@ describe("Crypto utils", function () {
             "FYHX/e3jaMAQAdkyq9aIQYaHyVQxOBy98B5usZclZ7ry6xf/Rb9bOOP8c61tBQ9k" +
             "SXDGOBbNHWyWf+DqquMvwN0+Ud/n6hhDexyiShstLhKK1gMNpO6ftMZO80HdI/sm" +
             "ynbBVHaSnuA9"
-        );
+       );
+
+    });
+
+
+    it("should read a certificate chain",function() {
+
+        var certificate = crypto_utils.readCertificate(path.join(__dirname, "../fixtures/certs/demo_certificate_chain.pem"));
+
+        var split_der = require("lib/misc/crypto_explore_certificate").split_der;
+
+        var arrayCertificate =split_der(certificate);
+
+        arrayCertificate.length.should.eql(3);
 
     });
 

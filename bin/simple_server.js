@@ -48,8 +48,8 @@ var userManager = {
 var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
 var path = require("path");
-var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
-//xx var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_1024.pem");
+//var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
+var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_1024.pem");
 var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_1024.pem");
 
 var server_options = {
@@ -70,7 +70,7 @@ var server_options = {
     serverInfo: {
         applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
         productUri: "NodeOPCUA-Server",
-        applicationName: {text: "NodeOPCUA"},
+        applicationName: {text: "NodeOPCUA" ,locale:"en"},
         gatewayServerUri: null,
         discoveryProfileUri: null,
         discoveryUrls: []
@@ -283,6 +283,9 @@ server.start(function (err) {
     console.log(dumpObject(server.engine.buildInfo));
 
     console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
+
+  //  console.log = function(){};
+
 });
 
 server.on("create_session", function (session) {
@@ -319,7 +322,13 @@ server.on("response", function (response) {
         case "RepublishResponse":
             //xx console.log(response.toString());
             break;
+        case "BrowseResponse":
+        case "TranslateBrowsePathsToNodeIdsResponse":
+            console.log(response.toString());
+            break;
         case "WriteResponse":
+            break;
+        case "XXXX":
             var str = "   ";
             response.results.map(function (result) {
                 str += result.toString();
@@ -364,8 +373,10 @@ server.on("request", function (request, channel) {
             break;
 
         case "TranslateBrowsePathsToNodeIdsRequest":
+        case "BrowseRequest":
             // do special console output
-            //xx console.log(util.inspect(request, {colors: true, depth: 10}));
+            //console.log(util.inspect(request, {colors: true, depth: 10}));
+            console.log(request.toString());
             break;
     }
 });

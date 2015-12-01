@@ -54,8 +54,10 @@ var hostname = require("os").hostname();
 var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
 function make_path(folder_name, file_name) {
-    var s = path.normalize(path.join(folder_name, file_name));
+    folder_name = folder_name.replace(/\"/g, "");
+    var s = path.join(path.normalize(folder_name), file_name);
     s = s.replace(/\\/g, "/");
+    s = s.replace(/\"/g, "");
     return s;
 }
 
@@ -64,141 +66,150 @@ var certificateDir = make_path(__dirname, "../certificates/");
 var pkiDir = make_path(certificateDir, "PKI");
 var rootDir = make_path(pkiDir, "CA");
 
+// the Certificate Authority Certificate
+var cacert_filename = path.join(rootDir, "./public/cacert.pem");
+
+// The Certificate Authority Revocation List
+var crl_filename = path.join(rootDir, "./crl/revocation_list.crl");
+
 function configurationFile() {
     /*
      #.........DO NOT MODIFY BY HAND .........................
      [ ca ]
-     default_ca = CA_default
+     default_ca               = CA_default
 
      [ CA_default ]
+     dir                      = %%ROOT_FOLDER%%            # the main CA folder
+     certs                    = $dir/certs                 # where to store certificates
+     new_certs_dir            = $dir/certs                 #
+     database                 = $dir/index.txt             # the certificate database
+     serial                   = $dir/serial                # the serial number counter
+     certificate              = $dir/public/cacert.pem     # The root CA certificate
+     private_key              = $dir/private/cakey.pem     # the CA private key
 
-     dir= %%ROOT_FOLDER%%                         # the main CA folder
-     certs = $dir/certs                           # where to store certificates
-     new_certs_dir = $dir/certs                   #
-     database = $dir/index.txt                    # the certificate database
-     serial = $dir/serial                         # the serial number counter
-     certificate = $dir/private/cacert.pem        # The root CA certificate
-     private_key = $dir/private/cakey.pem         # the CA private key
+     x509_extensions          = usr_cert                   #
+     default_days             = 3650                       # default duration : 10 years
 
-     x509_extensions = usr_cert                   #
-     default_days = 3650                          # default duration : 10 years
+     default_md               = sha1
+     # default_md             = sha256                      # The default digest algorithm
 
-     default_md = sha1
-     # default_md = sha256                          # The default digest algorithm
+     preserve                 = no
+     policy                   = policy_match
 
-     preserve = no
-     policy = policy_match
+     RANDFILE                 = $dir/private/randfile
+     # default_startdate        = YYMMDDHHMMSSZ
+     # default_enddate          = YYMMDDHHMMSSZ
 
-
-     #RANDFILE = $dir/private/.rand
-
-     #default_startdate = YYMMDDHHMMSSZ
-     #default_enddate = YYMMDDHHMMSSZ
-
-     crl_dir = $dir/crl
-     #crl_extensions = crl_ext
-     crl = $dir/revocation_list.crl              # the Revocation list
-
-     default_crl_days= 30
-     default_crl_hours = 24
+     crl_dir                  = $dir/crl
+     crl_extensions           = crl_ext
+     crl                      = $dir/revocation_list.crl # the Revocation list
+     crlnumber                = $dir/crlnumber           # CRL number file
+     default_crl_days         = 30
+     default_crl_hours        = 24
      #msie_hack
 
      [ policy_match ]
-     countryName = optional
-     stateOrProvinceName = optional
-     localityName = optional
-     organizationName = optional
-     organizationalUnitName = optional
-     commonName = optional
-     emailAddress = optional
+     countryName              = optional
+     stateOrProvinceName      = optional
+     localityName             = optional
+     organizationName         = optional
+     organizationalUnitName   = optional
+     commonName               = optional
+     emailAddress             = optional
 
      [ req ]
-     default_bits = 4096                             # Size of keys
-     default_keyfile = key.pem                       # name of generated keys
-     distinguished_name = req_distinguished_name
-     attributes = req_attributes
-     x509_extensions = v3_ca
+     default_bits             = 4096                     # Size of keys
+     default_keyfile          = key.pem                  # name of generated keys
+     distinguished_name       = req_distinguished_name
+     attributes               = req_attributes
+     x509_extensions          = v3_ca
      #input_password
      #output_password
-     string_mask = nombstr # permitted characters
-     req_extensions = v3_req
+     string_mask              = nombstr                  # permitted characters
+     req_extensions           = v3_req
 
      [ req_distinguished_name ]
-     # countryName = Country Name (2 letter code)
-     # countryName_default = FR
-     # countryName_min = 2
-     # countryName_max = 2
-     # stateOrProvinceName = State or Province Name (full name)
+     # countryName             = Country Name (2 letter code)
+     # countryName_default     = FR
+     # countryName_min         = 2
+     # countryName_max         = 2
+     # stateOrProvinceName     = State or Province Name (full name)
      # stateOrProvinceName_default = Ile de France
-     # localityName = Locality Name (city, district)
-     # localityName_default = Paris
-     organizationName = Organization Name (company)
-     organizationName_default = NodeOPCUA
-     # organizationalUnitName = Organizational Unit Name (department, division)
+     # localityName            = Locality Name (city, district)
+     # localityName_default    = Paris
+     organizationName          = Organization Name (company)
+     organizationName_default  = NodeOPCUA
+     # organizationalUnitName  = Organizational Unit Name (department, division)
      # organizationalUnitName_default = R&D
-     commonName = Common Name (hostname, FQDN, IP, or your name)
-     commonName_max = 64
-     commonName_default = NodeOPCUA
-     # emailAddress = Email Address
-     # emailAddress_max = 40
-     # emailAddress_default = node-opcua (at) node-opcua (dot) com
+     commonName                = Common Name (hostname, FQDN, IP, or your name)
+     commonName_max            = 64
+     commonName_default        = NodeOPCUA
+     # emailAddress            = Email Address
+     # emailAddress_max        = 40
+     # emailAddress_default    = node-opcua (at) node-opcua (dot) com
 
      [ req_attributes ]
-     #challengePassword = A challenge password
-     #challengePassword_min = 4
-     #challengePassword_max = 20
-     #unstructuredName = An optional company name
+     #challengePassword        = A challenge password
+     #challengePassword_min    = 4
+     #challengePassword_max    = 20
+     #unstructuredName         = An optional company name
 
      [ usr_cert ]
-     basicConstraints=critical, CA:FALSE
-     subjectKeyIdentifier=hash
-     authorityKeyIdentifier=keyid,issuer:always
-     #authorityKeyIdentifier=keyid
-     subjectAltName=@alt_names
-     # issuerAltName=issuer:copy
-     nsComment = ''OpenSSL Generated Certificate''
-     #nsCertType = client, email, objsign for ''everything including object signing''
-     #nsCaRevocationUrl = http://www.domain.dom/ca-crl.pem
-     #nsBaseUrl =
-     #nsRenewalUrl =
-     #nsCaPolicyUrl =
-     #nsSslServerName =
-     keyUsage = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign
-     extendedKeyUsage=critical,serverAuth ,clientAuth
+     basicConstraints          = critical, CA:FALSE
+     subjectKeyIdentifier      = hash
+     authorityKeyIdentifier    = keyid,issuer:always
+     #authorityKeyIdentifier    = keyid
+     subjectAltName            = @alt_names
+     # issuerAltName            = issuer:copy
+     nsComment                 = ''OpenSSL Generated Certificate''
+     #nsCertType               = client, email, objsign for ''everything including object signing''
+     #nsCaRevocationUrl        = http://www.domain.dom/ca-crl.pem
+     #nsBaseUrl                =
+     #nsRenewalUrl             =
+     #nsCaPolicyUrl            =
+     #nsSslServerName          =
+     keyUsage                  = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign
+     extendedKeyUsage          = critical,serverAuth ,clientAuth
 
      [ v3_req ]
-     basicConstraints =critical, CA:FALSE
-     keyUsage = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
-     # subjectAltName=$ENV::ALTNAME
-     subjectAltName= @alt_names
-     nsComment = "CA Generated by Node-OPCUA Certificate utility using openssl"
+     basicConstraints          = critical, CA:FALSE
+     keyUsage                  = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+     # subjectAltName            = $ENV::ALTNAME
+     subjectAltName            = @alt_names
+     nsComment                 = "CA Generated by Node-OPCUA Certificate utility using openssl"
 
      [ alt_names ]
-     URI = $ENV::ALTNAME_URI
-     DNS.0 = $ENV::ALTNAME_DNS
-     DNS.1 = $ENV::ALTNAME_DNS_1
+     URI                       = $ENV::ALTNAME_URI
+     DNS.0                     = $ENV::ALTNAME_DNS
+     DNS.1                     = $ENV::ALTNAME_DNS_1
 
      [ v3_ca ]
-     subjectKeyIdentifier=hash
-     # authorityKeyIdentifier = keyid:always,issuer:always
-     authorityKeyIdentifier = keyid
-     basicConstraints = CA:TRUE
-     keyUsage = critical, cRLSign, keyCertSign
-     nsComment = "Generated by Node-OPCUA Certificate utility using openssl"
-     #nsCertType = sslCA, emailCA
-     #subjectAltName=email:copy
-     #issuerAltName=issuer:copy
-     #obj=DER:02:03
+     subjectKeyIdentifier      = hash
+     authorityKeyIdentifier    = keyid:always,issuer:always
+     # authorityKeyIdentifier    = keyid
+     basicConstraints          = CA:TRUE
+     keyUsage                  = critical, cRLSign, keyCertSign
+     nsComment                 = "CA Certificate generated by Node-OPCUA Certificate utility using openssl"
+     #nsCertType                 = sslCA, emailCA
+     #subjectAltName             = email:copy
+     #issuerAltName              = issuer:copy
+     #obj                        = DER:02:03
+     crlDistributionPoints     = @crl_info
+
+     [ crl_info ]
+     URI.0                     = http://localhost:8900/crl.pem
 
      [ v3_selfsigned]
-     basicConstraints =critical, CA:FALSE
-     keyUsage = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
-     nsComment = "Self-signed certificate"
-     subjectAltName= @alt_names
+     basicConstraints          = critical, CA:FALSE
+     keyUsage                  = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+     nsComment                 = "Self-signed certificate"
+     subjectAltName            = @alt_names
 
      [ crl_ext ]
-     #issuerAltName=issuer:copy
-     authorityKeyIdentifier=keyid:always,issuer:always
+     #issuerAltName            = issuer:copy
+     authorityKeyIdentifier    = keyid:always,issuer:always
+     #authorityInfoAccess       = @issuer_info
+
      */
 }
 function inlineText(f) {
@@ -285,6 +296,7 @@ function construct_CertificateAuthority(done) {
     mkdir(pkiDir);
     mkdir(rootDir);
     mkdir(path.join(rootDir, "private"));
+    mkdir(path.join(rootDir, "public"));
     //Xx execute("chmod 700 private");
 
     mkdir(path.join(rootDir, "certs"));
@@ -297,8 +309,8 @@ function construct_CertificateAuthority(done) {
     }
 
     var crlnumber = path.join(rootDir, "crlnumber");
-    if (!fs.existsSync(serial)) {
-        fs.writeFileSync(serial, "1000   ");
+    if (!fs.existsSync(crlnumber)) {
+        fs.writeFileSync(crlnumber, "1000");
     }
 
     var index_file = path.join(rootDir, "index.txt");
@@ -368,8 +380,12 @@ function construct_CertificateAuthority(done) {
             " -extfile " + "conf/caconfig.cnf" +
             " -in private/cakey.csr " +
             " -signkey private/cakey.pem " +
-            " -out private/cacert.pem")
+            " -out public/cacert.pem"),
+
+        displaySubtitle.bind(null, "generate CRL (Certificate Revocation List)"),
+        execute.bind(null, openssl_path + " ca -gencrl -config " + "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
     ];
+
 
     async.series(tasks, done);
 
@@ -392,13 +408,32 @@ function x509Date(date) {
 
 }
 
-var caCertificate_With_CRL = "cacertificate_with_crl.pem";
+var caCertificate_With_CRL = path.join(rootDir,"cacertificate_with_crl.pem");
+
+function constructCertificateChain(self_signed,certificate_file,callback) {
+    assert(_.isFunction(callback));
+
+    if (self_signed) {
+        return callback(); // nothing to do
+    }
+    console.log("certificate file",certificate_file);
+    assert(fs.existsSync(certificate_file));
+    assert(fs.existsSync(cacert_filename));
+    // append
+    fs.writeFileSync(certificate_file,
+        fs.readFileSync(certificate_file)
+        + fs.readFileSync(cacert_filename)
+        //xx + fs.readFileSync(crl_filename)
+    );
+    callback();
+}
+
 
 function constructCACertificateWithCRL(callback) {
 
     assert(_.isFunction(callback));
 
-    var cacert_with_crl = path.join(rootDir, caCertificate_With_CRL);
+    var cacert_with_crl = caCertificate_With_CRL;
 
     // note : in order to check if the certificate is revoked,
     // you need to specify -crl_check and have both the CA cert and the (applicable) CRL in your truststore.
@@ -407,8 +442,6 @@ function constructCACertificateWithCRL(callback) {
     // 2. use some linked
     // ( from http://security.stackexchange.com/a/58305/59982)
 
-    var cacert_filename = path.join(rootDir, "./private/cacert.pem");
-    var crl_filename = path.join(rootDir, "./crl/revocation_list.crl");
     if (fs.existsSync(crl_filename)) {
         fs.writeFileSync(cacert_with_crl, fs.readFileSync(cacert_filename) + fs.readFileSync(crl_filename));
     } else {
@@ -545,6 +578,7 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
         ];
 
     } else {
+
         sign_certificate = [
             displaySubtitle.bind(null, "- then we ask the authority to sign the certificate signing request"),
             execute.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" +
@@ -572,9 +606,18 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
 
         constructCACertificateWithCRL.bind(null),
 
-        displaySubtitle.bind(null, "- verify certificate against the root CA"),
-        execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file)
+        // construct certificate chain
+        //   concatenate certificate with CA Certificate and revocation list
+        constructCertificateChain.bind(null,self_signed,certificate_file)
     ];
+
+    if (self_signed) {
+        tasks.push(displaySubtitle.bind(null, "- verify self-signed certificate"));
+        tasks.push(execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + certificate_file + " " + certificate_file));
+    } else {
+        tasks.push(displaySubtitle.bind(null, "- verify certificate against the root CA"));
+        tasks.push(execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file));
+    }
 
     async.series(tasks, callback);
 
@@ -612,12 +655,16 @@ function assert_fileexists(filename) {
 function revoke_certificate(certificate_file, callback) {
 
     assert(_.isFunction(callback));
+    var crlReasons =[
+        "unspecified", "keyCompromise", "CACompromise", "affiliationChanged", "superseded", "cessationOfOperation", "certificateHold","removeFromCRL"
+    ];
 
     var tasks = [
         displayTitle.bind(null, "Revoking certificate  " + certificate_file),
         displaySubtitle.bind(null, "Revoke certificate"),
 
-        execute_no_failure.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" + " -revoke " + certificate_file),
+        // -crl_reason reason
+        execute_no_failure.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" + " -revoke " + certificate_file + " -crl_reason keyCompromise"),
         // regenerate CRL (Certificate Revocation List)
         displaySubtitle.bind(null, "regenerate CRL (Certificate Revocation List)"),
         execute.bind(null, openssl_path + " ca -gencrl -config " + "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
@@ -626,8 +673,11 @@ function revoke_certificate(certificate_file, callback) {
         execute.bind(null, openssl_path + " crl -in crl/revocation_list.crl -text -noout"),
 
         displaySubtitle.bind(null, "Verify  certificate "),
-        execute_no_failure.bind(null, openssl_path + " verify -verbose -CRLfile " + "crl/revocation_list.crl" + " -crl_check -CAfile " + "./private/cacert.pem" + " " + certificate_file)
+        execute_no_failure.bind(null, openssl_path + " verify -verbose -CRLfile " + "crl/revocation_list.crl" + " -crl_check -CAfile " + "./public/cacert.pem" + " " + certificate_file),
 
+        // produce CRL in DEF format
+        displaySubtitle.bind(null, "Produce CRL in DER form "),
+        execute.bind(null, openssl_path + " crl -in crl/revocation_list.crl -out  crl/revocation_list.der -outform der")
     ];
 
     async.series(tasks, callback);
@@ -661,7 +711,7 @@ function create_default_certificates(done) {
         __create_default_certificates.bind(null, base_name, "server_", serverURN),
 
         displayTitle.bind(null, "Create  Application Certificate for DiscoveryServer & its private key"),
-        __create_default_certificates.bind(null, base_name, "discoveryServer_", discoveryServerURN),
+        __create_default_certificates.bind(null, base_name, "discoveryServer_", discoveryServerURN)
 
     ];
     async.series(task1, done);
@@ -690,6 +740,7 @@ function __create_default_certificates(base_name, prefix, applicationUri, done) 
 
         createCertificate.bind(null, make_path(base_name, prefix + "cert_1024.pem"), key_1024, applicationUri, yesterday, 365),
         createCertificate.bind(null, make_path(base_name, prefix + "cert_2048.pem"), key_2048, applicationUri, yesterday, 365),
+
         createSelfSignCertificate.bind(null, make_path(base_name, prefix + "selfsigned_cert_1024.pem"), key_1024, applicationUri, yesterday, 365),
         createSelfSignCertificate.bind(null, make_path(base_name, prefix + "selfsigned_cert_2048.pem"), key_2048, applicationUri, yesterday, 365)
 
