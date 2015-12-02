@@ -239,7 +239,6 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         /**
          @startuml
-         @startuml
          [*] --> 5022
          5022: Powerup
          5023: Operating
