@@ -18,6 +18,9 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
 
 
 describe("end-to-end testing of read and write operation on a Variable", function () {
+
+    this.timeout(Math.max(200000,this._timeout));
+
     var server, client, temperatureVariableId, endpointUrl;
 
     var port = 2555;

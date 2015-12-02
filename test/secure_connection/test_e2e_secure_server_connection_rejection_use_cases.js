@@ -78,7 +78,6 @@ if (!crypto_utils.isFullySupported()) {
                             verif_after_create_session(err);
                         }
                         catch (err) {
-                            console.log("verif_after_create_session :");
                             callback(err);
                         }
                         callback(null);
@@ -87,7 +86,7 @@ if (!crypto_utils.isFullySupported()) {
                 },
                 function (callback) {
                     client.disconnect(callback);
-                },
+                }
 
             ], done);
         }

@@ -23,7 +23,7 @@ var port = 2000;
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
-describe("testing UAAnalogItem on client side", function () {
+describe("testing AnalogItem on client side", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 

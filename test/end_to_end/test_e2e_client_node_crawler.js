@@ -29,8 +29,9 @@ var perform_operation_on_client_session = require("test/helpers/perform_operatio
 describe("NodeCrawler", function () {
 
     // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
-    // so we set a big enough timeout 
-    this.timeout((process.arch === 'arm') ? 400000 : 10000);
+    // so we set a big enough timeout
+    // execution timecould also be affected by code running under profiling/coverage tools (istanbul)
+    this.timeout((process.arch === 'arm') ? 400000 : 30000);
 
     var server, client, temperatureVariableId, endpointUrl;
 
