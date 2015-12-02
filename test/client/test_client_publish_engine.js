@@ -32,11 +32,11 @@ describe("Testing the client publish engine", function () {
         var publish_client = new ClientSidePublishEngine(fake_session);
 
         // start a first new subscription
-        publish_client.registerSubscriptionCallback(1, function () {
+        publish_client.registerSubscriptionCallback(1, 10000,function () {
         });
 
         // start a second new subscription
-        publish_client.registerSubscriptionCallback(2, function () {
+        publish_client.registerSubscriptionCallback(2, 10000,function () {
         });
 
         // now advance the time artificially by 4.5 seconds
@@ -71,12 +71,14 @@ describe("Testing the client publish engine", function () {
 
         var publish_client = new ClientSidePublishEngine(fake_session);
 
+        publish_client.timeoutHint.should.eql(10000,"expecting timeoutHint to be set to default value =10sec");
+
         // start a first new subscription
-        publish_client.registerSubscriptionCallback(1, function () {
+        publish_client.registerSubscriptionCallback(1, 10000, function () {
         });
 
         // start a second new subscription
-        publish_client.registerSubscriptionCallback(2, function () {
+        publish_client.registerSubscriptionCallback(2, 10000,  function () {
         });
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
@@ -110,7 +112,7 @@ describe("Testing the client publish engine", function () {
         var publish_client = new ClientSidePublishEngine(fake_session);
 
         // start a first new subscription
-        publish_client.registerSubscriptionCallback(1, function () {
+        publish_client.registerSubscriptionCallback(1, 10000, function () {
         });
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
@@ -179,9 +181,9 @@ describe("Testing the client publish engine", function () {
         var spy = sinon.spy(fake_session, "publish");
 
         var publish_client = new ClientSidePublishEngine(fake_session);
-        publish_client.registerSubscriptionCallback(44, function () {
+        publish_client.registerSubscriptionCallback(44, 10000,function () {
         });
-        publish_client.registerSubscriptionCallback(1, function () {
+        publish_client.registerSubscriptionCallback(1, 10000,function () {
         });
 
         this.clock.tick(4500);
