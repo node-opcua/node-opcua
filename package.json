@@ -1,6 +1,6 @@
 {
   "name": "node-opcua",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "description": "pure nodejs OPCUA SDK",
   "homepage": "http://node-opcua.github.io/",
   "main": "index.js",
@@ -15,7 +15,7 @@
     "test": "mocha test --color -R spec --recursive --timeout 200000 --bail",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
-  } ,
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/node-opcua/node-opcua.git"
