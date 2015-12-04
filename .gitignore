@@ -7,6 +7,7 @@ coverage
 *.swp
 *.bak
 *.patch
+.checksum
 *#
 tmptmp/
 demo/

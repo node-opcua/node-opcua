@@ -1,7 +1,6 @@
+
 /* global console, require */
 var opcua = require("node-opcua");
-
-opcua.standardUnits = require("node-opcua/lib/data_access/EUInformation").standardUnits;
 
 var server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server
@@ -10,21 +9,19 @@ var server = new opcua.OPCUAServer({
 function post_initialize() {
 
     var myDevice = server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
+    
     var fakeValue = 1;
-
-    var addressSpace = serve.engine.addressSpace;
+    var addressSpace = server.engine.addressSpace;
     var analogItem = addressSpace.addAnalogDataItem({
-
-        organizedBy: myDevice,
-
-        browseName: "TemperatureSensor",
-        definition: "(tempA -25) + tempB",
-        valuePrecision: 0.5,
-        engineeringUnitsRange: { low: 100 , high: 200},
-        instrumentRange: { low: -100 , high: +200},
-        engineeringUnits: opcua.standardUnits.degree_celsius,
-        dataType: "Double",
-        value: { get: function(){return new opcua.Variant({dataType: opcua.DataType.Double , value: fakeValue}); } }
+          componentOf: myDevice,
+          browseName: "TemperatureSensor",
+          definition: "(tempA -25) + tempB",
+          valuePrecision: 0.5,
+          engineeringUnitsRange: { low: 100 , high: 200},
+          instrumentRange: { low: -100 , high: +200},
+          engineeringUnits: opcua.standardUnits.degree_celsius,
+          dataType: "Double",
+          value: { get: function(){return new opcua.Variant({dataType: opcua.DataType.Double , value: fakeValue}); } }
     });
 
 } 

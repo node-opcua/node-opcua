@@ -5,6 +5,7 @@ var async = require("async");
 var client = new opcua.OPCUAClient();
 var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 
+
 var the_session, the_subscription;
 
 async.series([
@@ -36,7 +37,7 @@ async.series([
        the_session.browse("RootFolder", function(err,browse_result){
            if(!err) {
                browse_result[0].references.forEach(function(reference) {
-                   console.log( reference.browseName);
+                   console.log( reference.browseName.toString());
                });
            }
            callback(err);
@@ -45,12 +46,14 @@ async.series([
 
     // step 4 : read a variable with readVariableValue
     function(callback) {
-       the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValues) {
+       the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValue) {
            if (!err) {
-               console.log(" free mem % = " , dataValues);
+               console.log(" free mem % = " , dataValue.toString());
            }
            callback(err);
        });
+       
+       
     },
     
     // step 4' : read a variable with read
@@ -65,10 +68,13 @@ async.series([
            }
            callback(err);
        });
+       
+       
     },
     
     // step 5: install a subscription and install a monitored item for 10 seconds
     function(callback) {
+       
        the_subscription=new opcua.ClientSubscription(the_session,{
            requestedPublishingInterval: 1000,
            requestedLifetimeCount: 10,

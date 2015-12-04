@@ -41,7 +41,7 @@
     "csv": "0.4.6",
     "eyes": "0.1.8",
     "jsdoc": "3.3.3",
-    "literate-programming": "0.8.4",
+    "litpro": "0.11.1",
     "mocha": "2.3.3",
     "mocha-lcov-reporter": "1.0.0",
     "node-xml": "1.0.2",
@@ -50,6 +50,7 @@
     "sinon": "1.17.2",
     "tmp": "0.0.28",
     "tracer": "0.8.1",
+    "app-module-path": "^1.0.5",
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
   },

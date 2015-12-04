@@ -1,25 +1,21 @@
 /*global require,console,setInterval */
+Error.stackTraceLimit = Infinity;
 
 /*global require,setInterval,console */
 var cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
-
 // read the World Weather Online API key.
 var fs = require("fs");
 var key = fs.readFileSync("worldweatheronline.key");
-
 function getCityWeather(city,callback) {
-
-    var api_url="http://api.worldweatheronline.com/free/v1/weather.ashx?q="+city+"+&format=json&key="+ key;
-
+    var api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
     var options = {
         url: api_url,
         "content-type": "application-json",
         json: ""
     };
-
     var request = require("request");
     request(options, function (error, response, body) {
-      if (!error && response.statusCode == 200) {
+      if (!error && response.statusCode === 200) {
         var data  = perform_read(city,body);
         callback(null,data);
       } else {
@@ -27,7 +23,6 @@ function getCityWeather(city,callback) {
       }
     });
 }
-
 function perform_read(city,body) {
     var obj = JSON.parse(body);
     var current_condition = obj.data.current_condition[0];
@@ -42,9 +37,7 @@ function perform_read(city,body) {
         weather:            current_condition.weatherDesc.value
     };
 }
-
 var city_data_map = { };
-
 // a infinite round-robin iterator over the city array
 var next_city = function(arr) {
    var counter = arr.length;
@@ -56,9 +49,7 @@ var next_city = function(arr) {
       return arr[counter];
    };
 }(cities);
-
 function update_city_data(city) {
-
     getCityWeather(city,function(err,data) {
          if (!err) {
             city_data_map[city] = data;
@@ -68,10 +59,8 @@ function update_city_data(city) {
          }
      });
 }
-
 // make a API call every 10 seconds
 var interval = 10* 1000;
-
 setInterval(function() {
      var city = next_city();
      update_city_data(city);
@@ -86,19 +75,14 @@ var server = new opcua.OPCUAServer({
 server.buildInfo.productName = "WeatherStation";
 server.buildInfo.buildNumber = "7658";
 server.buildInfo.buildDate = new Date(2014,5,2);
-
 function post_initialize() {
     console.log("initialized");
-
     function construct_my_address_space(server) {
        // declare some folders
        server.engine.addFolder("Objects",{ browseName: "Cities"});
-       
        function create_CityNode(city_name) {
-       
            // declare the city node
            server.engine.addFolder("Cities",{ browseName: city_name });
-       
            server.engine.addVariable({
                componentOf: city_name,
                browseName: "Temperature",
@@ -110,7 +94,6 @@ function post_initialize() {
                browseName: "Humidity",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"humidity"); } }
-           
            });
            server.engine.addVariable({
                componentOf: city_name,
@@ -119,29 +102,24 @@ function post_initialize() {
                value: {  get: function () { return extract_value(city_name,"pressure"); } }
            });
        }
-       
        cities.forEach(function(city) {
            create_CityNode(city);
        });
-       
        function extract_value(city_name,property) {
            var city = city_data_map[city_name];
            if (!city) {
-               return null;
+               return opcua.StatusCodes.BadDataUnavailable
            }
            var value = city[property];
            return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
        }
     }
     construct_my_address_space(server);
-
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
-        
         var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        console.log(" the primary server endpoint url is ", endpointUrl );
-        
+        console.log(" the primary server endpoint url is ", endpointUrl );        
     });
 }
 server.initialize(post_initialize);
