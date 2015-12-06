@@ -30,6 +30,7 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 var UADataType = require("lib/address_space/ua_data_type").UADataType;
 var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
 var UAObject = require("lib/address_space/ua_object").UAObject;
+var DataType = require("lib/datamodel/variant").DataType;
 
 
 
@@ -166,9 +167,84 @@ describe("testing address space namespace loading", function () {
         var serverStatus = addressSpace.findObject(makeNodeId(VariableIds.Server_ServerStatus));
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
+        // before bindExtensionObject is called, startTime property exists but is not bound
+        serverStatus.should.have.property("startTime");
+        serverStatus.startTime.readValue().value.dataType.should.eql(DataType.Null);
+        serverStatus.readValue().value.dataType.should.eql(DataType.Null);
+
+        //Xx value.startTime.should.eql(DataType.Null);
+        //xx console.log("serverStatus.startTime =",serverStatus.startTime.readValue().value.toString());
+
+
         serverStatus.bindExtensionObject();
 
-        done();
+        serverStatus.readValue().value.value.startTime.toISOString().should.eql("1601-01-01T00:00:00.000Z");
+        serverStatus.startTime.readValue().value.value.toISOString().should.eql("1601-01-01T00:00:00.000Z");
+
+        serverStatus.readValue().value.value.startTime = new Date(Date.UTC(1800,0,1));
+        serverStatus.readValue().value.value.startTime.toISOString().should.eql("1800-01-01T00:00:00.000Z");
+        serverStatus.startTime.readValue().value.value.toISOString().should.eql("1800-01-01T00:00:00.000Z");
+
+
+        serverStatus.startTime.setValueFromSource({dataType: DataType.DateTime, value: new Date(Date.UTC(2100,0,1))});
+        serverStatus.readValue().value.value.startTime.toISOString().should.eql("2100-01-01T00:00:00.000Z");
+        serverStatus.startTime.readValue().value.value.toISOString().should.eql("2100-01-01T00:00:00.000Z");
+        //xx console.log(serverStatus.readValue().value.toString());
+
+
+        serverStatus.readValue().value.value.buildInfo.productName = "productName1";
+        serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName1");
+        serverStatus.buildInfo.productName.readValue().value.value.should.eql("productName1");
+
+        serverStatus.buildInfo.productName.setValueFromSource({ dataType: DataType.String, value: "productName2"});
+        serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName2");
+        serverStatus.buildInfo.productName.readValue().value.value.should.eql("productName2");
+
+        var async = require("async");
+        var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+        var write_service = require("lib/services/write_service");
+        var WriteValue = write_service.WriteValue;
+        var makeAccessLevel = require("lib/datamodel/access_level").makeAccessLevel;
+
+        // now use WriteValue instead
+        // make sure value is writable
+        var rw = makeAccessLevel("CurrentRead | CurrentWrite");
+        serverStatus.buildInfo.productName.accessLevel =  rw;
+        serverStatus.buildInfo.productName.userAccessLevel =  rw;
+
+        serverStatus.buildInfo.accessLevel =  rw;
+        serverStatus.buildInfo.userAccessLevel =  rw;
+
+        serverStatus.accessLevel =  rw;
+        serverStatus.userAccessLevel =  rw;
+
+        async.series([
+            function(callback) {
+
+                var writeValue = new WriteValue({
+                    attributeId: 13, // value
+                    value: {
+                        statusCode: StatusCodes.Good,
+                        value: {
+                            dataType: DataType.String,
+                            value: "productName3"
+                        }
+                    }
+                });
+                serverStatus.buildInfo.productName.writeAttribute(writeValue, function(err,statusCode){
+                    if (!err) {
+                        statusCode.should.eql(StatusCodes.Good);
+                    }
+                    callback(err);
+                });
+
+            },
+            function(callback) {
+                serverStatus.buildInfo.productName.readValue().value.value.should.eql("productName3");
+                serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName3");
+                callback();
+            }
+        ],done);
     });
 
 });
