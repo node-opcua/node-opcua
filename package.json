@@ -33,23 +33,23 @@
     "url": "https://github.com/node-opcua/node-opcua/issues"
   },
   "devDependencies": {
-    "enum": "2.2.0",
+    "enum": "2.1.0",
     "autodoc": "0.6.3",
     "benchmark": "1.0.0",
     "bignumber.js": "2.1.0",
     "coveralls": "2.11.4",
     "csv": "0.4.6",
     "eyes": "0.1.8",
-    "jsdoc": "3.3.3",
+    "jsdoc": "3.4.0",
     "litpro": "0.11.1",
-    "mocha": "2.3.3",
+    "mocha": "2.3.4",
     "mocha-lcov-reporter": "1.0.0",
     "node-xml": "1.0.2",
-    "request": "2.65.0",
+    "request": "2.67.0",
     "should": "7.1.1",
     "sinon": "1.17.2",
     "tmp": "0.0.28",
-    "tracer": "0.8.1",
+    "tracer": "0.8.2",
     "app-module-path": "^1.0.5",
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
@@ -59,7 +59,7 @@
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
     "byline": "4.2.1",
-    "collections": "^1.2.3",
+    "collections": "^1.2.4",
     "colors": "1.1.2",
     "dequeue": "^1.0.5",
     "easy-table": "1.0.0",
@@ -80,8 +80,8 @@
     "treeify": "1.0.1",
     "underscore": "1.8.3",
     "unzip": "^0.1.11",
-    "wget-improved": "^1.1.1",
+    "wget-improved": "^1.2.1",
     "xml-writer": "^1.6.0",
-    "yargs": "^3.21.0"
+    "yargs": "^3.31.0"
   }
 }
