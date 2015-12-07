@@ -28,20 +28,51 @@ var async = require("async");
 var _ = require("underscore");
 var assert = require("better-assert");
 var byline = require('byline');
+
+
 var argv = require('optimist')
     .usage('Usage: $0 [--dev] [--silent] [--force]')
     .boolean("force")
+    .boolean("forceCA")
     .boolean("dev")
     .boolean("silent")
+    .string("applicationUri")
+    .string("prefix")
+    .boolean("selfSigned")
+    .string("privateKey")
     .argv;
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+var default_config          = path.join(__dirname,path.basename(__filename,".js") + "_config.js");
+var default_config_template = path.join(__dirname,path.basename(__filename,".js") + "_config.example.js");
+if (!fs.existsSync(default_config) && fs.existsSync(default_config_template))  {
+    // copy
+    console.log(" Creating default config file ",default_config);
+    fs.writeFileSync(default_config,fs.readFileSync(default_config_template));
+}
+
+var config = require(default_config);
+// ---------------------------------------------------------------------------------------------------------------------
+
+
+
+
+function setEnv(varName,value) {
+    console.log("          set " + varName + " =" + value);
+    process.env[varName] = value;
+}
 
 process.env.ALTNAME_URI = process.env.ALTNAME_URI || "";
 process.env.ALTNAME_DNS = process.env.ALTNAME_DNS || "";
 process.env.ALTNAME_DNS_1 = process.env.ALTNAME_DNS_1 || "";
 process.env.ALTNAME_DNS_2 = process.env.ALTNAME_DNS_2 || "";
 
+var configOption = " -config conf/caconfig.cnf ";
+configOption = "";
 
 var force = argv.force;
+var forceCA = argv.forceCA;
 
 var openssl_path = "openssl";
 
@@ -250,6 +281,10 @@ function displaySubtitle(str, option_callback) {
 }
 
 
+setEnv("OPENSSL_CONF",make_path(rootDir,"conf/caconfig.cnf"));
+
+var displayError = true;
+
 function execute(cmd, callback) {
 
     assert(_.isFunction(callback));
@@ -264,7 +299,9 @@ function execute(cmd, callback) {
     if (!argv.silent) {
         var stream1 = byline(child.stderr);
         stream1.on('data', function (line) {
-            process.stdout.write("        err " + line.red + "\n");
+            if (displayError) {
+                process.stdout.write("        err " + line.red + "\n");
+            }
         });
         var stream2 = byline(child.stdout);
         stream2.on('data', function (line) {
@@ -318,7 +355,7 @@ function construct_CertificateAuthority(done) {
         fs.writeFileSync(index_file, "");
     }
 
-    if (fs.existsSync(path.join(rootDir, "private/cakey.pem")) && !force) {
+    if (fs.existsSync(path.join(rootDir, "private/cakey.pem")) && !forceCA) {
         // certificate already exists => do not overwrite
         console.log("CA private key already exists ... skipping");
         return done();
@@ -364,7 +401,7 @@ function construct_CertificateAuthority(done) {
         execute.bind(null, openssl_path + " req -new" +
             " -text " +
             " -extensions v3_ca" +
-            " -config " + "conf/caconfig.cnf" +
+            configOption +
             " -key private/cakey.pem " +
             " -out private/cakey.csr " +
             " -subj \"" + subject + "\""),
@@ -383,7 +420,7 @@ function construct_CertificateAuthority(done) {
             " -out public/cacert.pem"),
 
         displaySubtitle.bind(null, "generate CRL (Certificate Revocation List)"),
-        execute.bind(null, openssl_path + " ca -gencrl -config " + "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
+        execute.bind(null, openssl_path + " ca -gencrl " + configOption + " -out crl/revocation_list.crl"),
     ];
 
 
@@ -416,7 +453,7 @@ function constructCertificateChain(self_signed,certificate_file,callback) {
     if (self_signed) {
         return callback(); // nothing to do
     }
-    console.log("certificate file",certificate_file);
+    console.log("        certificate file :".yellow,certificate_file.cyan);
     assert(fs.existsSync(certificate_file));
     assert(fs.existsSync(cacert_filename));
     // append
@@ -448,6 +485,7 @@ function constructCACertificateWithCRL(callback) {
         // there is no revocation list yet
         fs.writeFileSync(cacert_with_crl, fs.readFileSync(cacert_filename));
     }
+    console.log("        cacert_with_crl = ",cacert_with_crl);
     callback();
 }
 
@@ -508,7 +546,7 @@ function renew_certificate(certificate, new_startDate, new_endDate, callback) {
     async.series([
         displaySubtitle.bind(null, "renew_certificate"),
 
-        execute.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" +
+        execute.bind(null, openssl_path + " ca " + configOption +
             " -policy policy_anything " +
             " -out newcert.pem " +
             " -infiles newreq.pem " +
@@ -552,24 +590,22 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
     var certificate_file = certname;
 
     if (fs.existsSync(certificate_file) && !force) {
-        //
-        console.log("certificate " + certificate_file + "already exists => do not overwrite");
+        console.log("        certificate ".yellow + certificate_file.cyan + " already exists => do not overwrite".yellow);
         return callback();
     }
 
-
-    // ApplicationURI
-    process.env.ALTNAME_URI = applicationUri;
+    // applicationUri
+    setEnv("ALTNAME_URI",applicationUri);
     // the list of HostName
-    process.env.ALTNAME_DNS = "localhost";
-    process.env.ALTNAME_DNS_1 = get_fully_qualified_domain_name();
+    setEnv("ALTNAME_DNS", "localhost");
+    setEnv("ALTNAME_DNS_1",  get_fully_qualified_domain_name());
 
     var sign_certificate = function () {
     };
     if (self_signed) {
         sign_certificate = [
             displaySubtitle.bind(null, "- creating the self signed certificate"),
-            execute.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" +
+            execute.bind(null, openssl_path + " ca " + configOption +
                 " -selfsign " +
                 " -keyfile " + private_key +
                 " -startdate " + startDate +
@@ -581,7 +617,7 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
 
         sign_certificate = [
             displaySubtitle.bind(null, "- then we ask the authority to sign the certificate signing request"),
-            execute.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" +
+            execute.bind(null, openssl_path + " ca " + configOption +
                 " -startdate " + startDate +
                 " -enddate " + endDate +
                 " -batch -out " + certificate_file + " -in " + csr_file)
@@ -590,7 +626,7 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
     var tasks = [
 
         displaySubtitle.bind(null, "- the certificate signing request"),
-        execute.bind(null, openssl_path + " req -text -config " + "conf/caconfig.cnf" + " -batch -new -key " + private_key + " -out " + csr_file),
+        execute.bind(null, openssl_path + " req -text " + configOption + " -batch -new -key " + private_key + " -out " + csr_file),
 
         sign_certificate[0],
         sign_certificate[1],
@@ -604,10 +640,12 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
         displaySubtitle.bind(null, "- get certificate fingerprint"),
         execute.bind(null, openssl_path + " x509 -in " + certificate_file + " -noout -fingerprint"),
 
+        displaySubtitle.bind(null, "- construct CA certificate with CRL"),
         constructCACertificateWithCRL.bind(null),
 
         // construct certificate chain
         //   concatenate certificate with CA Certificate and revocation list
+        displaySubtitle.bind(null, "- construct certificate chain"),
         constructCertificateChain.bind(null,self_signed,certificate_file)
     ];
 
@@ -655,7 +693,7 @@ function assert_fileexists(filename) {
 function revoke_certificate(certificate_file, callback) {
 
     assert(_.isFunction(callback));
-    var crlReasons =[
+    var crlReasons = [
         "unspecified", "keyCompromise", "CACompromise", "affiliationChanged", "superseded", "cessationOfOperation", "certificateHold","removeFromCRL"
     ];
 
@@ -664,10 +702,10 @@ function revoke_certificate(certificate_file, callback) {
         displaySubtitle.bind(null, "Revoke certificate"),
 
         // -crl_reason reason
-        execute_no_failure.bind(null, openssl_path + " ca -config " + "conf/caconfig.cnf" + " -revoke " + certificate_file + " -crl_reason keyCompromise"),
+        execute_no_failure.bind(null, openssl_path + " ca "+ configOption + " -revoke " + certificate_file + " -crl_reason keyCompromise"),
         // regenerate CRL (Certificate Revocation List)
         displaySubtitle.bind(null, "regenerate CRL (Certificate Revocation List)"),
-        execute.bind(null, openssl_path + " ca -gencrl -config " + "conf/caconfig.cnf" + " -out crl/revocation_list.crl"),
+        execute.bind(null, openssl_path + " ca -gencrl " + configOption + " -out crl/revocation_list.crl"),
 
         displaySubtitle.bind(null, "Display (Certificate Revocation List)"),
         execute.bind(null, openssl_path + " crl -in crl/revocation_list.crl -text -noout"),
@@ -781,7 +819,7 @@ function find_openssl(callback) {
     callback(null);
 
 }
-function main() {
+function createDefaultCertificates() {
 
     async.series([
         install_prerequisite.bind(null),
@@ -795,8 +833,149 @@ function main() {
     });
 }
 
-main();
 
+/**
+ *
+ * @param options
+ * @param options.commonName       {String}
+ * @param options.organization     {String}
+ * @param options.organizationUnit {String}
+ * @param options.locality         {String}
+ * @param options.state            {String}
+ * @param options.country          {String}
+ *
+ * @param options.applicationUri   {Numbers}
+ * @param options.domainNames      {Array<String>}
+ * @param options.ipAddresses      {Array<String>}
+ * @param options.keySize          {Numbers}
+ *
+ * @param options.startDate        {Date}= today
+ * @param options.validity         {Number} number of days for validation [15*360 =15 years]
+ * @param options.selfSigned       {Boolean}
+ *
+ * @param options.prefix           {String} "new_certificate";
+ *
+ * @param options.privateKey       {String} the privateKey filename or null, if private key need to be generated
+ * @param callback {Function}
+ */
+function createNewCertificate(options,callback ) {
+
+    assert(_.isFunction(callback));
+
+
+    var tasks = [
+        install_prerequisite.bind(null),
+        find_openssl.bind(null),
+        construct_CertificateAuthority.bind(null)
+    ];
+
+
+    var base_name =  make_path(__dirname, "../certificates/");
+
+    // -----------------------------------------------------------------------------
+    // Subject
+    // -----------------------------------------------------------------------------
+    options.commonName       = options.commonName       || config.commonName;
+    options.organization     = options.organization     || config.organization;
+    options.organizationUnit = options.organizationUnit || config.organizationUnit;
+    options.locality         = options.locality         || config.locality;
+    options.state            = options.state            || config.state;
+    options.country          = options.country          || config.country;
+
+    assert(options.country.length === 2);
+
+    // -----------------------------------------------------------------------------
+    // OPCUA Information
+    // -----------------------------------------------------------------------------
+    options.applicationUri = options.applicationUri || makeApplicationUrn(hostname, "NodeOPCUA-Client");
+    options.domainNames   = [
+        "localhost",
+    ];
+    options.ipAddresses = options.ipAddresses || [];
+
+    // -----------------------------------------------------------------------------
+    // Certificate settings
+    // -----------------------------------------------------------------------------
+    options.keySize = options.keySize || config.keySize; // bits
+    assert(options.keySize === 1024 || options.keySize === 2048 || options.keySize === 4096);
+    options.validity = options.validity || config.validity;
+
+    options.selfSigned = !!(options.selfSigned);
+    options.startDate = options.startDate || today;
+
+    assert(options.startDate instanceof Date);
+    assert(_.isNumber(options.validity));
+
+
+    var private_key;
+
+    if (options.privateKey) {
+
+        options.privateKey = make_path(process.cwd(),options.privateKey);
+
+        if (!fs.existsSync(options.privateKey)) {
+            throw new Error("Cannot find public key ",options.privateKey);
+        }
+        private_key  = options.privateKey;
+        console.log("          reusing private key : ",private_key);
+
+    } else {
+        options.prefix = options.prefix || "new_certificate_XX";
+        private_key  = make_path(base_name, options.prefix +  "_private_key.pem");
+
+        tasks.push(createPrivateKey.bind(null, private_key, options.keySize));
+    }
+
+    var certificate  =  make_path(base_name, options.prefix + "_certificate.pem");
+
+
+    //xx getPublicKeyFromPrivateKey.bind(null, private_key, public_key),
+    tasks = tasks.concat([
+
+        _createCertificate.bind(null,options.selfSigned ,certificate, private_key,options.applicationUri,options.startDate,options.validity),
+
+        displayTitle.bind(null, " Result"),
+
+        function(callback) {
+
+            console.log("  private key : ",private_key.cyan);
+            //xx console.log("  public  key : ", public_key.cyan);
+            console.log("  certificate : ",certificate.cyan);
+            callback();
+        }
+    ]);
+    async.series(tasks, callback);
+}
+
+function createCertificateFromCommandLine() {
+
+    //example : node bin\crypto_create_CA.js --new --selfSigned --applicationUri urn:localhost:MyProduct --prefix aa --force
+
+    assert(_.isString(argv.applicationUri));
+    // urn:COMPUTERNAME:PRODUCT
+
+    assert(argv.applicationUri.length < 64);
+    var options = {
+        applicationUri: argv.applicationUri || makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server")
+    };
+
+    assert(_.isString(argv.prefix));
+    options.prefix = argv.prefix;
+    options.privateKey = argv.privateKey;
+    options.selfSigned = argv.selfSigned;
+
+    createNewCertificate(options,function(){
+        console.log("Done ...");
+    });
+}
+
+
+if (argv.new) {
+    createCertificateFromCommandLine();
+
+} else {
+    createDefaultCertificates();
+}
 
 // reference:
 // - http://stackoverflow.com/questions/4294689/how-to-generate-a-key-with-passphrase-from-the-command-line
@@ -810,3 +989,4 @@ main();
 // - https://www.openssl.org/docs/apps/x509v3_config.html
 // - https://jamielinux.com/articles/2013/08/generate-certificate-revocation-list-revoke-certificates/
 // - https://rietta.com/blog/2012/01/27/openssl-generating-rsa-key-from-command/
+// - http://stackoverflow.com/questions/16658038/cant-open-config-file-usr-local-ssl-openssl-cnf-on-windows
