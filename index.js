@@ -19,6 +19,11 @@ module.exports.NodeId           = require("lib/datamodel/nodeid").NodeId;
 module.exports.NumericRange     = require("lib/datamodel/numeric_range").NumericRange;
 module.exports.AccessLevelFlag  = require("lib/datamodel/access_level").AccessLevelFlag;
 
+module.exports.LocalizedText       = require("lib/datamodel/localized_text").LocalizedText;
+module.exports.coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
+module.exports.QualifiedName       = require("lib/datamodel/qualified_name").QualifiedName;
+module.exports.coerceQualifyName   = require("lib/datamodel/qualified_name").coerceQualifyName;
+
 //
 module.exports.get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 module.exports.makeApplicationUrn              = require("lib/misc/applicationurn").makeApplicationUrn;
