@@ -167,21 +167,24 @@ describe("testing Events  ", function () {
     var subscription_service = require("lib/services/subscription_service");
     it("should extract EventData from an select clause", function () {
 
+        var baseEventType = addressSpace.findEventType("BaseEventType");
+
         var eventFilter = new subscription_service.EventFilter({
+
             selectClauses: [ // SimpleAttributeOperand
                 {
                     // This parameter restricts the operand to instances of the TypeDefinitionNode or
                     //  one of its subtypes
-                    typeId: null,
+                    typeId: baseEventType.nodeId,
                     browsePath: [
                         {name: "EventId"}
                     ],
                     attributeId: AttributeIds.Value,
                     indexRange: null
                 },
-                {browsePath: [{name: "SourceNode"}], attributeId: AttributeIds.Value},
-                {browsePath: [{name: "SourceName"}], attributeId: AttributeIds.Value},
-                {browsePath: [{name: "ReceiveTime"}], attributeId: AttributeIds.Value}
+                {typeId: baseEventType.nodeId,browsePath: [{name: "SourceNode"}], attributeId: AttributeIds.Value},
+                {typeId: baseEventType.nodeId,browsePath: [{name: "SourceName"}], attributeId: AttributeIds.Value},
+                {typeId: baseEventType.nodeId,browsePath: [{name: "ReceiveTime"}], attributeId: AttributeIds.Value}
             ],
             whereClause: []
         });
@@ -191,6 +194,7 @@ describe("testing Events  ", function () {
         //xx var auditEventInstance =  auditEventType.instantiate({browseName: "Instantiation"});
         // if (eventFilter.selectClauses.length===0) {return 0;}
         var selectClauseResults = checkSelectClauses(auditEventType, eventFilter.selectClauses);
+
         selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
         console.log(selectClauseResults);
 
@@ -297,7 +301,7 @@ describe("testing Events  ", function () {
         });
         var pumpStartEventType = addressSpace.addEventType({browseName: "PumpStartEventType"});
         pumpStartEventType.browseName.toString().should.eql("PumpStartEventType");
-
+        pumpStartEventType.subtypeOfObj.browseName.toString().should.eql("BaseEventType");
 
         var receivers = [];
         function spyFunc(object,data) {

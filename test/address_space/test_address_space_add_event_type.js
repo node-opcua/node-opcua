@@ -13,6 +13,7 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 var Enum = require("lib/misc/enum");
+var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
 var assert = require("assert");
 var path = require("path");
@@ -103,12 +104,57 @@ describe("AddressSpace : add event type ", function () {
 
         var eventType = addressSpace.addEventType({
             browseName: "MyConcreteCustomEvent",
-            isAbstract: false,
+            isAbstract: true
         });
         eventType.browseName.toString().should.eql("MyConcreteCustomEvent");
-        eventType.isAbstract.should.eql(false);
+        eventType.isAbstract.should.eql(true);
     });
 
+
+    it("should select node in a EventType using a SelectClause on BaseEventType",function() {
+        var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
+        var checkSelectClause = require("lib/tools/tools_event_filter").checkSelectClause;
+
+
+        // browseNodeByTargetName
+        var baseEventType = addressSpace.findEventType("BaseEventType");
+
+        var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+        eventFilter.selectClauses.length.should.eql(3);
+
+        var statusCode = checkSelectClause(baseEventType,eventFilter.selectClauses[0]);
+        statusCode.should.eql(StatusCodes.Good);
+
+        statusCode = checkSelectClause(baseEventType,eventFilter.selectClauses[1]);
+        statusCode.should.eql(StatusCodes.Good);
+
+        statusCode = checkSelectClause(baseEventType,eventFilter.selectClauses[2]);
+        statusCode.should.eql(StatusCodes.Good);
+
+
+
+    });
+    it("should select node in a EventType using a SelectClause  n AuditEventType",function() {
+        var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
+        var checkSelectClause = require("lib/tools/tools_event_filter").checkSelectClause;
+
+
+        // browseNodeByTargetName
+        var auditEventType = addressSpace.findEventType("AuditEventType");
+
+        var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+        eventFilter.selectClauses.length.should.eql(3);
+
+        var statusCode = checkSelectClause(auditEventType,eventFilter.selectClauses[0]);
+        statusCode.should.eql(StatusCodes.Good);
+
+        statusCode = checkSelectClause(auditEventType,eventFilter.selectClauses[1]);
+        statusCode.should.eql(StatusCodes.Good);
+
+        statusCode = checkSelectClause(auditEventType,eventFilter.selectClauses[2]);
+        statusCode.should.eql(StatusCodes.Good);
+
+    });
 
 
     it("should instantiate event efficiently ( more than 1000 per second on a decent computer)", function (done) {
@@ -147,7 +193,11 @@ describe("AddressSpace : add event type ", function () {
 
         var auditEventType = addressSpace.findObjectType("AuditEventType");
 
-        var data = addressSpace.constructEventData(auditEventType);
+        var data= {
+            sourceNode: { dataType: "NodeId", value:  resolveNodeId("Server") }
+        };
+
+        var data = addressSpace.constructEventData(auditEventType,data);
 
         var expected_fields = [
             "__nodes",

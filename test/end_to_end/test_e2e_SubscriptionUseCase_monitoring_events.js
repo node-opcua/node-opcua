@@ -32,7 +32,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 var schema_helpers = require("lib/misc/factories_schema_helpers");
 schema_helpers.doDebug = true;
 
-describe("Client Subscription", function () {
+describe("Client Subscription with Event monitoring", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 
@@ -70,22 +70,22 @@ describe("Client Subscription", function () {
         });
     });
 
-    it("CreateMonitoredItemsRequest: server should not accept filter if node attribute to monitor is not Event or Value", function (done) {
+    it("ZZ1 CreateMonitoredItemsRequest: server should not accept en Event filter if node attribute to monitor is not EventNotifier", function (done) {
 
         var filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
             var itemToMonitor = new opcua.read_service.ReadValueId({
-                nodeId: opcua.makeNodeId(ObjectTypeIds.BaseEventType),
-                attributeId: AttributeIds.Value
+                nodeId: resolveNodeId("Server"),
+                attributeId: AttributeIds.Value // << we set Value here
             });
 
             var parameters = {
                 samplingInterval: 0,
                 discardOldest: false,
                 queueSize: 1,
-                filter: filter
+                filter: filter   // we use inadequat EventFilter here !=> server should complain
             };
 
             var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
@@ -119,17 +119,18 @@ describe("Client Subscription", function () {
     });
 
     // check if nodeID exists
-    it("should create a monitoredItem on a event with a Filter ", function (done) {
+    it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function (done) {
 
         var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
 
-        var filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+        var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+
+        //xx console.log("filter = ",filter.toString());
 
         perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-
             var itemToMonitor = new opcua.read_service.ReadValueId({
-                nodeId: opcua.makeNodeId(ObjectTypeIds.BaseEventType),
+                nodeId: resolveNodeId("Server"),
                 attributeId: AttributeIds.EventNotifier
             });
 
@@ -137,7 +138,7 @@ describe("Client Subscription", function () {
                 samplingInterval: 0,
                 discardOldest: false,
                 queueSize: 1,
-                filter: filter
+                filter: eventFilter
             };
 
             var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
@@ -149,10 +150,12 @@ describe("Client Subscription", function () {
                     monitoringMode: MonitoringMode.Reporting
                 }]
             });
+
             session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                 if(err) { return callback(err); }
                 try {
                     console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
+
                     createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                     createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
 
@@ -163,8 +166,8 @@ describe("Client Subscription", function () {
                     filterResult.should.be.instanceof(opcua.subscription_service.EventFilterResult);
 
                     // verify selectClauseResults count
-                    filter.selectClauses.length.should.eql(3);
-                    filterResult.selectClauseResults.length.should.eql(filter.selectClauses.length);
+                    eventFilter.selectClauses.length.should.eql(3);
+                    filterResult.selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
                     filterResult.selectClauseResults[0].should.eql(StatusCodes.Good);
                     filterResult.selectClauseResults[1].should.eql(StatusCodes.Good);
                     filterResult.selectClauseResults[2].should.eql(StatusCodes.Good);
@@ -180,7 +183,11 @@ describe("Client Subscription", function () {
                 callback();
             });
 
-            // now publish and check that monitored item returns
+            // now publish and check that monitored item returns EventNotification
+
+
+
+            // to DO
         }, done);
     });
 
@@ -236,6 +243,61 @@ describe("Client Subscription", function () {
             });
 
         }, done);
+    });
+
+    describe("Testing Server generating Event and client receiving Event Notification",function() {
+
+
+        function callEventGeneratorMethod(callback) {
+
+            // TODO
+            callback();
+
+        }
+        it("TE1 - should monitored Server Event",function(done) {
+
+            var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+
+                var readValue = {
+                    nodeId: resolveNodeId("Server"),
+                    attributeId: AttributeIds.EventNotifier // << EventNotifier
+                };
+                var requestedParameters = {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1,
+                    filter: eventFilter
+
+                };
+                var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                    try {
+                        should(err).eql(null);
+                    } catch(err) {
+                        callback(err);
+                    }
+
+                    async.series([
+                        callEventGeneratorMethod.bind(null),
+                        function (callback) {
+                            // TODO
+                            callback();
+                        }
+
+                    ],callback);
+                });
+                monitoredItem.on("change",function() {
+                    // TODO
+                    console.log("Changed !!!  " )
+                });
+
+
+
+            },done);
+
+        });
     });
 
 });
