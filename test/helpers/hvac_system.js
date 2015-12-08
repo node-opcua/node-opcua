@@ -76,7 +76,8 @@ exports.createHVACSystem = function(addressSpace) {
         engineeringUnits: standardUnits.degree_celsius, // � Celsius
         description: "External temperature Sensor",
         minimumSamplingInterval: 500,
-        dataType: "Double"
+        dataType: "Double",
+        modellingRule: "Mandatory"
     });
 
     addressSpace.addAnalogDataItem({
@@ -89,12 +90,14 @@ exports.createHVACSystem = function(addressSpace) {
         engineeringUnits: standardUnits.degree_celsius,
         description: "External temperature Sensor",
         minimumSamplingInterval: 500,
-        dataType: "Double"
+        dataType: "Double",
+        modellingRule: "Mandatory"
     });
 
 
     // EURange (10,+27)
     addressSpace.addAnalogDataItem({
+        modellingRule: "Mandatory",
         componentOf: HVACModuleType,
         browseName: "TargetTemperature",
         minimumSamplingInterval: 0, // could be event Based
@@ -104,6 +107,7 @@ exports.createHVACSystem = function(addressSpace) {
     });
 
     addressSpace.addMethod(HVACModuleType,{
+        modellingRule: "Mandatory",
         browseName: "Enable",
         description: "Enable the hvac system",
         alwaysGeneratesEvent: HVACEnabledEventType,
@@ -112,6 +116,7 @@ exports.createHVACSystem = function(addressSpace) {
     });
 
     addressSpace.addMethod(HVACModuleType,{
+        modellingRule: "Mandatory",
         browseName: "Disable",
         description: "Disable the hvac system",
         alwaysGeneratesEvent: HVACDisabledEventType,
@@ -120,6 +125,7 @@ exports.createHVACSystem = function(addressSpace) {
     });
 
     addressSpace.addMethod(HVACModuleType,{
+        modellingRule: "Mandatory",
         browseName: "SetTargetTemperature",
         inputArguments: [
             {
@@ -132,6 +138,7 @@ exports.createHVACSystem = function(addressSpace) {
     });
 
     addressSpace.addTwoStateDiscreteType({
+        modellingRule: "Mandatory",
         componentOf: HVACModuleType,
         browseName: "MainSwitch",
         trueState: "Up/ON",

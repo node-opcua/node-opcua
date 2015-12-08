@@ -152,8 +152,11 @@ module.exports = function(engine) {
                 componentOf: myObjectType,
                 browseName:  "Color",
                 enumValues:  { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
-                value: 0xFF0000 // Red
+                value: 0xFF0000, // Red,
+                modellingRule: "Mandatory"
             });
+
+            should(myObjectType.getComponentByName("Color")).not.eql(null);
 
             myObjectType.color.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
             // add

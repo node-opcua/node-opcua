@@ -46,14 +46,17 @@ describe("testing add new ObjectType ", function () {
         var machineTypeNode = addressSpace.addObjectType({browseName: "MachineType"});
 
         var machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
-            componentOf: machineTypeNode,
-            browseName: "TemperatureSensor"
+            componentOf:   machineTypeNode,
+            modellingRule: "Mandatory",
+            browseName:    "TemperatureSensor"
         });
         assert(machineTypeNode.temperatureSensor);
+        machineTypeTemperatureSensorNode.modellingRule.should.eql("Mandatory");
 
         // MachineType.HeaderSwitch
         var machineTypeHeaderSwitchNode = addressSpace.addVariable({
             propertyOf: machineTypeNode,
+            modellingRule: "Mandatory",
             browseName: "HeaterSwitch",
             dataType: "Boolean",
             value: {dataType: DataType.Boolean, value: false}
@@ -136,14 +139,14 @@ describe("testing add new ObjectType ", function () {
 
         var camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",
-            browseName: "Camera1"
+            browseName:  "Camera1"
         });
 
         camera1.browseName.toString().should.eql("Camera1");
 
         // camera should have one component
         var c = camera1.getComponents();
-        c.length.should.eql(1);
+        c.length.should.eql(1," expecting camera1 to have 1 component => the Method");
 
         var UAMethod = require("lib/address_space/ua_method").UAMethod;
         c[0].should.be.instanceOf(UAMethod);

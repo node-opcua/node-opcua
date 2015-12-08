@@ -12,6 +12,9 @@ exports.createCameraType = function createCameraType(addressSpace) {
 
     // MachineType.HeaderSwitch
     var triggerMethod = addressSpace.addMethod(cameraType, {
+
+        modellingRule: "Mandatory",
+
         browseName: "1:Trigger",
 
         inputArguments: [
@@ -30,6 +33,8 @@ exports.createCameraType = function createCameraType(addressSpace) {
             }
         ]
     });
+
+    triggerMethod.modellingRule.should.eql("Mandatory");
     should(triggerMethod.typeDefinition).eql(null);
     triggerMethod.browseName.toString().should.eql("1:Trigger");
     triggerMethod.browseName.should.eql(new QualifiedName({name: "Trigger", namespaceIndex: 1}));

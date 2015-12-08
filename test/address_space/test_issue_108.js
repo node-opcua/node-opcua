@@ -50,6 +50,9 @@ describe("testing add new DataType ", function () {
         var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
         addressSpace.addAnalogDataItem({
+
+            modellingRule: "Mandatory",
+
             componentOf: customTypeNode,
             browseName: "Temperature",
             valuePrecision: 0.01,
