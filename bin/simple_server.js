@@ -16,6 +16,8 @@ var argv = require('yargs')
 var opcua = require("..");
 var _ = require("underscore");
 var path = require("path");
+var assert = require("assert");
+
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
@@ -105,7 +107,10 @@ server.on("post_initialize", function () {
 
     var addressSpace = server.engine.addressSpace;
 
-    var myDevices = server.engine.addFolder("Objects", {browseName: "MyDevices"});
+    var rootFolder = addressSpace.findObject("RootFolder");
+    assert(rootFolder.browseName.toString() === "Root");
+
+    var myDevices = server.engine.addFolder(rootFolder.objects, {browseName: "MyDevices"});
 
     /**
      * variation 0:
@@ -256,10 +261,9 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    var viewsFolder = server.engine.findObject("ViewsFolder");
-    var view = server.engine.addView(viewsFolder, {
-        browseName: "MyView",
-        nodeId: "ns=1;s=SampleView"
+    var view = server.engine.addView({
+        componentOf: rootFolder.views,
+        browseName: "MyView"
     });
 });
 

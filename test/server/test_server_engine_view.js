@@ -45,11 +45,12 @@ describe("Testing the server  engine - View related ", function () {
 
         var viewsFolder = engine.findObject("ViewsFolder");
 
-        var view = engine.addView(viewsFolder, {
-            browseName: "MyView",
-            nodeId: "ns=2;i=123",
+        var view = engine.addView({
+            componentOf: viewsFolder,
+            browseName: "MyView"
         });
-
-
+        console.log(view.toString());
+        view.browseName.toString().should.eql("MyView");
+        //xx view.parentObj.browseName.toString().should.eql("Views");
     });
 });

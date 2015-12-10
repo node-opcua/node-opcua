@@ -291,6 +291,7 @@ async.series([
     // -----------------------------------------
     // create subscription
     function (callback) {
+
         the_subscription = new opcua.ClientSubscription(the_session, {
             requestedPublishingInterval: 10,
             requestedLifetimeCount: 1000,

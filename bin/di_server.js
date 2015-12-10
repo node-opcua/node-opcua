@@ -160,9 +160,9 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    var view = server.engine.addView(rootFolder.views,{
-        browseName:"MyView",
-        nodeId: "ns=2;s=SampleView"
+    var view = server.engine.addView({
+        componentOf: rootFolder.views,
+        browseName:"MyView"
     });
 });
 
