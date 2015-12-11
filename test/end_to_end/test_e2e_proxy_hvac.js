@@ -21,7 +21,7 @@ var UAProxyManager = require("lib/client/proxy").UAProxyManager;
 
 describe("testing client Proxy", function () {
 
-    this.timeout(Math.max(200000,this._timeout));
+    this.timeout(Math.max(600000,this._timeout));
 
     var server, client, temperatureVariableId, endpointUrl;
 
@@ -179,8 +179,9 @@ describe("testing client Proxy", function () {
                     });
                 },
 
-                function (callback) { callback(); },
-                function (callback) { setTimeout(callback,1000); },
+                function (callback) {
+                    setTimeout(callback,1000);
+                },
 
                 function (callback) {
 
@@ -197,8 +198,10 @@ describe("testing client Proxy", function () {
 
                     serverObject.getMonitoredItems({subscriptionId: subscriptionId }, function (err, outputArgs) {
                         console.log("err = ", err);
-                        console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
-                        console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
+                        if (!err && outputArgs){
+                            console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
+                            console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
+                        }
                         callback(err);
                     });
 
