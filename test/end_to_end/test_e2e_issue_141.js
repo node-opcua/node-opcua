@@ -29,7 +29,6 @@ describe("Testing bug #141 -  Client should have a appropriated timeoutHint on P
         securityMode: securityMode,
         securityPolicy: securityPolicy,
         serverCertificate: null,
-        defaultSecureTokenLifetime: 100   // << Use a very small secure token lifetime to speed up test !
     };
 
     this.timeout(Math.max(200000,this._timeout));
@@ -109,7 +108,61 @@ describe("Testing bug #141 -  Client should have a appropriated timeoutHint on P
 
             }).on("terminated", function () {
                 keepaliveCounter.should.be.greaterThan(1);
+
+                client.timedOutRequestCount.should.eql(0);
+
                 inner_done();
+            });
+
+        },done);
+
+    });
+
+    it("ZZ2 client should raise an event to observer when a request has timed out ( timeoutHint exhausted without response)",function(done){
+
+        var longTime = 1000;
+        var temperature = 20;
+        var node = server.engine.addressSpace.addVariable({
+
+            browseName: "MySlowVariable",
+            dataType: "Int32",
+            value: {
+                refreshFunc: function (callback) {
+                    var value = new opcua.Variant({dataType: opcua.DataType.Double, value: temperature});
+                    var sourceTimestamp = new Date();
+                    //setTimeout(function () {
+                    //    console.log(" refreshed ");
+                    //    callback(null, new opcua.DataValue({value: value, sourceTimestamp: sourceTimestamp}));
+                    //}, longTime);
+                }
+            }
+        });
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            var request = new opcua.read_service.ReadRequest({
+                nodesToRead: [ {
+                    nodeId: node.nodeId,
+                    attributeId: 13
+                }],
+                timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither
+            });
+
+            request.requestHeader.timeoutHint = 10;
+
+            var hit = 0;
+
+            session.performMessageTransaction(request,function(err) {
+                //
+                should(err).not.eql(null);
+                hit = hit+1;if (hit === 2) { inner_done(); }
+            });
+
+            client.on("timed_out_request",function(request) {
+                console.log(" received timed_out_request",request.toString());
+                client.timedOutRequestCount.should.eql(1);
+                hit = hit+1;if (hit === 2) { inner_done(); }
+
             });
 
         },done);
