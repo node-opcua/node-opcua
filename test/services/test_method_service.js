@@ -54,13 +54,19 @@ var convertJavaScriptToVariant = require("lib/datamodel/argument_list").convertJ
 describe("CallMethodRequest with address space", function () {
 
     var addressSpace = null;
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                done(err);
+            });
+        });
+        after(function(){
+            if(addressSpace) {
+                addressSpace.dispose();
+            }
         });
     });
-
     it("Q1 should encode CallMethodRequest", function () {
 
         var callMethodRequest = new opcua.call_service.CallMethodRequest({
@@ -91,18 +97,23 @@ describe("CallMethodRequest with address space", function () {
 
 describe("CallRequest on custom method", function () {
 
-    var addressSpace = new AddressSpace();
+    var addressSpace;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new AddressSpace();
+            var xml_file = path.join(__dirname,"../fixtures/fixuture_nodeset_objects_with_some_methods.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
 
-    before(function (done) {
-
-        var xml_file = path.join(__dirname,"../fixtures/fixuture_nodeset_objects_with_some_methods.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
-
-        opcua.generate_address_space(addressSpace, xml_file, function (err) {
-            done(err);
+            opcua.generate_address_space(addressSpace, xml_file, function (err) {
+                done(err);
+            });
+        });
+        after(function(){
+            if(addressSpace) {
+                addressSpace.dispose();
+            }
         });
     });
-
     var UAObject = require("lib/address_space/ua_object").UAObject;
     var UAMethod = require("lib/address_space/ua_method").UAMethod;
 

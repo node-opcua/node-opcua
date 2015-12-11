@@ -43,7 +43,7 @@ if (!crypto_utils.isFullySupported()) {
         before(function (done) {
             server.start(function (err) {
 
-                OPCUAServer.getRunningServerCount().should.eql(1);
+                OPCUAServer.registry.count().should.eql(1);
 
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
                 done(err);
@@ -56,7 +56,7 @@ if (!crypto_utils.isFullySupported()) {
             async.series([
                 function (callback) {
                     server.shutdown(function (err) {
-                        OPCUAServer.getRunningServerCount().should.eql(0);
+                        OPCUAServer.registry.count().should.eql(0);
                         callback(err);
                     });
                 }

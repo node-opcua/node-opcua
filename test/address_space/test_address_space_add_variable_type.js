@@ -23,16 +23,22 @@ var BrowseDirection = browse_service.BrowseDirection;
 describe("testing add new ObjectType ", function () {
 
     var addressSpace;
-    before(function (done) {
-        addressSpace = new AddressSpace();
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        before(function (done) {
+            addressSpace = new AddressSpace();
 
-        generate_address_space(addressSpace, xml_file, function (err) {
-            done(err);
+            var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
+
+            generate_address_space(addressSpace, xml_file, function (err) {
+                done(err);
+            });
         });
-
+        after(function () {
+            addressSpace.dispose();
+            addressSpace = null;
+        });
     });
     it("should add a new ObjectType (=> BaseObjectType)",function() {
 

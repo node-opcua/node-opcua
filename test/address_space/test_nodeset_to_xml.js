@@ -25,19 +25,25 @@ var dumpXml = require("lib/address_space/nodeset_to_xml").dumpXml;
 describe("testing nodeset to xml", function () {
     var addressSpace;
 
-    beforeEach(function (done) {
-        addressSpace = new AddressSpace();
-        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        beforeEach(function (done) {
+            addressSpace = new AddressSpace();
+            var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
 
-        require("fs").existsSync(xml_file).should.be.eql(true);
+            require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(addressSpace, xml_file, function (err) {
-            done(err);
+            generate_address_space(addressSpace, xml_file, function (err) {
+                done(err);
+            });
+
         });
-
-    });
-    afterEach(function () {
-        console.log("---------------------");
+        afterEach(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
+        });
     });
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 

@@ -73,7 +73,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
                 server.shutdown(callback);
             },
             function (callback) {
-                OPCUAServer.getRunningServerCount().should.eql(0);
+                OPCUAServer.registry.count().should.eql(0);
                 callback();
             }
 

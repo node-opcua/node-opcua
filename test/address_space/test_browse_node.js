@@ -13,10 +13,19 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 describe("testing address space", function () {
 
     var addressSpace = null;
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
         });
     });
 
@@ -57,13 +66,19 @@ describe("testing dump browseDescriptions", function () {
 
 
     var addressSpace = null;
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                done(err);
+            });
+        });
+        after(function () {
+            if (addressSpace) {
+                addressSpace.dispose();
+            }
         });
     });
-
     it("should provide a way to find a Method object by nodeId", function () {
         should(addressSpace.findMethod("ns=0;i=11489")).not.eql(null);
     });

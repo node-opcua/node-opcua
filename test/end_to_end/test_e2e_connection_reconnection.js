@@ -22,36 +22,35 @@ var debugLog = opcua.utils.make_debugLog(__filename);
 var port = 2000;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 
 describe("testing basic Client-Server communication", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 
-    before(function (done) {
-        resourceLeakDetector.start();
-        server = build_server_with_temperature_device({port: port}, function (err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
-            done(err);
+
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            server = build_server_with_temperature_device({port: port}, function (err) {
+                endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                temperatureVariableId = server.temperatureVariableId;
+                done(err);
+            });
         });
-    });
 
-    beforeEach(function (done) {
-        client = new OPCUAClient();
-        done();
-    });
+        beforeEach(function (done) {
+            client = new OPCUAClient();
+            done();
+        });
 
-    afterEach(function (done) {
+        afterEach(function (done) {
+            done();
+        });
 
-        done();
-    });
-
-    after(function (done) {
-        server.shutdown(function (err) {
-            resourceLeakDetector.stop();
-            done(err);
+        after(function (done) {
+            server.shutdown(function (err) {
+                done(err);
+            });
         });
     });
 

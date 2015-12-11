@@ -40,6 +40,9 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable", fun
             done(err);
         });
     });
+    after(function(){
+        addressSpace.dispose();
+    });
 
     it("a DataType should provide a DefaultBinary Encoding object", function () {
 

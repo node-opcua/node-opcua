@@ -23,17 +23,27 @@ describe("testing add new DataType ", function () {
     this.timeout(Math.max(300000,this._timeout));
 
     var addressSpace;
-    before(function (done) {
-        addressSpace = new AddressSpace();
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        var xml_file = path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        before(function (done) {
+            addressSpace = new AddressSpace();
 
-        generate_address_space(addressSpace, xml_file, function (err) {
+            var xml_file = path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
 
-            done(err);
+            generate_address_space(addressSpace, xml_file, function (err) {
+
+                done(err);
+            });
+
         });
-
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
+        });
     });
 
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
@@ -128,6 +138,7 @@ describe("testing add new DataType ", function () {
 
             var ftnirInstance = ftnirType.instantiate({browseName: "MyFTNIR", organizedBy: deviceSet});
 
+            addressSpace.dispose();
 
             done(err);
         });

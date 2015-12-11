@@ -10,15 +10,25 @@ describe("testing NodeSet XML file loading", function () {
 
     var addressSpace;
 
-    beforeEach(function () {
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        addressSpace = new AddressSpace();
-        Object.keys(addressSpace._aliases).length.should.equal(0);
-        Object.keys(addressSpace._objectMap).length.should.equal(0);
-        Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
+        beforeEach(function () {
+
+            addressSpace = new AddressSpace();
+            Object.keys(addressSpace._aliases).length.should.equal(0);
+            Object.keys(addressSpace._objectMap).length.should.equal(0);
+            Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
+            Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
+            Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
+            Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
+        });
+        afterEach(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
+        });
     });
 
     it("should load a nodeset xml file", function (done) {

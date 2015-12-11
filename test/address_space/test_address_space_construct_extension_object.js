@@ -38,27 +38,32 @@ describe("testing address space namespace loading", function () {
 
     this.timeout(Math.max(300000,this._timeout));
 
-    var addressSpace = new AddressSpace();
-    before(function (done) {
+    var addressSpace;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
 
-        var xml_files = [
-           path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
-           path.join(__dirname, "../../modeling/my_data_type.xml")
-        ];
-        fs.existsSync(xml_files[0]).should.be.eql(true);
-        //Xx fs.existsSync(xml_files[1]).should.be.eql(true);
+            addressSpace = new AddressSpace();
+            var xml_files = [
+                path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
+                path.join(__dirname, "../../modeling/my_data_type.xml")
+            ];
+            fs.existsSync(xml_files[0]).should.be.eql(true);
+            //Xx fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        addressSpace.registerNamespace("ServerNamespaceURI");
-        addressSpace.getNamespaceArray().length.should.eql(2);
+            addressSpace.registerNamespace("ServerNamespaceURI");
+            addressSpace.getNamespaceArray().length.should.eql(2);
 
-        generate_address_space(addressSpace, xml_files, function (err) {
-            done(err);
+            generate_address_space(addressSpace, xml_files, function (err) {
+                done(err);
+            });
+        });
+        after(function (done) {
+            addressSpace.dispose();
+            addressSpace = null;
+            done();
         });
     });
-
-
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
-
 
         var serverStatusDataType = addressSpace.findDataType("ServerStatusDataType");
         serverStatusDataType.should.be.instanceOf(UADataType);
@@ -72,8 +77,6 @@ describe("testing address space namespace loading", function () {
         serverStatus.should.have.property("startTime");
 
         done();
-
-
     });
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
         //

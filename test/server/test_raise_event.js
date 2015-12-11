@@ -38,6 +38,11 @@ describe("testing Events  ", function () {
             done(err);
         });
     });
+    after(function(){
+        addressSpace.dispose();
+        addressSpace = null;
+        eventType = null;
+    });
 
     it("should create a new EventType", function () {
         eventType.browseName.toString().should.eql("MyEventType");

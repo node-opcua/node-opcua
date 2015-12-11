@@ -88,7 +88,7 @@ var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 var EnumSlow = require("enum");
 var EnumFast = require("lib/misc/enum");
 
-describe("Benchmarking Enums", function () {
+xdescribe("Benchmarking Enums", function () {
 
 
     function perform_benchmark(params, checks, done) {

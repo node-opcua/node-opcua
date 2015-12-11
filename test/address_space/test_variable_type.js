@@ -15,12 +15,20 @@ var create_minimalist_address_space_nodeset = require("../helpers/create_minimal
 describe("testing UAVariableType", function () {
 
     var addressSpace;
-    before(function () {
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
+        before(function () {
 
-        addressSpace = new address_space.AddressSpace();
-        create_minimalist_address_space_nodeset(addressSpace);
+            addressSpace = new address_space.AddressSpace();
+            create_minimalist_address_space_nodeset(addressSpace);
 
+        });
+
+        after(function () {
+            if (addressSpace) {
+                addressSpace.dispose();
+            }
+        });
     });
 
     it("should read Attribute IsAbstract on UAVariableType ", function () {

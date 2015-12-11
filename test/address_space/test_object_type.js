@@ -15,9 +15,19 @@ var create_minimalist_address_space_nodeset = require("../helpers/create_minimal
 describe("testing UAObjectType", function () {
 
     var addressSpace;
-    before(function () {
-        addressSpace = new address_space.AddressSpace();
-        create_minimalist_address_space_nodeset(addressSpace);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+
+        before(function () {
+            addressSpace = new address_space.AddressSpace();
+            create_minimalist_address_space_nodeset(addressSpace);
+        });
+        after(function (done) {
+            if (addressSpace){
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
+        });
     });
 
     it("should read Attribute IsAbstract on UAObjectType ", function () {

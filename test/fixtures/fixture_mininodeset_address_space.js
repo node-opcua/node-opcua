@@ -5,9 +5,11 @@ var AddressSpace = address_space.AddressSpace;
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var should = require("should");
 var path = require("path");
-var mini_address_space = null;
-exports.get_mini_address_space = function (callback) {
 
+
+
+exports.get_mini_address_space = function (callback) {
+    var mini_address_space = null;
     if (mini_address_space) {
         return callback(null, mini_address_space);
     }

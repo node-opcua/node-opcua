@@ -20,16 +20,22 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 describe("testing add new ObjectType ", function () {
 
     var addressSpace;
-    before(function (done) {
-        addressSpace = new AddressSpace();
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new AddressSpace();
 
-        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+            var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(addressSpace, xml_file, function (err) {
-            done(err);
+            generate_address_space(addressSpace, xml_file, function (err) {
+                done(err);
+            });
+
         });
-
+        after(function () {
+            addressSpace.dispose();
+            addressSpace = null;
+        });
     });
 
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
@@ -63,7 +69,7 @@ describe("testing add new ObjectType ", function () {
         });
 
         assert(machineTypeNode.heaterSwitch);
-        console.log(machineTypeNode.heaterSwitch.nodeId.toString());
+        //xx console.log(machineTypeNode.heaterSwitch.nodeId.toString());
         return machineTypeNode;
     }
 
@@ -93,7 +99,7 @@ describe("testing add new ObjectType ", function () {
         should(machine1.temperatureSensor).be.instanceOf(Object);
         should(machine1.heaterSwitch).be.instanceOf(Object);
 
-        console.log(" Machine 1 = ", machine1.toString());
+        //Xx console.log(" Machine 1 = ", machine1.toString());
 
         var machine2 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine2"});
 
@@ -127,7 +133,7 @@ describe("testing add new ObjectType ", function () {
         specialSensor.typeDefinitionObj.browseName.toString().should.eql("SpecialTemperatureSensorType");
         should(specialSensor.temperature).not.eql(0);
 
-        console.log("done");
+        //xx console.log("done");
         done();
 
     });
@@ -155,8 +161,8 @@ describe("testing add new ObjectType ", function () {
         cameraType.getComponents()[0].should.be.instanceOf(UAMethod);
 
         cameraType.getComponents()[0].nodeId.toString().should.not.eql(c[0].nodeId.toString());
-        console.log(cameraType.getComponents()[0].nodeId.toString());
-        console.log(c[0].nodeId.toString());
+        //xx console.log(cameraType.getComponents()[0].nodeId.toString());
+        //xx console.log(c[0].nodeId.toString());
 
         done();
     });

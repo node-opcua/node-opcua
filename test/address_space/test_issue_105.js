@@ -21,24 +21,33 @@ var assertHasMatchingReference = require("../helpers/assertHasMatchingReference"
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105",function() {
 
     var addressSpace;
-    before(function (done) {
-        addressSpace = new AddressSpace();
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        before(function (done) {
+            addressSpace = new AddressSpace();
 
-        generate_address_space(addressSpace, xml_file, function (err) {
+            var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
 
-            // lets declare a custom folder Type
-            var myFolderType = addressSpace.addObjectType({browseName: "MyFolderType",subtypeOf: "FolderType"});
-            myFolderType.browseName.toString().should.eql("MyFolderType");
-            myFolderType.subtypeOfObj.browseName.toString().should.eql("FolderType");
+            generate_address_space(addressSpace, xml_file, function (err) {
 
-            done(err);
+                // lets declare a custom folder Type
+                var myFolderType = addressSpace.addObjectType({browseName: "MyFolderType", subtypeOf: "FolderType"});
+                myFolderType.browseName.toString().should.eql("MyFolderType");
+                myFolderType.subtypeOfObj.browseName.toString().should.eql("FolderType");
+
+                done(err);
+            });
+
         });
-
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
+        });
     });
-
 
     it("should be possible to create an object organized by a folder whose type is a subtype of FolderType",function(){
 

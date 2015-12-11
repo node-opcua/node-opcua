@@ -53,7 +53,7 @@ describe("testing server dropping session after timeout if no activity has been 
     before(function (done) {
         server.start(function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            OPCUAServer.getRunningServerCount().should.eql(1);
+            OPCUAServer.registry.count().should.eql(1);
             done(err);
         });
 
@@ -66,7 +66,7 @@ describe("testing server dropping session after timeout if no activity has been 
                 server.shutdown(callback);
             },
             function (callback) {
-                OPCUAServer.getRunningServerCount().should.eql(0);
+                OPCUAServer.registry.count().should.eql(0);
                 callback();
             }
         ], done);

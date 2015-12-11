@@ -23,23 +23,27 @@ require("lib/address_space/address_space_add_enumeration_type");
 describe("AddressSpace : add event type ", function () {
 
     var addressSpace;
-    before(function (done) {
-        addressSpace = new AddressSpace();
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new AddressSpace();
 
-        var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+            var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
 
-        generate_address_space(addressSpace, xml_file, function (err) {
-            var eventType = addressSpace.addEventType({
-                browseName: "MyCustomEvent",
-                //isAbstract:false,
-                subtypeOf: "BaseEventType" // should be implicit
+            generate_address_space(addressSpace, xml_file, function (err) {
+                var eventType = addressSpace.addEventType({
+                    browseName: "MyCustomEvent",
+                    //isAbstract:false,
+                    subtypeOf: "BaseEventType" // should be implicit
+                });
+                done(err);
             });
-
-
-            done(err);
         });
 
+        after(function () {
+            addressSpace.dispose();
+            addressSpace = null;
+        });
     });
 
     it("#generateEventId should generate event id sequentially",function() {
@@ -193,9 +197,14 @@ describe("AddressSpace : add event type ", function () {
 
         var auditEventType = addressSpace.findObjectType("AuditEventType");
 
-        var data= {
-            sourceNode: { dataType: "NodeId", value:  resolveNodeId("Server") }
-        };
+        var data = {
+            sourceNode: { dataType: "NodeId", value:  resolveNodeId("Server") },
+            status:     { dataType: "Null"},
+            serverId:     { dataType: "Null"},
+            clientAuditEntryId:     { dataType: "Null"},
+            clientUserId:        { dataType: "Null"},
+            actionTimeStamp:     { dataType: "Null"}
+            };
 
         var data = addressSpace.constructEventData(auditEventType,data);
 

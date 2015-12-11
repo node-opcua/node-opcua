@@ -9,6 +9,7 @@ var assert = require("better-assert");
 var async = require("async");
 var util = require("util");
 var path = require("path");
+var fs = require("fs");
 
 var utils = opcua.utils;
 
@@ -21,6 +22,7 @@ var DataValue = opcua.DataValue;
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
 
+var certificate_store = path.join(__dirname,"../../certificates");
 
 var _ = require("underscore");
 
@@ -127,8 +129,14 @@ var start_server_with_1024bits_certificate = function (callback) {
 var start_server_with_2048bits_certificate = function (callback) {
 
     var path = require("path");
-    var server_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
-    var server_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
+    //var server_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
+    //var server_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
+
+    var server_certificate256_pem_file        = path.join(certificate_store, "./server_cert_2048.pem");
+    var server_certificate256_privatekey_file = path.join(certificate_store, "./server_key_2048.pem");
+
+    fs.existsSync(server_certificate256_pem_file).should.eql(true);
+    fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
 
     var options = {
         certificateFile: server_certificate256_pem_file,
@@ -326,8 +334,13 @@ function perform_collection_of_test_with_client_configuration(message, options) 
 function perform_collection_of_test_with_various_client_configuration(prefix) {
 
     prefix = prefix || "";
-    var client_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
-    var client_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
+    //var client_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
+    //var client_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
+
+    var client_certificate256_pem_file        = path.join(certificate_store, "./client_cert_2048.pem");
+    var client_certificate256_privatekey_file = path.join(certificate_store,  "./client_key_2048.pem");
+    fs.existsSync(client_certificate256_pem_file).should.eql(true);
+    fs.existsSync(client_certificate256_privatekey_file).should.eql(true);
 
     var options = {
         certificateFile: client_certificate256_pem_file,

@@ -8,36 +8,45 @@ var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 var Subscription = require("lib/server/subscription").Subscription;
+var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
 var colors = require("colors");
 
 // var trace = true;
 var trace = false;
+var doDebug = true;
+
 function get_stack() {
     var stack = (new Error()).stack.split("\n");
     return stack.slice(2, 7).join("\n");
 }
 exports.resourceLeakDetector = {
 
-    start: function () {
+    start: function (info) {
 
         // perform some saniy check first
 
         var errorMessages = [];
-        if(MonitoredItem.getRunningMonitoredItemCount() !== 0) {
-            errorMessages.push(" some MonitoredItems have not been properly terminated: "
-                + MonitoredItem.getRunningMonitoredItemCount());
+
+        if(AddressSpace.registry.count() !== 0) {
+            errorMessages.push(" some AddressSpace have not been properly terminated: "
+                + AddressSpace.registry.toString());
         }
-        if(Subscription.getRunningSubscriptionsCount() !== 0) {
+        if(MonitoredItem.registry.count() !== 0) {
+            errorMessages.push(" some MonitoredItems have not been properly terminated: "
+                + MonitoredItem.registry.toString());
+        }
+        if(Subscription.registry.count() !== 0) {
             errorMessages.push(" some Subscription have not been properly terminated: "
-                + Subscription.getRunningSubscriptionsCount());
+                + Subscription.registry.toString() );
 
         }
-        if(OPCUAServer.getRunningServerCount() !== 0) {
+        if(OPCUAServer.registry.count() !== 0) {
             errorMessages.push(" some OPCUAServer have not been properly terminated: "
-                + OPCUAServer.getRunningServerCount());
+                + OPCUAServer.registry.toString());
         }
-        if (errorMessages.length >0 ) {
+        if (errorMessages.length > 0 ) {
+            if (info) {console.log(" TRACE : ",info);}
             throw new Error(" CANNOT START LEAK DETECTOR : UNCLEAN STATE \n" + errorMessages.join("\n"));
         }
         if (trace) {
@@ -82,11 +91,12 @@ exports.resourceLeakDetector = {
             return self.clearInterval_old(id);
         };
 
-        this._running_server_count = OPCUAServer.getRunningServerCount();
+        this._running_server_count = OPCUAServer.registry.count();
         assert(this._running_server_count === 0);
-        assert(MonitoredItem.getRunningMonitoredItemCount() === 0);
+        assert(MonitoredItem.registry.count() === 0);
     },
-    stop: function () {
+    stop: function (info) {
+
         if (trace) {
             console.log(" stop resourceLeakDetector");
         }
@@ -104,26 +114,57 @@ exports.resourceLeakDetector = {
         }
 
 
-        if (MonitoredItem.getRunningMonitoredItemCount() !== 0) {
+        if (MonitoredItem.registry.count() !== 0) {
             errorMessages.push(" some MonitoredItems have not been properly terminated: "
-                + MonitoredItem.getRunningMonitoredItemCount());
+                + MonitoredItem.registry.count());
         }
 
-        if (Subscription.getRunningSubscriptionsCount() !== 0) {
+        if (Subscription.registry.count() !== 0) {
             errorMessages.push(" some Subscriptions have not been properly terminated: "
-                + Subscription.getRunningSubscriptionsCount());
+                + Subscription.registry.toString());
         }
-        if (OPCUAServer.getRunningServerCount() !== 0) {
+        if (OPCUAServer.registry.count() !== 0) {
             errorMessages.push(" some OPCUAServers have not been properly terminated: "
-                + OPCUAServer.getRunningServerCount());
+                + OPCUAServer.registry.toString());
+        }
+
+        if (AddressSpace.registry.count() !== 0) {
+            errorMessages.push(" some AddressSpaces have not been properly terminated: "
+                + AddressSpace.registry.toString());
         }
         if (errorMessages.length) {
 
+            if (info) {console.log(" TRACE : ",info);}
             console.log(errorMessages.join("\n"));
             console.log("----------------------------------------------- more info");
             console.log(this.map);
-            throw new Error("LEAKS !!!"+errorMessages.join("\n"));
+            throw new Error("LEAKS !!!" + errorMessages.join("\n"));
         }
     }
 };
+
+exports.installResourceLeakDetector = function(isGlobal,func) {
+
+    var trace = require("lib/misc/utils").trace_from_this_projet_only(new Error());
+   if (isGlobal) {
+       before(function() {
+           exports.resourceLeakDetector.start();
+       });
+       if (func) {
+           func();
+       }
+       after(function() {
+           exports.resourceLeakDetector.stop();
+       });
+
+   } else {
+       beforeEach(function() {
+           exports.resourceLeakDetector.start();
+       });
+       afterEach(function() {
+           exports.resourceLeakDetector.stop(trace);
+       });
+   }
+};
+
 

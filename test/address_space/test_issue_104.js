@@ -17,12 +17,22 @@ var assertHasMatchingReference = require("../helpers/assertHasMatchingReference"
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104",function() {
 
-    var addressSpace = new AddressSpace();
+    var addressSpace = null;
     var rootFolder;
 
-    before(function (done) {
-        generateAddressSpace(addressSpace, nodesetFilename, function () {
-            rootFolder = addressSpace.findObject("RootFolder");
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new AddressSpace();
+            generateAddressSpace(addressSpace, nodesetFilename, function () {
+                rootFolder = addressSpace.findObject("RootFolder");
+                done();
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
             done();
         });
     });

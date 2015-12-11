@@ -29,19 +29,23 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
 
 
     var addressSpace;
-
-    before(function(done){
-
-        addressSpace = new AddressSpace();
-
-        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
-
-        generate_address_space(addressSpace, xml_file, function (err) {
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new AddressSpace();
+            var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
+            require("fs").existsSync(xml_file).should.be.eql(true);
+            generate_address_space(addressSpace, xml_file, function (err) {
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
         });
     });
-
 
 
     it("should create a Variable that expose an array of ExtensionObject of a specific type",function(done) {

@@ -13,10 +13,19 @@ var _ = require("underscore");
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
     var addressSpace;
-    before(function () {
-        addressSpace = new address_space.AddressSpace();
-    });
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
+        before(function () {
+            addressSpace = new address_space.AddressSpace();
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
+        });
+    });
     it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
         var method = new UAMethod({
@@ -71,13 +80,21 @@ describe("testing Method in address space", function () {
 
 
     var addressSpace = null;
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
         });
     });
-
     it("should provide a way to find a Method object by nodeId", function () {
 
         should(addressSpace.findMethod("ns=0;i=11489")).be.instanceOf(UAMethod);
@@ -116,12 +133,21 @@ describe("testing Method binding", function () {
     var addressSpace = null;
     var rootFolder;
 
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            rootFolder = addressSpace.findObjectByBrowseName("Root");
-            rootFolder.browseName.toString().should.equal("Root");
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                rootFolder = addressSpace.findObjectByBrowseName("Root");
+                rootFolder.browseName.toString().should.equal("Root");
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
         });
     });
 

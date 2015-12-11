@@ -28,13 +28,13 @@ if (!crypto_utils.isFullySupported()) {
         var server;
 
         before(function () {
-            OPCUAServer.getRunningServerCount().should.eql(0);
+            OPCUAServer.registry.count().should.eql(0);
             server = new OPCUAServer({port: 1235});
             server.serverType = opcua.ApplicationType.SERVER;
         });
 
         after(function () {
-            OPCUAServer.getRunningServerCount().should.eql(0);
+            OPCUAServer.registry.count().should.eql(0);
         });
 
         beforeEach(function (done) {

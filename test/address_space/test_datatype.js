@@ -12,11 +12,20 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 describe("testing UADataype -  Attribute", function () {
 
     var addressSpace;
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            addressSpace.should.be.instanceOf(address_space.AddressSpace);
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                addressSpace.should.be.instanceOf(address_space.AddressSpace);
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
         });
     });
 

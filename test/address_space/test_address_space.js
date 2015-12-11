@@ -12,13 +12,28 @@ var BrowseDirection = browse_service.BrowseDirection;
 describe("testing address space", function () {
 
     var addressSpace = null, rootFolder;
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            rootFolder = addressSpace.findObject("RootFolder");
-            done(err);
+
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                rootFolder = addressSpace.findObject("RootFolder");
+                done(err);
+            });
         });
+        after(function(){
+            if (addressSpace){
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            rootFolder = null;
+        });
+
     });
+
+
+
     function findReference(references, nodeId) {
         assert(nodeId instanceof NodeId);
         return references.filter(function (r) {
@@ -76,7 +91,6 @@ describe("testing address space", function () {
             object.findReferencesEx("HasComponent",BrowseDirection.Forward).length.should.eql(1,"Object must now have one child");
             object.findReferencesEx("HasProperty", BrowseDirection.Forward).length.should.eql(0,"Object must now have one child");
             object.findReferencesEx("Organizes",   BrowseDirection.Forward).length.should.eql(0,"Object must now have one child");
-
 
         });
 

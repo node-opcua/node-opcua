@@ -61,7 +61,7 @@ describe("Testing ChannelSecurityToken lifetime", function () {
             client.disconnect(function () {
                 server.shutdown(function () {
 
-                    OPCUAServer.getRunningServerCount().should.eql(0);
+                    OPCUAServer.registry.count().should.eql(0);
 
                     done();
                 });

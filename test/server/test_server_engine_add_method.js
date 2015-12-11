@@ -23,34 +23,29 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 describe("ServerEngine - addMethod", function () {
 
-    before(function (done) {
-        resourceLeakDetector.start();
-        done();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
 
+            engine = new server_engine.ServerEngine();
 
-    before(function (done) {
+            engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
-        engine = new server_engine.ServerEngine();
+                FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
+                BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
+                ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
+                ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+                done();
+            });
 
-            FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
-            ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
-            ref_Organizes_Id.toString().should.eql("ns=0;i=35");
-
-            done();
+        });
+        after(function () {
+            engine.shutdown();
+            engine = null;
         });
 
     });
-    after(function () {
-        engine.shutdown();
-        engine = null;
-    });
+
 
     it("should be able to attach a method on a object of the address space and call it", function (done) {
 

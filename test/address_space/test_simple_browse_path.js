@@ -17,14 +17,23 @@ var makeExpandedNodeId = require("lib/datamodel/expanded_nodeid").makeExpandedNo
 describe("constructBrowsePath and simpleBrowsePath", function () {
 
     var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
-    var addressSpace = new AddressSpace();
+    var addressSpace;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-    before(function (done) {
-        generate_address_space(addressSpace, nodeset_filename, function () {
+        before(function (done) {
+            addressSpace = new AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function () {
+                done();
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
             done();
         });
     });
-
     it(" should construct a browse path", function () {
         var browsePath = constructBrowsePath("/", "Folder.Foo.Bar.Fizz");
         browsePath._schema.name.should.eql("BrowsePath");

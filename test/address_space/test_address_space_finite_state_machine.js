@@ -17,20 +17,28 @@ var StatusCodes         = opcua.StatusCodes;
 // make sure extra error checking is made on object constructions
 describe("Testing Finite State Machine", function () {
 
-    var addressSpace = new opcua.AddressSpace();
-    before(function (done) {
+    var addressSpace;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        var xml_files = [
-            // opcua.mini_nodeset_filename,
-            path.join(__dirname, "../../test/fixtures/fixture_simple_statemachine_nodeset2.xml")
-        ];
+        before(function (done) {
 
-        opcua.generate_address_space(addressSpace, xml_files, function (err) {
-            done(err);
+            addressSpace = new opcua.AddressSpace();
+            var xml_files = [
+                // opcua.mini_nodeset_filename,
+                path.join(__dirname, "../../test/fixtures/fixture_simple_statemachine_nodeset2.xml")
+            ];
+            opcua.generate_address_space(addressSpace, xml_files, function (err) {
+                done(err);
+            });
+
         });
-
+        after(function () {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+        });
     });
-
     describe("exploring StateMachineType", function () {
 
         it("finite state machine should have expected mandatory and optional fields", function (done) {

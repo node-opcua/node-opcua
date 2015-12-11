@@ -31,14 +31,23 @@ describe("Testing UAObject", function () {
     var hasTypeDefinitionReferenceType;
     var baseObjectType;
 
-    before(function (done) {
-        get_mini_address_space(function (err, data) {
-            addressSpace = data;
-            rootFolder = addressSpace.findObject("RootFolder");
-            organizesReferenceType = addressSpace.findReferenceType("Organizes");
-            hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
-            baseObjectType = addressSpace.findObjectType("BaseObjectType");
-            done(err);
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            get_mini_address_space(function (err, data) {
+                addressSpace = data;
+                rootFolder = addressSpace.findObject("RootFolder");
+                organizesReferenceType = addressSpace.findReferenceType("Organizes");
+                hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
+                baseObjectType = addressSpace.findObjectType("BaseObjectType");
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace){
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            done();
         });
     });
 

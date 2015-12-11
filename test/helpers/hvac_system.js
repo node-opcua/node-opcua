@@ -179,6 +179,9 @@ exports.createHVACSystem = function(addressSpace) {
 
     var timerId = setInterval(updateInteriorTemperature,10);
 
+    myHVAC.on("dispose",function() {
+        clearInterval(timerId);
+    });
 
     // bind the method
     myHVAC.setTargetTemperature.bindMethod(function(inputArguments, context, callback) {

@@ -20,6 +20,8 @@ var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml"
 
 describe("testing Variables ", function () {
 
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+    });
     it("a variable should return attributes with  the expected data type ", function () {
 
         var addressSpace = new address_space.AddressSpace();
@@ -78,6 +80,7 @@ describe("testing Variables ", function () {
         value.value.value.should.eql(NodeClass.Variable.value);
         value.statusCode.should.eql(StatusCodes.Good);
 
+        addressSpace.dispose();
     });
 
 
@@ -89,17 +92,24 @@ var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
 describe("Address Space : add Variable :  testing various variations for specifying dataType", function () {
 
-    var addressSpace = new address_space.AddressSpace();
+    var addressSpace;
     var rootFolder;
-    before(function (done) {
-        generate_address_space(addressSpace, nodeset_filename, function () {
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new address_space.AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function () {
 
-            rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findObject("RootFolder");
 
-            done();
+                done();
+            });
         });
-    });
-    after(function () {
+        after(function () {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+        });
     });
 
     it("AddressSpace#addVariable should accept a dataType as String", function () {
@@ -214,20 +224,24 @@ describe("Address Space : add Variable :  testing various variations for specify
 describe("testing Variable#bindVariable", function () {
 
     var addressSpace, rootFolder;
-    before(function (done) {
-        addressSpace = new address_space.AddressSpace();
-        generate_address_space(addressSpace, nodeset_filename, function () {
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
+            addressSpace = new address_space.AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function () {
 
-            rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findObject("RootFolder");
 
-            done();
+                done();
+            });
+        });
+        after(function () {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            rootFolder = null;
         });
     });
-    after(function () {
-        addressSpace = null;
-        rootFolder = null;
-    });
-
     describe("testing Variable#bindVariable -> Getter", function () {
 
         it("T1 should create a static read only variable ( static value defined at construction time)", function (done) {
@@ -711,31 +725,32 @@ describe("testing Variable#writeValue Scalar", function () {
 
     var addressSpace, rootFolder, variable;
 
-    before(function (done) {
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+        before(function (done) {
 
-        addressSpace = new address_space.AddressSpace();
-        generate_address_space(addressSpace, nodeset_filename, function () {
+            addressSpace = new address_space.AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function () {
 
-            rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findObject("RootFolder");
 
-            variable = new UAVariable({
-                browseName: "some variable",
-                addressSpace: addressSpace,
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
-                accessLevel: "CurrentRead | CurrentWrite",
-                dataType: "Duration",
+                variable = new UAVariable({
+                    browseName: "some variable",
+                    addressSpace: addressSpace,
+                    minimumSamplingInterval: 10,
+                    userAccessLevel: "CurrentRead | CurrentWrite",
+                    accessLevel: "CurrentRead | CurrentWrite",
+                    dataType: "Duration",
 
-                value: new Variant({
-                    arrayType: VariantArrayType.Scalar,
-                    dataType: DataType.Double,
-                    value: 100.0
-                })
+                    value: new Variant({
+                        arrayType: VariantArrayType.Scalar,
+                        dataType: DataType.Double,
+                        value: 100.0
+                    })
+                });
+
+                done();
             });
-
-            done();
         });
-    });
     beforeEach(function (done) {
 
         var dataValue = new DataValue({
@@ -755,8 +770,12 @@ describe("testing Variable#writeValue Scalar", function () {
     });
 
     after(function () {
-        addressSpace = null;
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
         rootFolder = null;
+    });
     });
 
     it("should write a double in a Duration ", function (done) {
@@ -781,54 +800,61 @@ describe("testing Variable#writeValue Scalar", function () {
 describe("testing Variable#writeValue Array", function () {
 
     var addressSpace, rootFolder, variable;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-    before(function (done) {
-        addressSpace = new address_space.AddressSpace();
-        generate_address_space(addressSpace, nodeset_filename, function () {
+        before(function (done) {
+            addressSpace = new address_space.AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function () {
 
-            rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findObject("RootFolder");
 
 
-            variable = new UAVariable({
-                browseName: "some variable",
-                addressSpace: addressSpace,
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
-                accessLevel: "CurrentRead | CurrentWrite",
-                arrayDimensions: [1, 2, 3],
-                dataType: "Double",
+                variable = new UAVariable({
+                    browseName: "some variable",
+                    addressSpace: addressSpace,
+                    minimumSamplingInterval: 10,
+                    userAccessLevel: "CurrentRead | CurrentWrite",
+                    accessLevel: "CurrentRead | CurrentWrite",
+                    arrayDimensions: [1, 2, 3],
+                    dataType: "Double",
 
-                value: new Variant({
-                    arrayType: VariantArrayType.Array,
+                    value: new Variant({
+                        arrayType: VariantArrayType.Array,
+                        dataType: DataType.Double,
+                        value: []
+                    })
+
+                });
+
+                done();
+            });
+        });
+        beforeEach(function (done) {
+            var dataValue = new DataValue({
+                value: {
                     dataType: DataType.Double,
-                    value: []
-                })
-
+                    arrayType: VariantArrayType.Array,
+                    value: [1, 2, 3, 4, 5, 6]
+                }
             });
 
+            variable.writeValue(dataValue, function (err, statusCode) {
+                statusCode.should.eql(StatusCodes.Good);
+                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
+                done(err);
+            });
+        });
+
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
+            rootFolder = null;
+            variable = null;
             done();
         });
-    });
-    beforeEach(function (done) {
-        var dataValue = new DataValue({
-            value: {
-                dataType: DataType.Double,
-                arrayType: VariantArrayType.Array,
-                value: [1, 2, 3, 4, 5, 6]
-            }
-        });
-
-        variable.writeValue(dataValue, function (err, statusCode) {
-            statusCode.should.eql(StatusCodes.Good);
-            var dataValue_check = variable.readAttribute(AttributeIds.Value);
-            dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
-            done(err);
-        });
-    });
-
-    after(function () {
-        addressSpace = null;
-        rootFolder = null;
     });
 
     it("A1 should write an array ", function (done) {
@@ -1046,58 +1072,62 @@ describe("testing Variable#writeValue Array", function () {
 describe("testing Variable#writeValue on Integer", function () {
 
     var addressSpace, rootFolder, variableInteger, variableInt32;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-    before(function (done) {
-        addressSpace = new address_space.AddressSpace();
-        generate_address_space(addressSpace, nodeset_filename, function () {
+        before(function (done) {
+            addressSpace = new address_space.AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function () {
 
-            rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findObject("RootFolder");
 
 
-            variableInteger = new UAVariable({
-                browseName: "some INTEGER Variable",
-                addressSpace: addressSpace,
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
-                accessLevel: "CurrentRead | CurrentWrite",
-                arrayDimensions: [1, 2, 3],
-                dataType: "Integer",
+                variableInteger = new UAVariable({
+                    browseName: "some INTEGER Variable",
+                    addressSpace: addressSpace,
+                    minimumSamplingInterval: 10,
+                    userAccessLevel: "CurrentRead | CurrentWrite",
+                    accessLevel: "CurrentRead | CurrentWrite",
+                    arrayDimensions: [1, 2, 3],
+                    dataType: "Integer",
 
-                value: new Variant({
-                    dataType: DataType.Integer,
-                    value: 1
-                })
+                    value: new Variant({
+                        dataType: DataType.Integer,
+                        value: 1
+                    })
 
+                });
+
+                variableInt32 = new UAVariable({
+                    browseName: "some Int32 Variable",
+                    addressSpace: addressSpace,
+                    minimumSamplingInterval: 10,
+                    userAccessLevel: "CurrentRead | CurrentWrite",
+                    accessLevel: "CurrentRead | CurrentWrite",
+                    arrayDimensions: [1, 2, 3],
+                    dataType: "Int32",
+
+                    value: new Variant({
+                        dataType: DataType.Int32,
+                        value: 1
+                    })
+
+                });
+
+                done();
             });
+        });
+        beforeEach(function (done) {
+            done();
+        });
 
-            variableInt32 = new UAVariable({
-                browseName: "some Int32 Variable",
-                addressSpace: addressSpace,
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
-                accessLevel: "CurrentRead | CurrentWrite",
-                arrayDimensions: [1, 2, 3],
-                dataType: "Int32",
-
-                value: new Variant({
-                    dataType: DataType.Int32,
-                    value: 1
-                })
-
-            });
-
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
+            }
             done();
         });
     });
-    beforeEach(function (done) {
-        done();
-    });
-
-    after(function () {
-        addressSpace = null;
-        rootFolder = null;
-    });
-
 
     function verify_badtypemismatch(variable, dataType, value, done) {
         // same as CTT test write582err021 Err-011.js
@@ -1186,44 +1216,53 @@ describe("testing UAVariable ", function () {
     var addressSpace, rootFolder, variableInteger;
 
     var variable_not_readable;
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-    before(function (done) {
+        before(function (done) {
 
 
-        addressSpace = new address_space.AddressSpace();
-        generate_address_space(addressSpace, nodeset_filename, function (err) {
+            addressSpace = new address_space.AddressSpace();
+            generate_address_space(addressSpace, nodeset_filename, function (err) {
 
-            if (!err) {
-                rootFolder = addressSpace.findObject("RootFolder");
+                if (!err) {
+                    rootFolder = addressSpace.findObject("RootFolder");
 
-                variableInteger = addressSpace.addVariable({
-                    organizedBy: rootFolder,
-                    browseName: "some INTEGER Variable",
-                    minimumSamplingInterval: 10,
-                    userAccessLevel: "CurrentRead | CurrentWrite",
-                    accessLevel: "CurrentRead | CurrentWrite",
-                    arrayDimensions: [1, 2, 3],
-                    dataType: "Integer",
-                    value: new Variant({
-                        dataType: DataType.Int32,
-                        value: 1
-                    })
-                });
+                    variableInteger = addressSpace.addVariable({
+                        organizedBy: rootFolder,
+                        browseName: "some INTEGER Variable",
+                        minimumSamplingInterval: 10,
+                        userAccessLevel: "CurrentRead | CurrentWrite",
+                        accessLevel: "CurrentRead | CurrentWrite",
+                        arrayDimensions: [1, 2, 3],
+                        dataType: "Integer",
+                        value: new Variant({
+                            dataType: DataType.Int32,
+                            value: 1
+                        })
+                    });
 
-                variable_not_readable = addressSpace.addVariable({
-                    organizedBy: rootFolder,
-                    browseName: "NotReadableVariable",
-                    userAccessLevel: "CurrentWrite",
-                    accessLevel: "CurrentWrite",
-                    dataType: "Integer",
-                    value: new Variant({
-                        dataType: DataType.Int32,
-                        value: 2
-                    })
+                    variable_not_readable = addressSpace.addVariable({
+                        organizedBy: rootFolder,
+                        browseName: "NotReadableVariable",
+                        userAccessLevel: "CurrentWrite",
+                        accessLevel: "CurrentWrite",
+                        dataType: "Integer",
+                        value: new Variant({
+                            dataType: DataType.Int32,
+                            value: 2
+                        })
 
-                });
+                    });
+                }
+                done(err);
+            });
+        });
+        after(function (done) {
+            if (addressSpace) {
+                addressSpace.dispose();
+                addressSpace = null;
             }
-            done(err);
+            done();
         });
     });
 
@@ -1430,7 +1469,6 @@ describe("testing UAVariable ", function () {
                 changeDetected.should.equal(3);
                 callback();
             }
-
 
         ],done);
 

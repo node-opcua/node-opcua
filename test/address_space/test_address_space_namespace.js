@@ -12,18 +12,27 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
 describe("testing address space namespace", function () {
 
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+    });
     it("#getNamespaceUri : should have namespace 0", function () {
 
         var addressSpace = new AddressSpace();
+
         addressSpace.getNamespaceUri(0).should.eql("http://opcfoundation.org/UA/");
 
+        addressSpace.dispose();
     });
     it("#registerNamespace should register new namespace", function () {
+
         var addressSpace = new AddressSpace();
+
         var namespaceUri = "http://MyNEWNameSpace";
         addressSpace.getNamespaceIndex(namespaceUri).should.eql(-1);
         var index = addressSpace.registerNamespace(namespaceUri);
         addressSpace.getNamespaceIndex(namespaceUri).should.eql(index);
+
+        addressSpace.dispose();
+
     });
 
 });
@@ -33,9 +42,7 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 
 describe("testing  address space namespace loading", function () {
 
-    before(function (done) {
-
-        done();
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
     });
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
 
@@ -65,6 +72,8 @@ describe("testing  address space namespace loading", function () {
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/"
             ]);
+
+            addressSpace.dispose();
             done(err);
         });
     });
@@ -104,6 +113,7 @@ describe("testing  address space namespace loading", function () {
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/"
             ]);
+            addressSpace.dispose();
             done(err);
         });
     });
@@ -163,6 +173,8 @@ describe("testing  address space namespace loading", function () {
             ParameterResultDataType.browseName.toString().should.eql("2:ParameterResultDataType");
             should(addressSpace.findDataType("ParameterResultDataType")).eql(undefined,"namespace is not provided");
             should(addressSpace.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);
+
+            addressSpace.dispose();
 
             done();
         });
