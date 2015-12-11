@@ -1625,6 +1625,17 @@
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
+    <UAVariable NodeId="i=8217" BrowseName="ServerStatusDataType" ParentNodeId="i=7617" DataType="String">
+        <DisplayName>ServerStatusDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=7617</Reference>
+        </References>
+        <Value>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ServerStatusDataType</String>
+        </Value>
+    </UAVariable>
+
 
 
     <UADataType NodeId="i=8912" BrowseName="TimeZoneDataType">
@@ -2286,7 +2297,7 @@
             <Reference ReferenceType="HasComponent">i=3698</Reference>
             <Reference ReferenceType="HasComponent">i=3699</Reference>
             <Reference ReferenceType="HasComponent">i=3700</Reference>
-            <Reference ReferenceType="HasComponent">i=3701</Reference>
+            <F ReferenceType="HasComponent">i=3701</F>
             <Reference ReferenceType="HasComponent">i=3702</Reference>
             <Reference ReferenceType="HasComponent">i=3703</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=3051</Reference>

@@ -27,9 +27,9 @@ describe("testing add new ObjectType ", function () {
             var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
             require("fs").existsSync(xml_file).should.be.eql(true);
 
-            generate_address_space(addressSpace, xml_file, function (err) {
-                done(err);
-            });
+        generate_address_space(addressSpace, xml_file, function (err) {
+            done(err);
+        });
 
         });
         after(function () {
@@ -70,6 +70,9 @@ describe("testing add new ObjectType ", function () {
 
         assert(machineTypeNode.heaterSwitch);
         //xx console.log(machineTypeNode.heaterSwitch.nodeId.toString());
+        //xx console.log(machineTypeNode.heaterSwitch.nodeId.toString());
+
+        assert(machineTypeHeaderSwitchNode.browseName.toString() === "HeaterSwitch");
         return machineTypeNode;
     }
 
@@ -99,7 +102,7 @@ describe("testing add new ObjectType ", function () {
         should(machine1.temperatureSensor).be.instanceOf(Object);
         should(machine1.heaterSwitch).be.instanceOf(Object);
 
-        //Xx console.log(" Machine 1 = ", machine1.toString());
+        //xx console.log(" Machine 1 = ", machine1.toString());
 
         var machine2 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine2"});
 
@@ -166,5 +169,6 @@ describe("testing add new ObjectType ", function () {
 
         done();
     });
+
 
 });

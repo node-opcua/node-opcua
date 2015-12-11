@@ -20,9 +20,6 @@ var dumpStateMachineToPlantUML = require("lib/misc/dump_statemachine").dumpState
 
 
 var makeRefId = require("lib/client/proxy").makeRefId;
-function Namespace() {
-
-}
 
 function ns(namespaceIndex,browseName) {
     return namespaceIndex.toString() + ":" + browseName;
@@ -124,6 +121,23 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
     });
 
 
+    function dumpObjectType(objectType) {
+
+        function w(s,l) { return (s + "                       ").substr(0,l);}
+        function f(c) {
+            return  w(c.browseName.toString(),25) + " " + w(c.nodeId.toString(),25) + w(c.modellingRule,25);
+        }
+        objectType.getComponents().forEach(function(c){console.log(f(c));});
+        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + objectType.browseName.toString());
+        var baseType = objectType.subtypeOfObj;
+        baseType.getComponents().forEach(function(c){console.log(f(c));});
+        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow+ baseType.browseName.toString());
+        baseType = baseType.subtypeOfObj;
+        baseType.getComponents().forEach(function(c){console.log(f(c));});
+        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow+ baseType.browseName.toString());
+
+    }
+
     it("should instantiate a AnalyserChannelType",function() {
 
         var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
@@ -138,6 +152,8 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
         should(channel1.parameterSet).eql(undefined);
         should(channel1.getComponentByName("ParameterSet")).eql(null,"optional ParameterSet shall not be instantiate ");
 
+        dumpObjectType(analyserChannelType);
+
         var channel2 = analyserChannelType.instantiate({
             browseName: "__Channel2",
             optionals: [ "ParameterSet" ]
@@ -145,6 +161,12 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         channel2.parameterSet.browseName.toString().should.eql("2:ParameterSet");
         channel2._clear_caches();
+
+        console.log(channel2.toString());
+        channel2.getComponents().forEach(function(c){console.log(c.browseName.toString())});
+
+        should(channel2.getComponentByName("2:ParameterSet")).not.eql(null);
+
         channel2.getComponentByName("2:ParameterSet").browseName.toString().should.eql("2:ParameterSet");
 
         // isEnable Property

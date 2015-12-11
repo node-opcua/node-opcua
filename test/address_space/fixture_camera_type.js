@@ -7,8 +7,10 @@ var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
 exports.createCameraType = function createCameraType(addressSpace) {
 
+    var cameraType = addressSpace.findObjectType("1:CameraType");
+    if (cameraType) { return cameraType; }
 
-    var cameraType = addressSpace.addObjectType({browseName: "1:CameraType"});
+    cameraType = addressSpace.addObjectType({browseName: "1:CameraType"});
 
     // MachineType.HeaderSwitch
     var triggerMethod = addressSpace.addMethod(cameraType, {
@@ -38,5 +40,6 @@ exports.createCameraType = function createCameraType(addressSpace) {
     should(triggerMethod.typeDefinition).eql(null);
     triggerMethod.browseName.toString().should.eql("1:Trigger");
     triggerMethod.browseName.should.eql(new QualifiedName({name: "Trigger", namespaceIndex: 1}));
+
     return cameraType;
 };
