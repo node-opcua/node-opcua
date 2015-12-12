@@ -32,7 +32,7 @@ module.exports = function(engine) {
         var addressSpace;
         before(function() {
             addressSpace = engine.addressSpace;
-            rootFolder = addressSpace.findObject("ObjectsFolder");
+            rootFolder = addressSpace.findNode("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
         });
 

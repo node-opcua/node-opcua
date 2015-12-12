@@ -92,7 +92,7 @@ server.on("post_initialize", function () {
 
     var addressSpace = server.engine.address_space;
 
-    var rootFolder = addressSpace.findObject("RootFolder");
+    var rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
 

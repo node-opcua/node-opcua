@@ -35,7 +35,7 @@ module.exports = function(engine) {
         it("should add a MultiStateValueDiscreteType variable - form 1",function() {
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findNode("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
             var prop = addressSpace.addMultiStateValueDiscreteType({
@@ -65,7 +65,7 @@ module.exports = function(engine) {
         it("should add a MultiStateValueDiscreteType variable - form 2",function() {
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findNode("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
             var prop = addressSpace.addMultiStateValueDiscreteType({
@@ -85,7 +85,7 @@ module.exports = function(engine) {
             var multiStateValue;
             before(function() {
                 var addressSpace = engine.addressSpace;
-                var rootFolder = addressSpace.findObject("ObjectsFolder");
+                var rootFolder = addressSpace.findNode("ObjectsFolder");
                 rootFolder.browseName.toString().should.eql("Objects");
                 multiStateValue = addressSpace.addMultiStateValueDiscreteType({
                     componentOf: rootFolder,

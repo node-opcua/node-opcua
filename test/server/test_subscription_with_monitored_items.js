@@ -547,7 +547,7 @@ describe("Subscriptions and MonitoredItems", function () {
                     callback(null, dataValue);
                 });
 
-                monitoredItem.node.should.eql(addressSpace.findObject(monitoredItem.itemToMonitor.nodeId));
+                monitoredItem.node.should.eql(addressSpace.findNode(monitoredItem.itemToMonitor.nodeId));
             });
 
         });
@@ -671,7 +671,7 @@ describe("Subscriptions and MonitoredItems", function () {
         function test_deadband(dataType, deadband, writesPass, writesFail) {
 
             var nodeId = "ns=100;s=Static_" + dataType;
-            var node = engine.addressSpace.findObject(nodeId);
+            var node = engine.addressSpace.findNode(nodeId);
             should(!!node).not.eql(false);
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 

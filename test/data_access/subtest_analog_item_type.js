@@ -26,7 +26,7 @@ module.exports = function (engine) {
 
             var addressSpace = engine.addressSpace;
 
-            var rootFolder = addressSpace.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findNode("ObjectsFolder");
             rootFolder.browseName.toString().should.eql("Objects");
 
             var fakeValue = 1;
@@ -129,7 +129,7 @@ module.exports = function (engine) {
 
             var addressSpace = engine.addressSpace;
 
-            var rootFolder = addressSpace.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findNode("ObjectsFolder");
 
             var analogItem = addressSpace.addAnalogDataItem({
                 organizedBy: rootFolder,
@@ -158,7 +158,7 @@ module.exports = function (engine) {
 
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findNode("ObjectsFolder");
 
             var analogItem = addressSpace.addAnalogDataItem({
                 organizedBy: rootFolder,

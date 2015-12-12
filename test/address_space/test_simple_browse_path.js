@@ -54,7 +54,7 @@ describe("constructBrowsePath and simpleBrowsePath", function () {
 
         var nodeId = addressSpace.simpleBrowsePath("/", "Objects.Server");
         nodeId.should.eql(makeExpandedNodeId(2253));
-        addressSpace.findObject(nodeId).browseName.toString().should.eql("Server");
+        addressSpace.findNode(nodeId).browseName.toString().should.eql("Server");
     });
 
 });

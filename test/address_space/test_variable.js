@@ -99,7 +99,7 @@ describe("Address Space : add Variable :  testing various variations for specify
             addressSpace = new address_space.AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
 
                 done();
             });
@@ -229,7 +229,7 @@ describe("testing Variable#bindVariable", function () {
             addressSpace = new address_space.AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
 
                 done();
             });
@@ -731,7 +731,7 @@ describe("testing Variable#writeValue Scalar", function () {
             addressSpace = new address_space.AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
 
                 variable = new UAVariable({
                     browseName: "some variable",
@@ -806,7 +806,7 @@ describe("testing Variable#writeValue Array", function () {
             addressSpace = new address_space.AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
 
 
                 variable = new UAVariable({
@@ -1078,7 +1078,7 @@ describe("testing Variable#writeValue on Integer", function () {
             addressSpace = new address_space.AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
 
 
                 variableInteger = new UAVariable({
@@ -1225,7 +1225,7 @@ describe("testing UAVariable ", function () {
             generate_address_space(addressSpace, nodeset_filename, function (err) {
 
                 if (!err) {
-                    rootFolder = addressSpace.findObject("RootFolder");
+                    rootFolder = addressSpace.findNode("RootFolder");
 
                     variableInteger = addressSpace.addVariable({
                         organizedBy: rootFolder,
@@ -1313,7 +1313,7 @@ describe("testing UAVariable ", function () {
 
     it("UAVariable#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", function (done) {
 
-        rootFolder = addressSpace.findObject("RootFolder");
+        rootFolder = addressSpace.findNode("RootFolder");
         var temperatureVar = addressSpace.addVariable({
             organizedBy: rootFolder,
             browseName: "BadVar",
@@ -1342,7 +1342,7 @@ describe("testing UAVariable ", function () {
 
     it("UAVariable#readValueAsync should cope with faulty refreshFunc - crashing inside refreshFunc", function (done) {
 
-        rootFolder = addressSpace.findObject("RootFolder");
+        rootFolder = addressSpace.findNode("RootFolder");
         var temperatureVar = addressSpace.addVariable({
             organizedBy: rootFolder,
             browseName: "BadVar2",
@@ -1363,7 +1363,7 @@ describe("testing UAVariable ", function () {
     });
 
     it("UAVariable#readValueAsync  should be reentrant", function (done) {
-        rootFolder = addressSpace.findObject("RootFolder");
+        rootFolder = addressSpace.findNode("RootFolder");
         var temperatureVar = addressSpace.addVariable({
             organizedBy: rootFolder,
             browseName: "Temperature",
@@ -1425,7 +1425,7 @@ describe("testing UAVariable ", function () {
 
     it("UAVariable#setValueFromSource should cause 'value_changed' event to be raised",function(done) {
 
-        var rootFolder = addressSpace.findObject("RootFolder");
+        var rootFolder = addressSpace.findNode("RootFolder");
 
         var temperatureVar = addressSpace.addVariable({
             organizedBy: rootFolder,

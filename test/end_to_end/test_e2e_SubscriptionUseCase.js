@@ -1570,7 +1570,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
                 },
                 function (callback) {
                     // on server side : modify displayName
-                    var node = server.engine.addressSpace.findObject(readValue.nodeId);
+                    var node = server.engine.addressSpace.findNode(readValue.nodeId);
                     node.displayName = "Changed Value";
                     callback();
                 },
@@ -1646,7 +1646,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
         var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
         nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
 
-        var node = server.engine.addressSpace.findObject(nodeId);
+        var node = server.engine.addressSpace.findNode(nodeId);
 
         //xx console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".cyan,node.toString());
 
@@ -1817,7 +1817,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
     function createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback) {
 
         /* backdoor */
-        var node = server.engine.addressSpace.findObject(nodeId);
+        var node = server.engine.addressSpace.findNode(nodeId);
         node.minimumSamplingInterval.should.eql(0); // exception-based change notification
 
 
@@ -2504,7 +2504,7 @@ describe("testing Client-Server subscription use case 2/2, on a fake server expo
             VALID_RETRANSMIT_SEQNUM = 0;
 
             client = new OPCUAClient();
-            fanSpeed = server.engine.addressSpace.findObject("ns=2;s=FanSpeed");
+            fanSpeed = server.engine.addressSpace.findNode("ns=2;s=FanSpeed");
             //xxx console.log(fanSpeed.toString());
             done();
         });

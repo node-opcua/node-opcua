@@ -123,7 +123,7 @@ describe("CallRequest on custom method", function () {
         var methodId = opcua.makeNodeId(999992, 0);
 
 
-        var obj = addressSpace.findObject(objectId);
+        var obj = addressSpace.findNode(objectId);
         obj.should.be.instanceOf(UAObject);
 
         var method = obj.getMethodById(methodId);

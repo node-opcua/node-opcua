@@ -29,7 +29,7 @@ module.exports = function (engine) {
 
             var addressSpace = engine.addressSpace;
 
-            var rootFolder = addressSpace.findObject("ObjectsFolder");
+            var rootFolder = addressSpace.findNode("ObjectsFolder");
 
             var analogItem = addressSpace.addAnalogDataItem({
                 organizedBy: rootFolder,

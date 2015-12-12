@@ -123,7 +123,7 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names =references.map(function(ref){ return addressSpace.findObject(ref.nodeId).browseName.toString(); });
+        var names =references.map(function(ref){ return addressSpace.findNode(ref.nodeId).browseName.toString(); });
         var expectedNames = ["FolderType", "Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
@@ -151,7 +151,7 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names =references.map(function(ref){ return addressSpace.findObject(ref.nodeId).browseName.toString(); });
+        var names =references.map(function(ref){ return addressSpace.findNode(ref.nodeId).browseName.toString(); });
         var expectedNames = ["Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });

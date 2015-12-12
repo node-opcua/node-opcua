@@ -24,7 +24,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         before(function (done) {
             addressSpace = new AddressSpace();
             generateAddressSpace(addressSpace, nodesetFilename, function () {
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
                 done();
             });
         });

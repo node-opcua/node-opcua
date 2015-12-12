@@ -104,18 +104,18 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
 
-            var someVariable = addressSpace.findObject("ns=1;i=2");
+            var someVariable = addressSpace.findNode("ns=1;i=2");
             someVariable.browseName.toString().should.eql("1:SomeVariable");
             someVariable.userAccessLevel.toString().should.eql("CurrentRead");
 
 
-            var readOnlyVar = addressSpace.findObject("ns=1;i=3");
+            var readOnlyVar = addressSpace.findNode("ns=1;i=3");
             readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
             readOnlyVar.userAccessLevel.toString().should.eql("CurrentRead");
 
 
 
-            var readWriteVar = addressSpace.findObject("ns=1;i=4");
+            var readWriteVar = addressSpace.findNode("ns=1;i=4");
             readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
             readWriteVar.userAccessLevel.toString().should.eql("CurrentRead | CurrentWrite");
 

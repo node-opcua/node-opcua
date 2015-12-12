@@ -57,7 +57,7 @@ describe("testing Events  ", function () {
 
     it("should raise a new EventType", function (done) {
 
-        var serverObject = addressSpace.findObject("Server");
+        var serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
 
         var eventType = addressSpace.findEventType("MyEventType");
@@ -136,7 +136,7 @@ describe("testing Events  ", function () {
 
         if (browsePathResult.statusCode === StatusCodes.Good) {
             assert(browsePathResult.targets.length === 1);
-            var node = addressSpace.findObject(browsePathResult.targets[0].targetId);
+            var node = addressSpace.findNode(browsePathResult.targets[0].targetId);
 
             var key = node.nodeId.toString();
             if (map[key]) {
@@ -216,7 +216,7 @@ describe("testing Events  ", function () {
 
     it("should filter an event", function (done) {
 
-        var serverObject = addressSpace.findObject("Server");
+        var serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
 
         var eventType = addressSpace.findEventType("MyEventType");
@@ -314,7 +314,7 @@ describe("testing Events  ", function () {
             console.log("object ",self.browseName.toString(), " received Event");
             receivers.push(self.browseName.toString());
         }
-        var server = addressSpace.findObject("Server");
+        var server = addressSpace.findNode("Server");
 
         server.on("event",spyFunc.bind(server));
         pump.on("event",spyFunc.bind(pump));

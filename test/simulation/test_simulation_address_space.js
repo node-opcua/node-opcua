@@ -121,14 +121,14 @@ describe("testing address space for conformance testing", function () {
     it("should read a simulated float variable and check value change", function (done) {
 
         var nodeId = makeNodeId("Scalar_Simulation_Float", namespaceIndex);
-        var variable = engine.addressSpace.findObject(nodeId);
+        var variable = engine.addressSpace.findNode(nodeId);
 
         var value1 = null;
 
         async.series([
             function (callback) {
                 var nodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
-                var simulationInterval = engine.addressSpace.findObject(nodeId, namespaceIndex);
+                var simulationInterval = engine.addressSpace.findNode(nodeId, namespaceIndex);
                 var dataValue = new DataValue({value: {dataType: "UInt16", value: 100}});
                 simulationInterval.writeValue(dataValue, callback);
             },
@@ -733,10 +733,10 @@ describe("testing address space with large number of nodes", function () {
     it("should create mass variables", function (done) {
 
         var node;
-        node = engine.addressSpace.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_UInt32"));
+        node = engine.addressSpace.findNode(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_UInt32"));
         should(node).not.eql(null);
 
-        node = engine.addressSpace.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
+        node = engine.addressSpace.findNode(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
         should(node).not.eql(null);
         done();
     });

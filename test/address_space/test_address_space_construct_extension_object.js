@@ -167,7 +167,7 @@ describe("testing address space namespace loading", function () {
         var VariableIds = require("lib/opcua_node_ids").VariableIds;
         var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
-        var serverStatus = addressSpace.findObject(makeNodeId(VariableIds.Server_ServerStatus));
+        var serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus));
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         // before bindExtensionObject is called, startTime property exists but is not bound

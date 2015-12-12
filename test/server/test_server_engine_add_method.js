@@ -50,7 +50,7 @@ describe("ServerEngine - addMethod", function () {
     it("should be able to attach a method on a object of the address space and call it", function (done) {
 
 
-        var objectFolder = engine.addressSpace.findObject("ObjectsFolder");
+        var objectFolder = engine.addressSpace.findNode("ObjectsFolder");
 
         var object = engine.addressSpace.addObject({
             organizedBy:objectFolder,
@@ -58,7 +58,7 @@ describe("ServerEngine - addMethod", function () {
             nodeId: "ns=1;s=MyObject"
         });
 
-        var method = engine.addMethod(object, {
+        var method = engine.addressSpace.addMethod(object, {
             browseName: "Bark",
 
             inputArguments: [

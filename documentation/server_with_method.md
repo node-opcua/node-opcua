@@ -45,7 +45,7 @@ server.start(function() {
 ### adding a method on the device object
 
 ``` javascript
-var method = server.engine.addMethod(myDevice,{
+var method = addressSpace.addMethod(myDevice,{
 
     browseName: "Bark",
 

@@ -67,7 +67,7 @@ describe("testing ServerEngine", function () {
             }
 
             engine.addressSpace.addVariable({
-                    organizedBy: engine.addressSpace.findObject("ObjectsFolder"),
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                      browseName: "TestArray",
                     nodeId: "ns=1;s=TestArray",
                     dataType: "Double",
@@ -86,7 +86,7 @@ describe("testing ServerEngine", function () {
 
             // add a writable Int32
             engine.addressSpace.addVariable({
-                    organizedBy: engine.addressSpace.findObject("ObjectsFolder"),
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "WriteableInt32",
                     nodeId: "ns=1;s=WriteableInt32",
                     dataType: "Int32",
@@ -109,7 +109,7 @@ describe("testing ServerEngine", function () {
 
             // add a writable Int32
             engine.addressSpace.addVariable({
-                organizedBy: engine.addressSpace.findObject("ObjectsFolder"),
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                 browseName: "WriteableUInt32Async",
                     nodeId: "ns=1;s=WriteableUInt32Async",
                     dataType: "UInt32",
@@ -204,7 +204,7 @@ describe("testing ServerEngine", function () {
 
     it("should find the rootFolder by browseName", function () {
 
-        var browseNode = engine.addressSpace.findObject("RootFolder");
+        var browseNode = engine.addressSpace.findNode("RootFolder");
 
         browseNode.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         browseNode.should.equal(engine.rootFolder);
@@ -213,7 +213,7 @@ describe("testing ServerEngine", function () {
 
     it("should find the rootFolder by nodeId", function () {
 
-        var browseNode = engine.addressSpace.findObject("i=84");
+        var browseNode = engine.addressSpace.findNode("i=84");
 
         browseNode.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
         browseNode.should.equal(engine.rootFolder);
@@ -244,7 +244,7 @@ describe("testing ServerEngine", function () {
         var server= engine.addressSpace.rootFolder.objects.server;
 
         var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray);
-        var server_NamespaceArray = engine.addressSpace.findObject(server_NamespaceArray_Id);
+        var server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
 
         //xx console.log(require("util").inspect(server_NamespaceArray));
@@ -263,7 +263,7 @@ describe("testing ServerEngine", function () {
         var server = objects.server;
 
         var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerArray);
-        var server_NamespaceArray = engine.addressSpace.findObject(server_NamespaceArray_Id);
+        var server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
         //xx server_NamespaceArray.parent.should.eql(serverObject.nodeId);
     });
@@ -292,7 +292,7 @@ describe("testing ServerEngine", function () {
         assert(newFolder.nodeId instanceof NodeId);
         newFolder.nodeId.namespace.should.eql(1);
 
-        var result = engine.addressSpace.findObject(newFolder.nodeId);
+        var result = engine.addressSpace.findNode(newFolder.nodeId);
         result.should.eql(newFolder);
 
     });
@@ -942,7 +942,7 @@ describe("testing ServerEngine", function () {
         var nodeId = "ns=1;s=TestVar";
         before(function () {
             engine.addressSpace.addVariable({
-                componentOf: engine.addressSpace.findObject("ObjectsFolder"),
+                componentOf: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "TestVar",
                     nodeId: nodeId,
                     dataType: "Double",
@@ -1498,7 +1498,7 @@ describe("testing ServerEngine", function () {
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
             var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
-            var node = engine.addressSpace.findObject(nodeid);
+            var node = engine.addressSpace.findNode(nodeid);
             should(node).not.equal(null);
 
             var dataValue = node.readAttribute(13);
@@ -1513,7 +1513,7 @@ describe("testing ServerEngine", function () {
 
 
             var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
-            var node = engine.addressSpace.findObject(nodeid);
+            var node = engine.addressSpace.findNode(nodeid);
             assert(node !== null);
             should(node).not.eql(null);
 
@@ -1735,7 +1735,7 @@ describe("testing ServerEngine", function () {
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
             engine.addressSpace.addVariable({
-                    componentOf: engine.addressSpace.findObject("ObjectsFolder"),
+                    componentOf: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "FailingPLCValue",
                     nodeId: "ns=1;s=FailingPLCValue",
                     dataType: "Double",
@@ -1781,7 +1781,7 @@ describe("testing ServerEngine", function () {
 
             // add a variable that provide a on demand refresh function
             engine.addressSpace.addVariable({
-                    componentOf: engine.addressSpace.findObject("ObjectsFolder"),
+                    componentOf: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "RefreshedOnDemandValue",
                     nodeId: "ns=1;s=RefreshedOnDemandValue",
                     dataType: "Double",
@@ -1804,7 +1804,7 @@ describe("testing ServerEngine", function () {
             );
             // add an other variable that provide a on demand refresh function
             engine.addressSpace.addVariable({
-                    componentOf: engine.addressSpace.findObject("ObjectsFolder"),
+                    componentOf: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "OtherRefreshedOnDemandValue",
                     nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
                     dataType: "Double",
@@ -1915,7 +1915,7 @@ describe("testing ServerEngine", function () {
 
         it("should perform readValueAsync on Variable", function (done) {
 
-            var variable = engine.addressSpace.findObject("ns=1;s=RefreshedOnDemandValue");
+            var variable = engine.addressSpace.findNode("ns=1;s=RefreshedOnDemandValue");
 
             value1.should.equal(0);
             variable.readValueAsync(function (err, value) {
@@ -2029,7 +2029,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities",function() {
         serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
 
         var addressSpace = engine.addressSpace;
-        var serverCapabilitiesNode = addressSpace.findObject(serverCapabilitiesId);
+        var serverCapabilitiesNode = addressSpace.findNode(serverCapabilitiesId);
 
         should(serverCapabilitiesNode).be.instanceOf(UAObject);
 
@@ -2044,7 +2044,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities",function() {
         currentTimeId.value.should.eql(2258);
 
         var addressSpace = engine.addressSpace;
-        var currentTimeNode = addressSpace.findObject(currentTimeId);
+        var currentTimeNode = addressSpace.findNode(currentTimeId);
         var d1 = currentTimeNode.readValue();
 
         test.clock.tick(1000);

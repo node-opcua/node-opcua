@@ -107,7 +107,7 @@ server.on("post_initialize", function () {
 
     var addressSpace = server.engine.addressSpace;
 
-    var rootFolder = addressSpace.findObject("RootFolder");
+    var rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
     var myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});

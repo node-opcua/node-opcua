@@ -94,7 +94,7 @@ describe("NodeCrawler", function () {
 
                     //xx console.log("nodeElement ".yellow, nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
                     var objectIndex = {
-                        findObject: function (nodeId) {
+                        findNode: function (nodeId) {
                             return null;
                         }
                     };

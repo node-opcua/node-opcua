@@ -108,7 +108,7 @@ describe("testing nodeset to xml", function () {
             value: new Variant({dataType: DataType.Double, value: 19.5})
         });
 
-        var parentFolder = addressSpace.findObject("RootFolder");
+        var parentFolder = addressSpace.findNode("RootFolder");
         parentFolder.browseName.toString().should.eql("Root");
 
         // variation 1

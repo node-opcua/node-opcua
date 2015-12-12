@@ -105,7 +105,7 @@ describe("OPCUAServer", function () {
 
         //xx session.nodeId.identifierType.should.eql(NodeId.NodeIdType.GUID);
 
-        var sessionNode = server.engine.addressSpace.findObject(session.nodeId);
+        var sessionNode = server.engine.addressSpace.findNode(session.nodeId);
 
         should(!!sessionNode).eql(true," a session node must be found");
 

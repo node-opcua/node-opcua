@@ -57,7 +57,7 @@ describe("testing address space", function () {
 
     it("should provide a convenient a way to construct the node full name ", function () {
 
-        var obj = addressSpace.findObject("Server_ServerStatus_BuildInfo");
+        var obj = addressSpace.findNode("Server_ServerStatus_BuildInfo");
         obj.full_name().should.eql("Server.ServerStatus.BuildInfo");
 
     });

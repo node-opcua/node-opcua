@@ -18,7 +18,7 @@ describe("testing address space", function () {
         before(function (done) {
             get_mini_address_space(function (err, data) {
                 addressSpace = data;
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
                 done(err);
             });
         });
@@ -51,7 +51,7 @@ describe("testing address space", function () {
         var object = addressSpace.addObject(options);
 
         // object shall  be found with a global nodeId search
-        addressSpace.findObject(object.nodeId).should.eql(object);
+        addressSpace.findNode(object.nodeId).should.eql(object);
 
         // object shall  be found in parent folder
         var references = rootFolder.findReferences("Organizes", true);
@@ -65,7 +65,7 @@ describe("testing address space", function () {
         addressSpace.deleteObject(object.nodeId);
 
         // object shall not be found with a global nodeId search
-        should(addressSpace.findObject(object.nodeId)).eql(undefined);
+        should(addressSpace.findNode(object.nodeId)).eql(undefined);
 
         // object shall not be found in parent folder anymore
         references = rootFolder.findReferences("Organizes", true);
@@ -114,8 +114,8 @@ describe("testing address space", function () {
             var innerVar = addressSpace.addVariable({ componentOf: object,browseName: "Hello", dataType: "String"});
 
             // objects shall  be found with a global nodeId search
-            addressSpace.findObject(object.nodeId).should.eql(object);
-            addressSpace.findObject(innerVar.nodeId).should.eql(innerVar);
+            addressSpace.findNode(object.nodeId).should.eql(object);
+            addressSpace.findNode(innerVar.nodeId).should.eql(innerVar);
 
             var references = object.findReferences("HasComponent", true);
             findReference(references, innerVar.nodeId).length.should.eql(1);
@@ -128,8 +128,8 @@ describe("testing address space", function () {
             //---------------------------------------------------------
 
             // object shall not be found with a global nodeId search
-            should(addressSpace.findObject(object.nodeId)).eql(undefined);
-            should(addressSpace.findObject(innerVar.nodeId)).eql(undefined);
+            should(addressSpace.findNode(object.nodeId)).eql(undefined);
+            should(addressSpace.findNode(innerVar.nodeId)).eql(undefined);
 
             references = rootFolder.findReferences("Organizes", true);
             findReference(references, object.nodeId).length.should.eql(0);

@@ -31,8 +31,8 @@ describe("ServerEngine Subscriptions service", function () {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-            FolderTypeId = engine.addressSpace.findObject("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.addressSpace.findObject("BaseDataVariableType").nodeId;
+            FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
+            BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
         });
         session = engine.createSession();

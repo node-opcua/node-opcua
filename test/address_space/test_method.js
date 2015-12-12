@@ -98,13 +98,13 @@ describe("testing Method in address space", function () {
     it("should provide a way to find a Method object by nodeId", function () {
 
         should(addressSpace.findMethod("ns=0;i=11489")).be.instanceOf(UAMethod);
-        should(addressSpace.findObject("ns=0;i=11489")).be.instanceOf(UAMethod);
+        should(addressSpace.findNode("ns=0;i=11489")).be.instanceOf(UAMethod);
 
     });
     it("should provide a way to find a Method object by nodeId", function () {
 
         should(addressSpace.findMethod("ns=0;i=11492")).be.instanceOf(UAMethod);
-        should(addressSpace.findObject("ns=0;i=11492")).be.instanceOf(UAMethod);
+        should(addressSpace.findNode("ns=0;i=11492")).be.instanceOf(UAMethod);
 
     });
 

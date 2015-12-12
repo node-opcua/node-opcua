@@ -119,7 +119,7 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
                     function(callback) {
 
-                        var s = server.engine.addressSpace.findObject(nodeId);
+                        var s = server.engine.addressSpace.findNode(nodeId);
 
                         //  change server productName ( from the server side)
                         server.engine.serverStatus.buildInfo.productName += "Modified";
@@ -170,7 +170,7 @@ describe("Testing bug #119 - Verify that monitored item only reports expected va
 
             var count = 1.0;
 
-            var v = server.engine.addressSpace.findObject(nodeId);
+            var v = server.engine.addressSpace.findNode(nodeId);
             v.setValueFromSource( new Variant({dataType: DataType.Double, value:count}));
 
 

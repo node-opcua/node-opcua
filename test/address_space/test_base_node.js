@@ -35,7 +35,7 @@ describe("Testing UAObject", function () {
         before(function (done) {
             get_mini_address_space(function (err, data) {
                 addressSpace = data;
-                rootFolder = addressSpace.findObject("RootFolder");
+                rootFolder = addressSpace.findNode("RootFolder");
                 organizesReferenceType = addressSpace.findReferenceType("Organizes");
                 hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
                 baseObjectType = addressSpace.findObjectType("BaseObjectType");

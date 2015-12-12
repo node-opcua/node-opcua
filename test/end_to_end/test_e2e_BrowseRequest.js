@@ -318,7 +318,7 @@ describe("Test Browse Request", function () {
             //  Given one node to browse
             nodeId = resolveNodeId(nodeId);
             //     And the node exists
-            var obj = server.engine.addressSpace.findObject(nodeId,BrowseDirection.Forward);
+            var obj = server.engine.addressSpace.findNode(nodeId,BrowseDirection.Forward);
             should(obj).not.eql(null);
 
             var browseDesc = new opcua.browse_service.BrowseDescription({

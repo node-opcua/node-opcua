@@ -29,8 +29,8 @@ describe("Testing the server  engine - View related ", function () {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
-            var FolderTypeId = engine.addressSpace.findObject("FolderType").nodeId;
-            var BaseDataVariableTypeId = engine.addressSpace.findObject("BaseDataVariableType").nodeId;
+            var FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
+            var BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
         });
     });
@@ -43,7 +43,7 @@ describe("Testing the server  engine - View related ", function () {
 
     it("should create a view in the address space", function () {
 
-        var viewsFolder = engine.addressSpace.findObject("ViewsFolder");
+        var viewsFolder = engine.addressSpace.findNode("ViewsFolder");
 
         var view = engine.addView({
             componentOf: viewsFolder,

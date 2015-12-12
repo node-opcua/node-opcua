@@ -127,7 +127,7 @@ describe("testing add new DataType ", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
 
-            var deviceSet = addressSpace.findObject("RootFolder");
+            var deviceSet = addressSpace.findNode("RootFolder");
 
             //xx Object.keys(addressSpace._objectTypeMap).forEach(function(a) { console.log(a); });
 
