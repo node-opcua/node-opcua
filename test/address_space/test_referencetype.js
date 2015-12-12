@@ -32,7 +32,7 @@ describe("testing ReferenceType", function () {
                 addressSpace = data;
                 addressSpace.should.be.instanceOf(AddressSpace);
 
-                rootFolder = addressSpace.findObjectByBrowseName("Root");
+                rootFolder = addressSpace.rootFolder;
                 rootFolder.browseName.toString().should.equal("Root");
 
                 done();

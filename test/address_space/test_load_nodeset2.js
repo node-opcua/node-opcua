@@ -16,7 +16,6 @@ describe("testing NodeSet XML file loading", function () {
 
             addressSpace = new AddressSpace();
             Object.keys(addressSpace._aliases).length.should.equal(0);
-            Object.keys(addressSpace._objectMap).length.should.equal(0);
             Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
             Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
             Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
@@ -40,7 +39,6 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_file, function (err) {
 
             Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._objectMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(3);
             Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(2);
@@ -60,7 +58,6 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_file, function (err) {
 
             Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._objectMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(10);
@@ -82,7 +79,6 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
             Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._objectMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
             Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(10);

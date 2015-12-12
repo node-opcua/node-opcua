@@ -133,7 +133,7 @@ describe("testing address space namespace loading", function () {
         var myStructureType = addressSpace.findVariableType("MyStructureType",ns);
         myStructureType.should.be.instanceOf(UAVariableType);
 
-        var folder = addressSpace.addFolder("RootFolder", {browseName: "MyDevices"});
+        var folder = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
         assert(folder.nodeId);
         folder.should.be.instanceOf(UAObject);
 

@@ -43,9 +43,12 @@ describe("testing address space", function () {
 
     it("should be possible to remove an object previously added to the address space", function () {
 
-        var options = {browseName: "SomeObject"};
+        var options = {
+            organizedBy: "RootFolder",
+            browseName: "SomeObject"
+        };
 
-        var object = addressSpace.addObjectInFolder("RootFolder", options);
+        var object = addressSpace.addObject(options);
 
         // object shall  be found with a global nodeId search
         addressSpace.findObject(object.nodeId).should.eql(object);
@@ -76,7 +79,10 @@ describe("testing address space", function () {
 
         it("should find HierarchicalReferences",function() {
 
-            var object = addressSpace.addObjectInFolder("RootFolder", {browseName: "ChildObject"});
+            var object = addressSpace.addObject({
+                organizedBy: "RootFolder",
+                browseName: "ChildObject"
+            });
 
             object.findReferencesEx("HierarchicalReferences",BrowseDirection.Inverse).length.should.eql(1,"Object must be child of one parent");
             object.findReferencesEx("HierarchicalReferences",BrowseDirection.Forward).length.should.eql(0,"Object must not have children yet");
@@ -100,8 +106,11 @@ describe("testing address space", function () {
 
         it("should  remove an object previously added to a folder of an  address space (and its children)", function () {
 
-            var options = {browseName: "SomeObject"};
-            var object = addressSpace.addObjectInFolder("RootFolder", options);
+            var options = {
+                organizedBy: "RootFolder",
+                browseName: "SomeObject"
+            };
+            var object = addressSpace.addObject(options);
             var innerVar = addressSpace.addVariable({ componentOf: object,browseName: "Hello", dataType: "String"});
 
             // objects shall  be found with a global nodeId search
@@ -129,7 +138,7 @@ describe("testing address space", function () {
         it("should remove a component of a existing object",function() {
 
             // give an object
-            var object = addressSpace.addObjectInFolder("RootFolder", {browseName: "MyObject1"});
+            var object = addressSpace.addObject({organizedBy:"RootFolder", browseName: "MyObject1"});
 
             // let's construct some properties and some components gradually, and verify that the caches
             // work as expected.

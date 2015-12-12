@@ -21,7 +21,12 @@ var server = new opcua.OPCUAServer({
 
 function post_initialize() {
 
-    var myDevice = server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
+    var addressSpace = server.engine.addressSpace;
+    
+    var myDevice = addressSpace.addObject({
+        organizedBy: addressSpace.rootFolder.objects,
+        browseName: "MyDevice"
+    });
 
     _"adding a method on the device object"
 
@@ -44,17 +49,17 @@ var method = server.engine.addMethod(myDevice,{
 
     browseName: "Bark",
 
-    inputArguments:  [{
-
-        name:"nbBarks",
-        description: { text: "specifies the number of time I should bark" },
-        dataType: opcua.DataType.UInt32
-
-     },{
-           name:"volume",
-           description: { text: "specifies the sound volume [0 = quiet ,100 = loud]" },
-           dataType: opcua.DataType.UInt32
-     }],
+    inputArguments:  [
+        {
+            name:"nbBarks",
+            description: { text: "specifies the number of time I should bark" },
+            dataType: opcua.DataType.UInt32        
+        },{
+            name:"volume",
+            description: { text: "specifies the sound volume [0 = quiet ,100 = loud]" },
+            dataType: opcua.DataType.UInt32
+        }
+     ],
 
     outputArguments: [{
          name:"Barks",
@@ -71,7 +76,7 @@ var method = server.engine.addMethod(myDevice,{
 
 ``` javascript
 
-server.engine.bindMethod(method.nodeId,function(inputArguments,context,callback) {
+method.bindMethod(function(inputArguments,context,callback) {
 
     var nbBarks = inputArguments[0].value;
     var volume =  inputArguments[1].value;

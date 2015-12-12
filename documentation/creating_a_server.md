@@ -3,13 +3,15 @@
 
 In this example, we want to create a OPCUA Server that exposes 3 read/write variables
 
-The server will expose the variable under a new folder named "MyDevice".
+The server will expose the variable under a new object named "MyDevice".
 
-     + RootFolder
-         + MyDevice
-             + MyVariable1
-             + MyVariable2
-
+```
+    + RootFolder
+        + Objects
+            + MyDevice
+                + MyVariable1
+                + MyVariable2
+```
 
 The first steps assumes that you are running a shell in a terminal on Linux or Mac,
 or under [Git Bash](http://msysgit.github.io/) cmd on Windows.
@@ -28,24 +30,6 @@ Let's create a node project for our server.
     $ npm install node-opcua --save # add the node-opcua
 ```
 
-## creating certificates
-
-A server certificate is required. Let's generate a self-signed private key.
-By default, the server will search for a certificate named **cert.pem** in the **certificates** folder.
-
-``` shell
-    $ mkdir certificates
-    $ openssl req -x509 -days 365 -nodes -newkey rsa:1024 -keyout certificates/key.pem -out certificates/cert.pem
-```
-
-Then, answer the question requested by openssl (organizational  name , address and so on )
-The server private key is key.pem.
-
-The public key can be extracted with the following command
-
-``` shell
-    $ openssl rsa -in certificates/key.pem -pubout > certificates/public_key.pub
-```
 
 Now edit the [sample_server.js](#the-server-script "save:") script.
 
@@ -128,26 +112,34 @@ Once the server has been initialized, it is a good idea to extend the default se
 Lets create a function that will extend the server default address space with some
 variables that we want to expose. This function will be called inside the initialize callback.
 
+The ```addressSpace``` is used to customize the objet model that our server will expose to the external world.
 
 ```javascript
 function construct_my_address_space(server) {
-    // declare some folders
-    _"declare a new folder"
-    // add variables in folders
-    _"add a variable"
+
+    var addressSpace = server.engine.addressSpace;
+    
+    // declare a new object
+    _"add a new object into the objects folder"
+    
+    // add some variables 
+    _"add some variables"
 }
 construct_my_address_space(server);
 _"start the server"
 ```
 
 
-#### declare a new folder
+#### add a new object into the objects folder
 
 ```javascript
- server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
+var device = addressSpace.addObject({
+    organizedBy: addressSpace.rootFolder.objects,
+    browseName: "MyDevice"
+});
 ```
 
-#### add a variable
+#### add some variables
 
 Adding a read-only variable inside the server namespace requires only a getter function.
 This function returns a Variant containing the value of the variable to scan.
@@ -155,17 +147,19 @@ This function returns a Variant containing the value of the variable to scan.
 ```javascript
 // add a variable named MyVariable1 to the newly created folder "MyDevice"
 var variable1 = 1;
+
 // emulate variable1 changing every 500 ms
 setInterval(function(){  variable1+=1; }, 500);
-server.nodeVariable1 = server.engine.addVariable({
-        componentOf: "MyDevice",
-        browseName: "MyVariable1",
-        dataType: "Double",
-        value: {
-            get: function () {
-                return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
-            }
+
+addressSpace.addVariable({
+    componentOf: device,
+    browseName: "MyVariable1",
+    dataType: "Double",
+    value: {
+        get: function () {
+            return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
         }
+    }
 });
 ```
 
@@ -174,13 +168,20 @@ Note that we haven't specified a NodeId for the variable.The server will automat
 Let's create a more comprehensive Read-Write variable with a fancy nodeId
 
 ```javascript
+
 // add a variable named MyVariable2 to the newly created folder "MyDevice"
 var variable2 = 10.0;
-server.nodeVariable2 = server.engine.addVariable({
-    componentOf: "MyDevice",
+
+server.engine.addressSpace.addVariable({
+    
+    componentOf: device,
+    
     nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
+    
     browseName: "MyVariable2",
+    
     dataType: "Double",    
+    
     value: {
         get: function () {
             return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
@@ -215,8 +216,10 @@ function available_memory() {
 Now let's expose our OPCUA Variable
 
 ```javascript
-server.nodeVariable3 = server.engine.addVariable({
-    componentOf: "MyDevice",
+server.engine.addressSpace.addVariable({
+    
+    componentOf: device,
+    
     nodeId: "ns=1;s=free_memory", // a string nodeID
     browseName: "FreeMemory",
     dataType: "Double",    

@@ -121,14 +121,14 @@ describe("testing address space for conformance testing", function () {
     it("should read a simulated float variable and check value change", function (done) {
 
         var nodeId = makeNodeId("Scalar_Simulation_Float", namespaceIndex);
-        var variable = engine.findObject(nodeId);
+        var variable = engine.addressSpace.findObject(nodeId);
 
         var value1 = null;
 
         async.series([
             function (callback) {
                 var nodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
-                var simulationInterval = engine.findObject(nodeId, namespaceIndex);
+                var simulationInterval = engine.addressSpace.findObject(nodeId, namespaceIndex);
                 var dataValue = new DataValue({value: {dataType: "UInt16", value: 100}});
                 simulationInterval.writeValue(dataValue, callback);
             },
@@ -423,11 +423,13 @@ describe("testing address space for conformance testing", function () {
                 })
             }
         });
-        console.log("      value = ", value);
-        console.log(" indexRange = ", indexRange);
-        console.log(" indexRange = ", request.indexRange.toString());
-        console.log(" indexRange = ", request.indexRange.type.toString());
-        console.log("    request = ", request.toString());
+        if(false) {
+            console.log("      value = ", value);
+            console.log(" indexRange = ", indexRange);
+            console.log(" indexRange = ", request.indexRange.toString());
+            console.log(" indexRange = ", request.indexRange.type.toString());
+            console.log("    request = ", request.toString());
+        }
         engine.writeSingleNode(request, function (err, statusCode) {
             callback(err, statusCode);
         });
@@ -709,8 +711,11 @@ describe("testing address space with large number of nodes", function () {
             server_engine.part8_nodeset_filename
         ];
         engine.initialize({nodeset_filename: nodeset_filename}, function () {
-            build_address_space_for_conformance_testing(engine, {mass_variables: true});
 
+            var startDate = new Date();
+            build_address_space_for_conformance_testing(engine, {mass_variables: true});
+            var endDate = new Date();
+            console.log("           time to generate conformance nodes (with mass variables) = ".grey.italic,endDate.getTime() - startDate.getTime() , " ms ");
             // address space variable change for conformance testing are changing randomly
             // let wait a little bit to make sure variables have changed at least once
             setTimeout(done, 500);
@@ -727,11 +732,12 @@ describe("testing address space with large number of nodes", function () {
 
     it("should create mass variables", function (done) {
 
-        engine.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_UInt32"));
-        should(a).not.eql(null);
+        var node;
+        node = engine.addressSpace.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_UInt32"));
+        should(node).not.eql(null);
 
-        engine.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
-        should(a).not.eql(null);
+        node = engine.addressSpace.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
+        should(node).not.eql(null);
         done();
     });
 });

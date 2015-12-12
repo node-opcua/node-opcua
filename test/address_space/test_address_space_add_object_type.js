@@ -94,7 +94,7 @@ describe("testing add new ObjectType ", function () {
         temperatureSensor.temperature.typeDefinition.should.eql(baseDataVariableType.nodeId);
 
 
-        var folder = addressSpace.addFolder("RootFolder", {browseName: "MyDevices"});
+        var folder = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
         assert(folder.nodeId);
 
         var machine1 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine1"});

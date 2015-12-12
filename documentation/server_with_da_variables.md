@@ -26,7 +26,13 @@ var server = new opcua.OPCUAServer({
 
 function post_initialize() {
 
-    var myDevice = server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
+    var addressSpace = server.engine.addressSpace;
+    
+    var myDevice = addressSpace.addObject({
+        organizedBy: addressSpace.rootFolder.objects,
+        browseName: "MyDevice"
+    });
+    
     _"adding a DA Variable"
 
 } 
@@ -46,15 +52,20 @@ server.start(function() {
 
 var fakeValue = 1;
 var addressSpace = server.engine.addressSpace;
+
 var analogItem = addressSpace.addAnalogDataItem({
+
       componentOf: myDevice,
+
       browseName: "TemperatureSensor",
+
       definition: "(tempA -25) + tempB",
       valuePrecision: 0.5,
       engineeringUnitsRange: { low: 100 , high: 200},
       instrumentRange: { low: -100 , high: +200},
       engineeringUnits: opcua.standardUnits.degree_celsius,
       dataType: "Double",
+
       value: { get: function(){return new opcua.Variant({dataType: opcua.DataType.Double , value: fakeValue}); } }
 });
 ```

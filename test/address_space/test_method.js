@@ -137,7 +137,7 @@ describe("testing Method binding", function () {
         before(function (done) {
             get_mini_address_space(function (err, data) {
                 addressSpace = data;
-                rootFolder = addressSpace.findObjectByBrowseName("Root");
+                rootFolder = addressSpace.rootFolder;
                 rootFolder.browseName.toString().should.equal("Root");
                 done(err);
             });

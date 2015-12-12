@@ -39,7 +39,7 @@ usability:
 ----------
 
   - #48  provides a way to pass specify serverInfo and buildInfo as options to OPCUAServer
-  - #50 add flexible ways to specify typeDefinition and dataType in engine.addVariable
+  - #50 add flexible ways to specify typeDefinition and dataType in engine.addressSpace.addVariable
   - expose transactionCount Variables on VendorServerInfo
   - expose bytesWritten and bytesRead Variables on VendorServerInfo
   - use fully qualified domain name (fqdn), whenever possible, to build default endpoint urn instead of hostname only.

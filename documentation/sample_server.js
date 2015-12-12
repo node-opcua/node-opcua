@@ -16,30 +16,46 @@ var server = new opcua.OPCUAServer({
 function post_initialize() {
     console.log("initialized");
     function construct_my_address_space(server) {
-        // declare some folders
-         server.engine.addFolder("RootFolder",{ browseName: "MyDevice"});
-        // add variables in folders
+    
+        var addressSpace = server.engine.addressSpace;
+        
+        // declare a new object
+        var device = addressSpace.addObject({
+            organizedBy: addressSpace.rootFolder.objects,
+            browseName: "MyDevice"
+        });
+        
+        // add some variables 
         // add a variable named MyVariable1 to the newly created folder "MyDevice"
         var variable1 = 1;
+        
         // emulate variable1 changing every 500 ms
         setInterval(function(){  variable1+=1; }, 500);
-        server.nodeVariable1 = server.engine.addVariable({
-                componentOf: "MyDevice",
-                browseName: "MyVariable1",
-                dataType: "Double",
-                value: {
-                    get: function () {
-                        return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
-                    }
+        
+        addressSpace.addVariable({
+            componentOf: device,
+            browseName: "MyVariable1",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
                 }
+            }
         });
+        
         // add a variable named MyVariable2 to the newly created folder "MyDevice"
         var variable2 = 10.0;
-        server.nodeVariable2 = server.engine.addVariable({
-            componentOf: "MyDevice",
+        
+        server.engine.addressSpace.addVariable({
+            
+            componentOf: device,
+            
             nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
+            
             browseName: "MyVariable2",
+            
             dataType: "Double",    
+            
             value: {
                 get: function () {
                     return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
@@ -60,8 +76,10 @@ function post_initialize() {
             var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
             return percentageMemUsed;
         }
-        server.nodeVariable3 = server.engine.addVariable({
-            componentOf: "MyDevice",
+        server.engine.addressSpace.addVariable({
+            
+            componentOf: device,
+            
             nodeId: "ns=1;s=free_memory", // a string nodeID
             browseName: "FreeMemory",
             dataType: "Double",    

@@ -6,7 +6,7 @@ var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
 var should = require("should");
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
-var opcua = require(".");
+var opcua = require("../../index");
 var NodeId = opcua.NodeId;
 
 
@@ -105,7 +105,7 @@ describe("OPCUAServer", function () {
 
         //xx session.nodeId.identifierType.should.eql(NodeId.NodeIdType.GUID);
 
-        var sessionNode = server.engine.findObject(session.nodeId);
+        var sessionNode = server.engine.addressSpace.findObject(session.nodeId);
 
         should(!!sessionNode).eql(true," a session node must be found");
 
