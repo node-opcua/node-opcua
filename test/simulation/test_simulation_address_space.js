@@ -727,7 +727,7 @@ describe("testing address space with large number of nodes", function () {
 
     it("should create mass variables", function (done) {
 
-        var a = engine.findObjectByBrowseName("Scalar_Mass_UInt32");
+        engine.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_UInt32"));
         should(a).not.eql(null);
 
         engine.findObject(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
