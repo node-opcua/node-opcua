@@ -62,7 +62,7 @@ describe("testing address space", function () {
         rootFolder.getFolderElementByName("SomeObject").browseName.toString().should.eql("SomeObject");
 
         // ------------------------------------- NOW DELETE THE OBJECT
-        addressSpace.deleteObject(object.nodeId);
+        addressSpace.deleteNode(object.nodeId);
 
         // object shall not be found with a global nodeId search
         should(addressSpace.findNode(object.nodeId)).eql(undefined);
@@ -102,7 +102,7 @@ describe("testing address space", function () {
 
     });
 
-    describe("AddressSpace#deleteObject",function() {
+    describe("AddressSpace#deleteNode",function() {
 
         it("should  remove an object previously added to a folder of an  address space (and its children)", function () {
 
@@ -124,7 +124,7 @@ describe("testing address space", function () {
             findReference(references, object.nodeId).length.should.eql(1);
 
             //---------------------------------------------------------
-            addressSpace.deleteObject(object.nodeId);
+            addressSpace.deleteNode(object.nodeId);
             //---------------------------------------------------------
 
             // object shall not be found with a global nodeId search
@@ -163,7 +163,7 @@ describe("testing address space", function () {
             object.getProperties()[1].browseName.toString().should.eql("Property2");
 
             // now lets remove Prop1
-            addressSpace.deleteObject(prop1.nodeId);
+            addressSpace.deleteNode(prop1.nodeId);
             object.getProperties().length.should.eql(1);
             object.getProperties()[0].browseName.toString().should.eql("Property2");
 

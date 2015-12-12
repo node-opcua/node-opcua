@@ -168,12 +168,12 @@ server.on("post_initialize", function () {
 
 
 
-function dumpObject(obj) {
+function dumpNode(node) {
     function w(str,width) {
         var tmp =str+ "                                        ";
         return tmp.substr(0,width);
     }
-    return   _.map(obj,function(value,key) {
+    return   _.map(node,function(value,key) {
         return  "      " + w(key,30).green + "  : " + ((value === null)? null : value.toString());
     }).join("\n");
 }
@@ -190,9 +190,9 @@ server.start(function (err) {
     console.log("  endpointUrl         :".yellow, endpointUrl.cyan);
 
     console.log("  serverInfo          :".yellow);
-    console.log(dumpObject(server.serverInfo));
+    console.log(dumpNode(server.serverInfo));
     console.log("  buildInfo           :".yellow);
-    console.log(dumpObject(server.engine.buildInfo));
+    console.log(dumpNode(server.engine.buildInfo));
 
     console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
 });
