@@ -150,19 +150,21 @@ describe("Testing bug #141 -  Client should have a appropriated timeoutHint on P
 
             request.requestHeader.timeoutHint = 10;
 
-            var hit = 0;
+            var callback_received = false;
+            var event_received = false;
 
             session.performMessageTransaction(request,function(err) {
                 //
                 should(err).not.eql(null);
-                hit = hit+1;if (hit === 2) { inner_done(); }
+                callback_received = true;
+                if (callback_received && event_received) { inner_done(); }
             });
 
             client.on("timed_out_request",function(request) {
                 console.log(" received timed_out_request",request.toString());
                 client.timedOutRequestCount.should.eql(1);
-                hit = hit+1;if (hit === 2) { inner_done(); }
-
+                event_received = true;
+                if (callback_received && event_received) { inner_done(); }
             });
 
         },done);
