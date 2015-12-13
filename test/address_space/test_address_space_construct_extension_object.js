@@ -48,7 +48,7 @@ describe("testing address space namespace loading", function () {
                 path.join(__dirname, "../../modeling/my_data_type.xml")
             ];
             fs.existsSync(xml_files[0]).should.be.eql(true);
-            //Xx fs.existsSync(xml_files[1]).should.be.eql(true);
+            fs.existsSync(xml_files[1]).should.be.eql(true);
 
             addressSpace.registerNamespace("ServerNamespaceURI");
             addressSpace.getNamespaceArray().length.should.eql(2);
@@ -107,7 +107,7 @@ describe("testing address space namespace loading", function () {
     //          - UserIdentityToken
     //            - AnonymousIdentityToken
 
-    it("should create a arbitrary structure from a second name space",function(done){
+    it("ZZ should create a arbitrary structure from a second name space",function(done){
 
         var r = require("lib/data_access/EUInformation");
         var ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
@@ -138,8 +138,10 @@ describe("testing address space namespace loading", function () {
         folder.should.be.instanceOf(UAObject);
 
 
+        console.log(" myStructureType = ",myStructureType.toString());
+
         var myVar = myStructureType.instantiate({
-            browseName:"MyVar",
+            browseName: "MyVar",
             organizedBy: folder
         });
 
@@ -160,6 +162,44 @@ describe("testing address space namespace loading", function () {
             done(err);
         });
     });
+
+    it("AA explore the DataType through OPCUA",function() {
+
+        var ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+        ns.should.eql(2);
+        var myStructureDataType = addressSpace.findDataType("MyStructureDataType",ns);
+        myStructureDataType.should.be.instanceOf(UADataType);
+
+        console.log(myStructureDataType.toString());
+
+        // find the encoding
+        //Xx console.log(myStructureDataType.binaryEncoding.toString());
+
+        console.log(myStructureDataType.binaryEncodingDefinition.toString());
+        console.log("------------------------------------------------------------------------------")
+        //xx console.log(myStructureDataType.xmlEncoding.toString());
+        console.log(myStructureDataType.xmlEncodingDefinition.toString());
+
+    });
+    it("AB explore the DataType through OPCUA",function() {
+
+        var ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+        ns.should.eql(2);
+        var myOtherStructureDataType = addressSpace.findDataType("MyOtherStructureDataType",ns);
+        myOtherStructureDataType.should.be.instanceOf(UADataType);
+
+        console.log(myOtherStructureDataType.toString());
+
+        // find the encoding
+        //xx console.log(myStructureDataType.binaryEncoding.toString());
+        console.log(myOtherStructureDataType.binaryEncodingDefinition.toString());
+        console.log("------------------------------------------------------------------------------")
+        //xx console.log(myStructureDataType.xmlEncoding.toString());
+        console.log(myOtherStructureDataType.xmlEncodingDefinition.toString());
+
+    });
+
+
 
     it("should bind an xml-preloaded Extension Object Variable : ServerStatus ",function(done) {
         // in this test, we verify that we can easily bind the Server_ServerStatus object

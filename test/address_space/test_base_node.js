@@ -300,5 +300,24 @@ describe("Testing UAObject", function () {
         node1.node2.browseName.toString().should.eql("Node2");
 
     });
+
+    it("BaseNode#namespaceIndex",function() {
+        var node1 = addressSpace.addObject({
+            browseName: "Node1"
+        });
+        node1.namespaceIndex.should.eql(1);
+
+        addressSpace.rootFolder.namespaceIndex.should.eql(0);
+    });
+
+    it("BaseNode#namespaceUri",function() {
+
+        var node1 = addressSpace.addObject({
+            browseName: "Node2"
+        });
+        node1.namespaceUri.should.eql("http://MYNAMESPACE");
+
+        addressSpace.rootFolder.namespaceUri.should.eql("http://opcfoundation.org/UA/");
+    });
 });
 

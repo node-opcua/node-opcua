@@ -1,6 +1,6 @@
 ###########################
 # UaModeler Project File  #
-# Generated at 25.10.2015 #
+# Generated at 13.12.2015 #
 ###########################
 
 PROJECTNAME = my_data_type
@@ -12,7 +12,7 @@ MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
 
 VARIABLES+= my_data_type.ua: CreateStringNodeIds=false; DllExportPrefix=my_data_type; NamespaceName=my_data_type; NamespacePrefix=my_data_type; 
 
-COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #0000ff\
+COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #c71585\
     my_data_type.ua: #008000
 
 OUTPUTPATH = ../tmp
