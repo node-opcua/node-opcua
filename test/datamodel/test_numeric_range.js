@@ -251,6 +251,23 @@ describe("Testing numerical range", function () {
             referenceByteString.length.should.eql(11);
         });
 
+        it("it should handle the case were the range is bigger than the available size",function() {
+
+            var nr = new NumericRange("0:16777215"); // very large range
+
+            referenceByteString.length.should.eql(11);
+            var r = nr.extract_values(referenceByteString);
+
+            r.array.should.be.instanceOf(Buffer);
+            r.array.length.should.eql(11);
+            r.array.toString().should.eql("Lorem Ipsum");
+
+            r.statusCode.should.eql(StatusCodes.Good);
+            referenceByteString.length.should.eql(11);
+
+        });
+
+
     });
     describe("extracting ranges from array", function () {
 
@@ -360,7 +377,7 @@ describe("Testing numerical range", function () {
             });
 
             it(name + " Z5 - it should return BadIndexRangeNoData if range is outside array boundary", function () {
-                var nr = new NumericRange("3:100000000");
+                var nr = new NumericRange("300000:100000000");
                 var r = nr.extract_values(array);
                 r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             });

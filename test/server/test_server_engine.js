@@ -1269,7 +1269,7 @@ describe("testing ServerEngine", function () {
                 {
                     nodeId: "ns=1;s=TestArray",
                     attributeId: AttributeIds.Value,
-                    indexRange: "2:1000",    // <<<<<<<<<<<<<<<<<<<<<<<<<< BAD BOUNDARY !!!
+                    indexRange: "5000:6000",    // <<<<<<<<<<<<<<<<<<<<<<<<<< BAD BOUNDARY !!!
                     dataEncoding: null /* */
                 }
             ]
