@@ -104,6 +104,113 @@ function build_server_with_temperature_device(options, done) {
         //xx console.log("              session name: ".cyan,session.sessionName.toString());
     });
 
+    server.on("post_initialize", function () {
+
+        var addressSpace = server.engine.addressSpace;
+
+        var addressSpace = server.engine.addressSpace;
+
+        var myDevices = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
+        assert(myDevices.browseName.toString() === "MyDevices");
+
+        var variable0 = addressSpace.addVariable({
+            componentOf: myDevices,
+            browseName: "FanSpeed",
+            nodeId: "ns=2;s=FanSpeed",
+            dataType: "Double",
+            value: new Variant({dataType: DataType.Double, value: 1000.0})
+        });
+
+        var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+        // install a Read/Write variable representing a temperature set point of a temperature controller.
+        server.temperatureVariableId = addressSpace.addVariable({
+            componentOf: myDevices,
+            browseName: "SetPointTemperature",
+            nodeId: setPointTemperatureId,
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new Variant({dataType: DataType.Double, value: server.set_point_temperature});
+                },
+                set: function (variant) {
+                    // to do : test if variant can be coerce to Float or Double
+                    server.set_point_temperature = parseFloat(variant.value);
+                    return StatusCodes.Good;
+                }
+            }
+        });
+
+        // install a Read-Only variable defined with a fancy Opaque nodeid
+        var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+
+        server.pumpSpeed = addressSpace.addVariable({
+            componentOf: myDevices,
+            browseName: "PumpSpeed",
+            nodeId: pumpSpeedId,
+            dataType: "Double",
+            value: {
+                get: function () {
+                    var pump_speed = 200 + Math.random();
+                    return new Variant({dataType: DataType.Double, value: pump_speed});
+                },
+                set: function (variant) {
+                    return StatusCodes.BadNotWritable;
+                }
+            }
+        });
+        assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
+
+        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        debugLog("endpointUrl", endpointUrl);
+        opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
+
+        if (options.add_simulation) {
+            build_address_space_for_conformance_testing(server.engine);
+        }
+
+        // add a Analog Data Item
+        addTestUAAnalogItem(myDevices);
+
+
+        // add a variable that can be written asynchronously
+        var asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
+        var asyncValue = 46;
+
+        server.asyncWriteNode = addressSpace.addVariable({
+            componentOf: myDevices,
+            browseName: "AsynchronousVariable",
+            nodeId: asyncWriteNodeId,
+            dataType: "Double",
+
+            value: {
+                // asynchronous read
+                refreshFunc: function (callback) {
+
+                    var dataValue = new DataValue({
+                        value: {
+                            dataType: DataType.Double,
+                            value: asyncValue
+                        },
+                        sourceTimestamp: new Date()
+                    });
+                    // simulate a asynchronous behaviour
+                    setTimeout(function () {
+                        callback(null, dataValue);
+                    }, 100);
+                },
+                set: function (variant) {
+                    setTimeout(function () {
+                        asyncValue = variant.value;
+                    }, 1000);
+                    return StatusCodes.GoodCompletesAsynchronously;
+                }
+            }
+
+        });
+
+    });
+
+
 
     server.set_point_temperature = 20.0;
 
@@ -115,107 +222,6 @@ function build_server_with_temperature_device(options, done) {
             }
 
             assert(server.engine.status === "initialized");
-
-            var addressSpace = server.engine.addressSpace;
-
-            var myDevices = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
-            assert(myDevices.browseName.toString() === "MyDevices");
-
-            var variable0 = addressSpace.addVariable({
-                componentOf: myDevices,
-                browseName: "FanSpeed",
-                nodeId: "ns=2;s=FanSpeed",
-                dataType: "Double",
-                value: new Variant({dataType: DataType.Double, value: 1000.0})
-            });
-
-            var setPointTemperatureId = "ns=4;s=SetPointTemperature";
-            // install a Read/Write variable representing a temperature set point of a temperature controller.
-            server.temperatureVariableId = addressSpace.addVariable({
-                    componentOf: myDevices,
-                    browseName: "SetPointTemperature",
-                    nodeId: setPointTemperatureId,
-                    dataType: "Double",
-                    value: {
-                        get: function () {
-                            return new Variant({dataType: DataType.Double, value: server.set_point_temperature});
-                        },
-                        set: function (variant) {
-                            // to do : test if variant can be coerce to Float or Double
-                            server.set_point_temperature = parseFloat(variant.value);
-                            return StatusCodes.Good;
-                        }
-                    }
-                });
-
-            // install a Read-Only variable defined with a fancy Opaque nodeid
-            var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
-
-            server.pumpSpeed = addressSpace.addVariable({
-                    componentOf: myDevices,
-                    browseName: "PumpSpeed",
-                    nodeId: pumpSpeedId,
-                    dataType: "Double",
-                    value: {
-                        get: function () {
-                            var pump_speed = 200 + Math.random();
-                            return new Variant({dataType: DataType.Double, value: pump_speed});
-                        },
-                        set: function (variant) {
-                            return StatusCodes.BadNotWritable;
-                        }
-                    }
-                });
-            assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
-
-            var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            debugLog("endpointUrl", endpointUrl);
-            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
-
-            if (options.add_simulation) {
-                build_address_space_for_conformance_testing(server.engine);
-            }
-
-            // add a Analog Data Item
-            addTestUAAnalogItem(myDevices);
-
-
-            // add a variable that can be written asynchronously
-            var asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
-            var asyncValue = 46;
-
-            server.asyncWriteNode = addressSpace.addVariable({
-                componentOf: myDevices,
-                browseName: "AsynchronousVariable",
-                nodeId: asyncWriteNodeId,
-                dataType: "Double",
-
-                value: {
-                    // asynchronous read
-                    refreshFunc: function (callback) {
-
-                        var dataValue = new DataValue({
-                            value: {
-                                dataType: DataType.Double,
-                                value: asyncValue
-                            },
-                            sourceTimestamp: new Date()
-                        });
-                        // simulate a asynchronous behaviour
-                        setTimeout(function () {
-                            callback(null, dataValue);
-                        }, 100);
-                    },
-                    set: function (variant) {
-                        setTimeout(function () {
-                            asyncValue = variant.value;
-                        }, 1000);
-                        return StatusCodes.GoodCompletesAsynchronously;
-                    }
-                }
-
-            });
-
 
             done();
 

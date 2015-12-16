@@ -65,9 +65,11 @@ exports.resourceLeakDetector = {
             if (trace) {
                 console.log("setInterval \n", get_stack().red, "\n");
             }
-
-            assert(delay > 10);
             self.setIntervalCallCount += 1;
+
+            if (delay<=10) {
+                throw new Error("GLOLBA#setInterval called with a delay = " + delay.toString());
+            }
 
             var key = self.setIntervalCallCount;
             var intervalId =  self.setInterval_old(func, delay);

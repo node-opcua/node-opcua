@@ -17,53 +17,53 @@ var DataValue = opcua.DataValue;
 var browse_service = opcua.browse_service;
 var BrowseDirection = browse_service.BrowseDirection;
 
-
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
-
-var port = 2000;
-
-var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixture_empty_nodeset2.xml");
+
+describe("testing Client-Server -Event", function () {
 
 
-describe("testing basic Client-Server communication", function () {
+    this.timeout(10000);
 
+    var port = 2222;
+    var server;
+    var endpointUrl;
 
-    var server, client, temperatureVariableId, endpointUrl;
-
-    before(function (done) {
-
-        resourceLeakDetector.start();
-        server = build_server_with_temperature_device({port: port}, function (err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
-            done(err);
+    function start_server(done) {
+        //xx resourceLeakDetector.start();
+        server = new opcua.OPCUAServer({
+            port: port,
+            nodeset_filename: empty_nodeset_filename,
+            maxAllowedSessionNumber: 10
         });
 
-    });
-
-    beforeEach(function (done) {
-        client = new OPCUAClient();
-        done();
-    });
-
-    afterEach(function (done) {
-        client = null;
-        done();
-    });
-
-    after(function (done) {
-        server.shutdown(function () {
-            resourceLeakDetector.stop();
+        server.start(function () {
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done();
         });
-    });
+    }
+
+    function end_server(done) {
+        if (server) {
+            server.shutdown(function () {
+                //xx resourceLeakDetector.stop();
+                server = null;
+                done();
+            });
+        } else {
+            done();
+        }
+    }
+
+
 
     it("should raise a close event once on normal disconnection", function (done) {
 
         var close_counter = 0;
+
+        var client = new OPCUAClient();
         client.on("close", function (err) {
 
             //xx console.log(" client.on('close') Stack ", (new Error()).stack);
@@ -74,6 +74,10 @@ describe("testing basic Client-Server communication", function () {
         });
 
         async.series([
+
+            function (callback) {
+                start_server(callback);
+            },
             function (callback) {
                 client.connect(endpointUrl, callback);
             },
@@ -84,44 +88,19 @@ describe("testing basic Client-Server communication", function () {
             function (callback) {
                 close_counter.should.eql(1);
                 callback(null);
+            },
+            function (callback) {
+                end_server(callback);
             }
         ], done);
 
 
     });
 
-});
-
-
-describe("testing Client-Server : client behavior upon server disconnection", function () {
-
-    var server, client, temperatureVariableId, endpointUrl;
-
-
-    beforeEach(function (done) {
-
-        client = new OPCUAClient();
-
-        server = build_server_with_temperature_device({port: port}, function (err) {
-
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
-            done(err);
-
-        });
-    });
-
-    afterEach(function (done) {
-        client.disconnect(function (err) {
-            client = null;
-            done(err);
-        });
-    });
-
-
     it("Client should raise a close event with an error when server initiates disconnection", function (done) {
 
         var close_counter = 0;
+        var client = new OPCUAClient();
 
         var the_pending_callback = null;
 
@@ -147,28 +126,30 @@ describe("testing Client-Server : client behavior upon server disconnection", fu
 
         async.series([
             function (callback) {
+                start_server(callback);
+            },
+            function (callback) {
                 client.connect(endpointUrl, callback);
             },
             function (callback) {
+
                 close_counter.should.eql(0);
 
                 // client is connected but server initiate a immediate shutdown , closing all connections
                 // delegate the call of the callback function of this step to when client has closed
                 the_pending_callback = callback;
 
-                server.shutdown(function () {
-                });
+                end_server(function() {
 
+                });
             },
             function (callback) {
-
-                callback(null);
                 close_counter.should.eql(1);
+                callback();
             }
 
         ], done);
 
 
     });
-
 });
