@@ -86,7 +86,7 @@ var endpointUrl = argv.endpoint;
 
 
 if (!endpointUrl) {
-    require('optimist').showHelp();
+    require('yargs').showHelp();
     return;
 }
 var the_session = null;

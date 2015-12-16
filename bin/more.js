@@ -1,7 +1,7 @@
 /*
  * write a file to the console, preserving the Ansi color decoration
  */
-var argv = require('optimist')
+var argv = require('yargs')
     .usage('Usage: $0 <file>')
     .argv;
 

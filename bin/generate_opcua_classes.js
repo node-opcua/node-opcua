@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 require("requirish")._(module);
 
-var argv = require('optimist')
+var argv = require('yargs')
     .usage('Usage: $0 --clear --verbose ')
     .argv;
 
