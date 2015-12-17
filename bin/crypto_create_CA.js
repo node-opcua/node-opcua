@@ -30,7 +30,7 @@ var assert = require("better-assert");
 var byline = require('byline');
 
 
-var argv = require('optimist')
+var argv = require('yargs')
     .usage('Usage: $0 [--dev] [--silent] [--force]')
     .boolean("force")
     .boolean("forceCA")
