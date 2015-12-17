@@ -366,8 +366,9 @@ describe("Server Side MonitoredItem", function () {
             queueSize: 10
         }));
 
+
         // setting
-        result.revisedSamplingInterval.should.eql(0);
+        result.revisedSamplingInterval.should.eql(50);
 
         result = monitoredItem.modify(null, new MonitoringParameters({
             clientHandle: 1,
@@ -375,6 +376,7 @@ describe("Server Side MonitoredItem", function () {
             discardOldest: true,
             queueSize: 10
         }));
+
         result.revisedSamplingInterval.should.not.eql(1);
 
         monitoredItem.terminate();

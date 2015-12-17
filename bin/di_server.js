@@ -90,7 +90,7 @@ var hostname = require("os").hostname();
 server.on("post_initialize", function () {
 
 
-    var addressSpace = server.engine.address_space;
+    var addressSpace = server.engine.addressSpace;
 
     var rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");

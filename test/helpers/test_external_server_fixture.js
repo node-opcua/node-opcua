@@ -1,8 +1,8 @@
 require("requirish")._(module);
 
 
-var start_simple_server = require("./external_server_fixture").start_simple_server;
-var stop_simple_server = require("./external_server_fixture").stop_simple_server;
+var start_simple_server = require("test/helpers/external_server_fixture").start_simple_server;
+var stop_simple_server = require("test/helpers/external_server_fixture").stop_simple_server;
 
 
 describe("testing external server operations", function () {

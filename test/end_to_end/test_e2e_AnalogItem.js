@@ -145,7 +145,7 @@ describe("testing AnalogItem on client side", function () {
     }
 
 
-    it("should read the EUrange property of an analog item", function (done) {
+    it("should read the EURange property of an analog item", function (done) {
 
         var nodeId = "ns=4;s=TemperatureAnalogItem";
 

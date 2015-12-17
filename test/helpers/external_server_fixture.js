@@ -3,9 +3,14 @@ var colors = require("colors");
 var crypto_utils = require("lib/misc/crypto_utils");
 var path = require("path");
 var _ = require("underscore");
+var spawn = require("child_process").spawn;
+
 /**
  *
  * @param options
+ * @param options.env
+ * @param [options.server_sourcefile {String} ="./bin/simple_server"]
+ * @param [options.port {String} = 2223]
  * @param callback {Function}
  * @param callback.error {Error|Null}
  * @param callback.data
@@ -20,22 +25,26 @@ function start_simple_server(options, callback) {
         callback = options;
         options = null;
     }
-
     options = options || {};
 
-    var spawn = require("child_process").spawn;
+    var server_script = options.server_sourcefile || "./bin/simple_server";
+    var port = options.port || "2223";
+
+    delete options.server_sourcefile;
+    delete options.port;
+
+
 
     options.env = options.env || {};
-
     _.extend(options.env, process.env);
 
     //xx options.env.DEBUG = "ALL";
 
-    var server_exec = spawn('node', ['./bin/simple_server', '-p', '2223'], options);
+    var server_exec = spawn('node', [server_script, '-p', port], options);
 
     var serverCertificateFilename = path.join(__dirname, "../../certificates/server_cert_1024.pem");
 
-    console.log(" node ", "./bin/simple_server");
+    console.log(" node ", server_script);
 
     function detect_early_termination(code, signal) {
         console.log('child process terminated due to receipt of signal ' + signal);
