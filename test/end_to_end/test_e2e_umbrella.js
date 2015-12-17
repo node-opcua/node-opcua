@@ -97,7 +97,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_73")(test);
     require("./u_test_e2e_issue_119")(test);
     require("./u_test_e2e_issue_141")(test);
-    require("./u_test_e2e_issue_xxxx")(test);
+    require("./u_test_e2e_issue_146")(test);
     require("./u_test_e2e_call_service")(test);
     require("./u_test_e2e_ClientSession_readVariableValue")(test);
     require("./u_test_e2e_read_write")(test);
