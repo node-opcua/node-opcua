@@ -59,15 +59,18 @@ describe("testing Client - Umbrella ", function () {
     });
 
     afterEach(function (done) {
-        console.log(" SERVER => currentChannelCount = ",test.server.currentChannelCount);
-        console.log(" SERVER => bytesWritten        = ",test.server.bytesWritten);
-        console.log(" SERVER => bytesRead           = ",test.server.bytesRead);
-        console.log("      currentSubscriptionCount = ",test.server.currentSubscriptionCount);
-        console.log("      currentSessionCount      = ",test.server.currentSessionCount);
-        console.log("      transactionsCount        = ",test.server.transactionsCount);
-        console.log("  cumulatedSessionCount        = ",test.server.engine.cumulatedSessionCount);
-        console.log("  cumulatedSubscriptionCount   = ",test.server.engine.cumulatedSubscriptionCount);
-        console.log("  rejectedSessionCount         = ",test.server.engine.rejectedSessionCount);
+
+        if (false) {
+            console.log(" currentChannelCount          = ",test.server.currentChannelCount);
+            console.log(" bytesWritten                 = ",test.server.bytesWritten);
+            console.log(" bytesRead                    = ",test.server.bytesRead);
+            console.log(" currentSubscriptionCount     = ",test.server.currentSubscriptionCount);
+            console.log(" currentSessionCount          = ",test.server.currentSessionCount);
+            console.log(" transactionsCount            = ",test.server.transactionsCount);
+            console.log(" cumulatedSessionCount        = ",test.server.engine.cumulatedSessionCount);
+            console.log(" cumulatedSubscriptionCount   = ",test.server.engine.cumulatedSubscriptionCount);
+            console.log(" rejectedSessionCount         = ",test.server.engine.rejectedSessionCount);
+        }
 
         test.server.currentSubscriptionCount.should.eql(0," verify test clean up : dangling  subscriptions found");
         test.server.currentSessionCount.should.eql(0," verify test clean up : dangling  session found");
