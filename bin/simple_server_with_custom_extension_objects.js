@@ -47,6 +47,8 @@ var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 var hostname = require("os").hostname();
 
 
+console.log("  server PID          :".yellow, process.pid);
+
 server.on("post_initialize", function () {
     var addressSpace = server.engine.addressSpace;
     var rootFolder = addressSpace.findNode("RootFolder");
