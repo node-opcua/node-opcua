@@ -265,6 +265,11 @@ server.on("post_initialize", function () {
         componentOf: rootFolder.views,
         browseName: "MyView"
     });
+
+    view.addReference({
+        referenceType:"Organizes",
+        nodeId: node.nodeId
+    });
 });
 
 
