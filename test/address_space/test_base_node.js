@@ -166,48 +166,38 @@ describe("Testing UAObject", function () {
             browseName: "nodeDest"
         });
 
-        node1.addReference({
-            referenceType: "INVALID TYPE",
-            isForward: true,
-            nodeId: nodeDest.nodeId
-        });
+        should(function() {
+            node1.addReference({
+                referenceType: "INVALID TYPE",
+                isForward: true,
+                nodeId: nodeDest.nodeId
+            });
+        }).throwError();
     });
 
     it("BaseNode#addReference - four equivalent cases", function () {
 
-        (function use_case1a() {
-            var view = addressSpace.addObject({browseName: "View" });
-            var node = addressSpace.addObject({browseName: "Node" });
-            node.addReference({ referenceType: "OrganizedBy", nodeId: view.nodeId });
-            view.getFolderElementByName("Node").browseName.toString().should.eql(node.browseName.toString());
-        })();
+        var view = addressSpace.addObject({browseName: "View" });
+        var node1 = addressSpace.addObject({browseName: "Node1" });
+        var node2 = addressSpace.addObject({browseName: "Node2" });
+        var node3 = addressSpace.addObject({browseName: "Node3" });
+        var node4 = addressSpace.addObject({browseName: "Node4" });
+        var node5 = addressSpace.addObject({browseName: "Node5" });
 
-        (function use_case1b() {
-            var view = addressSpace.addObject({browseName: "View" });
-            var node = addressSpace.addObject({browseName: "Node" });
-            node.addReference({ referenceType: "OrganizedBy", nodeId: view });
-            view.getFolderElementByName("Node").browseName.toString().should.eql(node.browseName.toString());
-        })();
-        (function use_case1c() {
-            var view = addressSpace.addObject({browseName: "View" });
-            var node = addressSpace.addObject({browseName: "Node" });
-            node.addReference({ referenceType: "Organizes", isForward: false, nodeId: view.nodeId });
-            view.getFolderElementByName("Node").browseName.toString().should.eql(node.browseName.toString());
-        })();
 
-        (function use_case2a() {
-            var view = addressSpace.addObject({browseName: "View" });
-            var node = addressSpace.addObject({browseName: "Node" });
-            view.addReference({ referenceType: "Organizes", nodeId: node });
-            view.getFolderElementByName("Node").browseName.toString().should.eql(node.browseName.toString());
-        })();
-        (function use_case2b() {
-            var view = addressSpace.addObject({browseName: "View" });
-            var node = addressSpace.addObject({browseName: "Node" });
-            view.addReference({ referenceType: "OrganizedBy",  isForward: false, nodeId: node });
-            view.getFolderElementByName("Node").browseName.toString().should.eql(node.browseName.toString());
-        })();
+        // the following addReference usages produce the same relationship
+        node1.addReference({ referenceType: "OrganizedBy", nodeId: view.nodeId });
+        node2.addReference({ referenceType: "OrganizedBy", nodeId: view });
+        node3.addReference({ referenceType: "Organizes",   isForward: false, nodeId: view.nodeId });
+        view.addReference({  referenceType: "Organizes", nodeId: node4 });
+        view.addReference({  referenceType: "OrganizedBy", isForward: false, nodeId: node5 });
 
+
+        view.getFolderElementByName("Node1").browseName.toString().should.eql(node1.browseName.toString());
+        view.getFolderElementByName("Node2").browseName.toString().should.eql(node2.browseName.toString());
+        view.getFolderElementByName("Node3").browseName.toString().should.eql(node3.browseName.toString());
+        view.getFolderElementByName("Node4").browseName.toString().should.eql(node4.browseName.toString());
+        view.getFolderElementByName("Node5").browseName.toString().should.eql(node5.browseName.toString());
 
     });
 
