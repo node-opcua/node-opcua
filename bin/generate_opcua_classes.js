@@ -23,7 +23,18 @@
 require("requirish")._(module);
 
 var argv = require('yargs')
+    .strict()
     .usage('Usage: $0 --clear --verbose ')
+    .options({
+        clear: {
+            type: "boolean",
+            describe: "delete existing _generated_ files first"
+        },
+        verbose: {
+            type: "boolean",
+            describe: "display extra info"
+        }
+    }).help("help")
     .argv;
 
 var path = require("path");
@@ -191,7 +202,7 @@ registerObject("ModifyMonitoredItemsRequest");
 registerObject("ModifyMonitoredItemsResponse");
 registerObject("SetMonitoringModeRequest");
 registerObject("SetMonitoringModeResponse");
-registerObject("EventField");
+registerObject("EventFieldList");
 registerObject("EventNotificationList");
 registerObject("StatusChangeNotification");
 registerObject("SetTriggeringRequest");
@@ -334,8 +345,9 @@ generate_address_space(addressSpace, filename, function () {
 
     makeServerStatus(addressSpace);
 
+    console.log("done");
+
 });
 
 
 
-console.log("done");
