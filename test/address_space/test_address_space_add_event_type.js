@@ -209,6 +209,7 @@ describe("AddressSpace : add event type ", function () {
         var data = addressSpace.constructEventData(auditEventType,data);
 
         var expected_fields = [
+            "$eventType",
             "__nodes",
             "actionTimeStamp",
             "clientAuditEntryId",

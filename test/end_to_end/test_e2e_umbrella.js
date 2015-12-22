@@ -29,6 +29,8 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
+
+
 describe("testing Client - Umbrella ", function () {
 
     // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
@@ -44,11 +46,12 @@ describe("testing Client - Umbrella ", function () {
         resourceLeakDetector.start();
         test.server = build_server_with_temperature_device({port: port}, function (err) {
 
-            console.log(" ..... done ".grey);
             build_address_space_for_conformance_testing(test.server.engine, {mass_variables: false});
 
             test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             test.temperatureVariableId = test.server.temperatureVariableId;
+
+            console.log(" ..... done ".grey);
             done(err);
         });
 
@@ -93,7 +96,6 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_BrowseRequest")(test);
     require("./u_test_e2e_security_username_password")(test);
     require("./u_test_e2e_SubscriptionUseCase")(test);
-    require("./u_test_e2e_SubscriptionUseCase_monitoring_events")(test);
     require("./u_test_e2e_writeUseCase")(test);
     require("./u_test_e2e_transfer_session")(test);
     require("./u_test_e2e_registerNode")(test);
@@ -105,5 +107,10 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_ClientSession_readVariableValue")(test);
     require("./u_test_e2e_read_write")(test);
     require("./u_test_e2e_client_node_crawler")(test);
+
+    // OPCUA Event Monitoring test Cases
+    require("./u_test_e2e_SubscriptionUseCase_monitoring_events")(test);
+    //xx require("./u_test_e2e_SubscriptionUseCase_monitoring_events_2")(test);
+
 });
 

@@ -15,6 +15,8 @@ var fake_publish_engine = {};
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var fakeNotificationData =[new subscription_service.DataChangeNotification()];
+
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = {
         pendingPublishRequestCount: 0,
@@ -108,7 +110,7 @@ describe("Subscriptions", function () {
 
         subscription.on("perform_update", function () {
             //  pretend there is always something to notify
-            this.addNotificationMessage({});
+            this.addNotificationMessage([new subscription_service.DataChangeNotification()]);
         });
 
         var notification_event_spy = sinon.spy();
@@ -163,7 +165,7 @@ describe("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(0);
 
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.hasPendingNotifications.should.eql(true);
 
         this.clock.tick(subscription.publishingInterval * 4);
@@ -173,7 +175,7 @@ describe("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(0);
 
         // a other notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval * 4);
         notification_event_spy.callCount.should.equal(2);
@@ -290,7 +292,7 @@ describe("Subscriptions", function () {
 
             // now simulate some data change
             //xx monitoredItem.recordValue({value: {dataType: DataType.UInt32, value: 1000}});
-            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage(fakeNotificationData);
 
             notification_event_spy.callCount.should.eql(0);
             simulate_client_adding_publish_request(subscription.publishEngine);
@@ -419,7 +421,7 @@ describe("Subscriptions", function () {
             publishEngine: fake_publish_engine
         });
         subscription.on("perform_update", function () {
-            this.addNotificationMessage({});
+            this.addNotificationMessage(fakeNotificationData);
         });
 
         var expire_event_spy = sinon.spy();
@@ -449,7 +451,7 @@ describe("Subscriptions", function () {
             publishEngine: fake_publish_engine
         });
         subscription.on("perform_update", function () {
-            this.addNotificationMessage({});
+            this.addNotificationMessage(fakeNotificationData);
         });
 
         var expire_event_spy = sinon.spy();
@@ -538,7 +540,7 @@ describe("Subscriptions", function () {
         });
 
         subscription.pendingNotificationsCount.should.equal(0);
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.pendingNotificationsCount.should.equal(1);
 
         subscription.terminate();
@@ -561,7 +563,7 @@ describe("Subscriptions", function () {
         subscription.pendingNotificationsCount.should.equal(0);
         subscription.sentNotificationsCount.should.equal(0);
 
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.pendingNotificationsCount.should.equal(1);
         subscription.sentNotificationsCount.should.equal(0);
 
@@ -586,8 +588,8 @@ describe("Subscriptions", function () {
                 publishEngine: fake_publish_engine
             });
 
-            subscription.addNotificationMessage({});
-            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage(fakeNotificationData);
+            subscription.addNotificationMessage(fakeNotificationData);
             subscription.pendingNotificationsCount.should.equal(2);
             subscription.sentNotificationsCount.should.equal(0);
 
@@ -625,8 +627,8 @@ describe("Subscriptions", function () {
             should(subscription.getMessageForSequenceNumber(35)).eql(null);
 
 
-            subscription.addNotificationMessage({});
-            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage(fakeNotificationData);
+            subscription.addNotificationMessage(fakeNotificationData);
             subscription.pendingNotificationsCount.should.equal(2);
             subscription.sentNotificationsCount.should.equal(0);
 
@@ -663,13 +665,13 @@ describe("Subscriptions", function () {
                 publishEngine: fake_publish_engine
             });
             // create a notification at t=0
-            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage(fakeNotificationData);
             subscription.popNotificationToSend();
             subscription.sentNotificationsCount.should.equal(1);
 
             this.clock.tick(1000 * 5);
             // create a notification at t=1000*5
-            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage(fakeNotificationData);
             subscription.popNotificationToSend();
             subscription.sentNotificationsCount.should.equal(2);
 
@@ -752,7 +754,7 @@ describe("Subscriptions", function () {
 
         // pretend that we already have notification messages
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
 
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
@@ -845,15 +847,15 @@ describe("Subscription#setPublishingMode", function () {
 
         // pretend that we already have notification messages
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
 
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
@@ -889,15 +891,15 @@ describe("Subscription#setPublishingMode", function () {
 
         // pretend that we already have notification messages
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
         // a notification finally arrived !
-        subscription.addNotificationMessage({});
+        subscription.addNotificationMessage(fakeNotificationData);
 
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
@@ -929,7 +931,7 @@ describe("Subscription#setPublishingMode", function () {
 
         // pretend that we already have notification messages
         function push_some_notification() {
-            subscription.addNotificationMessage({});
+            subscription.addNotificationMessage(fakeNotificationData);
         }
 
         var t = setInterval(push_some_notification, 50);

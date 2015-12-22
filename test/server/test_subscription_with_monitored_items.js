@@ -207,7 +207,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("a subscription should collect monitored item notification with collectDataChangeNotification", function (done) {
+    it("XX a subscription should collect monitored item notification with collectNotificationData", function (done) {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -235,8 +235,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
-        // at first, collectDataChangeNotification  should has 1 notification with current dataItem value
-        var notifications = subscription.collectDataChangeNotification();
+        // at first, collectNotificationData  should has 1 notification with current dataItem value
+        var notifications = subscription.collectNotificationData();
         should(notifications.length).equal(1);
 
         // now simulate some data change
@@ -244,9 +244,13 @@ describe("Subscriptions and MonitoredItems", function () {
 
         monitoredItem.queue.length.should.eql(5);
 
-        // then, collectDataChangeNotification  should collect at least 2 values
-        notifications = subscription.collectDataChangeNotification();
+        // then, collectNotificationData  should collect at least 2 values
+        notifications = subscription.collectNotificationData();
         notifications.length.should.eql(1);
+
+        notifications = notifications[0];
+        notifications.length.should.eql(1);
+
         notifications[0].monitoredItems.length.should.eql(5);
         notifications[0].monitoredItems[0].clientHandle.should.eql(monitoredItem.clientHandle);
 

@@ -45,6 +45,8 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var fakeNotificationData =[new subscription_service.DataChangeNotification()];
+
 describe("Testing the server publish engine", function () {
 
     before(function () {
@@ -125,7 +127,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval * 1.2);
 
@@ -142,7 +144,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server has now some notification ready and send them to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         send_response_for_request_spy.callCount.should.equal(1);
 
         this.clock.tick(subscription.publishingInterval);
@@ -286,7 +288,7 @@ describe("Testing the server publish engine", function () {
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval);
 
@@ -301,7 +303,7 @@ describe("Testing the server publish engine", function () {
         // --------------------------------
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval);
 
@@ -314,7 +316,7 @@ describe("Testing the server publish engine", function () {
 
 
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval);
         subscription.getAvailableSequenceNumbers().should.eql([1, 2, 3]);
 
@@ -331,7 +333,7 @@ describe("Testing the server publish engine", function () {
         ));
         subscription.getAvailableSequenceNumbers().should.eql([1, 3]);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(4);
         send_response_for_request_spy.getCall(3).args[1]._schema.name.should.equal("PublishResponse");
@@ -348,7 +350,7 @@ describe("Testing the server publish engine", function () {
         ));
         subscription.getAvailableSequenceNumbers().should.eql([4]);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval);
 
         send_response_for_request_spy.callCount.should.equal(5);
@@ -390,7 +392,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
 
         this.clock.tick(subscription.publishingInterval * 1.2);
@@ -489,7 +491,7 @@ describe("Testing the server publish engine", function () {
         publish_server.pendingPublishRequestCount.should.eql(5);
 
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(2);
         subscription.state.should.eql(SubscriptionState.NORMAL);
@@ -528,7 +530,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(2);
         subscription.state.should.equal(SubscriptionState.NORMAL);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval * 1.2);
 
         subscription.state.should.equal(SubscriptionState.LATE);
@@ -624,9 +626,9 @@ describe("Testing the server publish engine", function () {
 
 
         // add some notification we want to process
-        subscription1.addNotificationMessage([{}]);
-        subscription2.addNotificationMessage([{}]);
-        subscription3.addNotificationMessage([{}]);
+        subscription1.addNotificationMessage(fakeNotificationData);
+        subscription2.addNotificationMessage(fakeNotificationData);
+        subscription3.addNotificationMessage(fakeNotificationData);
 
 
         // let move in time so that all subscriptions get late (without expiring)
@@ -677,7 +679,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(2);
         subscription.state.should.equal(SubscriptionState.NORMAL);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval * 1.2);
 
         subscription.state.should.equal(SubscriptionState.LATE);
@@ -715,12 +717,12 @@ describe("Testing the server publish engine", function () {
         publish_server.add_subscription(subscription);
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.pendingNotificationsCount.should.eql(1);
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.pendingNotificationsCount.should.eql(2);
         subscription.state.should.eql(SubscriptionState.NORMAL);
 

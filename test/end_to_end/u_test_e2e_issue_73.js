@@ -11,19 +11,18 @@ var opcua = require("index.js");
 var OPCUAClient = opcua.OPCUAClient;
 var ClientSession = opcua.ClientSession;
 
-var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var _port = 2000;
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
-var securityMode = opcua.MessageSecurityMode.NONE;
+var securityMode   = opcua.MessageSecurityMode.NONE;
 var securityPolicy = opcua.SecurityPolicy.None;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
 module.exports = function (test) {
+
     describe("Testing bug #73 -  Server resets sequence number after secure channel renewal ", function () {
 
         var options = {

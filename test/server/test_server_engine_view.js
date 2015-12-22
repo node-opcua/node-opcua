@@ -45,7 +45,7 @@ describe("Testing the server  engine - View related ", function () {
 
         var viewsFolder = engine.addressSpace.findNode("ViewsFolder");
 
-        var view = engine.addView({
+        var view = engine.addressSpace.addView({
             componentOf: viewsFolder,
             browseName: "MyView"
         });
