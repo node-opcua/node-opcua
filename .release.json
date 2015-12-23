@@ -9,12 +9,16 @@
     "tagName": "v%s",
     "tagAnnotation": "v%s",
     "buildCommand": false,
-    "distRepo": false,
-    "distStageDir": ".stage",
-    "distBase": "dist",
-    "distFiles": ["**/*"],
-    "private": false,
-    "publish": false,
-    "publishPath": "."
+    "dist": {
+       "repo": false,
+       "stageDir": ".stage",
+        "baseDir": "dist",
+        "files": ["**/*"]
+    },
+    "npm": {
+      "private": false,
+      "publish": false,
+      "publishPath": "."
+    }
 }
 
