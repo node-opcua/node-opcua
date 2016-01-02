@@ -346,6 +346,10 @@ var Variant_Schema = {
             assert(options.dataType !== null);
         }
 
+        if (!options.arrayType && _.isArray(options.value)) {
+            options.arrayType = VariantArrayType.Array;
+        }
+
         if (options.arrayType && options.arrayType !== VariantArrayType.Scalar) {
             /* istanbul ignore else */
             if (options.arrayType === VariantArrayType.Array) {
