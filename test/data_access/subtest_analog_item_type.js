@@ -26,14 +26,14 @@ module.exports = function (engine) {
 
             var addressSpace = engine.addressSpace;
 
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
-            rootFolder.browseName.toString().should.eql("Objects");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            objectsFolder.browseName.toString().should.eql("Objects");
 
             var fakeValue = 1;
 
             var analogItem = addressSpace.addAnalogDataItem({
 
-                organizedBy: rootFolder,
+                organizedBy: objectsFolder,
 
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
@@ -129,10 +129,10 @@ module.exports = function (engine) {
 
             var addressSpace = engine.addressSpace;
 
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
 
             var analogItem = addressSpace.addAnalogDataItem({
-                organizedBy: rootFolder,
+                organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
                 valuePrecision: 0.5,
@@ -158,10 +158,10 @@ module.exports = function (engine) {
 
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
 
             var analogItem = addressSpace.addAnalogDataItem({
-                organizedBy: rootFolder,
+                organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
                 valuePrecision: 0.5,

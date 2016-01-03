@@ -8,6 +8,8 @@ var path = require("path");
 describe("testing NodeSet XML file loading", function () {
 
 
+    this.timeout(200000); // could be slow on appveyor !
+
     var addressSpace;
 
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {

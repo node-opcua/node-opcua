@@ -41,40 +41,6 @@ describe("testing address space", function () {
         });
     }
 
-    it("should be possible to remove an object previously added to the address space", function () {
-
-        var options = {
-            organizedBy: "RootFolder",
-            browseName: "SomeObject"
-        };
-
-        var object = addressSpace.addObject(options);
-
-        // object shall  be found with a global nodeId search
-        addressSpace.findNode(object.nodeId).should.eql(object);
-
-        // object shall  be found in parent folder
-        var references = rootFolder.findReferences("Organizes", true);
-        findReference(references, object.nodeId).length.should.eql(1);
-
-
-        // root folder should organize the object
-        rootFolder.getFolderElementByName("SomeObject").browseName.toString().should.eql("SomeObject");
-
-        // ------------------------------------- NOW DELETE THE OBJECT
-        addressSpace.deleteNode(object.nodeId);
-
-        // object shall not be found with a global nodeId search
-        should(addressSpace.findNode(object.nodeId)).eql(undefined);
-
-        // object shall not be found in parent folder anymore
-        references = rootFolder.findReferences("Organizes", true);
-        findReference(references, object.nodeId).length.should.eql(0);
-
-        should(rootFolder.getFolderElementByName("SomeObject")).eql(null);
-
-    });
-
     describe("BaseNode#findReferencesEx",function() {
 
         it("should find HierarchicalReferences",function() {
@@ -104,10 +70,46 @@ describe("testing address space", function () {
 
     describe("AddressSpace#deleteNode",function() {
 
-        it("should  remove an object previously added to a folder of an  address space (and its children)", function () {
+
+        it("should remove an object from the address space", function () {
 
             var options = {
-                organizedBy: "RootFolder",
+                organizedBy: "ObjectsFolder",
+                browseName: "SomeObject"
+            };
+
+            var object = addressSpace.addObject(options);
+
+            // object shall be found with a global nodeId search
+            addressSpace.findNode(object.nodeId).should.eql(object);
+
+            // object shall be found in parent folder
+            var references = rootFolder.objects.findReferences("Organizes", true);
+            findReference(references, object.nodeId).length.should.eql(1);
+
+
+            // root folder should organize the object
+            rootFolder.objects.getFolderElementByName("SomeObject").browseName.toString().should.eql("SomeObject");
+
+            // ------------------------------------- NOW DELETE THE OBJECT
+            addressSpace.deleteNode(object.nodeId);
+            //---------------------------------------------------------
+
+            // object shall not be found with a global nodeId search
+            should(addressSpace.findNode(object.nodeId)).eql(undefined);
+
+            // object shall not be found in parent folder anymore
+            references = rootFolder.findReferences("Organizes", true);
+            findReference(references, object.nodeId).length.should.eql(0);
+
+            should(rootFolder.getFolderElementByName("SomeObject")).eql(null);
+
+        });
+
+        it("should remove an object and its children from the address space", function () {
+
+            var options = {
+                organizedBy: "ObjectsFolder",
                 browseName: "SomeObject"
             };
             var object = addressSpace.addObject(options);
@@ -120,7 +122,7 @@ describe("testing address space", function () {
             var references = object.findReferences("HasComponent", true);
             findReference(references, innerVar.nodeId).length.should.eql(1);
 
-            references = rootFolder.findReferences("Organizes", true);
+            references = rootFolder.objects.findReferences("Organizes", true);
             findReference(references, object.nodeId).length.should.eql(1);
 
             //---------------------------------------------------------
@@ -135,10 +137,11 @@ describe("testing address space", function () {
             findReference(references, object.nodeId).length.should.eql(0);
 
         });
+
         it("should remove a component of a existing object",function() {
 
             // give an object
-            var object = addressSpace.addObject({organizedBy:"RootFolder", browseName: "MyObject1"});
+            var object = addressSpace.addObject({organizedBy:"ObjectsFolder", browseName: "MyObject1"});
 
             // let's construct some properties and some components gradually, and verify that the caches
             // work as expected.
@@ -241,5 +244,81 @@ describe("testing address space", function () {
         });
     });
 
+
+    it("AddressSpace#addObject : should verify that Only Organizes References are used to relate Objects to the 'Objects' standard Object.",function() {
+
+        //  (version 1.03) part 5 : $8.2.4
+        //   Only Organizes References are used to relate Objects to the 'Objects' standard Object.
+        should(function add_an_object_to_the_objects_folder_using_a_component_relation_instead_of_organizedBy() {
+
+            addressSpace.addObject({
+                browseName: "TestObject1",
+                componentOf: addressSpace.rootFolder.objects
+            });
+
+        }).throwError();
+
+        should(function add_an_object_to_the_objects_folder_using_a_property_relation_instead_of_organizedBy() {
+
+            addressSpace.addObject({
+                browseName: "TestObject2",
+                propertyOf: addressSpace.rootFolder.objects
+            });
+
+        }).throwError();
+
+    });
+
+    it("AddressSpace#extractRootViews : it should provide a mean to extract the list of views to which the object is visible",function() {
+
+        // by walking up the hierarchy of node until we reach either the root.objects folder => primary view is server
+        // or the views folder
+
+        var objects = addressSpace.rootFolder.objects;
+
+        var view1 = addressSpace.addView({
+            organizedBy: addressSpace.rootFolder.views,
+            browseName: "View1"
+        });
+
+        var view2 = addressSpace.addView({
+            organizedBy: addressSpace.rootFolder.views,
+            browseName: "View2"
+        });
+
+        var view3 = addressSpace.addView({
+            organizedBy: addressSpace.rootFolder.views,
+            browseName: "View3"
+        });
+
+        var folder = addressSpace.addObject({
+            typeDefinition: addressSpace.findObjectType("FolderObjectType"),
+            organizedBy: addressSpace.rootFolder.views,
+            browseName: "EngineeringViews"
+        });
+
+        var view4 = addressSpace.addView({
+            organizedBy: folder,
+            browseName: "View4"
+        });
+
+        var node = addressSpace.addObject({
+            organizedBy: objects,
+            browseName: "ParentNodeXXX"
+        });
+
+        node.addReference({ referenceType: "OrganizedBy", nodeId: view1});
+
+        node.addReference({ referenceType: "OrganizedBy", nodeId: view4});
+
+        var views = addressSpace.extractRootViews(node);
+
+        views.length.should.eql(2);
+        views[0].should.eql(view1);
+        views[1].should.eql(view4);
+
+
+
+    });
 
 });

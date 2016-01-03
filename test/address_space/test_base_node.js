@@ -82,6 +82,7 @@ describe("Testing UAObject", function () {
 
         nbReferencesAfter.should.eql(nbReferencesBefore + 1, "we should have one more inverse reference more on the BaseObjectType");
 
+        should(node1.parent).eql(undefined,"node1 should have no parent");
     });
 
     function _test_with_custom_referenceType(referenceType) {
@@ -393,5 +394,26 @@ describe("Testing UAObject", function () {
 
         addressSpace.rootFolder.namespaceUri.should.eql("http://opcfoundation.org/UA/");
     });
+
+    it("AddressSpace#parent should provide a parent property to access parent node", function () {
+
+        var parentNode = addressSpace.addObject({
+            browseName: "ParentNode"
+        });
+
+        var child1 = addressSpace.addObject({componentOf: parentNode, browseName: "Child1"});
+        child1.parent.should.eql(parentNode);
+
+        var child2 = addressSpace.addObject({propertyOf: parentNode, browseName: "Child2"});
+        child2.parent.should.eql(parentNode);
+
+
+        var child3 = addressSpace.addObject({organizedBy: parentNode, browseName: "Child3"});
+        should(child3.parent).eql(undefined,"OrganizedBy is not a Parent/Child relation");
+
+    });
+
+
+
 });
 

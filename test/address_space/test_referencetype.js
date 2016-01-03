@@ -224,11 +224,11 @@ describe("testing ReferenceType", function () {
         serverStatus.browseName.toString().should.equal("ServerStatus");
         serverStatus.nodeId.toString().should.equal("ns=0;i=2256");
 
-        serverStatus.parent.should.equal(server.nodeId);
+        serverStatus.parent.nodeId.should.equal(server.nodeId);
         done();
     });
 
-    it("T1 ServerType shall have a child named ServerStatus", function (done) {
+    xit("ServerType shall have a child named ServerStatus", function (done) {
 
 
         done();

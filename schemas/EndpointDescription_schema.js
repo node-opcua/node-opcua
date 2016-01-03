@@ -15,7 +15,7 @@ var EndpointDescription_Schema = {
         { name: "serverCertificate", fieldType: "ByteString"  },
 
         // The type of security to apply to the messages. ( see part 4 - $7.14.)
-        { name: "securityMode", fieldType: "EnumMessageSecurityMode"},
+        { name: "securityMode", fieldType: "MessageSecurityMode"},
 
         // The URI for SecurityPolicy to use when securing messages.
         // The set of known URIs and the SecurityPolicies associated with them are defined in Part 7.

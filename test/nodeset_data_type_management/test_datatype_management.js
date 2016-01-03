@@ -18,7 +18,7 @@ var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 
 var nodeset = require("lib/address_space/convert_nodeset_to_types").nodeset;
-var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
+var createExtensionObjectDefinition = require("lib/address_space/convert_nodeset_to_types").createExtensionObjectDefinition;
 var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
 
 
@@ -35,8 +35,7 @@ describe("ComplexType read from XML NodeSET file shall be binary Encodable", fun
         require("fs").existsSync(xml_file).should.be.eql(true);
 
         opcua.generate_address_space(addressSpace, xml_file, function (err) {
-
-            makeServerStatus(addressSpace);
+            createExtensionObjectDefinition(addressSpace);
             done(err);
         });
     });

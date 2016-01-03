@@ -1024,6 +1024,132 @@
     </UAVariable>
 
 
+
+    <UAObjectType NodeId="i=2075" BrowseName="AuditActivateSessionEventType" IsAbstract="true">
+        <DisplayName>AuditActivateSessionEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2076</Reference>
+            <Reference ReferenceType="HasProperty">i=2077</Reference>
+            <Reference ReferenceType="HasProperty">i=11485</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2069</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="i=2076" BrowseName="ClientSoftwareCertificates" ParentNodeId="i=2075" DataType="i=344" ValueRank="1">
+        <DisplayName>ClientSoftwareCertificates</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2075</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2077" BrowseName="UserIdentityToken" ParentNodeId="i=2075" DataType="i=316">
+        <DisplayName>UserIdentityToken</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2075</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=11485" BrowseName="SecureChannelId" ParentNodeId="i=2075" DataType="String">
+        <DisplayName>SecureChannelId</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2075</Reference>
+        </References>
+    </UAVariable>
+    <UAObjectType NodeId="i=2078" BrowseName="AuditCancelEventType" IsAbstract="true">
+        <DisplayName>AuditCancelEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2079</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2069</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="i=2079" BrowseName="RequestHandle" ParentNodeId="i=2078" DataType="UInt32">
+        <DisplayName>RequestHandle</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2078</Reference>
+        </References>
+    </UAVariable>
+    <UAObjectType NodeId="i=2080" BrowseName="AuditCertificateEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2081</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2058</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="i=2081" BrowseName="Certificate" ParentNodeId="i=2080" DataType="ByteString">
+        <DisplayName>Certificate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2080</Reference>
+        </References>
+    </UAVariable>
+    <UAObjectType NodeId="i=2082" BrowseName="AuditCertificateDataMismatchEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateDataMismatchEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=2083</Reference>
+            <Reference ReferenceType="HasProperty">i=2084</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2080</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="i=2083" BrowseName="InvalidHostname" ParentNodeId="i=2082" DataType="String">
+        <DisplayName>InvalidHostname</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2082</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=2084" BrowseName="InvalidUri" ParentNodeId="i=2082" DataType="String">
+        <DisplayName>InvalidUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=2082</Reference>
+        </References>
+    </UAVariable>
+    <UAObjectType NodeId="i=2085" BrowseName="AuditCertificateExpiredEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateExpiredEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2080</Reference>
+        </References>
+    </UAObjectType>
+    <UAObjectType NodeId="i=2086" BrowseName="AuditCertificateInvalidEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateInvalidEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2080</Reference>
+        </References>
+    </UAObjectType>
+    <UAObjectType NodeId="i=2087" BrowseName="AuditCertificateUntrustedEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateUntrustedEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2080</Reference>
+        </References>
+    </UAObjectType>
+    <UAObjectType NodeId="i=2088" BrowseName="AuditCertificateRevokedEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateRevokedEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2080</Reference>
+        </References>
+    </UAObjectType>
+    <UAObjectType NodeId="i=2089" BrowseName="AuditCertificateMismatchEventType" IsAbstract="true">
+        <DisplayName>AuditCertificateMismatchEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2080</Reference>
+        </References>
+    </UAObjectType>
+    <UAObjectType NodeId="i=2090" BrowseName="AuditNodeManagementEventType" IsAbstract="true">
+        <DisplayName>AuditNodeManagementEventType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=2052</Reference>
+        </References>
+    </UAObjectType>
+
+
     <UAVariableType NodeId="i=2171" BrowseName="SubscriptionDiagnosticsArrayType" DataType="i=874" ValueRank="1">
         <DisplayName>SubscriptionDiagnosticsArrayType</DisplayName>
         <References>

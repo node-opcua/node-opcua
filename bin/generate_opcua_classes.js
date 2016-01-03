@@ -336,14 +336,14 @@ var AddressSpace = address_space.AddressSpace;
 
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
-var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
+var createExtensionObjectDefinition = require("lib/address_space/convert_nodeset_to_types").createExtensionObjectDefinition;
 
 
 var addressSpace = new AddressSpace();
 
 generate_address_space(addressSpace, filename, function () {
 
-    makeServerStatus(addressSpace);
+    createExtensionObjectDefinition(addressSpace);
 
     console.log("done");
 

@@ -8,6 +8,7 @@ var _ = require("underscore");
 
 var DataType = require("./DataType_enum").DataType;
 var VariantArrayType = require("./VariantArrayType_enum").VariantArrayType;
+var utils = require("lib/misc/utils");
 
 var Variant_ArrayMask = 0x80;
 var Variant_ArrayDimensionsMask = 0x40;
@@ -342,8 +343,15 @@ var Variant_Schema = {
 
         // dataType could be a string
         if (typeof options.dataType === "string") {
-            options.dataType = DataType[options.dataType];
-            assert(options.dataType !== null);
+
+            var d = factories.findBuiltInType(options.dataType);
+            var t = DataType[d.name];
+
+            // istanbul ignore next
+            if (utils.isNullOrUndefined(t)) {
+                throw new Error("DataType: invalid " + options.dataType);
+            }
+            options.dataType = t;
         }
 
         if (!options.arrayType && _.isArray(options.value)) {
@@ -385,7 +393,7 @@ var Variant_Schema = {
     isValid: function (self) {
         return isValidVariant(self.arrayType, self.dataType, self.value);
     },
-    toString: function () {
+    toString: function (options) {
 
         var self = this;
 
@@ -400,7 +408,7 @@ var Variant_Schema = {
                 case DataType.DateTime:
                     return value.toISOString();
                 default:
-                    return value ? value.toString() : "0";
+                    return value ? value.toString(options) : "0";
             }
         }
 

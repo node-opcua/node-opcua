@@ -310,6 +310,7 @@ describe("testing address space for conformance testing", function () {
             value: {
                 value: {
                     dataType: dataType,
+                    arrayType: VariantArrayType.Scalar,
                     value: value
                 }
             }

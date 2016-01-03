@@ -198,7 +198,7 @@ describe("testing ServerEngine", function () {
 
     it("should have a rootFolder ", function () {
 
-        engine.rootFolder.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        engine.rootFolder.typeDefinition.should.eql(FolderTypeId);
 
     });
 
@@ -206,7 +206,7 @@ describe("testing ServerEngine", function () {
 
         var browseNode = engine.addressSpace.findNode("RootFolder");
 
-        browseNode.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        browseNode.typeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(engine.rootFolder);
 
     });
@@ -215,7 +215,7 @@ describe("testing ServerEngine", function () {
 
         var browseNode = engine.addressSpace.findNode("i=84");
 
-        browseNode.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        browseNode.typeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(engine.rootFolder);
 
     });
@@ -226,16 +226,16 @@ describe("testing ServerEngine", function () {
 
 
         assert(rootFolder.objects);
-        rootFolder.objects.parent.should.eql(rootFolder.nodeId);
+        rootFolder.objects.findReferences("Organizes",false)[0].nodeId.should.eql(rootFolder.nodeId);
         rootFolder.objects.typeDefinitionObj.browseName.toString().should.eql("FolderType");
-        rootFolder.objects.typeDefinition.should.eql(makeExpandedNodeId(FolderTypeId));
+        rootFolder.objects.typeDefinition.should.eql(FolderTypeId);
     });
 
     it("should have an 'Server' object in the Objects Folder", function () {
 
         var server= engine.addressSpace.rootFolder.objects.server;
         assert(server);
-        server.parent.should.eql(engine.addressSpace.rootFolder.objects.nodeId);
+        server.findReferences("Organizes",false)[0].nodeId.should.eql(engine.addressSpace.rootFolder.objects.nodeId);
 
     });
 
@@ -251,7 +251,7 @@ describe("testing ServerEngine", function () {
 
         server_NamespaceArray.should.have.property("parent");
         // TODO : should(server_NamespaceArray.parent !==  null).ok;
-        server_NamespaceArray.parent.should.eql(server.nodeId);
+        server_NamespaceArray.parent.nodeId.should.eql(server.nodeId);
 
 
     });
@@ -265,7 +265,7 @@ describe("testing ServerEngine", function () {
         var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerArray);
         var server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
-        //xx server_NamespaceArray.parent.should.eql(serverObject.nodeId);
+        //xx server_NamespaceArray.parent.nodeId.should.eql(serverObject.nodeId);
     });
 
     it("should be possible to create a new folder under the 'Root' folder", function () {
@@ -280,7 +280,7 @@ describe("testing ServerEngine", function () {
         newFolder.nodeClass.should.eql(NodeClass.Object);
 
 //xx        console.log(require("util").inspect(newFolder));
-        newFolder.parent.should.equal(objects.nodeId);
+        newFolder.findReferences("Organizes",false)[0].nodeId.should.eql(objects.nodeId);
 
     });
 
@@ -339,7 +339,7 @@ describe("testing ServerEngine", function () {
 
             });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
-        newVariable.parent.should.equal(newFolder.nodeId);
+        newVariable.parent.nodeId.should.equal(newFolder.nodeId);
 
         newVariable.readValueAsync(function (err, dataValue) {
             if (!err) {
@@ -942,7 +942,7 @@ describe("testing ServerEngine", function () {
         var nodeId = "ns=1;s=TestVar";
         before(function () {
             engine.addressSpace.addVariable({
-                componentOf: engine.addressSpace.findNode("ObjectsFolder"),
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "TestVar",
                     nodeId: nodeId,
                     dataType: "Double",
@@ -1735,7 +1735,7 @@ describe("testing ServerEngine", function () {
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
             engine.addressSpace.addVariable({
-                    componentOf: engine.addressSpace.findNode("ObjectsFolder"),
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "FailingPLCValue",
                     nodeId: "ns=1;s=FailingPLCValue",
                     dataType: "Double",
@@ -1781,7 +1781,7 @@ describe("testing ServerEngine", function () {
 
             // add a variable that provide a on demand refresh function
             engine.addressSpace.addVariable({
-                    componentOf: engine.addressSpace.findNode("ObjectsFolder"),
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "RefreshedOnDemandValue",
                     nodeId: "ns=1;s=RefreshedOnDemandValue",
                     dataType: "Double",
@@ -1804,7 +1804,7 @@ describe("testing ServerEngine", function () {
             );
             // add an other variable that provide a on demand refresh function
             engine.addressSpace.addVariable({
-                    componentOf: engine.addressSpace.findNode("ObjectsFolder"),
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                     browseName: "OtherRefreshedOnDemandValue",
                     nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
                     dataType: "Double",

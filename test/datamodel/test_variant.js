@@ -783,4 +783,22 @@ describe("Variant with enumeration",function() {
         v.dataType.should.eql(DataType.Int32);
     });
 
+    it("should create a variant with builtin type 'Duration'",function() {
+        var v = new Variant({
+            dataType: "Duration",
+            value: 0.1
+        });
+        v.dataType.should.eql(DataType.Double);
+        v.value.should.eql(0.1);
+
+    });
+    it("should create a variant with builtin type 'ByteString'",function() {
+
+        var v = new Variant({
+            dataType: "ByteString",
+            value: new Buffer("abcd")
+        });
+        v.dataType.should.eql(DataType.ByteString);
+        v.value.toString("ascii").should.eql("abcd");
+    });
 });

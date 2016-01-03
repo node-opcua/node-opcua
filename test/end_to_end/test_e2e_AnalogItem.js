@@ -27,7 +27,7 @@ describe("testing AnalogItem on client side", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 
-    this.timeout(10000);
+    this.timeout(Math.max(600000,this._timeout));
 
     var g_session = null;
     before(function (done) {

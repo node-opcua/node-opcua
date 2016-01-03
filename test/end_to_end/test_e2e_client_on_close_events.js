@@ -25,7 +25,7 @@ var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixtur
 describe("testing Client-Server -Event", function () {
 
 
-    this.timeout(10000);
+    this.timeout(Math.max(600000,this._timeout));
 
     var port = 2222;
     var server;

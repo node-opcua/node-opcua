@@ -10,7 +10,7 @@ var should= require("should");
 
 describe("testing extension object with client residing on a different process than the server process", function () {
 
-    this.timeout(200000); // could be slow on appveyor !
+    this.timeout(Math.max(600000,this._timeout));
 
     var serverHandle = null;
 

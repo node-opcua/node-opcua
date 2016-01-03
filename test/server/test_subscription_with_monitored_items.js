@@ -681,7 +681,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
             function simulate_nodevalue_change(currentValue) {
 
-                var v = new Variant({dataType: DataType[dataType], value: currentValue});
+                var v = new Variant({dataType: DataType[dataType], arrayType: VariantArrayType.Scalar, value: currentValue});
 
                 test.clock.tick(1000);
 
@@ -721,8 +721,6 @@ describe("Subscriptions and MonitoredItems", function () {
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
 
-
-
             function simulate_publish_request_and_check_one(expectedValue) {
                 test.clock.tick(100);
 
@@ -739,7 +737,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
                     notifs.length.should.eql(1," should have one pending notification");
 
-                    var expectedValue = encode_decode["coerce"+ dataType](expectedValue);
+                    expectedValue = encode_decode["coerce"+ dataType](expectedValue);
 
 
                     // verify that value matches expected value
