@@ -50,8 +50,8 @@ var userManager = {
 
 var path = require("path");
 //var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
-var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_1024.pem");
-var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_1024.pem");
+var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_2048_outofdate.pem");
+var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_2048.pem");
 
 var server_options = {
 
@@ -262,7 +262,7 @@ server.on("post_initialize", function () {
     // Add a view
     //------------------------------------------------------------------------------
     var view = addressSpace.addView({
-        componentOf: rootFolder.views,
+        organizedBy: rootFolder.views,
         browseName: "MyView"
     });
 
@@ -337,12 +337,13 @@ server.on("response", function (response) {
     switch (response._schema.name) {
         case "ModifySubscriptionResponse":
         case "CreateMonitoredItemsResponse":
+        case "ModifyMonitoredItemsResponse":
         case "RepublishResponse":
             //xx console.log(response.toString());
             break;
         case "BrowseResponse":
         case "TranslateBrowsePathsToNodeIdsResponse":
-            console.log(response.toString());
+            //xx console.log(response.toString());
             break;
         case "WriteResponse":
             break;
@@ -369,10 +370,11 @@ server.on("request", function (request, channel) {
     switch (request._schema.name) {
         case "ModifySubscriptionRequest":
         case "CreateMonitoredItemsRequest":
+        case "ModifyMonitoredItemsRequest":
         case "RepublishRequest":
             //xx console.log(request.toString());
             break;
-        case "ReadRequest":
+        case "xxReadRequest":
             var str = "    ";
             if (request.nodesToRead) {
                 request.nodesToRead.map(function (node) {
@@ -381,7 +383,7 @@ server.on("request", function (request, channel) {
             }
             console.log(str);
             break;
-        case "WriteRequest":
+        case "xxWriteRequest":
             if (request.nodesToWrite) {
                 var lines = request.nodesToWrite.map(function (node) {
                     return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
@@ -390,8 +392,8 @@ server.on("request", function (request, channel) {
             }
             break;
 
-        case "TranslateBrowsePathsToNodeIdsRequest":
-        case "BrowseRequest":
+        case "xxTranslateBrowsePathsToNodeIdsRequest":
+        case "xxBrowseRequest":
             // do special console output
             //console.log(util.inspect(request, {colors: true, depth: 10}));
             console.log(request.toString());

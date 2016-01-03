@@ -121,8 +121,8 @@ function configurationFile() {
      x509_extensions          = usr_cert                   #
      default_days             = 3650                       # default duration : 10 years
 
-     default_md               = sha1
-     # default_md             = sha256                      # The default digest algorithm
+     # default_md               = sha1
+     default_md                 = sha256                      # The default digest algorithm
 
      preserve                 = no
      policy                   = policy_match
@@ -989,4 +989,4 @@ if (argv.new) {
 // - https://www.openssl.org/docs/apps/x509v3_config.html
 // - https://jamielinux.com/articles/2013/08/generate-certificate-revocation-list-revoke-certificates/
 // - https://rietta.com/blog/2012/01/27/openssl-generating-rsa-key-from-command/
-// - http://stackoverflow.com/questions/16658038/cant-open-config-file-usr-local-ssl-openssl-cnf-on-windows
+// - http://stackoverflow.com/questions/16658038/cant-open-config-file-usr-local-ssl-openssl-cnf-on-windows²

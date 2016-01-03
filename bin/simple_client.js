@@ -393,9 +393,16 @@ async.series([
         event_monitoringItem.on("initialized", function () {
             console.log("event_monitoringItem initialized");
         });
+        function w(str,l) {
+            return (str + "                                      ").substr(0,l);
+        }
+        event_monitoringItem.on("changed", function (eventFields) {
 
-        event_monitoringItem.on("changed", function (value) {
             console.log(event_monitoringItem.itemToMonitor.nodeId.toString(), " value has changed to " + value.toString());
+            eventFields.forEach(function(variant,index) {
+                console.log(w(fields[index],15).yellow,variant.toString().cyan);
+            })
+
         });
         event_monitoringItem.on("err", function (err_message) {
             console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);
