@@ -176,7 +176,7 @@ async.series([
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 10000
+            defaultSecureTokenLifetime: 40000
         };
         console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
@@ -292,14 +292,16 @@ async.series([
     // create subscription
     function (callback) {
 
-        the_subscription = new opcua.ClientSubscription(the_session, {
-            requestedPublishingInterval: 10,
-            requestedLifetimeCount: 1000,
-            requestedMaxKeepAliveCount: 12,
-            maxNotificationsPerPublish: 10,
+        var parameters = {
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount:      1000,
+            requestedMaxKeepAliveCount:  12,
+            maxNotificationsPerPublish:  10,
             publishingEnabled: true,
             priority: 10
-        });
+        };
+
+        the_subscription = new opcua.ClientSubscription(the_session, parameters);
 
         var timerId;
         if (timeout > 0) {
@@ -308,9 +310,20 @@ async.series([
             }, timeout);
         }
 
+        function getTick() {
+            return Date.now();
+        }
+        var t = getTick();
+
         the_subscription.on("started", function () {
 
             console.log("started subscription :", the_subscription.subscriptionId);
+
+            console.log(" revised parameters ");
+            console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount , " ( requested " , parameters.requestedMaxKeepAliveCount + ")");
+            console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount  , " ( requested " , parameters.requestedLifetimeCount + ")");
+            console.log("  revised publishingInterval ", the_subscription.publishingInterval , " ( requested " , parameters.requestedPublishingInterval + ")");
+            console.log("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint );
 
             the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
                 if (!err) {
@@ -329,7 +342,11 @@ async.series([
 
 
         }).on("keepalive", function () {
-            console.log("keepalive");
+
+            var t1 = getTick();
+            var span = t1 -t;
+            t= t1;
+            console.log("keepalive ", span/1000 , "sec" , " pending request on server = ",the_subscription.publish_engine.nbPendingPublishRequests);
         }).on("terminated", function () {
             callback();
         });

@@ -29,14 +29,14 @@ describe("Testing the client publish engine", function () {
         };
         var publish_spy = sinon.spy(fake_session, "publish");
 
-        var publish_client = new ClientSidePublishEngine(fake_session);
+        var clientPublishEngine = new ClientSidePublishEngine(fake_session);
 
         // start a first new subscription
-        publish_client.registerSubscriptionCallback(1, 10000,function () {
+        clientPublishEngine.registerSubscriptionCallback(1, 10000,function () {
         });
 
         // start a second new subscription
-        publish_client.registerSubscriptionCallback(2, 10000,function () {
+        clientPublishEngine.registerSubscriptionCallback(2, 10000,function () {
         });
 
         // now advance the time artificially by 4.5 seconds
@@ -69,16 +69,16 @@ describe("Testing the client publish engine", function () {
         };
         var spy = sinon.spy(fake_session, "publish");
 
-        var publish_client = new ClientSidePublishEngine(fake_session);
+        var clientPublishEngine = new ClientSidePublishEngine(fake_session);
 
-        publish_client.timeoutHint.should.eql(10000,"expecting timeoutHint to be set to default value =10sec");
+        clientPublishEngine.timeoutHint.should.eql(10000,"expecting timeoutHint to be set to default value =10sec");
 
         // start a first new subscription
-        publish_client.registerSubscriptionCallback(1, 10000, function () {
+        clientPublishEngine.registerSubscriptionCallback(1, 10000, function () {
         });
 
         // start a second new subscription
-        publish_client.registerSubscriptionCallback(2, 10000,  function () {
+        clientPublishEngine.registerSubscriptionCallback(2, 10000,  function () {
         });
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
@@ -92,10 +92,13 @@ describe("Testing the client publish engine", function () {
         assert(_.isFunction(spy.getCall(0).args[1]));
 
         spy.restore();
-
     });
-    it("a client should stop sending publish request to the server after receiving a notification, when subscription has been unregistered", function () {
+
+
+    it("a client should stop sending publish request to the server after receiving a notification, when there is no more registered subscription ", function () {
+
         var PublishResponse = require("lib/services/subscription_service").PublishResponse;
+
         var fake_session = {
             publish: function (request, callback) {
                 assert(request._schema.name === "PublishRequest");
@@ -109,10 +112,10 @@ describe("Testing the client publish engine", function () {
         };
         var spy = sinon.spy(fake_session, "publish");
 
-        var publish_client = new ClientSidePublishEngine(fake_session);
+        var clientPublishEngine = new ClientSidePublishEngine(fake_session);
 
         // start a first new subscription
-        publish_client.registerSubscriptionCallback(1, 10000, function () {
+        clientPublishEngine.registerSubscriptionCallback(1, 10000, function () {
         });
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
@@ -122,8 +125,8 @@ describe("Testing the client publish engine", function () {
         spy.callCount.should.be.greaterThan(20);
         var callcount_after_3sec = spy.callCount;
 
-        // now, unregister subscription
-        publish_client.unregisterSubscriptionCallback(1);
+        // now, un-register the subscription
+        clientPublishEngine.unregisterSubscriptionCallback(1);
 
         // now advance the time artificially again by 3 seconds ( 20*150ms)
         this.clock.tick(3000);
@@ -180,11 +183,11 @@ describe("Testing the client publish engine", function () {
         };
         var spy = sinon.spy(fake_session, "publish");
 
-        var publish_client = new ClientSidePublishEngine(fake_session);
-        publish_client.registerSubscriptionCallback(44, 10000,function () {
-        });
-        publish_client.registerSubscriptionCallback(1, 10000,function () {
-        });
+        var clientPublishEngine = new ClientSidePublishEngine(fake_session);
+
+        clientPublishEngine.registerSubscriptionCallback(44, 10000,function () {});
+
+        clientPublishEngine.registerSubscriptionCallback(1, 10000,function () {});
 
         this.clock.tick(4500);
 
@@ -203,6 +206,74 @@ describe("Testing the client publish engine", function () {
         publishRequest3._schema.name.should.equal("PublishRequest");
         publishRequest3.subscriptionAcknowledgements.should.eql([{sequenceNumber: 78, subscriptionId: 44}]);
 
+    });
+
+    it("a client publish engine shall adapt the timeoutHint of a publish request to take into account the number of awaiting publish requests ", function () {
+
+        var PublishResponse = require("lib/services/subscription_service").PublishResponse;
+
+        var timerId;
+
+        var Dequeue = require("collections/deque");
+        var publishQueue = new Dequeue();
+
+        function start() {
+
+            timerId = setInterval(function () {
+
+                if (publishQueue.length == 0) {
+                    return ;
+                }
+
+                var callback = publishQueue.shift();
+                var fake_response = new PublishResponse({subscriptionId: 1});
+                //xx console.log(" Time ", Date.now());
+                callback(null, fake_response);
+            }, 1500);
+        }
+        function stop() {
+            clearInterval(timerId);
+    }
+        var fake_session = {
+            publish: function (request, callback) {
+                assert(request._schema.name === "PublishRequest");
+                // let simulate a server sending a PublishResponse for subscription:1
+                // after a short delay of 150 milliseconds
+                publishQueue.push(callback);
+                //xx console.log("nbPendingPublishRequests",clientPublishEngine.nbPendingPublishRequests);
+            }
+        };
+        var spy = sinon.spy(fake_session, "publish");
+
+        var clientPublishEngine = new ClientSidePublishEngine(fake_session);
+
+        start();
+
+        // start a first new subscription
+        clientPublishEngine.registerSubscriptionCallback(1, 20000, function () {});
+
+        this.clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
+        clientPublishEngine.nbPendingPublishRequests.should.eql(5);
+
+        this.clock.tick(20000);
+        clientPublishEngine.unregisterSubscriptionCallback(1);
+
+        stop();
+
+        fake_session.publish.getCall(0).args[0].requestHeader.timeoutHint.should.eql(20000 *1 );
+        fake_session.publish.getCall(1).args[0].requestHeader.timeoutHint.should.eql(20000 *2 );
+        fake_session.publish.getCall(2).args[0].requestHeader.timeoutHint.should.eql(20000 *3 );
+        fake_session.publish.getCall(3).args[0].requestHeader.timeoutHint.should.eql(20000 *4 );
+        fake_session.publish.getCall(4).args[0].requestHeader.timeoutHint.should.eql(20000 *5 );
+
+        // from now on timeoutHint shall be stable
+        fake_session.publish.getCall(5).args[0].requestHeader.timeoutHint.should.eql(20000 *5 );
+        fake_session.publish.getCall(6).args[0].requestHeader.timeoutHint.should.eql(20000 *5 );
+        fake_session.publish.getCall(7).args[0].requestHeader.timeoutHint.should.eql(20000 *5 );
+
+//xx        console.log(fake_session.publish.getCall(6).args[0].requestHeader.timeoutHint);
+//xx        console.log(fake_session.publish.getCall(7).args[0].requestHeader.timeoutHint);
+//xx        console.log(fake_session.publish.getCall(8).args[0].requestHeader.timeoutHint);
     });
 
 });
