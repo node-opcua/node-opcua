@@ -113,7 +113,7 @@ describe("address_space ModelChangeEvent",function(){
 
         return versionableNode;
     }
-    it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its version when a reference is added",function() {
+    it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its NodeVersion when a object is added as one of its component",function() {
 
 
         var node = createNodeWithNodeVersion(addressSpace,{ browseName: "1" });
@@ -141,7 +141,7 @@ describe("address_space ModelChangeEvent",function(){
         addressSpace._collectModelChange.restore();
     });
 
-    it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its version when a reference is deleted",function() {
+    it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its NodeVersion when one of its child object is deleted",function() {
 
         // -------------------------------------------------------------------------------------------------------------
         // Given :  a versionnable node containing a component
@@ -180,5 +180,88 @@ describe("address_space ModelChangeEvent",function(){
         addressSpace._collectModelChange.restore();
 
     });
+
+    it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its NodeVersion when a reference is added",function() {
+
+
+        var n1 = addressSpace.addObject({
+            browseName: "SomeNode3"
+        });
+
+        var node = createNodeWithNodeVersion(addressSpace,{ browseName: "3" });
+
+        var nodeVersionBefore = node.nodeVersion.readValue().value.value;
+        nodeVersionBefore.toString().should.eql("1");
+
+
+        sinon.spy(addressSpace,"_collectModelChange");
+
+        n1.addReference({referenceType: "Organizes", isForward: false, nodeId: node});
+
+        var nodeVersionAfter = node.nodeVersion.readValue().value.value;
+        nodeVersionAfter.toString().should.eql("2");
+
+        addressSpace.rootFolder.objects.server.on("event",function(eventData) {
+            //xx console.log("xxx eventData",eventData.toString());
+        });
+
+        addressSpace._collectModelChange.callCount.should.eql(2);
+        addressSpace._collectModelChange.restore();
+
+    });
+
+
+    it("addressSpace#modelChangeTransactions should compress model change events ",function() {
+
+        // -------------------------------------------------------------------------------------------------------------
+        // Given :  a versionnable node containing a component
+        // -------------------------------------------------------------------------------------------------------------
+        var node = createNodeWithNodeVersion(addressSpace,{ browseName: "3" });
+
+        var nodeVersionBefore = node.nodeVersion.readValue().value.value;
+        nodeVersionBefore.toString().should.eql("1");
+
+        sinon.spy(addressSpace,"_collectModelChange");
+        addressSpace.rootFolder.objects.server.on("event",function(eventData) {
+            //xx console.log("xxx eventData",eventData.toString());
+        });
+
+        // -------------------------------------------------------------------------------------------------------------
+        // When:  many operations are applied to a node , within a ModelChange Scope
+        // -------------------------------------------------------------------------------------------------------------
+        addressSpace.modelChangeTransaction(function() {
+            var n1 = addressSpace.addObject({
+                componentOf: node,
+                browseName: "SomeNode2"
+            });
+            var n2 = addressSpace.addObject({
+                componentOf: node,
+                browseName: "SomeNode2"
+            });
+
+            var n3 = addressSpace.addObject({
+                componentOf: node,
+                browseName: "SomeNode3"
+            });
+            node.addReference({referenceType: "Organizes", nodeId: n2});
+        });
+
+
+        // -------------------------------------------------------------------------------------------------------------
+        // Then:
+        //   1. many model changes are collected
+        addressSpace._collectModelChange.callCount.should.eql(8);
+
+        //   2. node version should increase ony by one
+        var nodeVersionAfter = node.nodeVersion.readValue().value.value;
+        nodeVersionAfter.toString().should.eql("2");
+
+        // -------------------------------------------------------------------------------------------------------------
+
+        addressSpace._collectModelChange.restore();
+
+    });
+
+
 
 });
