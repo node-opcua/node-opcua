@@ -390,6 +390,10 @@ async.series([
 
         var baseEventTypeId = "i=2041"; // BaseEventType;
         var serverObjectId = "i=2253";
+
+        var fields = ["EventType","SourceName", "EventId", "ReceiveTime","Severity","Message"];
+        var eventFilter = opcua.constructEventFilter(fields);
+
         var event_monitoringItem = the_subscription.monitor(
             {
                 nodeId: serverObjectId,
@@ -397,19 +401,7 @@ async.series([
             },
             {
                 queueSize: 1,
-                filter: new opcua.subscription_service.EventFilter({
-
-                    selectClauses: [// SimpleAttributeOperand
-                        {
-                            typeId: baseEventTypeId, // NodeId of a TypeDefinitionNode.
-                            browsePath: [{name: "EventId"}],
-                            attributeId: AttributeIds.Value
-                        }
-                    ],
-                    whereClause: { //ContentFilter
-                    }
-                }),
-
+                filter: eventFilter,
                 discardOldest: true
             }
         );
@@ -417,13 +409,13 @@ async.series([
         event_monitoringItem.on("initialized", function () {
             console.log("event_monitoringItem initialized");
         });
+
         function w(str,l) {
             return (str + "                                      ").substr(0,l);
         }
-        event_monitoringItem.on("changed", function (eventFields) {
 
-            console.log(event_monitoringItem.itemToMonitor.nodeId.toString(), " value has changed to " + value.toString());
-            eventFields.forEach(function(variant,index) {
+        event_monitoringItem.on("changed", function (eventFields) {
+            _.forEach(eventFields,function(variant,index) {
                 console.log(w(fields[index],15).yellow,variant.toString().cyan);
             })
 
