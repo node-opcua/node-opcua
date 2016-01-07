@@ -19,6 +19,8 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 [Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
 
+[![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fnode-opcua.github.io%2F&title=Node-OPCUA&language=nodejs&tags=github&category=software).
+
 Why NodeJS ?
 
 Because nodeJs is a great framework to design asynchronous application.
@@ -74,7 +76,9 @@ Contributing
 Supporting the project
 ======================
 
-If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=gadz_er&url=https://node-opcua.github.io&title=Node-OPCUA&language=nodejs&tags=github&category=software).
+
+
+If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fnode-opcua.github.io%2F&title=Node-OPCUA&language=nodejs&tags=github&category=software).
 This will give us full of motivation to carry on and keep working on the roadmap.
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
@@ -84,60 +88,9 @@ This will give us full of motivation to carry on and keep working on the roadmap
                
 ## Supported Features
 
-               
-### Transport Protocol
 
-
-| Transport                              | Status               | Comment            |
-|----------------------------------------|----------------------|--------------------|
-| UA-TCP UA-SC UA Binary                 |  :white_check_mark:  | OPC.TCP - Binary   |          
-| SOAP-HTTP WS-SC UA Binary              |  :new_moon:          | HTTP/HTTPS - Binary|               
-| SOAP-HTTP WS-SC UA XML                 |  :new_moon:          |                    |               
-| SOAP-HTTP WS-SC UA XML-UA Binary       |  :new_moon:          |                    |               
-
-
-### Security Policies             
-
-
-node-opcua support sign & encrypt security policies
-
-| Policy            | Status                   | Comment |
-|-------------------|--------------------------|---------|
-| None              | :white_check_mark:       |         |               
-| Basic128Rsa15     | :white_check_mark:       |         |               
-| Basic256          | :white_check_mark:       |         |               
-| Basic256Sha256    | :white_check_mark:       |         |               
-
-| Authentication      | Status                   | Comment |
-|---------------------|--------------------------|---------|
-| Anonymous           |:white_check_mark:        |         |
-| User Mame Password  |:white_check_mark:        |         |
-| X509 Certificate    |:new_moon:                |         |
-
-
-### client facets
-
-|                        |                    |
-|------------------------|--------------------|
-| Base Client Behaviour  |:white_check_mark:       |
-| AddressSpace Lookup    |:white_check_mark:       |
-| Attribute Read         |:white_check_mark:       |
-| DataChange Subscription|:white_check_mark:       |
-| DataAccess             |:white_check_mark:       |
-| Discovery              |:white_check_mark:       |
-| Event Subscription     |:white_check_mark:       |
-| Method call            |:white_check_mark:       |
-| Historical Access      |:new_moon: |
-| Advanced Type          |:white_check_mark:       |
-| Programming            |:new_moon: |
-| Auditing               |:new_moon: |
-| Redundancy             |:new_moon: |
-
-
-###  Service
-
-|                            |                        |         |
-|----------------------------|------------------------|---------|
+| __**Service**__             |                          |                    |
+|-----------------------------|-----------------------|---------------------------|
 |  Discovery Service Set     |                        |         |
 |                            |FindServers()           |  :white_check_mark:       |
 |                            |GetEndpoints()          |  :white_check_mark:       |
@@ -184,23 +137,52 @@ node-opcua support sign & encrypt security policies
 |                            |QueryNext()            |:new_moon:|
 
 
-### server profiles
-
-|                                          |                   |
-|------------------------------------------|-------------------|
-| Core Server                              | :white_check_mark:|
-| Data Access Server                       | :white_check_mark:|
-| Embedded Server                          | :white_check_mark:|
-| Nano Embedded Device Server              | :white_check_mark:|
-| Micro Embedded Device Server             | :white_check_mark:|
-| Standard DataChange Subscription Server  |                   |
-| Standard Event Subscription Server       |                   |
-| Standard UA Server                       |                   |
-| Redundancy Transparent Server            | :new_moon:        |
-| Redundancy Visible Server                | :new_moon:        |
-| Node Management Server                   | :new_moon:        |
-| Auditing Server                          | :new_moon:        |
-| Complex Type Server                      |                   |
+|                                        |                          |                    |
+|----------------------------------------|:------------------------:|--------------------|
+| __**Transport Protocol**__             |                          |                    |
+| **Transport**                          | **Status**               | **Comment**        |
+| UA-TCP UA-SC UA Binary                 |  :white_check_mark:      | OPC.TCP - Binary   |          
+| SOAP-HTTP WS-SC UA Binary              |  :new_moon:              | HTTP/HTTPS - Binary|               
+| SOAP-HTTP WS-SC UA XML                 |  :new_moon:              |                    |               
+| SOAP-HTTP WS-SC UA XML-UA Binary       |  :new_moon:              |                    |               
+| __**Security Policies**__              |                          |                    |
+| **Policy**                             | **Status**               | **Comment**        |
+| None                                   | :white_check_mark:       |                    |               
+| Basic128Rsa15                          | :white_check_mark:       |                    |               
+| Basic256                               | :white_check_mark:       |                    |               
+| Basic256Sha256                         | :white_check_mark:       |                    |               
+| **Authentication**                     | **Status**               | **Comment**        |
+| Anonymous                              |:white_check_mark:        |                    |
+| User Mame Password                     |:white_check_mark:        |                    |
+| X509 Certificate                       |:new_moon:                |                    |
+| __**client facets**__                  |                          |                    |
+| Base Client Behaviour                  |:white_check_mark:       | |
+| AddressSpace Lookup                    |:white_check_mark:       | |
+| Attribute Read                         |:white_check_mark:       | |
+| DataChange Subscription                |:white_check_mark:       | |
+| DataAccess                             |:white_check_mark:       | |
+| Discovery                              |:white_check_mark:       | |
+| Event Subscription                     |:white_check_mark:       | |
+| Method call                            |:white_check_mark:       | |
+| Historical Access                      |:new_moon:               | |
+| Advanced Type                          |:white_check_mark:       | |
+| Programming                            |:new_moon:               | |
+| Auditing                               |:new_moon:               | |
+| Redundancy                             |:new_moon:               | |
+| __**server profiles**__                |                         | |
+| Core Server                            | :white_check_mark:      | |
+| Data Access Server                     | :white_check_mark:      | |
+| Embedded Server                        | :white_check_mark:      | |
+| Nano Embedded Device Server            | :white_check_mark:      | |
+| Micro Embedded Device Server           | :white_check_mark:      | |
+| Standard DataChange Subscription Server|                         | |
+| Standard Event Subscription Server     |                         | |
+| Standard UA Server                     |                         | |
+| Redundancy Transparent Server          | :new_moon:              | |
+| Redundancy Visible Server              | :new_moon:              | |
+| Node Management Server                 | :new_moon:              | |
+| Auditing Server                        | :new_moon:              | |
+| Complex Type Server                    |                         | |
 
 
 
