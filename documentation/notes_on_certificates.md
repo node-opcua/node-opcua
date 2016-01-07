@@ -74,10 +74,20 @@ Create a pfx file ( incorporate a private key and a certificate)
 ----------------------------------------------------------------
   $ openssl pkcs12 -export -out domain.name.pfx -inkey domain.name.key -in domain.name.crt -in intermediate.crt -in rootca.crt
 
+
+Verifying if a public key and a private key are paired 
+------------------------------------------------------
+
+   -  a public key and private key share the same modulus 
+   
+   $ openssl x509 -noout -modulus -in <filename for crt>
+   $ openssl rsa -noout -modulus -in <filename for key
+   
 ### refs
  
  * https://github.com/dominictarr/ssh-key-to-pem
  * http://pki-tutorial.readthedocs.org/en/latest/simple/index.html
+ * http://spin.atomicobject.com/2014/05/12/openssl-commands/
 
 ### refs:
 
