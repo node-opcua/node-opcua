@@ -46,6 +46,9 @@ var argv = require('yargs')
     .string("debug")
     .describe("debug"," display more verbose information")
 
+    .string("history")
+    .describe("history","make an historical read")
+
     .alias('e', 'endpoint')
     .alias('s', 'securityMode')
     .alias('P', 'securityPolicy')
@@ -55,7 +58,7 @@ var argv = require('yargs')
     .alias("t", 'timeout')
 
     .alias("d", "debug")
-
+    .alias("h", "history")
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
     .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
@@ -96,6 +99,7 @@ var AttributeIds = opcua.AttributeIds;
 
 var NodeCrawler = opcua.NodeCrawler;
 var doCrawling = argv.crawl ? true : false;
+var doHistory = argv.history ? true : false;
 
 var serverCertificate = null;
 
@@ -274,6 +278,9 @@ async.series([
     // create Read
     function (callback) {
 
+        if (!doHistory) {
+            return callback();
+        }
         var now = Date.now();
         var start = now-1000*1; // read 1 seconds of history
         var end   = now;
@@ -286,7 +293,7 @@ async.series([
             }
             callback();
 
-        })
+        });
     },
     // -----------------------------------------
     // create subscription
