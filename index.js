@@ -55,6 +55,7 @@ module.exports.VariableIds        = require("lib/opcua_node_ids").VariableIds;
 module.exports.MethodIds          = require("lib/opcua_node_ids").MethodIds;
 module.exports.ObjectIds          = require("lib/opcua_node_ids").ObjectIds;
 module.exports.ObjectTypeIds      = require("lib/opcua_node_ids").ObjectTypeIds;
+module.exports.ReferenceTypeIds   = require("lib/opcua_node_ids").ReferenceTypeIds;
 
 module.exports.ApplicationType    = module.exports.get_endpoints_service.ApplicationType;
 

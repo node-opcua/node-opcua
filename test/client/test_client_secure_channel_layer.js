@@ -172,8 +172,12 @@ describe("testing ClientSecureChannelLayer ", function () {
 
             secureChannel.isTransactionInProgress().should.eql(false);
 
+            var spyOnClose = new require("sinon").spy();
+            secureChannel.on("close",spyOnClose);
 
             secureChannel.close(function (err) {
+
+                spyOnClose.callCount.should.eql(1);
                 done(err);
             });
         });

@@ -9,13 +9,8 @@ var _ = require("underscore");
 var opcua = require("index");
 
 var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
 
 var browse_service = opcua.browse_service;
-var BrowseDirection = browse_service.BrowseDirection;
 
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
@@ -76,13 +71,16 @@ describe("testing Client-Server -Event", function () {
         async.series([
 
             function (callback) {
+                console.log(" --> Starting server");
                 start_server(callback);
             },
             function (callback) {
+                console.log(" --> Connecting Client");
                 client.connect(endpointUrl, callback);
             },
             function (callback) {
                 close_counter.should.eql(0);
+                console.log(" --> Disconnecting Client");
                 client.disconnect(callback);
             },
             function (callback) {
@@ -90,6 +88,7 @@ describe("testing Client-Server -Event", function () {
                 callback(null);
             },
             function (callback) {
+                console.log(" --> Stopping server");
                 end_server(callback);
             }
         ], done);
@@ -100,7 +99,17 @@ describe("testing Client-Server -Event", function () {
     it("Client should raise a close event with an error when server initiates disconnection", function (done) {
 
         var close_counter = 0;
-        var client = new OPCUAClient();
+
+        // use fail fast connectionStrategy
+        var options ={
+            connectionStrategy: {
+                maxRetry:    1,
+                initialDelay:10,
+                maxDelay:    20,
+                randomisationFactor: 0
+            }
+        };
+        var client = new OPCUAClient(options);
 
         var the_pending_callback = null;
 
@@ -108,8 +117,11 @@ describe("testing Client-Server -Event", function () {
 
             close_counter++;
             if (the_pending_callback) {
+
                 close_counter.should.eql(1);
+
                 var callback = the_pending_callback;
+
                 the_pending_callback = null;
 
                 should(err).be.instanceOf(Error);
@@ -126,9 +138,12 @@ describe("testing Client-Server -Event", function () {
 
         async.series([
             function (callback) {
+                console.log(" --> Starting server");
                 start_server(callback);
             },
             function (callback) {
+                console.log(" --> Connecting Client");
+
                 client.connect(endpointUrl, callback);
             },
             function (callback) {
@@ -139,6 +154,7 @@ describe("testing Client-Server -Event", function () {
                 // delegate the call of the callback function of this step to when client has closed
                 the_pending_callback = callback;
 
+                console.log(" --> Stopping server");
                 end_server(function() {
 
                 });

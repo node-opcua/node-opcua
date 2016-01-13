@@ -11,15 +11,9 @@ var util = require("util");
 var path = require("path");
 var fs = require("fs");
 
-var utils = opcua.utils;
 
 var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
 
-var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
 
 var certificate_store = path.join(__dirname,"../../certificates");
@@ -58,12 +52,16 @@ function start_inner_server_local(options, callback) {
 }
 
 function stop_inner_server_local(data, callback) {
-    if (data) {
-        var server = data.server;
-        server.currentChannelCount.should.equal(0);
-        server.shutdown(callback);
-    } else {
-        callback();
+    try {
+        if (data) {
+            var server = data.server;
+            server.currentChannelCount.should.equal(0);
+            server.shutdown(callback);
+        } else {
+            callback();
+        }
+    } catch(err) {
+        callback(err);
     }
 }
 
@@ -181,12 +179,12 @@ function keep_monitoring_some_variable(session, duration, done) {
     });
 
     subscription.on("internal_error", function (err) {
-        //xx console.log("xxx internal error in ClientSubscription".red,err.message);
+        console.log("xxx internal error in ClientSubscription".red,err.message);
         the_error = err;
     });
     subscription.on("terminated", function () {
 
-        //xx console.log(" subscription terminated ");
+        //xx console.log("        subscription terminated ");
 
         if (!the_error) {
             var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
@@ -267,36 +265,53 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 
     opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
 
+    var fail_fast_connectivity_strategy = {
+        maxRetry: 1,
+        initialDelay: 10,
+        maxDelay: 20,
+        randomisationFactor: 0
+    };
     var options = {
         securityMode: opcua.MessageSecurityMode.get(securityMode),
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
-        defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
+        defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
+
+        connectionStrategy: fail_fast_connectivity_strategy
     };
 
     var token_change = 0;
     var client = new OPCUAClient(options);
 
+    var sinon = require("sinon");
+    var after_reconnection_spy = new sinon.spy();
+    var start_reconnection_spy = new sinon.spy();
+
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+        client.on("start_reconnection",start_reconnection_spy);
+        client.on("after_reconnection",after_reconnection_spy);
 
         keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
             inner_done(err);
         });
+
     }, function (err) {
         console.log(" RECEIVED ERROR :".yellow.bold, err);
-
+        start_reconnection_spy.callCount.should.eql(1);
+        //xx after_reconnection_spy.callCount.should.eql(1);
         should(err).be.instanceOf(Error);
         done();
     });
 
     client.on("lifetime_75", function (token) {
-        //xx console.log("received lifetime_75",JSON.stringify(token));
+        console.log("            received lifetime_75",JSON.stringify(token));
     });
     client.on("security_token_renewed", function () {
         token_change += 1;
     });
     client.on("close", function () {
-        console.log(" connection has been closed");
+        console.log("            connection has been closed");
     });
 }
 
@@ -365,7 +380,7 @@ if (!crypto_utils.isFullySupported()) {
     describe("testing Secure Client-Server communication", function () {
 
 
-        this.timeout(20000);
+        this.timeout(Math.max(this._timeout,20001));
 
         var serverHandle, client;
         before(function (done) {
@@ -449,15 +464,16 @@ if (!crypto_utils.isFullySupported()) {
     var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
 
-    describe("testing server behavior on secure connection ", function () {
+    describe("ZZA testing server behavior on secure connection ", function () {
 
-        this.timeout(10000);
+        this.timeout(Math.max(this._timeout,20002));
 
         var serverHandle, client;
         var old_method;
 
         before(function (done) {
 
+            ClientSecureChannelLayer.prototype._renew_security_token.should.be.instanceOf(Function);
             // let modify the client behavior so that _renew_security_token call is delayed by an amount of time
             // that should cause the server to worry about the token not to be renewed.
             old_method = ClientSecureChannelLayer.prototype._renew_security_token;
@@ -477,7 +493,7 @@ if (!crypto_utils.isFullySupported()) {
         after(function (done) {
 
             ClientSecureChannelLayer.prototype._renew_security_token = old_method;
-
+            console.log(" Disconnecting server");
             stop_server(serverHandle, done);
         });
 
@@ -492,7 +508,7 @@ if (!crypto_utils.isFullySupported()) {
 
     describe("testing Security Policy with a valid 1024 bit certificate on server", function () {
 
-        this.timeout(10000);
+        this.timeout(Math.max(this._timeout,20003));
 
         var serverHandle;
 
@@ -521,7 +537,7 @@ if (!crypto_utils.isFullySupported()) {
 
     describe("testing Security Policy with a valid 2048 bit certificate on server", function () {
 
-        this.timeout(20000);
+        this.timeout(Math.max(this._timeout,20004));
 
         var serverHandle;
 
@@ -551,7 +567,7 @@ if (!crypto_utils.isFullySupported()) {
 
     describe("testing with various client certificates", function () {
 
-        this.timeout(20000);
+        this.timeout(Math.max(this._timeout,20005));
 
         var serverHandle;
 

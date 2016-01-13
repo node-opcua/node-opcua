@@ -113,6 +113,11 @@ async.series([
 
         console.log(" connecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl, callback);
+
+        client.on("connection_reestablished",function() {
+            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RESTABLISHED !!!!!!!!!!!!!!!!!!!");
+        });
+
     },
 
     function (callback) {
@@ -313,8 +318,21 @@ async.series([
         var timerId;
         if (timeout > 0) {
             timerId = setTimeout(function () {
+
                 the_subscription.terminate();
             }, timeout);
+
+            // simulate a connection break at t =timeout/2
+            setTimeout(function () {
+
+                console.log("  -------------------------------------------------------------------- ".red.bgWhite);
+                console.log("  --                               SIMULATE CONNECTION BREAK        -- ".red.bgWhite);
+                console.log("  -------------------------------------------------------------------- ".red.bgWhite);
+                var socket = client._secureChannel._transport._socket;
+                socket.end();
+                socket.emit('error', new Error('ECONNRESET'));
+            }, timeout/2.0);
+
         }
 
         function getTick() {
@@ -345,17 +363,21 @@ async.series([
         }).on("internal_error", function (err) {
             console.log(" received internal error", err.message);
             clearTimeout(timerId);
-            callback(err);
-
-
+            if(callback) {
+                callback(err);
+                callback = null;
+            }
         }).on("keepalive", function () {
 
             var t1 = getTick();
             var span = t1 -t;
             t= t1;
             console.log("keepalive ", span/1000 , "sec" , " pending request on server = ",the_subscription.publish_engine.nbPendingPublishRequests);
-        }).on("terminated", function () {
-            callback();
+        }).on("terminated", function (err) {
+            if(callback) {
+                callback(err);
+                callback = null;
+            }
         });
 
         // ---------------------------------------------------------------
@@ -368,7 +390,7 @@ async.series([
             },
             {
                 clientHandle: 13,
-                samplingInterval: 500,
+                samplingInterval: 250,
                 //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
                 queueSize: 1,
                 discardOldest: true
@@ -458,7 +480,10 @@ async.series([
     }
 });
 
+process.on("error",function(err){
 
+    console.log(" UNTRAPPED ERROR",err.message);
+});
 process.on('SIGINT', function () {
     if (the_subscription) {
 

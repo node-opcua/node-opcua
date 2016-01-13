@@ -172,7 +172,7 @@ module.exports = function (test) {
                 // now publish and check that monitored item returns EventNotification
 
 
-                // to DO
+                // toDO
             }, done);
         });
 
@@ -262,25 +262,40 @@ module.exports = function (test) {
                 perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, inner_callback) {
 
 
-                    var readValue = {
-                        nodeId: resolveNodeId("Server"),
-                        attributeId: AttributeIds.EventNotifier // << EventNotifier
-                    };
-                    var requestedParameters = {
-                        samplingInterval: 50,
-                        discardOldest: true,
-                        queueSize:     10,
-                        filter: eventFilter
-                    };
-
                     var eventNotificationCount = 0;
 
                     async.series([
 
                         function (callback) {
+                            var monitoredItem2 = subscription.monitor({
+                                nodeId: resolveNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime),
+                                attributeId: AttributeIds.Value
+                            },{
+                                samplingInterval: 1000,
+                                queueSize: 100,
+                            },TimestampsToReturn.Both, function(){
+
+                            });
+                            monitoredItem2.on("changed", function(dataValue){
+                                console.log(" Server Time is ",dataValue.toString())
+                            });
+                            callback();
+                        },
+
+                        function (callback) {
+
+                            var readValue = {
+                                nodeId: resolveNodeId("Server"),
+                                attributeId: AttributeIds.EventNotifier // << EventNotifier
+                            };
+                            var requestedParameters = {
+                                samplingInterval: 50,
+                                discardOldest: true,
+                                queueSize:     10,
+                                filter: eventFilter
+                            };
 
                             var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
-
                                 try {
                                     should(err).eql(null);
                                 } catch (err) {
@@ -296,7 +311,7 @@ module.exports = function (test) {
                             monitoredItem.on("changed", function (eventFields) {
                                 // TODO
                                 eventNotificationCount = eventNotificationCount + 1;
-                                console.log("Changed !!!  ")
+                                console.log("Changed !!!  ");
                                 eventFields.forEach(function(variant,index) {
                                     console.log(w(fields[index],15).yellow,variant.toString().cyan);
                                 })

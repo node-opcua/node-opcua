@@ -969,12 +969,12 @@ module.exports = function (test) {
         });
 
 
-        it("A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval", function (done) {
+        it("ZxZ A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval", function (done) {
 
             //xx endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
 
             var nb_keep_alive_received = 0;
-            // from Spec OPCUA Version 1.02 Part 4 - 5.13.1.1 Description : Page 76
+            // from Spec OPCUA Version 1.03 Part 4 - 5.13.1.1 Description : Page 69
             // h. Subscriptions have a lifetime counter that counts the number of consecutive publishing cycles in
             //    which there have been no Publish requests available to send a Publish response for the
             //    Subscription. Any Service call that uses the SubscriptionId or the processing of a Publish
@@ -984,6 +984,7 @@ module.exports = function (test) {
             //    its MonitoredItems to be deleted. In addition the Server shall issue a StatusChangeNotification
             //    notificationMessage with the status code Bad_Timeout. The StatusChangeNotification
             //    notificationMessage type is defined in 7.19.4.
+
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
@@ -998,30 +999,40 @@ module.exports = function (test) {
                 });
 
 
-                sinon.stub(subscription.publish_engine, "_send_publish_request", function () {
-                });
+                subscription.publish_engine._send_publish_request.should.be.instanceOf(Function);
+
+                // replace _send_publish_request so that it doesn't do anything for a little while
+                sinon.stub(subscription.publish_engine, "_send_publish_request", function () {});
 
                 setTimeout(function () {
+                    subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
                     subscription.publish_engine._send_publish_request.restore();
                     subscription.publish_engine._send_publish_request();
                 }, 1000);
+
 
                 subscription.on("keepalive", function () {
                     nb_keep_alive_received += 1;
                 });
                 subscription.on("started", function () {
 
-                    //xx console.log("subscriptionId     :", subscription.subscriptionId);
-                    //xx console.log("publishingInterval :", subscription.publishingInterval);
-                    //xx console.log("lifetimeCount      :", subscription.lifetimeCount);
-                    //xx console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
+                    console.log("subscriptionId     :", subscription.subscriptionId);
+                    console.log("publishingInterval :", subscription.publishingInterval);
+                    console.log("lifetimeCount      :", subscription.lifetimeCount);
+                    console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
 
                 }).on("status_changed", function (statusCode) {
 
                     statusCode.should.eql(StatusCodes.BadTimeout);
+
+                    // let explicitly close the subscription by calling terminate
+                    // but delay a little bit so we can verify that _send_publish_request
+                    // is not called
                     setTimeout(function () {
                         subscription.terminate();
                     }, 200);
+
+
                 }).on("terminated", function () {
 
                     nb_keep_alive_received.should.be.equal(0);
@@ -1462,7 +1473,7 @@ module.exports = function (test) {
 
         }
 
-        it("ZZA #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
+        it("ZZA1 #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
             var parameters = {
                 samplingInterval: 0, // SAMPLING INTERVAL = 0 => use fastest allowed by server or event base
                 discardOldest: false,
@@ -1471,7 +1482,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("ZZA #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
+        it("ZZA2 #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
             var parameters = {
                 samplingInterval: 20,
                 discardOldest: false,
@@ -1480,7 +1491,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("ZZA #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
+        it("ZZA3 #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
             var parameters = {
                 samplingInterval: -1,
                 discardOldest: false,

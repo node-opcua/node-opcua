@@ -112,5 +112,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_SubscriptionUseCase_monitoring_events")(test);
     //xx require("./u_test_e2e_SubscriptionUseCase_monitoring_events_2")(test);
 
+    require("./u_test_e2e_issue_144")(test);
+
 });
 
