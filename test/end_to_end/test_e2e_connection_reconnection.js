@@ -770,7 +770,7 @@ describe("testing ability for client to reconnect when server close connection",
             // use fail fast connectionStrategy
             f(create_client_and_create_a_connection_to_server.bind(null,fail_fast_connectivity_strategy)),
             f(shutdown_server),
-            f(wait_a_little_while),
+            //f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
             f(wait_for_reconnection_to_be_completed),
             f(wait_a_little_while),
