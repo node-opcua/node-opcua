@@ -34,7 +34,7 @@ dump*
 a.*
 *.pcap
 *.raw
-toto.*
+lib/pki/scrapme_toto.conf
 Makefile
 notes.txt
 yuidoc.json

@@ -52,6 +52,7 @@ describe("testing ClientSecureChannelLayer ", function () {
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
+           //Xx packTcpMessage("CLO", fake_AcknowledgeMessage),
             function () {
                 this.fake_socket.server.end();
             },

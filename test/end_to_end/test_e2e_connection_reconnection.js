@@ -38,14 +38,21 @@ var robust_connectivity_strategy = {
     maxDelay: 200,
     randomisationFactor: 0
 };
+var custom_connectivity_strategy = {
+    maxRetry: 100,
+    initialDelay: 80,
+    maxDelay: 100,
+    randomisationFactor: 0
+};
 
-var doDebug = false;
+var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
+
 function f(func) {
 
     return function (callback) {
-        if (doDebug) { console.log("FUNC=> ",func.name); }
+        if (doDebug) {     console.log("FUNC=> ".bgWhite,func.name.yellow.bold); }
         func(function (err) {
-            if (doDebug) { console.log("END =>",func.name," => ", err ? err.name.red : "OK".green); }
+            if (doDebug) { console.log("END =>  ".bgWhite,func.name.yellow.bold," => ", err ? err.name.red : "OK".green); }
             callback(err);
         });
     }
@@ -619,40 +626,84 @@ describe("testing basic Client-Server communication", function () {
 
 describe("testing ability for client to reconnect when server close connection", function () {
 
-    this.timeout(Math.max(10000, this._timeout));
+    this.timeout(Math.max(60000, this._timeout));
 
     var server = null;
     var endpointUrl = null;
     var temperatureVariableId = null;
 
-
+    var counterNode = null;
+    var timerId;
     // -----------------------------------------------------------------------------------------------------------------
     // Common Steps
     // -----------------------------------------------------------------------------------------------------------------
     function start_demo_server(done) {
+
         server = build_server_with_temperature_device({port: port}, function (err) {
+
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
+
+            if (!err) {
+                var c = 0;
+
+                counterNode = server.engine.addressSpace.addVariable({
+                    browseName: "Counter",
+                    organizedBy: server.engine.addressSpace.rootFolder.objects,
+                    dataType: "UInt32",
+                    value: new Variant({dataType: opcua.DataType.UInt32, value: c})
+                });
+                timerId = setInterval(function () {
+                    c = c + 1;
+                    counterNode.setValueFromSource(new Variant({dataType: "UInt32", value: c}), StatusCodes.Good);
+                }, 100);
+
+            }
             done(err);
         });
     }
+
     function shutdown_server(done) {
+
+        should(server).not.eql(null, "server not started ?");
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
         server.shutdown(function (err) {
             server = null;
             done(err);
         });
     }
+
+    function suspend_demo_server(callback) {
+        server.suspendEndPoints(callback);
+    }
+
+    function resume_demo_server(callback) {
+        server.resumeEndPoints(callback);
+    }
+
     function restart_server(done) {
-        should(server).eql(null,"server already started ?");
+        should(server).eql(null, "server already started ?");
         start_demo_server(done);
     }
+
     function verify_that_server_has_no_active_channel(callback) {
         server.currentChannelCount.should.equal(0);
         callback();
     }
 
+    function wait_for(duration, done) {
+        assert(_.isFunction(done));
+        setTimeout(function () {
+            done();
+        }, duration);
+    }
+
     function wait_a_little_while(done) {
-        setTimeout(done, 500);
+        assert(_.isFunction(done));
+        wait_for(500, done);
     }
 
 
@@ -660,7 +711,7 @@ describe("testing ability for client to reconnect when server close connection",
     var client_has_received_close_event;
     var client_has_received_start_reconnection_event;
 
-    function create_client_and_create_a_connection_to_server(connectivity_strategy,done) {
+    function create_client_and_create_a_connection_to_server(connectivity_strategy, done) {
 
         done.should.be.instanceOf(Function);
 
@@ -676,11 +727,21 @@ describe("testing ability for client to reconnect when server close connection",
             client_has_received_close_event += 1;
         });
 
-        client.on("start_reconnection",function(err){
-            client_has_received_start_reconnection_event +=1;
+        client.on("start_reconnection", function (err) {
+            client_has_received_start_reconnection_event += 1;
+        });
+        client.on("backoff", function (err) {
+            console.log("...");
         });
 
         client.connect(endpointUrl, done);
+    }
+
+    function verify_that_client_fails_to_connect(connectivity_strategy, done) {
+
+        create_client_and_create_a_connection_to_server(connectivity_strategy, function (err) {
+            done(err ? null : new Error("Expecting an error here"));
+        })
     }
 
     function verify_that_client_has_received_a_single_start_reconnection_event(done) {
@@ -709,15 +770,26 @@ describe("testing ability for client to reconnect when server close connection",
     }
 
     function verify_that_client_is_trying_to_reconnect(done) {
-        try {
-            client.isReconnecting.should.eql(true,"verify_that_client_is_trying_to_reconnect");
-        } catch(err) { done(err); }done();
+
+        setImmediate(function () {
+            try {
+                client.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
+            } catch (err) {
+                done(err);
+            }
+            done();
+        });
     }
 
     function verify_that_client_is_NOT_trying_to_reconnect(done) {
-        try {
-            client.isReconnecting.should.eql(false,"verify_that_client_is_NOT_trying_to_reconnect");
-        } catch(err) { done(err); }done();
+        setImmediate(function () {
+            try {
+                client.isReconnecting.should.eql(false, "verify_that_client_is_NOT_trying_to_reconnect");
+            } catch (err) {
+                done(err);
+            }
+            done();
+        });
     }
 
     function wait_for_reconnection_to_be_completed(done) {
@@ -725,6 +797,7 @@ describe("testing ability for client to reconnect when server close connection",
             done();
         });
     }
+
     function verify_that_client_has_NOT_received_a_close_event(done) {
         try {
             client_has_received_close_event.should.eql(0, "expecting close event NOT to be emitted");
@@ -734,10 +807,10 @@ describe("testing ability for client to reconnect when server close connection",
         }
         done();
     }
+
     function disconnect_client(done) {
         client.disconnect(done);
     }
-
 
 
     it("TR1 - should be possible to reconnect client after the server closed the connection", function (done) {
@@ -768,7 +841,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use fail fast connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null,fail_fast_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, fail_fast_connectivity_strategy)),
             f(shutdown_server),
             //f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -804,15 +877,10 @@ describe("testing ability for client to reconnect when server close connection",
         //   - disconnect client
         //   - disconnect server
 
-
-        var client = null;
-        var client_has_received_close_event;
-        var client_has_received_start_reconnection_event;
-
         async.series([
             f(start_demo_server),
             // use robust  connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null,robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
             f(shutdown_server),
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -834,13 +902,13 @@ describe("testing ability for client to reconnect when server close connection",
         });
     });
 
-    it("TR3 - it should be possible to disconnect a client which is in the middle a reconnection sequence",function(done) {
+    it("TR3 - it should be possible to disconnect a client which is in the middle a reconnection sequence", function (done) {
         async.series([
-
             f(start_demo_server),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null,robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
             f(shutdown_server),
+
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
             f(wait_a_little_while),
@@ -848,7 +916,8 @@ describe("testing ability for client to reconnect when server close connection",
             f(wait_a_little_while),
             f(verify_that_client_is_NOT_trying_to_reconnect),
             f(wait_a_little_while),
-            f(verify_that_client_is_NOT_trying_to_reconnect)
+            f(verify_that_client_is_NOT_trying_to_reconnect),
+
         ], function (err) {
             done(err);
         });
@@ -857,5 +926,277 @@ describe("testing ability for client to reconnect when server close connection",
     });
 
 
+    var the_session = null;
+
+    function client_create_and_activate_session(callback) {
+        client.createSession(function (err, session) {
+            if (!err) {
+                the_session = session;
+            }
+            callback(err);
+        });
+    }
+
+    var subscription = null;
+
+    function create_subscription(callback) {
+
+        subscription = new opcua.ClientSubscription(the_session, {
+            requestedPublishingInterval: 500,
+            requestedLifetimeCount: 60,
+            requestedMaxKeepAliveCount: 100,
+            maxNotificationsPerPublish: 10,
+            publishingEnabled: true,
+            priority: 6
+        });
+        subscription.once("started", function () {
+            callback();
+        });
+    }
+
+    function terminate_subscription(callback) {
+
+        //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
+        subscription.on("terminated", function () {
+            //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
+            callback();
+        });
+        subscription.terminate();
+
+    }
+
+    var values_to_check = [];
+
+    function monitor_monotonous_counter(callback) {
+
+        var monitoredItem = subscription.monitor(
+            {
+                // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
+                nodeId: counterNode.nodeId,
+                attributeId: opcua.AttributeIds.Value
+            },
+            {
+                samplingInterval: 0, // 0 : event base => whenever value changes
+                discardOldest: true,
+                queueSize: 1000
+            });
+
+
+        // subscription.on("item_added",function(monitoredItem){
+        monitoredItem.on("initialized", function () {
+            //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
+            callback();
+        });
+
+        monitoredItem.on("changed", function (dataValue) {
+            //xx console.log(" client ", " received value change ", dataValue.value.toString());
+            values_to_check.push(dataValue.value.value);
+        });
+    }
+
+    function reset_continuous(callback) {
+        //xx console.log(" resetting value to check");
+        values_to_check = [];
+        callback();
+    }
+
+    function ensure_continuous(callback) {
+
+        console.log(values_to_check.join(" "));
+        if (values_to_check.length > 0) {
+            values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
+        }
+        callback();
+    }
+
+    function break_connection(callback) {
+        var socket = client._secureChannel._transport._socket;
+        socket.end();
+        socket.destroy();
+        socket.emit('error', new Error('ECONNRESET'));
+        callback();
+    }
+
+    function simulate_connection_break(breakage_duration, callback) {
+
+        async.series([
+            suspend_demo_server,
+
+            break_connection,
+
+            wait_for.bind(null, breakage_duration),
+
+            resume_demo_server
+        ], callback);
+
+    }
+
+    function get_server_side_subscription() {
+        var channels = server.endpoints[0]._channels;
+        //xx console.log("channels keys = ", Object.keys(channels).join(" "));
+
+        var channelKey = Object.keys(channels)[0];
+        var channel = channels[channelKey];
+
+        assert(Object.keys(server.engine._sessions).length === 1);
+        var sessionKey = Object.keys(server.engine._sessions)[0];
+        var session = server.engine._sessions[sessionKey];
+
+        var subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
+        assert(subscriptionKeys.length === 1);
+        return session.publishEngine._subscriptions[subscriptionKeys[0]];
+    }
+
+    function wait_until_server_subscription_has_timed_out(callback) {
+
+        var server_subscription = get_server_side_subscription();
+
+        // let's cheat a little bit => we don't really want to wait until subscriptions times out
+        // let make sure it will timeout almost immediataly
+        function accelerate_subscription_timeout(subscription, callback) {
+            //xx console.log("accelerate_subscription_timeout", subscription.id, " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
+            subscription._life_time_counter = subscription.lifeTimeCount - 1;
+
+            subscription.once("terminated", function () {
+                callback();
+            });
+        }
+
+        accelerate_subscription_timeout(server_subscription, callback);
+    }
+
+    function simulate_very_long_connection_break_until_subscription_times_out(callback) {
+
+        async.series([
+            suspend_demo_server,
+
+            break_connection,
+
+            wait_until_server_subscription_has_timed_out,
+
+            wait_for.bind(null, 200),
+
+            resume_demo_server
+        ], callback);
+        // in this case, the server drops all Subscriptions due to max lifetime count exhausted.
+    }
+
+
+    it("TR4 - verify that server can suspend socket connexion - useful for testing purposes", function (done) {
+
+
+        async.series([
+            f(start_demo_server),
+            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(disconnect_client),
+
+            f(suspend_demo_server),
+
+            // verify that client cannot connect anymore
+            f(verify_that_client_fails_to_connect.bind(null, fail_fast_connectivity_strategy)),
+
+            f(resume_demo_server),
+
+            // verify that client can connect again
+            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(disconnect_client),
+
+            f(shutdown_server)
+        ], function (err) {
+            done(err);
+        });
+
+    });
+
+    it("TR5 -  a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function (done) {
+
+        async.series([
+            f(start_demo_server),
+            f(reset_continuous),
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(client_create_and_activate_session),
+            f(create_subscription),
+            f(monitor_monotonous_counter),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            // now drop connection  for 1.5 seconds
+            f(simulate_connection_break.bind(null, 1500)),
+            // make sure that we have received all notifications
+            // (thanks to republish )
+
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(terminate_subscription),
+
+            f(disconnect_client),
+            f(shutdown_server)
+        ], function (err) {
+            done(err);
+        });
+
+    });
+
+    it("TR6 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding subscription lifetime", function (done) {
+
+        // a client with some active monitoring items should be able to seamlessly reconnect
+        // after a very long connection break exceeding subscription lifetime.
+        // In this case, the subscription on the server side has been deleted, therefore the client shall
+        // recreate the subscription and resubscribe to the monitored items
+
+        async.series([
+            f(start_demo_server),
+            f(reset_continuous),
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(client_create_and_activate_session),
+            f(create_subscription),
+            f(monitor_monotonous_counter),
+
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+
+            // now drop connection  for a long time, so that server
+            // has to delete all pending subscriptions....
+            f(simulate_very_long_connection_break_until_subscription_times_out.bind(null)),
+
+
+            f(reset_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(terminate_subscription),
+
+            f(disconnect_client),
+            f(shutdown_server)
+        ], function (err) {
+            done(err);
+        });
+    });
+
+    xit("TR7 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding session life time", function (done) {
+        // to do
+        done();
+    });
 });
 

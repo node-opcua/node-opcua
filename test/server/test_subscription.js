@@ -28,7 +28,9 @@ function reconstruct_fake_publish_engine() {
             }
             this.pendingPublishRequestCount -= 1;
             return true;
-        }
+        },
+        on_close_subscription: function(subscription) {}
+
     };
 }
 

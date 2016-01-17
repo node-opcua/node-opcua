@@ -896,7 +896,7 @@ module.exports = function (test) {
 
     });
 
-    describe("testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function () {
+    describe("AZA testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function () {
 
         var server, client, temperatureVariableId, endpointUrl;
 
@@ -989,7 +989,6 @@ module.exports = function (test) {
 
 
                 var subscription = new ClientSubscription(session, {
-
                     requestedPublishingInterval: 10,
                     requestedLifetimeCount: 6,
                     requestedMaxKeepAliveCount: 2,
@@ -1031,7 +1030,6 @@ module.exports = function (test) {
                     setTimeout(function () {
                         subscription.terminate();
                     }, 200);
-
 
                 }).on("terminated", function () {
 

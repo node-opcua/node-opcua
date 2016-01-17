@@ -143,7 +143,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
     this.timeout(Math.max(this._timeout, 100000));
 
-    it("WW should retry many times and fails ",function(done) {
+    it("connectionStrategy: should retry many times and fail eventually ",function(done) {
 
         var options = {
             connectionStrategy: {
@@ -192,9 +192,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             nbRetry = number+1;
             if (number == 2) {
                 console.log( "Let abort the connection now");
-                secureChannel.abortConnection(function() {
-
-                });
+                secureChannel.abortConnection(function() {});
             }
         });
         secureChannel.create(endpoint,function(err){

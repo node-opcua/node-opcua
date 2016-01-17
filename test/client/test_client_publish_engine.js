@@ -10,6 +10,9 @@ var sinon = require("sinon");
 
 var ClientSidePublishEngine = require("lib/client/client_publish_engine").ClientSidePublishEngine;
 
+function makeSubscription(subscriptionId,timeoutHint,callback) {
+    return { subscriptionId: subscriptionId, timeoutHint:timeoutHint, onNotificationMessage: callback};
+}
 
 describe("Testing the client publish engine", function () {
 
@@ -31,13 +34,12 @@ describe("Testing the client publish engine", function () {
 
         var clientPublishEngine = new ClientSidePublishEngine(fake_session);
 
+
         // start a first new subscription
-        clientPublishEngine.registerSubscriptionCallback(1, 10000,function () {
-        });
+        clientPublishEngine.registerSubscription(makeSubscription(1, 10000,function () {}));
 
         // start a second new subscription
-        clientPublishEngine.registerSubscriptionCallback(2, 10000,function () {
-        });
+        clientPublishEngine.registerSubscription(makeSubscription(2, 10000,function () {}));
 
         // now advance the time artificially by 4.5 seconds
         this.clock.tick(500 + 4 * 1000);
@@ -61,8 +63,7 @@ describe("Testing the client publish engine", function () {
                 assert(request._schema.name === "PublishRequest");
                 // let simulate a server sending a PublishResponse for subscription:1
                 // after a short delay of 150 milliseconds
-                setTimeout(function () {
-                    var fake_response = new PublishResponse({subscriptionId: 1});
+                setTimeout(function () {var fake_response = new PublishResponse({subscriptionId: 1});
                     callback(null, fake_response);
                 }, 100);
             }
@@ -74,12 +75,10 @@ describe("Testing the client publish engine", function () {
         clientPublishEngine.timeoutHint.should.eql(10000,"expecting timeoutHint to be set to default value =10sec");
 
         // start a first new subscription
-        clientPublishEngine.registerSubscriptionCallback(1, 10000, function () {
-        });
+        clientPublishEngine.registerSubscription(makeSubscription(1, 10000, function () {}));
 
         // start a second new subscription
-        clientPublishEngine.registerSubscriptionCallback(2, 10000,  function () {
-        });
+        clientPublishEngine.registerSubscription(makeSubscription(2, 10000,  function () {}));
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
         this.clock.tick(3000);
@@ -115,8 +114,7 @@ describe("Testing the client publish engine", function () {
         var clientPublishEngine = new ClientSidePublishEngine(fake_session);
 
         // start a first new subscription
-        clientPublishEngine.registerSubscriptionCallback(1, 10000, function () {
-        });
+        clientPublishEngine.registerSubscription(makeSubscription(1, 10000, function () {}));
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
         this.clock.tick(3000);
@@ -126,7 +124,7 @@ describe("Testing the client publish engine", function () {
         var callcount_after_3sec = spy.callCount;
 
         // now, un-register the subscription
-        clientPublishEngine.unregisterSubscriptionCallback(1);
+        clientPublishEngine.unregisterSubscription(1);
 
         // now advance the time artificially again by 3 seconds ( 20*150ms)
         this.clock.tick(3000);
@@ -185,9 +183,9 @@ describe("Testing the client publish engine", function () {
 
         var clientPublishEngine = new ClientSidePublishEngine(fake_session);
 
-        clientPublishEngine.registerSubscriptionCallback(44, 10000,function () {});
+        clientPublishEngine.registerSubscription(makeSubscription(44, 10000,function () {}));
 
-        clientPublishEngine.registerSubscriptionCallback(1, 10000,function () {});
+        clientPublishEngine.registerSubscription(makeSubscription(1, 10000,function () {}));
 
         this.clock.tick(4500);
 
@@ -250,13 +248,13 @@ describe("Testing the client publish engine", function () {
         start();
 
         // start a first new subscription
-        clientPublishEngine.registerSubscriptionCallback(1, 20000, function () {});
+        clientPublishEngine.registerSubscription({ subscriptionId:1, timeoutHint: 20000, onNotificationMessage: function () {}});
 
         this.clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
         clientPublishEngine.nbPendingPublishRequests.should.eql(5);
 
         this.clock.tick(20000);
-        clientPublishEngine.unregisterSubscriptionCallback(1);
+        clientPublishEngine.unregisterSubscription(1);
 
         stop();
 

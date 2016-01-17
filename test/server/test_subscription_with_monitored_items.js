@@ -36,6 +36,9 @@ var fake_publish_engine = {
         }
         this.pendingPublishRequestCount -= 1;
         return true;
+    },
+    on_close_subscription: function(subscription) {
+
     }
 };
 
@@ -814,7 +817,6 @@ describe("#maxNotificationsPerPublish", function () {
     var publishEngine;
     before(function (done) {
         resourceLeakDetector.start();
-        publishEngine = new ServerSidePublishEngine();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
@@ -831,9 +833,6 @@ describe("#maxNotificationsPerPublish", function () {
     after(function () {
         engine.shutdown();
         engine = null;
-        if (publishEngine) {
-            publishEngine.shutdown();
-        }
         resourceLeakDetector.stop();
     });
 
@@ -856,11 +855,19 @@ describe("#maxNotificationsPerPublish", function () {
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers(now);
+        publishEngine = new ServerSidePublishEngine();
     });
-    afterEach(function () {
-        this.clock.restore();
 
+    afterEach(function () {
+        //xx publishEngine._feed_closed_subscription();
+        this.clock.tick(1000);
+        this.clock.restore();
+        if (publishEngine) {
+            publishEngine.shutdown();
+            publishEngine = null;
+        }
     });
+
     it("should have a proper maxNotificationsPerPublish default value", function (done) {
         var subscription = new Subscription({
             publishEngine: publishEngine
@@ -873,7 +880,6 @@ describe("#maxNotificationsPerPublish", function () {
         publishEngine.add_subscription(subscription);
         subscription.maxNotificationsPerPublish.should.eql(0);
 
-        publishEngine.remove_subscription(subscription);
         subscription.terminate();
 
         done();
@@ -982,8 +988,6 @@ describe("#maxNotificationsPerPublish", function () {
         numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
         publishResponse3.moreNotifications.should.eql(false);
 
-
-        publishEngine.remove_subscription(subscription);
 
         subscription.terminate();
         done();
