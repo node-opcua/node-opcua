@@ -114,6 +114,7 @@ describe("testing Client - Umbrella ", function () {
 
     require("./u_test_e2e_issue_144")(test);
     require("./u_test_e2e_issue_156")(test);
+    require("./u_test_e2e_issue_123")(test);
 
 });
 
