@@ -138,7 +138,7 @@ server.on("post_initialize", function () {
      * variation 1:
      * ------------
      *
-     * Add a variable in folder using a single get function witch returns the up to date variable value in Variant.
+     * Add a variable in folder using a single get function which returns the up to date variable value in Variant.
      * The server will set the timestamps automatically for us.
      * Use this variation when the variable value is controlled by the getter function
      * Avoid using this variation if the variable has to be made writable, as the server will call the getter

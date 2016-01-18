@@ -18,7 +18,7 @@ var perform_operation_on_client_session = require("test/helpers/perform_operatio
 module.exports = function (test) {
 
 
-    describe("Testing bug #xxx - reopenning Anonymous Session with Username password",function() {
+    describe("Testing bug #146 - reopenning Anonymous Session with Username password",function() {
 
         it("should reopen a Anonymous Session with UserName password ",function(done) {
 
