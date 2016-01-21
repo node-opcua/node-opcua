@@ -1,6 +1,11 @@
 require("requirish")._(module);
 var should = require("should");
 
+// make sure extra error checking is made on object constructions
+var schema_helpers = require("lib/misc/factories_schema_helpers");
+schema_helpers.doDebug = true;
+
+
 var server_engine = require("lib/server/server_engine");
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
@@ -263,19 +268,19 @@ describe("makeRelativePath",function() {
             referenceTypeId: resolveNodeId("Organizes"),
             isInverse: false,
             includeSubtypes: true,
-            targetName: new QualifiedName({namespace:0 , name: "Server"})
+            targetName: new QualifiedName({namespaceIndex:0 , name: "Server"})
         });
         relativePath.elements[1].should.eql({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
-            targetName: new QualifiedName({namespace: 0, name: "ServerStatus"})
+            targetName: new QualifiedName({namespaceIndex: 0, name: "ServerStatus"})
         });
         relativePath.elements[2].should.eql({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
-            targetName: new QualifiedName({namespace:0 , name: "CurrentTime"})
+            targetName: new QualifiedName({namespaceIndex:0 , name: "CurrentTime"})
         });
     });
 
