@@ -13,9 +13,9 @@ var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixtur
 
 
 /**
- *
+ * @method build_client_server_session
  * @param done
- * @returns {{g_session: null, g_server: (*|OPCUAServer), shutdown: shutdown}}
+ * @return {{g_session: null, g_server: (*|OPCUAServer), shutdown: shutdown}}
  *
  * @example
  * before(function (done) {

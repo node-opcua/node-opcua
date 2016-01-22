@@ -48,7 +48,7 @@ var standardUnits = opcua.standardUnits;
  * @enduml
  *
  * @param addressSpace
- * @returns {*}
+ * @return {*}
  */
 exports.createHVACSystem = function(addressSpace) {
 
