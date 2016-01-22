@@ -36,34 +36,20 @@ module.exports = function (test) {
             done();
         });
 
-        var BrowsePath = require("lib/services/translate_browse_paths_to_node_ids_service").BrowsePath;
-        var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
-        function makeBrowsePath(rootNode,relativePathBNF) {
+        var makeBrowsePath = require("lib/address_space/make_browse_path").makeBrowsePath;
 
-            function _get_nodeId(node) {
-                if (node.nodeId) {
-                    return node.nodeId;
-                }
-                return resolveNodeId(node)
-            }
-            var makeRelativePath = require("lib/address_space/make_relative_path").makeRelativePath;
-            return new BrowsePath({
-                startingNode: _get_nodeId(rootNode),
-                relativePath: makeRelativePath(relativePathBNF)
-            });
-
-        }
         it("TBP1 should translate browse path", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 // find nodeId of Root.Objects.server.status.buildInfo
                 var browsePath = [
-                    makeBrowsePath("RootFolder","/Objects.Server"),
-                    makeBrowsePath("RootFolder","/Objects.Server.ServerStatus"),
-                    makeBrowsePath("RootFolder","/Objects.Server.ServerStatus.BuildInfo"),
-                    makeBrowsePath("RootFolder","/Objects.Server.ServerStatus.BuildInfo.ProductName"),
-                    makeBrowsePath("RootFolder","/Objects.Server.ServerStatus.BuildInfo.")
+                    makeBrowsePath("RootFolder","/Objects/Server"),
+                    makeBrowsePath("RootFolder","/Objects/Server.ServerStatus"),
+                    makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo"),
+                    makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo.ProductName"),
+                    makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo."), // missing TargetName !
+                    makeBrowsePath("RootFolder","/Objects.Server") // intentional error usign . instead of /
                 ];
 
                 //xx console.log("browsePath ", browsePath[0].toString({addressSpace: server.engine.addressSpace}));
@@ -99,6 +85,8 @@ module.exports = function (test) {
 
                         // missing browseName on last element of the relativepath => ERROR
                         results[4].statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
+
+                        results[5].statusCode.should.eql(StatusCodes.BadNoMatch);
 
 
                     }

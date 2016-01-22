@@ -29,16 +29,18 @@ module.exports.get_fully_qualified_domain_name = require("lib/misc/hostname").ge
 module.exports.makeApplicationUrn              = require("lib/misc/applicationurn").makeApplicationUrn;
 
 // services
-module.exports.browse_service   = require("lib/services/browse_service");
-module.exports.read_service     = require("lib/services/read_service");
-module.exports.write_service     = require("lib/services/write_service");
-module.exports.call_service     = require("lib/services/call_service");
-module.exports.session_service  = require("lib/services/session_service");
-module.exports.get_endpoints_service  = require("lib/services/get_endpoints_service");
-module.exports.subscription_service   = require("lib/services/subscription_service");
-module.exports.historizing_service    = require("lib/services/historizing_service");
-module.exports.register_server_service = require("lib/services/register_server_service");
-module.exports.secure_channel_service  = require("lib/services/secure_channel_service");
+module.exports.browse_service                             = require("lib/services/browse_service");
+module.exports.read_service                               = require("lib/services/read_service");
+module.exports.write_service                              = require("lib/services/write_service");
+module.exports.call_service                               = require("lib/services/call_service");
+module.exports.session_service                            = require("lib/services/session_service");
+module.exports.get_endpoints_service                      = require("lib/services/get_endpoints_service");
+module.exports.subscription_service                       = require("lib/services/subscription_service");
+module.exports.historizing_service                        = require("lib/services/historizing_service");
+module.exports.register_server_service                    = require("lib/services/register_server_service");
+module.exports.secure_channel_service                     = require("lib/services/secure_channel_service");
+module.exports.translate_browse_paths_to_node_ids_service = require("lib/services/translate_browse_paths_to_node_ids_service");
+
 
 module.exports.query_service           = require("lib/services/query_service");
 module.exports.node_managment_service  = require("lib/services/node_management_service");
@@ -79,6 +81,8 @@ module.exports.UserNameIdentityToken = module.exports.session_service.UserNameId
 
 //
 module.exports.MessageSecurityMode = module.exports.get_endpoints_service.MessageSecurityMode;
+
+module.exports.makeRelativePath = require("lib/address_space/make_relative_path").makeRelativePath;
 
 
 // DA

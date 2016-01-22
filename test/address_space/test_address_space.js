@@ -317,7 +317,11 @@ describe("testing address space", function () {
         views[0].should.eql(view1);
         views[1].should.eql(view4);
 
-
+        var read_service = require("lib/services/read_service");
+        var AttributeIds = read_service.AttributeIds;
+        view1.readAttribute(AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
+        view1.readAttribute(AttributeIds.ContainsNoLoops).value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
+        view1.readAttribute(AttributeIds.BrowseName).value.value.toString().should.eql("View1");
 
     });
 

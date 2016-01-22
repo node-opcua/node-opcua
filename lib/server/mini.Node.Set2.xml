@@ -1384,6 +1384,16 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2172</Reference>
         </References>
     </UAVariable>
+
+    <UAObject NodeId="i=3048" BrowseName="EventTypes" SymbolicName="EventTypesFolder">
+        <DisplayName>EventTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=86</Reference>
+            <Reference ReferenceType="Organizes">i=2041</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
+
     <UAVariable NodeId="i=8889" BrowseName="LatePublishRequestCount" ParentNodeId="i=2172" DataType="UInt32">
         <DisplayName>LatePublishRequestCount</DisplayName>
         <References>

@@ -42,10 +42,6 @@ var fake_publish_engine = {
     }
 };
 
-
-var DataValue = require("lib/datamodel/datavalue").DataValue;
-var DataType = require("lib/datamodel/variant").DataType;
-
 var dataSourceFrozen = false;
 function freeze_data_source() {
     dataSourceFrozen = true;
@@ -72,6 +68,7 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var server_engine = require("lib/server/server_engine");
 var ServerEngine = server_engine.ServerEngine;
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
+var add_eventGeneratorObject = address_space_for_conformance_testing.add_eventGeneratorObject;
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 describe("Subscriptions and MonitoredItems", function () {
@@ -149,6 +146,7 @@ describe("Subscriptions and MonitoredItems", function () {
                     value: 36
                 })
             });
+
 
             done();
         });
@@ -818,8 +816,11 @@ describe("#maxNotificationsPerPublish", function () {
     before(function (done) {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
+
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+
             addressSpace = engine.addressSpace;
+
             var node = addressSpace.addVariable({
                 organizedBy:"RootFolder",
                 browseName: "SomeVariable",
@@ -827,6 +828,18 @@ describe("#maxNotificationsPerPublish", function () {
                 value: {dataType: DataType.UInt32, value: 0}
             });
             someVariableNode = node.nodeId;
+
+            add_eventGeneratorObject(engine.addressSpace,"ObjectsFolder");
+
+            var makeRelativePath = require("lib/address_space/make_relative_path").makeRelativePath;
+            var makeBrowsePath = require("lib/address_space/make_browse_path").makeBrowsePath;
+            var browsePath = makeBrowsePath("RootFolder","/Objects/EventGeneratorObject");
+            var eventGeneratingObject = addressSpace.browsePath(browsePath);
+
+            var opts = {addressSpace: engine.addressSpace};
+            console.log("eventGeneratingObject",browsePath.toString(opts));
+            console.log("eventGeneratingObject",eventGeneratingObject.toString(opts));
+
             done();
         });
     });
@@ -1113,8 +1126,8 @@ describe("#maxNotificationsPerPublish", function () {
             subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(2);
 
         });
-        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount",function() {
 
+        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount",function() {
 
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
@@ -1129,6 +1142,33 @@ describe("#maxNotificationsPerPublish", function () {
             subscription.monitoredItemCount.should.eql(2);
 
 
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.dataChangeNotificationsCount",function() {
+
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
+            subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(0);
+
+            var evtNotificationCounter = 0;
+            subscription.on("notificationMessage",function(notificationMessage) {
+                evtNotificationCounter+=1;
+            });
+
+            add_monitored_item();
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(1);
+
+           // simulate notification
+            // now simulate some data change
+            this.clock.tick(500);
+
+            subscription.subscriptionDiagnostics.notificationsCount.should.eql(evtNotificationCounter);
+            subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(evtNotificationCounter);
+
+
+        });
+
+        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount",function() {
+            // todo
         });
 
     })
