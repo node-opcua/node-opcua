@@ -63,13 +63,18 @@ var argv = require('yargs')
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
     .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
 
-
     .argv;
 
-console.log("==>", argv.securityPolicy);
 
 var securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+if (!securityMode) {
+    throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enums.join(" "));
+}
+
 var securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+if (!securityPolicy) {
+    throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enums.join(" "));
+}
 
 //xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
@@ -84,8 +89,6 @@ console.log(" monitoring node id ", monitored_node);
 var client = null;
 
 var endpointUrl = argv.endpoint;
-
-
 
 
 if (!endpointUrl) {
