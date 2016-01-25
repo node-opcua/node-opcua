@@ -274,7 +274,8 @@ describe("testing ReferenceType", function () {
         var browseNames = references.map(function (r) {
             return r.browseName.name;
         });
-        console.log("              " + browseNames.join(" , "));
+
+        //xx console.log("              " + browseNames.join(" , "));
 
         var expectedBrowseNames = ['StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason', 'Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
@@ -455,13 +456,13 @@ describe(" improving performance of isSupertypeOf", function () {
                 console.log(' Speed Up : x', this.speedUp);
                 this.fastest.name.should.eql("isSupertypeOf fast");
 
-                this.speedUp.should.be.greaterThan(9);
+                this.speedUp.should.be.greaterThan(5); // at least 5 time faster
 
                 done();
             })
             .run({
-                max_time:  2, // Sec
-                min_count: 100,
+                max_time:  0.2, // Sec
+                min_count: 300,
             });
     });
 });
