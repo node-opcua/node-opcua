@@ -161,18 +161,19 @@ describe("AddressSpace : add event type ", function () {
     });
 
 
-    it("should instantiate event efficiently ( more than 1000 per second on a decent computer)", function (done) {
+    it("should instantiate a condition efficiently ( more than 1000 per second on a decent computer)", function (done) {
 
         var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
         var bench = new Benchmarker();
 
         var eventType = addressSpace.addEventType({
+            subtypeOf: "ConditionType",
             browseName: "MyConcreteCustomEvent2",
             isAbstract: false
         });
         bench.add('test', function () {
 
-            var event = addressSpace.instantiateEvent(eventType, {
+            var event = addressSpace.instantiateCondition(eventType, {
                 sourceName: {dataType: "String", value: "HelloWorld"},
                 receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
             });

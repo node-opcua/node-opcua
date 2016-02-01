@@ -166,9 +166,9 @@ describe("Functional test : one server with many concurrent clients", function (
                 });
             },
 
-            // let the client work for 800 ms
+            // let the client work for 1200 ms
             function (callback) {
-                setTimeout(callback, 800);
+                setTimeout(callback, 1200);
             },
 
 
