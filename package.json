@@ -56,7 +56,6 @@
     "yuidocjs": "*"
   },
   "dependencies": {
-    "acl": "^0.4.9",
     "async": "1.5.2",
     "backoff": "git+https://github.com/MathieuTurcotte/node-backoff.git#fdd743791d21b13ba68cd691a8964bdfc7d33062",
     "better-assert": "1.0.2",
