@@ -10,12 +10,12 @@ var should= require("should");
 
 describe("testing extension object with client residing on a different process than the server process", function () {
 
-    this.timeout(200000); // could be slow on appveyor !
+    this.timeout(Math.max(600000,this._timeout));
 
     var serverHandle = null;
 
     var options = {
-        server_sourcefile: path.join(__dirname,"../../bin/simple_server_with_custom_extension_objects.js"),
+        server_sourcefile: "./bin/simple_server_with_custom_extension_objects.js",
         port: 23232
     };
 

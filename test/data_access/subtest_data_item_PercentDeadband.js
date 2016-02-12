@@ -29,10 +29,10 @@ module.exports = function (engine) {
 
             var addressSpace = engine.addressSpace;
 
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
 
             var analogItem = addressSpace.addAnalogDataItem({
-                organizedBy: rootFolder,
+                organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
                 valuePrecision: 0.5,

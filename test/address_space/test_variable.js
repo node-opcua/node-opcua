@@ -1425,10 +1425,10 @@ describe("testing UAVariable ", function () {
 
     it("UAVariable#setValueFromSource should cause 'value_changed' event to be raised",function(done) {
 
-        var rootFolder = addressSpace.findNode("RootFolder");
+        var objectsFolder = addressSpace.findNode("ObjectsFolder");
 
         var temperatureVar = addressSpace.addVariable({
-            organizedBy: rootFolder,
+            organizedBy: objectsFolder,
             browseName: "Testing#setValueFromSource",
             dataType: "Double",
             value: {

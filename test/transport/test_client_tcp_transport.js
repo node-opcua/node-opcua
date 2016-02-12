@@ -7,6 +7,7 @@ var utils = require("lib/misc/utils");
 var color = require("colors");
 var s = require("lib/datamodel/structures");
 var StatusCode = require("lib/datamodel/opcua_status_code").StatusCode;
+var sinon =require("sinon");
 
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
@@ -16,8 +17,20 @@ var packTcpMessage = require("lib/nodeopcua").packTcpMessage;
 describe("testing ClientTCP_transport", function () {
 
     var transport;
+    var spyOnClose,spyOnConnect,spyOnConnectionBreak;
+
     beforeEach(function (done) {
         transport = new ClientTCP_transport();
+
+        spyOnClose = sinon.spy();
+        transport.on("close",spyOnClose);
+
+        spyOnConnect = sinon.spy();
+        transport.on("connect",spyOnConnect);
+
+        spyOnConnectionBreak = sinon.spy();
+        transport.on("connection_break",spyOnConnectionBreak);
+
         done();
     });
 
@@ -50,10 +63,15 @@ describe("testing ClientTCP_transport", function () {
 
         });
 
-
         require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
+
         transport.connect("fake://localhost:2033/SomeAddress", function (err) {
+
+            spyOnConnect.callCount.should.eql(1);
+            spyOnClose.callCount.should.eql(0);
+            spyOnConnectionBreak.callCount.should.eql(0);
+
             done(err);
         });
 
@@ -64,7 +82,6 @@ describe("testing ClientTCP_transport", function () {
         var fake_no_responding_socket = new DirectTransport();
 
         fake_no_responding_socket.server.on("data", function (data) {
-
             // DO NOTHING !!
         });
 
@@ -73,8 +90,14 @@ describe("testing ClientTCP_transport", function () {
         transport.timeout = 10; // very short timeout;
 
         transport.connect("fake://localhost:2033/SomeAddress", function (err) {
+
             if (err) {
                 err.message.should.containEql("Timeout");
+
+                spyOnConnect.callCount.should.eql(0);
+                spyOnClose.callCount.should.eql(0);
+                spyOnConnectionBreak.callCount.should.eql(0);
+
                 done();
             } else {
                 done(new Error("Should have raised a timeout error"));
@@ -97,11 +120,18 @@ describe("testing ClientTCP_transport", function () {
         });
         require("lib/transport/tcp_transport").setFakeTransport(fake_socket.client);
 
-        transport.timeout = 10; // very short timeout;
+        transport.timeout = 1000; // very short timeout;
 
         transport.connect("fake://localhost:2033/SomeAddress", function (err) {
+
             if (err) {
+
                 err.message.should.match(/Connection aborted/);
+
+                spyOnConnect.callCount.should.eql(0);
+                spyOnClose.callCount.should.eql(0);
+                spyOnConnectionBreak.callCount.should.eql(0);
+
                 done();
             } else {
                 done(new Error("Should have raised a connection error"));
@@ -139,6 +169,11 @@ describe("testing ClientTCP_transport", function () {
         transport.connect("fake://localhost:2033/SomeAddress", function (err) {
             if (err) {
                 err.message.should.match(/The applications do not have compatible protocol versions/);
+
+                spyOnConnect.callCount.should.eql(0);
+                spyOnClose.callCount.should.eql(0);
+                spyOnConnectionBreak.callCount.should.eql(0);
+
                 done();
             } else {
                 done(new Error("transport.connect should have raised a connection error"));
@@ -190,6 +225,11 @@ describe("testing ClientTCP_transport", function () {
         transport.on("message", function (message_chunk) {
             debugLog(utils.hexDump(message_chunk).cyan.bold);
             utils.compare_buffers(message_chunk.slice(8), message1);
+
+            spyOnConnect.callCount.should.eql(1);
+            spyOnClose.callCount.should.eql(0);
+            spyOnConnectionBreak.callCount.should.eql(0);
+
             done();
         });
 

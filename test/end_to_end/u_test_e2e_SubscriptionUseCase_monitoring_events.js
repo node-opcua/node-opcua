@@ -47,7 +47,7 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 var itemToMonitor = new opcua.read_service.ReadValueId({
-                    nodeId: resolveNodeId("Server"),
+                    nodeId: resolveNodeId("Server_ServerStatus"),
                     attributeId: AttributeIds.Value // << we set Value here
                 });
 
@@ -89,6 +89,18 @@ module.exports = function (test) {
 
 
         });
+
+        xit("should only accept event monitoring on ObjectNode that have the SubscribeToEventBit set",function(done) {
+
+            // Part 3:
+            // Objects and views can be used to monitor Events. Events are only available from Nodes where the
+            // SubscribeToEvents bit of the EventNotifier Attribute is set.
+
+            // todo: check that
+            done();
+        });
+
+
 
         // check if nodeID exists
         it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function (done) {
@@ -160,7 +172,7 @@ module.exports = function (test) {
                 // now publish and check that monitored item returns EventNotification
 
 
-                // to DO
+                // toDO
             }, done);
         });
 
@@ -218,54 +230,106 @@ module.exports = function (test) {
             }, done);
         });
 
-        describe("Testing Server generating Event and client receiving Event Notification", function () {
+        describe("ZZA- Testing Server generating Event and client receiving Event Notification", function () {
 
 
-            function callEventGeneratorMethod(callback) {
+            function callEventGeneratorMethod(session,callback) {
 
-                // TODO
-                callback();
+                var eventGeneratorObject = test.server.engine.addressSpace.rootFolder.objects.simulation.eventGeneratorObject;
+
+                var methodsToCall = [{
+                    objectId: eventGeneratorObject.nodeId,
+                    methodId: eventGeneratorObject.eventGeneratorMethod.nodeId.toString(),
+                    inputArguments: [
+                        { dataType: opcua.DataType.String, value:  "Hello From Here" },
+                        { dataType: opcua.DataType.UInt32, value: 50 },
+                    ]
+                }];
+
+                session.call(methodsToCall,function(err,response){
+                    console.log("call response = ",response.toString());
+                    response[0].statusCode.should.eql(opcua.StatusCodes.Good);
+                    callback(err);
+                });
 
             }
 
             it("TE1 - should monitored Server Event", function (done) {
 
-                var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+                var fields = ["EventType","SourceName", "EventId", "ReceiveTime","Severity","Message"];
+                var eventFilter = constructEventFilter(fields);
 
-                perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+                perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, inner_callback) {
 
 
-                    var readValue = {
-                        nodeId: resolveNodeId("Server"),
-                        attributeId: AttributeIds.EventNotifier // << EventNotifier
-                    };
-                    var requestedParameters = {
-                        samplingInterval: 10,
-                        discardOldest: true,
-                        queueSize: 1,
-                        filter: eventFilter
+                    var eventNotificationCount = 0;
 
-                    };
-                    var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
-                        try {
-                            should(err).eql(null);
-                        } catch (err) {
-                            callback(err);
+                    async.series([
+
+                        function (callback) {
+                            var monitoredItem2 = subscription.monitor({
+                                nodeId: resolveNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime),
+                                attributeId: AttributeIds.Value
+                            },{
+                                samplingInterval: 1000,
+                                queueSize: 100,
+                            },TimestampsToReturn.Both, function(){
+
+                            });
+                            monitoredItem2.on("changed", function(dataValue){
+                                console.log(" Server Time is ",dataValue.toString())
+                            });
+                            callback();
+                        },
+
+                        function (callback) {
+
+                            var readValue = {
+                                nodeId: resolveNodeId("Server"),
+                                attributeId: AttributeIds.EventNotifier // << EventNotifier
+                            };
+                            var requestedParameters = {
+                                samplingInterval: 50,
+                                discardOldest: true,
+                                queueSize:     10,
+                                filter: eventFilter
+                            };
+
+                            var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                                try {
+                                    should(err).eql(null);
+                                } catch (err) {
+                                    callback(err);
+                                }
+
+                                callback();
+                            });
+
+                            function w(str,l) {
+                                return (str + "                                      ").substr(0,l);
+                            }
+                            monitoredItem.on("changed", function (eventFields) {
+                                // TODO
+                                eventNotificationCount = eventNotificationCount + 1;
+                                console.log("Changed !!!  ");
+                                eventFields.forEach(function(variant,index) {
+                                    console.log(w(fields[index],15).yellow,variant.toString().cyan);
+                                })
+                            });
+                        },
+
+                        // make server generate an event
+                        callEventGeneratorMethod.bind(null,session),
+
+                        function (callback) {
+                            setTimeout(callback,1000);
+                        },
+                        function (callback) {
+                            eventNotificationCount.should.eql(1," Should have received one event notificaition");
+                            callback();
                         }
 
-                        async.series([
-                            callEventGeneratorMethod.bind(null),
-                            function (callback) {
-                                // TODO
-                                callback();
-                            }
-
-                        ], callback);
-                    });
-                    monitoredItem.on("change", function () {
-                        // TODO
-                        console.log("Changed !!!  ")
-                    });
+                    ], inner_callback);
 
 
                 }, done);

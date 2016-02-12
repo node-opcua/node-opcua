@@ -674,6 +674,23 @@ describe("benchmarking float Array encode/decode", function () {
 
 describe("Variant with Advanced Array", function () {
 
+
+    it("should automatically detect that variant is an array when rrayType is missing ",function() {
+
+
+        var v = new Variant({
+            dataType: "Float",
+            //  EXPLICITLY MISSING arrayType : VariantArrayType.Array
+            value: [1,2 ]
+        });
+
+        v.arrayType.should.eql(VariantArrayType.Array);
+
+        encode_decode_round_trip_test(v, function (stream) {
+            stream.length.should.equal(1 + 4 + 2 * 4);
+        });
+    });
+
     it("should be possible to handle an Float array  with a Float32Array", function () {
 
         var v = new Variant({
@@ -766,4 +783,22 @@ describe("Variant with enumeration",function() {
         v.dataType.should.eql(DataType.Int32);
     });
 
+    it("should create a variant with builtin type 'Duration'",function() {
+        var v = new Variant({
+            dataType: "Duration",
+            value: 0.1
+        });
+        v.dataType.should.eql(DataType.Double);
+        v.value.should.eql(0.1);
+
+    });
+    it("should create a variant with builtin type 'ByteString'",function() {
+
+        var v = new Variant({
+            dataType: "ByteString",
+            value: new Buffer("abcd")
+        });
+        v.dataType.should.eql(DataType.ByteString);
+        v.value.toString("ascii").should.eql("abcd");
+    });
 });

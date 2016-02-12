@@ -27,11 +27,11 @@ module.exports = function(engine) {
         it("should add a TwoStateDiscreteType variable",function() {
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
-            rootFolder.browseName.toString().should.eql("Objects");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            objectsFolder.browseName.toString().should.eql("Objects");
 
             var prop = addressSpace.addTwoStateDiscreteType({
-                organizedBy: rootFolder,
+                organizedBy: objectsFolder,
                 browseName: "MySwitch",
                 trueState: "busy",
                 falseState: "idle",

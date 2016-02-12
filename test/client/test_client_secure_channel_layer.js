@@ -52,6 +52,7 @@ describe("testing ClientSecureChannelLayer ", function () {
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
+           //Xx packTcpMessage("CLO", fake_AcknowledgeMessage),
             function () {
                 this.fake_socket.server.end();
             },
@@ -172,8 +173,12 @@ describe("testing ClientSecureChannelLayer ", function () {
 
             secureChannel.isTransactionInProgress().should.eql(false);
 
+            var spyOnClose = new require("sinon").spy();
+            secureChannel.on("close",spyOnClose);
 
             secureChannel.close(function (err) {
+
+                spyOnClose.callCount.should.eql(1);
                 done(err);
             });
         });

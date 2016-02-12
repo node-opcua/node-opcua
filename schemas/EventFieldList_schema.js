@@ -2,9 +2,9 @@
 require("requirish")._(module);
 var factories = require("lib/misc/factories");
 
-var EventField_Schema = {
+var EventFieldList_Schema = {
     id: factories.next_available_id(),
-    name: "EventField",
+    name: "EventFieldList",
     fields: [
         {name: "clientHandle", fieldType: "IntegerId", documentation: "Client-supplied handle for the MonitoredItem"},
         {
@@ -15,4 +15,4 @@ var EventField_Schema = {
         }
     ]
 };
-exports.EventField_Schema = EventField_Schema;
+exports.EventFieldList_Schema = EventFieldList_Schema;

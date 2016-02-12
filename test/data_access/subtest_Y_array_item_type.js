@@ -28,12 +28,12 @@ module.exports = function(engine) {
 
     describe("YArrayItemType", function () {
 
-        var rootFolder;
+        var objectsFolder;
         var addressSpace;
         before(function() {
             addressSpace = engine.addressSpace;
-            rootFolder = addressSpace.findNode("ObjectsFolder");
-            rootFolder.browseName.toString().should.eql("Objects");
+            objectsFolder = addressSpace.findNode("ObjectsFolder");
+            objectsFolder.browseName.toString().should.eql("Objects");
         });
 
         it("YArrayItemType should not be abstract",function() {
@@ -46,7 +46,7 @@ module.exports = function(engine) {
 
             var yArrayItem = addressSpace.addYArrayItem({
 
-                componentOf: rootFolder,
+                organizedBy: objectsFolder,
 
                 browseName: "MyYArrayItem",
 
@@ -111,7 +111,7 @@ module.exports = function(engine) {
 
             var prop = addressSpace.addYArrayItem({
 
-                componentOf: rootFolder,
+                organizedBy: objectsFolder,
 
                 browseName: "MyYArrayItem",
 

@@ -3,7 +3,7 @@ var EventNotificationList_Schema = {
     fields: [
         {
             name: "events",
-            fieldType: "EventField",
+            fieldType: "EventFieldList",
             isArray: true,
             documentation: "The list of Events being delivered. This structure is defined in-line with the following indented items."
         }

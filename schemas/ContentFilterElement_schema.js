@@ -17,7 +17,7 @@ var ContentFilterElement_Schema = {
     name: "ContentFilterElement",
     fields: [
         // Filter operator to be evaluated.
-        { name: "filterOperator", fieldType: "FilterOperator", dataType: "i=576" },
+        { name: "filterOperator", fieldType: "FilterOperator" /*, dataType: "i=576"*/ },
         // Operands used by the selected operator. The number and use depend on the
         // operators defined in Table 110. This array needs at least one entry.
         // This extensible parameter type is the FilterOperand parameter type specified

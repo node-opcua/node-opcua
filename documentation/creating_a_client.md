@@ -169,7 +169,7 @@ the_session.browse("RootFolder", function(err,browse_result){
 ```javascript
 var max_age = 0;
 var nodes_to_read = [
-   { nodeId: "ns=4;s=free_memory", attributeId: 13} 
+   { nodeId: "ns=4;s=free_memory", attributeId: opcua.AttributeIds.Value } 
 ];
 the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) {
     if (!err) {
@@ -227,7 +227,7 @@ setTimeout(function(){
 // install monitored item
 var monitoredItem  = the_subscription.monitor({
     nodeId: opcua.resolveNodeId("ns=4;s=free_memory"),
-    attributeId: 13
+    attributeId: opcua.AttributeIds.Value
 },
 {
     samplingInterval: 100,

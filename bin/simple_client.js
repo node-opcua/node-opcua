@@ -46,6 +46,9 @@ var argv = require('yargs')
     .string("debug")
     .describe("debug"," display more verbose information")
 
+    .string("history")
+    .describe("history","make an historical read")
+
     .alias('e', 'endpoint')
     .alias('s', 'securityMode')
     .alias('P', 'securityPolicy')
@@ -55,18 +58,23 @@ var argv = require('yargs')
     .alias("t", 'timeout')
 
     .alias("d", "debug")
-
+    .alias("h", "history")
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
     .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
 
-
     .argv;
 
-console.log("==>", argv.securityPolicy);
 
 var securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+if (!securityMode) {
+    throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enums.join(" "));
+}
+
 var securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+if (!securityPolicy) {
+    throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enums.join(" "));
+}
 
 //xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
@@ -83,8 +91,6 @@ var client = null;
 var endpointUrl = argv.endpoint;
 
 
-
-
 if (!endpointUrl) {
     require('yargs').showHelp();
     return;
@@ -96,6 +102,7 @@ var AttributeIds = opcua.AttributeIds;
 
 var NodeCrawler = opcua.NodeCrawler;
 var doCrawling = argv.crawl ? true : false;
+var doHistory = argv.history ? true : false;
 
 var serverCertificate = null;
 
@@ -109,6 +116,11 @@ async.series([
 
         console.log(" connecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl, callback);
+
+        client.on("connection_reestablished",function() {
+            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RESTABLISHED !!!!!!!!!!!!!!!!!!!");
+        });
+
     },
 
     function (callback) {
@@ -176,7 +188,7 @@ async.series([
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 10000
+            defaultSecureTokenLifetime: 40000
         };
         console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
@@ -274,6 +286,9 @@ async.series([
     // create Read
     function (callback) {
 
+        if (!doHistory) {
+            return callback();
+        }
         var now = Date.now();
         var start = now-1000*1; // read 1 seconds of history
         var end   = now;
@@ -286,31 +301,57 @@ async.series([
             }
             callback();
 
-        })
+        });
     },
     // -----------------------------------------
     // create subscription
     function (callback) {
 
-        the_subscription = new opcua.ClientSubscription(the_session, {
-            requestedPublishingInterval: 10,
-            requestedLifetimeCount: 1000,
-            requestedMaxKeepAliveCount: 12,
-            maxNotificationsPerPublish: 10,
+        var parameters = {
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount:      1000,
+            requestedMaxKeepAliveCount:  12,
+            maxNotificationsPerPublish:  10,
             publishingEnabled: true,
             priority: 10
-        });
+        };
+
+        the_subscription = new opcua.ClientSubscription(the_session, parameters);
 
         var timerId;
         if (timeout > 0) {
             timerId = setTimeout(function () {
+
                 the_subscription.terminate();
             }, timeout);
+
+            // simulate a connection break at t =timeout/2
+            setTimeout(function () {
+
+                console.log("  -------------------------------------------------------------------- ".red.bgWhite);
+                console.log("  --                               SIMULATE CONNECTION BREAK        -- ".red.bgWhite);
+                console.log("  -------------------------------------------------------------------- ".red.bgWhite);
+                var socket = client._secureChannel._transport._socket;
+                socket.end();
+                socket.emit('error', new Error('ECONNRESET'));
+            }, timeout/2.0);
+
         }
+
+        function getTick() {
+            return Date.now();
+        }
+        var t = getTick();
 
         the_subscription.on("started", function () {
 
             console.log("started subscription :", the_subscription.subscriptionId);
+
+            console.log(" revised parameters ");
+            console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount , " ( requested " , parameters.requestedMaxKeepAliveCount + ")");
+            console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount  , " ( requested " , parameters.requestedLifetimeCount + ")");
+            console.log("  revised publishingInterval ", the_subscription.publishingInterval , " ( requested " , parameters.requestedPublishingInterval + ")");
+            console.log("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint );
 
             the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
                 if (!err) {
@@ -325,13 +366,21 @@ async.series([
         }).on("internal_error", function (err) {
             console.log(" received internal error", err.message);
             clearTimeout(timerId);
-            callback(err);
-
-
+            if(callback) {
+                callback(err);
+                callback = null;
+            }
         }).on("keepalive", function () {
-            console.log("keepalive");
-        }).on("terminated", function () {
-            callback();
+
+            var t1 = getTick();
+            var span = t1 -t;
+            t= t1;
+            console.log("keepalive ", span/1000 , "sec" , " pending request on server = ",the_subscription.publish_engine.nbPendingPublishRequests);
+        }).on("terminated", function (err) {
+            if(callback) {
+                callback(err);
+                callback = null;
+            }
         });
 
         // ---------------------------------------------------------------
@@ -344,7 +393,7 @@ async.series([
             },
             {
                 clientHandle: 13,
-                samplingInterval: 500,
+                samplingInterval: 250,
                 //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
                 queueSize: 1,
                 discardOldest: true
@@ -366,6 +415,10 @@ async.series([
 
         var baseEventTypeId = "i=2041"; // BaseEventType;
         var serverObjectId = "i=2253";
+
+        var fields = ["EventType","SourceName", "EventId", "ReceiveTime","Severity","Message"];
+        var eventFilter = opcua.constructEventFilter(fields);
+
         var event_monitoringItem = the_subscription.monitor(
             {
                 nodeId: serverObjectId,
@@ -373,19 +426,7 @@ async.series([
             },
             {
                 queueSize: 1,
-                filter: new opcua.subscription_service.EventFilter({
-
-                    selectClauses: [// SimpleAttributeOperand
-                        {
-                            typeId: baseEventTypeId, // NodeId of a TypeDefinitionNode.
-                            browsePath: [{name: "EventId"}],
-                            attributeId: AttributeIds.Value
-                        }
-                    ],
-                    whereClause: { //ContentFilter
-                    }
-                }),
-
+                filter: eventFilter,
                 discardOldest: true
             }
         );
@@ -394,8 +435,15 @@ async.series([
             console.log("event_monitoringItem initialized");
         });
 
-        event_monitoringItem.on("changed", function (value) {
-            console.log(event_monitoringItem.itemToMonitor.nodeId.toString(), " value has changed to " + value.toString());
+        function w(str,l) {
+            return (str + "                                      ").substr(0,l);
+        }
+
+        event_monitoringItem.on("changed", function (eventFields) {
+            _.forEach(eventFields,function(variant,index) {
+                console.log(w(fields[index],15).yellow,variant.toString().cyan);
+            })
+
         });
         event_monitoringItem.on("err", function (err_message) {
             console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);
@@ -435,7 +483,10 @@ async.series([
     }
 });
 
+process.on("error",function(err){
 
+    console.log(" UNTRAPPED ERROR",err.message);
+});
 process.on('SIGINT', function () {
     if (the_subscription) {
 

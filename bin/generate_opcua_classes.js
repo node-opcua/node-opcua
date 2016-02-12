@@ -23,7 +23,18 @@
 require("requirish")._(module);
 
 var argv = require('yargs')
+    .strict()
     .usage('Usage: $0 --clear --verbose ')
+    .options({
+        clear: {
+            type: "boolean",
+            describe: "delete existing _generated_ files first"
+        },
+        verbose: {
+            type: "boolean",
+            describe: "display extra info"
+        }
+    }).help("help")
     .argv;
 
 var path = require("path");
@@ -191,7 +202,7 @@ registerObject("ModifyMonitoredItemsRequest");
 registerObject("ModifyMonitoredItemsResponse");
 registerObject("SetMonitoringModeRequest");
 registerObject("SetMonitoringModeResponse");
-registerObject("EventField");
+registerObject("EventFieldList");
 registerObject("EventNotificationList");
 registerObject("StatusChangeNotification");
 registerObject("SetTriggeringRequest");
@@ -325,17 +336,18 @@ var AddressSpace = address_space.AddressSpace;
 
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
-var makeServerStatus = require("lib/address_space/convert_nodeset_to_types").makeServerStatus;
+var createExtensionObjectDefinition = require("lib/address_space/convert_nodeset_to_types").createExtensionObjectDefinition;
 
 
 var addressSpace = new AddressSpace();
 
 generate_address_space(addressSpace, filename, function () {
 
-    makeServerStatus(addressSpace);
+    createExtensionObjectDefinition(addressSpace);
+
+    console.log("done");
 
 });
 
 
 
-console.log("done");

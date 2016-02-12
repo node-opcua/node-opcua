@@ -82,6 +82,7 @@ describe("Testing UAObject", function () {
 
         nbReferencesAfter.should.eql(nbReferencesBefore + 1, "we should have one more inverse reference more on the BaseObjectType");
 
+        should(node1.parent).eql(undefined,"node1 should have no parent");
     });
 
     function _test_with_custom_referenceType(referenceType) {
@@ -93,8 +94,6 @@ describe("Testing UAObject", function () {
         var nodeDest = addressSpace.addObject({
             browseName: "nodeDest"
         });
-
-
 
         node1.addReference({
             referenceType: referenceType,
@@ -109,8 +108,8 @@ describe("Testing UAObject", function () {
         inverseReferences1.length.should.eql(0);
         forwardReferences1[1].nodeId.toString().should.eql(nodeDest.nodeId.toString());
 
-        console.log(node1._references[0].toString({addressSpace: addressSpace}));
-        console.log(node1._references[1].toString({addressSpace: addressSpace}));
+        //xx console.log(node1._references[0].toString({addressSpace: addressSpace}));
+        //xx console.log(node1._references[1].toString({addressSpace: addressSpace}));
     }
 
     it("BaseNode#addReference - referenceType as ReferenceType BrowseName", function () {
@@ -125,6 +124,82 @@ describe("Testing UAObject", function () {
     it("BaseNode#addReference - referenceType as NodeId", function () {
         var referenceType = addressSpace.findReferenceType("Organizes");
         _test_with_custom_referenceType(referenceType.nodeId);
+    });
+
+    it("BaseNode#addReference - nodeId as NodeId", function () {
+        var node1 = addressSpace.addObject({browseName: "Node1"});
+        var nodeDest = addressSpace.addObject({browseName: "nodeDest"});
+
+        node1.addReference({
+            referenceType: "Organizes",
+            nodeId: nodeDest
+        });
+        node1.getFolderElementByName("nodeDest").browseName.should.eql(nodeDest.browseName);
+    });
+    it("BaseNode#addReference - nodeId as Node", function () {
+        var node1 = addressSpace.addObject({browseName: "Node1"});
+        var nodeDest = addressSpace.addObject({browseName: "nodeDest"});
+
+        node1.addReference({
+            referenceType: "Organizes",
+            nodeId: nodeDest.nodeId
+        });
+        node1.getFolderElementByName("nodeDest").browseName.should.eql(nodeDest.browseName);
+    });
+    it("BaseNode#addReference - nodeId as String", function () {
+        var node1 = addressSpace.addObject({browseName: "Node1"});
+        var nodeDest = addressSpace.addObject({browseName: "nodeDest"});
+
+        node1.addReference({
+            referenceType: "Organizes",
+            nodeId: nodeDest.nodeId.toString()
+        });
+        node1.getFolderElementByName("nodeDest").browseName.should.eql(nodeDest.browseName);
+    });
+
+    it("BaseNode#addReference with invalid referenceType should raise an exception", function () {
+
+        var node1 = addressSpace.addObject({
+            browseName: "Node1"
+        });
+
+        var nodeDest = addressSpace.addObject({
+            browseName: "nodeDest"
+        });
+
+        should(function() {
+            node1.addReference({
+                referenceType: "INVALID TYPE",
+                isForward: true,
+                nodeId: nodeDest.nodeId
+            });
+        }).throwError();
+    });
+
+    it("BaseNode#addReference - four equivalent cases", function () {
+
+        var view = addressSpace.addObject({browseName: "View" });
+        var node1 = addressSpace.addObject({browseName: "Node1" });
+        var node2 = addressSpace.addObject({browseName: "Node2" });
+        var node3 = addressSpace.addObject({browseName: "Node3" });
+        var node4 = addressSpace.addObject({browseName: "Node4" });
+        var node5 = addressSpace.addObject({browseName: "Node5" });
+
+
+        // the following addReference usages produce the same relationship
+        node1.addReference({ referenceType: "OrganizedBy", nodeId: view.nodeId });
+        node2.addReference({ referenceType: "OrganizedBy", nodeId: view });
+        node3.addReference({ referenceType: "Organizes",   isForward: false, nodeId: view.nodeId });
+        view.addReference({  referenceType: "Organizes", nodeId: node4 });
+        view.addReference({  referenceType: "OrganizedBy", isForward: false, nodeId: node5 });
+
+
+        view.getFolderElementByName("Node1").browseName.toString().should.eql(node1.browseName.toString());
+        view.getFolderElementByName("Node2").browseName.toString().should.eql(node2.browseName.toString());
+        view.getFolderElementByName("Node3").browseName.toString().should.eql(node3.browseName.toString());
+        view.getFolderElementByName("Node4").browseName.toString().should.eql(node4.browseName.toString());
+        view.getFolderElementByName("Node5").browseName.toString().should.eql(node5.browseName.toString());
+
     });
 
     it("BaseNode#addReference - 2 nodes - should properly update backward references on referenced nodes", function () {
@@ -319,5 +394,26 @@ describe("Testing UAObject", function () {
 
         addressSpace.rootFolder.namespaceUri.should.eql("http://opcfoundation.org/UA/");
     });
+
+    it("AddressSpace#parent should provide a parent property to access parent node", function () {
+
+        var parentNode = addressSpace.addObject({
+            browseName: "ParentNode"
+        });
+
+        var child1 = addressSpace.addObject({componentOf: parentNode, browseName: "Child1"});
+        child1.parent.should.eql(parentNode);
+
+        var child2 = addressSpace.addObject({propertyOf: parentNode, browseName: "Child2"});
+        child2.parent.should.eql(parentNode);
+
+
+        var child3 = addressSpace.addObject({organizedBy: parentNode, browseName: "Child3"});
+        should(child3.parent).eql(undefined,"OrganizedBy is not a Parent/Child relation");
+
+    });
+
+
+
 });
 

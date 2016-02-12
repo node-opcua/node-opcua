@@ -35,11 +35,11 @@ module.exports = function(engine) {
         it("should add a MultiStateValueDiscreteType variable - form 1",function() {
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
-            rootFolder.browseName.toString().should.eql("Objects");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            objectsFolder.browseName.toString().should.eql("Objects");
 
             var prop = addressSpace.addMultiStateValueDiscreteType({
-                componentOf: rootFolder,
+                organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
                 value: 0xFF0000 // Red
@@ -65,11 +65,11 @@ module.exports = function(engine) {
         it("should add a MultiStateValueDiscreteType variable - form 2",function() {
 
             var addressSpace = engine.addressSpace;
-            var rootFolder = addressSpace.findNode("ObjectsFolder");
-            rootFolder.browseName.toString().should.eql("Objects");
+            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            objectsFolder.browseName.toString().should.eql("Objects");
 
             var prop = addressSpace.addMultiStateValueDiscreteType({
-                componentOf: rootFolder,
+                organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: [
                     { displayName: "Red",    value: 0xFF0000},
@@ -85,10 +85,10 @@ module.exports = function(engine) {
             var multiStateValue;
             before(function() {
                 var addressSpace = engine.addressSpace;
-                var rootFolder = addressSpace.findNode("ObjectsFolder");
-                rootFolder.browseName.toString().should.eql("Objects");
+                var objectsFolder = addressSpace.findNode("ObjectsFolder");
+                objectsFolder.browseName.toString().should.eql("Objects");
                 multiStateValue = addressSpace.addMultiStateValueDiscreteType({
-                    componentOf: rootFolder,
+                    organizedBy: objectsFolder,
                     browseName: "MyMultiStateValueVariable",
                     enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
                     value: 0xFF0000 // Red

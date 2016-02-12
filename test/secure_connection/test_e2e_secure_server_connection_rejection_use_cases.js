@@ -204,5 +204,37 @@ if (!crypto_utils.isFullySupported()) {
 
             ], done);
         });
+
+        it("TB - a client shall be able to connect to a server using a SecureChannel without specifying the serverCertificate",function(done) {
+
+            // in this case, server certificate will be extracted from the getPoint Information
+            var options = {
+                securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+                securityPolicy: opcua.SecurityPolicy.Basic256,
+                serverCertificate: null, // NOT KNOWN
+                defaultSecureTokenLifetime: 2000
+            };
+            var client = new OPCUAClient(options);
+
+            async.series([
+
+                function (callback) {
+                    should(client.serverCertificate).eql(null);
+                    client.endpoint_must_exist = true;
+                    client.connect(endpointUrl, callback);
+                },
+
+
+                function (callback) {
+                    should(client.serverCertificate).not.eql(null);
+                    console.log(" Client has detected that server certificate is ",client.serverCertificate.toString("base64"));
+                    client.disconnect(callback);
+                }
+
+            ], done);
+
+
+        });
+
     });
 }

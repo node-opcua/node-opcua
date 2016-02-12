@@ -45,6 +45,8 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
+var fakeNotificationData =[new subscription_service.DataChangeNotification()];
+
 describe("Testing the server publish engine", function () {
 
     before(function () {
@@ -97,7 +99,6 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(subscription.publishingInterval * 5);
         publish_server.pendingPublishRequestCount.should.equal(0);
 
-        publish_server.remove_subscription(subscription);
         subscription.terminate();
         publish_server.shutdown();
     });
@@ -125,7 +126,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval * 1.2);
 
@@ -142,7 +143,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server has now some notification ready and send them to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         send_response_for_request_spy.callCount.should.equal(1);
 
         this.clock.tick(subscription.publishingInterval);
@@ -155,7 +156,6 @@ describe("Testing the server publish engine", function () {
 
 
         // send_response_for_request_spy.
-        publish_server.remove_subscription(subscription);
         subscription.terminate();
         publish_server.shutdown();
     });
@@ -198,7 +198,6 @@ describe("Testing the server publish engine", function () {
         publish_server.subscriptionCount.should.equal(1);
         publish_server.getSubscriptionById(1234).should.equal(subscription);
 
-        publish_server.remove_subscription(subscription);
         subscription.terminate();
 
         publish_server.shutdown();
@@ -221,8 +220,6 @@ describe("Testing the server publish engine", function () {
         publish_server.add_subscription(subscription);
         publish_server.subscriptionCount.should.equal(1);
 
-        publish_server.remove_subscription(subscription);
-        publish_server.subscriptionCount.should.equal(0);
 
         subscription.terminate();
         publish_server.shutdown();
@@ -239,8 +236,10 @@ describe("Testing the server publish engine", function () {
 
         var subscription = new Subscription({
             id: 1,
-            //
-            publishEngine: publish_server
+            publishingInterval: 10000,
+            maxKeepAliveCount:  500,
+            maxLifeTimeCount:   2000,
+            publishEngine:      publish_server
         });
         publish_server.add_subscription(subscription);
 
@@ -255,14 +254,14 @@ describe("Testing the server publish engine", function () {
         //fr: la goutte qui fait déborder le vase.
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
-        send_response_for_request_spy.callCount.should.equal(1);
+        send_response_for_request_spy.callCount.should.be.equal(1);
+
         send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTooManyPublishRequests);
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
 
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -286,7 +285,7 @@ describe("Testing the server publish engine", function () {
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval);
 
@@ -301,7 +300,7 @@ describe("Testing the server publish engine", function () {
         // --------------------------------
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(subscription.publishingInterval);
 
@@ -314,7 +313,7 @@ describe("Testing the server publish engine", function () {
 
 
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval);
         subscription.getAvailableSequenceNumbers().should.eql([1, 2, 3]);
 
@@ -331,7 +330,7 @@ describe("Testing the server publish engine", function () {
         ));
         subscription.getAvailableSequenceNumbers().should.eql([1, 3]);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(4);
         send_response_for_request_spy.getCall(3).args[1]._schema.name.should.equal("PublishResponse");
@@ -348,7 +347,7 @@ describe("Testing the server publish engine", function () {
         ));
         subscription.getAvailableSequenceNumbers().should.eql([4]);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval);
 
         send_response_for_request_spy.callCount.should.equal(5);
@@ -357,7 +356,6 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(4).args[1].results.should.eql([StatusCodes.Good, StatusCodes.Good]);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -390,7 +388,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
 
         this.clock.tick(subscription.publishingInterval * 1.2);
@@ -403,7 +401,6 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([StatusCodes.BadSequenceNumberUnknown]);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -457,7 +454,6 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.callCount.should.eql(2);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -489,7 +485,7 @@ describe("Testing the server publish engine", function () {
         publish_server.pendingPublishRequestCount.should.eql(5);
 
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
 
         this.clock.tick(2);
         subscription.state.should.eql(SubscriptionState.NORMAL);
@@ -503,7 +499,6 @@ describe("Testing the server publish engine", function () {
         send_notification_message_spy.callCount.should.eql(1);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -528,14 +523,13 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(2);
         subscription.state.should.equal(SubscriptionState.NORMAL);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval * 1.2);
 
         subscription.state.should.equal(SubscriptionState.LATE);
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -562,7 +556,6 @@ describe("Testing the server publish engine", function () {
         subscription.timeToExpiration.should.eql(1000 * 8);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -624,9 +617,9 @@ describe("Testing the server publish engine", function () {
 
 
         // add some notification we want to process
-        subscription1.addNotificationMessage([{}]);
-        subscription2.addNotificationMessage([{}]);
-        subscription3.addNotificationMessage([{}]);
+        subscription1.addNotificationMessage(fakeNotificationData);
+        subscription2.addNotificationMessage(fakeNotificationData);
+        subscription3.addNotificationMessage(fakeNotificationData);
 
 
         // let move in time so that all subscriptions get late (without expiring)
@@ -646,13 +639,10 @@ describe("Testing the server publish engine", function () {
         publish_server.findLateSubscriptionsSortedByAge().map(_.property("id")).should.eql([1, 3]);
 
         subscription1.terminate();
-        publish_server.remove_subscription(subscription1);
 
         subscription2.terminate();
-        publish_server.remove_subscription(subscription2);
 
         subscription3.terminate();
-        publish_server.remove_subscription(subscription3);
 
         publish_server.shutdown();
     });
@@ -677,7 +667,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(2);
         subscription.state.should.equal(SubscriptionState.NORMAL);
 
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         this.clock.tick(subscription.publishingInterval * 1.2);
 
         subscription.state.should.equal(SubscriptionState.LATE);
@@ -689,7 +679,6 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.equal(SubscriptionState.NORMAL);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
 
     });
@@ -715,12 +704,12 @@ describe("Testing the server publish engine", function () {
         publish_server.add_subscription(subscription);
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.pendingNotificationsCount.should.eql(1);
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
         // server send a notification to the client
-        subscription.addNotificationMessage([{}]);
+        subscription.addNotificationMessage(fakeNotificationData);
         subscription.pendingNotificationsCount.should.eql(2);
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
@@ -733,7 +722,6 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.eql(SubscriptionState.CLOSED);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
     });
 
@@ -759,7 +747,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount + 20);
         subscription.state.should.eql(SubscriptionState.CLOSED);
 
-        publish_server.findFirstClosedSubscription().id.should.eql(1234);
+        publish_server.pendingClosedSubscriptionCount.should.eql(1);
 
         var send_response_for_request_spy = sinon.spy(publish_server, "send_response_for_request");
 
@@ -779,8 +767,7 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.eql(SubscriptionState.CLOSED);
 
 
-        //xxsubscription.terminate();
-        //xxpublish_server.remove_subscription(subscription);
+        publish_server.pendingClosedSubscriptionCount.should.eql(0);
         publish_server.shutdown();
     });
     it("PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out", function () {
@@ -824,7 +811,6 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
 
         subscription.terminate();
-        publish_server.remove_subscription(subscription);
         publish_server.shutdown();
 
     });

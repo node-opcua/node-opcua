@@ -5,7 +5,7 @@ var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMa
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
-
+var assert = require("better-assert");
 function getFiles(dir, files_) {
     files_ = files_ || [];
     if (typeof files_ === 'undefined') { files_ = []; }
@@ -31,6 +31,10 @@ require("lib/datamodel/opcua_status_code");
 require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum");
 require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerStatus");
 require("lib/services/write_service");
+
+require("lib/services/get_endpoints_service");
+var _enumerations = require("lib/misc/factories_enumerations")._private._enumerations;
+assert(_enumerations.MessageSecurityMode);
 
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 

@@ -36,12 +36,11 @@ var fake_publish_engine = {
         }
         this.pendingPublishRequestCount -= 1;
         return true;
+    },
+    on_close_subscription: function(subscription) {
+
     }
 };
-
-
-var DataValue = require("lib/datamodel/datavalue").DataValue;
-var DataType = require("lib/datamodel/variant").DataType;
 
 var dataSourceFrozen = false;
 function freeze_data_source() {
@@ -69,6 +68,7 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var server_engine = require("lib/server/server_engine");
 var ServerEngine = server_engine.ServerEngine;
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
+var add_eventGeneratorObject = address_space_for_conformance_testing.add_eventGeneratorObject;
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 describe("Subscriptions and MonitoredItems", function () {
@@ -147,6 +147,7 @@ describe("Subscriptions and MonitoredItems", function () {
                 })
             });
 
+
             done();
         });
     });
@@ -207,7 +208,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("a subscription should collect monitored item notification with collectDataChangeNotification", function (done) {
+    it("XX a subscription should collect monitored item notification with collectNotificationData", function (done) {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -235,8 +236,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
-        // at first, collectDataChangeNotification  should has 1 notification with current dataItem value
-        var notifications = subscription.collectDataChangeNotification();
+        // at first, collectNotificationData  should has 1 notification with current dataItem value
+        var notifications = subscription.collectNotificationData();
         should(notifications.length).equal(1);
 
         // now simulate some data change
@@ -244,9 +245,13 @@ describe("Subscriptions and MonitoredItems", function () {
 
         monitoredItem.queue.length.should.eql(5);
 
-        // then, collectDataChangeNotification  should collect at least 2 values
-        notifications = subscription.collectDataChangeNotification();
+        // then, collectNotificationData  should collect at least 2 values
+        notifications = subscription.collectNotificationData();
         notifications.length.should.eql(1);
+
+        notifications = notifications[0];
+        notifications.length.should.eql(1);
+
         notifications[0].monitoredItems.length.should.eql(5);
         notifications[0].monitoredItems[0].clientHandle.should.eql(monitoredItem.clientHandle);
 
@@ -677,7 +682,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
             function simulate_nodevalue_change(currentValue) {
 
-                var v = new Variant({dataType: DataType[dataType], value: currentValue});
+                var v = new Variant({dataType: DataType[dataType], arrayType: VariantArrayType.Scalar, value: currentValue});
 
                 test.clock.tick(1000);
 
@@ -717,8 +722,6 @@ describe("Subscriptions and MonitoredItems", function () {
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
 
-
-
             function simulate_publish_request_and_check_one(expectedValue) {
                 test.clock.tick(100);
 
@@ -735,7 +738,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
                     notifs.length.should.eql(1," should have one pending notification");
 
-                    var expectedValue = encode_decode["coerce"+ dataType](expectedValue);
+                    expectedValue = encode_decode["coerce"+ dataType](expectedValue);
 
 
                     // verify that value matches expected value
@@ -812,10 +815,12 @@ describe("#maxNotificationsPerPublish", function () {
     var publishEngine;
     before(function (done) {
         resourceLeakDetector.start();
-        publishEngine = new ServerSidePublishEngine();
         engine = new server_engine.ServerEngine();
+
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+
             addressSpace = engine.addressSpace;
+
             var node = addressSpace.addVariable({
                 organizedBy:"RootFolder",
                 browseName: "SomeVariable",
@@ -823,15 +828,24 @@ describe("#maxNotificationsPerPublish", function () {
                 value: {dataType: DataType.UInt32, value: 0}
             });
             someVariableNode = node.nodeId;
+
+            add_eventGeneratorObject(engine.addressSpace,"ObjectsFolder");
+
+            var makeRelativePath = require("lib/address_space/make_relative_path").makeRelativePath;
+            var makeBrowsePath = require("lib/address_space/make_browse_path").makeBrowsePath;
+            var browsePath = makeBrowsePath("RootFolder","/Objects/EventGeneratorObject");
+            var eventGeneratingObject = addressSpace.browsePath(browsePath);
+
+            var opts = {addressSpace: engine.addressSpace};
+            console.log("eventGeneratingObject",browsePath.toString(opts));
+            console.log("eventGeneratingObject",eventGeneratingObject.toString(opts));
+
             done();
         });
     });
     after(function () {
         engine.shutdown();
         engine = null;
-        if (publishEngine) {
-            publishEngine.shutdown();
-        }
         resourceLeakDetector.stop();
     });
 
@@ -854,11 +868,19 @@ describe("#maxNotificationsPerPublish", function () {
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers(now);
+        publishEngine = new ServerSidePublishEngine();
     });
-    afterEach(function () {
-        this.clock.restore();
 
+    afterEach(function () {
+        //xx publishEngine._feed_closed_subscription();
+        this.clock.tick(1000);
+        this.clock.restore();
+        if (publishEngine) {
+            publishEngine.shutdown();
+            publishEngine = null;
+        }
     });
+
     it("should have a proper maxNotificationsPerPublish default value", function (done) {
         var subscription = new Subscription({
             publishEngine: publishEngine
@@ -871,7 +893,6 @@ describe("#maxNotificationsPerPublish", function () {
         publishEngine.add_subscription(subscription);
         subscription.maxNotificationsPerPublish.should.eql(0);
 
-        publishEngine.remove_subscription(subscription);
         subscription.terminate();
 
         done();
@@ -980,8 +1001,6 @@ describe("#maxNotificationsPerPublish", function () {
         numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
         publishResponse3.moreNotifications.should.eql(false);
 
-
-        publishEngine.remove_subscription(subscription);
 
         subscription.terminate();
         done();
@@ -1107,8 +1126,8 @@ describe("#maxNotificationsPerPublish", function () {
             subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(2);
 
         });
-        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount",function() {
 
+        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount",function() {
 
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
@@ -1123,6 +1142,33 @@ describe("#maxNotificationsPerPublish", function () {
             subscription.monitoredItemCount.should.eql(2);
 
 
+        });
+
+        it("should update Subscription.subscriptionDiagnostics.dataChangeNotificationsCount",function() {
+
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
+            subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(0);
+
+            var evtNotificationCounter = 0;
+            subscription.on("notificationMessage",function(notificationMessage) {
+                evtNotificationCounter+=1;
+            });
+
+            add_monitored_item();
+            subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(1);
+
+           // simulate notification
+            // now simulate some data change
+            this.clock.tick(500);
+
+            subscription.subscriptionDiagnostics.notificationsCount.should.eql(evtNotificationCounter);
+            subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(evtNotificationCounter);
+
+
+        });
+
+        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount",function() {
+            // todo
         });
 
     })

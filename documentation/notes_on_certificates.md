@@ -70,11 +70,24 @@ Create a set of  key pair
   $ ssh-keygen -t rsa -C "Bob" -f bob_id_rsa -q -N ""
   $ ssh-keygen -t rsa -b 2048 -C "Alice" -f alice_id_rsa -q -N ""
 
+Create a pfx file ( incorporate a private key and a certificate)
+----------------------------------------------------------------
+  $ openssl pkcs12 -export -out domain.name.pfx -inkey domain.name.key -in domain.name.crt -in intermediate.crt -in rootca.crt
 
+
+Verifying if a public key and a private key are paired 
+------------------------------------------------------
+
+   -  a public key and private key share the same modulus 
+   
+   $ openssl x509 -noout -modulus -in <filename for crt>
+   $ openssl rsa -noout -modulus -in <filename for key
+   
 ### refs
  
  * https://github.com/dominictarr/ssh-key-to-pem
  * http://pki-tutorial.readthedocs.org/en/latest/simple/index.html
+ * http://spin.atomicobject.com/2014/05/12/openssl-commands/
 
 ### refs:
 
@@ -82,6 +95,7 @@ Create a set of  key pair
  * https://serverfault.com/questions/325467/i-have-a-keypair-how-do-i-determine-the-key-length  
  * https://opcfoundation.org/wp-content/uploads/2014/05/OPC-UA_Security_Model_for_Administrators_V1.00.pdf
  * http://web.mit.edu/crypto/openssl.cnf
+
 
 Setting up X509 extension on certificate
 ----------------------------------------

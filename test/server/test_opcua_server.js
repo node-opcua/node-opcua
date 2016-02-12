@@ -10,6 +10,7 @@ var opcua = require("../../index");
 var NodeId = opcua.NodeId;
 
 
+
 describe("OPCUAServer", function () {
 
     before(function () {
@@ -21,21 +22,20 @@ describe("OPCUAServer", function () {
 
     var server;
 
-    beforeEach(function(done) {
-        var options ={};
+    beforeEach(function (done) {
+        var options = {};
         options.nodeset_filename = [
-                opcua.mini_nodeset_filename
-            ];
+            opcua.mini_nodeset_filename
+        ];
 
         server = new OPCUAServer({});
         server.start(function (err) {
             done(err);
         })
     });
-    afterEach(function(done) {
+    afterEach(function (done) {
         if (server) {
             server.shutdown(function () {
-
                 server = null;
                 done();
             });
@@ -68,27 +68,6 @@ describe("OPCUAServer", function () {
 
     });
 
-    it("#rejectedSessionCount", function () {
-        server.rejectedSessionCount.should.eql(server.engine.rejectedSessionCount);
-    });
-
-    it("#rejectedRequestsCount", function () {
-        server.rejectedRequestsCount.should.eql(server.engine.rejectedRequestsCount);
-    });
-
-    it("#sessionAbortCount", function () {
-        server.sessionAbortCount.should.eql(server.engine.sessionAbortCount);
-    });
-
-    it("#publishingIntervalCount", function () {
-        server.publishingIntervalCount.should.eql(server.engine.publishingIntervalCount);
-    });
-
-    it("#buildInfo", function () {
-        server.buildInfo.should.eql(server.engine.buildInfo);
-    });
-
-
     it("server address space have a node matching session.nodeId", function (done) {
 
         server.engine.currentSessionCount.should.equal(0);
@@ -115,5 +94,41 @@ describe("OPCUAServer", function () {
         done();
 
     });
+});
+
+describe("OPCUAServer-2",function() {
+
+    var server ;
+    before(function() {
+        server = new OPCUAServer({});
+    });
+    after(function (done) {
+        server.shutdown(function () {
+            server = null;
+            done();
+        });
+    });
+
+    it("#rejectedSessionCount", function () {
+        server.rejectedSessionCount.should.eql(server.engine.rejectedSessionCount);
+    });
+
+    it("#rejectedRequestsCount", function () {
+        server.rejectedRequestsCount.should.eql(server.engine.rejectedRequestsCount);
+    });
+
+    it("#sessionAbortCount", function () {
+        server.sessionAbortCount.should.eql(server.engine.sessionAbortCount);
+    });
+
+    it("#publishingIntervalCount", function () {
+        server.publishingIntervalCount.should.eql(server.engine.publishingIntervalCount);
+    });
+
+    it("#buildInfo", function () {
+        server.buildInfo.should.eql(server.engine.buildInfo);
+    });
 
 });
+
+

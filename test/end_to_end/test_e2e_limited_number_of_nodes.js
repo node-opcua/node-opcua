@@ -21,7 +21,7 @@ var perform_operation_on_client_session = require("test/helpers/perform_operatio
 describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function () {
 
 
-    this.timeout(10000);
+    this.timeout(Math.max(this._timeout,10000));
 
     var server = new OPCUAServer({
         port: port,

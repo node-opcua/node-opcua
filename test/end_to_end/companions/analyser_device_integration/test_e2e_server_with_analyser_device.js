@@ -110,12 +110,15 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
     it("should instantiate a DeviceType",function() {
 
-
         var di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         var deviceType = addressSpace.findObjectType("DeviceType",di_namespace);
 
+        var myDeviceType = addressSpace.addObjectType({
+            browseName: "MyDeviceType",
+            subtypeOf: addressSpace.findObjectType("DeviceType")
+        })
         //xx console.log(deviceType.toString());
-        var myDevice = deviceType.instantiate({
+        var myDevice = myDeviceType.instantiate({
             browseName:"MyDevice"
         });
     });

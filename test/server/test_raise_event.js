@@ -3,10 +3,8 @@ require("requirish")._(module);
 /* jslint */
 /*global require,describe, it, before, after */
 var should = require("should");
+
 var server_engine = require("lib/server/server_engine");
-var ServerEngine = server_engine.ServerEngine;
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 var DataType = require("lib/datamodel/variant").DataType;
@@ -21,8 +19,12 @@ var util = require("util");
 
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
-var constructBrowsePathFromQualifiedName = require("lib/tools/tools_browse_path").constructBrowsePathFromQualifiedName;
 var checkSelectClauses = require("lib/tools/tools_event_filter").checkSelectClauses;
+var extractEventFields = require("lib/tools/tools_event_filter").extractEventFields;
+
+var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var subscription_service = require("lib/services/subscription_service");
+var SimpleAttributeOperand = subscription_service.SimpleAttributeOperand;
 
 
 describe("testing Events  ", function () {
@@ -82,90 +84,6 @@ describe("testing Events  ", function () {
 
     });
 
-    /**
-     *
-     * @param referenceBaseName
-     *
-     * @example:
-     *
-     *  // returns all children elements with a reference type that derives from "Aggregates"
-     *  // (i.e HasProperty, HasComponent, HasOrderedComponent)
-     *  var nodes = obj.getChildren("Aggregates");
-     *
-     *
-     */
-    var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-    var subscription_service = require("lib/services/subscription_service");
-    var SimpleAttributeOperand = subscription_service.SimpleAttributeOperand;
-
-    function browsePath(eventNode, selectClause) {
-
-        assert(selectClause instanceof SimpleAttributeOperand);
-        // SimpleAttributeOperand
-        var address_space = eventNode.__address_space;
-
-        // navigate to the innerNode specified by the browsePath [ QualifiedName]
-        var browsePath = constructBrowsePathFromQualifiedName(eventNode, selectClause.browsePath);
-
-        var browsePathResult = address_space.browsePath(browsePath);
-        return browsePathResult;
-    }
-
-    var UAVariable = require("lib/address_space/ua_variable").UAVariable;
-
-    /**
-     * extract a eventField from a event node, matching the given selectClause
-     * @param eventNode
-     * @param selectClause
-     */
-    function extractEventField(eventNode,map, selectClause) {
-        var DataValue=require("lib/datamodel/datavalue").DataValue;
-        function prepare(dataValue) {
-            assert(dataValue instanceof DataValue);
-            if(dataValue.statusCode === StatusCodes.Good) {
-                return dataValue.value;
-            }
-            return new Variant({dataType: DataType.StatusCode, value: dataValue.statusCode});
-        }
-        assert(selectClause instanceof SimpleAttributeOperand);
-
-        var addressSpace = eventNode.__address_space;
-        //console.log(selectClause.toString());
-        var browsePathResult = browsePath(eventNode, selectClause);
-        //console.log(browsePathResult.toString());
-
-        if (browsePathResult.statusCode === StatusCodes.Good) {
-            assert(browsePathResult.targets.length === 1);
-            var node = addressSpace.findNode(browsePathResult.targets[0].targetId);
-
-            var key = node.nodeId.toString();
-            if (map[key]) {
-                return map[key];
-            }
-            if (node instanceof UAVariable && selectClause.attributeId === AttributeIds.Value) {
-
-                return prepare(node.readValue(selectClause.indexRange));
-            }
-            return prepare(node.readAttribute(selectClause.attributeId));
-
-        } else {
-            return new Variant({dataType: DataType.StatusCode, value: browsePathResult.statusCode});
-        }
-        //xx var innerNode =
-    }
-
-    /**
-     * extract a array of eventFields from a event node, matching the selectClauses
-     * @param eventNode
-     * @param selectClauses
-     */
-    function extractEventFields(eventTypeNode, selectClauses,eventData) {
-        assert(_.isArray(selectClauses));
-        assert(selectClauses.length===0 || selectClauses[0] instanceof SimpleAttributeOperand);
-        assert(eventData.hasOwnProperty("__nodes"));
-        var nodeValueMap = eventData.__nodes;
-        return selectClauses.map(extractEventField.bind(null, eventTypeNode,nodeValueMap));
-    }
 
 
     // select clause
@@ -206,7 +124,7 @@ describe("testing Events  ", function () {
         var eventFields = extractEventFields(auditEventType, eventFilter.selectClauses,{__nodes:{}});
         eventFields.length.should.eql(eventFilter.selectClauses.length);
 
-        var eventField = new subscription_service.EventField({
+        var eventFieldList = new subscription_service.EventFieldList({
             clientHandle: 1,
             eventFields: /* Array<Variant> */ eventFields
         });
