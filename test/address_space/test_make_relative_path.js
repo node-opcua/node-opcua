@@ -284,4 +284,31 @@ describe("makeRelativePath",function() {
         });
     });
 
+    it("TF should construct simple RelativePath for '<Organizes>Server2.ServerStatus.1.2'",function() {
+
+        var relativePath = makeRelativePath("<Organizes>Server2.ServerStatus.100.200", null);
+
+        relativePath.elements.length.should.eql(4);
+
+        relativePath.elements[0].should.eql({
+            referenceTypeId: resolveNodeId("Organizes"),
+            isInverse: false,
+            includeSubtypes: true,
+            targetName: new QualifiedName({namespaceIndex:0 , name: "Server2"})
+        });
+        relativePath.elements[1].should.eql({
+            referenceTypeId: aggregatesReferenceTypeNodeId,
+            isInverse: false,
+            includeSubtypes: true,
+            targetName: new QualifiedName({namespaceIndex: 0, name: "ServerStatus"})
+        });
+        relativePath.elements[2].should.eql({
+            referenceTypeId: aggregatesReferenceTypeNodeId,
+            isInverse: false,
+            includeSubtypes: true,
+            targetName: new QualifiedName({namespaceIndex:0 , name: "100"})
+        });
+
+    });
+
 });
