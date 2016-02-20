@@ -8,61 +8,61 @@
 //    serverStatus.constructor.name.should.eql("ServerStatus");
 //
 //
-"use strict";
-require("requirish")._(module);
-var should = require("should");
-var assert = require("better-assert");
-var path = require("path");
+    "use strict";
+    require("requirish")._(module);
+    var should = require("should");
+    var assert = require("better-assert");
+    var path = require("path");
 
-var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
+    var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 
-var NodeId = require("lib/datamodel/nodeid").NodeId;
+    var NodeId = require("lib/datamodel/nodeid").NodeId;
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+    var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
-// make sure all namespace 0 data type are properly loaded
-var Engine = require("lib/server/server_engine");
+    // make sure all namespace 0 data type are properly loaded
+    var Engine = require("lib/server/server_engine");
 
-var fs = require("fs");
-var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
-
-
-var UADataType = require("lib/address_space/ua_data_type").UADataType;
-var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
-var UAObject = require("lib/address_space/ua_object").UAObject;
-var DataType = require("lib/datamodel/variant").DataType;
+    var fs = require("fs");
+    var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
 
+    var UADataType = require("lib/address_space/ua_data_type").UADataType;
+    var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
+    var UAObject = require("lib/address_space/ua_object").UAObject;
+    var DataType = require("lib/datamodel/variant").DataType;
+    var Variant = require("lib/datamodel/variant").Variant;
 
-describe("testing address space namespace loading", function () {
 
-    this.timeout(Math.max(300000,this._timeout));
+    describe("testing address space namespace loading", function () {
 
-    var addressSpace;
-    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
+        this.timeout(Math.max(300000,this._timeout));
 
-            addressSpace = new AddressSpace();
-            var xml_files = [
-                path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
-                path.join(__dirname, "../../modeling/my_data_type.xml")
-            ];
-            fs.existsSync(xml_files[0]).should.be.eql(true);
-            fs.existsSync(xml_files[1]).should.be.eql(true);
+        var addressSpace;
+        require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+            before(function (done) {
 
-            addressSpace.registerNamespace("ServerNamespaceURI");
-            addressSpace.getNamespaceArray().length.should.eql(2);
+                addressSpace = new AddressSpace();
+                var xml_files = [
+                    path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
+                    path.join(__dirname, "../../modeling/my_data_type.xml")
+                ];
+                fs.existsSync(xml_files[0]).should.be.eql(true);
+                fs.existsSync(xml_files[1]).should.be.eql(true);
 
-            generate_address_space(addressSpace, xml_files, function (err) {
-                done(err);
+                addressSpace.registerNamespace("ServerNamespaceURI");
+                addressSpace.getNamespaceArray().length.should.eql(2);
+
+                generate_address_space(addressSpace, xml_files, function (err) {
+                    done(err);
+                });
+            });
+            after(function (done) {
+                addressSpace.dispose();
+                addressSpace = null;
+                done();
             });
         });
-        after(function (done) {
-            addressSpace.dispose();
-            addressSpace = null;
-            done();
-        });
-    });
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
 
         var serverStatusDataType = addressSpace.findDataType("ServerStatusDataType");
@@ -288,6 +288,44 @@ describe("testing address space namespace loading", function () {
                 callback();
             }
         ],done);
+    });
+
+    it("xxx should instantiate SessionDiagnostics in a linear time",function() {
+
+        var utils = require("lib/misc/utils");
+        var sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType");
+        var sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType");
+
+
+        var objs = [];
+
+        function createDiagnostic(index) {
+            var t5 = utils.get_clock_tick();
+            var sessionObject = addressSpace.addObject({
+                browseName: "Session" + index,
+                organizedBy: addressSpace.rootFolder.objects
+            });
+
+            // the extension object
+            var t6 = utils.get_clock_tick();
+            var _sessionDiagnostics = addressSpace.constructExtensionObject(sessionDiagnosticsDataType);
+            var t7 = utils.get_clock_tick();
+            var sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
+                browseName: "SessionDiagnostics",
+                componentOf: sessionObject,
+                value: new Variant({ dataType: DataType.ExtensionObject, value:  _sessionDiagnostics })
+            });
+            var t8 = utils.get_clock_tick();
+            //xx console.log(" t8-t7",t8-t7);
+
+            objs.push(sessionObject);
+        }
+        for (var i=0;i<10; i++) {
+            createDiagnostic(i);
+        }
+        objs.forEach(function(obj) {
+            addressSpace.deleteNode(obj);
+        });
     });
 
 });

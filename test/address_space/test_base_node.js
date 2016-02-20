@@ -70,7 +70,7 @@ describe("Testing UAObject", function () {
         var forwardReferences = node1.findReferencesEx("References", BrowseDirection.Forward);
         forwardReferences.length.should.eql(1);
 
-        forwardReferences[0].referenceTypeId.should.eql(hasTypeDefinitionReferenceType.nodeId);
+        forwardReferences[0].referenceType.should.eql("HasTypeDefinition");
         forwardReferences[0].isForward.should.eql(true);
         forwardReferences[0].nodeId.should.eql(baseObjectType.nodeId);
 

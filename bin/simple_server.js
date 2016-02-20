@@ -62,7 +62,7 @@ var server_options = {
     port: port,
     //xx (not used: causes UAExpert to get confused) resourcePath: "UA/Server",
 
-    maxAllowedSessionNumber: 1500,
+    maxAllowedSessionNumber: 500,
 
     nodeset_filename: [
         standard_nodeset_file,

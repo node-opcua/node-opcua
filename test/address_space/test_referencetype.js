@@ -9,6 +9,8 @@ var nodeid = require("lib/datamodel/nodeid");
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var DataType = require("lib/datamodel/variant").DataType;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+var browse_service = require("lib/services/browse_service");
+var BrowseDirection = browse_service.BrowseDirection;
 
 var _ = require("underscore");
 var assert = require("better-assert");
@@ -52,7 +54,7 @@ describe("testing ReferenceType", function () {
 
         var hr = addressSpace.findReferenceType("HierarchicalReferences");
         hr.browseName.toString().should.equal("HierarchicalReferences");
-        hr.nodeId.should.eql(nodeid.makeNodeId(33));
+        hr.nodeId.toString().should.eql(nodeid.makeNodeId(33).toString());
 
     });
 
@@ -78,7 +80,7 @@ describe("testing ReferenceType", function () {
     it("should find 'Organizes'", function () {
         var organizes_refId = addressSpace.findReferenceType("Organizes");
         organizes_refId.browseName.toString().should.equal("Organizes");
-        organizes_refId.nodeId.should.eql(nodeid.makeNodeId(35));
+        organizes_refId.nodeId.toString().should.eql(nodeid.makeNodeId(35).toString());
     });
 
     it("'Organizes' should be a super type of 'HierarchicalReferences'", function () {
@@ -346,6 +348,112 @@ describe("testing ReferenceType", function () {
 
         hr.toString().should.eql("   Organizes/OrganizedBy ns=0;i=35");
     });
+
+    /**
+     *
+     */
+    it("ReferenceType#getAllSubtypes should extract all possible referenceType ",function() {
+
+
+        var hr = addressSpace.findReferenceType("HierarchicalReferences");
+        var derivedTypes = hr.getAllSubtypes();
+
+        var s = derivedTypes.map(function(r){ return r.browseName.toString(); }).join(" ");
+        s.should.eql("HierarchicalReferences HasChild Aggregates HasProperty HasComponent HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier");
+        //xx console.log(s);
+
+        var aggregates = addressSpace.findReferenceType("Aggregates");
+        derivedTypes = aggregates.getAllSubtypes();
+        s = derivedTypes.map(function(r){ return r.browseName.toString(); }).join(" ");
+        s.should.eql("Aggregates HasProperty HasComponent HasOrderedComponent HasHistoricalConfiguration");
+        //xx console.log(s);
+
+    });
+
+
+    var BaseNode = require("lib/address_space/base_node").BaseNode;
+    var NodeId = require("lib/datamodel/nodeid").NodeId;
+    function _is_valid_BrowseDirection(browseDirection) {
+        return  browseDirection === BrowseDirection.Forward ||
+            browseDirection === BrowseDirection.Inverse ||
+            browseDirection === BrowseDirection.Both
+            ;
+    }
+    /**
+     * find all references that have the provided referenceType or are subType of this referenceType
+     * @method findReferencesEx
+     * @param strReference {String} the referenceType as a string.
+     * @param  [browseDirection=BrowseDirection.Forward] {BrowseDirection}
+     * @return {Array<ReferenceDescription>}
+     */
+    BaseNode.prototype.findReferencesEx_deprecated = function (strReference, browseDirection)
+    {
+
+        browseDirection = browseDirection || BrowseDirection.Forward;
+        assert(_is_valid_BrowseDirection(browseDirection));
+
+        var addressSpace = this.__address_space;
+
+        var referenceType = addressSpace.findReferenceType(strReference);
+        if (!referenceType) {
+            // note: when loading nodeset2.xml files, reference type may not exit yet
+            // throw new Error("expecting valid reference name " + strReference);
+            return [];
+        }
+        assert(referenceType.nodeId instanceof NodeId);
+
+        var browseResults = this.browseNode({
+            browseDirection: browseDirection,
+            referenceTypeId: referenceType.nodeId,
+            includeSubtypes: true,
+            nodeClassMask: 0,
+            resultMask: 0x3F
+        });
+        return browseResults;
+    };
+
+    it("BaseNode#findReferencesEx should be fast ",function(done) {
+
+        var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
+
+        this.timeout(Math.max(this._timeout,100000));
+
+        var bench = new Benchmarker();
+
+        var server = addressSpace.findNode("i=63");//rootFolder.objects.server;
+
+        //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
+        bench.add("findReferencesEx slow", function () {
+
+
+                var a = server.findReferencesEx_deprecated("HasChild",BrowseDirection.Forward);
+                var a = server.findReferencesEx_deprecated("HasChild",BrowseDirection.Inverse);
+
+            })
+            .add("findReferencesEx fast", function () {
+
+                var a = server.findReferencesEx("HasChild",BrowseDirection.Forward);
+                var a = server.findReferencesEx("HasChild",BrowseDirection.Inverse);
+
+            })
+            .on("cycle", function (message) {
+                console.log(message);
+            })
+            .on("complete", function () {
+
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                this.fastest.name.should.eql("findReferencesEx fast");
+
+                //xx this.speedUp.should.be.greaterThan(5); // at least 5 time faster
+
+                done();
+            })
+            .run({
+                max_time:  0.2, // Sec
+                min_count: 300
+            });
+        });
 
 });
 
