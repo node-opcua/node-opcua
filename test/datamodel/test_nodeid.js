@@ -6,7 +6,7 @@ var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var NodeIdType = require("lib/datamodel/nodeid").NodeIdType;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
-
+var sameNodeId = require("lib/datamodel/nodeid").sameNodeId;
 var should = require("should");
 var assert = require("assert");
 
@@ -163,6 +163,80 @@ describe("testing coerceNodeId", function () {
     });
 });
 
+
+describe("#sameNodeId", function () {
+
+    var nodeIds = [
+        makeNodeId(2,3),
+        makeNodeId(2,4),
+        makeNodeId(4,3),
+        makeNodeId(4,300),
+        new NodeId(NodeIdType.NUMERIC, 23, 2),
+        new NodeId(NodeIdType.STRING, "TemperatureSensor", 4),
+        new NodeId(NodeIdType.STRING, "A very long string very very long string", 4),
+        new NodeId(NodeIdType.BYTESTRING, new Buffer("AZERTY"), 4),
+    ];
+    for (var i= 0;i<nodeIds.length;i++) {
+        var nodeId1 = nodeIds[i];
+        for (var j= 0;j<nodeIds.length;j++) {
+            var nodeId2 = nodeIds[j];
+
+            if ( i==j) {
+                it("should be true  : #sameNodeId('" + nodeId1.toString()+ "','" + nodeId2.toString()+"');",function() {
+                    sameNodeId(nodeId1,nodeId2).should.eql(true);
+                });
+            } else {
+                it("should be false : #sameNodeId('" + nodeId1.toString()+ "','" + nodeId2.toString()+"');",function() {
+                    sameNodeId(nodeId1,nodeId2).should.eql(true);
+                });
+            }
+        }
+    }
+
+    function sameNodeIdOld(n1,n2) {
+        return n1.toString() === n2.toString();
+    }
+    it("should implement a efficient sameNodeId ",function(done) {
+
+        var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
+        var bench = new Benchmarker();
+
+        bench
+            .add('sameNodeIdOld', function () {
+                for (var i= 0;i<nodeIds.length;i++) {
+                    var nodeId1 = nodeIds[i];
+                    for (var j = 0; j < nodeIds.length; j++) {
+                        var nodeId2 = nodeIds[j];
+                        sameNodeIdOld(nodeId1,nodeId2).should.eql((i===j));
+                    }
+                }
+            })
+            .add('sameNodeId', function () {
+                for (var i= 0;i<nodeIds.length;i++) {
+                    var nodeId1 = nodeIds[i];
+                    for (var j = 0; j < nodeIds.length; j++) {
+                        var nodeId2 = nodeIds[j];
+                        sameNodeId(nodeId1,nodeId2).should.eql((i===j));
+                    }
+                }
+            })
+            .on('cycle', function (message) {
+                console.log(message);
+            })
+
+            .on('complete', function () {
+
+                console.log(' Fastest is ' + this.fastest.name);
+
+                this.fastest.name.should.eql("sameNodeId");
+                done();
+            })
+
+            .run({max_time: 0.1});
+    })
+});
+
+
 describe("Type coercion at construction time", function () {
 
     var bs = require("lib/services/read_service");
@@ -212,12 +286,8 @@ describe("testing resolveNodeId", function () {
 
 describe("testing NodeId coercing bug ", function () {
 
-
     it("should handle strange string nodeId ", function () {
-
-        // coerceNodeId("ns=S7:;s=S7_Connection_1.db1.0,x0").should.eql(makeNodeId(1234,2));
         coerceNodeId("ns=2;s=S7_Connection_1.db1.0,x0").should.eql(makeNodeId("S7_Connection_1.db1.0,x0", 2));
-
     });
 
 });
