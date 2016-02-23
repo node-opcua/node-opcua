@@ -75,7 +75,7 @@ function start_simple_server(options, callback) {
                     callback(null, {
                         process: server_exec,
                         pid_collected: pid_collected,
-                        endpointUrl: "opc.tcp://localhost:26543/UA/SampleServer",
+                        endpointUrl: "opc.tcp://localhost:" + port + "/UA/SampleServer",
                         serverCertificate: crypto_utils.readCertificate(serverCertificateFilename)
                     });
 
@@ -100,7 +100,9 @@ function start_simple_server(options, callback) {
         }).forEach(function (data) {
 
             detect_ready_message(data);
-            console.log(prolog + data);
+            if (!options.silent) {
+                console.log(prolog + data);
+            }
         });
 
     }

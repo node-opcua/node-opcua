@@ -20,14 +20,14 @@ var debugLog = opcua.utils.make_debugLog(__filename);
 
 
 module.exports = function (test) {
+
     describe("Test Browse Request", function () {
 
-        var server, client, endpointUrl;
+        var client, endpointUrl;
 
         var g_session = null;
         beforeEach(function (done) {
 
-            server = test.server;
             endpointUrl = test.endpointUrl;
 
             client = new OPCUAClient();
@@ -281,7 +281,8 @@ module.exports = function (test) {
 
         });
 
-        it("T7 - #BrowseNext with releaseContinuousPoint set to false then set to true", function (done) {
+        var IT = test.server ? it : xit;
+        IT("T7 - #BrowseNext with releaseContinuousPoint set to false then set to true", function (done) {
             /*
              * inspired by    Test 5.7.2-9 prepared by Dale Pope dale.pope@matrikon.com
              * Description:

@@ -154,6 +154,10 @@ describe("testing address space", function () {
             object.getProperties().length.should.eql(1);
             object.getProperties()[0].browseName.toString().should.eql("Property1");
 
+            object.getChildByName("Component1").browseName.toString().should.eql("Component1");
+            object.getChildByName("Property1").browseName.toString().should.eql("Property1");
+            should(object.getChildByName("Component2")).eql(null);
+
             var comp2 = addressSpace.addVariable({ componentOf: object,browseName: "Component2", dataType: "String"});
             var prop2 = addressSpace.addVariable({ propertyOf:  object,browseName: "Property2",  dataType: "String"});
 
@@ -165,11 +169,28 @@ describe("testing address space", function () {
             object.getProperties()[0].browseName.toString().should.eql("Property1");
             object.getProperties()[1].browseName.toString().should.eql("Property2");
 
+            object.getChildByName("Component1").browseName.toString().should.eql("Component1");
+            object.getChildByName("Property1").browseName.toString().should.eql("Property1");
+            object.getChildByName("Component2").browseName.toString().should.eql("Component2");
+            object.getChildByName("Property2").browseName.toString().should.eql("Property2");
+
             // now lets remove Prop1
             addressSpace.deleteNode(prop1.nodeId);
             object.getProperties().length.should.eql(1);
             object.getProperties()[0].browseName.toString().should.eql("Property2");
 
+            object.getChildByName("Component1").browseName.toString().should.eql("Component1");
+            should(object.getChildByName("Property1")).eql(null);
+            object.getChildByName("Component2").browseName.toString().should.eql("Component2");
+            object.getChildByName("Property2").browseName.toString().should.eql("Property2");
+
+            addressSpace.deleteNode(prop2.nodeId);
+            object.getProperties().length.should.eql(0);
+
+            object.getChildByName("Component1").browseName.toString().should.eql("Component1");
+            should(object.getChildByName("Property1")).eql(null);
+            object.getChildByName("Component2").browseName.toString().should.eql("Component2");
+            should(object.getChildByName("Property2")).eql(null);
 
         });
     });

@@ -33,7 +33,8 @@ doc: examples
 	yuidoc 
 
 doc1:
-	node node_modules\yuidocjs\lib\cli.js -t node_modules/yuidoc-bootstrap-theme -H node_modules/yuidoc-bootstrap-theme/helpers/helpers.js
+	node node_modules\yuidocjs\lib\cli.js
+# node node_modules\yuidocjs\lib\cli.js -t node_modules/yuidoc-bootstrap-theme -H node_modules/yuidoc-bootstrap-theme/helpers/helpers.js
 
 yuidoc:
 	npm install yuidocjs -g

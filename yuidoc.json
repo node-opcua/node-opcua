@@ -1,12 +1,12 @@
-    {
-        "name": "The NodeOPCUA API",
-        "description": "The NodeOPCUA API: a library to easily create OPC UA Server and Client application with node.js",
-        "version": "0.0.46",
-        "url": "http://node-opcua.github.io/",
-        "options": {
-            "outdir": "./tmptmp/api_yuidoc",
-            "paths": [ "lib" , "_generated_" ,"schemas"],
-            "_themedir": "node_modules/yuidoc-bootstrap-theme",
-            "_helpers": ["node_modules/yuidoc-bootstrap-theme/helpers/helpers.js"]
-        }
-    }
+  {
+      "name": "The NodeOPCUA API",
+      "description": "The NodeOPCUA API: a library to easily create OPC UA Server and Client application with node.js",
+      "version": "0.0.52",
+      "url": "http://node-opcua.github.io/",
+      "options": {
+&          "outdir": "../node-opcua.github.io/api_doc",
+          "paths": [ "lib" , "_generated_" ,"schemas"],
+          "_themedir": "node_modules/yuidoc-bootstrap-theme",
+          "_helpers": ["node_modules/yuidoc-bootstrap-theme/helpers/helpers.js"]
+      }
+  }

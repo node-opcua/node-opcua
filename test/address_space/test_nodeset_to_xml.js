@@ -22,6 +22,8 @@ var assert = require("better-assert");
 
 var dumpXml = require("lib/address_space/nodeset_to_xml").dumpXml;
 
+var doDebug =false;
+
 describe("testing nodeset to xml", function () {
     var addressSpace;
 
@@ -50,9 +52,13 @@ describe("testing nodeset to xml", function () {
     it("should output a standard extension object datatype to xml (Argument)", function () {
 
         var argumentDataType = addressSpace.findDataType("Argument");
-        console.log(argumentDataType);
+        if(doDebug) {
+            console.log(argumentDataType);
+        }
         var str = dumpXml(argumentDataType, {});
-        console.log(str);
+        if(doDebug) {
+            console.log(str);
+        }
         str.should.match(/Argument/);
     });
 
@@ -60,7 +66,9 @@ describe("testing nodeset to xml", function () {
         // TemperatureSensorType
         var serverStateType = addressSpace.findDataType("ServerState");
         var str = dumpXml(serverStateType, {});
-        console.log(str);
+        if(doDebug) {
+            console.log(str);
+        }
         str.should.match(/CommunicationFault/);
     });
 
@@ -78,7 +86,9 @@ describe("testing nodeset to xml", function () {
 
         myEnumType.browseName.toString().should.eql("MyEnumType");
         var str = dumpXml(myEnumType, {});
-        console.log(str);
+        if(doDebug) {
+            console.log(str);
+        }
         str.should.match(/RUNNING/);
         str.should.match(/<Field Name=\"RUNNING\" Value=\"1\">/);
         str.should.match(/<Field Name=\"STOPPED\" Value=\"2\">/);
@@ -125,7 +135,9 @@ describe("testing nodeset to xml", function () {
 
 
         var str = dumpXml(temperatureSensor, {});
-        //xx console.log(str);
+        if(doDebug) {
+            //xx console.log(str);
+        }
         str.should.match(/UAObjectType/g);
 
     });
@@ -140,7 +152,9 @@ describe("testing nodeset to xml", function () {
             browseName: "Camera1"
         });
         var str = dumpXml(camera1, {});
-        //xx console.log(str);
+        if(doDebug) {
+            console.log(str);
+        }
         str.should.match(/UAObjectType/g);
         str.should.match(/UAObjectType/g);
     });

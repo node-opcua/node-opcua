@@ -2,35 +2,42 @@ var assert = require("better-assert");
 require("requirish")._(module);
 
 var Reference = require("lib/address_space/reference").Reference;
+var sameNodeId = require("lib/datamodel/nodeid").sameNodeId;
 
 /**
- * findMatchingReference
+ * asserts that the provided reference exists in the node references
+ *
+ * @function assertHasMatchingReference
+ *
  * @param node
- * @param options
+ * @param reference (Reference}
+ * @param reference.referenceType {String}
+ * @param reference.nodeId        {NodeId}
+ * @param reference.isForward     {Boolean}
  *
  * @example:
  *
- *     findMatchingReference(node,{ referenceType: "Organizes",i sForward:true, nodeId: "ns=1,i=12");
+ *     assertHasMatchingReference(node,{ referenceType: "Organizes",i sForward:true, nodeId: "ns=1,i=12" });
  *
  *
  */
-function assertHasMatchingReference(node, options) {
+function assertHasMatchingReference(node, reference) {
 
     var addressSpace = node.__address_space;
 
-    var options2 = addressSpace.normalizeReferenceType(options);
+    var normalizedReference = addressSpace.normalizeReferenceType(reference);
+    assert(typeof normalizedReference.referenceType === "string");
 
-    assert(typeof options2.referenceType === "string");
-    var refs = node.findReferences(options2.referenceType,options2.isForward);
+    var refs = node.findReferences(normalizedReference.referenceType,normalizedReference.isForward);
 
     refs = refs.filter(function(ref){
-        return ref.nodeId === options2.nodeId;
+        return sameNodeId(ref.nodeId,normalizedReference.nodeId);
     });
 
     var dispOpts = { addressSpace: addressSpace};
 
     if (refs.length !== 1) {
-        throw new Error(" Cannot find reference " + ( new Reference(options2).toString(dispOpts)) );
+        throw new Error(" Cannot find reference " + ( new Reference(normalizedReference).toString(dispOpts)) );
     }
     assert(refs.length === 1);
 

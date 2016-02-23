@@ -30,21 +30,45 @@ var address_space_for_conformance_testing = require("lib/simulation/address_spac
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
+var start_simple_server = require("test/helpers/external_server_fixture").start_simple_server;
+var stop_simple_server = require("test/helpers/external_server_fixture").stop_simple_server;
+
 
 describe("testing Client - Umbrella ", function () {
 
-    // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
+    // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
-    // execution timecould also be affected by code running under profiling/coverage tools (istanbul)
+    // execution time could also be affected by code running under profiling/coverage tools (istanbul)
     this.timeout((process.arch === 'arm') ? 400000 : 30000);
     this.timeout(Math.max(200000, this._timeout));
 
     var test = this;
-    before(function (done) {
 
-        console.log(" ..... starting server ".grey);
-        resourceLeakDetector.start();
-        test.server = build_server_with_temperature_device({port: port}, function (err) {
+
+    var options = {
+        port: port,
+        maxConnectionsPerEndpoint: 500,
+        silent:true
+    };
+
+    function start_external_server(done) {
+        start_simple_server(options,function(err,data) {
+
+            if (err) {
+                return done(err, null);
+            }
+
+            test.endpointUrl = data.endpointUrl;
+            test.serverCertificate = data.serverCertificate;
+            test.temperatureVariableId = data.temperatureVariableId;
+            test.data;
+            console.log(" test.endpointUrl  = ".yellow,test.endpointUrl.cyan );
+            done();
+        });
+    }
+    function start_internal_server(done) {
+
+        test.server = build_server_with_temperature_device(options, function (err) {
 
             build_address_space_for_conformance_testing(test.server.engine, {mass_variables: false});
 
@@ -54,6 +78,20 @@ describe("testing Client - Umbrella ", function () {
             console.log(" ..... done ".grey);
             done(err);
         });
+    }
+
+    before(function (done) {
+
+        console.log(" ..... starting server ".grey);
+        resourceLeakDetector.start();
+        if (process.env.TESTENDPOINT === "EXTERNAL" ) {
+            start_external_server(done);
+        } else if (process.env.TESTENDPOINT) {
+            test.endpointUrl = process.env.TESTENDPOINT;
+            done();
+        } else {
+            start_internal_server(done);
+        }
 
     });
 
@@ -61,9 +99,53 @@ describe("testing Client - Umbrella ", function () {
         done();
     });
 
+    function dumpStatistics(endpointUrl,done) {
+        var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+
+        var client = new OPCUAClient();
+        var endpointUrl = test.endpointUrl;
+
+        perform_operation_on_client_session(client,endpointUrl,function(session,inner_done){
+            var relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
+            var browsePath = [
+                opcua.browse_service.makeBrowsePath("RootFolder",relativePath),
+            ];
+
+            var sessionDiagnosticsSummaryNodeId;
+            async.series([
+
+                function(callback) {
+                    session.translateBrowsePath(browsePath,function(err,result) {
+                        if (!err) {
+                            if (result[0].statusCode === StatusCodes.Good) {
+                                //xx console.log(result[0].toString());
+                                sessionDiagnosticsSummaryNodeId = result[0].targets[0].targetId;
+                            } else {
+                                err = new Error("Cannot find ServerDiagnosticsSummary")
+                            }
+                        }
+                        callback(err);
+                    });
+                },
+                function(callback) {
+
+                    session.readVariableValue(sessionDiagnosticsSummaryNodeId,function(err,dataValue){
+                        console.log("\n\n-----------------------------------------------------------------------------------------------------------");
+                        console.log(dataValue.value.value.toString());
+                        console.log("-----------------------------------------------------------------------------------------------------------");
+                        callback(err);
+                    });
+                }
+            ],inner_done);
+
+        },done);
+    }
+
     afterEach(function (done) {
 
-        if (false) {
+        if (true) { return done(); }
+
+        if (false && test.server) {
             console.log(" currentChannelCount          = ",test.server.currentChannelCount);
             console.log(" bytesWritten                 = ",test.server.bytesWritten);
             console.log(" bytesRead                    = ",test.server.bytesRead);
@@ -73,23 +155,30 @@ describe("testing Client - Umbrella ", function () {
             console.log(" cumulatedSessionCount        = ",test.server.engine.cumulatedSessionCount);
             console.log(" cumulatedSubscriptionCount   = ",test.server.engine.cumulatedSubscriptionCount);
             console.log(" rejectedSessionCount         = ",test.server.engine.rejectedSessionCount);
+
+            test.server.currentSubscriptionCount.should.eql(0," verify test clean up : dangling  subscriptions found");
+            test.server.currentSessionCount.should.eql(0," verify test clean up : dangling  session found");
+            // test must not add exta nodes in root => "organizes" ref count => 3
+            var addressSpace = test.server.engine.addressSpace;
+            var rootFolder = addressSpace.findNode("RootFolder");
+            rootFolder.getFolderElements().length.should.eql(3,"Test should not pollute the root folder: expecting 3 folders in RootFolder only");
         }
 
-        test.server.currentSubscriptionCount.should.eql(0," verify test clean up : dangling  subscriptions found");
-        test.server.currentSessionCount.should.eql(0," verify test clean up : dangling  session found");
+        dumpStatistics(test.endpointUrl,done);
 
-        // test must not add exta nodes in root => "organizes" ref count => 3
-        var addressSpace = test.server.engine.addressSpace;
-        var rootFolder = addressSpace.findNode("RootFolder");
-        rootFolder.getFolderElements().length.should.eql(3,"Test should not pollute the root folder: expecting 3 folders in RootFolder only");
-        done();
     });
 
     after(function (done) {
-        test.server.shutdown(function () {
-            resourceLeakDetector.stop();
+        if (test.data) {
+            stop_simple_server(data,done);
+        } else if (test.server) {
+            test.server.shutdown(function () {
+                resourceLeakDetector.stop();
+                done();
+            });
+        } else {
             done();
-        });
+        }
     });
 
     require("./u_test_e2e_monitoring_large_number_of_nodes")(test);
@@ -118,5 +207,9 @@ describe("testing Client - Umbrella ", function () {
 
     require("./u_test_e2e_translateBrowsePath")(test);
 
+    require("./u_test_e2e_server_with_500_clients")(test);
+    require("./u_test_e2e_server_connection_with_500_sessions")(test);
+
+    require("./u_test_e2e_SubscriptionDiagnostics")(test);
 });
 

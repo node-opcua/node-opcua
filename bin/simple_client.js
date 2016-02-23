@@ -8,7 +8,7 @@ var util = require("util");
 var Table = require('easy-table');
 var async = require("async");
 var utils = require('lib/misc/utils');
-var assert = require("assert");
+var assert = require("better-assert");
 var opcua = require("../");
 var VariableIds = opcua.VariableIds;
 
@@ -99,6 +99,7 @@ var the_session = null;
 var the_subscription = null;
 
 var AttributeIds = opcua.AttributeIds;
+var DataType = opcua.DataType;
 
 var NodeCrawler = opcua.NodeCrawler;
 var doCrawling = argv.crawl ? true : false;
@@ -108,6 +109,267 @@ var serverCertificate = null;
 
 var path = require("path");
 var crypto_utils = require("lib/misc/crypto_utils");
+
+
+function getBrowseName(session,nodeId,callback) {
+    session.read([{ nodeId: nodeId, attributeId: AttributeIds.BrowseName}],function(err,org,readValue) {
+        if (!err) {
+            if (readValue[0].statusCode === opcua.StatusCodes.Good) {
+                assert(readValue[0].statusCode === opcua.StatusCodes.Good);
+                var browseName = readValue[0].value.value.name;
+                return callback(null,browseName);
+            }
+        }
+        callback(err,"<??>");
+    })
+}
+
+function w(str,l) {
+    return (str + "                                      ").substr(0,l);
+}
+
+
+
+function __dumpEvent(session,fields,eventFields,_callback) {
+
+    assert(_.isFunction(_callback));
+
+    console.log("-----------------------");
+
+    async.forEachOf(eventFields,function(variant,index,callback) {
+
+        assert(_.isFunction(callback));
+        if (variant.dataType === DataType.Null) {
+            return callback();
+        }
+        if (variant.dataType === DataType.NodeId)  {
+
+            getBrowseName(session,variant.value,function(err,name){
+
+                if (!err) {
+                    console.log(w(name,20),w(fields[index],15).yellow,
+                        w(variant.dataType.key,10).toString().cyan,name.cyan.bold,"(",w(variant.value,20),")");
+                }
+                callback();
+            });
+
+        } else {
+            setImmediate(function() {
+                console.log(w("",20),w(fields[index],15).yellow,
+                    w(variant.dataType.key,10).toString().cyan,variant.value);
+                callback();
+            })
+        }
+    },_callback);
+}
+
+var q = new async.queue(function(task,callback){
+    __dumpEvent(task.session,task.fields,task.eventFields,callback);
+});
+
+function dumpEvent(session,fields,eventFields,_callback) {
+
+    q.push({
+        session: session, fields:fields, eventFields: eventFields, _callback: _callback
+    });
+
+}
+
+function enumerateAllConditionTypes(the_session,callback) {
+
+    var tree = {};
+
+    var conditionEventTypes = {};
+
+    function findAllNodeOfType(tree,typeNodeId,browseName,callback) {
+
+        var browseDesc1 = {
+            nodeId: typeNodeId,
+            referenceTypeId: opcua.resolveNodeId("HasSubtype"),
+            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            includeSubtypes: true,
+            resultMask: 63
+
+        };
+        var browseDesc2 = {
+            nodeId: typeNodeId,
+            referenceTypeId: opcua.resolveNodeId("HasTypeDefinition"),
+            browseDirection: opcua.browse_service.BrowseDirection.Inverse,
+            includeSubtypes: true,
+            resultMask: 63
+
+        };
+        var browseDesc3 = {
+            nodeId: typeNodeId,
+            referenceTypeId: opcua.resolveNodeId("HasTypeDefinition"),
+            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            includeSubtypes: true,
+            resultMask: 63
+
+        };
+
+        var nodesToBrowse = [
+            browseDesc1,
+            browseDesc2,
+            browseDesc3
+        ];
+        the_session.browse(nodesToBrowse,function(err,browseResults) {
+
+            //xx console.log(" exploring".yellow ,browseName.cyan, typeNodeId.toString());
+            tree[browseName] = {};
+            if (!err) {
+                browseResults[0].references = browseResults[0].references || [];
+                async.forEach(browseResults[0].references,function(el,_inner_callback) {
+                    conditionEventTypes[el.nodeId.toString()] = el.browseName.toString();
+                    findAllNodeOfType(tree[browseName],el.nodeId,el.browseName.toString(),_inner_callback);
+                }, callback);
+            } else {
+                callback(err);
+            }
+        });
+    }
+
+    var  typeNodeId = opcua.resolveNodeId("ConditionType");
+    findAllNodeOfType(tree,typeNodeId,"ConditionType",function(err){
+        if (!err) {
+            return callback(null,conditionEventTypes,tree);
+        }
+        callback(err);
+    });
+}
+
+
+function enumerateAllAlarmAndConditionInstances(the_session,callback) {
+
+    var conditions = {};
+
+    var found = [];
+
+    function isConditionEventType(nodeId) {
+        return conditions.hasOwnProperty(nodeId.toString());
+        //x return derivedType.indexOf(nodeId.toString()) >=0;
+    }
+
+    function exploreForObjectOfType(session,nodeId,callback) {
+
+
+        var q = async.queue(function worker(element,callback){
+
+            //xx console.log(" exploring elements,",element.nodeId.toString());
+            var browseDesc1 = {
+                nodeId: element.nodeId,
+                referenceTypeId: opcua.resolveNodeId("HierarchicalReferences"),
+                browseDirection: opcua.browse_service.BrowseDirection.Forward,
+                includeSubtypes: true,
+                nodeClassMask: 0x1, // Objects
+                resultMask: 63
+            };
+
+            var nodesToBrowse = [browseDesc1];
+            session.browse(nodesToBrowse,function(err,browseResults) {
+                if (err) {
+                    console.log("err =",err);
+                }
+                if (!err) {
+                    browseResults[0].references.forEach(function(ref) {
+                        if (isConditionEventType(ref.typeDefinition)) {
+                            //
+                            var alarm ={
+                                parent:       element.nodeId,
+                                browseName: ref.browseName,
+                                alarmNodeId : ref.nodeId,
+                                typeDefinition: ref.typeDefinition,
+                                typeDefinitionName: conditions[ref.typeDefinition.toString()]
+                            };
+                            found.push(alarm);
+
+                        } else {
+                            q.push({nodeId: ref.nodeId});
+                        }
+                    });
+                }
+                callback(err);
+            });
+
+        });
+        q.push({
+            nodeId: nodeId
+        });
+        q.drain = function( ) {
+            callback();
+        };
+
+    }
+    enumerateAllConditionTypes(the_session,function(err,map){
+        conditions = map;
+        exploreForObjectOfType(the_session,opcua.resolveNodeId("RootFolder"),function(err) {
+            if (!err) {
+                return callback(null,found);
+            }
+            return callback(err);
+        })
+    });
+
+}
+
+function monitorAlarm(subscription,alarmNodeId, callback) {
+
+    assert(_.isFunction(callback));
+
+    function callConditionRefresh(subscription,callback) {
+
+        var the_session = subscription.publish_engine.session;
+        var subscriptionId = subscription.subscriptionId;
+        assert(_.isFinite(subscriptionId),"May be subscription is not yet initialized");
+        assert(_.isFunction(callback));
+
+        var conditionTypeNodeId = opcua.resolveNodeId("ConditionType");
+
+        var browsePath = [
+            opcua.browse_service.makeBrowsePath(conditionTypeNodeId,".ConditionRefresh")
+        ];
+        var conditionRefreshId  = opcua.resolveNodeId("ConditionType_ConditionRefresh");
+
+        //xx console.log("browsePath ", browsePath[0].toString({addressSpace: server.engine.addressSpace}));
+
+        async.series([
+
+            // find conditionRefreshId
+            function (callback) {
+                the_session.translateBrowsePath(browsePath, function (err, results) {
+                    if(!err) {
+                        conditionRefreshId =results[0].targets[0].targetId
+                    }
+                    callback(err);
+                });
+            },
+            function (callback) {
+
+                var methodsToCall = [{
+                    objectId: conditionTypeNodeId,
+                    methodId: conditionRefreshId,
+                    inputArguments: [
+                        new opcua.Variant({ dataType: opcua.DataType.UInt32, value: subscriptionId })
+                    ]
+                }];
+
+                the_session.call(methodsToCall,function(err,results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    if (results[0].statusCode !== opcua.StatusCodes.Good) {
+                        return callback(new Error("Error " + result[0].statusCode.toString()));
+                    }
+                    callback();
+                });
+            }
+        ],callback);
+    }
+
+    callConditionRefresh(subscription,function(err) {
+        callback();
+    });
+}
 
 async.series([
     function (callback) {
@@ -283,6 +545,62 @@ async.series([
 
 
     },
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // enumerate all Condition Types exposed by the server
+    // -----------------------------------------------------------------------------------------------------------------
+    function (callback) {
+
+        enumerateAllConditionTypes(the_session,function(err,conditionTypes,conditionTree){
+            console.log(treeify.asTree(conditionTree));
+            callback();
+        });
+    },
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // enumerate all objects that have an Alarm & Condition instances
+    // -----------------------------------------------------------------------------------------------------------------
+    function (callback) {
+
+        enumerateAllAlarmAndConditionInstances(the_session,function(err,alarms) {
+
+            if(!err) {
+
+                console.log(" -------------------------------------------------------------------- Alarms & Conditions ------------------------");
+                alarms.forEach(function(alarm) {
+                    console.log(
+                        "parent = ",
+                        w(alarm.parent.toString(),30).cyan,
+                        w(alarm.typeDefinitionName,30).green.bold,
+                        "alarmName = ",
+                        w(alarm.browseName.toString(),30).cyan,
+                        w(alarm.alarmNodeId.toString(),40).yellow
+                    );
+                });
+                console.log(" -----------------------------------------------------------------------------------------------------------------");
+
+            }
+            callback();
+        });
+
+
+    },
+    // ------------------ check if server supports Query Services
+    function (callback){
+
+        var queryFirstRequest = {
+        };
+
+        the_session.queryFirst(queryFirstRequest,function(err,queryFirstResult) {
+            if (err) {
+                console.log("QueryFirst is not supported by Server")
+            }
+            callback();
+        });
+
+    },
+
+
     // create Read
     function (callback) {
 
@@ -303,25 +621,196 @@ async.series([
 
         });
     },
+
     // -----------------------------------------
     // create subscription
     function (callback) {
 
         var parameters = {
             requestedPublishingInterval: 100,
-            requestedLifetimeCount:      1000,
-            requestedMaxKeepAliveCount:  12,
-            maxNotificationsPerPublish:  10,
+            requestedLifetimeCount: 1000,
+            requestedMaxKeepAliveCount: 12,
+            maxNotificationsPerPublish: 10,
             publishingEnabled: true,
             priority: 10
         };
 
         the_subscription = new opcua.ClientSubscription(the_session, parameters);
 
+        function getTick() {
+            return Date.now();
+        }
+
+        var t = getTick();
+
+        the_subscription.on("started", function () {
+
+            console.log("started subscription :", the_subscription.subscriptionId);
+
+            console.log(" revised parameters ");
+            console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
+            console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
+            console.log("  revised publishingInterval ", the_subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+            console.log("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint);
+
+            callback();
+
+        }).on("internal_error", function (err) {
+            console.log(" received internal error", err.message);
+
+        }).on("keepalive", function () {
+
+            var t1 = getTick();
+            var span = t1 - t;
+            t = t1;
+            console.log("keepalive ", span / 1000, "sec", " pending request on server = ", the_subscription.publish_engine.nbPendingPublishRequests);
+
+        }).on("terminated", function (err) {
+
+        });
+    },
+
+    function get_monitored_item(callback) {
+
+        the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
+            if (!err) {
+                console.log("MonitoredItems clientHandles", results.clientHandles);
+                console.log("MonitoredItems serverHandles", results.serverHandles);
+            } else {
+                console.log(" getMonitoredItems ERROR ".red, err.message.cyan);
+            }
+            callback();
+        });
+
+
+    },
+
+    function monitor_a_variable_node_value(callback) {
+        console.log("Monitoring monitor_a_variable_node_value");
+
+        // ---------------------------------------------------------------
+        //  monitor a variable node value
+        // ---------------------------------------------------------------
+        var monitoredItem = the_subscription.monitor(
+            {
+                nodeId: monitored_node,
+                attributeId: AttributeIds.Value
+            },
+            {
+                clientHandle: 13,
+                samplingInterval: 250,
+                //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
+                queueSize: 10000,
+                discardOldest: true
+            }
+        );
+        monitoredItem.on("initialized", function () {
+            console.log("monitoredItem initialized");
+            callback();
+        });
+        monitoredItem.on("changed", function (dataValue) {
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.value);
+        });
+        monitoredItem.on("err", function (err_message) {
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
+            callback();
+        });
+
+    },
+
+    function monitor_the_object_events(callback) {
+        console.log("Monitoring monitor_the_object_events");
+
+        // ---------------------------------------------------------------
+        //  monitor the object events
+        // ---------------------------------------------------------------
+
+        var baseEventTypeId = "i=2041"; // BaseEventType;
+        var serverObjectId = "i=2253";
+
+        var fields = [
+            "EventId",
+            "EventType",
+            "SourceNode",
+            "SourceName",
+            "Time",
+            "ReceiveTime",
+            "Message",
+            "Severity",
+
+            // ConditionType
+            "ConditionClassId",
+            "ConditionClassName",
+            "ConditionName",
+            "BranchId",
+            "Retain",
+            "EnabledState",
+            "Quality",
+            "LastSeverity",
+            "Comment",
+            "ClientUserId",
+
+            // AcknowledgeConditionType
+            "AckedState",
+            "ConfirmedState",
+
+            // AlarmConditionType
+            "ActiveState",
+            "InputNode",
+            "SuppressedState",
+
+            "HighLimit",
+            "LowLimit",
+            "HighHighLimit",
+            "LowLowLimit",
+
+            "Value",
+        ];
+        var eventFilter = opcua.constructEventFilter(fields);
+
+        var event_monitoringItem = the_subscription.monitor(
+            {
+                nodeId:      serverObjectId,
+                attributeId: AttributeIds.EventNotifier
+            },
+            {
+                queueSize: 100000,
+                filter: eventFilter,
+                discardOldest: true
+            }
+        );
+
+        event_monitoringItem.on("initialized", function () {
+            console.log("event_monitoringItem initialized");
+            callback();
+        });
+
+        event_monitoringItem.on("changed", function (eventFields) {
+            dumpEvent(the_session,fields,eventFields,function() {});
+        });
+        event_monitoringItem.on("err", function (err_message) {
+            console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);
+        });
+
+    },
+
+    function (callback) {
+        console.log("Monitoring alarms");
+        var alarmNodeId = "ns=2;s=1:Colours/EastTank?Green";
+        monitorAlarm(the_subscription,alarmNodeId,function() {
+            callback();
+        });
+    },
+
+
+    function (callback) {
+        console.log("Starting timer ",timeout);
         var timerId;
         if (timeout > 0) {
             timerId = setTimeout(function () {
-
+                the_subscription.once("terminated",function() {
+                    callback();
+                });
                 the_subscription.terminate();
             }, timeout);
 
@@ -336,120 +825,12 @@ async.series([
                 socket.emit('error', new Error('ECONNRESET'));
             }, timeout/2.0);
 
+        }else {
+            callback();
         }
-
-        function getTick() {
-            return Date.now();
-        }
-        var t = getTick();
-
-        the_subscription.on("started", function () {
-
-            console.log("started subscription :", the_subscription.subscriptionId);
-
-            console.log(" revised parameters ");
-            console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount , " ( requested " , parameters.requestedMaxKeepAliveCount + ")");
-            console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount  , " ( requested " , parameters.requestedLifetimeCount + ")");
-            console.log("  revised publishingInterval ", the_subscription.publishingInterval , " ( requested " , parameters.requestedPublishingInterval + ")");
-            console.log("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint );
-
-            the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
-                if (!err) {
-                    console.log("MonitoredItems clientHandles", results.clientHandles);
-                    console.log("MonitoredItems serverHandles", results.serverHandles);
-                } else {
-                    console.log(" getMonitoredItems ERROR ".red, err.message.cyan);
-                }
-            });
-
-
-        }).on("internal_error", function (err) {
-            console.log(" received internal error", err.message);
-            clearTimeout(timerId);
-            if(callback) {
-                callback(err);
-                callback = null;
-            }
-        }).on("keepalive", function () {
-
-            var t1 = getTick();
-            var span = t1 -t;
-            t= t1;
-            console.log("keepalive ", span/1000 , "sec" , " pending request on server = ",the_subscription.publish_engine.nbPendingPublishRequests);
-        }).on("terminated", function (err) {
-            if(callback) {
-                callback(err);
-                callback = null;
-            }
-        });
-
-        // ---------------------------------------------------------------
-        //  monitor a variable node value
-        // ---------------------------------------------------------------
-        var monitoredItem = the_subscription.monitor(
-            {
-                nodeId: monitored_node,
-                attributeId: AttributeIds.Value
-            },
-            {
-                clientHandle: 13,
-                samplingInterval: 250,
-                //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
-                queueSize: 1,
-                discardOldest: true
-            }
-        );
-        monitoredItem.on("initialized", function () {
-            console.log("monitoredItem initialized");
-        });
-        monitoredItem.on("changed", function (dataValue) {
-            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.value);
-        });
-        monitoredItem.on("err", function (err_message) {
-            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
-        });
-
-        // ---------------------------------------------------------------
-        //  monitor the object events
-        // ---------------------------------------------------------------
-
-        var baseEventTypeId = "i=2041"; // BaseEventType;
-        var serverObjectId = "i=2253";
-
-        var fields = ["EventType","SourceName", "EventId", "ReceiveTime","Severity","Message"];
-        var eventFilter = opcua.constructEventFilter(fields);
-
-        var event_monitoringItem = the_subscription.monitor(
-            {
-                nodeId: serverObjectId,
-                attributeId: AttributeIds.EventNotifier
-            },
-            {
-                queueSize: 1,
-                filter: eventFilter,
-                discardOldest: true
-            }
-        );
-
-        event_monitoringItem.on("initialized", function () {
-            console.log("event_monitoringItem initialized");
-        });
-
-        function w(str,l) {
-            return (str + "                                      ").substr(0,l);
-        }
-
-        event_monitoringItem.on("changed", function (eventFields) {
-            _.forEach(eventFields,function(variant,index) {
-                console.log(w(fields[index],15).yellow,variant.toString().cyan);
-            })
-
-        });
-        event_monitoringItem.on("err", function (err_message) {
-            console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);
-        });
-
     },
+
+
     function (callback) {
         console.log(" closing session");
         the_session.close(function (err) {
@@ -487,7 +868,15 @@ process.on("error",function(err){
 
     console.log(" UNTRAPPED ERROR",err.message);
 });
+var user_interruption_count = 0;
 process.on('SIGINT', function () {
+
+    console.log(" user interuption ...");
+
+    user_interruption_count += 1;
+    if (user_interruption_count >= 3) {
+        process.exit(1);
+    }
     if (the_subscription) {
 
         console.log(" Received client interruption from user ".red.bold);
