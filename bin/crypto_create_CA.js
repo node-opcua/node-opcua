@@ -89,6 +89,7 @@ function make_path(folder_name, file_name) {
     var s = path.join(path.normalize(folder_name), file_name);
     s = s.replace(/\\/g, "/");
     s = s.replace(/\"/g, "");
+
     return s;
 }
 
@@ -510,7 +511,7 @@ function createPrivateKey(private_key_filename, key_length, callback) {
             return callback();
         }
     }
-    execute(openssl_path + " genrsa -out " + private_key_filename + " " + key_length, callback);
+    execute(openssl_path + " genrsa -out " + quote(private_key_filename) + " " + key_length, callback);
 }
 
 
@@ -524,7 +525,7 @@ function createPrivateKey(private_key_filename, key_length, callback) {
  * @param callback  {Function}
  */
 function getPublicKeyFromPrivateKey(private_key_filename, public_key_filename, callback) {
-    execute(openssl_path + " rsa -pubout -in " + private_key_filename + " > " + public_key_filename, callback);
+    execute(openssl_path + " rsa -pubout -in " + quote(private_key_filename) + " > " + quote(public_key_filename), callback);
 }
 
 /**
@@ -537,7 +538,7 @@ function getPublicKeyFromPrivateKey(private_key_filename, public_key_filename, c
  * @param callback
  */
 function getPublicKeyFromCertificate(certificate_filename, public_key_filename, callback) {
-    execute(openssl_path + " x509 -pubkey -in" + certificate_filename + " -notext  > " + public_key_filename, callback);
+    execute(openssl_path + " x509 -pubkey -in" + quote(certificate_filename) + " -notext  > " + quote(public_key_filename), callback);
 }
 
 
@@ -607,10 +608,10 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
             displaySubtitle.bind(null, "- creating the self signed certificate"),
             execute.bind(null, openssl_path + " ca " + configOption +
                 " -selfsign " +
-                " -keyfile " + private_key +
+                " -keyfile " + quote(private_key) +
                 " -startdate " + startDate +
                 " -enddate " + endDate +
-                " -batch -out " + certificate_file + " -in " + csr_file)
+                " -batch -out " + quote(certificate_file) + " -in " + quote(csr_file))
         ];
 
     } else {
@@ -620,25 +621,25 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
             execute.bind(null, openssl_path + " ca " + configOption +
                 " -startdate " + startDate +
                 " -enddate " + endDate +
-                " -batch -out " + certificate_file + " -in " + csr_file)
+                " -batch -out " + quote(certificate_file) + " -in " + quote(csr_file))
         ];
     }
     var tasks = [
 
         displaySubtitle.bind(null, "- the certificate signing request"),
-        execute.bind(null, openssl_path + " req -text " + configOption + " -batch -new -key " + private_key + " -out " + csr_file),
+        execute.bind(null, openssl_path + " req -text " + configOption + " -batch -new -key " + quote(private_key) + " -out " + quote(csr_file)),
 
         sign_certificate[0],
         sign_certificate[1],
 
         displaySubtitle.bind(null, "- dump the certificate for a check"),
         // execute.bind(null,openssl_path + " x509 -in " + certificate_file + "  -text -noout"),
-        execute.bind(null, openssl_path + " x509 -in " + certificate_file + "  -dates -noout"),
-        //execute.bind(null,openssl_path + " x509 -in " + certificate_file + "  -purpose -noout"),
+        execute.bind(null, openssl_path + " x509 -in " + quote(certificate_file) + "  -dates -noout"),
+        //execute.bind(null,openssl_path + " x509 -in " + quote(certificate_file) + "  -purpose -noout"),
 
         // get certificate fingerprint
         displaySubtitle.bind(null, "- get certificate fingerprint"),
-        execute.bind(null, openssl_path + " x509 -in " + certificate_file + " -noout -fingerprint"),
+        execute.bind(null, openssl_path + " x509 -in " + quote(certificate_file) + " -noout -fingerprint"),
 
         displaySubtitle.bind(null, "- construct CA certificate with CRL"),
         constructCACertificateWithCRL.bind(null),
@@ -651,10 +652,10 @@ function _createCertificate(self_signed, certname, private_key, applicationUri, 
 
     if (self_signed) {
         tasks.push(displaySubtitle.bind(null, "- verify self-signed certificate"));
-        tasks.push(execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + certificate_file + " " + certificate_file));
+        tasks.push(execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + quote(certificate_file) + " " + quote(certificate_file)));
     } else {
         tasks.push(displaySubtitle.bind(null, "- verify certificate against the root CA"));
-        tasks.push(execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + caCertificate_With_CRL + " " + certificate_file));
+        tasks.push(execute_no_failure.bind(null, openssl_path + " verify -verbose -CAfile " + quote(caCertificate_With_CRL) + " " + quote(certificate_file)));
     }
 
     async.series(tasks, callback);
@@ -702,7 +703,7 @@ function revoke_certificate(certificate_file, callback) {
         displaySubtitle.bind(null, "Revoke certificate"),
 
         // -crl_reason reason
-        execute_no_failure.bind(null, openssl_path + " ca "+ configOption + " -revoke " + certificate_file + " -crl_reason keyCompromise"),
+        execute_no_failure.bind(null, openssl_path + " ca "+ configOption + " -revoke " + quote(certificate_file) + " -crl_reason keyCompromise"),
         // regenerate CRL (Certificate Revocation List)
         displaySubtitle.bind(null, "regenerate CRL (Certificate Revocation List)"),
         execute.bind(null, openssl_path + " ca -gencrl " + configOption + " -out crl/revocation_list.crl"),
@@ -711,7 +712,7 @@ function revoke_certificate(certificate_file, callback) {
         execute.bind(null, openssl_path + " crl -in crl/revocation_list.crl -text -noout"),
 
         displaySubtitle.bind(null, "Verify  certificate "),
-        execute_no_failure.bind(null, openssl_path + " verify -verbose -CRLfile " + "crl/revocation_list.crl" + " -crl_check -CAfile " + "./public/cacert.pem" + " " + certificate_file),
+        execute_no_failure.bind(null, openssl_path + " verify -verbose -CRLfile " + "crl/revocation_list.crl" + " -crl_check -CAfile " + "./public/cacert.pem" + " " + quote(certificate_file)),
 
         // produce CRL in DEF format
         displaySubtitle.bind(null, "Produce CRL in DER form "),

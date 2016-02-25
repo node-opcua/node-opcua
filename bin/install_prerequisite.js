@@ -43,9 +43,12 @@ function execute(cmd, callback, cwd) {
         process.stdout.write("        stdout " + line.yellow + "\n");
     });
 }
-
+function quote(str) {
+    return "\"" + str + "\"";
+}
 var cwd = path.join(__dirname, "./openssl");
-var cmd = path.join(cwd, "openssl.exe");
+var cmd = quote(path.join(cwd, "openssl.exe"));
+
 
 function check_openssl(callback) {
 
