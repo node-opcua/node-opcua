@@ -3,6 +3,7 @@
 .travis.yml
 .coveralls.yml
 code_gen/
+CTT/
 docs/
 autodoc
 documentation/
