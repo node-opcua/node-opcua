@@ -25,7 +25,7 @@ var child_process = require("child_process");
 var byline = require('byline');
 var fs = require("fs");
 var path = require("path");
-var colors = require("colors");
+require("colors");
 
 function execute(cmd, callback, cwd) {
 
@@ -70,11 +70,16 @@ var wget = require("wget-improved");
 /**
  * detect whether windows OS is a 64 bits or 32 bits
  * http://ss64.com/nt/syntax-64bit.html
+ * http://blogs.msdn.com/b/david.wang/archive/2006/03/26/howto-detect-process-bitness.aspx
  * @return {number}
  */
 function win32or64() {
     console.log(" process.env.PROCESSOR_ARCHITEW6432  =",process.env.PROCESSOR_ARCHITEW6432 );
     if (process.env.PROCESSOR_ARCHITECTURE === "x86" && process.env.PROCESSOR_ARCHITEW6432 ) {
+        return 64;
+    }
+
+    if (process.env.PROCESSOR_ARCHITECTURE === "AMD64" ) {
         return 64;
     }
 
@@ -87,10 +92,10 @@ function win32or64() {
 function download_openssl(callback) {
 
     var url = (win32or64() === 64 )
-            ? "http://indy.fulgan.com/SSL/openssl-1.0.2d-x64_86-win64.zip"
-            : "http://indy.fulgan.com/SSL/openssl-1.0.2d-i386-win32.zip"
+            ? "http://indy.fulgan.com/SSL/openssl-1.0.2e-x64_86-win64.zip"
+            : "http://indy.fulgan.com/SSL/openssl-1.0.2e-i386-win32.zip"
         ;
-    var output_filename = path.basename(url);
+    var output_filename = path.join(__dirname,path.basename(url));
 
     console.log("downloading " + url.yellow);
     if (fs.existsSync(output_filename)) {
@@ -118,7 +123,8 @@ function download_openssl(callback) {
     });
 }
 function install_openssl(filename, callback) {
-    var dirPath = 'bin/openssl';
+
+    var dirPath =  path.join(__dirname,'openssl');
 
     var unzip = require("unzip");
     var stream = fs.createReadStream(filename);
