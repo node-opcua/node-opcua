@@ -15,7 +15,6 @@ var VariableIds = opcua.VariableIds;
 //xx ar UserNameIdentityToken = opcua.session_service.UserNameIdentityToken;
 //xx var SecurityPolicy = opcua.SecurityPolicy;
 
-console.log("1");
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 var argv = require('yargs')
     .wrap(132)
@@ -894,3 +893,4 @@ process.on('SIGINT', function () {
         the_subscription = null;
     }
 });
+

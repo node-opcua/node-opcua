@@ -112,7 +112,7 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
             set: null
         };
 
-        myObject.customProperty.bindVariable(options,true/*overwrite existing biding ? Yes !*/);
+        myObject.customProperty.bindVariable(options,true/*overwrite existing binding ? Yes !*/);
 
         myObject.customProperty.readValue().value.value.should.eql(3);
 

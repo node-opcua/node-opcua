@@ -201,14 +201,14 @@ describe("testing Events  ", function () {
     it("should bubble events up",function(){
 
         var area1 = addressSpace.createNode({
-            nodeClass:   NodeClass.Object,
+            nodeClass: NodeClass.Object,
             browseName:  "Area1",
             organisedBy: "Objects"
         });
         area1.browseName.name.should.eql("Area1");
 
         var tank1 = addressSpace.createNode({
-            nodeClass:   NodeClass.Object,
+            nodeClass: NodeClass.Object,
             browseName:  "Tank1",
             componentOf: area1,
             notifierOf:  area1
@@ -216,7 +216,7 @@ describe("testing Events  ", function () {
         tank1.browseName.name.should.eql("Tank1");
 
         var pump = addressSpace.createNode({
-            nodeClass:     NodeClass.Object,
+            nodeClass: NodeClass.Object,
             browseName:    "Pump",
             componentOf:   tank1,
             eventSourceOf: tank1,
