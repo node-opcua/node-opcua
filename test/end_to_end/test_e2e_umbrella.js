@@ -204,6 +204,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_144")(test);
     require("./u_test_e2e_issue_156")(test);
     require("./u_test_e2e_issue_123")(test);
+    require("./u_test_e2e_issue_163")(test);
 
     require("./u_test_e2e_translateBrowsePath")(test);
 
@@ -211,5 +212,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_server_connection_with_500_sessions")(test);
 
     require("./u_test_e2e_SubscriptionDiagnostics")(test);
+    //xrequire("./u_test_e2e_browse_request_issue")(test);
+
 });
 
