@@ -45,6 +45,13 @@ var custom_connectivity_strategy = {
     randomisationFactor: 0
 };
 
+var infinite_connectivity_strategy = {
+    maxRetry: 1000000,
+    initialDelay: 10,
+    maxDelay:    200,
+    randomisationFactor: 0
+};
+
 var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
 
 function f(func) {
@@ -66,6 +73,7 @@ describe("testing basic Client-Server communication", function () {
     this.timeout(Math.max(20000,this._timeout));
 
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true, function () {
+
         before(function (done) {
             server = build_server_with_temperature_device({port: port}, function (err) {
                 endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
@@ -104,9 +112,14 @@ describe("testing basic Client-Server communication", function () {
                 client.connect(endpointUrl, callback);
             },
             function (callback) {
+                server.currentChannelCount.should.equal(1);
                 client.disconnect(callback);
             }
-        ], done);
+
+        ], function (err) {
+            server.currentChannelCount.should.equal(0);
+            done(err);
+        });
 
     });
 
@@ -711,6 +724,8 @@ describe("testing ability for client to reconnect when server close connection",
     var client_has_received_close_event;
     var client_has_received_start_reconnection_event;
 
+    var backoff_counter =  0;
+
     function create_client_and_create_a_connection_to_server(connectivity_strategy, done) {
 
         done.should.be.instanceOf(Function);
@@ -731,10 +746,25 @@ describe("testing ability for client to reconnect when server close connection",
             client_has_received_start_reconnection_event += 1;
         });
         client.on("backoff", function (err) {
-            console.log("...");
+            backoff_counter +=1;
+            console.log("backoff => err",err.message);
         });
 
         client.connect(endpointUrl, done);
+    }
+
+
+    function reset_backoff_counter(done) {
+        backoff_counter=0;
+        done();
+    }
+    function assert_NO_backoff_event_since_last_reset(done) {
+        backoff_counter.should.eql(0);
+        done();
+    }
+    function assert_has_received_some_backoff_event_since_last_reset(done) {
+        backoff_counter.should.be.greaterThan(0);
+        done();
     }
 
     function verify_that_client_fails_to_connect(connectivity_strategy, done) {
@@ -771,14 +801,15 @@ describe("testing ability for client to reconnect when server close connection",
 
     function verify_that_client_is_trying_to_reconnect(done) {
 
-        setImmediate(function () {
+        // wait a little bit and check that client has started the reconnection process
+        setTimeout(function () {
             try {
                 client.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
             } catch (err) {
                 done(err);
             }
             done();
-        });
+        },10);
     }
 
     function verify_that_client_is_NOT_trying_to_reconnect(done) {
@@ -902,13 +933,62 @@ describe("testing ability for client to reconnect when server close connection",
         });
     });
 
+    it("TR2a - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
+
+        async.series([
+            f(start_demo_server),
+            // use robust  connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+
+            f(shutdown_server),
+            f(wait_a_little_while),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(wait_a_little_while),
+            f(verify_that_client_has_NOT_received_a_close_event),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(verify_that_client_has_received_a_single_start_reconnection_event),
+            f(restart_server),
+            f(wait_a_little_while),
+            f(wait_a_little_while),
+            f(verify_that_client_is_connected),
+            f(verify_that_client_is_NOT_trying_to_reconnect),
+            f(verify_that_client_has_received_a_single_start_reconnection_event),
+
+
+            // reset client reconnection event counter
+            function(callback) {client_has_received_start_reconnection_event = 0; callback(); },
+
+            // Shutdown the server again
+            f(shutdown_server),
+            f(wait_a_little_while),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(wait_a_little_while),
+            f(verify_that_client_has_NOT_received_a_close_event),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(verify_that_client_has_received_a_single_start_reconnection_event),
+            f(restart_server),
+            f(wait_a_little_while),
+            f(wait_a_little_while),
+            f(verify_that_client_is_connected),
+            f(verify_that_client_is_NOT_trying_to_reconnect),
+            f(verify_that_client_has_received_a_single_start_reconnection_event),
+
+
+
+            f(disconnect_client),
+            f(verify_that_server_has_no_active_channel),
+            f(shutdown_server)
+        ], function (err) {
+            done(err);
+        });
+    });
+
     it("TR3 - it should be possible to disconnect a client which is in the middle a reconnection sequence", function (done) {
         async.series([
             f(start_demo_server),
             // use robust connectionStrategy
             f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
             f(shutdown_server),
-
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
             f(wait_a_little_while),
@@ -1196,7 +1276,163 @@ describe("testing ability for client to reconnect when server close connection",
 
     xit("TR7 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding session life time", function (done) {
         // to do
-        done();
+        async.series([
+
+        ],done);
+    });
+
+    it("TR8 -  disconnecting during connect", function(done) {
+        // Given a client that has a infinite connection retry strategy,
+        //   And that client#connect is call to connect to an non-existent server.
+        //
+        //  When client#disconnect is called
+        //
+        //  Then the client should complete the client#connect async call with and err;
+        //   And the client should stop the automatic reconnection strategy (backoff)
+        // to do
+
+
+        // Given a client that has a infinite connection retry strategy,
+        //   And that client#connect is call to connect to an non-existent server.
+        //
+        var client = null;
+        var client_has_received_close_event = 0;
+        var client_has_received_start_reconnection_event;
+
+        var options = {connectionStrategy: infinite_connectivity_strategy};
+        client = new OPCUAClient(options);
+
+        client.on("close", function (err) {
+            if (err) {
+                console.log("err=", err.message);
+            }
+            client_has_received_close_event += 1;
+        });
+
+        client.on("start_reconnection", function (err) {
+            client_has_received_start_reconnection_event += 1;
+        });
+
+        var backoff_event_counter =0;
+        client.on("backoff", function (err) {
+            //xxx console.log("...");
+            backoff_event_counter+=1;
+        });
+
+        var endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.galaxy:42";
+
+        // let's call connect.
+        // because the endpointUrl doesn't exist,  and the the infinite_connectivity_strategy
+        // the client with indefinitely try to connect, causing the callback function
+        // passed to the client#connect method not to be called.
+        var connect_done = false;
+        var connect_err = null;
+        client.connect(endpointUrl, function(err) {
+            connect_err = err;
+            connect_done = true;
+        });
+
+        var count_ref = 0;
+
+        async.series([
+            f(wait_a_little_while),
+            f(wait_a_little_while),
+            function(callback) {
+
+                //  When client#disconnect is called
+
+                backoff_event_counter.should.be.greaterThan(2);
+
+                // client should be still trying to connect
+                connect_done.should.eql(false);
+                client_has_received_close_event.should.eql(0);
+
+                client.disconnect(function(err) {
+
+                    //xx setTimeout(function() {
+                        client_has_received_close_event.should.eql(1);
+                        // connect callback should have been called...
+                        connect_done.should.eql(true);
+
+                        console.log("-----------------------------------------------------");
+                        callback(err);
+                        count_ref = backoff_event_counter;
+
+                    //xx },10);
+                });
+            },
+            f(wait_a_little_while),
+            function(callback) {
+                client_has_received_close_event.should.eql(1);
+                // backof must be terminated now
+                count_ref.should.eql(backoff_event_counter);
+                callback(null);
+            }
+         ],done);
+
+    });
+
+    it("TR9 -  disconnecting during reconnect", function(done) {
+        // Given a client that has a infinite connection retry strategy,
+        //   And the client has a lived connection with a server
+        //   And that the connection has dropped ( backoff stragety taking place)
+        //
+        //  When client#disconnect is called
+        //
+        //   Then the client should stop the  automatic reconnection strategy (backoff)
+
+        client_has_received_close_event
+        async.series([
+
+            f(start_demo_server),
+
+            f(create_client_and_create_a_connection_to_server.bind(null, infinite_connectivity_strategy)),
+            f(wait_a_little_while),
+            f(shutdown_server),
+            f(reset_backoff_counter),
+            f(wait_for.bind(null,2000)),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(verify_that_client_has_NOT_received_a_close_event),
+            f(verify_that_client_has_received_a_single_start_reconnection_event),
+            f(assert_has_received_some_backoff_event_since_last_reset),
+
+            f(wait_for.bind(null,2000)),
+            f(disconnect_client),
+
+            f(reset_backoff_counter),
+            f(wait_for.bind(null,2000)),
+
+            f(assert_NO_backoff_event_since_last_reset),
+            f(verify_that_client_is_NOT_trying_to_reconnect)
+
+        ],done);
+
+    });
+    it("TR10 -  a client should notify that the reconnection attempt is taking place with an event", function(done) {
+        // Given a client and a server with an established connection
+        // When the connection link dropped
+        // Then the client shall raise an event to indicate that the reconnection process is now taking place.
+        async.series([
+
+            f(start_demo_server),
+
+            f(create_client_and_create_a_connection_to_server.bind(null, infinite_connectivity_strategy)),
+            f(wait_a_little_while),
+            f(shutdown_server),
+            f(wait_a_little_while),
+            f(verify_that_client_has_received_a_single_start_reconnection_event),
+
+            f(reset_backoff_counter),
+            f(wait_for.bind(null,2000)),
+            f(assert_has_received_some_backoff_event_since_last_reset),
+
+            f(reset_backoff_counter),
+            f(wait_for.bind(null,2000)),
+            f(assert_has_received_some_backoff_event_since_last_reset),
+
+            f(disconnect_client),
+
+        ],done);
     });
 });
 
