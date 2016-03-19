@@ -70,6 +70,7 @@ describe("OPCUAServer", function () {
 
     it("server address space have a node matching session.nodeId", function (done) {
 
+
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists
