@@ -363,7 +363,7 @@ function monitorAlarm(subscription,alarmNodeId, callback) {
                         return callback(err);
                     }
                     if (results[0].statusCode !== opcua.StatusCodes.Good) {
-                        return callback(new Error("Error " + result[0].statusCode.toString()));
+                        return callback(new Error("Error " + results[0].statusCode.toString()));
                     }
                     callback();
                 });
