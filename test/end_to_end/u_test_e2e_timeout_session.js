@@ -92,13 +92,13 @@ module.exports = function (test) {
                 function (callback) {
 
                     // set a very short sessionTimeout
-                    client1.requestedSessionTimeout = 1000;
+                    client1.requestedSessionTimeout = 500;
 
                     //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
                     client1.createSession(function (err, session) {
-
-                        //xx console.log("adjusted session timeout =", session.timeout);
+                        //console.log("adjusted session timeout =", session.timeout);
+                        session.timeout.should.eql(500);
                         if (err) {
                             return callback(err);
                         }
@@ -125,10 +125,77 @@ module.exports = function (test) {
                 });
             });
         });
-    });
-    
-};
+        it("A open session will not time out on server side if the client has keepSessionAlive = true", function (done) {
 
+
+            var timerId;
+
+            var client1 = new OPCUAClient({
+                keepSessionAlive: true
+            });
+
+            var endpointUrl = test.endpointUrl;
+
+            var the_session;
+
+            var keepalive_spy = sinon.spy();
+
+            async.series([
+                function (callback) {
+                    client1.connect(endpointUrl, callback);
+                },
+                // create a session using client1
+                function (callback) {
+
+                    // set a very short sessionTimeout
+                    client1.requestedSessionTimeout = 500;
+
+                    //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
+
+                    client1.createSession(function (err, session) {
+                        //console.log("adjusted session timeout =", session.timeout);
+                        session.timeout.should.eql(500);
+                        if (err) {
+                            return callback(err);
+                        }
+                        the_session = session;
+                        the_session.on("keepalive", keepalive_spy);
+                        callback();
+                    });
+                },
+
+                // periodically send a request to the server , for a duration of 2000 ms
+                function (callback) {
+
+                    timerId = setInterval(function(){
+                        console.log(" ---")
+                        the_session.read([{nodeId: "ns=1;i=54"}],function(err){ });
+
+                    },200);
+                    setTimeout(function() {
+                        clearInterval(timerId);
+                        callback();
+
+                    }, 2000);
+                },
+
+                function (callback) {
+                    the_session.close(function (err) {
+                        // client should not have send keepalive, as  normal transactions happens between
+                        // client and server
+                        keepalive_spy.callCount.should.be.eql(0);
+                        callback(err);
+                    });
+                }
+
+            ], function final(err) {
+                client1.disconnect(function () {
+                    done(err);
+                });
+            });
+        });
+    });
+};
 
 
 

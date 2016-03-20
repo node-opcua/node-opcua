@@ -730,7 +730,10 @@ describe("testing ability for client to reconnect when server close connection",
 
         done.should.be.instanceOf(Function);
 
-        var options = {connectionStrategy: connectivity_strategy};
+        var options = {
+            keepSessionAlive: true,
+            connectionStrategy: connectivity_strategy
+        };
         client = new OPCUAClient(options);
 
         client_has_received_close_event = 0;
@@ -749,7 +752,6 @@ describe("testing ability for client to reconnect when server close connection",
             backoff_counter +=1;
             console.log("backoff => err",err.message);
         });
-
         client.connect(endpointUrl, done);
     }
 
@@ -783,7 +785,7 @@ describe("testing ability for client to reconnect when server close connection",
         }
         done();
     }
-
+        
     function verify_that_client_has_received_a_single_close_event(done) {
         try {
             client_has_received_close_event.should.eql(1, "expecting close event to be emitted only once");
@@ -1400,7 +1402,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(disconnect_client),
 
             f(reset_backoff_counter),
-            f(wait_for.bind(null,2000)),
+            f(wait_for.bind(null,5000)),
 
             f(assert_NO_backoff_event_since_last_reset),
             f(verify_that_client_is_NOT_trying_to_reconnect)
