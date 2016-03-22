@@ -15,7 +15,6 @@ var VariableIds = opcua.VariableIds;
 //xx ar UserNameIdentityToken = opcua.session_service.UserNameIdentityToken;
 //xx var SecurityPolicy = opcua.SecurityPolicy;
 
-console.log("1");
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 var argv = require('yargs')
     .wrap(132)
@@ -337,8 +336,14 @@ function monitorAlarm(subscription,alarmNodeId, callback) {
             // find conditionRefreshId
             function (callback) {
                 the_session.translateBrowsePath(browsePath, function (err, results) {
-                    if(!err) {
-                        conditionRefreshId =results[0].targets[0].targetId
+                    if(!err ) {
+                        if (results[0].targets.length > 0){
+                            conditionRefreshId = results[0].targets[0].targetId;
+                        } else {
+                            // cannot find conditionRefreshId
+                            console.log("cannot find conditionRefreshId",results[0].toString());
+                            err = new Error(" cannot find conditionRefreshId");
+                        }
                     }
                     callback(err);
                 });
@@ -358,7 +363,7 @@ function monitorAlarm(subscription,alarmNodeId, callback) {
                         return callback(err);
                     }
                     if (results[0].statusCode !== opcua.StatusCodes.Good) {
-                        return callback(new Error("Error " + result[0].statusCode.toString()));
+                        return callback(new Error("Error " + results[0].statusCode.toString()));
                     }
                     callback();
                 });
@@ -366,7 +371,7 @@ function monitorAlarm(subscription,alarmNodeId, callback) {
         ],callback);
     }
 
-    callConditionRefresh(subscription,function(err) {
+    callConditionRefresh(subscription, function(err) {
         callback();
     });
 }
@@ -587,6 +592,8 @@ async.series([
     },
     // ------------------ check if server supports Query Services
     function (callback){
+
+        return callback();
 
         var queryFirstRequest = {
         };
@@ -886,3 +893,4 @@ process.on('SIGINT', function () {
         the_subscription = null;
     }
 });
+

@@ -28,6 +28,8 @@ module.exports.coerceQualifyName   = require("lib/datamodel/qualified_name").coe
 module.exports.get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 module.exports.makeApplicationUrn              = require("lib/misc/applicationurn").makeApplicationUrn;
 
+module.exports.NodeClass = require("lib/datamodel/nodeclass").NodeClass;
+
 // services
 module.exports.browse_service                             = require("lib/services/browse_service");
 module.exports.read_service                               = require("lib/services/read_service");

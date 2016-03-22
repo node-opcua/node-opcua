@@ -86,7 +86,9 @@ var server_options = {
             maxNodesPerBrowse: 2000
         }
     },
-    userManager: userManager
+    userManager: userManager,
+    
+    isAuditing: true
 };
 
 process.title = "Node OPCUA Server on port : " + server_options.port;

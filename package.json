@@ -36,8 +36,8 @@
     "app-module-path": "^1.0.5",
     "autodoc": "0.6.3",
     "benchmark": "2.1.0",
-    "bignumber.js": "2.1.4",
-    "coveralls": "2.11.6",
+    "bignumber.js": "2.3.0",
+    "coveralls": "2.11.8",
     "csv": "0.4.6",
     "cucumber": "^0.9.5",
     "enum": "2.3.0",
@@ -45,7 +45,7 @@
     "jsdoc": "3.4.0",
     "litpro": "0.12.1",
     "mocha": "2.4.5",
-    "mocha-lcov-reporter": "1.1.0",
+    "mocha-lcov-reporter": "1.2.0",
     "node-xml": "1.0.2",
     "request": "2.69.0",
     "should": "8.2.2",
@@ -56,8 +56,8 @@
     "yuidocjs": "*"
   },
   "dependencies": {
-    "async": "1.5.2",
-    "backoff": "git+https://github.com/MathieuTurcotte/node-backoff.git#fdd743791d21b13ba68cd691a8964bdfc7d33062",
+    "async": "2.0.0-rc.1",
+    "backoff": "2.5.0",
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
     "byline": "4.2.1",
@@ -66,18 +66,14 @@
     "del": "^2.2.0",
     "delayed": "^1.0.1",
     "dequeue": "^1.0.5",
-    "easy-table": "1.0.0",
     "ersatz-node-expat": "0.1.6",
     "exit": "^0.1.2",
-    "forge": "^2.3.0",
     "fqdn": "0.0.3",
     "hexy": "0.2.7",
     "humanize": "0.0.9",
-    "install": "^0.4.4",
     "node-jsrsasign": "0.0.7",
     "once": "^1.3.3",
     "pem": "1.8.1",
-    "prettyjson": "1.1.3",
     "progress": "1.1.8",
     "q": "^1.4.1",
     "requirish": "0.3.0",
@@ -88,6 +84,6 @@
     "unzip": "^0.1.11",
     "wget-improved": "^1.3.0",
     "xml-writer": "^1.6.0",
-    "yargs": "^4.1.0"
+    "yargs": "^4.3.1"
   }
 }

@@ -40,7 +40,7 @@ running the demo server
 
     $ git clone https://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
-    $ npm init
+    $ npm install
     $ node bin/simple_server
     
 running the demo client
@@ -48,14 +48,14 @@ running the demo client
 
     $ git clone https://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
-    $ npm init
+    $ npm install
     $ node bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
         
         
 Tutorials
 ---------
 
- * [create a server](http://node-opcua.github.io/create_a_server.html)
+ * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  
  * [create a client](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client.md)
    
@@ -68,7 +68,7 @@ API Documentation
 Contributing
 ============
 
-    $ git clone git://github.com/node-opcua/node-opcua.git node-opcua
+    $ git clone git://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
     $ npm install
     $ npm test
@@ -202,6 +202,5 @@ Feedback
 
   * if you're using node-opcua in one of your project, please feel free to leave a comment and a quick description in the [wiki](https://github.com/node-opcua/node-opcua/wiki)
   
-  * if you have a particular wish or found a issue, let us known and [create a issue](https://github.com/node-opcua/node-opcua/issues?state=open) 
-  
-  
+  * if you have a particular wish or found a issue, let us known and [create an issue](https://github.com/node-opcua/node-opcua/issues?state=open)
+
