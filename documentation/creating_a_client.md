@@ -169,7 +169,7 @@ the_session.browse("RootFolder", function(err,browse_result){
 ```javascript
 var max_age = 0;
 var nodes_to_read = [
-   { nodeId: "ns=4;s=free_memory", attributeId: opcua.AttributeIds.Value } 
+   { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value } 
 ];
 the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) {
     if (!err) {
@@ -184,7 +184,7 @@ the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) 
 ### read a variable with readVariableValue
 
 ```javascript
-the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValue) {
+the_session.readVariableValue("ns=1;s=free_memory", function(err,dataValue) {
     if (!err) {
         console.log(" free mem % = " , dataValue.toString());
     }
@@ -226,7 +226,7 @@ setTimeout(function(){
 
 // install monitored item
 var monitoredItem  = the_subscription.monitor({
-    nodeId: opcua.resolveNodeId("ns=4;s=free_memory"),
+    nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
     attributeId: opcua.AttributeIds.Value
 },
 {
