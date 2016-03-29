@@ -46,7 +46,7 @@ async.series([
 
     // step 4 : read a variable with readVariableValue
     function(callback) {
-       the_session.readVariableValue("ns=4;s=free_memory", function(err,dataValue) {
+       the_session.readVariableValue("ns=1;s=free_memory", function(err,dataValue) {
            if (!err) {
                console.log(" free mem % = " , dataValue.toString());
            }
@@ -60,7 +60,7 @@ async.series([
     function(callback) {
        var max_age = 0;
        var nodes_to_read = [
-          { nodeId: "ns=4;s=free_memory", attributeId: opcua.AttributeIds.Value }
+          { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value }
        ];
        the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) {
            if (!err) {
@@ -98,7 +98,7 @@ async.series([
        
        // install monitored item
        var monitoredItem  = the_subscription.monitor({
-           nodeId: opcua.resolveNodeId("ns=4;s=free_memory"),
+           nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
            attributeId: opcua.AttributeIds.Value
        },
        {
