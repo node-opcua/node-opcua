@@ -22,6 +22,13 @@ var userManager = {
     }
 };
 
+var userManagerAsync = {
+
+    isValidUserAsync: function (userName, password, onDone) {
+        async.setImmediate(onDone.bind(null, ( userName === "username" && password === "p@ssw0rd_@sync" ) ));
+    }
+};
+
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
     console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
@@ -39,7 +46,7 @@ if (!crypto_utils.isFullySupported()) {
 
             var options = {
                 port: port,
-                allowAnonymous: false,
+                allowAnonymous: false
             };
 
             server = build_server_with_temperature_device(options, function (err) {
@@ -133,7 +140,7 @@ if (!crypto_utils.isFullySupported()) {
 
         });
 
-        it("should connect to a server using username/password authentication and valid credentials - anonymous conection ", function (done) {
+        it("should connect to a server using username/password authentication and valid credentials - anonymous connection ", function (done) {
 
             var userName = "username";
             var password = "p@ssw0rd";
@@ -195,6 +202,22 @@ if (!crypto_utils.isFullySupported()) {
             var endpointUrl_truncated = "opc.tcp://localhost:2002";
 
             perform_simple_connection(endpointUrl_truncated,options, {userName: userName, password: password}, done);
+
+        });
+
+        it("should connect to a server using asynchronous username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
+
+            server.userManager = userManagerAsync;  //use asynchronous checks
+
+            var options = {
+                securityMode: opcua.MessageSecurityMode.SIGN,
+                securityPolicy: opcua.SecurityPolicy.Basic256
+            };
+            var userIdentity = {
+                userName: "username",
+                password: "p@ssw0rd_@sync"
+            };
+            perform_simple_connection(endpointUrl,options, userIdentity, done);
 
         });
 
