@@ -1025,9 +1025,9 @@ describe("testing ability for client to reconnect when server close connection",
 
         subscription = new opcua.ClientSubscription(the_session, {
             requestedPublishingInterval: 500,
-            requestedLifetimeCount: 60,
-            requestedMaxKeepAliveCount: 100,
-            maxNotificationsPerPublish: 10,
+            requestedLifetimeCount: 120,
+            requestedMaxKeepAliveCount: 150,
+            maxNotificationsPerPublish: 100,
             publishingEnabled: true,
             priority: 6
         });
