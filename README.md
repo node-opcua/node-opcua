@@ -112,7 +112,7 @@ This will give us full of motivation to carry on and keep working on the roadmap
 | Attribute Service Set      |                       ||
 |                            |Read()                 |:white_check_mark:|
 |                            |Write()                |:white_check_mark:|
-|                            |HistoryRead()          |:waxing_crescent_moon:|
+|                            |HistoryRead()          |:white_check_mark:|
 |                            |HistoryUpdate()        |:waxing_crescent_moon:|
 |MonitoredItems Service Set  |                       ||
 |                            |CreateMonitoredItems() |:white_check_mark:|

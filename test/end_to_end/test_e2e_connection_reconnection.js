@@ -1164,7 +1164,7 @@ describe("testing ability for client to reconnect when server close connection",
     }
 
 
-    it("TR4 - verify that server can suspend socket connexion - useful for testing purposes", function (done) {
+    it("TR4 - verify that server can suspend socket connection - useful for testing purposes", function (done) {
 
 
         async.series([

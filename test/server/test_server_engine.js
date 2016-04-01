@@ -28,6 +28,12 @@ var ObjectIds= require("lib/opcua_node_ids").ObjectIds;
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 
+var historizing_service = require("lib/services/historizing_service");
+var HistoryReadRequest = historizing_service.HistoryReadRequest;
+var HistoryReadDetails = historizing_service.HistoryReadDetails;
+var HistoryReadResult = historizing_service.HistoryReadResult;
+var HistoryData = historizing_service.HistoryData;
+
 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
@@ -231,7 +237,7 @@ describe("testing ServerEngine", function () {
         rootFolder.objects.typeDefinition.should.eql(FolderTypeId);
     });
 
-    it("should have an 'Server' object in the Objects Folder", function () {
+    it("should have a 'Server' object in the Objects Folder", function () {
 
         var server= engine.addressSpace.rootFolder.objects.server;
         assert(server);
@@ -239,7 +245,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should have an 'Server.NamespaceArray' Variable ", function () {
+    it("should have a 'Server.NamespaceArray' Variable ", function () {
 
         var server= engine.addressSpace.rootFolder.objects.server;
 
@@ -256,7 +262,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should have an 'Server.Server_ServerArray' Variable", function () {
+    it("should have a 'Server.Server_ServerArray' Variable", function () {
 
         // find 'Objects' folder
         var objects = engine.addressSpace.rootFolder.objects;
@@ -417,6 +423,62 @@ describe("testing ServerEngine", function () {
 
     });
 
+    it("should be possible to create a variable that returns historical data", function (done) {
+
+        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MyNewFolderHistorical1");
+        var readValue = new DataValue({
+            value: new Variant({dataType: DataType.Double, value: 10.0}),
+            sourceTimestamp: new Date(Date.UTC(1999, 9, 9)),
+            sourcePicoseconds: 10
+        });
+
+        var newVariable = engine.addressSpace.addVariable({
+            componentOf: newFolder,
+            browseName: "TemperatureHistorical",
+            dataType: "Double",
+            historizing: true,
+            userAccessLevel: 7,
+            value: {
+                timestamped_get: function() {
+                    return(readValue);
+                },
+                historyRead: function (historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) {
+                    var results = [];
+                    var d=new Date(); d.setUTCMinutes(0); d.setUTCSeconds(0); d.setUTCMilliseconds(0);
+                    for (var i = 0; i < 50; i++) {
+                        d.setUTCMinutes(i);
+                        results.push(new DataValue({value: {dataType: DataType.Double, value: Math.random() * 75 - 25}, sourceTimestamp: d}));
+                    }
+
+                    var historyReadResult = new HistoryReadResult({
+                        historyData: new HistoryData({
+                            dataValues: results
+                        })
+                    });
+                    callback(null, historyReadResult);
+                }
+            }
+        });
+
+
+        var historyReadRequest = new HistoryReadRequest({
+            historyReadDetails: new HistoryReadDetails(),
+            timestampsToReturn: 3,
+            nodesToRead: [{
+                nodeId: newVariable.nodeId,
+                continuationPoint: null
+            }]
+        });
+        
+        engine.historyRead(historyReadRequest, function(err, historyReadResult){
+            historyReadResult[0].should.be.instanceOf(HistoryReadResult);
+            historyReadResult[0].historyData.dataValues.length.should.eql(50);
+
+            done(err);
+        });
+
+    });
+
     it("should be possible to create a object in a folder", function () {
 
         var simulation = engine.addressSpace.addObject({
@@ -426,6 +488,45 @@ describe("testing ServerEngine", function () {
             nodeId: makeNodeId(4000, 1)
         });
 
+
+    });
+
+    it("should be possible to create 3 new folders with a filter function", function () {
+
+        var newFolderWithFilteredItems=engine.addressSpace.addFolder("ObjectsFolder", {"browseName": "filteredItemsFolder"});
+
+        var newFolder1 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {"browseName": "filteredFolder1", "browseFilter": function(session){
+            if (session && session.hasOwnProperty("testFilterArray"))
+              if (session["testFilterArray"].indexOf(1) > -1)
+                return (true);
+              else
+                return(false);
+            else
+              return (true);
+        }});
+        assert(newFolder1);
+
+        var newFolder2 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {"browseName": "filteredFolder2", "browseFilter": function(session){
+            if (session && session.hasOwnProperty("testFilterArray"))
+                if (session["testFilterArray"].indexOf(2) > -1)
+                    return (true);
+                else
+                    return(false);
+            else
+                return (true);
+        }});
+        assert(newFolder2);
+
+        var newFolder3 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {"browseName": "filteredFolder3", "browseFilter": function(session){
+            if (session && session.hasOwnProperty("testFilterArray"))
+                if (session["testFilterArray"].indexOf(3) > -1)
+                    return (true);
+                else
+                    return(false);
+            else
+                return (true);
+        }});
+        assert(newFolder3);
 
     });
 
@@ -619,6 +720,36 @@ describe("testing ServerEngine", function () {
 
         // RootFolder should have 4 nodes ( 1 hasTypeDefinition , 3 sub-folders)
         results[0].references.length.should.equal(4);
+
+    });
+
+    it("should handle a BrowseRequest of a session with a filtered result", function () {
+        var browseDescription={
+            nodesToBrowse: [{
+                    nodeId: engine.addressSpace.rootFolder.objects.getFolderElementByName("filteredItemsFolder").nodeId,
+                    browseDirection: BrowseDirection.Forward,
+                    resultMask: 63,
+                    nodeClassMask: 1 // 1=Objects
+                }]
+        };
+
+        var browseRequest = new browse_service.BrowseRequest(browseDescription);
+        var session = engine.createSession();
+
+        session.testFilterArray=[1,3];
+        var results1 = engine.browse(browseRequest.nodesToBrowse, session);
+        results1[0].references.length.should.equal(2);
+
+        session.testFilterArray=[1,2,3];
+        var results2 = engine.browse(browseRequest.nodesToBrowse, session);
+        results2[0].references.length.should.equal(3);
+
+        session.testFilterArray=[3];
+        var results3 = engine.browse(browseRequest.nodesToBrowse, session);
+        results3[0].references.length.should.equal(1);
+        results3[0].references[0].displayName.text.should.equal("filteredFolder3");
+
+        engine.closeSession(session.authenticationToken, true);
 
     });
 

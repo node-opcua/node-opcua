@@ -208,6 +208,34 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
+    it("a subscription should fire the event removeMonitoredItem", function (done) {
+
+        var subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine
+        });
+        subscription.on("monitoredItem", function (monitoredItem) {
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
+        subscription.on("removeMonitoredItem", done.bind(null, null));
+
+        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            itemToMonitor: {nodeId: someVariableNode},
+            monitoringMode: subscription_service.MonitoringMode.Reporting,
+
+            requestedParameters: {
+                queueSize: 10,
+                samplingInterval: 100
+            }
+        });
+
+        subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        subscription.terminate();
+
+    });
+
     it("XX a subscription should collect monitored item notification with collectNotificationData", function (done) {
 
         var subscription = new Subscription({
