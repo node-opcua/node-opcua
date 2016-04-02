@@ -277,7 +277,11 @@ describe("Variant - Analyser", function () {
     for (var i = 0; i < 1000; i++) {
         manyValues[i] = Math.random() * 1000 - 500;
     }
-
+  
+    var veryLargeFloatArray = new Float64Array(50*1024);
+    for (var i=0;i< veryLargeFloatArray.length ; i++) {
+       veryLargeFloatArray[i] = (Math.random() -0.5) * 10000;
+    }
     var various_variants = [
         new Variant({dataType: DataType.NodeId, arrayType: VariantArrayType.Scalar, value: makeNodeId(1, 2)}),
         new Variant({
@@ -308,8 +312,7 @@ describe("Variant - Analyser", function () {
             value: new Float64Array(manyValues)
         }),
         new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array(manyValues)}),
-        new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array(10 * 1024)}),
-        new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array(50 * 1024)})
+        new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: veryLargeFloatArray}),
     ];
 
     //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
@@ -324,7 +327,7 @@ describe("Variant - Analyser", function () {
     });
     it("should encode/decode variant", function () {
 
-        various_variants.forEach(function (v) {
+        various_variants.forEach(function (v,index) {
             encode_decode_round_trip_test(v, function (stream) {
                 // stream.length.should.equal(1+4+4*4);
             });
