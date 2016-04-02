@@ -21,7 +21,7 @@ var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixtur
 describe("testing server dropping session after timeout if no activity has been recorded", function () {
 
 
-    this.timeout(20000);
+    this.timeout(Math.max(200000, this._timeout));
 
     var server = new OPCUAServer({
         port: port,
@@ -141,7 +141,7 @@ describe("testing server dropping session after timeout if no activity has been 
 
                 callback();
                 //xx client.disconnect(callback);
-            },
+            }
 
         ], done);
     });
