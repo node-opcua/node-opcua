@@ -369,7 +369,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 var g_defaultSecureTokenLifetime = 1000;
 var g_cycleNumber = 3;
-var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 4);
+var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
 
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
@@ -413,11 +413,15 @@ if (!crypto_utils.isFullySupported()) {
 
         });
 
-        it("a client shall be able to establish a SIGN&ENCRYPT connection with a server ", function (done) {
+        it("QQQ1 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 1024 bit client certificate", function (done) {
 
             should(serverCertificate).not.equal(null);
 
             var options = {
+
+                certificateFile:  "certificates/client_selfsigned_cert_1024.pem",
+                privateKeyFile:   "certificates/client_key_1024.pem",
+
                 securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
                 securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                 serverCertificate: serverCertificate
@@ -428,6 +432,61 @@ if (!crypto_utils.isFullySupported()) {
             }, done);
 
         });
+        it("QQQ2 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function (done) {
+
+            should(serverCertificate).not.equal(null);
+
+            var options = {
+
+                certificateFile:  "certificates/client_selfsigned_cert_2048.pem",
+                privateKeyFile:   "certificates/client_key_2048.pem",
+
+                securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+                securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+                serverCertificate: serverCertificate
+            };
+            client = new OPCUAClient(options);
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                inner_done();
+            }, done);
+
+        });
+
+        it("QQQ3 server shall reject secure connection when client provides a nonce with the wrong length", function (done) {
+
+            should(serverCertificate).not.equal(null);
+
+            var options = {
+
+                certificateFile:  "certificates/client_selfsigned_cert_2048.pem",
+                privateKeyFile:   "certificates/client_key_2048.pem",
+
+                securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+                securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+                serverCertificate: serverCertificate
+            };
+            client = new OPCUAClient(options);
+            var old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
+            var crypto = require("crypto");
+            ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
+                if(requestMessage.constructor.name = "OpenSecureChannelRequest") {
+                    assert(requestMessage.clientNonce.length === 16);
+                    this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
+                    ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
+                }
+                old_performMessageTransaction.call(this,msgType,requestMessage,callback);
+            };
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                inner_done();
+            }, function(err) {
+                console.log(err.message);
+                err.message.should.match(/BadSecurityModeRejected/);
+                done();
+            });
+
+        });
+
 
         it("a token shall be updated on a regular basis", function (done) {
 
