@@ -22,8 +22,30 @@ describe("testing ExpandedNodeId", function () {
     it("should create a ExpandedNodeId from a integer", function () {
 
         var exnodeId = makeExpandedNodeId(1);
-
+        should(exnodeId.value).eql(1);
     });
+    it("should create a ExpandedNodeId from a ExpandedNodeId", function () {
+
+        var exnodeId1 = new ExpandedNodeId(NodeIdType.NUMERIC,1,2,"namespaceURI",3);
+        var exnodeId2 = makeExpandedNodeId(exnodeId1);
+        should(exnodeId2.value).eql(1);
+    });
+    it("should throw when calling makeExpandedNodeId with bad argument", function () {
+
+        should(function() {
+            var exnodeId2 = makeExpandedNodeId("BAD");
+        }).throw();
+    });
+    it("ExpandedNodeId#toString", function () {
+
+        var exnodeId = new ExpandedNodeId(NodeIdType.NUMERIC,1,2,"namespaceURI",3);
+        should(exnodeId.value).eql(1);
+        should(exnodeId.namespace).eql(2);
+        should(exnodeId.namespaceUri).eql("namespaceURI");
+        should(exnodeId.serverIndex).eql(3);
+        should(exnodeId.toString()).eql("ns=2;i=1;namespaceUri:namespaceURI;serverIndex:3");
+    });
+
 
     it("should create a ExpandedNodeId from a NodeId", function () {
 
