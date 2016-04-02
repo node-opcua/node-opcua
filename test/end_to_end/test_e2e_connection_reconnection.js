@@ -750,7 +750,7 @@ describe("testing ability for client to reconnect when server close connection",
         });
         client.on("backoff", function (err) {
             backoff_counter +=1;
-            console.log("backoff => err",err.message);
+            //xx console.log("backoff => err",err.message);
         });
         client.connect(endpointUrl, done);
     }
@@ -1356,7 +1356,7 @@ describe("testing ability for client to reconnect when server close connection",
                         // connect callback should have been called...
                         connect_done.should.eql(true);
 
-                        console.log("-----------------------------------------------------");
+                        //xx console.log("-----------------------------------------------------");
                         callback(err);
                         count_ref = backoff_event_counter;
 

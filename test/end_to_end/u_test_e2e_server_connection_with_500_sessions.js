@@ -140,7 +140,7 @@ module.exports = function (test) {
                 q.push({index: i});
             }
             q.drain = function () {
-                console.log("done");
+                //xx console.log("done");
                 done();
             }
         });

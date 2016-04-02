@@ -79,11 +79,11 @@ module.exports = function (test) {
                     });
 
                     subscription.once("terminated", function () {
-                        console.log("subscription terminated");
+                        //xx console.log("subscription terminated");
                         callback();
                     });
                     subscription.once("started",function() {
-                        console.log("publishingInterval",subscription.publishingInterval);
+                        //xx console.log("publishingInterval",subscription.publishingInterval);
 
                     });
 
@@ -97,7 +97,7 @@ module.exports = function (test) {
                         });
 
                     monitoredItem.on("changed",function(dataValue){
-                        console.log("DataValue = ",dataValue.value.toString());
+                        //xx console.log("DataValue = ",dataValue.value.toString());
                     });
 
 
@@ -112,8 +112,7 @@ module.exports = function (test) {
 
             ], function final(err) {
                 client1.disconnect(function () {
-
-                    console.log(" Client disconnected ",(err ? err.message : "null"));
+                    //xx console.log(" Client disconnected ",(err ? err.message : "null"));
                     done(err);
                 });
             });

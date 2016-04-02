@@ -74,10 +74,10 @@ module.exports = function (test) {
 
             Object.keys(e).forEach(function(key)  {
                 var value = e[key];
-                console.log(w(key,20).yellow,value.toString());
+                //xx console.log(w(key,20).yellow,value.toString());
                 //,w(eventField.dataType.toString(),15).cyan,eventField.value.toString());
             });
-            console.log("");
+            //xx console.log("");
 
             events_received.push(e);
         }
@@ -167,7 +167,7 @@ module.exports = function (test) {
                     }];
                     auditing_session.read(nodesToRead,function(err,unused,dataValues){
 
-                        console.log(" Auditing = ",dataValues[0].toString());
+                        //xx console.log(" Auditing = ",dataValues[0].toString());
                         isAuditing = dataValues[0].value.value;
                         callback();
                     });
