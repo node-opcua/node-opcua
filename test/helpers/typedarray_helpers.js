@@ -1,5 +1,9 @@
 var _ = require("underscore");
 
+function __isEqual(a,b) {
+   if (!a && !b) { return true; }
+   return a.toString() == b.toString();
+}
 function _is_equal(arr1, arr2) {
 
     if (arr1.length !== arr2.length) {
@@ -7,7 +11,11 @@ function _is_equal(arr1, arr2) {
     }
     var i, n = arr1.length;
     for (i = 0; i < n; i++) {
-        if (!_.isEqual(arr1[i], arr2[i])) {
+        //if (!_.isEqual(arr1[i], arr2[i])) {
+	if (!__isEqual(arr1[i],arr2[i])) {
+            console.log("arr1 = ", arr1[i].toString());
+            console.log("arr2 = ", arr2[i].toString());
+            
             return false;
         }
     }
