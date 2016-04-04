@@ -148,13 +148,13 @@ module.exports = function (test) {
                 function (callback) {
 
                     // set a very short sessionTimeout
-                    client1.requestedSessionTimeout = 500;
+                    client1.requestedSessionTimeout = 2000;
 
                     //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
                     client1.createSession(function (err, session) {
                         //console.log("adjusted session timeout =", session.timeout);
-                        session.timeout.should.eql(500);
+                        session.timeout.should.eql(client1.requestedSessionTimeout);
                         if (err) {
                             return callback(err);
                         }
@@ -168,15 +168,14 @@ module.exports = function (test) {
                 function (callback) {
 
                     timerId = setInterval(function(){
-                        console.log(" ---")
-                        the_session.read([{nodeId: "ns=1;i=54"}],function(err){ });
+                        the_session.read([{nodeId: "ns=1;i=54"}],function(err){
+                        });
 
-                    },200);
+                    },500);
                     setTimeout(function() {
                         clearInterval(timerId);
                         callback();
-
-                    }, 2000);
+                    }, 6000);
                 },
 
                 function (callback) {

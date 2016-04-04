@@ -24,8 +24,11 @@ var userManager = {
 
 var userManagerAsync = {
 
-    isValidUserAsync: function (userName, password, onDone) {
-        async.setImmediate(onDone.bind(null, ( userName === "username" && password === "p@ssw0rd_@sync" ) ));
+    isValidUserAsync: function (userName, password, callback) {
+        async.setImmediate(function() {
+            var authorized = ( userName === "username" && password === "p@ssw0rd_@sync" );
+            callback(null,authorized); 
+        });
     }
 };
 

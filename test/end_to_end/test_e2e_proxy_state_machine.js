@@ -29,7 +29,7 @@ var UAProxyManager = require("lib/client/state_machine_proxy").UAProxyManager;
 
 describe("testing client Proxy", function () {
 
-    this.timeout(20000);
+    this.timeout(Math.max(200000, this._timeout));
 
 
     var server_options = {
