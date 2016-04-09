@@ -81,10 +81,10 @@ var timeout = parseInt(argv.timeout) * 1000 || 20000;
 
 var monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 
-console.log("securityMode   = ".cyan, securityMode.toString());
-console.log("securityPolicy = ".cyan, securityPolicy.toString());
-console.log("timeout         = ".cyan, timeout ? timeout : " Infinity " )
-console.log(" monitoring node id ", monitored_node);
+console.log("securityMode        = ".cyan, securityMode.toString());
+console.log("securityPolicy      = ".cyan, securityPolicy.toString());
+console.log("timeout             = ".cyan, timeout ? timeout : " Infinity " );
+console.log(" monitoring node id = ", monitored_node);
 var client = null;
 
 var endpointUrl = argv.endpoint;
@@ -615,7 +615,7 @@ async.series([
             return callback();
         }
         var now = Date.now();
-        var start = now-1000*1; // read 1 seconds of history
+        var start = now-1000; // read 1 seconds of history
         var end   = now;
         the_session.readHistoryValue(monitored_node,start,end,function(err,historicalReadResult) {
 
@@ -771,7 +771,7 @@ async.series([
             "HighHighLimit",
             "LowLowLimit",
 
-            "Value",
+            "Value"
         ];
         var eventFilter = opcua.constructEventFilter(fields);
 

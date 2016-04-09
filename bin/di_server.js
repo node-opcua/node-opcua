@@ -52,7 +52,7 @@ var server_options ={
     nodeset_filename: [
         standard_nodeset_file,
         "nodesets/Opc.Ua.Di.NodeSet2.xml",
-        "nodesets/Opc.Ua.Adi.NodeSet2.xml",
+        "nodesets/Opc.Ua.Adi.NodeSet2.xml"
     ],
 
     serverInfo: {

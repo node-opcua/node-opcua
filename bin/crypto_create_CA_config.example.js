@@ -8,7 +8,7 @@ module.exports =  {
     country:            "FR", // Two letters
 
     validity:           365 * 15, // 15 years
-    keySize:            1024,
+    keySize:            1024
 
 
 

@@ -890,7 +890,7 @@ function createNewCertificate(options,callback ) {
     // -----------------------------------------------------------------------------
     options.applicationUri = options.applicationUri || makeApplicationUrn(hostname, "NodeOPCUA-Client");
     options.domainNames   = [
-        "localhost",
+        "localhost"
     ];
     options.ipAddresses = options.ipAddresses || [];
 
