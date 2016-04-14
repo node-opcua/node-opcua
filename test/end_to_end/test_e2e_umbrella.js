@@ -206,6 +206,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_123")(test);
     require("./u_test_e2e_issue_163")(test);
     require("./u_test_e2e_issue_135_currentMonitoredItemsCount")(test);
+    require("./u_test_e2e_issue_192")(test);
 
     require("./u_test_e2e_translateBrowsePath")(test);
 

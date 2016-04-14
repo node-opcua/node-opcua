@@ -431,3 +431,10 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
     console.log("");
 });
 
+
+server.on("newChannel",function(channel) {
+    console.log("Client connected with address = ".bgYellow,channel.remoteAddress," port = ",channel.remotePort);
+});
+server.on("closeChannel",function(channel) {
+    console.log("Client disconnected with address = ".bgCyan,channel.remoteAddress," port = ",channel.remotePort);
+});
