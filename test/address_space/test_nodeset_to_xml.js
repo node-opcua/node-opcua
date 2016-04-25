@@ -5,10 +5,6 @@ var should = require("should");
 var path = require("path");
 var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-//xx var UADataType = require("lib/address_space/ua_data_type").UADataType;
-//xx var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
-//xx var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
-//xx var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;
@@ -22,7 +18,7 @@ var assert = require("better-assert");
 
 var dumpXml = require("lib/address_space/nodeset_to_xml").dumpXml;
 
-var doDebug =false;
+var doDebug = false;
 
 describe("testing nodeset to xml", function () {
     var addressSpace;
@@ -53,7 +49,7 @@ describe("testing nodeset to xml", function () {
 
         var argumentDataType = addressSpace.findDataType("Argument");
         if(doDebug) {
-            console.log(argumentDataType);
+            console.log(argumentDataType.toString());
         }
         var str = dumpXml(argumentDataType, {});
         if(doDebug) {
@@ -72,15 +68,31 @@ describe("testing nodeset to xml", function () {
         str.should.match(/CommunicationFault/);
     });
 
-    it("should output a custom Enum node to xml (MyEnumType)", function () {
+    it("€€€ should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", function () {
 
-        require("lib/address_space/address_space_add_enumeration_type");
+        var myEnumType = addressSpace.addEnumerationType({
+            browseName: "MyEnumTypeForm1",
+            enumeration: [ "RUNNING" , "STOPPED" ]
+        });
+
+        myEnumType.browseName.toString().should.eql("MyEnumTypeForm1");
+        var str = dumpXml(myEnumType, {});
+        if(doDebug) {
+            console.log(str);
+        }
+        str.should.match(/RUNNING/);
+        str.should.match(/<Field Name=\"RUNNING\" Value=\"0\"\/>/);
+        str.should.match(/<Field Name=\"STOPPED\" Value=\"1\"\/>/);
+
+    });
+    it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", function () {
+
 
         var myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
-                {name: "RUNNING", value: 1, description: "the device is running"},
-                {name: "STOPPED", value: 2, description: "the device is stopped"}
+                {displayName: "RUNNING", value: 10, description: "the device is running"},
+                {displayName: "STOPPED", value: 20, description: "the device is stopped"}
             ]
         });
 
@@ -90,8 +102,8 @@ describe("testing nodeset to xml", function () {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name=\"RUNNING\" Value=\"1\">/);
-        str.should.match(/<Field Name=\"STOPPED\" Value=\"2\">/);
+        str.should.match(/<Field Name=\"RUNNING\" Value=\"10\"\/>/);
+        str.should.match(/<Field Name=\"STOPPED\" Value=\"20\"\/>/);
 
     });
 

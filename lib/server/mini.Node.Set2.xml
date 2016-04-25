@@ -1394,6 +1394,25 @@
         </References>
     </UAObject>
 
+    <UADataType NodeId="i=7594" BrowseName="EnumValueType">
+        <DisplayName>EnumValueType</DisplayName>
+        <Description>A mapping between a value of an enumerated type and a name and description.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="EnumValueType">
+            <Field Name="Value" DataType="i=8">
+                <Description>The value of the enumeration.</Description>
+            </Field>
+            <Field Name="DisplayName" DataType="i=21">
+                <Description>Human readable name for the value.</Description>
+            </Field>
+            <Field Name="Description" DataType="i=21">
+                <Description>A description of the value.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+
     <UAVariable NodeId="i=8889" BrowseName="LatePublishRequestCount" ParentNodeId="i=2172" DataType="UInt32">
         <DisplayName>LatePublishRequestCount</DisplayName>
         <References>
