@@ -177,8 +177,7 @@ describe("testing ClientSecureChannelLayer ", function () {
             secureChannel.on("close",spyOnClose);
 
             secureChannel.close(function (err) {
-
-                spyOnClose.callCount.should.eql(1);
+                spyOnClose.callCount.should.eql(1,"secureChannel#close must be called once");
                 done(err);
             });
         });

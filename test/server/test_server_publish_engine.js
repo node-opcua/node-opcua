@@ -251,7 +251,7 @@ describe("Testing the server publish engine", function () {
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
         //en: the straw that broke the camel's back.
-        //fr: la goutte qui fait déborder le vase.
+        //fr: la goute qui fait déborder le vase.
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
         send_response_for_request_spy.callCount.should.be.equal(1);
