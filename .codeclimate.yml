@@ -41,11 +41,9 @@ engines:
 ratings:
   paths:
    - lib/**
-   - test/**
-   - bin/**
 
-
-
+#   - bin/**
+#   - test/**
 #   - lib/**
 #   - "**.rb"
 #   - "**.go"
