@@ -13,6 +13,7 @@ var NodeId              = opcua.NodeId;
 var DataType            = opcua.DataType;
 var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
+var UAStateMachine = require("lib/address_space/statemachine_wrapper").UAStateMachine;
 
 // make sure extra error checking is made on object constructions
 describe("Testing Finite State Machine", function () {
@@ -154,7 +155,6 @@ describe("Testing Finite State Machine", function () {
 
     });
 
-    var UAStateMachine = require("lib/address_space/statemachine_wrapper").UAStateMachine;
 
     describe("connect to a existing state machine ",function() {
 
@@ -252,81 +252,10 @@ describe("Testing Finite State Machine", function () {
                 subtypeOf: "FiniteStateMachineType"
             });
 
-            function addState(stateName,stateNumber,isInitialState) {
-                isInitialState = !!isInitialState;
-                var self = this;
-                assert(self instanceof UAObjectType);
-                assert(_.isString(stateName));
-                assert(_.isBoolean(isInitialState));
-                var addressSpace = self.__address_space;
 
-                var initialStateType = addressSpace.findObjectType("InitialStateType");
-                var stateType        = addressSpace.findObjectType("StateType");
-
-                var state;
-                if (isInitialState) {
-                    state = initialStateType.instantiate({
-                        browseName: stateName,
-                        componentOf: self
-                    });
-                } else {
-                    state = stateType.instantiate({
-                        browseName: stateName,
-                        componentOf: self
-                    });
-                }
-                // ensure state number is unique
-                state.stateNumber.setValueFromSource({ dataType: opcua.DataType.UInt32, value: stateNumber });
-
-
-                return state;
-            }
-
-            function addTransition(fromState,toState , transitionNumber) {
-                var self = this;
-                assert(self instanceof UAObjectType);
-                assert(_.isString(fromState));
-                assert(_.isString(toState));
-                assert(_.isFinite(transitionNumber));
-
-                var fromStateNode = self.getComponentByName(fromState);
-                if (!fromStateNode) {
-                    throw new Error("Cannot find state with name " + fromState);
-                }
-                assert(fromStateNode.browseName.name.toString() === fromState);
-
-                var toStateNode = self.getComponentByName(toState);
-                if (!toStateNode) {
-                    throw new Error("Cannot find state with name " + toState);
-                }
-                assert(toStateNode && toStateNode.browseName.name.toString() === toState);
-
-                var transitionType   = addressSpace.findObjectType("TransitionType");
-
-                var transition = transitionType.instantiate({
-                    browseName:  fromState + "To" + toState + "Transition",
-                    componentOf: self
-                });
-
-                transition.addReference({
-                    referenceType: "ToState",
-                    isForward:true,
-                    nodeId: toStateNode.nodeId
-                });
-                transition.addReference({
-                    referenceType: "FromState",
-                    isForward:true,
-                    nodeId: fromStateNode.nodeId
-                });
-
-                transition.transitionNumber.setValueFromSource({
-                    dataType: opcua.DataType.UInt32, value: transitionNumber
-                })
-
-            }
 
             // The AnalyserDevice is in its power-up sequence and cannot perform any other task.
-            addState.call(myFiniteStateMachine,"Powerup",     100,  true);
+            addressSpace.addState(myFiniteStateMachine,"Powerup",     100,  true);
 
             // The AnalyserDevice is in the Operating mode.
             // The ADI Client uses this mode for normal operation: configuration, control and data collection.
@@ -334,7 +263,7 @@ describe("Testing Finite State Machine", function () {
             // Parameter values published in the address space values are expected to be valid.
             // When entering this state, all AnalyserChannels of this AnalyserDevice automatically leave the SlaveMode
             // state and enter their Operating state.
-            addState.call(myFiniteStateMachine,"Operating",   200 );
+            addressSpace.addState(myFiniteStateMachine,"Operating",   200 );
 
             // The AnalyserDevice is in the Local mode. This mode is normally used to perform local physical maintenance
             // on the analyser.
@@ -346,7 +275,7 @@ describe("Testing Finite State Machine", function () {
             // In this mode, no commands are accepted from the ADI interface and no guarantee is given on the
             // values in the address space.
 
-            addState.call(myFiniteStateMachine,"Local",       300 );
+            addressSpace.addState(myFiniteStateMachine,"Local",       300 );
 
             // The AnalyserDevice is in the Maintenance mode. This mode is used to perform remote maintenance on the
             // analyser like firmware upgrade.
@@ -356,25 +285,26 @@ describe("Testing Finite State Machine", function () {
             // the AnalyserChannelStateMachine.
             // In this mode, no commands are accepted from the ADI interface for the AnalyserChannels and no guarantee
             // is given on the values in the address space.
-            addState.call(myFiniteStateMachine,"Maintenance", 400 );
+            addressSpace.addState(myFiniteStateMachine,"Maintenance", 400 );
 
             // The AnalyserDevice is in its power-down sequence and cannot perform any other task.
-            addState.call(myFiniteStateMachine,"Shutdown",    500 );
+            addressSpace.addState(myFiniteStateMachine,"Shutdown",    500 );
 
 
-            addTransition.call(myFiniteStateMachine,"Powerup",     "Operating"   , 1);
-            addTransition.call(myFiniteStateMachine,"Operating",   "Local"       , 2);
-            addTransition.call(myFiniteStateMachine,"Operating",   "Maintenance" , 3);
-            addTransition.call(myFiniteStateMachine,"Local",       "Operating"   , 4);
-            addTransition.call(myFiniteStateMachine,"Local",       "Maintenance" , 5);
-            addTransition.call(myFiniteStateMachine,"Maintenance", "Operating"   , 6);
-            addTransition.call(myFiniteStateMachine,"Maintenance", "Local"       , 7);
-            addTransition.call(myFiniteStateMachine,"Operating",   "Shutdown"    , 8);
-            addTransition.call(myFiniteStateMachine,"Local",       "Shutdown"    , 9);
-            addTransition.call(myFiniteStateMachine,"Maintenance", "Shutdown"    ,10);
+            addressSpace.addTransition(myFiniteStateMachine,"Powerup",     "Operating"   , 1);
+            addressSpace.addTransition(myFiniteStateMachine,"Operating",   "Local"       , 2);
+            addressSpace.addTransition(myFiniteStateMachine,"Operating",   "Maintenance" , 3);
+            addressSpace.addTransition(myFiniteStateMachine,"Local",       "Operating"   , 4);
+            addressSpace.addTransition(myFiniteStateMachine,"Local",       "Maintenance" , 5);
+            addressSpace.addTransition(myFiniteStateMachine,"Maintenance", "Operating"   , 6);
+            addressSpace.addTransition(myFiniteStateMachine,"Maintenance", "Local"       , 7);
+            addressSpace.addTransition(myFiniteStateMachine,"Operating",   "Shutdown"    , 8);
+            addressSpace.addTransition(myFiniteStateMachine,"Local",       "Shutdown"    , 9);
+            addressSpace.addTransition(myFiniteStateMachine,"Maintenance", "Shutdown"    ,10);
 
 
         });
 
     });
+
 });
