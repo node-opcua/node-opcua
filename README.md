@@ -153,7 +153,7 @@ This will give us full of motivation to carry on and keep working on the roadmap
 | Basic256Sha256                         | :white_check_mark:       |                    |               
 | **Authentication**                     | **Status**               | **Comment**        |
 | Anonymous                              |:white_check_mark:        |                    |
-| User Mame Password                     |:white_check_mark:        |                    |
+| User Name Password                     |:white_check_mark:        |                    |
 | X509 Certificate                       |:new_moon:                |                    |
 | __**client facets**__                  |                          |                    |
 | Base Client Behaviour                  |:white_check_mark:       | |
