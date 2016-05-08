@@ -38,7 +38,7 @@ describe("testing message encoding and decoding", function () {
 describe("testing parseEndpointUrl", function () {
 
 
-    it(" should parse a endpoint ", function () {
+    it("should parse a endpoint ", function () {
 
         var ep = parseEndpointUrl("opc.tcp://abcd1234:51210/UA/SampleServer");
 
@@ -48,7 +48,7 @@ describe("testing parseEndpointUrl", function () {
         ep.address.should.equal("/UA/SampleServer");
     });
 
-    it(" should parse this endpoint as well", function () {
+    it("should parse this endpoint as well", function () {
 
         var ep = parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
 
@@ -58,7 +58,7 @@ describe("testing parseEndpointUrl", function () {
         ep.address.should.equal("/UA/SampleServer");
     });
 
-    it(" should parse this endpoint as well", function () {
+    it("should parse this endpoint as well", function () {
 
         var ep = parseEndpointUrl("opc.tcp://portable-Precision-M4500:4841");
 
@@ -66,6 +66,13 @@ describe("testing parseEndpointUrl", function () {
         ep.hostname.should.equal("portable-Precision-M4500");
         ep.port.should.equal(4841);
         ep.address.should.equal("");
+    });
+
+    it("should raise an exception if Endpoint URL is malformed",function() {
+
+        should(function() {
+            var ep = parseEndpointUrl("foo@baz.bar://mymachine:4841");
+        }).throwError();
     });
 
 
