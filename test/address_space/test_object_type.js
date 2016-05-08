@@ -71,7 +71,7 @@ describe("testing UAObjectType", function () {
             browseName: "MyObject3",
             subtypeOf: "BaseObjectType",
             isAbstract: false
-        });
+        }); 
 
         var obj = objType.instantiate({
             browseName: "Instance3"
@@ -99,6 +99,9 @@ describe("testing UAObjectType", function () {
         obj.browseName.toString().should.eql("Instance4");
 
         obj.nodeId.toString().should.eql("ns=3;s=HelloWorld");
+
+
+        
     });
 
 });

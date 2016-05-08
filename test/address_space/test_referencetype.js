@@ -573,4 +573,36 @@ describe(" improving performance of isSupertypeOf", function () {
                 min_count: 300,
             });
     });
+
+    it("ZZ should ensure that fast version isSupertypeOf shall update its cache when new References are added ",function() {
+
+        function allSubTypes(n) {
+            return n.getAllSubtypes().map(function(c){ return c.browseName.toString()}).join(",");
+        }
+
+        var nhr = addressSpace.findReferenceType("NonHierarchicalReferences");
+        nhr.browseName.toString().should.eql("NonHierarchicalReferences");
+
+        //xx console.log(allSubTypes(nhr));
+
+        allSubTypes(nhr).indexOf("NonHierarchicalReferences").should.be.aboveOrEqual(0);
+
+        var hasTypeDefinition = addressSpace.findReferenceType("HasTypeDefinition");
+
+        hasTypeDefinition.isSupertypeOf(nhr).should.eql(true);
+        nhr.isSupertypeOf(hasTypeDefinition).should.eql(false);
+
+        var flowTo = addressSpace.addReferenceType({
+            browseName: "FlowTo",
+            inverseName: "FlowFrom",
+            isAbstract: false,
+            subtypeOf: "NonHierarchicalReferences"
+        });
+
+        flowTo.isSupertypeOf(nhr).should.eql(true);
+
+        //xx console.log(allSubTypes(nhr));
+        allSubTypes(nhr).indexOf("FlowTo").should.be.aboveOrEqual(0);
+
+    });
 });

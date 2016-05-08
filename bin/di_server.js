@@ -135,8 +135,9 @@ server.on("post_initialize", function () {
         //var parameterSet  = topologyElementType.instantiate({ browseName: "ParameterSet", componentOf: channel });
         ///  var methodSet     = topologyElementType.instantiate({ browseName: "MethodSet",    componentOf: channel });
 
-        addressSpace.addVariable(parameterSet,{
-            browseName: "MyParameter",
+        addressSpace.addVariable({
+            componentOf:     parameterSet,
+            browseName:     "MyParameter",
             typeDefinition: "DataItemType",
             dataType: DataType.Double,
             value: new Variant({ dataType:DataType.Double, value : 10.0 })
@@ -160,10 +161,20 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    var view = server.engine.addView({
-        componentOf: rootFolder.views,
+    var view = addressSpace.addView({
+        organizedBy: rootFolder.views,
         browseName:"MyView"
     });
+
+    var createBoilerType = require("../test/helpers/boiler_system").createBoilerType;
+    var makeBoiler = require("../test/helpers/boiler_system").makeBoiler;
+
+    createBoilerType(addressSpace);
+    makeBoiler(addressSpace,{
+        browseName: "Boiler#1"
+    });
+
+
 });
 
 

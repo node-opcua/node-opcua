@@ -79,10 +79,32 @@ describe("Testing Boiler System",function() {
 
 
             var boilerType = createBoilerType(addressSpace);
+            boilerType.getNotifiers().length.should.eql(3);
+            boilerType.getEventSources().length.should.eql(1);
 
             var boiler = makeBoiler(addressSpace,{
                 browseName: "Boiler#1"
             });
+
+            boiler.pipeX001.browseName.toString().should.eql("PipeX001");
+            boiler.pipeX002.browseName.toString().should.eql("PipeX002");
+            boiler.drumX001.browseName.toString().should.eql("DrumX001");
+            boiler.simulation.browseName.toString().should.eql("Simulation");
+
+            //xx boiler.pipeX001.displayName.text.toString().should.eql("Pipe1001");
+
+            boiler.pipeX001.modellingRule.should.eql("Mandatory");
+            boiler.pipeX002.modellingRule.should.eql("Mandatory");
+            boiler.drumX001.modellingRule.should.eql("Mandatory");
+            boiler.simulation.modellingRule.should.eql("Mandatory");
+
+            boiler.getNotifiers().length.should.eql(3);
+            boiler.getEventSources().length.should.eql(1);
+
+            boiler.getNotifiers().map(function(x) { return x.browseName.toString()}).join(" ").should.eql("PipeX001 DrumX001 PipeX002");
+            //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
+            //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
+
 
             var haltMethod  = boiler.simulation.getMethodByName("Halt");
             var resetMethod = boiler.simulation.getMethodByName("Reset");

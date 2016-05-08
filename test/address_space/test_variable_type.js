@@ -10,6 +10,8 @@ var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
+var sinon = require("sinon");
+
 var create_minimalist_address_space_nodeset = require("../helpers/create_minimalist_address_space_nodeset");
 
 describe("testing UAVariableType", function () {
@@ -102,6 +104,79 @@ describe("testing UAVariableType", function () {
         obj.browseName.toString().should.eql("Instance4");
 
         obj.nodeId.toString().should.eql("ns=3;s=HelloWorld");
+    });
+
+    it("UAVariableType#instantiate with componentOf",function() {
+
+        addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
+
+        var myFolder = addressSpace.addObject({
+            browseName:"MyFolder",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        var variableType = addressSpace.addVariableType({
+            browseName: "MyVariable5",
+            subtypeOf: "BaseVariableType",
+            isAbstract: false
+        });
+
+        var obj = variableType.instantiate({
+            browseName: "Instance5",
+            dataType: "Int32",
+            componentOf: myFolder
+        });
+
+        myFolder.getComponentByName("Instance5").browseName.toString().should.eql("Instance5");
+
+    });
+    it("UAVariableType#instantiate with organizedBy",function() {
+
+        addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
+
+        var myFolder = addressSpace.addObject({
+            browseName:"MyFolder2",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        var variableType = addressSpace.addVariableType({
+            browseName: "MyVariable6",
+            subtypeOf: "BaseVariableType",
+            isAbstract: false
+        });
+
+
+        var obj = variableType.instantiate({
+            browseName: "Instance6",
+            dataType: "Int32",
+            organizedBy: myFolder
+        });
+
+        myFolder.getFolderElementByName("Instance6").browseName.toString().should.eql("Instance6");
+
+    });
+
+    it("should provide a mechanism to customize newly created instance",function() {
+
+
+        var postInstantiateFunc = sinon.spy();
+
+        var variableType = addressSpace.addVariableType({
+            browseName: "MyVariable10",
+            subtypeOf: "BaseVariableType",
+            isAbstract: false,
+            postInstantiateFunc: postInstantiateFunc
+        });
+        postInstantiateFunc.callCount.should.eql(0);
+
+        var obj = variableType.instantiate({
+            browseName: "Instance4",
+            dataType: "Int32",
+        });
+
+        postInstantiateFunc.callCount.should.eql(1);
+
+
     });
 
 });
