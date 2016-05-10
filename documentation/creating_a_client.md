@@ -243,7 +243,7 @@ monitoredItem.on("changed",function(dataValue){
 });
 ```
 
-## Run the server
+## Run the Client
 
 ``` sh
     $ node sample_client
