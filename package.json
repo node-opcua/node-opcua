@@ -38,7 +38,7 @@
     "benchmark": "2.1.0",
     "bignumber.js": "2.3.0",
     "coveralls": "2.11.9",
-    "csv": "0.4.6",
+    "csv": "1.1.0",
     "cucumber": "^0.10.2",
     "enum": "2.3.0",
     "eyes": "0.1.8",
@@ -48,7 +48,7 @@
     "mocha-lcov-reporter": "1.2.0",
     "node-xml": "1.0.2",
     "request": "2.72.0",
-    "should": "8.3.1",
+    "should": "8.3.2",
     "sinon": "1.17.4",
     "tmp": "0.0.28",
     "tracer": "0.8.3",
@@ -56,7 +56,7 @@
     "yuidocjs": "*"
   },
   "dependencies": {
-    "async": "2.0.0-rc.4",
+    "async": "2.0.0-rc.5",
     "backoff": "2.5.0",
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
