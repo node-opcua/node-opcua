@@ -140,14 +140,45 @@ describe("testing coerceNodeId", function () {
 
     });
 
-    it("should detect empty NodeIds", function () {
+    it("should detect empty Numeric NodeIds", function () {
 
         var empty_nodeId = makeNodeId(0, 0);
+        empty_nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
         empty_nodeId.isEmpty().should.be.eql(true);
 
-        empty_nodeId = makeNodeId(1, 0);
-        empty_nodeId.isEmpty().should.be.eql(false);
+        var non_empty_nodeId = makeNodeId(1, 0);
+        non_empty_nodeId.isEmpty().should.be.eql(false);
+    });
+    it("should detect empty String NodeIds", function () {
+        // empty string nodeId
+        var empty_nodeId = coerceNodeId("ns=0;s=");
+        empty_nodeId.identifierType.should.eql(NodeIdType.STRING);
+        empty_nodeId.isEmpty().should.be.eql(true);
 
+        var non_empty_nodeId =coerceNodeId("ns=0;s=A");
+        non_empty_nodeId.identifierType.should.eql(NodeIdType.STRING);
+        non_empty_nodeId.isEmpty().should.be.eql(false);
+    });
+    it("should detect empty Opaque NodeIds", function () {
+
+        // empty opaque nodeId
+        var empty_nodeId = coerceNodeId(new Buffer(0));
+        empty_nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
+        empty_nodeId.isEmpty().should.be.eql(true);
+
+        var non_empty_nodeId =coerceNodeId(new Buffer(1));
+        empty_nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
+        non_empty_nodeId.isEmpty().should.be.eql(false);
+    });
+    it("should detect empty GUID NodeIds", function () {
+        // empty GUID nodeId
+        var empty_nodeId = coerceNodeId("g=00000000-0000-0000-0000-000000000000");
+        empty_nodeId.identifierType.should.eql(NodeIdType.GUID);
+        empty_nodeId.isEmpty().should.be.eql(true);
+
+        var non_empty_nodeId = coerceNodeId("g=00000000-0000-0000-0000-000000000001");
+        empty_nodeId.identifierType.should.eql(NodeIdType.GUID);
+        non_empty_nodeId.isEmpty().should.be.eql(false);
     });
 
     it("should convert an empty NodeId to  <empty nodeid> string", function () {
