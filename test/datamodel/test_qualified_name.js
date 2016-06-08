@@ -34,4 +34,8 @@ describe("QualifedName", function () {
         var qn = coerceQualifiedName();
         should(qn).eql(null);
     });
+    it("QualifiedName#isEmpty",function() {
+        var qn = new QualifiedName({});
+        qn.isEmpty().should.eql(true);
+    });
 });
