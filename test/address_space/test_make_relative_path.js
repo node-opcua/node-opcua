@@ -14,6 +14,8 @@ var makeNodeId   =  require("lib/datamodel/nodeid").makeNodeId;
 var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
 var makeRelativePath = require("lib/address_space/make_relative_path").makeRelativePath;
+var RelativePath = require("_generated_/_auto_generated_RelativePath").RelativePath;
+var RelativePathElement = require("_generated_/_auto_generated_RelativePathElement").RelativePathElement;
 
 describe("makeRelativePath",function() {
 
@@ -25,77 +27,77 @@ describe("makeRelativePath",function() {
     it("T1 should construct simple RelativePath for '/' ",function() {
         var relativePath = makeRelativePath("/");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({})
-        });
+        }));
     });
 
     it("T2 should construct simple RelativePath for '.' ",function() {
         var relativePath = makeRelativePath(".");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({})
-        });
+        }));
     });
 
     it("T3 should construct simple RelativePath for '<HasChild>' ",function() {
         var relativePath = makeRelativePath("<HasChild>");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({})
-        });
+        }));
     });
 
     it("T4 should construct simple RelativePath for '<#HasChild>' ",function() {
         var relativePath = makeRelativePath("<#HasChild>");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
             isInverse: false,
             includeSubtypes: false,
             targetName: new QualifiedName({})
-        });
+        }));
     });
 
     it("T5 should construct simple RelativePath for '<!HasChild>' ",function() {
         var relativePath = makeRelativePath("<!HasChild>");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
             isInverse: true,
             includeSubtypes: true,
             targetName: new QualifiedName({})
-        });
+        }));
     });
     it("T6 should construct simple RelativePath for '<#!HasChild>' ",function() {
         var relativePath = makeRelativePath("<#!HasChild>");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
             isInverse: true,
             includeSubtypes: false,
             targetName: new QualifiedName({})
-        });
+        }));
     });
     it("T7 should construct simple RelativePath for '/3:Truck'",function() {
 
         var relativePath = makeRelativePath("/3:Truck");
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 3, name: "Truck"})
-        });
+        }));
 
     });
 
@@ -106,18 +108,18 @@ describe("makeRelativePath",function() {
 
         var relativePath = makeRelativePath("/3:Truck.0:NodeVersion");
         relativePath.elements.length.should.eql(2);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 3, name: "Truck"})
-        });
-        relativePath.elements[1].should.eql({
+        }));
+        relativePath.elements[1].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 0, name: "NodeVersion"})
-        });
+        }));
 
     });
 
@@ -126,12 +128,12 @@ describe("makeRelativePath",function() {
         var relativePath = makeRelativePath("/2:Block&.Output");
 
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 2, name: "Block.Output"})
-        });
+        }));
     });
 
 
@@ -148,18 +150,18 @@ describe("makeRelativePath",function() {
         var relativePath = makeRelativePath("<1:ConnectedTo>1:Boiler/1:HeatSensor",addressSpace);
 
         relativePath.elements.length.should.eql(2);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: makeNodeId(555,1),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 1, name: "Boiler"})
-        });
-        relativePath.elements[1].should.eql({
+        }));
+        relativePath.elements[1].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 1, name: "HeatSensor"})
-        });
+        }));
 
     });
 
@@ -179,18 +181,18 @@ describe("makeRelativePath",function() {
         addressSpace.findReferenceType.getCall(0).args[1].should.eql(1);
 
         relativePath.elements.length.should.eql(2);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: makeNodeId(555,1),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 1, name: "Boiler"})
-        });
-        relativePath.elements[1].should.eql({
+        }));
+        relativePath.elements[1].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({})
-        });
+        }));
 
     });
 
@@ -208,12 +210,12 @@ describe("makeRelativePath",function() {
         addressSpace.findReferenceType.getCall(0).args[1].should.eql(0);
 
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: makeNodeId(555, 1),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 2, name: "Wheel"})
-        });
+        }));
     });
 
     // “<!HasChild>Truck”
@@ -228,12 +230,12 @@ describe("makeRelativePath",function() {
         addressSpace.findReferenceType.callCount.should.eql(0);
 
         relativePath.elements.length.should.eql(1);
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
             isInverse: true,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 2, name: "Wheel"})
-        });
+        }));
     });
     // “<0:HasChild>”
     // Finds all targets of forward References with a BrowseName = ‘HasChild’
@@ -250,12 +252,12 @@ describe("makeRelativePath",function() {
 
         relativePath.elements.length.should.eql(1);
 
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({})
-        });
+        }));
     });
 
     it("TF should construct simple RelativePath for '<Organizes>Server.ServerStatus.CurrentTime'",function() {
@@ -264,24 +266,24 @@ describe("makeRelativePath",function() {
 
         relativePath.elements.length.should.eql(3);
 
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("Organizes"),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex:0 , name: "Server"})
-        });
-        relativePath.elements[1].should.eql({
+        }));
+        relativePath.elements[1].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 0, name: "ServerStatus"})
-        });
-        relativePath.elements[2].should.eql({
+        }));
+        relativePath.elements[2].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex:0 , name: "CurrentTime"})
-        });
+        }));
     });
 
     it("TF should construct simple RelativePath for '<Organizes>Server2.ServerStatus.1.2'",function() {
@@ -290,24 +292,24 @@ describe("makeRelativePath",function() {
 
         relativePath.elements.length.should.eql(4);
 
-        relativePath.elements[0].should.eql({
+        relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("Organizes"),
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex:0 , name: "Server2"})
-        });
-        relativePath.elements[1].should.eql({
+        }));
+        relativePath.elements[1].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 0, name: "ServerStatus"})
-        });
-        relativePath.elements[2].should.eql({
+        }));
+        relativePath.elements[2].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex:0 , name: "100"})
-        });
+        }));
 
     });
 
