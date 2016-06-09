@@ -301,11 +301,13 @@ function execute(cmd, callback) {
         var stream1 = byline(child.stderr);
         stream1.on('data', function (line) {
             if (displayError) {
+                line  = line.toString();
                 process.stdout.write("        err " + line.red + "\n");
             }
         });
         var stream2 = byline(child.stdout);
         stream2.on('data', function (line) {
+            line  = line.toString();
             process.stdout.write("        out " + line.white.bold + "\n");
         });
     }
