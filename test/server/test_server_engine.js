@@ -43,6 +43,9 @@ var UAVariable = require("lib/address_space/ua_variable").UAVariable;
 var UAObject = require("lib/address_space/ua_object").UAObject;
 var Reference = require("lib/address_space/reference").Reference;
 
+function resolveExpandedNodeId(nodeId) {
+    return makeExpandedNodeId(resolveNodeId(nodeId));
+}
 describe("testing ServerEngine", function () {
 
     var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
@@ -549,7 +552,7 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].browseName.name.should.equal("Root");
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=84");
         //xx browseResult.references[0].displayName.text.should.equal("Root");
-        browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
 
 
@@ -582,20 +585,20 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
         browseResult.references[0].displayName.text.should.equal("Objects");
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
-        browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[1].isForward.should.equal(true);
         browseResult.references[1].browseName.name.should.equal("Types");
         browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
-        browseResult.references[1].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[1].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[2].isForward.should.equal(true);
         browseResult.references[2].browseName.name.should.equal("Views");
         browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
-        browseResult.references[2].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[2].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });
@@ -648,20 +651,20 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
         browseResult.references[0].displayName.text.should.equal("Objects");
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
-        browseResult.references[0].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[1].isForward.should.equal(true);
         browseResult.references[1].browseName.name.should.equal("Types");
         browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
-        browseResult.references[1].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[1].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[2].isForward.should.equal(true);
         browseResult.references[2].browseName.name.should.equal("Views");
         browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
-        browseResult.references[2].typeDefinition.should.eql(makeExpandedNodeId(resolveNodeId("FolderType")));
+        browseResult.references[2].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
 
     });

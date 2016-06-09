@@ -9,6 +9,8 @@ var _ = require("underscore");
 var sinon = require("sinon");
 
 var ClientSidePublishEngine = require("lib/client/client_publish_engine").ClientSidePublishEngine;
+var SubscriptionAcknowledgement = require("_generated_/_auto_generated_SubscriptionAcknowledgement").SubscriptionAcknowledgement;
+
 
 function makeSubscription(subscriptionId,timeoutHint,callback) {
     return { subscriptionId: subscriptionId, timeoutHint:timeoutHint, onNotificationMessage: callback};
@@ -198,11 +200,11 @@ describe("Testing the client publish engine", function () {
 
         var publishRequest2 = spy.getCall(1).args[0];
         publishRequest2._schema.name.should.equal("PublishRequest");
-        publishRequest2.subscriptionAcknowledgements.should.eql([{sequenceNumber: 36, subscriptionId: 1}]);
+        publishRequest2.subscriptionAcknowledgements.should.eql([new SubscriptionAcknowledgement({sequenceNumber: 36, subscriptionId: 1})]);
 
         var publishRequest3 = spy.getCall(2).args[0];
         publishRequest3._schema.name.should.equal("PublishRequest");
-        publishRequest3.subscriptionAcknowledgements.should.eql([{sequenceNumber: 78, subscriptionId: 44}]);
+        publishRequest3.subscriptionAcknowledgements.should.eql([new SubscriptionAcknowledgement({sequenceNumber: 78, subscriptionId: 44})]);
 
     });
 

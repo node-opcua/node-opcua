@@ -355,7 +355,7 @@ describe("testing ClientTCP_transport", function () {
                 if (process.version.toString().match(/^v0.10/)) {
                     err.message.should.match(/EADDRNOTAVAIL|ECONNREFUSED/);
                 } else {
-                    err.message.should.match(/port should be/);
+                    err.message.should.match(/port(\" option )*should be/);
                 }
                 done();
             } else {

@@ -97,11 +97,11 @@ describe("LocalizedText", function () {
     });
     it("#coerceLocalizedText - string", function () {
 
-        should(coerceLocalizedText("Hello World")).eql({locale: null, text: "Hello World"});
+        should(coerceLocalizedText("Hello World")).eql(new LocalizedText({locale: null, text: "Hello World"}));
     });
     it("#coerceLocalizedText - LocalizedText", function () {
 
-        should(coerceLocalizedText(new LocalizedText({text: "Hello World"}))).eql({locale: null, text: "Hello World"});
+        should(coerceLocalizedText(new LocalizedText({text: "Hello World"}))).eql(new LocalizedText({locale: null, text: "Hello World"}));
     });
 
 });
