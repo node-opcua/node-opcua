@@ -210,6 +210,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_195")(test);
     require("./u_test_e2e_issue_198")(test);
     require("./u_test_e2e_issue_205_betterSessionNames")(test);
+    require("./u_test_e2e_issue_214_StatusValueTimestamp")(test);
 
     require("./u_test_e2e_translateBrowsePath")(test);
 
