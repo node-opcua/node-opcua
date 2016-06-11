@@ -178,7 +178,6 @@ describe("testing Server resilience to DOS attacks", function () {
         var nbExtra = 5;
         var nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
 
-        var channels = [];
         var clients = [];
         var sessions = [] ;
 
@@ -237,12 +236,11 @@ describe("testing Server resilience to DOS attacks", function () {
             }
 
             var defer=require("delayed");
-            async.eachLimit( tasks,1 , createClientAndSession,function(err,results){
+            async.eachLimit( tasks,1 , defer.deferred(createClientAndSession),function(err,results){
                 callback(err);
             });
         }
 
-        var results = [];
         var nbError = 0;
 
         function step2_close_all_sessions(callback) {
@@ -268,6 +266,7 @@ describe("testing Server resilience to DOS attacks", function () {
 
         function step3_verification(callback) {
             try {
+
                 nbError.should.eql(0,"");
 
                 rejected_connections.should.eql(5);
