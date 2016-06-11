@@ -5,12 +5,23 @@ Error.stackTraceLimit = Infinity;
 
 var argv = require('yargs')
     .wrap(132)
+
     .string("alternateHostname")
     .describe("alternateHostname")
     .alias('a', 'alternateHostname')
-    .string("port")
+
+    .number("port")
     .describe("port")
     .alias('p', 'port')
+    .defaults("port",26543)
+
+    .number("maxAllowedSessionNumber")
+    .describe("maxAllowedSessionNumber")
+    .alias('m', 'maxAllowedSessionNumber')
+    .defaults("maxAllowedSessionNumber",500)
+
+    .help("help")
+    .alias("h","help")
     .argv;
 
 var opcua = require("..");
@@ -33,7 +44,9 @@ var install_optional_cpu_and_memory_usage_node = require("lib/server/vendor_diag
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
 
-var port = parseInt(argv.port) || 26543;
+var port = argv.port;
+var maxAllowedSessionNumber   = argv.maxAllowedSessionNumber;
+var maxConnectionsPerEndpoint = maxAllowedSessionNumber;
 
 var userManager = {
     isValidUser: function (userName, password) {
@@ -51,6 +64,7 @@ var userManager = {
 var path = require("path");
 
 var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_2048.pem");
+//var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
 //var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_2048_outofdate.pem");
 var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_2048.pem");
 
@@ -62,7 +76,8 @@ var server_options = {
     port: port,
     //xx (not used: causes UAExpert to get confused) resourcePath: "UA/Server",
 
-    maxAllowedSessionNumber: 500,
+    maxAllowedSessionNumber: maxAllowedSessionNumber,
+    maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
 
     nodeset_filename: [
         standard_nodeset_file,
@@ -338,18 +353,16 @@ server.on("response", function (response) {
     console.log(t(response.responseHeader.timeStamp), response.responseHeader.requestHandle,
         response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {
-        case "ModifySubscriptionResponse":
-        case "CreateMonitoredItemsResponse":
-        case "ModifyMonitoredItemsResponse":
-        case "RepublishResponse":
-            //xx console.log(response.toString());
+        case "xxModifySubscriptionResponse":
+        case "xxCreateMonitoredItemsResponse":
+        case "xxModifyMonitoredItemsResponse":
+        case "xxRepublishResponse":
+        case "xxCloseSessionResponse":
+        case "xxBrowseResponse":
+        case "xxTranslateBrowsePathsToNodeIdsResponse":
+            console.log(response.toString());
             break;
-        case "BrowseResponse":
-        case "TranslateBrowsePathsToNodeIdsResponse":
-            //xx console.log(response.toString());
-            break;
-        case "WriteResponse":
-            break;
+        case "xxWriteResponse":
         case "XXXX":
             var str = "   ";
             response.results.map(function (result) {
@@ -397,6 +410,7 @@ server.on("request", function (request, channel) {
 
         case "xxTranslateBrowsePathsToNodeIdsRequest":
         case "xxBrowseRequest":
+        case "xxCloseSessionRequest":
             // do special console output
             //console.log(util.inspect(request, {colors: true, depth: 10}));
             console.log(request.toString());
