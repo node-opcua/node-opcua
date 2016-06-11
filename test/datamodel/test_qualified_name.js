@@ -6,7 +6,7 @@ var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
 
 var coerceQualifiedName = require("lib/datamodel/qualified_name").coerceQualifyName;
 
-describe("QualifedName", function () {
+describe("QualifiedName", function () {
 
 
     it("should construct a qualified name", function () {

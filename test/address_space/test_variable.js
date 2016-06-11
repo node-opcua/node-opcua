@@ -21,68 +21,69 @@ var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml"
 describe("testing Variables ", function () {
 
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
-    });
-    it("a variable should return attributes with  the expected data type ", function () {
 
-        var addressSpace = new address_space.AddressSpace();
+        it("a variable should return attributes with  the expected data type ", function () {
 
-        var v = new UAVariable({
-            browseName: "some variable",
-            addressSpace: addressSpace,
-            minimumSamplingInterval: 10,
-            arrayDimensions: [1, 2, 3],
-            userAccessLevel: "CurrentRead",
-            accessLevel: "CurrentRead"
+            var addressSpace = new address_space.AddressSpace();
+
+            var v = new UAVariable({
+                browseName: "some variable",
+                addressSpace: addressSpace,
+                minimumSamplingInterval: 10,
+                arrayDimensions: [1, 2, 3],
+                userAccessLevel: "CurrentRead",
+                accessLevel: "CurrentRead"
+            });
+
+            var value;
+
+            value = v.readAttribute(AttributeIds.AccessLevel);
+            value.value.dataType.should.eql(DataType.Byte);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.UserAccessLevel);
+            value.value.dataType.should.eql(DataType.Byte);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.ValueRank);
+            value.value.dataType.should.eql(DataType.Int32);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.ArrayDimensions);
+            value.value.arrayType.should.eql(VariantArrayType.Array);
+            value.value.value.should.eql(new Uint32Array([1, 2, 3]));
+            (value.value.value instanceof Uint32Array).should.eql(true);
+            value.value.dataType.should.eql(DataType.UInt32);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.Historizing);
+            value.value.dataType.should.eql(DataType.Boolean);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.BrowseName);
+            value.value.dataType.should.eql(DataType.QualifiedName);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.DisplayName);
+            value.value.dataType.should.eql(DataType.LocalizedText);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.MinimumSamplingInterval);
+            value.value.dataType.should.eql(DataType.Int32);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            value = v.readAttribute(AttributeIds.IsAbstract);
+            value.statusCode.name.should.eql("BadAttributeIdInvalid");
+
+            value = v.readAttribute(AttributeIds.NodeClass);
+            value.value.dataType.should.eql(DataType.Int32);
+            value.value.value.should.eql(NodeClass.Variable.value);
+            value.statusCode.should.eql(StatusCodes.Good);
+
+            addressSpace.dispose();
         });
 
-        var value;
-
-        value = v.readAttribute(AttributeIds.AccessLevel);
-        value.value.dataType.should.eql(DataType.Byte);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.UserAccessLevel);
-        value.value.dataType.should.eql(DataType.Byte);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.ValueRank);
-        value.value.dataType.should.eql(DataType.Int32);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.ArrayDimensions);
-        value.value.arrayType.should.eql(VariantArrayType.Array);
-        value.value.value.should.eql(new Uint32Array([1, 2, 3]));
-        (value.value.value instanceof Uint32Array).should.eql(true);
-        value.value.dataType.should.eql(DataType.UInt32);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.Historizing);
-        value.value.dataType.should.eql(DataType.Boolean);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.BrowseName);
-        value.value.dataType.should.eql(DataType.QualifiedName);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.DisplayName);
-        value.value.dataType.should.eql(DataType.LocalizedText);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.MinimumSamplingInterval);
-        value.value.dataType.should.eql(DataType.Int32);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        value = v.readAttribute(AttributeIds.IsAbstract);
-        value.statusCode.name.should.eql("BadAttributeIdInvalid");
-
-        value = v.readAttribute(AttributeIds.NodeClass);
-        value.value.dataType.should.eql(DataType.Int32);
-        value.value.value.should.eql(NodeClass.Variable.value);
-        value.statusCode.should.eql(StatusCodes.Good);
-
-        addressSpace.dispose();
     });
-
 
 });
 
