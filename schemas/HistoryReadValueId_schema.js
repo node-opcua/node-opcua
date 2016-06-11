@@ -5,7 +5,7 @@ var HistoryReadValueId_Schema = {
         {   name: "nodeId", fieldType: "NodeId"},
         {   name: "indexRange", fieldType: "String"},
         {   name: "dataEncoding", fieldType: "QualifiedName"},
-        {   name: "continuationPoint", fieldType: "ByteString",default:null}
+        {   name: "continuationPoint", fieldType: "ByteString",defaultValue:null}
     ]
 };
 exports.HistoryReadValueId_Schema = HistoryReadValueId_Schema;

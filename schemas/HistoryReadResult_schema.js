@@ -3,7 +3,7 @@ var HistoryReadResult_Schema = {
     name: "HistoryReadResult",
     fields: [
         { name: "statusCode", fieldType:"StatusCode" },
-        { name: "continuationPoint", fieldType:"ByteString" ,default:null},
+        { name: "continuationPoint", fieldType:"ByteString" ,defaultValue:null},
         { name: "historyData", fieldType:"ExtensionObject"}
     ]
 };
