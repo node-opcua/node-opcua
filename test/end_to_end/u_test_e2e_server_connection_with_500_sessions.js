@@ -28,6 +28,7 @@ module.exports = function (test) {
     };
 
     var client = null;
+
     function client_session(data,done) {
 
         should(client).not.eql(null);
@@ -55,12 +56,12 @@ module.exports = function (test) {
 
             },10);
         }
+        function wait(callback) {
+            setTimeout(callback,Math.ceil(Math.random()*10+10));
+        }
 
         var the_session;
 
-        var wait =            function (callback) {
-                setTimeout(callback,Math.ceil(Math.random()*10+10));
-            };
 
         async.series([
 
@@ -69,12 +70,13 @@ module.exports = function (test) {
             perform.bind(null,"create session " + data.index,function(callback) {
 
                 client.createSession(function (err, session) {
-                    the_session = session;
+                    the_session = session
+                    console.log(session.authenticationToken.toString("hex"));
                     callback(err);
                 });
             }),
 
-            //Xx wait,
+            wait,
 
             perform.bind(null,"closing session " + data.index,function(callback) {
                 the_session.close(function(err) {
@@ -87,7 +89,7 @@ module.exports = function (test) {
 
 
 
-    describe("AAAY Testing " + MAXSESSIONS + " sessions on the same  ", function () {
+    describe("AAAY Testing " + MAXSESSIONS + " sessions on the same  connection ", function () {
 
         before(function(done){
             var options = {
@@ -127,7 +129,7 @@ module.exports = function (test) {
             });
 
         }) ;
-        it("should accept many sessions", function (done) {
+        it("QZQ should be possible to open  many sessions on a single connection", function (done) {
 
             if (test.server) {
                 test.server.maxAllowedSessionNumber = MAXSESSIONS;
@@ -147,15 +149,5 @@ module.exports = function (test) {
 
     });
 
-    xit("a server shall close any unactivated sessions before reaching the maximum number of session",function() {
-
-        // From OPCUA V1.03 Part 4 5.6.2 CreateSession
-        // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
-        // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
-        // maximum number of supported Sessions
-
-        // TODO
-    });
 
 };
-

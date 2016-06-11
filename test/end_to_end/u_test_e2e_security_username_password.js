@@ -69,7 +69,10 @@ module.exports = function (test) {
                         });
                     },
                     function (callback) {
-                        the_session.close(callback);
+                        the_session.close(function(err){
+                            err.message.should.match(/BadSessionNotActivated/);
+                            callback();
+                        });
                     },
                     function (callback) {
                         client1.disconnect(callback);

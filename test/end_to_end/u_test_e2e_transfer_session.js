@@ -59,8 +59,9 @@ module.exports = function (test) {
                     client1.connect(test.endpointUrl, callback);
                 },
 
-                // create a session using client1, whitout activating it
+                // create a session using client1, without activating it
                 function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
                     client1._createSession(function (err, session) {
                         if (err) {
                             return callback(err);
@@ -71,18 +72,29 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    client1.closeSession(session1, function (err) {
-                        if(err) {
 
-                            callback(err); // Failure , close session expected to work
-                        }
+                    // Question: ? Should a unactivated session be accounted for
+                    //             in the currentSessionCount ?
+                    test.server.engine.currentSessionCount.should.eql(1);
+
+                    // however client shall not record session yet
+                    client1._sessions.length.should.eql(0);
+
+                    client1.closeSession(session1, function (err) {
+                        client1._sessions.length.should.eql(0);
+                        // Failure , close session expected to return BadSessionNotActivated
+                        err.message.match(/BadSessionNotActivated/);
                         callback();
                     });
+
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
                 },
                 function (callback) {
                     client1.disconnect(callback);
                 }
-
             ],done);
 
         });
@@ -108,7 +120,9 @@ module.exports = function (test) {
                 },
 
                 function(callback) {
-                    session1.close(callback);
+                    session1.close(function() {
+                        callback();
+                    });
                 },
                 function(callback) {
                     session1.close(function(err) {

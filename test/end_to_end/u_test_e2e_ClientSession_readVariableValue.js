@@ -29,16 +29,15 @@ module.exports = function (test) {
 
 
         beforeEach(function (done) {
-
             client = new OPCUAClient();
             endpointUrl = test.endpointUrl;
-                done();
-            });
+            done();
+        });
 
-            afterEach(function (done) {
-                client.disconnect(function (err) {
-                    client = null;
-                    done(err);
+        afterEach(function (done) {
+            client.disconnect(function (err) {
+                client = null;
+                done(err);
             });
         });
 
