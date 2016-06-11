@@ -62,6 +62,17 @@ describe("AddressSpace#browsePath", function () {
 
         }
     });
+    it("#QQ browsing a path when a null target name is not in the last element shall return an error ",function() {
+
+        var browsePath = makeBrowsePath("RootFolder","/Objects/Server/ServerStatus");
+        browsePath.relativePath.elements[1].targetName.toString().should.eql("Server");
+        // set a null target Name in the middle of the path
+        browsePath.relativePath.elements[1].targetName = null;
+        var result = addressSpace.browsePath(browsePath);
+        result.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
+        result.targets.length.should.eql(0);
+    });
+
 
     it("should browse EventGeneratorObject",function() {
         var browsePath = makeBrowsePath("RootFolder","/Objects/EventGeneratorObject");
