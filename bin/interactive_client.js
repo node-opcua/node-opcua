@@ -19,21 +19,19 @@ var _ = require("underscore");
 
 console.log(" Version ", opcua.version);
 
-var client = new opcua.OPCUAClient();
+var sessionTimeout = 2 * 60 * 1000; // 2 minutes
 
-var the_session = null;
+var client = new opcua.OPCUAClient({
+    requestedSessionTimeout: sessionTimeout,
+    keepSessionAlive: true
+});
+
+var the_session  = null;
 var proxyManager = null;
-var rootFolder = null;
-var crawler = null;
 
-var dumpPacket = false;
-var dumpMessageChunk = false;
-
-
-var sessionTimeout = 10 * 60 * 1000; // 10 minutes
-var pingTimeout = 10 * 1000; //  interval  between two keepalive pings
-
-
+var crawler           = null;
+var dumpPacket        = false;
+var dumpMessageChunk  = false;
 var endpoints_history = [];
 
 function add_endpoint_to_history(endpoint) {
@@ -73,28 +71,73 @@ function log()
 {
     rl.pause();
     rl.clearLine(process.stdout);
-    console.log(Object.values(arguments).join(" "));
-    //xx rl.write(Object.values(arguments).join(" ")+"\n");
+    var str = Object.values(arguments).join(" ");
+    process.stdout.write(str);
     rl.resume();
-    rl.prompt(true);
-
 }
 
+var rootFolder   = null;
 
+var nodePath = [];
+var nodePathName = [];
+var curNode = null;
+var curNodeCompletion = [];
+var lowerFirstLetter = require("lib/misc/utils").lowerFirstLetter;
+
+function setRootNode(node) {
+    nodePath = [];
+    nodePathName = [];
+    setCurrentNode(node);
+}
+function setCurrentNode(node) {
+
+    curNode = node;
+    var curNodeBrowseName = lowerFirstLetter(curNode.browseName.name.toString());
+    nodePathName.push(curNodeBrowseName);
+    nodePath.push(node);
+    curNodeCompletion = node.$components.map(function(c) {
+        if (!c.browseName) {
+            return '???'
+        }
+        return lowerFirstLetter(c.browseName.name.toString());
+    });
+    the_prompt = nodePathName.join(".").yellow+">";
+    rl.setPrompt(the_prompt);
+}
+
+function moveToChild(browseName) {
+
+    if (browseName == "..") {
+        nodePathName.pop();
+        curNode = nodePath.splice(-1,1)[0];
+        the_prompt = nodePathName.join(".").yellow+">";
+        rl.setPrompt(the_prompt);
+        return;
+    }
+    var child= curNode[browseName];
+    if (!child) {
+        return;
+    }
+    setCurrentNode(child);
+}
 function get_root_folder(callback) {
 
     if(!rootFolder) {
 
+        rl.pause();
         proxyManager.getObject(opcua.makeNodeId(opcua.ObjectIds.RootFolder),function(err,data) {
 
-            log(" GOT ROOT_FOLDER")
-            rootFolder = data;
-            the_prompt += ".rootFolder".yellow;
+            if (!err) {
+                rootFolder = data;
+                assert(rootFolder,"expecting rootFolder");
+                setRootNode(rootFolder);
+                rl.resume();
+            }
             callback();
         });
     } else {
+        setCurrentNode(rootFolder);
         callback();
-
     }
 }
 
@@ -103,12 +146,13 @@ function completer(line,callback) {
 
     var completions, hits;
 
-    if ((line.trim() === "rootFolder" + "." )&& rootFolder) {
-
-        var completions = Object.keys(rootFolder.$components);
-        console.log(" completions ",completions);
-        return callback(null, [ completions, line]);
-
+    if ( (line.trim() === "" ) && curNode) {
+        // console.log(" completions ",completions);
+        var c = [".."].concat(curNodeCompletion);
+        if (curNodeCompletion.length === 1) {
+            c = curNodeCompletion;
+        }
+        return callback(null, [ c, line]);
     }
 
     if ("open".match(new RegExp("^" + line.trim()))) {
@@ -188,6 +232,7 @@ if (rl.history) {
     if (lines.length === 0) {
         var hostname = require("os").hostname();
         hostname = hostname.toLowerCase();
+        rl.history.push("open opc.tcp://opcua.demo-this.com:51210/UA/SampleServer");
         rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
         rl.history.push("open opc.tcp://" + hostname + ":4841");
         rl.history.push("open opc.tcp://" + "localhost" + ":51210/UA/SampleServer");
@@ -266,55 +311,6 @@ function dump_dataValues(nodesToRead, dataValues) {
 
 }
 
-// ns=0;i=2259
-var serverStatus_State_Id = opcua.coerceNodeId(opcua.VariableIds.Server_ServerStatus_State);
-var lastKnownState = opcua.ServerState.Unknown;
-/**
- * @method ping_server
- *
- * when a session is opened on a server, the client shall send request on a regular basis otherwise the server
- * session object might time out.
- * start_ping make sure that ping_server is called on a regular basis to prevent session to timeout.
- *
- * @param callback
- */
-function ping_server(callback) {
-
-    callback = callback || function () {
-        };
-
-    if (!the_session) {
-        return callback();
-    }
-
-    var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
-    the_session.readVariableValue(nodes, function (err, dataValues) {
-        if (err) {
-            log(" warning : ".cyan, err.message.yellow);
-            return close_session(callback);
-        } else {
-            var newState = opcua.ServerState.get(dataValues[0].value.value);
-            if (newState !== lastKnownState) {
-                log(" Server State = ", newState.toString());
-            }
-            lastKnownState = newState;
-        }
-        callback();
-    });
-}
-var timerId = 0;
-function start_ping() {
-    assert(!timerId);
-    timerId = setInterval(ping_server, pingTimeout / 3);
-}
-function stop_ping() {
-    if (timerId) {
-        clearInterval(timerId);
-        timerId = 0;
-    }
-}
-
-
 function open_session(callback) {
 
 
@@ -338,7 +334,6 @@ function open_session(callback) {
                 rl.setPrompt(the_prompt);
 
                 assert(!crawler);
-                start_ping();
 
                 rl.prompt(the_prompt);
 
@@ -355,7 +350,6 @@ function open_session(callback) {
 
 function close_session(outer_callback) {
     apply_on_valid_session("closeSession", function (session,inner_callback) {
-        stop_ping();
         session.close(function (err) {
             the_session = null;
             crawler = null;
@@ -386,6 +380,10 @@ function process_line(line) {
     var args = line.trim().split(/ +/);
     var cmd = args[0];
 
+    if (curNode) {
+        moveToChild(cmd);
+        return;
+    }
     switch (cmd) {
         case 'debug':
             var flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
@@ -401,7 +399,7 @@ function process_line(line) {
             var port = p.port;
             log(" open    url : ", endpoint_url);
             log("    hostname : ", (hostname || "<null>").yellow);
-            log("        port : ", port.yellow);
+            log("        port : ", port.toString().yellow);
 
             apply_command(cmd,function(callback) {
 
