@@ -33,8 +33,8 @@ var perform_operation_on_monitoredItem = require("test/helpers/perform_operation
 
 
 function trace_console_log() {
-    var log1 = GLOBAL.console.log;
-    GLOBAL.console.log = function () {
+    var log1 = global.console.log;
+    global.console.log = function () {
         var t = (new Error()).stack.split("\n")[2];
         if (t.match(/opcua/)) {
             log1.call(console, t.cyan);

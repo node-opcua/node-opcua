@@ -55,12 +55,12 @@ exports.resourceLeakDetector = {
         assert(!this.setInterval_old, " resourceLeakDetector.stop hasn't been called !");
         this.setIntervalCallCount = 0;
         this.clearIntervalCallCount = 0;
-        this.setInterval_old = GLOBAL.setInterval;
-        this.clearInterval_old = GLOBAL.clearInterval;
+        this.setInterval_old = global.setInterval;
+        this.clearInterval_old = global.clearInterval;
         this.map = {};
 
         var self = this;
-        GLOBAL.setInterval = function (func, delay) {
+        global.setInterval = function (func, delay) {
 
             if (trace) {
                 console.log("setInterval \n", get_stack().red, "\n");
@@ -80,7 +80,7 @@ exports.resourceLeakDetector = {
             return key;
         };
 
-        GLOBAL.clearInterval = function (id) {
+        global.clearInterval = function (id) {
 
             if (trace) {
                 console.log("clearInterval ", get_stack().green);
@@ -104,9 +104,9 @@ exports.resourceLeakDetector = {
         }
         assert(_.isFunction(this.setInterval_old)," did you forget to call resourceLeakDetector.start() ?");
 
-        GLOBAL.setInterval = this.setInterval_old;
+        global.setInterval = this.setInterval_old;
         this.setInterval_old = null;
-        GLOBAL.clearInterval = this.clearInterval_old;
+        global.clearInterval = this.clearInterval_old;
         this.clearInterval_old = null;
 
 
