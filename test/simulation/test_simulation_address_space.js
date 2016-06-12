@@ -468,6 +468,46 @@ describe("testing address space for conformance testing", function () {
         });
     });
 
+    it("should read a range '1:2' of a ByteString Array",function (done){
+
+        var nodeId = makeNodeId("Scalar_Static_Array_ByteString", namespaceIndex);
+
+        var data = [ new Buffer("HelloWorld1") , new Buffer("HelloWorld2") ,new Buffer("HelloWorld3"),new Buffer("HelloWorld4")];
+
+        writeValueArray(nodeId, DataType.ByteString, null, data, function (err, value) {
+
+            should(err).eql(null);
+
+            readValueArray(nodeId, "1:2", function (err, value) {
+                value.length.should.eql(2);
+                assert_arrays_are_equal(value, [ new Buffer("HelloWorld2") , new Buffer("HelloWorld3") ]);
+                done(err);
+            });
+        });
+
+    });
+
+    it("should read a range '1:2,9:10' of a ByteString Array",function (done){
+
+        var nodeId = makeNodeId("Scalar_Static_Array_ByteString", namespaceIndex);
+
+                              // 01234567890
+        var data = [ new Buffer("HelloWorld1") , new Buffer("HelloWorld2") ,new Buffer("HelloWorld3"),new Buffer("HelloWorld4")];
+
+        writeValueArray(nodeId, DataType.ByteString, null, data, function (err, value) {
+
+            should(err).eql(null);
+
+            readValueArray(nodeId, "1:2,9:10", function (err, value) {
+                value.length.should.eql(2);
+                assert_arrays_are_equal(value, [ new Buffer("d2") , new Buffer("d3") ]);
+                done(err);
+            });
+        });
+
+    });
+
+
     it("should write an array slice inside an array ", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Int32", namespaceIndex);
