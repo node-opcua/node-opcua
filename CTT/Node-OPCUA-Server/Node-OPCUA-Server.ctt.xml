@@ -8846,7 +8846,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentWrite_NotUser"/>
+              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentRead_NotUser"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
