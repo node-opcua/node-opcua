@@ -357,7 +357,9 @@ server.on("response", function (response) {
         case "xxCreateMonitoredItemsResponse":
         case "xxModifyMonitoredItemsResponse":
         case "xxRepublishResponse":
-        case "xxCloseSessionResponse":
+        case "xxCreateSessionResponse":
+        case "ActivateSessionResponse":
+        case "CloseSessionResponse":
         case "xxBrowseResponse":
         case "xxTranslateBrowsePathsToNodeIdsResponse":
             console.log(response.toString());
@@ -369,6 +371,9 @@ server.on("response", function (response) {
                 str += result.toString();
             });
             console.log(str);
+            break;
+        case "PublishResponse":
+            console.log("PublishResponse.subscriptionId = ",response.subscriptionId.toString());
             break;
     }
 
@@ -410,9 +415,15 @@ server.on("request", function (request, channel) {
 
         case "xxTranslateBrowsePathsToNodeIdsRequest":
         case "xxBrowseRequest":
+        case "xxCreateSessionRequest":
+        case "xxActivateSessionRequest":
         case "xxCloseSessionRequest":
+        case "CreateSubscriptionRequest":
             // do special console output
             //console.log(util.inspect(request, {colors: true, depth: 10}));
+            console.log(request.toString());
+            break;
+        case "PublishRequest":
             console.log(request.toString());
             break;
     }

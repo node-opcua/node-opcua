@@ -622,7 +622,6 @@ module.exports = function (test) {
 
         it("should return BadAttributeIdInvalid if the client tries to monitored an invalid attribute", function (done) {
 
-            this.timeout(5000);
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
                 var monitoredItem = subscription.monitor({
@@ -2651,10 +2650,7 @@ module.exports = function (test) {
                     });
                 }, done);
             });
-
         });
-
-
     });
 };
 

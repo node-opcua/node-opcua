@@ -345,7 +345,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="10"/>
+           <Value typename="QString" type="10" data="0"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -13837,7 +13837,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="Monoid"/>
+              <Value typename="QString" type="10" data="Source Code Pro"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -13875,7 +13875,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="14"/>
+              <Value typename="QString" type="10" data="18"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
