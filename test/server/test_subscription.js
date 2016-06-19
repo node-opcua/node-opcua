@@ -103,7 +103,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount:     5,
+            maxKeepAliveCount:    20,
             lifeTimeCount:        60, // at least 3 times maxKeepAliveCount
             //
             publishEngine: fake_publish_engine
@@ -112,7 +112,7 @@ describe("Subscriptions", function () {
         // pretend we have received 10 PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 10;
 
-        subscription.maxKeepAliveCount.should.eql(5);
+        subscription.maxKeepAliveCount.should.eql(20);
 
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
@@ -138,20 +138,13 @@ describe("Subscriptions", function () {
         this.clock.tick(subscription.publishingInterval);
         subscription._keep_alive_counter.should.eql(2);
 
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
+        this.clock.tick(subscription.publishingInterval * 22);
+
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(2);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
+        this.clock.tick(subscription.publishingInterval * 22 );
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(3);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
@@ -164,7 +157,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount:     5,
+            maxKeepAliveCount:    20,
             lifeTimeCount:        60, // at least 3 times maxKeepAliveCount
             //
             publishEngine: fake_publish_engine
@@ -173,7 +166,7 @@ describe("Subscriptions", function () {
         // pretend we have NO PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 0;
 
-        subscription.maxKeepAliveCount.should.eql(5);
+        subscription.maxKeepAliveCount.should.eql(20);
 
         var notification_event_spy = sinon.spy();
         var keepalive_event_spy = sinon.spy();
@@ -182,7 +175,7 @@ describe("Subscriptions", function () {
         subscription.on("keepalive", keepalive_event_spy);
         subscription.state.should.eql(SubscriptionState.CREATING);
 
-        this.clock.tick(subscription.publishingInterval);
+        this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount );
 
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(0);
@@ -205,7 +198,7 @@ describe("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
 
-        this.clock.tick(subscription.publishingInterval);
+        this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount );
         this.clock.tick(subscription.publishingInterval);
         this.clock.tick(subscription.publishingInterval);
         this.clock.tick(subscription.publishingInterval);
@@ -223,7 +216,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
-            maxKeepAliveCount:     5,
+            maxKeepAliveCount:    20,
             lifeTimeCount:        60, // at least 3 times maxKeepAliveCount
             //
             publishEngine: fake_publish_engine
@@ -232,7 +225,7 @@ describe("Subscriptions", function () {
         // pretend we have received 10 PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 10;
 
-        subscription.maxKeepAliveCount.should.eql(5);
+        subscription.maxKeepAliveCount.should.eql(20);
 
         subscription.on("perform_update", function () {
             //  pretend there is always something to notify
@@ -244,10 +237,7 @@ describe("Subscriptions", function () {
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
 
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
-        this.clock.tick(subscription.publishingInterval);
+        this.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount -1) );
 
         notification_event_spy.callCount.should.be.greaterThan(2);
         keepalive_event_spy.callCount.should.equal(0);
@@ -854,7 +844,7 @@ describe("Subscriptions", function () {
 
         var subscription = new Subscription({
             publishingInterval: 100,
-            maxKeepAliveCount: 5,
+            maxKeepAliveCount: 20,
             lifeTimeCount: 10,
             publishEngine: fake_publish_engine
         });
@@ -867,9 +857,12 @@ describe("Subscriptions", function () {
         subscription.on("keepalive", keepalive_event_spy);
         subscription.on("expired", expire_event_spy);
 
-        this.clock.tick(3000);
+        subscription.maxKeepAliveCount.should.eql(20);
+        subscription.publishingInterval.should.eql(100);
 
-        subscription.publishIntervalCount.should.equal(30,
+        this.clock.tick( 6 * subscription.publishingInterval * subscription.maxKeepAliveCount);
+
+        subscription.publishIntervalCount.should.equal(120,
             " 3000 ms with a publishingInterval: 100 ms means publishIntervalCount = 30");
 
 
@@ -877,12 +870,12 @@ describe("Subscriptions", function () {
         keepalive_event_spy.callCount.should.equal(6);
         notification_event_spy.callCount.should.equal(0);
 
-        this.clock.tick(3000);
+        this.clock.tick( 6 * subscription.publishingInterval * subscription.maxKeepAliveCount);
         expire_event_spy.callCount.should.equal(0);
         keepalive_event_spy.callCount.should.equal(12);
         notification_event_spy.callCount.should.equal(0);
 
-        this.clock.tick(3000);
+        this.clock.tick( 6 * subscription.publishingInterval * subscription.maxKeepAliveCount);
         expire_event_spy.callCount.should.equal(0);
         keepalive_event_spy.callCount.should.equal(18);
         notification_event_spy.callCount.should.equal(0);
@@ -1067,7 +1060,7 @@ describe("Subscription#setPublishingMode", function () {
         subscription.on("keepalive", keepalive_event_spy);
         subscription.on("expired", expire_event_spy);
 
-        this.clock.tick(2000);
+        this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
         keepalive_event_spy.callCount.should.equal(4);
         notification_event_spy.callCount.should.eql(0);
 
@@ -1109,12 +1102,12 @@ describe("Subscription#setPublishingMode", function () {
 
         // now disable
         subscription.setPublishingMode(false);
-        this.clock.tick(2000);
+        this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
         keepalive_event_spy.callCount.should.equal(4);
         notification_event_spy.callCount.should.be.greaterThan(20);
 
         subscription.setPublishingMode(true);
-        this.clock.tick(2000);
+        this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
         keepalive_event_spy.callCount.should.equal(4);
         notification_event_spy.callCount.should.be.greaterThan(40);
 
@@ -1126,6 +1119,61 @@ describe("Subscription#setPublishingMode", function () {
 
     });
 
+    it("a disabled subscription shall continue to send keep-alive notifications",function(done){
+
+        // What the specs say:
+        // Publishing by a Subscription may be enabled or disabled by the Client when created, or
+        // subsequently using the SetPublishingMode Service. Disabling causes the Subscription to
+        // cease sending NotificationMessages to the Client. However, the Subscription continues
+        // to execute cyclically and continues to send keep-alive Messages to the Client.
+
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
+        var subscription = new Subscription({
+            publishingInterval: 100,
+            maxKeepAliveCount: 5,
+            lifeTimeCount: 10,
+            publishingEnabled: false,              //  PUBLISHING IS DISABLED !!!
+            publishEngine: fake_publish_engine
+        });
+
+        // pretend that we already have notification messages
+        function push_some_notification() {
+            subscription.addNotificationMessage(fakeNotificationData);
+        }
+        var t = setInterval(push_some_notification, 50);
+
+        var notification_event_spy = sinon.spy();
+        var keepalive_event_spy = sinon.spy();
+        var expire_event_spy = sinon.spy();
+
+        subscription.on("notification", notification_event_spy);
+        subscription.on("keepalive", keepalive_event_spy);
+        subscription.on("expired", expire_event_spy);
+
+        this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
+        keepalive_event_spy.callCount.should.equal(4); // 2000 = 4*5*100
+        notification_event_spy.callCount.should.be.equal(0);
+
+
+        subscription.setPublishingMode(true);
+        this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
+        keepalive_event_spy.callCount.should.equal(4);
+        notification_event_spy.callCount.should.be.greaterThan(20);
+        var nb = notification_event_spy.callCount;
+
+        subscription.setPublishingMode(false);
+        this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
+        keepalive_event_spy.callCount.should.equal(8);
+        notification_event_spy.callCount.should.be.equal(nb);
+
+        clearInterval(t);
+
+        subscription.terminate();
+        done();
+
+    })
 });
 
 describe("Subscription#adjustSamplingInterval", function () {

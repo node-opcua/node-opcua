@@ -200,7 +200,6 @@ describe("Subscriptions and MonitoredItems", function () {
 
         monitoredItemCreateResult.should.be.instanceOf(subscription_service.MonitoredItemCreateResult);
 
-        monitoredItemCreateResult.monitoredItemId.should.eql(1);
         monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
 
         subscription.on("terminated", function () {
@@ -268,6 +267,9 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
+        // data collection is done asynchronously => let give some time for this to happen
+        this.clock.tick(5);
+
         // at first, collectNotificationData  should has 1 notification with current dataItem value
         var notifications = subscription.collectNotificationData();
         should(notifications.length).equal(1);
@@ -316,7 +318,8 @@ describe("Subscriptions and MonitoredItems", function () {
         publishEngine.add_subscription(subscription);
 
         simulate_client_adding_publish_request(subscription.publishEngine);
-        this.clock.tick(1);
+
+        this.clock.tick(subscription.publishingInterval);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         // Monitored item will report a new value evrert tick => 100 ms
@@ -351,6 +354,9 @@ describe("Subscriptions and MonitoredItems", function () {
 
         var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
         monitoredItem.samplingInterval.should.eql(100);
+
+        // data collection is done asynchronously => let give some time for this to happen
+        this.clock.tick(5);
 
         // initial value shall already be in the queue
         monitoredItem.queue.length.should.eql(1);
@@ -526,15 +532,23 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("With 3 subscriptions with monitored items", function () {
+    xit("With 3 subscriptions with monitored items", function () {
 
         test.clock = sinon.useFakeTimers(now);
 
         var publishEngine = new ServerSidePublishEngine({});
 
+        var _clientHandle=1;
+
+        function my_samplingFunc(oldData,callback) {
+            var self = this;
+            //xx console.log(self.toString());
+            var dataValue = addressSpace.findNode(self.node.nodeId).readAttribute(13);
+            callback(null,dataValue);
+        }
         function add_monitoredItem(subscription) {
 
-            var nodeId = 'ns=100;s=Static_Byte';
+            var nodeId = 'ns=100;s=Static_Float';
             var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -542,80 +556,96 @@ describe("Subscriptions and MonitoredItems", function () {
                 },
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
+                    clientHandle: _clientHandle++,
                     queueSize: 10,
-                    samplingInterval: 1000
+                    samplingInterval: 200
                 }
             });
 
+            var n  = addressSpace.findNode('ns=100;s=Static_Float');
+            //xx console.log(n.toString());
+
             subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            // data collection is done asynchronously => let give some time for this to happen
+            test.clock.tick(1);
         }
         function simulate_client_adding_publish_request(callback) {
             var publishRequest = new subscription_service.PublishRequest({});
             publishEngine._on_PublishRequest(publishRequest, callback);
         }
 
-        function perform_publish_transaction_and_check_subscriptionId(subscriptionID) {
+        function perform_publish_transaction_and_check_subscriptionId(subscription) {
 
             var pubFunc= sinon.spy();
 
             simulate_client_adding_publish_request(pubFunc);
 
-            test.clock.tick(100);
-            test.clock.tick(100);
-            test.clock.tick(100);
-            test.clock.tick(100);
-            test.clock.tick(100);
-            test.clock.tick(100);
+            test.clock.tick(subscription.publishingInterval);
 
             pubFunc.callCount.should.eql(1);
-            //xx console.log(pubFunc.getCall(0).args[1].toString());
-            pubFunc.getCall(0).args[1].subscriptionId.should.eql(subscriptionID);
+            console.log(pubFunc.getCall(0).args[1].toString());
+            pubFunc.getCall(0).args[1].subscriptionId.should.eql(subscription.id);
 
         }
 
+        // maintree\Monitored Item Services\Monitor Items 100\Test Cases\002.js - createMonitoredItems100x3subscriptions
+        //
+        // Subscription1
+        //
+        //    liveTimeCount 10
+        //    maxKeepAlive   3
+        //
+        //                    KA             KA
+        //    250  500  750  1000 1250 1500 1750 2000 2250 2500 2750 3000 3250 3500 3750 4000 4250 4500 4750 5000
+        // +---o----o----o----o----o----o----o----o----o----o----o----o----o----o----o----o----o----o----o----o
+        //
+        // Subscription2
+        //    250                 1250                2250 2500 2750 3000 3250 3500 3750 4000 4250 4500 4750 5000
+        // +---o-------------------o-------------------o-------------------o-------------------o--------------o
+        //
         // we use a subscription with a small publishingInterval interval here
-        // and a small maxKeepAliveCount interval so the subscription is tempted
-        // to send KeepAlive Publish request first
         var subscription1 = new Subscription({
             publishingInterval: 250,
-            maxKeepAliveCount:   3,
-            id: 1,
+            maxKeepAliveCount:   10,
+            id: 10000,
             publishEngine: publishEngine
         });
         publishEngine.add_subscription(subscription1);
         subscription1.state.should.eql(SubscriptionState.CREATING);
-        test.clock.tick(10);
+
+        test.clock.tick(subscription1.publishingInterval);
         subscription1.state.should.eql(SubscriptionState.LATE);
 
         subscription1.on("monitoredItem", function (monitoredItem) {
-            monitoredItem.samplingFunc = install_spying_samplingFunc();
+            monitoredItem.samplingFunc = my_samplingFunc;
         });
 
         add_monitoredItem(subscription1);
 
-        perform_publish_transaction_and_check_subscriptionId(1);
+        perform_publish_transaction_and_check_subscriptionId(subscription1);
         subscription1.state.should.eql(SubscriptionState.NORMAL);
 
         //---------------------------------------------------- Subscription 2 - 1000 ms
         var subscription2 = new Subscription({
-            id: 2,
+            id: 20000,
             publishingInterval: 1000,
-            maxKeepAliveCount: 20,
+            maxKeepAliveCount:    20,
             publishEngine: publishEngine
         });
         publishEngine.add_subscription(subscription2);
 
         subscription2.on("monitoredItem", function (monitoredItem) {
-            monitoredItem.samplingFunc = install_spying_samplingFunc();
+            monitoredItem.samplingFunc = my_samplingFunc;
         });
 
         add_monitoredItem(subscription2);
-        perform_publish_transaction_and_check_subscriptionId(2);
-        subscription1.state.should.eql(SubscriptionState.LATE);
+
+        perform_publish_transaction_and_check_subscriptionId(subscription2);
+        subscription1.state.should.eql(SubscriptionState.NORMAL);
 
         //---------------------------------------------------- Subscription 3 - 5000 ms
         var subscription3 = new Subscription({
-            id: 3,
+            id: 30000,
             publishingInterval: 5000,
             maxKeepAliveCount: 20,
             publishEngine: publishEngine
@@ -623,14 +653,14 @@ describe("Subscriptions and MonitoredItems", function () {
         publishEngine.add_subscription(subscription3);
 
         subscription3.on("monitoredItem", function (monitoredItem) {
-            monitoredItem.samplingFunc = install_spying_samplingFunc();
+            monitoredItem.samplingFunc = my_samplingFunc;
         });
 
         add_monitoredItem(subscription3);
 
         //xx console.log(pubFunc.getCall(0).args[0].toString());
         //xx console.log(pubFunc.getCall(0).args[1].toString());
-        perform_publish_transaction_and_check_subscriptionId(3);
+        perform_publish_transaction_and_check_subscriptionId(subscription3);
 
         subscription1.terminate();
         subscription2.terminate();
@@ -878,6 +908,10 @@ describe("Subscriptions and MonitoredItems", function () {
 
             var monitoredItemCreateResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+
+            // data collection is done asynchronously => let give some time for this to happen
+            test.clock.tick(5);
+
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
@@ -1105,7 +1139,7 @@ describe("#maxNotificationsPerPublish", function () {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        this.clock.tick(1);
+        this.clock.tick(subscription.publishingInterval);
         simulate_client_adding_publish_request(spy_callback);
 
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
@@ -1197,8 +1231,8 @@ describe("#maxNotificationsPerPublish", function () {
                 priority: 10,
                 publishingInterval: 100,
                 maxNotificationsPerPublish: 123,
-                maxKeepAliveCount: 5,
-                lifeTimeCount: 17,
+                maxKeepAliveCount:     21,
+                lifeTimeCount:         67,
                 publishingEnabled: true,              //  PUBLISHING IS ENABLED !!!
                 publishEngine: fake_publish_engine
             });
@@ -1255,12 +1289,12 @@ describe("#maxNotificationsPerPublish", function () {
         });
 
         it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount",function() {
-            subscription.lifeTimeCount.should.eql(17);
+            subscription.lifeTimeCount.should.eql(67);
             subscription.subscriptionDiagnostics.maxLifetimeCount.should.eql(subscription.lifeTimeCount);
         });
 
         it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount",function() {
-            subscription.maxKeepAliveCount.should.eql(5);
+            subscription.maxKeepAliveCount.should.eql(21);
             subscription.subscriptionDiagnostics.maxKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
         });
 

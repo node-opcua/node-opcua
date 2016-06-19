@@ -23,12 +23,12 @@ describe("OPCUAServer", function () {
     var server;
 
     beforeEach(function (done) {
-        var options = {};
-        options.nodeset_filename = [
-            opcua.mini_nodeset_filename
-        ];
+        var options = {
+            port: 2000,
+            nodeset_filename: [opcua.mini_nodeset_filename]
+        };
 
-        server = new OPCUAServer({});
+        server = new OPCUAServer(options);
         server.start(function (err) {
             done(err);
         })
@@ -101,7 +101,11 @@ describe("OPCUAServer-2",function() {
 
     var server ;
     before(function() {
-        server = new OPCUAServer({});
+        var options = {
+            port: 2000,
+            nodeset_filename: [opcua.mini_nodeset_filename]
+        };
+        server = new OPCUAServer(options);
     });
     after(function (done) {
         server.shutdown(function () {

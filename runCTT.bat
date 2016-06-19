@@ -13,4 +13,4 @@ c:\tools\msxsl %RESULT% CTT\CTT2XUNIT.xsl -o tmp\a.xml
 
 
 REM JUNIT VIEWSE (npm install junit-viewer -g)
-REM junit-viewer --result=tmp\a.xml --port=8080
+REM junit-viewer --results=tmp\a.xml --port=8080

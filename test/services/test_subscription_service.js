@@ -332,6 +332,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
         client_server.shutdown(done);
     });
 
+    var subscriptionId = null;
     it("server should create a subscription (CreateSubscriptionRequest)", function (done) {
 
         // CreateSubscriptionRequest
@@ -346,6 +347,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
         g_session.createSubscription(request, function (err, response) {
             if (!err) {
                 response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+                subscriptionId = response.subscriptionId;
             }
             done(err);
 
@@ -356,7 +358,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
         // CreateMonitoredItemsRequest
         var request = new subscription_service.CreateMonitoredItemsRequest({
-            subscriptionId: 1,
+            subscriptionId: subscriptionId,
             timestampsToReturn: read_service.TimestampsToReturn.Both,
             itemsToCreate: [
                 {

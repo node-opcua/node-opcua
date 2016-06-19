@@ -64,9 +64,9 @@ describe("Server Side MonitoredItem", function () {
     it("a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", function (done) {
 
         var monitoredItem = new MonitoredItem({
-            clientHandle: 1,
+            clientHandle:       1,
             samplingInterval: 100,
-            discardOldest: true,
+            discardOldest:    true,
             queueSize: 100,
             // added by the server:
             monitoredItemId: 50
