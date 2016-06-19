@@ -2,8 +2,6 @@
 "use strict";
 
 require("requirish")._(module);
-var schema_helpers = require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
 
 
 var assert = require("better-assert");
@@ -678,6 +676,52 @@ module.exports = function (test) {
                 });
             }, done);
         });
+
+        it("GXG should return BadIndexRangeNoData on first notification if the client tries to monitored with 2D index range when a 1D index range is required", function (done) {
+
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+                var notificationMessageSpy = new sinon.spy();
+                subscription.on("raw_notification",notificationMessageSpy);
+
+                subscription.publishingInterval.should.eql(100);
+
+                var nodeId = "ns=411;s=Scalar_Static_Array_Boolean";
+
+                var monitoredItem = subscription.monitor({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value,
+                    indexRange: "0:1,0:1" // << INTENTIONAL : 2D RANGE
+                }, {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1
+                });
+
+                monitoredItem.on("err", function (statusMessage) {
+                    console.log("Monitored Item error",statusMessage);
+                    statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
+                    callback();
+                });
+
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItem.on("initialized", function () {
+                    console.log("Monitored Item Initialized")
+                });
+
+                var monitoredItemOnChangedSpy = new sinon.spy();
+                monitoredItem.on("changed",monitoredItemOnChangedSpy);
+
+                setTimeout(function(){
+                    console.log(notificationMessageSpy.getCall(0).args[0].toString());
+                    monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+                    monitoredItemOnChangedSpy.callCount.should.eql(1,"Only one reply");
+                    callback();
+                },500);
+
+            }, done);
+        });
+
 
         it("#CreateMonitoredItemRequest should return BadNothingToDo if CreateMonitoredItemRequest has no nodes to monitored", function (done) {
 
@@ -1788,6 +1832,7 @@ module.exports = function (test) {
             });
         }
 
+        var subscriptionId = null;
         function createSubscription(session, callback) {
             var publishingInterval = 100;
             var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
@@ -1800,7 +1845,10 @@ module.exports = function (test) {
             });
 
             session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
-                callback(err);
+                //xxconsole.log(response.toString());
+                response.subscriptionId.should.be.greaterThan(0);
+                subscriptionId = response.subscriptionId;
+                callback(err,response.subscriptionId);
             });
         }
 
@@ -1815,7 +1863,7 @@ module.exports = function (test) {
 
             var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
 
-                subscriptionId: 1,
+                subscriptionId: subscriptionId,
                 timestampsToReturn: TimestampsToReturn.Both,
                 itemsToCreate: [{
                     itemToMonitor: itemToMonitor,
@@ -1850,7 +1898,9 @@ module.exports = function (test) {
                 async.series([
 
                     function (callback) {
-                        createSubscription(session, callback);
+                        createSubscription(session, function(err,id){
+                            callback(err);
+                        });
                     },
 
                     function (callback) {

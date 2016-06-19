@@ -17,10 +17,6 @@ var DataValue = opcua.DataValue;
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
 
-// make sure extra error checking is made on object constructions
-var schema_helpers = require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
-
 var port = 2000;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;

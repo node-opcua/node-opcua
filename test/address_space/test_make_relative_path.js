@@ -1,9 +1,6 @@
 require("requirish")._(module);
 var should = require("should");
 
-// make sure extra error checking is made on object constructions
-var schema_helpers = require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
 
 
 var server_engine = require("lib/server/server_engine");

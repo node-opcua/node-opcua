@@ -1,8 +1,6 @@
 "use strict";
 
 require("requirish")._(module);
-var schema_helpers =  require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
 
 
 var should = require("should");

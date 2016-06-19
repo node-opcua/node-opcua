@@ -182,7 +182,7 @@ describe("testing Server resilience to DOS attacks", function () {
         var sessions = [] ;
 
 
-        var doDebug = true;
+        var doDebug = false;
 
         var rejected_connections =0;
         function step1_construct_many_channels_with_session(callback) {

@@ -2,8 +2,6 @@
 require("requirish")._(module);
 var should = require("should");
 var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
-var schema_helpers = require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
 
 describe("test constructEventFilter", function () {
 

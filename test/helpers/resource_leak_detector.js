@@ -14,7 +14,7 @@ var colors = require("colors");
 
 // var trace = true;
 var trace = false;
-var doDebug = true;
+var doDebug = false;
 
 function get_stack() {
     var stack = (new Error()).stack.split("\n");
@@ -28,25 +28,27 @@ exports.resourceLeakDetector = {
 
         var errorMessages = [];
 
-        if(AddressSpace.registry.count() !== 0) {
+        if (AddressSpace.registry.count() !== 0) {
             errorMessages.push(" some AddressSpace have not been properly terminated: "
                 + AddressSpace.registry.toString());
         }
-        if(MonitoredItem.registry.count() !== 0) {
+        if (MonitoredItem.registry.count() !== 0) {
             errorMessages.push(" some MonitoredItems have not been properly terminated: "
                 + MonitoredItem.registry.toString());
         }
-        if(Subscription.registry.count() !== 0) {
+        if (Subscription.registry.count() !== 0) {
             errorMessages.push(" some Subscription have not been properly terminated: "
-                + Subscription.registry.toString() );
+                + Subscription.registry.toString());
 
         }
-        if(OPCUAServer.registry.count() !== 0) {
+        if (OPCUAServer.registry.count() !== 0) {
             errorMessages.push(" some OPCUAServer have not been properly terminated: "
                 + OPCUAServer.registry.toString());
         }
-        if (errorMessages.length > 0 ) {
-            if (info) {console.log(" TRACE : ",info);}
+        if (errorMessages.length > 0) {
+            if (info) {
+                console.log(" TRACE : ", info);
+            }
             throw new Error(" CANNOT START LEAK DETECTOR : UNCLEAN STATE \n" + errorMessages.join("\n"));
         }
         if (trace) {
@@ -67,12 +69,12 @@ exports.resourceLeakDetector = {
             }
             self.setIntervalCallCount += 1;
 
-            if (delay<=10) {
+            if (delay <= 10) {
                 throw new Error("GLOLBA#setInterval called with a delay = " + delay.toString());
             }
 
             var key = self.setIntervalCallCount;
-            var intervalId =  self.setInterval_old(func, delay);
+            var intervalId = self.setInterval_old(func, delay);
             self.map[key] = {
                 intervalId: intervalId,
                 stack: get_stack()
@@ -97,12 +99,13 @@ exports.resourceLeakDetector = {
         assert(this._running_server_count === 0);
         assert(MonitoredItem.registry.count() === 0);
     },
+
     stop: function (info) {
 
         if (trace) {
             console.log(" stop resourceLeakDetector");
         }
-        assert(_.isFunction(this.setInterval_old)," did you forget to call resourceLeakDetector.start() ?");
+        assert(_.isFunction(this.setInterval_old), " did you forget to call resourceLeakDetector.start() ?");
 
         global.setInterval = this.setInterval_old;
         this.setInterval_old = null;
@@ -136,37 +139,43 @@ exports.resourceLeakDetector = {
         }
         if (errorMessages.length) {
 
-            if (info) {console.log(" TRACE : ",info);}
+            if (info) {
+                console.log(" TRACE : ", info);
+            }
             console.log(errorMessages.join("\n"));
             console.log("----------------------------------------------- more info");
-            console.log(this.map);
+            // console.log(this.map);
+            _.forEach(this.map,function(value,key){
+                console.log("key =",key);
+                console.log(value.stack);//.split("\n"));
+            });
             throw new Error("LEAKS !!!" + errorMessages.join("\n"));
         }
     }
 };
 
-exports.installResourceLeakDetector = function(isGlobal,func) {
+exports.installResourceLeakDetector = function (isGlobal, func) {
 
     var trace = require("lib/misc/utils").trace_from_this_projet_only(new Error());
-   if (isGlobal) {
-       before(function() {
-           exports.resourceLeakDetector.start();
-       });
-       if (func) {
-           func();
-       }
-       after(function() {
-           exports.resourceLeakDetector.stop();
-       });
+    if (isGlobal) {
+        before(function () {
+            exports.resourceLeakDetector.start();
+        });
+        if (func) {
+            func();
+        }
+        after(function () {
+            exports.resourceLeakDetector.stop();
+        });
 
-   } else {
-       beforeEach(function() {
-           exports.resourceLeakDetector.start();
-       });
-       afterEach(function() {
-           exports.resourceLeakDetector.stop(trace);
-       });
-   }
+    } else {
+        beforeEach(function () {
+            exports.resourceLeakDetector.start();
+        });
+        afterEach(function () {
+            exports.resourceLeakDetector.stop(trace);
+        });
+    }
 };
 
 

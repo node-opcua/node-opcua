@@ -24,8 +24,6 @@ var Variant_TypeMask = 0x3F;
 var factories = require("lib/misc/factories");
 
 
-var schema_helpers =  require("lib/misc/factories_schema_helpers");
-schema_helpers.doDebug = true;
 
 describe("Variant", function () {
 
