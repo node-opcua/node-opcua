@@ -19,7 +19,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 [Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
 
-[![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fnode-opcua.github.io%2F&title=Node-OPCUA&language=nodejs&tags=github&category=software).
+[![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fgithub.com%2Fnode-opcua%2Fnode-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software).
 
 Why NodeJS ?
 

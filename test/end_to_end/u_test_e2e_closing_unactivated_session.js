@@ -53,7 +53,9 @@ module.exports = function (test) {
     it("QQQQ a server shall close any unactivated sessions before reaching the maximum number of session",function(done) {
 
         var MAX_SESSIONS = 3;
+        var oldMaxAllowedSessionNumber;
         if (test.server) {
+            oldMaxAllowedSessionNumber = test.server.maxAllowedSessionNumber;
             test.server.maxAllowedSessionNumber = MAX_SESSIONS;
         }
 
@@ -66,6 +68,7 @@ module.exports = function (test) {
 
         var clients = [];
 
+        var sessions =[];
         function create_unactivated_session(callback) {
 
             var endpointUrl = test.endpointUrl;
@@ -83,6 +86,7 @@ module.exports = function (test) {
                 function(callback) {
                     client1._createSession(function (err, l_session) {
                         session = l_session;
+                        sessions.push(session);
                         callback(err);
                     });
                 }
@@ -119,15 +123,32 @@ module.exports = function (test) {
             function(callback) { create_unactivated_session(callback);},
             function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
 
-            function closeConnections(callback) {
+            function (callback) {
+                // close all sessions
+                async.eachLimit(sessions, 1, function (session, inner_callback) {
+                    session.close(function(err){
+                        // ignore errors here
+                        inner_callback()
+                    });
+                },callback);
+            },
 
-                async.eachLimit(clients,1,function(client,callback){
+
+            function (callback) {
+                // close all connections
+                async.eachLimit(clients,1,function(client,inner_callback){
 
                     client.disconnect(function(err){
                         assert(client._sessions.length === 0, "");
-                        callback(err);
+                        inner_callback(err);
                     });
+
                 },callback)
+            },
+            function(callback){
+                test.server.maxAllowedSessionNumber = oldMaxAllowedSessionNumber;
+                test.server.engine.currentSessionCount.should.eql(0);
+                callback();
             }
         ],done);
 
