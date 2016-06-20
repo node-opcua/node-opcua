@@ -39,7 +39,7 @@ describe("testing Client - Umbrella ", function () {
     this.timeout(Math.max(200000, this._timeout));
 
     var test = this;
-
+    test.nb_backgroundsession = 0;
 
     var options = {
         port: port,
@@ -92,6 +92,8 @@ describe("testing Client - Umbrella ", function () {
     });
 
     beforeEach(function (done) {
+        // make sure that test has closed all sessions
+        test.nb_backgroundsession = test.server.engine.currentSessionCount;
         done();
     });
 
@@ -138,6 +140,9 @@ describe("testing Client - Umbrella ", function () {
     }
 
     afterEach(function (done) {
+
+        // make sure that test has closed all sessions
+        test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession);
 
         if (true) { return done(); }
 

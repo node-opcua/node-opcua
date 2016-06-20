@@ -24,6 +24,7 @@ module.exports = function (test) {
 
             if (!server) { return done(); }
 
+
             var client1 = new OPCUAClient();
             var endpointUrl = test.endpointUrl;
 
@@ -47,6 +48,9 @@ module.exports = function (test) {
                         the_session = session;
                         callback();
                     });
+                },
+                function (callback) {
+                    the_session.close(callback);
                 },
 
                 function (callback) {

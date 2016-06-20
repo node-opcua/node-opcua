@@ -1,0 +1,27 @@
+<UaTestCaseSelection xsi:noNamespaceSchemaLocation="testcaseselection.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <ProjectInfo ProjectType="ServerProject" Version="1.2.336.273"/>
+ <ConformanceGroups>
+  <ConformanceGroup name="Monitored Item Services">
+   <ConformanceUnit name="Monitor Value Change">
+    <TestCases>
+     <TestCase name="014.js"/>
+     <TestCase name="015.js"/>
+    </TestCases>
+   </ConformanceUnit>
+  </ConformanceGroup>
+  <ConformanceGroup name="Subscription Services">
+   <ConformanceUnit name="Subscription Basic">
+    <TestCases>
+     <TestCase name="028.js"/>
+     <TestCase name="Err-029.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Minimum 1">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+    </TestCases>
+   </ConformanceUnit>
+  </ConformanceGroup>
+ </ConformanceGroups>
+</UaTestCaseSelection>
