@@ -196,7 +196,20 @@ the_session.readVariableValue("ns=1;s=free_memory", function(err,dataValue) {
 
 ### finding the nodeId of a node by Browse name
 
-to do
+```javascript
+var browsePath = [
+    makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo.ProductName"),
+];
+
+var productNameNodeId;
+session.translateBrowsePath(browsePath, function (err, results) {
+    if (!err) {
+      console.log(results[0].toString());
+      productNameNodeId = results[0].targets[0].targetId;
+    }
+});
+
+```
 
 
 ### install a subscription
