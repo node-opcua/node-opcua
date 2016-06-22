@@ -785,7 +785,7 @@ describe("testing ability for client to reconnect when server close connection",
         }
         done();
     }
-        
+
     function verify_that_client_has_received_a_single_close_event(done) {
         try {
             client_has_received_close_event.should.eql(1, "expecting close event to be emitted only once");
@@ -1091,20 +1091,20 @@ describe("testing ability for client to reconnect when server close connection",
         callback();
     }
 
-    function break_connection(callback) {
+    function break_connection(socketError, callback) {
         var socket = client._secureChannel._transport._socket;
         socket.end();
         socket.destroy();
-        socket.emit('error', new Error('ECONNRESET'));
+        socket.emit('error', new Error(socketError));
         callback();
     }
 
-    function simulate_connection_break(breakage_duration, callback) {
+    function simulate_connection_break(breakage_duration, socketError, callback) {
 
         async.series([
             suspend_demo_server,
 
-            break_connection,
+            break_connection.bind(null, socketError),
 
             wait_for.bind(null, breakage_duration),
 
@@ -1147,12 +1147,12 @@ describe("testing ability for client to reconnect when server close connection",
         accelerate_subscription_timeout(server_subscription, callback);
     }
 
-    function simulate_very_long_connection_break_until_subscription_times_out(callback) {
+    function simulate_very_long_connection_break_until_subscription_times_out(socketError, callback) {
 
         async.series([
             suspend_demo_server,
 
-            break_connection,
+            break_connection.bind(null, socketError),
 
             wait_until_server_subscription_has_timed_out,
 
@@ -1210,7 +1210,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(ensure_continuous),
 
             // now drop connection  for 1.5 seconds
-            f(simulate_connection_break.bind(null, 1500)),
+            f(simulate_connection_break.bind(null, 1500, 'ECONNRESET')),
             // make sure that we have received all notifications
             // (thanks to republish )
 
@@ -1254,7 +1254,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             // now drop connection  for a long time, so that server
             // has to delete all pending subscriptions....
-            f(simulate_very_long_connection_break_until_subscription_times_out.bind(null)),
+            f(simulate_very_long_connection_break_until_subscription_times_out.bind(null, 'ECONNRESET')),
 
 
             f(reset_continuous),
@@ -1436,5 +1436,43 @@ describe("testing ability for client to reconnect when server close connection",
 
         ],done);
     });
-});
 
+    it("TR11 -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down", function (done) {
+        async.series([
+            f(start_demo_server),
+            f(reset_continuous),
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(client_create_and_activate_session),
+            f(create_subscription),
+            f(monitor_monotonous_counter),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            // now drop connection  for 1.5 seconds
+            f(simulate_connection_break.bind(null, 1500, 'EPIPE')),
+            // make sure that we have received all notifications
+            // (thanks to republish )
+
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(terminate_subscription),
+
+            f(disconnect_client),
+            f(shutdown_server)
+        ], function (err) {
+            done(err);
+        });
+
+    });
+
+});
