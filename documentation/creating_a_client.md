@@ -198,7 +198,7 @@ the_session.readVariableValue("ns=1;s=free_memory", function(err,dataValue) {
 
 ```javascript
 var browsePath = [
-    makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo.ProductName"),
+    opcua.browse_service.makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo.ProductName"),
 ];
 
 var productNameNodeId;
