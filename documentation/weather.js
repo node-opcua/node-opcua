@@ -79,24 +79,24 @@ function post_initialize() {
     console.log("initialized");
     function construct_my_address_space(server) {
        // declare some folders
-       var cities  = server.engine.addressSpace.addFolder("ObjectsFolder",{ browseName: "Cities"});
+       var citiesNode  = server.engine.addressSpace.addFolder("ObjectsFolder",{ browseName: "Cities"});
        function create_CityNode(city_name) {
            // declare the city node
-           server.engine.addressSpace.addFolder(cities,{ browseName: city_name });
+           var cityNode = server.engine.addressSpace.addFolder(citiesNode,{ browseName: city_name });
            server.engine.addressSpace.addVariable({
-               componentOf: city_name,
+               componentOf: cityNode,
                browseName: "Temperature",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"temperature"); } }
            });
            server.engine.addressSpace.addVariable({
-               componentOf: city_name,
+               componentOf: cityNode,
                browseName: "Humidity",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"humidity"); } }
            });
            server.engine.addressSpace.addVariable({
-               componentOf: city_name,
+               componentOf: cityNode,
                browseName: "Pressure",
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"pressure"); } }

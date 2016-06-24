@@ -318,10 +318,10 @@ The server address space will be made of a ```Cities``` folder containing one fo
 
 ```javascript
 // declare some folders
-var cities  = server.engine.addressSpace.addFolder("ObjectsFolder",{ browseName: "Cities"});
+var citiesNode  = server.engine.addressSpace.addFolder("ObjectsFolder",{ browseName: "Cities"});
 function create_CityNode(city_name) {
     // declare the city node
-    server.engine.addressSpace.addFolder(cities,{ browseName: city_name });
+    var cityNode = server.engine.addressSpace.addFolder(citiesNode,{ browseName: city_name });
     _"construct city weather variables"
 }
 cities.forEach(function(city) {
@@ -354,19 +354,19 @@ Each city node exposes 3 read-only variables that can be instantiated this way:
 
 ```javascript
 server.engine.addressSpace.addVariable({
-    componentOf: city_name,
+    componentOf: cityNode,
     browseName: "Temperature",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"temperature"); } }
 });
 server.engine.addressSpace.addVariable({
-    componentOf: city_name,
+    componentOf: cityNode,
     browseName: "Humidity",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"humidity"); } }
 });
 server.engine.addressSpace.addVariable({
-    componentOf: city_name,
+    componentOf: cityNode,
     browseName: "Pressure",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"pressure"); } }
