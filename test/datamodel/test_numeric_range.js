@@ -251,18 +251,26 @@ describe("Testing numerical range", function () {
             referenceByteString.length.should.eql(11);
         });
 
-        it("it should handle the case were the range is bigger than the available size",function() {
+        it("it should handle the case where the high value of the range is bigger than the array size",function() {
 
-            var nr = new NumericRange("0:16777215"); // very large range
+            var nr = new NumericRange("0:16777215"); // very large range outside the bound
 
             referenceByteString.length.should.eql(11);
             var r = nr.extract_values(referenceByteString);
 
-            r.array.should.be.instanceOf(Buffer);
-            r.array.length.should.eql(11);
-            r.array.toString().should.eql("Lorem Ipsum");
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+            referenceByteString.length.should.eql(11);
 
-            r.statusCode.should.eql(StatusCodes.Good);
+        });
+
+        it("it should handle the case where both high value and low value range are bigger than the array size",function() {
+
+            var nr = new NumericRange("16777000:16777215"); // very large range outside the bound
+
+            referenceByteString.length.should.eql(11);
+            var r = nr.extract_values(referenceByteString);
+
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             referenceByteString.length.should.eql(11);
 
         });
