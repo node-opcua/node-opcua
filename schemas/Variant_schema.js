@@ -50,7 +50,14 @@ function convertTo(dataType, ArrayType, value) {
 
     if (ArrayType && value instanceof ArrayType) {
         var newArray = new value.constructor(value.length); // deep copy
-        newArray.set(value);
+
+        if (newArray instanceof Buffer) {
+           // required for nodejs 4.x 
+           value.copy(newArray);
+        } else {
+           newArray.set(value);
+        }
+ 
         return newArray;
 
     }
