@@ -47,12 +47,16 @@ function get_decoder(dataType) {
 var displayWarning = true;
 function convertTo(dataType, ArrayType, value) {
 
+
     if (ArrayType && value instanceof ArrayType) {
-        return value;
+        var newArray = new value.constructor(value.length); // deep copy
+        newArray.set(value);
+        return newArray;
+
     }
     var coerceFunc = coerceVariantType.bind(null, dataType);
-    var newArr = ArrayType ? new ArrayType(value.length) : [];
     var n = value.length;
+    var newArr = ArrayType ? new ArrayType(n) : new Array(n);
     for (var i = 0; i < n; i++) {
         newArr[i] = coerceFunc(value[i]);
     }
@@ -337,6 +341,13 @@ var Variant_Schema = {
 
     construct_hook: function (options) {
 
+        if (options.constructor.name === "Variant") {
+            return {
+                dataType: options.dataType,
+                arrayType: options.arrayType,
+                value: options.value
+            };
+        }
         assert(options);
         options.dataType = options.dataType || DataType.Null;
         assert(options.dataType);
@@ -363,7 +374,9 @@ var Variant_Schema = {
             if (options.arrayType === VariantArrayType.Array) {
 
                 options.value = options.value || [];
-                options.value = coerceVariantArray(options.dataType, options.value);
+                options.value1 = coerceVariantArray(options.dataType, options.value);
+                assert(options.value1 !== options.value);
+                options.value = options.value1;
             } else {
 
                 assert(options.arrayType === VariantArrayType.Matrix);
@@ -406,7 +419,7 @@ var Variant_Schema = {
                 case DataType.Boolean:
                     return value.toString();
                 case DataType.DateTime:
-                    return value.toISOString();
+                    return value ? ( value.toISOString ? value.toISOString() : value.toString()) :"<null>";
                 default:
                     return value ? value.toString(options) : "0";
             }
@@ -431,15 +444,19 @@ var Variant_Schema = {
 
         } else if ((self.arrayType === VariantArrayType.Array) || (self.arrayType === VariantArrayType.Matrix)) {
 
-            assert(_.isArray(self.value) || (self.value.buffer instanceof ArrayBuffer));
-            var a = [];
-            for (var i = 0; i < Math.min(10, self.value.length); i++) {
-                a[i] = self.value[i];
+            if (!self.value) {
+                data += ", null";
+            } else {
+                var a = [];
+                assert(_.isArray(self.value) || (self.value.buffer instanceof ArrayBuffer));
+                for (var i = 0; i < Math.min(10, self.value.length); i++) {
+                    a[i] = self.value[i];
+                }
+                if (self.value.length > 10) {
+                    a.push("...");
+                }
+                data += ", l= " + self.value.length + ", value=[" + a.map(f).join(",") + "]";
             }
-            if (self.value.length > 10) {
-                a.push("...");
-            }
-            data += ", l= " + self.value.length + ", value=[" + a.map(f).join(",") + "]";
         }
         return "Variant(" + data + ")";
     }

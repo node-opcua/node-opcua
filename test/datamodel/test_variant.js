@@ -418,7 +418,7 @@ describe("Variant - Analyser", function () {
                 obj_reloaded.decode(stream);
             })
             .on('cycle', function (message) {
-                console.log(message);
+                //xx console.log(message);
             })
             .on('complete', function () {
 
@@ -516,7 +516,7 @@ describe("benchmarking variant encode", function () {
                 test_iteration(variant, stream, old_encode);
             })
             .on('cycle', function (message) {
-                console.log(message);
+                // console.log(message);
             })
             .on('complete', function () {
 
@@ -653,7 +653,7 @@ describe("benchmarking float Array encode/decode", function () {
                 test_iteration(variant, stream, test_6);
             })
             .on('cycle', function (message) {
-                console.log(message);
+                //xx console.log(message);
             })
             .on('complete', function () {
 
@@ -770,7 +770,7 @@ describe("Variant with enumeration",function() {
             dataType: DataType.Int32,
             value: ServerState.Running
         });
-        console.log(v.toString());
+        // console.log(v.toString());
         v.value.should.eql(0);
 
     });
@@ -779,7 +779,7 @@ describe("Variant with enumeration",function() {
         var v = new Variant({
              value: ServerState.Failed
         });
-        console.log(v.toString());
+        // console.log(v.toString());
         v.value.should.eql(1);
         v.dataType.should.eql(DataType.Int32);
     });
@@ -802,4 +802,50 @@ describe("Variant with enumeration",function() {
         v.dataType.should.eql(DataType.ByteString);
         v.value.toString("ascii").should.eql("abcd");
     });
+    it("should create a variant copy (with it's own array) ",function() {
+
+        var options =        {
+            dataType: DataType.Float,
+            arrayType: VariantArrayType.Array,
+            value: [0, 1, 2, 3, 4, 5]
+        };
+
+       var v1,v2,v3;
+       v1 = new Variant(options);
+
+       v2 = new Variant({
+           dataType: DataType.Float,
+           arrayType: VariantArrayType.Array,
+           value: v1.value
+       });
+
+       v1.value[1] +=1;
+        should(v1.value[1] === v2.value[1]).eql(false);
+        v1.value[1] -=1;
+
+       v3 = new Variant({
+            dataType: v1.dataType,
+            arrayType: v1.arrayType,
+            value: v1.value
+        });
+        //xx v2.value = new Float32Array(v1.value);
+
+        should(v1 === v2).eql(false);
+
+        v1.value[1].should.eql(1);
+        v2.value[1].should.eql(1);
+
+        v1.value[1] = 32;
+        v1.value[1].should.eql(32);
+
+        //xx options.value[1].should.eql(1); // v2 should have its own copy of the array
+
+        v3.value[1].should.eql(1); // v2 should have its own copy of the array
+
+        v2.value[1].should.eql(1); // v2 should have its own copy of the array
+
+
+    });
+
 });
+
