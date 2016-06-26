@@ -191,7 +191,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             console.log(number + ' ' + delay + 'ms');
             nbRetry = number+1;
             if (number == 2) {
-                console.log( "Let abort the connection now");
+                console.log("Let's abort the connection now");
                 secureChannel.abortConnection(function() {});
             }
         });

@@ -51,6 +51,18 @@ describe("Variant", function () {
         });
     });
 
+    it("should create a Scalar UInt64 Variant", function () {
+
+        var var1 = new Variant({arrayType: VariantArrayType.Scalar, dataType: DataType.UInt64, value: [10,20] });
+
+        var1.dataType.should.eql(DataType.UInt64);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(9);
+        });
+    });
+
     it("should create a Scalar LocalizedText Variant 1/2", function () {
         var var1 = new Variant({
             dataType: DataType.LocalizedText,
@@ -114,6 +126,40 @@ describe("Variant", function () {
         });
     });
 
+    it("should create a Scalar ByteString  Variant - null", function () {
+
+        var var1 = new Variant({dataType: DataType.ByteString, value: null});
+
+        var1.dataType.should.eql(DataType.ByteString);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(5);
+        });
+    });
+
+    it("should create a Scalar ByteString  Variant - empty buffer", function () {
+
+        var var1 = new Variant({dataType: DataType.ByteString, value: new Buffer(0) });
+
+        var1.dataType.should.eql(DataType.ByteString);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(5);
+        });
+    });
+
+    it("should create a Scalar ByteString  Variant - 3 bytes", function () {
+        var var1 = new Variant({dataType: DataType.ByteString, value: new Buffer("ABC") });
+
+        var1.dataType.should.eql(DataType.ByteString);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(5 + 3);
+        });
+    });
 
     it("should create a Scalar String  Variant", function () {
         var var1 = new Variant({dataType: DataType.String, value: "Hello"});
@@ -247,6 +293,7 @@ describe("Variant", function () {
 
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
+
     it ("should raise an exception when construction a Matrix with incorrect element size",function() {
 
         should(function construct_matrix_variant_with_invalid_value() {
@@ -258,6 +305,32 @@ describe("Variant", function () {
             });
         }).throwError();
 
+    });
+
+    it("should create a Array ByteString  Variant ", function () {
+
+        var var1 = new Variant({dataType: DataType.ByteString, value:  [ new Buffer("ABC") ,null] });
+
+        var1.dataType.should.eql(DataType.ByteString);
+        var1.arrayType.should.eql(VariantArrayType.Array);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal( 5 + 4 +3 + 4);
+        });
+    });
+    it("should create a Array UInt64 Variant", function () {
+
+        var var1 = new Variant({
+            arrayType: VariantArrayType.Array,
+            dataType: DataType.UInt64,
+            value: [ [1,2],[3,4] ]  });
+
+        var1.dataType.should.eql(DataType.UInt64);
+        var1.arrayType.should.eql(VariantArrayType.Array);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(5 + 8 + 8 );
+        });
     });
 
 });

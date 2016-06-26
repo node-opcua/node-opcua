@@ -119,6 +119,9 @@ describe("Testing the server publish engine", function () {
         publish_server.shutdown();
     });
 
+    var add_mock_monitored_item = require("./helper").add_mock_monitored_item;
+
+
     it("a server should feed the availableSequenceNumbers in PublishResponse with sequence numbers that have not been acknowledged by the client", function () {
 
         var publish_server = new ServerSidePublishEngine();
@@ -133,13 +136,14 @@ describe("Testing the server publish engine", function () {
             //
             publishEngine: publish_server
         });
-
         publish_server.add_subscription(subscription);
         subscription.state.should.equal(SubscriptionState.CREATING);
         send_response_for_request_spy.callCount.should.equal(0);
 
+        var monitoredItem  =add_mock_monitored_item(subscription);
+
         // server send a notification to the client
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
 
 
         // client sends a PublishRequest to the server
@@ -165,7 +169,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server has now some notification ready and send them to the client
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
         send_response_for_request_spy.callCount.should.equal(1);
 
         this.clock.tick(subscription.publishingInterval);
@@ -325,13 +329,14 @@ describe("Testing the server publish engine", function () {
             publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
 
         // --------------------------------
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
         // server send a notification to the client
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
 
         this.clock.tick(subscription.publishingInterval);
 
@@ -345,7 +350,7 @@ describe("Testing the server publish engine", function () {
         // --------------------------------
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
 
         this.clock.tick(subscription.publishingInterval);
 
@@ -357,7 +362,8 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(1).args[1].results.should.eql([]);
 
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
+
         this.clock.tick(subscription.publishingInterval);
         subscription.getAvailableSequenceNumbers().should.eql([1, 2, 3]);
 
@@ -374,7 +380,8 @@ describe("Testing the server publish engine", function () {
         ));
         subscription.getAvailableSequenceNumbers().should.eql([1, 3]);
 
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
+
         this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(4);
         send_response_for_request_spy.getCall(3).args[1]._schema.name.should.equal("PublishResponse");
@@ -391,7 +398,8 @@ describe("Testing the server publish engine", function () {
         ));
         subscription.getAvailableSequenceNumbers().should.eql([4]);
 
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
+
         this.clock.tick(subscription.publishingInterval);
 
         send_response_for_request_spy.callCount.should.equal(5);
@@ -417,6 +425,7 @@ describe("Testing the server publish engine", function () {
             publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
         // simulate a client sending a PublishRequest to the server
         // that acknowledge on a wrong sequenceNumber
@@ -432,7 +441,7 @@ describe("Testing the server publish engine", function () {
 
 
         // server send a notification to the client
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
 
 
         this.clock.tick(subscription.publishingInterval * 1.2);
@@ -518,8 +527,9 @@ describe("Testing the server publish engine", function () {
             maxNotificationsPerPublish: 0 // no limits
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
 
         // make sure we have at least 5 PublishRequest in queue
         publish_server.maxPublishRequestInQueue.should.be.greaterThan(5);
@@ -564,13 +574,14 @@ describe("Testing the server publish engine", function () {
             publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
         this.clock.tick(subscription.publishingInterval);
         subscription.state.should.equal(SubscriptionState.LATE);
 
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
         this.clock.tick(subscription.publishingInterval * 1.2);
 
         subscription.state.should.equal(SubscriptionState.LATE);
@@ -591,6 +602,7 @@ describe("Testing the server publish engine", function () {
             publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
         subscription.lifeTimeCount.should.eql(60);
         subscription.timeToExpiration.should.eql(1000 * 60);
@@ -663,6 +675,11 @@ describe("Testing the server publish engine", function () {
 
         publish_server.add_subscription(subscription3);
 
+        var monitoredItem1  =add_mock_monitored_item(subscription1);
+        var monitoredItem2  =add_mock_monitored_item(subscription2);
+        var monitoredItem3  =add_mock_monitored_item(subscription3);
+
+
         subscription1.lifeTimeCount.should.eql(60);
         subscription2.lifeTimeCount.should.eql(120);
         subscription3.lifeTimeCount.should.eql(1000);
@@ -673,9 +690,9 @@ describe("Testing the server publish engine", function () {
         subscription3.timeToExpiration.should.eql(100   * 1000);
 
         // add some notification we want to process
-        subscription1.addNotificationMessage(fakeNotificationData);
-        subscription2.addNotificationMessage(fakeNotificationData);
-        subscription3.addNotificationMessage(fakeNotificationData);
+        monitoredItem1.simulateMonitoredItemAddingNotification();
+        monitoredItem2.simulateMonitoredItemAddingNotification();
+        monitoredItem3.simulateMonitoredItemAddingNotification();
 
         // let move in time so that subscriptions starts
         this.clock.tick(Math.max(subscription1.publishingInterval, subscription2.publishingInterval, subscription3.publishingInterval));
@@ -725,13 +742,14 @@ describe("Testing the server publish engine", function () {
             publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
         this.clock.tick(subscription.publishingInterval);
         subscription.state.should.equal(SubscriptionState.LATE);
 
-        subscription.addNotificationMessage(fakeNotificationData);
+        monitoredItem.simulateMonitoredItemAddingNotification();
         this.clock.tick(subscription.publishingInterval * 1.2);
 
         subscription.state.should.equal(SubscriptionState.LATE);
@@ -761,6 +779,8 @@ describe("Testing the server publish engine", function () {
         subscription.maxKeepAliveCount.should.eql(20);
         subscription.state.should.eql(SubscriptionState.CREATING);
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
+
         publish_server._on_PublishRequest(new subscription_service.PublishRequest());
 
         this.clock.tick(subscription.publishingInterval);
@@ -769,13 +789,11 @@ describe("Testing the server publish engine", function () {
 
 
         // server send a notification to the client
-        subscription.addNotificationMessage(fakeNotificationData);
-        subscription.pendingNotificationsCount.should.eql(1);
+        monitoredItem.simulateMonitoredItemAddingNotification();
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         // server send a notification to the client
-        subscription.addNotificationMessage(fakeNotificationData);
-        subscription.pendingNotificationsCount.should.eql(2);
+        monitoredItem.simulateMonitoredItemAddingNotification();
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         this.clock.tick(subscription.publishingInterval);
@@ -802,6 +820,7 @@ describe("Testing the server publish engine", function () {
             publishEngine: publish_server
         });
         publish_server.add_subscription(subscription);
+        var monitoredItem  =add_mock_monitored_item(subscription);
 
         subscription.maxKeepAliveCount.should.eql(20);
         subscription.state.should.eql(SubscriptionState.CREATING);

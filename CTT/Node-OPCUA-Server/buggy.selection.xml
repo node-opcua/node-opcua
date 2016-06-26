@@ -2,17 +2,65 @@
  <ProjectInfo ProjectType="ServerProject" Version="1.2.336.273"/>
  <ConformanceGroups>
   <ConformanceGroup name="Monitored Item Services">
-   <ConformanceUnit name="Monitor Value Change">
+   <ConformanceUnit name="Monitor Basic">
     <TestCases>
      <TestCase name="014.js"/>
+     <TestCase name="020.js"/>
+     <TestCase name="021.js"/>
+     <TestCase name="022.js"/>
+     <TestCase name="023.js"/>
+     <TestCase name="024.js"/>
+     <TestCase name="025.js"/>
+     <TestCase name="026.js"/>
+     <TestCase name="027.js"/>
+     <TestCase name="028.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Monitor Items 2">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="Err-001.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Monitor QueueSize_1">
+    <TestCases>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Monitor Value Change">
+    <TestCases>
+     <TestCase name="010.js"/>
+     <TestCase name="014.js"/>
      <TestCase name="015.js"/>
+     <TestCase name="036.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Monitor Items Deadband Filter">
+    <TestCases>
+     <TestCase name="010.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="013.js"/>
+     <TestCase name="014.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="018.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-005.js"/>
     </TestCases>
    </ConformanceUnit>
   </ConformanceGroup>
   <ConformanceGroup name="Subscription Services">
    <ConformanceUnit name="Subscription Basic">
     <TestCases>
+     <TestCase name="022.js"/>
+     <TestCase name="023.js"/>
+     <TestCase name="027.js"/>
      <TestCase name="028.js"/>
+     <TestCase name="054.js"/>
+     <TestCase name="057.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-007.js"/>
      <TestCase name="Err-029.js"/>
     </TestCases>
    </ConformanceUnit>

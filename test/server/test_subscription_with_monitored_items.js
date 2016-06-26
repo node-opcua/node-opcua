@@ -239,7 +239,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("a subscription should collect monitored item notification with collectNotificationData", function (done) {
+    it("a subscription should collect monitored item notification with _collectNotificationData", function (done) {
 
         var subscription = new Subscription({
             publishingInterval: 1000,
@@ -270,8 +270,8 @@ describe("Subscriptions and MonitoredItems", function () {
         // data collection is done asynchronously => let give some time for this to happen
         this.clock.tick(5);
 
-        // at first, collectNotificationData  should has 1 notification with current dataItem value
-        var notifications = subscription.collectNotificationData();
+        // at first, _collectNotificationData  should has 1 notification with current dataItem value
+        var notifications = subscription._collectNotificationData();
         should(notifications.length).equal(1);
 
         // now simulate some data change
@@ -279,8 +279,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
         monitoredItem.queue.length.should.eql(5);
 
-        // then, collectNotificationData  should collect at least 2 values
-        notifications = subscription.collectNotificationData();
+        // then, _collectNotificationData  should collect at least 2 values
+        notifications = subscription._collectNotificationData();
         notifications.length.should.eql(1);
 
         notifications = notifications[0];
@@ -995,6 +995,56 @@ describe("Subscriptions and MonitoredItems", function () {
 
         });
 
+
+        it("ZZ0 testing with String and DeadBandFilter",function(done) {
+
+            var nodeId = "ns=100;s=Static_LocalizedText";
+
+            var filter =  new subscription_service.DataChangeFilter({
+                trigger: subscription_service.DataChangeTrigger.StatusValue,
+                deadbandType: subscription_service.DeadbandType.Absolute,
+                deadbandValue: 10.0
+            });
+
+            // create monitor item
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 0,
+                    filter: null
+                }
+            });
+
+
+            var monitoredItemCreateResult = subscription.createMonitoredItem(
+                addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+
+
+            // data collection is done asynchronously => let give some time for this to happen
+            test.clock.tick(5);
+
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+            // now modify monitoredItem setting a filter
+            var res = monitoredItem.modify(null,new subscription_service.MonitoringParameters({
+                samplingInterval: 0,
+                discardOldest: true,
+                queueSize: 1,
+                filter: filter
+            }));
+
+            /* MonitoredItemModifyResult*/
+            res.statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
+
+
+            done();
+        });
     });
 
 });
@@ -1120,7 +1170,7 @@ describe("#maxNotificationsPerPublish", function () {
         return monitoredItem;
     }
 
-    it("should not publish more notifications than expected", function (done) {
+    it("QA should not publish more notifications than expected", function (done) {
 
         var spy_callback = sinon.spy();
 
@@ -1141,6 +1191,9 @@ describe("#maxNotificationsPerPublish", function () {
 
         this.clock.tick(subscription.publishingInterval);
         simulate_client_adding_publish_request(spy_callback);
+        simulate_client_adding_publish_request(spy_callback);
+        simulate_client_adding_publish_request(spy_callback);
+        simulate_client_adding_publish_request(spy_callback);
 
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
@@ -1155,31 +1208,26 @@ describe("#maxNotificationsPerPublish", function () {
         var monitoredItem4 = createMonitoredItem(subscription, 126);
 
 
-
         // simulate client sending publish request
         simulate_client_adding_publish_request(spy_callback);
         simulate_client_adding_publish_request(spy_callback);
         simulate_client_adding_publish_request(spy_callback);
         simulate_client_adding_publish_request(spy_callback);
         simulate_client_adding_publish_request(spy_callback);
-        simulate_client_adding_publish_request(spy_callback);
-        simulate_client_adding_publish_request(spy_callback);
-        simulate_client_adding_publish_request(spy_callback);
-
 
         // now simulate some data change on monitored items
         this.clock.tick(100);
-
         this.clock.tick(100);
-
-        this.clock.tick(110);
+        this.clock.tick(100);
+        this.clock.tick(100);
+        this.clock.tick(100);
 
         freeze_data_source();
 
-        monitoredItem1.queue.length.should.eql(4);
-        monitoredItem2.queue.length.should.eql(4);
-        monitoredItem3.queue.length.should.eql(4);
-        monitoredItem4.queue.length.should.eql(4);
+        monitoredItem1.queue.length.should.eql(5);
+        monitoredItem2.queue.length.should.eql(5);
+        monitoredItem3.queue.length.should.eql(5);
+        monitoredItem4.queue.length.should.eql(5);
 
         this.clock.tick(800);
 
@@ -1190,13 +1238,18 @@ describe("#maxNotificationsPerPublish", function () {
         monitoredItem3.queue.length.should.eql(0);
         monitoredItem4.queue.length.should.eql(0);
 
+
         // verify that publishResponse has been send
         var publishResponse0 = spy_callback.getCall(0).args[1];
         numberOfnotifications(publishResponse0).should.eql(0); // KeepAlive
 
+
         var publishResponse1 = spy_callback.getCall(1).args[1];
         numberOfnotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
         publishResponse1.moreNotifications.should.eql(true);
+
+
+        spy_callback.callCount.should.eql(6);
 
         var publishResponse2 = spy_callback.getCall(2).args[1];
         numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
@@ -1204,7 +1257,11 @@ describe("#maxNotificationsPerPublish", function () {
 
         var publishResponse3 = spy_callback.getCall(4).args[1];
         numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
-        publishResponse3.moreNotifications.should.eql(false);
+        publishResponse3.moreNotifications.should.eql(true);
+
+        var publishResponse4 = spy_callback.getCall(5).args[1];
+        numberOfnotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+        publishResponse4.moreNotifications.should.eql(false);
 
 
         subscription.terminate();

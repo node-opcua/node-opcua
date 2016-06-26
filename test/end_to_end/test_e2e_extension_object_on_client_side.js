@@ -68,7 +68,7 @@ describe("testing extension object with client residing on a different process t
                         new opcua.read_service.ReadValueId({
                             nodeId:  nodeId,
                             attributeId: 13,
-                            indexRange: new opcua.NumericRange("0:16777235")
+                            indexRange: new opcua.NumericRange() // "0:16777235"
                         })
                     ];
                     session.read(nodesToRead,function(err,nodesToRead,results){
