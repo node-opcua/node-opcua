@@ -20,6 +20,9 @@ var argv = require('yargs')
     .alias('m', 'maxAllowedSessionNumber')
     .defaults("maxAllowedSessionNumber",500)
 
+    .boolean("silent")
+    .describe("slient","no trace")
+
     .help("help")
     .alias("h","help")
     .argv;
@@ -320,7 +323,11 @@ server.start(function (err) {
 
     console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
 
-  //  console.log = function(){};
+    if (argv.silent) {
+        console.log(" silent");
+        console.log = function() {}
+    }
+    //  console.log = function(){};
 
 });
 
@@ -350,6 +357,8 @@ function t(d) {
 
 server.on("response", function (response) {
 
+    if (argv.silent) { return};
+
     console.log(t(response.responseHeader.timeStamp), response.responseHeader.requestHandle,
         response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {
@@ -373,7 +382,7 @@ server.on("response", function (response) {
             console.log(str);
             break;
         case "xxPublishResponse":
-            //xx console.log(response.toString());
+            console.log(response.toString());
             console.log("PublishResponse.subscriptionId = ",response.subscriptionId.toString());
             break;
     }
@@ -387,14 +396,18 @@ function indent(str, nb) {
     }).join("\n");
 }
 server.on("request", function (request, channel) {
+
+    if (argv.silent) { return};
+
     console.log(t(request.requestHeader.timeStamp), request.requestHeader.requestHandle,
         request._schema.name.yellow, " ID =", channel.secureChannelId.toString().cyan);
     switch (request._schema.name) {
-        case "ModifySubscriptionRequest":
-        case "CreateMonitoredItemsRequest":
-        case "ModifyMonitoredItemsRequest":
-        case "RepublishRequest":
-            //xx console.log(request.toString());
+        case "xxModifySubscriptionRequest":
+        case "xxCreateMonitoredItemsRequest":
+        case "xxModifyMonitoredItemsRequest":
+        case "xxRepublishRequest":
+        case "xxWriteRequest":
+            console.log(request.toString());
             break;
         case "xxReadRequest":
             var str = "    ";
@@ -432,12 +445,12 @@ server.on("request", function (request, channel) {
 
 process.on('SIGINT', function () {
     // only work on linux apparently
-    console.log(" Received server interruption from user ".red.bold);
-    console.log(" shutting down ...".red.bold);
+    console.error(" Received server interruption from user ".red.bold);
+    console.error(" shutting down ...".red.bold);
     server.shutdown(1000, function () {
-        console.log(" shutting down completed ".red.bold);
-        console.log(" done ".red.bold);
-        console.log("");
+        console.error(" shutting down completed ".red.bold);
+        console.error(" done ".red.bold);
+        console.error("");
         process.exit(-1);
     });
 });
