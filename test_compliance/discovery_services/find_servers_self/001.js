@@ -4,6 +4,7 @@ var opcua = require(path);
 var ApplicationType = opcua.ApplicationType;
 
 var should = require("should");
+var assert = require("assert");
 
 function addError( str) {
     console.log("ERROR".red , str.cyan);
@@ -72,7 +73,7 @@ function describe_on_client(title,options,functor) {
     })
 }
 
-/ Description: Invoke FindServers with default parameters. */
+/* Description: Invoke FindServers with default parameters. */
 exports.register_test = function (options) {
 
     describe_on_client("#FindServer",options,function(callback){

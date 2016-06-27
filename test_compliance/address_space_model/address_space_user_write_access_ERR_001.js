@@ -1,4 +1,5 @@
 
+var assert = require("assert");
 
 //  Description: Write to a node whose AccessLevel does not contain write capabilities.
 
@@ -142,7 +143,7 @@ exports.register_test = function (options) {
             // read the node (actually read the 'accesslevel' and 'value' attributes (saves a 2nd read later)
             read_access_level(options.session,item,function(err,accessLevel){
 
-                if ( ! accessLevel.has("CurrentWrite")) {
+                if ( accessLevel.has("CurrentWrite")) {
 
                     err =new Error(" cannot perform test because node " + item.toString() + " is readonly "+
                                    "(accessLevelFlag ="  + accessLevel.toString() + "). we need something that is Writable at the global level"

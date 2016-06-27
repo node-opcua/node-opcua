@@ -156,7 +156,8 @@ describe("testing monitoring Executable flags on methods", function () {
                         callback();
                     });
                 },
-                function (callback) { setTimeout(callback,100); },
+                
+                function (callback) { setTimeout(callback,500); },
 
                 function (callback) {
                     boiler.simulation.$methods["start"].executableFlag.should.eql(true);

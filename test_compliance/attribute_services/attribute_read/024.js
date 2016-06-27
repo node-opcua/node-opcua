@@ -78,11 +78,14 @@ function test_24_on_node(session,nodeId,callback) {
                     // inspect(dataValues);
                     dataValues.length.should.eql(1);
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
-                    dataValues[0].value.value.should.be.instanceOf(Array);
+
+                    // dataValues[0].value.value.should.be.instanceOf(Array);
+                    dataValues[0].value.value.length.should.be.greaterThan(0);
+
                     dataValues[0].value.value.length.should.equal(1);
                     dataValues[0].value.value[0].should.eql(expected_value);
                 } catch(test_err) {
-                    console.log(" Cauch ",test_err.message);
+                    console.log(" caugth ",test_err.message);
                     err = test_err;
                 }
 
