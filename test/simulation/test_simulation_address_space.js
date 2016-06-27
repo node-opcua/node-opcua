@@ -718,6 +718,14 @@ describe("testing address space for conformance testing", function () {
                 });
             },
             function (callback) {
+                readValueArray(nodeId, null, function (err, value) {
+                    l_value = value;
+                    (new Buffer(l_value)).toString().should.eql("LoremIpsum");
+                    callback(err);
+                });
+            },
+
+            function (callback) {
                 var buf = new Buffer("OREM");
                 writeValueRange(nodeId, DataType.ByteString, buf, "1:4", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);

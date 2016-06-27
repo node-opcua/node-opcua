@@ -788,7 +788,7 @@ module.exports = function (test) {
                                 attributeId: 13,
                                 nodeId: nodeId,
                             }],function(err,a,result){
-                                console.log(" written ",result[0].value.toString());
+                                //xx console.log(" written ",result[0].value.toString());
                                 callback(err);
 
                             })
@@ -828,27 +828,27 @@ module.exports = function (test) {
 
                         create_monitored_item.bind(null),
 
-                        wait.bind(null, 100),
+                        wait.bind(null, 300),
 
                         function (callback) {
                             monitoredItemOnChangedSpy.callCount.should.eql(1);
                             monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
-                            console.log(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
+                            //xx console.log(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
                             monitoredItemOnChangedSpy.getCall(0).args[0].value.value.should.eql(new Int32Array([2,3,4,5,6,7,8,9]));
                             callback();
                         },
                         write.bind(null, [100, 101] , "0:1"),
-                        wait.bind(null, 100),
+                        wait.bind(null, 300),
 
                         write.bind(null, [200, 201] , "0:1"),
-                        wait.bind(null, 200),
+                        wait.bind(null, 300),
                         function (callback) {
                             // no change ! there is no overlap
                             monitoredItemOnChangedSpy.callCount.should.eql(1);
                             callback();
                         },
                         write.bind(null, [222, 333] , "2:3"),
-                        wait.bind(null, 200),
+                        wait.bind(null, 300),
                         function (callback) {
                             // there is a overlap ! we should receive a monitoredItem On Change event
                             monitoredItemOnChangedSpy.callCount.should.eql(2);
@@ -947,7 +947,7 @@ module.exports = function (test) {
                                 attributeId: 13,
                                 nodeId: nodeId,
                             }],function(err,a,result){
-                                console.log(" written ",result[0].value.toString());
+                                ///xx console.log(" written ",result[0].value.toString());
                                 callback(err);
 
                             })
@@ -962,18 +962,18 @@ module.exports = function (test) {
 
                         create_monitored_item.bind(null),
 
-                        wait.bind(null, 100),
+                        wait.bind(null,  300),
                         write.bind(null, [1, 2, 3, 4, 5]),
-                        wait.bind(null, 100),
+                        wait.bind(null,  300),
                         write.bind(null, [10, 20, 3, 4, 5, 60]),
-                        wait.bind(null, 100),
+                        wait.bind(null,  300),
                         write.bind(null, [10, 20, 13, 14, 15, 60]),
-                        wait.bind(null, 200),
+                        wait.bind(null,  300),
                         function (callback) {
 
-                            console.log(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
-                            console.log(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
-                            console.log(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
+                            //xx console.log(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
+                            //xx console.log(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
+                            //xx console.log(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
 
                             monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
                             monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.Good);
@@ -992,8 +992,9 @@ module.exports = function (test) {
                 }, done);
             });
 
-            it("GXGB disabled monitored item", function (done) {
+            xit("GXGB disabled monitored item", function (done) {
 
+                //TO DO
                 var nodeId = "ns=411;s=Scalar_Static_Int32";
 
                 var monitoredItemOnChangedSpy = new sinon.spy();
@@ -1023,7 +1024,7 @@ module.exports = function (test) {
                         monitoredItem.setMonitoringMode(opcua.subscription_service.MonitoringMode.Disabled,function(){
 
                             setTimeout(function() {
-                                console.log(monitoredItemOnChangedSpy.callCount);
+                                ///xx console.log(monitoredItemOnChangedSpy.callCount);
                                 callback();
                             },2000);
 
@@ -1400,10 +1401,12 @@ module.exports = function (test) {
                 });
                 subscription.on("started", function () {
 
-                    console.log("subscriptionId     :", subscription.subscriptionId);
-                    console.log("publishingInterval :", subscription.publishingInterval);
-                    console.log("lifetimeCount      :", subscription.lifetimeCount);
-                    console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
+                    if (false) {
+                        console.log("subscriptionId     :", subscription.subscriptionId);
+                        console.log("publishingInterval :", subscription.publishingInterval);
+                        console.log("lifetimeCount      :", subscription.lifetimeCount);
+                        console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
+                    }
 
                 }).on("status_changed", function (statusCode) {
 
@@ -2626,7 +2629,7 @@ module.exports = function (test) {
                         },
                         function (callback) {
                             sendPublishRequest(session, function (err, response) {
-                                console.log("err = ",err);
+                                //xx console.log("err = ",err);
                                 var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                 //xx console.log("notification", notification.toString());
                                 notification.value.statusCode.should.eql(StatusCodes.Good);
@@ -2664,7 +2667,7 @@ module.exports = function (test) {
                         function (callback) {
                             sendPublishRequest(session, function (err, response) {
 
-                                console.log(response.toString());
+                                //xx console.log(response.toString());
                                 var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                 notification.value.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
                                 callback(err);
