@@ -253,12 +253,21 @@ describe("Testing numerical range", function () {
 
         it("it should handle the case where the high value of the range is bigger than the array size",function() {
 
+            // what the specs says:
+            // When reading a value, the indexes may not specify a range that is within the bounds of the array. The
+            // Server shall return a partial result if some elements exist within the range. The Server shall return a
+            // Bad_IndexRangeNoData if no elements exist within the range.
+            // Bad_IndexRangeInvalid is only used for invalid syntax of the NumericRange. All other invalid requests
+            // with a valid syntax shall result in Bad_IndexRangeNoData.
+
             var nr = new NumericRange("0:16777215"); // very large range outside the bound
 
             referenceByteString.length.should.eql(11);
             var r = nr.extract_values(referenceByteString);
 
-            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.array.should.be.instanceOf(Buffer);
+            r.array.toString().should.eql("Lorem Ipsum");
             referenceByteString.length.should.eql(11);
 
         });

@@ -22,6 +22,7 @@ var DataType = opcua.DataType;
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 var MonitoringMode = opcua.subscription_service.MonitoringMode;
 var makeNodeId = opcua.makeNodeId;
+var VariantArrayType = opcua.VariantArrayType;
 
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 
@@ -2172,7 +2173,8 @@ module.exports = function (test) {
                     callback(err, response);
                 }
                 catch (err) {
-                    callback(err);
+                    console.log('================> error =>'.red,err);
+                    callback(err,response);
                 }
             });
         }
@@ -2180,7 +2182,7 @@ module.exports = function (test) {
         var subscriptionId = null;
 
         function createSubscription(session, callback) {
-            var publishingInterval = 100;
+            var publishingInterval = 400;
             var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
                 requestedPublishingInterval: publishingInterval,
                 requestedLifetimeCount: 60,
@@ -2206,6 +2208,8 @@ module.exports = function (test) {
             var node = server.engine.addressSpace.findNode(nodeId);
             node.minimumSamplingInterval.should.eql(0); // exception-based change notification
 
+            parameters.samplingInterval.should.eql(0);
+
 
             var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
 
@@ -2221,11 +2225,9 @@ module.exports = function (test) {
             session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
                 response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
-                //xx console.log("xxx",response.results[0].toString());
-
                 samplingInterval = response.results[0].revisedSamplingInterval;
-                //xx samplingInterval.should.be.greaterThan(10);
 
+                console.log(" revised Sampling interval ",samplingInterval);
                 callback(err);
             });
         }
@@ -2449,7 +2451,7 @@ module.exports = function (test) {
 
 
             var parameters = {
-                samplingInterval: 10,
+                samplingInterval: 0,
                 discardOldest: true,
                 queueSize: 1
             };
@@ -2580,11 +2582,12 @@ module.exports = function (test) {
                 // with a value.statusCode of Bad_IndexRangeNoData.
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
+                    samplingInterval = 0; // exception based
 
                     var nodeId = "ns=411;s=Scalar_Static_Array_Int32";
 
                     var parameters = {
-                        samplingInterval: samplingInterval,
+                        samplingInterval: 0, // exception based : whenever value changes
                         discardOldest: false,
                         queueSize: 2
                     };
@@ -2596,22 +2599,31 @@ module.exports = function (test) {
                     });
 
                     function write_node(value,callback) {
-
+                            assert(value instanceof Array);
                             var nodesToWrite = [{
                                 nodeId: nodeId,
                                 attributeId: AttributeIds.Value,
                                 value: /*new DataValue(*/ {
                                     value: {
                                         /* Variant */
+                                        arrayType: VariantArrayType.Array,
                                         dataType: DataType.Int32,
-                                        value: value
+                                        value: new Int32Array(value)
                                     }
                                 }
                             }];
                             session.write(nodesToWrite, function (err, statusCodes) {
                                 statusCodes.length.should.eql(1);
                                 statusCodes[0].should.eql(StatusCodes.Good);
-                                callback(err);
+
+                                session.read([{
+                                    attributeId: 13,
+                                    nodeId: nodeId,
+                                }],function(err,a,result){
+                                    //xx console.log(" written ",result[0].value.toString());
+                                    callback(err);
+                                });
+
                             });
                     }
 
@@ -2628,10 +2640,11 @@ module.exports = function (test) {
                             createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                         },
                         function (callback) {
+                            setTimeout(callback,10);
+                        },
+                        function (callback) {
                             sendPublishRequest(session, function (err, response) {
-                                //xx console.log("err = ",err);
                                 var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                //xx console.log("notification", notification.toString());
                                 notification.value.statusCode.should.eql(StatusCodes.Good);
                                 notification.value.value.value.should.eql(new Int32Array([2,3,4]));
                                 callback(err);
@@ -2654,10 +2667,20 @@ module.exports = function (test) {
                         write_node.bind(null,[0,1,2,3,4,5,6,7,8,9,10]),
 
                         function (callback) {
+                            setTimeout(callback,10);
+                        },
+
+                        function (callback) {
+
                             sendPublishRequest(session, function (err, response) {
-                                var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                notification.value.statusCode.should.eql(StatusCodes.Good);
-                                notification.value.value.value.should.eql(new Int32Array([2,3,4]));
+
+
+                                var notification1 = response.notificationMessage.notificationData[0].monitoredItems[0];
+                                notification1.value.statusCode.should.eql(StatusCodes.Good);
+                                notification1.value.value.value.should.eql(new Int32Array([-3]));
+                                var notification2 = response.notificationMessage.notificationData[0].monitoredItems[1];
+                                notification2.value.statusCode.should.eql(StatusCodes.Good);
+                                notification2.value.value.value.should.eql(new Int32Array([2,3,4]));
                                 callback(err);
                             });
                         },
@@ -2666,14 +2689,14 @@ module.exports = function (test) {
 
                         function (callback) {
                             sendPublishRequest(session, function (err, response) {
-
-                                //xx console.log(response.toString());
                                 var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                notification.value.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+                                notification.value.statusCode.should.eql(StatusCodes.Good);
+                                notification.value.value.value.should.eql(new Int32Array([2,3]));
                                 callback(err);
                             });
                         },
 
+                        // restore orignal value
                         write_node.bind(null,[0,1,2,3,4,5,6,7,8,9,10]),
 
                     ],inner_done);
@@ -2686,7 +2709,6 @@ module.exports = function (test) {
             });
 
         });
-
 
 
 

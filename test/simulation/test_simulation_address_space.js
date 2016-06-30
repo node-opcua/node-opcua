@@ -302,7 +302,7 @@ describe("testing address space for conformance testing", function () {
 
     });
 
-    function writeValueRange(nodeId, dataType, value, range, callback) {
+    function writeValueRangeInScalar(nodeId, dataType, value, range, callback) {
         var request = new WriteValue({
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
@@ -324,7 +324,7 @@ describe("testing address space for conformance testing", function () {
 
     function writeValue(nodeId, dataType, value, callback) {
 
-        writeValueRange(nodeId, dataType, value, null, callback);
+        writeValueRangeInScalar(nodeId, dataType, value, null, callback);
     }
 
     function readValue(nodeId, callback) {
@@ -727,7 +727,7 @@ describe("testing address space for conformance testing", function () {
 
             function (callback) {
                 var buf = new Buffer("OREM");
-                writeValueRange(nodeId, DataType.ByteString, buf, "1:4", function (err, statusCode) {
+                writeValueRangeInScalar(nodeId, DataType.ByteString, buf, "1:4", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
