@@ -106,7 +106,7 @@ var server_options = {
     },
     userManager: userManager,
     
-    isAuditing: true
+    isAuditing: false
 };
 
 process.title = "Node OPCUA Server on port : " + server_options.port;
@@ -363,7 +363,7 @@ server.on("response", function (response) {
         response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {
         case "xxModifySubscriptionResponse":
-        case "xxCreateMonitoredItemsResponse":
+        case "CreateMonitoredItemsResponse":
         case "xxModifyMonitoredItemsResponse":
         case "xxRepublishResponse":
         case "xxCreateSessionResponse":
@@ -373,15 +373,7 @@ server.on("response", function (response) {
         case "xxTranslateBrowsePathsToNodeIdsResponse":
             console.log(response.toString());
             break;
-        case "xxWriteResponse":
-        case "XXXX":
-            var str = "   ";
-            response.results.map(function (result) {
-                str += result.toString();
-            });
-            console.log(str);
-            break;
-        case "xxPublishResponse":
+        case "PublishResponse":
             console.log(response.toString());
             console.log("PublishResponse.subscriptionId = ",response.subscriptionId.toString());
             break;
