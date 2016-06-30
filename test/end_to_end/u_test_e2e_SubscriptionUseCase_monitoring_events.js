@@ -101,6 +101,58 @@ module.exports = function (test) {
         });
 
 
+        // check if nodeID exists
+        it("ZY2 should create a monitoredItem on a event without an Event Filter ", function (done) {
+
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+
+                var itemToMonitor = new opcua.read_service.ReadValueId({
+                    nodeId: resolveNodeId("Server"),
+                    attributeId: AttributeIds.EventNotifier
+                });
+
+                var parameters = {
+                    samplingInterval: 0,
+                    discardOldest: false,
+                    queueSize: 1,
+                    filter: null
+                };
+
+                var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    itemsToCreate: [{
+                        itemToMonitor: itemToMonitor,
+                        requestedParameters: parameters,
+                        monitoringMode: MonitoringMode.Reporting
+                    }]
+                });
+
+                session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    try {
+                        //xx console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
+
+                        createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                        createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
+
+                        should(createMonitoredItemsResponse.results[0].filterResult).eql(null, "a filter result is non expected");
+
+                    }
+                    catch (err) {
+                        return callback(err);
+                    }
+                    callback();
+                });
+
+                // now publish and check that monitored item returns EventNotification
+
+
+                // toDO
+            }, done);
+        });
 
         // check if nodeID exists
         it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function (done) {
@@ -140,7 +192,7 @@ module.exports = function (test) {
                         return callback(err);
                     }
                     try {
-                        console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
+                        //xx console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
 
                         createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                         createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -197,7 +249,7 @@ module.exports = function (test) {
                 var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should(err).not.eql(null);
                     err.message.should.match(/no filter expected/);
-                    console.log(err.message);
+                    //xx console.log(err.message);
                     callback();
                 });
 
@@ -247,7 +299,7 @@ module.exports = function (test) {
                 }];
 
                 session.call(methodsToCall,function(err,response){
-                    console.log("call response = ",response.toString());
+                    //xx console.log("call response = ",response.toString());
                     response[0].statusCode.should.eql(opcua.StatusCodes.Good);
                     callback(err);
                 });
@@ -277,7 +329,7 @@ module.exports = function (test) {
 
                             });
                             monitoredItem2.on("changed", function(dataValue){
-                                console.log(" Server Time is ",dataValue.toString())
+                                //xxx console.log(" Server Time is ",dataValue.toString())
                             });
                             callback();
                         },
@@ -311,10 +363,14 @@ module.exports = function (test) {
                             monitoredItem.on("changed", function (eventFields) {
                                 // TODO
                                 eventNotificationCount = eventNotificationCount + 1;
-                                console.log("Changed !!!  ");
-                                eventFields.forEach(function(variant,index) {
-                                    console.log(w(fields[index],15).yellow,variant.toString().cyan);
-                                })
+
+                                // istanbulm ignore next
+                                if (false) {
+                                    console.log("Changed !!!  ");
+                                    eventFields.forEach(function(variant,index) {
+                                        console.log(w(fields[index],15).yellow,variant.toString().cyan);
+                                    })
+                                }
                             });
                         },
 
