@@ -11245,7 +11245,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=MethodNoArgs"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -11283,7 +11283,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=MethodIO"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -11321,7 +11321,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=MethodI"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -11359,7 +11359,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=MethodO"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -11397,7 +11397,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=ObjectWithMethods"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
