@@ -1280,6 +1280,82 @@ module.exports = function (test) {
 
             });
 
+            it("AZQ should handle PublishRequest to confirm closed subscriptions",function(done){
+
+                var subscriptionId;
+                perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+                    async.series([
+
+                        function (callback) {
+                            session.createSubscription({
+                                requestedPublishingInterval: 200, // Duration
+                                requestedLifetimeCount:       30, // Counter
+                                requestedMaxKeepAliveCount:   10, // Counter
+                                maxNotificationsPerPublish:   10, // Counter
+                                publishingEnabled: true, // Boolean
+                                priority: 14 // Byte
+                            }, function (err, response) {
+                                subscriptionId = response.subscriptionId;
+                                callback(err);
+                            });
+                        },
+
+                        // create a monitored item so we have pending notificiation
+                        function (callback) {
+
+
+                            var namespaceIndex = 411;
+                            var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
+
+                            var node = server.engine.addressSpace.findNode(nodeId);
+                            var parameters = {
+                                samplingInterval: 0,
+                                discardOldest: false,
+                                queueSize: 1
+                            };
+                            var itemToMonitor = {
+                                attributeId: 13,
+                                nodeId: nodeId
+                            };
+                            var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+
+                                subscriptionId: subscriptionId,
+                                timestampsToReturn: TimestampsToReturn.Both,
+                                itemsToCreate: [{
+                                    itemToMonitor: itemToMonitor,
+                                    requestedParameters: parameters,
+                                    monitoringMode: MonitoringMode.Reporting
+                                }]
+                            });
+                            session.createMonitoredItems(createMonitoredItemsRequest,function(err,results){
+
+                                callback(err);
+                            });
+                        },
+                        function(callback){ setTimeout(callback,300); },
+                        function (callback) {
+                            session.deleteSubscriptions({
+                                subscriptionIds: [subscriptionId]
+                            }, function (err, response) {
+                                callback(err);
+                            });
+                        },
+
+                        function (callback) {
+                            session.publish({},function(err,publishResult){
+                                callback();
+                            });
+                        }
+                    ], function (err) {
+                        done(err);
+                    });
+
+                }, done);
+            });
+
+
+
         });
 
     describe("AZA testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function () {
@@ -1391,6 +1467,7 @@ module.exports = function (test) {
                 });
 
                 setTimeout(function () {
+                    console.log(" Restoring default behavior");
                     subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
                     subscription.publish_engine._send_publish_request.restore();
                     subscription.publish_engine._send_publish_request();
@@ -1421,7 +1498,6 @@ module.exports = function (test) {
                     }, 200);
 
                 }).on("terminated", function () {
-
                     nb_keep_alive_received.should.be.equal(0);
                     inner_done();
                 });
@@ -2019,7 +2095,6 @@ module.exports = function (test) {
         // If the Server specifies a value for the
         // MinimumSamplingInterval Attribute it shall always return a revisedSamplingInterval that is equal or
         // higher than the MinimumSamplingInterval if the Client subscribes to the Value Attribute.
-
 
         function test_revised_sampling_interval(requestedPublishingInterval, requestedSamplingInterval, revisedSamplingInterval, done) {
 
