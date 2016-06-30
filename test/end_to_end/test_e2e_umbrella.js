@@ -223,5 +223,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_timeout_session")(test);
     require("./u_test_e2e_session_audit_events")(test);
     require("./u_test_e2e_closing_unactivated_session")(test);
+    require("./u_test_e2e_issue_223_demonstrate_client_call_service")(test);
+
 });
 
