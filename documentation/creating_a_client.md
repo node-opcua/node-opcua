@@ -202,7 +202,7 @@ var browsePath = [
 ];
 
 var productNameNodeId;
-session.translateBrowsePath(browsePath, function (err, results) {
+the_session.translateBrowsePath(browsePath, function (err, results) {
     if (!err) {
       console.log(results[0].toString());
       productNameNodeId = results[0].targets[0].targetId;
