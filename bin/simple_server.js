@@ -363,17 +363,19 @@ server.on("response", function (response) {
         response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
     switch (response._schema.name) {
         case "xxModifySubscriptionResponse":
-        case "CreateMonitoredItemsResponse":
+        case "xxCreateMonitoredItemsResponse":
         case "xxModifyMonitoredItemsResponse":
         case "xxRepublishResponse":
         case "xxCreateSessionResponse":
         case "xxActivateSessionResponse":
         case "xxCloseSessionResponse":
         case "xxBrowseResponse":
+        case "xxCreateSubscriptionResponse":
         case "xxTranslateBrowsePathsToNodeIdsResponse":
+        case "xxSetPublishingModeResponse":
             console.log(response.toString());
             break;
-        case "PublishResponse":
+        case "xxPublishResponse":
             console.log(response.toString());
             console.log("PublishResponse.subscriptionId = ",response.subscriptionId.toString());
             break;
@@ -425,6 +427,7 @@ server.on("request", function (request, channel) {
         case "xxActivateSessionRequest":
         case "xxCloseSessionRequest":
         case "xxCreateSubscriptionRequest":
+        case "xxSetPublishingModeRequest":
             // do special console output
             //console.log(util.inspect(request, {colors: true, depth: 10}));
             console.log(request.toString());
@@ -466,6 +469,7 @@ server.registerServer(discovery_server_endpointUrl, function (err) {
 server.on("newChannel",function(channel) {
     console.log("Client connected with address = ".bgYellow,channel.remoteAddress," port = ",channel.remotePort);
 });
+
 server.on("closeChannel",function(channel) {
     console.log("Client disconnected with address = ".bgCyan,channel.remoteAddress," port = ",channel.remotePort);
 });

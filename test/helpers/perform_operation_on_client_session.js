@@ -61,13 +61,14 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
                 func(the_session, callback);
             }
             catch(err) {
-                callback(err);
+                console.log(err.message);
+                callback();
             }
         },
 
         // closing session
         function (callback) {
-            the_session.close(function (err) {
+            the_session.close(/*deleteSubscriptions=*/true,function (err) {
                 callback(err);
             });
         },
@@ -129,8 +130,14 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
             },
 
             function (callback) {
-                subscription.on("terminated", callback);
-                subscription.terminate();
+                subscription.on("terminated", function() {
+                    //
+                });
+                subscription.terminate(function(err) {
+                    // ignore errors
+                    if (err) { console.log(err.message);}
+                    callback();
+                });
             }
         ], function (err) {
             done(err);

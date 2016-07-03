@@ -1704,7 +1704,7 @@ module.exports = function (test) {
                 var modifyMonitoredItemsRequest = {
                     subscriptionId: 999,
                     timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
-                    itemsToModify: []
+                    itemsToModify: [{}]
                 };
 
                 session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err) {
@@ -2241,9 +2241,8 @@ module.exports = function (test) {
         }
 
         function sendPublishRequest(session, callback) {
-            var publishRequest = new opcua.subscription_service.PublishRequest({});
-            session.performMessageTransaction(publishRequest, function (err, response) {
 
+            session.publish({},function(err,response){
                 try {
                     callback(err, response);
                 }
@@ -2256,6 +2255,14 @@ module.exports = function (test) {
 
         var subscriptionId = null;
 
+        function createSubscription2(session, createSubscriptionRequest,callback) {
+            session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+                response.subscriptionId.should.be.greaterThan(0);
+                subscriptionId = response.subscriptionId;
+                callback(err, response.subscriptionId);
+            });
+        }
+
         function createSubscription(session, callback) {
             var publishingInterval = 400;
             var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
@@ -2266,13 +2273,7 @@ module.exports = function (test) {
                 publishingEnabled: true,
                 priority: 6
             });
-
-            session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
-                //xxconsole.log(response.toString());
-                response.subscriptionId.should.be.greaterThan(0);
-                subscriptionId = response.subscriptionId;
-                callback(err, response.subscriptionId);
-            });
+            createSubscription2(session,createSubscriptionRequest,callback);
         }
 
         var samplingInterval = -1;
@@ -2283,7 +2284,7 @@ module.exports = function (test) {
             var node = server.engine.addressSpace.findNode(nodeId);
             node.minimumSamplingInterval.should.eql(0); // exception-based change notification
 
-            parameters.samplingInterval.should.eql(0);
+            //xx parameters.samplingInterval.should.eql(0);
 
 
             var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
@@ -2298,15 +2299,20 @@ module.exports = function (test) {
             });
 
             session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
+
                 response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                 samplingInterval = response.results[0].revisedSamplingInterval;
-
-                console.log(" revised Sampling interval ",samplingInterval);
+                //xx console.log(" revised Sampling interval ",samplingInterval);
                 callback(err);
             });
         }
 
+        function deleteSubscription(session,callback) {
+            session.deleteSubscriptions({
+                subscriptionIds: [subscriptionId]
+            },callback);
+        }
         function _test_with_queue_size_of_one(parameters, done) {
 
             var nodeId = nodeIdVariant;
@@ -2562,13 +2568,71 @@ module.exports = function (test) {
                         });
                     },
 
-
                 ], inner_done);
 
             }, done);
 
         });
 
+        it("#CTT6 Late Publish should have data",function(done){
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                var nodeId = "ns=411;s=Scalar_Static_Double";
+                var samplingInterval = 500;
+                var parameters = {
+                    samplingInterval: samplingInterval,
+                    discardOldest: true,
+                    queueSize: 2
+                };
+                var itemToMonitor = new opcua.read_service.ReadValueId({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                });
+
+
+                async.series([
+
+                        function (callback) {
+                            var publishingInterval = 100;
+                            var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+                                requestedPublishingInterval: publishingInterval,
+                                requestedLifetimeCount: 6,
+                                requestedMaxKeepAliveCount: 2,
+                                maxNotificationsPerPublish: 10,
+                                publishingEnabled: true,
+                                priority: 6
+                            });
+                            createSubscription2(session,createSubscriptionRequest,callback);
+                        },
+                        function (callback) {
+                            console.log(" SubscriptionId =",subscriptionId);
+                            callback();
+                        },
+                        function (callback) {
+                            createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
+                        },
+                        function (callback) {
+                            setTimeout(callback,1000*5);
+                        },
+
+                        function (callback) {
+                            console.log("--------------");
+                            // we should get notified immediately that the session has timedout
+                            sendPublishRequest(session, function (err, response) {
+                                response.notificationMessage.notificationData.length.should.eql(1);
+                                var notificationData = response.notificationMessage.notificationData[0];
+                                console.log(notificationData.toString());
+                                //.monitoredItems[0];
+                                notificationData.constructor.name.should.eql("StatusChangeNotification");
+                                notificationData.statusCode.should.eql(StatusCodes.BadTimeout);
+                                callback(err);
+                            });
+
+                        }]
+                    ,inner_done);
+
+            },done);
+        });
 
         describe("#CTT - Monitored Value Change", function () {
 
@@ -2952,7 +3016,6 @@ module.exports = function (test) {
                     queueSize: 1
                 });
 
-
                 monitoredItem.on("initialized", function () {
                     callback();
                 });
@@ -3017,7 +3080,6 @@ module.exports = function (test) {
             }
 
             my_perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
-                // xx perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
 
                 subscription.publishingInterval.should.eql(100);
                 subscription.maxKeepAliveCount.should.eql(10);

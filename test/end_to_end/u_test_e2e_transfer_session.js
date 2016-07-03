@@ -80,7 +80,7 @@ module.exports = function (test) {
                     // however client shall not record session yet
                     client1._sessions.length.should.eql(0);
 
-                    client1.closeSession(session1, function (err) {
+                    client1.closeSession(session1,/* deleteSubscriptions =*/true,function (err) {
                         client1._sessions.length.should.eql(0);
                         // Failure , close session expected to return BadSessionNotActivated
                         err.message.match(/BadSessionNotActivated/);
@@ -188,7 +188,7 @@ module.exports = function (test) {
 
                 // first call to close session should be OK
                 function (callback) {
-                    client1.closeSession(session1, function (err) {
+                    client1.closeSession(session1,/* deleteSubscriptions =*/true, function (err) {
                         callback(err);
                     });
                 },

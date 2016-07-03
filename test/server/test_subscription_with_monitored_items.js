@@ -1426,11 +1426,13 @@ describe("#maxNotificationsPerPublish", function () {
             // now simulate some data change
             this.clock.tick(500);
 
+            evtNotificationCounter.should.eql(5);
+            
             subscription.subscriptionDiagnostics.notificationsCount.should.eql(evtNotificationCounter);
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(evtNotificationCounter);
-
-
+            
         });
+        
 
         xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount",function() {
             // todo

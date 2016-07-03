@@ -5,6 +5,7 @@ var async = require("async");
 var should = require("should");
 var sinon = require("sinon");
 var opcua = require("index");
+var _ = require("underscore");
 
 var OPCUAClient = opcua.OPCUAClient;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -16,7 +17,7 @@ module.exports = function (test) {
     describe("Testing #195", function () {
 
 
-        it("#195 the node-opcua client shall automatically detect the maximum number of pending publish request supported by the server and avoid overflowing the server with too many",function(done) {
+        it("#195-A the node-opcua client shall automatically detect the maximum number of pending publish request supported by the server and avoid overflowing the server with too many",function(done) {
 
             function createSubsciption(done) {
 
@@ -129,7 +130,7 @@ module.exports = function (test) {
 
         });
 
-        it("#195 a client shall detect when the server has closed a session due to timeout and  inactive subscriptions", function (done) {
+        it("#195-B a client shall detect when the server has closed a session due to timeout and  inactive subscriptions", function (done) {
 
             // Given a server
             // Given a client with keepSessionAlive = false
@@ -143,7 +144,7 @@ module.exports = function (test) {
             if (!server) { return done(); }
 
             var client1 = new OPCUAClient({
-                requestedSessionTimeout: 10000,
+                requestedSessionTimeout: 2500,
                 keepSessionAlive: false
             });
 
@@ -151,6 +152,8 @@ module.exports = function (test) {
 
             var the_subscription = 0;
             var the_monitoredItem =0;
+
+            var subscriptionId = null;
             async.series([
 
                 function (callback) {
@@ -171,12 +174,15 @@ module.exports = function (test) {
                 // create a single subscription
                 function (callback) {
                     var parameters = {
-                        requestedPublishingInterval: 100000,
-                        requestedLifetimeCount: 10,
-                        requestedMaxKeepAliveCount: 2
+                        requestedPublishingInterval: 1000,
+                        requestedLifetimeCount:      100000,
+                        requestedMaxKeepAliveCount:  50
                     };
                     the_subscription = new opcua.ClientSubscription(the_session, parameters);
                     the_subscription.on("started",function() {
+
+                        subscriptionId =the_subscription.subscriptionId;
+
                         callback();
                     }).on("internal_error", function (err) {
                         console.log(" received internal error", err.message);
@@ -214,20 +220,47 @@ module.exports = function (test) {
                     });
                 },
 
+                // now reopen a session to delete the pending subscription
+                function (callback) {
+
+                    the_session = null;
+                    client1.createSession(function (err, session) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        the_session = session;
+                        callback();
+                    });
+                },
+
+                function( callback) {
+                    _.isNumber(subscriptionId).should.eql(true);
+                    console.log("transferring subscription", subscriptionId);
+                    the_session.transferSubscriptions({
+                        subscriptionIds: [ subscriptionId]
+                    },function(err,response){
+                        //xx console.log(response.toString());
+                        response.results[0].statusCode.should.eql(opcua.StatusCodes.Good);
+                        callback();
+                    });
+                },
+                function(callback) {
+                    the_session.close(callback);
+                },
+
                 function (callback) {
                     client1.disconnect(function () {
                         //xx console.log(" Client disconnected ", (err ? err.message : "null"));
-
                         callback();
                     });
                 },function(callback) {
-
                     callback();
                 }
+
+
             ], done);
 
-        })
-        ;
+        });
 
     });
 

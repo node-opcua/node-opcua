@@ -293,6 +293,7 @@ describe("ServerEngine Subscriptions service", function () {
 
             test.clock.tick(subscription2.publishingInterval);
             subscription2.state.should.eql(SubscriptionState.KEEPALIVE);
+
             session.deleteSubscription(subscription2.id);
             subscription2.state.should.eql(SubscriptionState.CLOSED);
 
@@ -371,6 +372,115 @@ describe("ServerEngine Subscriptions service", function () {
 
         });
 
+    });
+    it("AZQ should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
 
+        // given a subscription with monitored Item
+        // given that the client doesn't send Publish Request
+        // When the subscription times out and closed
+        // And  When the client send a PublishRequest notification
+        // Then the client shall receive the StatusChangeNotification
+        with_fake_timer.call(this,function() {
+            var test = this;
+
+            session = engine.createSession({sessionTimeout: 100000000});
+
+            // CTT : deleteSub5106004
+            var subscription_parameters = {
+                requestedPublishingInterval: 1000,  // Duration
+                requestedLifetimeCount:        60,    // Counter
+                requestedMaxKeepAliveCount:    10,    // Counter
+                maxNotificationsPerPublish:    10,    // Counter
+                publishingEnabled: true,            // Boolean
+                priority: 14                        // Byte
+            };
+
+            var subscription1 = session.createSubscription(subscription_parameters);
+            subscription1.state.should.eql(SubscriptionState.CREATING);
+
+            // wait until session expired by timeout
+            test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
+
+            var publishSpy = sinon.spy();
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 104}}),publishSpy );
+
+
+            publishSpy.callCount.should.eql(4);
+
+            publishSpy.getCall(0).args[1].subscriptionId.should.eql(subscription1.subscriptionId);
+            publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+            publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+
+            publishSpy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+            publishSpy.getCall(1).args[1].subscriptionId.should.eql(0xffffffff);
+            publishSpy.getCall(1).args[1].notificationMessage.sequenceNumber.should.eql(0);
+            publishSpy.getCall(1).args[1].notificationMessage.notificationData.length.should.eql(0);
+
+            publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+            publishSpy.getCall(2).args[1].subscriptionId.should.eql(0xffffffff);
+            publishSpy.getCall(2).args[1].notificationMessage.sequenceNumber.should.eql(0);
+            publishSpy.getCall(2).args[1].notificationMessage.notificationData.length.should.eql(0);
+
+            publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+            publishSpy.getCall(3).args[1].subscriptionId.should.eql(0xffffffff);
+            publishSpy.getCall(3).args[1].notificationMessage.sequenceNumber.should.eql(0);
+            publishSpy.getCall(3).args[1].notificationMessage.notificationData.length.should.eql(0);
+
+            engine.closeSession(session.authenticationToken,true,"CloseSession");
+            done();
+        });
+    });
+    it("AZW should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
+
+        // given a subscription with monitored Item
+        // given that the client doesn't send Publish Request
+        // When the subscription times out and closed
+        // And  When the client send a PublishRequest notification
+        // Then the client shall receive the StatusChangeNotification
+        with_fake_timer.call(this,function() {
+            var test = this;
+
+            session = engine.createSession({sessionTimeout: 100000000});
+
+            // CTT : deleteSub5106004
+            var subscription_parameters = {
+                requestedPublishingInterval: 1000,  // Duration
+                requestedLifetimeCount:        60,    // Counter
+                requestedMaxKeepAliveCount:    10,    // Counter
+                maxNotificationsPerPublish:    10,    // Counter
+                publishingEnabled: true,            // Boolean
+                priority: 14                        // Byte
+            };
+
+            var subscription1 = session.createSubscription(subscription_parameters);
+            subscription1.state.should.eql(SubscriptionState.CREATING);
+
+            // wait until session expired by timeout
+            test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
+
+
+            var subscription2 = session.createSubscription(subscription_parameters);
+            subscription2.state.should.eql(SubscriptionState.CREATING);
+
+            var publishSpy = sinon.spy();
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 104}}),publishSpy );
+
+            publishSpy.callCount.should.eql(1);
+            publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+            publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+
+            engine.closeSession(session.authenticationToken,true,"CloseSession");
+            done();
+        });
     });
 });

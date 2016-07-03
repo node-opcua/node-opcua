@@ -44,11 +44,11 @@ describe("testing Client - Umbrella ", function () {
     var options = {
         port: port,
         maxConnectionsPerEndpoint: 500,
-        silent:true
+        silent: true
     };
 
     function start_external_server(done) {
-        start_simple_server(options,function(err,data) {
+        start_simple_server(options, function (err, data) {
 
             if (err) {
                 return done(err, null);
@@ -58,10 +58,11 @@ describe("testing Client - Umbrella ", function () {
             test.serverCertificate = data.serverCertificate;
             test.temperatureVariableId = data.temperatureVariableId;
             test.data;
-            console.log(" test.endpointUrl  = ".yellow,test.endpointUrl.cyan );
+            console.log(" test.endpointUrl  = ".yellow, test.endpointUrl.cyan);
             done();
         });
     }
+
     function start_internal_server(done) {
 
         test.server = build_server_with_temperature_device(options, function (err) {
@@ -80,7 +81,7 @@ describe("testing Client - Umbrella ", function () {
 
         console.log(" ..... starting server ".grey);
         resourceLeakDetector.start();
-        if (process.env.TESTENDPOINT === "EXTERNAL" ) {
+        if (process.env.TESTENDPOINT === "EXTERNAL") {
             start_external_server(done);
         } else if (process.env.TESTENDPOINT) {
             test.endpointUrl = process.env.TESTENDPOINT;
@@ -97,23 +98,23 @@ describe("testing Client - Umbrella ", function () {
         done();
     });
 
-    function dumpStatistics(endpointUrl,done) {
+    function dumpStatistics(endpointUrl, done) {
         var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
         var client = new OPCUAClient();
         var endpointUrl = test.endpointUrl;
 
-        perform_operation_on_client_session(client,endpointUrl,function(session,inner_done){
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             var relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
             var browsePath = [
-                opcua.browse_service.makeBrowsePath("RootFolder",relativePath),
+                opcua.browse_service.makeBrowsePath("RootFolder", relativePath),
             ];
 
             var sessionDiagnosticsSummaryNodeId;
             async.series([
 
-                function(callback) {
-                    session.translateBrowsePath(browsePath,function(err,result) {
+                function (callback) {
+                    session.translateBrowsePath(browsePath, function (err, result) {
                         if (!err) {
                             if (result[0].statusCode === StatusCodes.Good) {
                                 //xx console.log(result[0].toString());
@@ -125,18 +126,18 @@ describe("testing Client - Umbrella ", function () {
                         callback(err);
                     });
                 },
-                function(callback) {
+                function (callback) {
 
-                    session.readVariableValue(sessionDiagnosticsSummaryNodeId,function(err,dataValue){
+                    session.readVariableValue(sessionDiagnosticsSummaryNodeId, function (err, dataValue) {
                         console.log("\n\n-----------------------------------------------------------------------------------------------------------");
                         console.log(dataValue.value.value.toString());
                         console.log("-----------------------------------------------------------------------------------------------------------");
                         callback(err);
                     });
                 }
-            ],inner_done);
+            ], inner_done);
 
-        },done);
+        }, done);
     }
 
     afterEach(function (done) {
@@ -144,36 +145,39 @@ describe("testing Client - Umbrella ", function () {
         // make sure that test has closed all sessions
         test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession);
 
-        if (true) { return done(); }
+        if (true) {
+            return done();
+        }
 
         if (false && test.server) {
-            console.log(" currentChannelCount          = ",test.server.currentChannelCount);
-            console.log(" bytesWritten                 = ",test.server.bytesWritten);
-            console.log(" bytesRead                    = ",test.server.bytesRead);
-            console.log(" currentSubscriptionCount     = ",test.server.currentSubscriptionCount);
-            console.log(" currentSessionCount          = ",test.server.currentSessionCount);
-            console.log(" transactionsCount            = ",test.server.transactionsCount);
-            console.log(" cumulatedSessionCount        = ",test.server.engine.cumulatedSessionCount);
-            console.log(" cumulatedSubscriptionCount   = ",test.server.engine.cumulatedSubscriptionCount);
-            console.log(" rejectedSessionCount         = ",test.server.engine.rejectedSessionCount);
+            console.log(" currentChannelCount          = ", test.server.currentChannelCount);
+            console.log(" bytesWritten                 = ", test.server.bytesWritten);
+            console.log(" bytesRead                    = ", test.server.bytesRead);
+            console.log(" currentSubscriptionCount     = ", test.server.currentSubscriptionCount);
+            console.log(" currentSessionCount          = ", test.server.currentSessionCount);
+            console.log(" transactionsCount            = ", test.server.transactionsCount);
+            console.log(" cumulatedSessionCount        = ", test.server.engine.cumulatedSessionCount);
+            console.log(" cumulatedSubscriptionCount   = ", test.server.engine.cumulatedSubscriptionCount);
+            console.log(" rejectedSessionCount         = ", test.server.engine.rejectedSessionCount);
 
-            test.server.currentSubscriptionCount.should.eql(0," verify test clean up : dangling  subscriptions found");
-            test.server.currentSessionCount.should.eql(0," verify test clean up : dangling  session found");
+            test.server.currentSubscriptionCount.should.eql(0, " verify test clean up : dangling  subscriptions found");
+            test.server.currentSessionCount.should.eql(0, " verify test clean up : dangling  session found");
             // test must not add exta nodes in root => "organizes" ref count => 3
             var addressSpace = test.server.engine.addressSpace;
             var rootFolder = addressSpace.findNode("RootFolder");
-            rootFolder.getFolderElements().length.should.eql(3,"Test should not pollute the root folder: expecting 3 folders in RootFolder only");
+            rootFolder.getFolderElements().length.should.eql(3, "Test should not pollute the root folder: expecting 3 folders in RootFolder only");
         }
 
-        dumpStatistics(test.endpointUrl,done);
+        dumpStatistics(test.endpointUrl, done);
 
     });
 
     after(function (done) {
         if (test.data) {
-            stop_simple_server(data,done);
+            stop_simple_server(data, done);
         } else if (test.server) {
             test.server.shutdown(function () {
+                console.log("resourceLeakDetector.stop()");
                 resourceLeakDetector.stop();
                 done();
             });
@@ -208,22 +212,21 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_163")(test);
     require("./u_test_e2e_issue_135_currentMonitoredItemsCount")(test);
     require("./u_test_e2e_issue_192")(test);
+
     require("./u_test_e2e_issue_195")(test);
     require("./u_test_e2e_issue_198")(test);
     require("./u_test_e2e_issue_205_betterSessionNames")(test);
     require("./u_test_e2e_issue_214_StatusValueTimestamp")(test);
-
     require("./u_test_e2e_translateBrowsePath")(test);
-
     require("./u_test_e2e_server_with_500_clients")(test);
     require("./u_test_e2e_server_connection_with_500_sessions")(test);
-
     require("./u_test_e2e_SubscriptionDiagnostics")(test);
     require("./u_test_e2e_browse_request_issue")(test);
     require("./u_test_e2e_timeout_session")(test);
     require("./u_test_e2e_session_audit_events")(test);
     require("./u_test_e2e_closing_unactivated_session")(test);
     require("./u_test_e2e_issue_223_demonstrate_client_call_service")(test);
+    require("./u_test_e2e_Subscription_Transfer")(test);
 
 });
 

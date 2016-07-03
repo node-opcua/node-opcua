@@ -628,6 +628,7 @@ describe("Testing the server publish engine", function () {
             publishingInterval: 1000,
             lifeTimeCount:        60,
             maxKeepAliveCount:    20,
+            publishingEnabled: true,
             publishEngine: publish_server
         });
         subscription1.publishingInterval.should.eql(1000);
@@ -655,6 +656,7 @@ describe("Testing the server publish engine", function () {
             publishingInterval: 100,
             lifeTimeCount:      120,
             maxKeepAliveCount:   20,
+            publishingEnabled: true,
             publishEngine: publish_server
         });
         subscription2.publishingInterval.should.eql(100);
@@ -667,6 +669,7 @@ describe("Testing the server publish engine", function () {
             publishingInterval:  50,
             lifeTimeCount:     1000,
             maxKeepAliveCount:   20,
+            publishingEnabled: true,
             publishEngine: publish_server
         });
         subscription3.publishingInterval.should.eql(100); // !! Note that publishingInterval has been clamped in constructor
