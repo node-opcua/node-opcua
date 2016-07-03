@@ -18,6 +18,6 @@ function exec(cmd,callback) {
 }
 
 exec("node bin/generate_opcua_classes.js --clear ",function() {
-    exec( "node bin/crypto_create_CA.js ",function() {
+    exec( "node bin/crypto_create_CA.js demo",function() {
     });
 });
