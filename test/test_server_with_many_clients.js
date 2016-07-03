@@ -42,15 +42,17 @@ describe("Functional test : one server with many concurrent clients", function (
 
     this.timeout(Math.max(20000,this._timeout));
 
+    var serverCertificate = null;
     before(function (done) {
 
         resourceLeakDetector.start();
         server = build_server_with_temperature_device({
             port: port,
-            maxAllowedSessionNumber: 10
+            maxAllowedSessionNumber: 25
         }, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
+            serverCertificate = server.getCertificate();
             done(err);
         });
     });
@@ -75,7 +77,9 @@ describe("Functional test : one server with many concurrent clients", function (
 
     function construct_client_scenario(data) {
 
-        var client = new OPCUAClient();
+        var client = new OPCUAClient({
+            serverCertificate: serverCertificate
+        });
 
         data.client = client;
         data.nb_received_changed_event = 0;
@@ -98,11 +102,6 @@ describe("Functional test : one server with many concurrent clients", function (
                     debugLog(" Connecting client ", name);
                     callback(err);
                 });
-            },
-
-            // wait randomly up to 100 ms
-            function (callback) {
-                setTimeout(callback, Math.ceil(Math.random() * 100));
             },
 
             // create the session
@@ -130,10 +129,10 @@ describe("Functional test : one server with many concurrent clients", function (
 
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval: 10,
+                    requestedPublishingInterval: 100,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 10,
-                    maxNotificationsPerPublish: 2,
+                    maxNotificationsPerPublish: 200,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -153,7 +152,7 @@ describe("Functional test : one server with many concurrent clients", function (
                         nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
                         attributeId: AttributeIds.Value
                     },
-                    {samplingInterval: 10, discardOldest: true, queueSize: 1});
+                    {samplingInterval: 50, discardOldest: true, queueSize: 1});
 
 
                 // subscription.on("item_added",function(monitoredItem){
@@ -168,7 +167,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
             // let the client work for 1200 ms
             function (callback) {
-                setTimeout(callback, 1200);
+                setTimeout(callback,2000);
             },
 
 
@@ -199,8 +198,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
 
         var nb_clients = server.maxAllowedSessionNumber;
-
-        nb_clients.should.eql(10);
+        
 
         var clients = [];
 
