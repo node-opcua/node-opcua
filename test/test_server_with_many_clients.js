@@ -30,6 +30,8 @@ var VariableIds = opcua.VariableIds;
 var debugLog = opcua.utils.make_debugLog(__filename);
 
 var port = 2000;
+var maxConnectionsPerEndpoint = 100;
+var maxAllowedSessionNumber   =  50;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
@@ -48,7 +50,9 @@ describe("Functional test : one server with many concurrent clients", function (
         resourceLeakDetector.start();
         server = build_server_with_temperature_device({
             port: port,
-            maxAllowedSessionNumber: 10
+            maxAllowedSessionNumber:  maxAllowedSessionNumber,
+            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
+
         }, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -194,7 +198,7 @@ describe("Functional test : one server with many concurrent clients", function (
     }
 
 
-    it("it should allow 10 clients to connect and concurrently monitor some nodeId", function (done) {
+    it("it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId", function (done) {
 
 
         var nb_clients = server.maxAllowedSessionNumber;
