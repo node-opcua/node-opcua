@@ -144,7 +144,6 @@ describe("Functional test : one server with many concurrent clients", function (
 
                 subscription.on("started", function () {
                     debugLog("subscription started".yellow.bold, name.cyan, expectedSubscriptionCount, server.currentSubscriptionCount);
-                    callback();
                 });
 
                 subscription.on("terminated", function () {
@@ -163,15 +162,21 @@ describe("Functional test : one server with many concurrent clients", function (
                 monitoredItem.on("initialized", function () {
                     //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
                 });
+
+                var counter = 0;
                 monitoredItem.on("changed", function (dataValue) {
                     debugLog(" client ", name, " received value change ", dataValue.value.value);
                     data.nb_received_changed_event += 1;
+                    counter ++;
+                    if(counter === 2) {
+                        callback();
+                    }
                 });
             },
 
             // let the client work for 4000 ms
             function (callback) {
-                setTimeout(callback,4000);
+                setTimeout(callback,1000);
             },
 
 
