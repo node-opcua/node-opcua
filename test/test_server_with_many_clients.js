@@ -48,7 +48,7 @@ describe("Functional test : one server with many concurrent clients", function (
         resourceLeakDetector.start();
         server = build_server_with_temperature_device({
             port: port,
-            maxAllowedSessionNumber: 25
+            maxAllowedSessionNumber: 10
         }, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -93,7 +93,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
             // wait randomly up to 100 ms
             function (callback) {
-                setTimeout(callback, Math.ceil(Math.random() * 100));
+                setTimeout(callback, Math.ceil(50+Math.random() * 100));
             },
 
             // connect the client
@@ -198,7 +198,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
 
         var nb_clients = server.maxAllowedSessionNumber;
-        
+
 
         var clients = [];
 
