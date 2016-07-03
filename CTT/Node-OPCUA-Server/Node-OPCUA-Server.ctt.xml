@@ -149,7 +149,7 @@
       </Column>
       <Column column="1">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="QString" type="10" data="500"/>
+        <Value typename="QString" type="10" data="250"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -13302,7 +13302,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="b="/>
+              <Value typename="QString" type="10" data="b=NULL"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -13411,7 +13411,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="&quot;http://opcfoundation.org/UA/&quot;, &quot;urn:PCETIENNE-PC:NodeOPCUA-Server&quot;, &quot;http://opcfoundation.org/UA/DI/&quot;"/>
+           <Value typename="QString" type="10" data="&quot;http://opcfoundation.org/UA/&quot;, &quot;urn:KANARY:NodeOPCUA-Server&quot;, &quot;http://opcfoundation.org/UA/DI/&quot;"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
