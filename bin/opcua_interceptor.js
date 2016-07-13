@@ -40,7 +40,7 @@ TrafficAnalyser.prototype.add = function (data) {
 
         var err = new s.TCPErrorMessage();
         err.decode(stream);
-        console.log(" Error 0x" + err.name.toString(16) + " reason:" + err.reason);
+        console.log(" Error 0x" + err.statusCode.toString() + " reason:" + err.reason);
         console.log(hexDump(data));
     }
 

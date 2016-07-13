@@ -8,7 +8,7 @@ var TCPErrorMessage_Schema = {
     name: "TCPErrorMessage",
     id: factories.next_available_id(),
     fields: [
-        { name: "name", fieldType: "UInt32"},
+        { name: "statusCode", fieldType: "StatusCode"},
         { name: "reason", fieldType: "String"} // A more verbose description of the error.
     ]
 

@@ -125,7 +125,7 @@ describe("testing basic Client-Server communication", function () {
 
     it("T2 - a server should not accept a connection when the protocol version is incompatible", function (done) {
 
-        client.protocolVersion = 55555; // set a invalid protocol version
+        client.protocolVersion = 0xDEADBEEF; // set a invalid protocol version
         server.currentChannelCount.should.equal(0);
 
         async.series([

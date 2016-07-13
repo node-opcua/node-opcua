@@ -87,14 +87,18 @@ describe("testing ServerTCP_transport", function () {
     it("should bind a socket and process the HEL message by returning ERR if protocol version is not OK", function (done) {
 
         var transport = new ServerTCP_transport();
+        transport.protocolVersion.should.eql(0);
+        transport.protocolVersion = 10;
         transport.init(fake_socket.server, function (err) {
             assert(err);
             err.message.should.match(/BadProtocolVersionUnsupported/);
         });
 
         // simulate client send HEL
+        // note: client.protocolVersion=5 is lower than server protocolVersion(=10)
+        // => server should raise an error
         var helloMessage = new HelloMessage({
-            protocolVersion: 5555,
+            protocolVersion:   5,
             receiveBufferSize: 1000,
             sendBufferSize: 1000,
             maxMessageSize: 10,
@@ -110,6 +114,7 @@ describe("testing ServerTCP_transport", function () {
             var response = decodeMessage(stream, AcknowledgeMessage);
             response._schema.name.should.equal("TCPErrorMessage");
 
+            response.statusCode.name.should.eql("BadProtocolVersionUnsupported");
             done();
         });
 

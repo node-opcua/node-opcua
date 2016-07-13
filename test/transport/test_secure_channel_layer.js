@@ -14,7 +14,7 @@ describe("Testing ClientSecureChannel 1", function () {
             maxRetry: 1,
             initialDelay:1,
             maxDelay:    2,
-            randomisationFactor: 0.1,
+            randomisationFactor: 0.1
         }
     };
 
