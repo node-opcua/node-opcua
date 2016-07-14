@@ -65,13 +65,9 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var server_engine = require("lib/server/server_engine");
-var ServerEngine = server_engine.ServerEngine;
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var add_eventGeneratorObject = address_space_for_conformance_testing.add_eventGeneratorObject;
-var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 describe("Subscriptions and MonitoredItems", function () {
 
@@ -79,6 +75,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     var addressSpace;
     var someVariableNode;
+    var analogItemNode;
     var accessLevel_CurrentRead_NotUserNode;
 
     var engine;
@@ -87,7 +84,7 @@ describe("Subscriptions and MonitoredItems", function () {
     before(function (done) {
         resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
 
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
@@ -151,7 +148,34 @@ describe("Subscriptions and MonitoredItems", function () {
                 })
             });
 
+            var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
+            function addAnalogItem(dataType) {
+
+                var name ="AnalogItem"+dataType;
+                var nodeId = makeNodeId(name, namespaceIndex);
+
+                addressSpace.addAnalogDataItem({
+
+                    organizedBy: "RootFolder",
+                    nodeId: nodeId,
+                    browseName: name,
+                    definition: "(tempA -25) + tempB",
+                    valuePrecision: 0.5,
+                    engineeringUnitsRange: {low: 1, high: 50},
+                    instrumentRange: {low: 1, high: 50},
+                    engineeringUnits: standardUnits.degree_celsius,
+                    dataType: dataType,
+                    value: new Variant({
+                        arrayType: VariantArrayType.Scalar,
+                        dataType: DataType[dataType],
+                        value: 0.0
+                    })
+                });
+                return nodeId;
+
+            }
+            analogItemNode = addAnalogItem("Double");
             done();
         });
     });
@@ -438,8 +462,8 @@ describe("Subscriptions and MonitoredItems", function () {
         done();
     });
 
-    it("should return an error when filter is DataChangeFilter deadband is out of bound", function (done) {
-
+    function on_subscription(actionFunc,done) {
+        // see Err-03.js
         var subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -449,11 +473,49 @@ describe("Subscriptions and MonitoredItems", function () {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
+        try {
+            actionFunc(subscription);
+        }
+        catch(err) {
+            return done(err);
+        }
+        finally {
+            subscription.terminate();
+        }
+        done();
+    }
+    it("should return BadFilterNotAllowed if filter is DataChangeFilter PercentDeadBand and variable has no EURange",function(done){
+
+        var not_a_analogItemNode = someVariableNode;
+        on_subscription(function(subscription){
+            var monitoredItemCreateRequest1 = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: not_a_analogItemNode,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 100,
+                    filter: new subscription_service.DataChangeFilter({
+                        trigger: subscription_service.DataChangeTrigger.Status,
+                        deadbandType: subscription_service.DeadbandType.Percent,
+                        deadbandValue: 10.0 /* 10% */
+                    })
+                }
+            });
+
+            var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
+        },done);
+    });
+
+    it("should return an error when filter is DataChangeFilter deadband is out of bound", function (done) {
 
         function _create_MonitoredItemCreateRequest_with_deadbandValue(value) {
             return new MonitoredItemCreateRequest({
                 itemToMonitor: {
-                    nodeId: someVariableNode,
+                    nodeId: analogItemNode,
                     attributeId: AttributeIds.Value
                 },
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
@@ -469,66 +531,60 @@ describe("Subscriptions and MonitoredItems", function () {
             });
 
         }
+        on_subscription(function(subscription) {
 
-        var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
-        var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
-        monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+            var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
+            var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
-        var monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
-        var monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
-        monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+            var monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
+            var monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
+            monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
-        var monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
-        var monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
-        monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
+            var monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
+            var monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
+            monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
 
-        subscription.terminate();
-        done();
+        },done);
+
     });
 
-    it("should return BadFilterNotAllowed if a DataChangeFilter is specified on a non-Value Attribute monitored item", function () {
+    it("should return BadFilterNotAllowed if a DataChangeFilter is specified on a non-Value Attribute monitored item", function (done) {
 
-        var subscription = new Subscription({
-            publishingInterval: 1000,
-            maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
-        });
-        subscription.on("monitoredItem", function (monitoredItem) {
-            monitoredItem.samplingFunc = install_spying_samplingFunc();
-        });
+        on_subscription(function(subscription) {
 
-        function test_with_attributeId(attributeId, statusCode) {
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-                itemToMonitor: {
-                    nodeId: someVariableNode,
-                    attributeId: attributeId
-                },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
-                requestedParameters: {
-                    queueSize: 10,
-                    samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
-                        deadbandValue: 10
-                    })
-                }
-            });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            return monitoredItemCreateResult.statusCode;
-        }
+            function test_with_attributeId(attributeId, statusCode) {
+                var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                    itemToMonitor: {
+                        nodeId: analogItemNode,
+                        attributeId: attributeId
+                    },
+                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                    requestedParameters: {
+                        queueSize: 10,
+                        samplingInterval: 100,
+                        filter: new subscription_service.DataChangeFilter({
+                            trigger: subscription_service.DataChangeTrigger.Status,
+                            deadbandType: subscription_service.DeadbandType.Percent,
+                            deadbandValue: 10
+                        })
+                    }
+                });
+                var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                return monitoredItemCreateResult.statusCode;
+            }
 
 
-        test_with_attributeId(AttributeIds.BrowseName).should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_attributeId(AttributeIds.AccessLevel).should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_attributeId(AttributeIds.ArrayDimensions).should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_attributeId(AttributeIds.DataType).should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_attributeId(AttributeIds.DisplayName).should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_attributeId(AttributeIds.EventNotifier).should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_attributeId(AttributeIds.Historizing).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.BrowseName).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.AccessLevel).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.ArrayDimensions).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.DataType).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.DisplayName).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.EventNotifier).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.Historizing).should.eql(StatusCodes.BadFilterNotAllowed);
+            test_with_attributeId(AttributeIds.Value).should.eql(StatusCodes.Good);
 
-        test_with_attributeId(AttributeIds.Value).should.eql(StatusCodes.Good);
-        subscription.terminate();
+        },done);
 
     });
 
