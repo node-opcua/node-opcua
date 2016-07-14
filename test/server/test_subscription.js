@@ -1317,7 +1317,7 @@ describe("Subscription#adjustSamplingInterval", function () {
         readAttribute: function(attributeId) {
 
             attributeId.should.eql(AttributeIds.MinimumSamplingInterval);
-            return  new DataValue({value: {dataType: DataType.UInt32, value: 0 }});
+            return  new DataValue({value: {dataType: DataType.Double, value: 0.0 }});
         }
     };
 
