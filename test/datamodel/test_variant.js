@@ -24,7 +24,6 @@ var Variant_TypeMask = 0x3F;
 var factories = require("lib/misc/factories");
 
 
-
 describe("Variant", function () {
 
     it("should create a empty Variant", function () {
@@ -53,7 +52,7 @@ describe("Variant", function () {
 
     it("should create a Scalar UInt64 Variant", function () {
 
-        var var1 = new Variant({arrayType: VariantArrayType.Scalar, dataType: DataType.UInt64, value: [10,20] });
+        var var1 = new Variant({arrayType: VariantArrayType.Scalar, dataType: DataType.UInt64, value: [10, 20]});
 
         var1.dataType.should.eql(DataType.UInt64);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -140,7 +139,7 @@ describe("Variant", function () {
 
     it("should create a Scalar ByteString  Variant - empty buffer", function () {
 
-        var var1 = new Variant({dataType: DataType.ByteString, value: new Buffer(0) });
+        var var1 = new Variant({dataType: DataType.ByteString, value: new Buffer(0)});
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -151,7 +150,7 @@ describe("Variant", function () {
     });
 
     it("should create a Scalar ByteString  Variant - 3 bytes", function () {
-        var var1 = new Variant({dataType: DataType.ByteString, value: new Buffer("ABC") });
+        var var1 = new Variant({dataType: DataType.ByteString, value: new Buffer("ABC")});
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -267,16 +266,16 @@ describe("Variant", function () {
         //xx var1.toString().should.eql("Variant(Array<UInt32>, l= 4, value=[2,3,Bad!,5])");
     });
 
-    it ("should create a Variant as a Matrix (2x3) of UInt32 ",function() {
+    it("should create a Variant as a Matrix (2x3) of UInt32 ", function () {
         var var1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
-            dimensions: [ 2,3],
-            value : [ 0x000,0x001,0x002,0x010,0x011,0x012]
+            dimensions: [2, 3],
+            value: [0x000, 0x001, 0x002, 0x010, 0x011, 0x012]
         });
 
         var1.arrayType.should.eql(VariantArrayType.Matrix);
-        var1.dimensions.should.eql([2,3]);
+        var1.dimensions.should.eql([2, 3]);
         var1.value.length.should.eql(6);
         var1.dataType.should.eql(DataType.UInt32);
 
@@ -294,14 +293,14 @@ describe("Variant", function () {
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
 
-    it ("should raise an exception when construction a Matrix with incorrect element size",function() {
+    it("should raise an exception when construction a Matrix with incorrect element size", function () {
 
         should(function construct_matrix_variant_with_invalid_value() {
             var var1 = new Variant({
                 dataType: DataType.UInt32,
                 arrayType: VariantArrayType.Matrix,
-                dimensions: [ 2,3],
-                value : [ 0x000 ] // wrong size !
+                dimensions: [2, 3],
+                value: [0x000] // wrong size !
             });
         }).throwError();
 
@@ -309,13 +308,13 @@ describe("Variant", function () {
 
     it("should create a Array ByteString  Variant ", function () {
 
-        var var1 = new Variant({dataType: DataType.ByteString, value:  [ new Buffer("ABC") ,null] });
+        var var1 = new Variant({dataType: DataType.ByteString, value: [new Buffer("ABC"), null]});
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Array);
 
         encode_decode_round_trip_test(var1, function (stream) {
-            stream.length.should.equal( 5 + 4 +3 + 4);
+            stream.length.should.equal(5 + 4 + 3 + 4);
         });
     });
     it("should create a Array UInt64 Variant", function () {
@@ -323,13 +322,14 @@ describe("Variant", function () {
         var var1 = new Variant({
             arrayType: VariantArrayType.Array,
             dataType: DataType.UInt64,
-            value: [ [1,2],[3,4] ]  });
+            value: [[1, 2], [3, 4]]
+        });
 
         var1.dataType.should.eql(DataType.UInt64);
         var1.arrayType.should.eql(VariantArrayType.Array);
 
         encode_decode_round_trip_test(var1, function (stream) {
-            stream.length.should.equal(5 + 8 + 8 );
+            stream.length.should.equal(5 + 8 + 8);
         });
     });
 
@@ -340,7 +340,7 @@ var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze
 describe("Variant - Analyser", function () {
 
     // increase timeout to cope with istanbul
-    this.timeout(Math.max(400000,this._timeout));
+    this.timeout(Math.max(400000, this._timeout));
 
     var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 
@@ -348,10 +348,10 @@ describe("Variant - Analyser", function () {
     for (var i = 0; i < 1000; i++) {
         manyValues[i] = Math.random() * 1000 - 500;
     }
-  
-    var veryLargeFloatArray = new Float64Array(50*1024);
-    for (var i=0;i< veryLargeFloatArray.length ; i++) {
-       veryLargeFloatArray[i] = (Math.random() -0.5) * 10000;
+
+    var veryLargeFloatArray = new Float64Array(50 * 1024);
+    for (var i = 0; i < veryLargeFloatArray.length; i++) {
+        veryLargeFloatArray[i] = (Math.random() - 0.5) * 10000;
     }
     var various_variants = [
         new Variant({dataType: DataType.NodeId, arrayType: VariantArrayType.Scalar, value: makeNodeId(1, 2)}),
@@ -398,7 +398,7 @@ describe("Variant - Analyser", function () {
     });
     it("should encode/decode variant", function () {
 
-        various_variants.forEach(function (v,index) {
+        various_variants.forEach(function (v, index) {
             encode_decode_round_trip_test(v, function (stream) {
                 // stream.length.should.equal(1+4+4*4);
             });
@@ -458,7 +458,7 @@ describe("Variant - Analyser", function () {
 
     it("should check the performance of encode/decode a very large array of Float", function () {
 
-        this.timeout(Math.max(300000,this._timeout));
+        this.timeout(Math.max(300000, this._timeout));
 
         var length = 500 * 1024;
 
@@ -612,7 +612,7 @@ describe("benchmarking variant encode", function () {
 
 describe("benchmarking float Array encode/decode", function () {
 
-    this.timeout(Math.max(200000,this._timeout));
+    this.timeout(Math.max(200000, this._timeout));
 
     function test_1(stream, arr) {
 
@@ -749,13 +749,13 @@ describe("benchmarking float Array encode/decode", function () {
 describe("Variant with Advanced Array", function () {
 
 
-    it("should automatically detect that variant is an array when rrayType is missing ",function() {
+    it("should automatically detect that variant is an array when rrayType is missing ", function () {
 
 
         var v = new Variant({
             dataType: "Float",
             //  EXPLICITLY MISSING arrayType : VariantArrayType.Array
-            value: [1,2 ]
+            value: [1, 2]
         });
 
         v.arrayType.should.eql(VariantArrayType.Array);
@@ -796,12 +796,12 @@ describe("Variant with Advanced Array", function () {
 
     });
 
-    it("should be possible to read a sub matrix of a array of byte strings",function() {
+    it("should be possible to read a sub matrix of a array of byte strings", function () {
 
         var v = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Array,
-            value: [ "ABCDEFGHIJKL" , "BCDEFGHIJKLA" , "CDEFGHIJKLAB" , "DEFGHIJKLABC" , "EFGHIJKLABCD" , "FGHIJKLABCDE" ]
+            value: ["ABCDEFGHIJKL", "BCDEFGHIJKLA", "CDEFGHIJKLAB", "DEFGHIJKLABC", "EFGHIJKLABCD", "FGHIJKLABCDE"]
 
         });
         var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
@@ -813,22 +813,22 @@ describe("Variant with Advanced Array", function () {
         var results = nr.extract_values(v.value);
         results.statusCode.should.eql(StatusCodes.Good);
 
-        results.array.should.eql([ "EFG","FGH"]);
+        results.array.should.eql(["EFG", "FGH"]);
 
     });
 
 
 });
 
-describe("Variant with enumeration",function() {
+describe("Variant with enumeration", function () {
 
     var ServerState = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
-    before(function() {
+    before(function () {
         should(ServerState.Running).not.eql(null);
     });
 
-    it("should fail to create a variant from a enumeration item if dataType is not Int32",function() {
-        should(function() {
+    it("should fail to create a variant from a enumeration item if dataType is not Int32", function () {
+        should(function () {
             var v = new Variant({
                 dataType: DataType.UInt32,
                 value: ServerState.Running
@@ -837,7 +837,7 @@ describe("Variant with enumeration",function() {
         }).throw();
     });
 
-    it("should create a variant from a enumeration item",function() {
+    it("should create a variant from a enumeration item", function () {
         should(ServerState.Running).not.eql(null);
         var v = new Variant({
             dataType: DataType.Int32,
@@ -848,16 +848,16 @@ describe("Variant with enumeration",function() {
 
     });
 
-    xit("should not be necessary to specify the dataType for  a variant containing  enumeration item",function() {
+    xit("should not be necessary to specify the dataType for  a variant containing  enumeration item", function () {
         var v = new Variant({
-             value: ServerState.Failed
+            value: ServerState.Failed
         });
         // console.log(v.toString());
         v.value.should.eql(1);
         v.dataType.should.eql(DataType.Int32);
     });
 
-    it("should create a variant with builtin type 'Duration'",function() {
+    it("should create a variant with builtin type 'Duration'", function () {
         var v = new Variant({
             dataType: "Duration",
             value: 0.1
@@ -866,7 +866,7 @@ describe("Variant with enumeration",function() {
         v.value.should.eql(0.1);
 
     });
-    it("should create a variant with builtin type 'ByteString'",function() {
+    it("should create a variant with builtin type 'ByteString'", function () {
 
         var v = new Variant({
             dataType: "ByteString",
@@ -875,28 +875,28 @@ describe("Variant with enumeration",function() {
         v.dataType.should.eql(DataType.ByteString);
         v.value.toString("ascii").should.eql("abcd");
     });
-    it("should create a variant copy (with it's own array) ",function() {
+    it("should create a variant copy (with it's own array) ", function () {
 
-        var options =        {
+        var options = {
             dataType: DataType.Float,
             arrayType: VariantArrayType.Array,
             value: [0, 1, 2, 3, 4, 5]
         };
 
-       var v1,v2,v3;
-       v1 = new Variant(options);
+        var v1, v2, v3;
+        v1 = new Variant(options);
 
-       v2 = new Variant({
-           dataType: DataType.Float,
-           arrayType: VariantArrayType.Array,
-           value: v1.value
-       });
+        v2 = new Variant({
+            dataType: DataType.Float,
+            arrayType: VariantArrayType.Array,
+            value: v1.value
+        });
 
-       v1.value[1] +=1;
+        v1.value[1] += 1;
         should(v1.value[1] === v2.value[1]).eql(false);
-        v1.value[1] -=1;
+        v1.value[1] -= 1;
 
-       v3 = new Variant({
+        v3 = new Variant({
             dataType: v1.dataType,
             arrayType: v1.arrayType,
             value: v1.value
@@ -922,3 +922,114 @@ describe("Variant with enumeration",function() {
 
 });
 
+var sameVariant = require("lib/datamodel/variant_tools").sameVariant;
+
+var sameVariantSlow = function (v1, v2) {
+    return _.isEqual(v1, v2);
+};
+
+describe("testing sameVariant Performance", function () {
+
+
+    function largeArray(n) {
+        var a = new Int32Array(n);
+        for (var i=0;i<n;i++) {
+            a[i] = Math.random()*10000;
+        }
+        return a;
+    }
+
+    var largeArray1 = largeArray(10000);
+
+    function build_variants() {
+        var a = [
+            new Variant({dataType: DataType.String, arrayType: VariantArrayType.Array, value: null }),
+            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: null }),
+            new Variant({dataType: DataType.String, value: "Hello"}),
+            new Variant({dataType: DataType.String, value: "HelloWorld"}),
+            new Variant({dataType: DataType.Double, value: 42.0}),
+            new Variant({dataType: DataType.Float, value: 42.0}),
+            new Variant({dataType: DataType.Int32, value: 42}),
+            new Variant({dataType: DataType.UInt32, value: 42}),
+            new Variant({dataType: DataType.Double, value: 43.0}),
+            new Variant({dataType: DataType.Float, value: 43.0}),
+            new Variant({dataType: DataType.Int32, value: 43}),
+            new Variant({dataType: DataType.UInt32, value: 43}),
+            new Variant({dataType: DataType.String, arrayType: VariantArrayType.Array, value: ["Hello", "World"]}),
+            new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([42.0, 43.0])}),
+            new Variant({dataType: DataType.Float, arrayType: VariantArrayType.Array,  value: new Float32Array([42.0, 43.0])}),
+            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array,  value: new Int32Array([42, 43.0])}),
+            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array([42, 43.0])}),
+            new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([43.0, 43.0])}),
+            new Variant({dataType: DataType.Float, arrayType: VariantArrayType.Array, value: new Float32Array([43.0, 43.0])}),
+            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([43, 43.0])}),
+            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array([43, 43.0])}),
+            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([43, 43.0,1,2,3,4,5,6,7,8,9,9,10,11,12,14])}),
+            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([43, 43.0,1,2,3,4,5,6,7,8,9,9,10,11,12,16])}),
+            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: largeArray1 }),
+            null,
+        ];
+
+        // create artificial null array variant
+        a[0].value = null;
+        a[1].value = null;
+
+        return a;
+    }
+
+    var variousVariants = build_variants();
+    var variousVariants_clone = build_variants();
+
+    function test_variant(index,sameVariant) {
+
+        var v1 = variousVariants[index];
+
+        for (var i = 0; i < variousVariants.length; i++) {
+            if (i === index) {
+                sameVariant(v1, variousVariants[i]).should.eql(true);
+            } else {
+                sameVariant(v1, variousVariants[i]).should.eql(false);
+            }
+        }
+        sameVariant(v1, variousVariants_clone[index]).should.eql(true);
+    }
+
+    for (var i = 0; i < variousVariants.length; i++) {
+        var v1 = variousVariants[i];
+        it("#sameVariant with " + (v1 ? v1.toString() : "null"), test_variant.bind(null, i,sameVariant));
+    }
+
+
+    it("sameVariant should be very efficient ", function () {
+        var bench = new Benchmarker();
+
+        bench
+            .add('fast sameVariant', function () {
+                for (var i = 0; i < variousVariants.length; i++) {
+                    for (var j = 0; j < variousVariants.length; j++) {
+                        sameVariant(variousVariants[i],variousVariants_clone[j]);
+                    }
+                }
+            })
+            .add('slow sameVariant', function () {
+                for (var i = 0; i < variousVariants.length; i++) {
+                    for (var j = 0; j < variousVariants.length; j++) {
+                        sameVariantSlow(variousVariants[i],variousVariants_clone[j]);
+                    }
+                }
+            })
+            .on('cycle', function (message) {
+                 console.log(message);
+            })
+            .on('complete', function () {
+
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                this.fastest.name.should.eql("fast sameVariant");
+                this.speedUp.should.be.greaterThan(10);
+            })
+            .run({max_time: 1 /*second */});
+
+
+    })
+});

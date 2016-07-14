@@ -14,42 +14,8 @@ var AttributeIds = opcua.AttributeIds;
 var OPCUAClient = opcua.OPCUAClient;
 
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
-var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-function sameVariant(v1, v2) {
-    if (v1.dataType !== v2.dataType) {
-        return false;
-    }
-    if (v1.arrayType !== v2.arrayType) {
-        return false;
-    }
-    if (v1.value !== v2.value) {
-        return false;
-    }
-    return true;
-}
-
-function sameDate(d1, d2) {
-    if (!d1) {
-        return !d2;
-    }
-    if (!d2) {
-        return !d1;
-    }
-    return d1.getTime() === d2.getTime();
-}
-
-function sameDataValue(dv1, dv2) {
-
-    if (dv1.statusCode !== dv2.statusCode) {
-        return false;
-    }
-
-    if (!sameVariant(dv1.statusCode, dv2.statusCode)) {
-        return false;
-    }
-    return true;
-}
+var sameDataValue = require("lib/datamodel/datavalue").sameDataValue;
 
 module.exports = function (test) {
 
@@ -57,7 +23,6 @@ module.exports = function (test) {
 
 
         var client, endpointUrl;
-
 
         beforeEach(function (done) {
             client = new OPCUAClient();
@@ -104,13 +69,27 @@ module.exports = function (test) {
                         }
                     ];
                     session.read(nodesToRead, function (err, r, results) {
+
+                        // note if dataValue didn't specied the timestamp it should not be overwritten.
+                        if (!dataValue.serverTimestamp) {
+                            should(results[0].serverTimestamp).not.eql(null);
+                            dataValue.serverTimestamp =results[0].serverTimestamp;
+                            dataValue.serverPicoseconds =results[0].serverPicoseconds;
+                        }
+                        if (!dataValue.sourceTimestamp) {
+                            dataValue.sourceTimestamp =results[0].sourceTimestamp;
+                            dataValue.sourcePicoseconds =results[0].sourcePicoseconds;
+                        }
+
+
+
                         //xx console.log(results[0].toString());
 
                         // verify that value and status codes are identical
                         if (!sameDataValue(dataValue, results[0])) {
                             console.log(" ------- > expected".yellow);
                             console.log(dataValue.toString().yellow);
-                            console.log(" ------- > actuel".cyan);
+                            console.log(" ------- > actual".cyan);
                             console.log(results[0].toString().cyan);
                             // dataValue.toString().split("\n").should.eql(results[0].toString().split("\n"));
                             return inner_done(new Error("dataValue is not as expected"));
@@ -127,13 +106,16 @@ module.exports = function (test) {
 
         }
 
-        it("writing dataValue case 1", function (done) {
+        it("writing dataValue case 1 - both serverTimestamp and sourceTimestamp are specified ", function (done) {
 
             var dataValue = new opcua.DataValue({
+
                 serverTimestamp: new Date(2015, 5, 2),
                 serverPicoseconds: 20,
+
                 sourceTimestamp: new Date(2015, 5, 3),
                 sourcePicoseconds: 30,
+
                 value: {
                     dataType: opcua.DataType.Float,
                     value: 32.0
@@ -142,22 +124,26 @@ module.exports = function (test) {
             test_write_read_cycle(client, dataValue, done);
 
         });
-        it("writing dataValue case 2", function (done) {
+        it("writing dataValue case 2 - serverTimestamp is null & sourceTimestamp is specified", function (done) {
 
             var dataValue = new opcua.DataValue({
+
                 serverTimestamp: null,
                 serverPicoseconds: 0,
+
                 sourceTimestamp: new Date(2015, 5, 3),
                 sourcePicoseconds: 30,
+
                 value: {
                     dataType: opcua.DataType.Float,
                     value: 32.0
                 }
             });
+
             test_write_read_cycle(client, dataValue, done);
 
         });
-        it("writing dataValue case 3", function (done) {
+        it("writing dataValue case 3 - serverTimestamp is null & sourceTimestamp is null ", function (done) {
 
             var dataValue = new opcua.DataValue({
                 serverTimestamp: null,

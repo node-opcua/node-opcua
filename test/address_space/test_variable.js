@@ -69,7 +69,7 @@ describe("testing Variables ", function () {
             value.statusCode.should.eql(StatusCodes.Good);
 
             value = v.readAttribute(AttributeIds.MinimumSamplingInterval);
-            value.value.dataType.should.eql(DataType.Int32);
+            value.value.dataType.should.eql(DataType.Double);
             value.statusCode.should.eql(StatusCodes.Good);
 
             value = v.readAttribute(AttributeIds.IsAbstract);
