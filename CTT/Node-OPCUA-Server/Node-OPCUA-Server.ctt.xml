@@ -73,7 +73,7 @@
       </Column>
       <Column column="1">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="QString" type="10" data="250"/>
+        <Value typename="QString" type="10" data="500"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -4895,7 +4895,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete001"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4933,7 +4933,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete002"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4971,7 +4971,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete003"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5009,7 +5009,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete004"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5047,7 +5047,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete005"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5085,7 +5085,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete001"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5123,7 +5123,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete002"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5161,7 +5161,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete003"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5199,7 +5199,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete004"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5237,7 +5237,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete005"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
