@@ -37,7 +37,7 @@ module.exports = function(engine) {
             var objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addMultiStateDiscreteType({
+            var prop = addressSpace.addMultiStateDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateVariable",
                 enumStrings: [ "Red","Orange","Green"],
@@ -63,7 +63,7 @@ module.exports = function(engine) {
                 var addressSpace = engine.addressSpace;
                 var objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");
-                multiState = addressSpace.addMultiStateDiscreteType({
+                multiState = addressSpace.addMultiStateDiscrete({
                     organizedBy: objectsFolder,
                     browseName: "MyMultiStateVariable",
                     enumStrings: [ "Red","Orange","Green"],

@@ -228,5 +228,6 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_223_demonstrate_client_call_service")(test);
     require("./u_test_e2e_Subscription_Transfer")(test);
     require("./u_test_e2e_issue_231_protocolVersion")(test);
+    require("./u_test_e2e_monitored_item_semantic_changed")(test);
 });
 

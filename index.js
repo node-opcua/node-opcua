@@ -24,6 +24,8 @@ module.exports.coerceLocalizedText = require("lib/datamodel/localized_text").coe
 module.exports.QualifiedName       = require("lib/datamodel/qualified_name").QualifiedName;
 module.exports.coerceQualifyName   = require("lib/datamodel/qualified_name").coerceQualifyName;
 
+module.exports.Range               = require("lib/data_access/Range").Range;
+
 //
 module.exports.get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
 module.exports.makeApplicationUrn              = require("lib/misc/applicationurn").makeApplicationUrn;
@@ -91,11 +93,6 @@ module.exports.makeRelativePath = require("lib/address_space/make_relative_path"
 module.exports.standardUnits                  = require("lib/data_access/EUInformation").standardUnits;
 module.exports.makeEUInformation              = require("lib/data_access/EUInformation").makeEUInformation;
 
-//module.exports.addAnalogDataItem              = require("lib/data_access/UAAnalogItem").addAnalogDataItem;
-//module.exports.addTwoStateDiscreteType        = require("lib/data_access/UATwoStateDiscreteType").addTwoStateDiscreteType;
-//module.exports.addMultiStateDiscreteType      = require("lib/data_access/UAMultiStateDiscreteType").addMultiStateDiscreteType;
-//module.exports.addMultiStateValueDiscreteType = require("lib/data_access/UAMultiStateValueDiscreteType").addMultiStateValueDiscreteType;
-//xx module.exports.addYArrayItem                  = require("lib/data_access/UAYArrayItem").addYArrayItem;
 
 // version
 module.exports.version               = require("./package.json").version;

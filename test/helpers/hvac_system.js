@@ -137,7 +137,7 @@ exports.createHVACSystem = function(addressSpace) {
         outputArguments: []
     });
 
-    addressSpace.addTwoStateDiscreteType({
+    addressSpace.addTwoStateDiscrete({
         modellingRule: "Mandatory",
         componentOf: HVACModuleType,
         browseName: "MainSwitch",

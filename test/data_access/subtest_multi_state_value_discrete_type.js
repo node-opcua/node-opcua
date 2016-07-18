@@ -38,7 +38,7 @@ module.exports = function(engine) {
             var objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addMultiStateValueDiscreteType({
+            var prop = addressSpace.addMultiStateValueDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
@@ -68,7 +68,7 @@ module.exports = function(engine) {
             var objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addMultiStateValueDiscreteType({
+            var prop = addressSpace.addMultiStateValueDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: [
@@ -87,7 +87,7 @@ module.exports = function(engine) {
                 var addressSpace = engine.addressSpace;
                 var objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");
-                multiStateValue = addressSpace.addMultiStateValueDiscreteType({
+                multiStateValue = addressSpace.addMultiStateValueDiscrete({
                     organizedBy: objectsFolder,
                     browseName: "MyMultiStateValueVariable",
                     enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
@@ -148,7 +148,7 @@ module.exports = function(engine) {
             var myObjectType = addressSpace.addObjectType({
                 browseName: "MyObjectWithMultiStateValueDiscreteType"
             });
-            var multiStateValue = addressSpace.addMultiStateValueDiscreteType({
+            var multiStateValue = addressSpace.addMultiStateValueDiscrete({
                 componentOf: myObjectType,
                 browseName:  "Color",
                 enumValues:  { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },

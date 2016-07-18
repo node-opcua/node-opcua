@@ -373,9 +373,10 @@ server.on("response", function (response) {
         case "xxCreateSubscriptionResponse":
         case "xxTranslateBrowsePathsToNodeIdsResponse":
         case "xxSetPublishingModeResponse":
+        case "xxWriteResponse":
             console.log(response.toString());
             break;
-        case "xxPublishResponse":
+        case "PublishResponse":
             console.log(response.toString());
             console.log("PublishResponse.subscriptionId = ",response.subscriptionId.toString());
             break;
@@ -397,7 +398,7 @@ server.on("request", function (request, channel) {
         request._schema.name.yellow, " ID =", channel.secureChannelId.toString().cyan);
     switch (request._schema.name) {
         case "xxModifySubscriptionRequest":
-        case "xxCreateMonitoredItemsRequest":
+        case "CreateMonitoredItemsRequest":
         case "xxModifyMonitoredItemsRequest":
         case "xxRepublishRequest":
         case "xxWriteRequest":
@@ -426,7 +427,7 @@ server.on("request", function (request, channel) {
         case "xxCreateSessionRequest":
         case "xxActivateSessionRequest":
         case "xxCloseSessionRequest":
-        case "xxCreateSubscriptionRequest":
+        case "CreateSubscriptionRequest":
         case "xxSetPublishingModeRequest":
             // do special console output
             //console.log(util.inspect(request, {colors: true, depth: 10}));

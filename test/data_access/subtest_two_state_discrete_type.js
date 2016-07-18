@@ -30,7 +30,7 @@ module.exports = function(engine) {
             var objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addTwoStateDiscreteType({
+            var prop = addressSpace.addTwoStateDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MySwitch",
                 trueState: "busy",

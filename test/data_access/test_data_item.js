@@ -151,6 +151,8 @@ describe("DataAccess", function () {
     require("./subtest_multi_state_value_discrete_type")(engine);
 
     require("./subtest_Y_array_item_type")(engine);
+
+    require("./subtest_analog_item_semantic_changed")(engine);
 });
 
 

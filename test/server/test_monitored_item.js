@@ -149,7 +149,7 @@ describe("Server Side MonitoredItem", function () {
         done();
     });
 
-    it("a MonitoredItem should discard last value when queue is full when discardOldest is false", function (done) {
+    it("a MonitoredItem should discard last value when queue is full when discardOldest is false , and set the overflow bit", function (done) {
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -437,6 +437,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.terminate();
         done();
     });
+
     it("MonitoredItem#modify : changing queue size from 2 to 1 when queue is full, should trim queue (discardOldest=false)",function(done){
 
         var monitoredItem = new MonitoredItem({
@@ -452,6 +453,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(0);
         monitoredItem._enqueue_value(new DataValue({value: {dataType: DataType.UInt32, value: 1000}}));
+
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.queue.map(function(a) { return a.value.value.value;}).should.eql([1000]);
@@ -466,8 +468,9 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
         monitoredItem.queue.map(function(a) { return a.value.value.value;}).should.eql([1000,1002]);
+
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
-        monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
+        monitoredItem.queue[1].value.statusCode.hasOverflowBit.should.equal(true);
 
         var result; // MonitoredItemModifyResult
         result = monitoredItem.modify(null, new MonitoringParameters({
@@ -482,7 +485,8 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.queue.map(function(a) { return a.value.value.value;}).should.eql([1002]);
-        monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
+        monitoredItem.queue[0].value.statusCode.hasOverflowBit.should.equal(false);
+//xx        monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
         done();
@@ -594,7 +598,7 @@ describe("Server Side MonitoredItem", function () {
             return monitoredItem.queue.map(function(a) { return a.value.value.value;});
         }
         function f(monitoredItem) {
-            return monitoredItem.queue.map(function(a) { return !!(a.value.statusCode === StatusCodes.GoodWithOverflowBit);});
+            return monitoredItem.queue.map(function(a) { return !!(a.value.statusCode.value === StatusCodes.GoodWithOverflowBit.value);});
         }
         var o = false; var X = true;
 

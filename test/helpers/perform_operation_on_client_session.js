@@ -148,6 +148,49 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
 
 exports.perform_operation_on_subscription = perform_operation_on_subscription;
 
+
+function perform_operation_on_raw_subscription(client,endpointUrl,f,done) {
+
+    var result = {
+        id: null
+    };
+    perform_operation_on_client_session(client, endpointUrl, function (session, inner_callback) {
+
+        async.series([
+            function(callback) {
+
+                session.createSubscription({
+                    requestedPublishingInterval: 100, // Duration
+                    requestedLifetimeCount:       60,    // Counter
+                    requestedMaxKeepAliveCount:   10, // Counter
+                    maxNotificationsPerPublish:   10, // Counter
+                    publishingEnabled:          true,   // Boolean
+                    priority:                     14 // Byte
+                }, function (err, response) {
+
+                    if (!err) {
+                        result.subscriptionId=response.subscriptionId;
+                        f(session,result,function(err){
+                            callback(err);
+                        })
+                    } else{
+                        callback();
+                    }
+                });
+
+            },
+            function (callback) {
+                session.deleteSubscriptions({
+                    subscriptionIds: [result.subscriptionId]
+                },callback);
+            }
+        ],inner_callback)
+    },done);
+}
+exports.perform_operation_on_raw_subscription = perform_operation_on_raw_subscription;
+
+
+
 function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId, func, done_func) {
 
     var itemToMonitor;
