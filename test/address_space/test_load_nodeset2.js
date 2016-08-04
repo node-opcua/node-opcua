@@ -4,6 +4,7 @@ var generate_address_space = require("lib/address_space/load_nodeset2").generate
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var should = require("should");
 var path = require("path");
+var fs = require("fs");
 
 describe("testing NodeSet XML file loading", function () {
 
@@ -36,7 +37,7 @@ describe("testing NodeSet XML file loading", function () {
 
         var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
 
@@ -55,7 +56,7 @@ describe("testing NodeSet XML file loading", function () {
         this.timeout(Math.max(400000,this._timeout));
 
         var xml_file = path.join(__dirname,"../../nodesets/Opc.Ua.NodeSet2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
 
@@ -75,8 +76,8 @@ describe("testing NodeSet XML file loading", function () {
             path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
             path.join(__dirname, "../../nodesets/Opc.Ua.Di.NodeSet2.xml")
         ];
-        require("fs").existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
-        require("fs").existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
+        fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
+        fs.existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
 
         generate_address_space(addressSpace, xml_files, function (err) {
 
@@ -100,8 +101,8 @@ describe("testing NodeSet XML file loading", function () {
             path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
             xml_file
         ];
-        require("fs").existsSync(xml_files[0]).should.be.eql(true);
-        require("fs").existsSync(xml_files[1]).should.be.eql(true);
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_files, function (err) {
 
@@ -137,8 +138,8 @@ describe("testing NodeSet XML file loading", function () {
             xml_file
         ];
 
-        require("fs").existsSync(xml_files[0]).should.be.eql(true);
-        require("fs").existsSync(xml_files[1]).should.be.eql(true);
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_files, function (err) {
             var someVariable = addressSpace.findNode("ns=1;i=2");
