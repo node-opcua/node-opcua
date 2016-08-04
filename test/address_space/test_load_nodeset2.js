@@ -126,7 +126,7 @@ describe("testing NodeSet XML file loading", function () {
         });
     });
 
-    it.only("should read predefined string values for variables", function(done) {
+    it("should read predefined string values for variables", function(done) {
 
         this.timeout(Math.max(400000,this._timeout));
 
