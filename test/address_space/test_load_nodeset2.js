@@ -125,4 +125,29 @@ describe("testing NodeSet XML file loading", function () {
             done(err);
         });
     });
+
+    it.only("should read predefined string values for variables", function(done) {
+
+        this.timeout(Math.max(400000,this._timeout));
+
+        var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_predefined_string_variable.xml");
+
+        var xml_files = [
+            path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
+            xml_file
+        ];
+
+        require("fs").existsSync(xml_files[0]).should.be.eql(true);
+        require("fs").existsSync(xml_files[1]).should.be.eql(true);
+
+        generate_address_space(addressSpace, xml_files, function (err) {
+            var someVariable = addressSpace.findNode("ns=1;i=2");
+
+            someVariable.browseName.toString().should.eql("1:SomeVariable");
+            someVariable.readValue().value.dataType.key.should.be.type('string');
+            someVariable.readValue().value.value.should.eql("any predefined string value");
+
+            done(err);
+        });
+    });
 });
