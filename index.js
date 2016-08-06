@@ -115,3 +115,4 @@ module.exports.constructEventFilter = require("lib/tools/tools_event_filter").co
 module.exports.checkSelectClause = require("lib/tools/tools_event_filter").checkSelectClause;
 
 module.exports.Enum = require("lib/misc/enum");
+module.exports.factories = require("lib/misc/factories");
