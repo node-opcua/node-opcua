@@ -1,4 +1,8 @@
 "use strict";
+
+process.env.NODE_PATH=__dirname + ";" + process.env.NODE_PATH;
+require('module').Module._initPaths();
+
 require("requirish")._(module);
 
 // common services
