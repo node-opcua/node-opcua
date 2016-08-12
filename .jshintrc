@@ -15,7 +15,6 @@
   "noarg": true,
   "quotmark": "double",
   "undef": true,
-  "unused": true,
   "strict": true,
   "trailing": true,
   "globals": {

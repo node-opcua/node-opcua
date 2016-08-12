@@ -1,7 +1,7 @@
   {
       "name": "The NodeOPCUA API",
       "description": "The NodeOPCUA API: a library to easily create OPC UA Server and Client application with node.js",
-      "version": "0.0.52",
+      "version": "0.0.57",
       "url": "http://node-opcua.github.io/",
       "options": {
           "outdir": "../node-opcua.github.io/api_doc",
