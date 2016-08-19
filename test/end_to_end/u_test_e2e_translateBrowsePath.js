@@ -49,7 +49,8 @@ module.exports = function (test) {
                     makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo"),
                     makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo.ProductName"),
                     makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo."), // missing TargetName !
-                    makeBrowsePath("RootFolder","/Objects.Server") // intentional error usign . instead of /
+                    makeBrowsePath("RootFolder","/Objects.Server"), // intentional error usign . instead of /
+                    makeBrowsePath("RootFolder","/Objects/2:MatrikonOPC Simulation Server (DA)") // va
                 ];
 
                 //xx console.log("browsePath ", browsePath[0].toString({addressSpace: server.engine.addressSpace}));
@@ -88,6 +89,7 @@ module.exports = function (test) {
 
                         results[5].statusCode.should.eql(StatusCodes.BadNoMatch);
 
+                        results[6].statusCode.should.eql(StatusCodes.BadNoMatch);
 
                     }
                     inner_done(err);
