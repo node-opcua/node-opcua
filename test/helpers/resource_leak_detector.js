@@ -20,37 +20,61 @@ function get_stack() {
     var stack = (new Error()).stack.split("\n");
     return stack.slice(2, 7).join("\n");
 }
+
+function verify_registry_counts(info) {
+
+    var errorMessages = [];
+
+    if (this.clearIntervalCallCount !== this.setIntervalCallCount) {
+        errorMessages.push(" setInterval doesn't match number of clearInterval calls : " + this.setIntervalCallCount + " " + this.clearIntervalCallCount);
+    }
+
+    if (AddressSpace.registry.count() !== 0) {
+        errorMessages.push(" some AddressSpace have not been properly terminated: "
+            + AddressSpace.registry.toString());
+    }
+    if (MonitoredItem.registry.count() !== 0) {
+        errorMessages.push(" some MonitoredItems have not been properly terminated: "
+            + MonitoredItem.registry.toString());
+    }
+    if (Subscription.registry.count() !== 0) {
+        errorMessages.push(" some Subscription have not been properly terminated: "
+            + Subscription.registry.toString());
+
+    }
+    if (OPCUAServer.registry.count() !== 0) {
+        errorMessages.push(" some OPCUAServer have not been properly terminated: "
+            + OPCUAServer.registry.toString());
+    }
+    //xx if (OPCUAClient.registry.count() !== 0) {
+    //xx     errorMessages.push(" some OPCUAClient have not been properly terminated: "
+    //xx        + OPCUAClient.registry.toString());
+    //xx }
+
+    if (errorMessages.length) {
+
+        if (info) {
+            console.log(" TRACE : ", info);
+        }
+        console.log(errorMessages.join("\n"));
+        console.log("----------------------------------------------- more info");
+        // console.log(this.map);
+        _.forEach(this.map,function(value,key){
+            console.log("key =",key);
+            console.log(value.stack);//.split("\n"));
+        });
+        throw new Error("LEAKS !!!" + errorMessages.join("\n"));
+    }
+
+
+}
 exports.resourceLeakDetector = {
 
     start: function (info) {
 
-        // perform some saniy check first
+        // perform some sanity check first
+        verify_registry_counts.call(this,info);
 
-        var errorMessages = [];
-
-        if (AddressSpace.registry.count() !== 0) {
-            errorMessages.push(" some AddressSpace have not been properly terminated: "
-                + AddressSpace.registry.toString());
-        }
-        if (MonitoredItem.registry.count() !== 0) {
-            errorMessages.push(" some MonitoredItems have not been properly terminated: "
-                + MonitoredItem.registry.toString());
-        }
-        if (Subscription.registry.count() !== 0) {
-            errorMessages.push(" some Subscription have not been properly terminated: "
-                + Subscription.registry.toString());
-
-        }
-        if (OPCUAServer.registry.count() !== 0) {
-            errorMessages.push(" some OPCUAServer have not been properly terminated: "
-                + OPCUAServer.registry.toString());
-        }
-        if (errorMessages.length > 0) {
-            if (info) {
-                console.log(" TRACE : ", info);
-            }
-            throw new Error(" CANNOT START LEAK DETECTOR : UNCLEAN STATE \n" + errorMessages.join("\n"));
-        }
         if (trace) {
             console.log(" starting resourceLeakDetector");
         }
@@ -112,45 +136,7 @@ exports.resourceLeakDetector = {
         global.clearInterval = this.clearInterval_old;
         this.clearInterval_old = null;
 
-
-        var errorMessages = [];
-        if (this.clearIntervalCallCount !== this.setIntervalCallCount) {
-            errorMessages.push(" setInterval doesn't match number of clearInterval calls : " + this.setIntervalCallCount + " " + this.clearIntervalCallCount);
-        }
-
-
-        if (MonitoredItem.registry.count() !== 0) {
-            errorMessages.push(" some MonitoredItems have not been properly terminated: "
-                + MonitoredItem.registry.count());
-        }
-
-        if (Subscription.registry.count() !== 0) {
-            errorMessages.push(" some Subscriptions have not been properly terminated: "
-                + Subscription.registry.toString());
-        }
-        if (OPCUAServer.registry.count() !== 0) {
-            errorMessages.push(" some OPCUAServers have not been properly terminated: "
-                + OPCUAServer.registry.toString());
-        }
-
-        if (AddressSpace.registry.count() !== 0) {
-            errorMessages.push(" some AddressSpaces have not been properly terminated: "
-                + AddressSpace.registry.toString());
-        }
-        if (errorMessages.length) {
-
-            if (info) {
-                console.log(" TRACE : ", info);
-            }
-            console.log(errorMessages.join("\n"));
-            console.log("----------------------------------------------- more info");
-            // console.log(this.map);
-            _.forEach(this.map,function(value,key){
-                console.log("key =",key);
-                console.log(value.stack);//.split("\n"));
-            });
-            throw new Error("LEAKS !!!" + errorMessages.join("\n"));
-        }
+        verify_registry_counts.call(this,info);
     }
 };
 
