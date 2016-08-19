@@ -251,7 +251,7 @@ describe("Testing numerical range", function () {
             referenceByteString.length.should.eql(11);
         });
 
-        it("it should handle the case where the high value of the range is bigger than the array size",function() {
+        it("it should handle the case where the high value of the range is bigger than the array size", function () {
 
             // what the specs says:
             // When reading a value, the indexes may not specify a range that is within the bounds of the array. The
@@ -272,7 +272,7 @@ describe("Testing numerical range", function () {
 
         });
 
-        it("it should handle the case where both high value and low value range are bigger than the array size",function() {
+        it("it should handle the case where both high value and low value range are bigger than the array size", function () {
 
             var nr = new NumericRange("16777000:16777215"); // very large range outside the bound
 
@@ -607,8 +607,65 @@ describe("Testing numerical range", function () {
     });
 
     describe(" encoding / decoding", function () {
-
         var ObjWithNumericRange;
+
+        function _encode_decode_test(prefix, encode_decode_round_trip_test) {
+            it(prefix + "should persist an object with a numeric range - empty", function () {
+                var o = new ObjWithNumericRange({});
+                o.numericRange.type.should.equal(NumericRange.NumericRangeType.Empty);
+                should(o.numericRange.isValid()).eql(true);
+                should(o.numericRange.toEncodeableString()).eql(null);
+                encode_decode_round_trip_test(o);
+            });
+            it(prefix + "should persist an object with a numeric range - value pair", function () {
+                var o = new ObjWithNumericRange({
+                    numericRange: "2:3"
+                });
+                should(o.numericRange.isValid()).eql(true);
+                o.numericRange.type.should.equal(NumericRange.NumericRangeType.ArrayRange);
+                should(o.numericRange.toEncodeableString()).eql("2:3");
+                encode_decode_round_trip_test(o);
+            });
+            it(prefix + "should persist an object with a numeric range - single value", function () {
+                var o = new ObjWithNumericRange({
+                    numericRange: "100"
+                });
+                should(o.numericRange.isValid()).eql(true);
+                o.numericRange.type.should.equal(NumericRange.NumericRangeType.SingleValue);
+                should(o.numericRange.toEncodeableString()).eql("100");
+                encode_decode_round_trip_test(o);
+            });
+            it(prefix + "should persist an object with a numeric range - Invalid", function () {
+                var o = new ObjWithNumericRange({
+                    numericRange: "-4,-8"
+                });
+                should(o.numericRange.isValid()).eql(false);
+                o.numericRange.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+                should(o.numericRange.toEncodeableString()).eql("-4,-8");
+                encode_decode_round_trip_test(o);
+            });
+            it(prefix + "should persist an object with a numeric range - MatrixRange - type 1", function () {
+                var o = new ObjWithNumericRange({
+                    numericRange: "1:2,3:4"
+                });
+                o.numericRange.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+                should(o.numericRange.isValid()).eql(true);
+                should(o.numericRange.toEncodeableString()).eql("1:2,3:4");
+                encode_decode_round_trip_test(o);
+            });
+            it(prefix + "should persist an object with a numeric range - MatrixRange - type 2", function () {
+                var o = new ObjWithNumericRange({
+                    numericRange: "1,3"
+                });
+                o.numericRange.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
+                should(o.numericRange.isValid()).eql(true);
+                should(o.numericRange.toEncodeableString()).eql("1,3");
+                encode_decode_round_trip_test(o);
+            });
+
+        }
+
+
         before(function () {
             ObjWithNumericRange = factories.registerObject(ObjWithNumericRange_Schema, "tmp");
         });
@@ -616,58 +673,13 @@ describe("Testing numerical range", function () {
             factories.unregisterObject(ObjWithNumericRange_Schema);
         });
         var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-        it("should persist an object with a numeric range - empty", function () {
-            var o = new ObjWithNumericRange({});
-            o.numericRange.type.should.equal(NumericRange.NumericRangeType.Empty);
-            should(o.numericRange.isValid()).eql(true);
-            should(o.numericRange.toEncodeableString()).eql(null);
-            encode_decode_round_trip_test(o);
-        });
-        it("should persist an object with a numeric range - value pair", function () {
-            var o = new ObjWithNumericRange({
-                numericRange: "2:3"
-            });
-            should(o.numericRange.isValid()).eql(true);
-            o.numericRange.type.should.equal(NumericRange.NumericRangeType.ArrayRange);
-            should(o.numericRange.toEncodeableString()).eql("2:3");
-            encode_decode_round_trip_test(o);
-        });
-        it("should persist an object with a numeric range - single value", function () {
-            var o = new ObjWithNumericRange({
-                numericRange: "100"
-            });
-            should(o.numericRange.isValid()).eql(true);
-            o.numericRange.type.should.equal(NumericRange.NumericRangeType.SingleValue);
-            should(o.numericRange.toEncodeableString()).eql("100");
-            encode_decode_round_trip_test(o);
-        });
-        it("should persist an object with a numeric range - Invalid", function () {
-            var o = new ObjWithNumericRange({
-                numericRange: "-4,-8"
-            });
-            should(o.numericRange.isValid()).eql(false);
-            o.numericRange.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
-            should(o.numericRange.toEncodeableString()).eql("-4,-8");
-            encode_decode_round_trip_test(o);
-        });
-        it("should persist an object with a numeric range - MatrixRange - type 1", function () {
-            var o = new ObjWithNumericRange({
-                numericRange: "1:2,3:4"
-            });
-            o.numericRange.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
-            should(o.numericRange.isValid()).eql(true);
-            should(o.numericRange.toEncodeableString()).eql("1:2,3:4");
-            encode_decode_round_trip_test(o);
-        });
-        it("should persist an object with a numeric range - MatrixRange - type 2", function () {
-            var o = new ObjWithNumericRange({
-                numericRange: "1,3"
-            });
-            o.numericRange.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
-            should(o.numericRange.isValid()).eql(true);
-            should(o.numericRange.toEncodeableString()).eql("1,3");
-            encode_decode_round_trip_test(o);
-        });
+        var json_encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").json_encode_decode_round_trip_test;
+
+
+        _encode_decode_test("binary : ", encode_decode_round_trip_test);
+        _encode_decode_test("json : ", json_encode_decode_round_trip_test);
+
+
     });
 
     describe("Operations", function () {
