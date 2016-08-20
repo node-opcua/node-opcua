@@ -121,6 +121,7 @@ describe("AddressSpace#browsePath", function () {
         addressSpace.findNode(result.targets[0].targetId).browseName.toString().should.eql("Root");
 
     });
+    
 });
 
 

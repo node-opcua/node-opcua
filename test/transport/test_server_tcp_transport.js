@@ -1,5 +1,5 @@
 require("requirish")._(module);
-var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
+var DirectTransport = require("test/helpers/fake_socket").DirectTransport;
 var should = require("should");
 var assert = require("assert");
 var utils = require("lib/misc/utils");

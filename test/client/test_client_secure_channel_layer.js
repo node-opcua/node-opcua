@@ -26,7 +26,6 @@ describe("testing ClientSecureChannelLayer ", function () {
 
         ], done);
 
-        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
@@ -63,7 +62,6 @@ describe("testing ClientSecureChannelLayer ", function () {
 
         ], done);
 
-        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
@@ -98,7 +96,6 @@ describe("testing ClientSecureChannelLayer ", function () {
 
         ], done);
 
-        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
 
         var secureChannel = new ClientSecureChannelLayer();
 
@@ -157,7 +154,6 @@ describe("testing ClientSecureChannelLayer ", function () {
 
         ], done);
 
-        require("lib/transport/tcp_transport").setFakeTransport(mock.fake_socket.client);
         var secureChannel = new ClientSecureChannelLayer();
 
         secureChannel.bytesRead.should.equal(0);

@@ -1317,7 +1317,7 @@ describe("testing ability for client to reconnect when server close connection",
 
         var backoff_event_counter =0;
         client.on("backoff", function (err) {
-            //xxx console.log("...");
+            // xx console.log("...");
             backoff_event_counter+=1;
         });
 

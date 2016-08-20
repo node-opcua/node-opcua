@@ -1,6 +1,6 @@
 require("requirish")._(module);
-var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
-var SocketTransport = require("lib/transport/fake_socket").SocketTransport;
+var DirectTransport = require("test/helpers/fake_socket").DirectTransport;
+var SocketTransport = require("test/helpers/fake_socket").SocketTransport;
 
 var should = require("should");
 var assert = require("assert");
@@ -80,6 +80,8 @@ function installTestFor(Transport) {
             transport.server.end();
 
         });
+
+
     });
 }
 

@@ -1,6 +1,6 @@
 require("requirish")._(module);
 var hexDump = require("lib/misc/utils").hexDump;
-var DirectTransport = require("lib/transport/fake_socket").DirectTransport;
+var DirectTransport = require("test/helpers/fake_socket").DirectTransport;
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 var _ = require("underscore");
 var s = require("lib/datamodel/structures");

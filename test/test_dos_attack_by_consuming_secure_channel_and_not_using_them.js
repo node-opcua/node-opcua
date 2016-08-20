@@ -36,9 +36,17 @@ describe("testing Server resilience to DOS attacks", function () {
     var maxConnectionsPerEndpoint = 3;
     var maxAllowedSessionNumber = 10000; // almost no limits
 
+    var clients = [];
+    var sessions = [] ;
+    var rejected_connections =0;
+
     this.timeout(Math.max(20000, this._timeout));
 
     beforeEach(function (done) {
+
+        clients = [];
+        sessions =[];
+        rejected_connections =0;
 
         server = new OPCUAServer({
             port: 2000,
@@ -63,7 +71,7 @@ describe("testing Server resilience to DOS attacks", function () {
         });
     });
 
-    it("ZZZ should be possible to create many sessions per connection",function(done){
+    it("should be possible to create many sessions per connection",function(done){
 
         var client = new OPCUAClient({
             connectionStrategy: fail_fast_connectionStrategy
@@ -102,6 +110,7 @@ describe("testing Server resilience to DOS attacks", function () {
             }
         ],done);
     });
+
     it("When creating a valid/real SecureChannel, prior unused channels should be recycled.",function(done) {
 
 
@@ -171,68 +180,63 @@ describe("testing Server resilience to DOS attacks", function () {
 
     });
 
-    it("QQQQ should reject connections if all secure channel are used",function(done){
+    function createClientAndSession(data,_inner_callback) {
+
+        var client = new OPCUAClient({
+            connectionStrategy: fail_fast_connectionStrategy
+        });
+        client.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
+
+        client.on("start_reconnection", function (err) {
+            if(doDebug) { console.log("start_reconnection".bgWhite.yellow,data.index);}
+            throw Error("Expecting automatic reconnection to be disabled");
+        });
+        client.on("backoff", function (number, delay) {
+            if(doDebug) { console.log("backoff".bgWhite.yellow,number,delay);}
+            throw Error("Expecting automatic reconnection to be disabled");
+        });
+
+        async.series([
+
+            function(callback) {
+                client.connect(endpointUrl, function (err) {
+                    if (!err) {
+                        client._secureChannel.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
+                        clients.push(client);
+
+                        client.createSession(function(err,session){
+                            if (!err) {
+                                sessions.push(session);
+                            }
+                            callback();
+                        });
+
+                    } else {
+                        rejected_connections ++;
+                        // ignore err here
+                        callback();
+
+                    }
+                });
+            }
+        ],_inner_callback);
+    }
+
+    it("should reject connections if all secure channel are used",function(done){
 
         server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
-
+        rejected_connections.should.eql(0);
+        clients.length.should.eql(0);
+        sessions.length.should.eql(0);
         var nbExtra = 5;
         var nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
 
-        var clients = [];
-        var sessions = [] ;
-
-
-        var doDebug = false;
-
-        var rejected_connections =0;
         function step1_construct_many_channels_with_session(callback) {
 
             var tasks = [];
 
             for(var i=0;i<nbConnections;i++) {
                 tasks.push({index: i,endpointUrl : endpointUrl});
-            }
-
-            function createClientAndSession(data,_inner_callback) {
-
-                var client = new OPCUAClient({
-                    connectionStrategy: fail_fast_connectionStrategy
-                });
-                client.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
-
-                client.on("start_reconnection", function (err) {
-                    if(doDebug) { console.log("start_reconnection".bgWhite.yellow,data.index);}
-                    throw Error("Expecting automatic reconnection to be disabled");
-                });
-                client.on("backoff", function (number, delay) {
-                    if(doDebug) { console.log("backoff".bgWhite.yellow,number,delay);}
-                    throw Error("Expecting automatic reconnection to be disabled");
-                });
-
-                async.series([
-
-                    function(callback) {
-                        client.connect(endpointUrl, function (err) {
-                            if (!err) {
-                                client._secureChannel.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
-                                clients.push(client);
-
-                                client.createSession(function(err,session){
-                                    if (!err) {
-                                        sessions.push(session);
-                                    }
-                                    callback();
-                                });
-
-                            } else {
-                                rejected_connections ++;
-                                // ignore err here
-                                callback();
-
-                            }
-                        });
-                    }
-                ],_inner_callback);
             }
 
             var defer=require("delayed");
@@ -286,5 +290,56 @@ describe("testing Server resilience to DOS attacks", function () {
             step2_close_all_clients,
             step3_verification
         ],done);
+    });
+
+    it("ZZ Server shall not keep channel that have been disconnected abruptly",function(done) {
+
+        server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
+        rejected_connections.should.eql(0);
+        clients.length.should.eql(0);
+        sessions.length.should.eql(0);
+
+        var nbExtra = 5;
+        var nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
+
+        function step1_construct_many_channels_with_session_and_abruptly_terminate_them(callback) {
+
+            var tasks = [];
+
+            for(var i=0;i<nbConnections;i++) {
+                tasks.push({index: i,endpointUrl : endpointUrl});
+            }
+            var defer=require("delayed");
+            async.eachLimit( tasks,1 , defer.deferred(createClientAndSession),function(err,results){
+                callback(err);
+            });
+        }
+        function step2_abruptly_disconnect_existing_channel_from_client_side(callback) {
+
+            function terminate_client_abruptly(client,inner_callback) {
+                    var socket = client._secureChannel._transport._socket;
+                    socket.end();
+                    socket.destroy();
+                    socket.emit('error', new Error("Terminate"));
+                inner_callback();
+            }
+            async.eachLimit(clients,1,terminate_client_abruptly,function(err,results) {
+                callback(err);
+            });
+        }
+        async.series([
+            step1_construct_many_channels_with_session_and_abruptly_terminate_them,
+            step2_abruptly_disconnect_existing_channel_from_client_side,
+            function(callback) {
+                rejected_connections.should.eql(5);
+                callback();
+            },
+            step1_construct_many_channels_with_session_and_abruptly_terminate_them,
+            function(callback) {
+                rejected_connections.should.eql(10);
+                callback();
+            }
+        ],done)
+
     });
 });
