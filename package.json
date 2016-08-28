@@ -73,6 +73,7 @@
     "fqdn": "0.0.3",
     "hexy": "0.2.7",
     "humanize": "0.0.9",
+    "moment": "^2.14.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.5",
     "node-opcua-pki": "0.0.4",
