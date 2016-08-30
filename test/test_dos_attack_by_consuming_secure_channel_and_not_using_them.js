@@ -15,6 +15,7 @@ var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer")
 var should = require("should");
 var async = require("async");
 var util = require("util");
+var path = require("path");
 
 var opcua = require("index");
 
@@ -342,4 +343,75 @@ describe("testing Server resilience to DOS attacks", function () {
         ],done)
 
     });
+
+
+    it("ZAA Server shall not keep channel that have been disconnected abruptly - version 2",function(done) {
+
+        this.timeout(60000);
+        var sinon  = require("sinon");
+
+        var serverEndpoint =server.endpoints[0];
+
+        var spyCloseChannel = new sinon.spy();
+        var spyNewChannel = new sinon.spy();
+
+        serverEndpoint.on("closeChannel",spyCloseChannel);
+        serverEndpoint.on("newChannel",spyNewChannel);
+
+
+        var counter = 0;
+        function create_a_faulty_client(callback) {
+
+            counter ++;
+            console.log(" ------------------------------------------------------------ > create_a_faulty_client");
+            var spawn = require("child_process").spawn;
+            var  server_script  = path.join(__dirname,"./helpers/crashing_client");
+            var port = 2000;
+            var options ={};
+            var server_exec = spawn('node', [server_script,  port], options);
+            server_exec.on("close",function(code){
+                console.log("terminated with ",code);
+                callback();
+            });
+            server_exec.stdout.on('data', function (data) {
+                data = data.toString();
+                data.split("\n").forEach(function(data){
+                    process.stdout.write("stdout:               "+data.yellow + "\n");
+                });
+            });
+        }
+
+        server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
+        clients.length.should.eql(0);
+        sessions.length.should.eql(0);
+
+
+        function step1_launch_crashing_client(callback) {
+            create_a_faulty_client(callback);
+        }
+        function verify_server_channel_count(callback) {
+            // verify that there are no channel opened on the server send
+            console.log(" currentChannelCount =  ",serverEndpoint.currentChannelCount);
+
+            setTimeout(function() {
+                spyNewChannel.callCount.should.eql(counter);
+                spyCloseChannel.callCount.should.eql(counter);
+                callback();
+            },250);
+        }
+        async.series([
+            verify_server_channel_count,
+            step1_launch_crashing_client,
+            verify_server_channel_count,
+            step1_launch_crashing_client,
+            verify_server_channel_count,
+            step1_launch_crashing_client,
+            verify_server_channel_count,
+            step1_launch_crashing_client,
+            verify_server_channel_count,
+        ],done)
+
+    });
+
+
 });

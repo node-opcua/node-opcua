@@ -40,6 +40,7 @@ function start_simple_server(options, callback) {
 
     //xx options.env.DEBUG = "ALL";
 
+    var spawn = require("child_process").spawn;
     var server_exec = spawn('node', [server_script, '-p', port], options);
 
     var serverCertificateFilename = path.join(__dirname, "../../certificates/server_cert_1024.pem");
