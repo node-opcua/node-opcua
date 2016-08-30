@@ -11,6 +11,7 @@ Error.stackTraceLimit = Infinity;
 var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
 var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
 var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
+var sinon  = require("sinon");
 
 var should = require("should");
 var async = require("async");
@@ -41,19 +42,24 @@ describe("testing Server resilience to DOS attacks", function () {
     var sessions = [] ;
     var rejected_connections =0;
 
-    this.timeout(Math.max(20000, this._timeout));
+    var port = 2000;
+
+
+    this.timeout(Math.max(30000, this._timeout));
 
     beforeEach(function (done) {
+
+        port += 1;
 
         clients = [];
         sessions =[];
         rejected_connections =0;
 
         server = new OPCUAServer({
-            port: 2000,
+            port: port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
             maxAllowedSessionNumber:   maxAllowedSessionNumber,
-            nodeset_filename: empty_nodeset_filename
+           //xx nodeset_filename: empty_nodeset_filename
         });
         // we will connect to first server end point
         endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
@@ -347,8 +353,6 @@ describe("testing Server resilience to DOS attacks", function () {
 
     it("ZAA Server shall not keep channel that have been disconnected abruptly - version 2",function(done) {
 
-        this.timeout(60000);
-        var sinon  = require("sinon");
 
         var serverEndpoint =server.endpoints[0];
 
@@ -366,7 +370,6 @@ describe("testing Server resilience to DOS attacks", function () {
             console.log(" ------------------------------------------------------------ > create_a_faulty_client");
             var spawn = require("child_process").spawn;
             var  server_script  = path.join(__dirname,"./helpers/crashing_client");
-            var port = 2000;
             var options ={};
             var server_exec = spawn('node', [server_script,  port], options);
             server_exec.on("close",function(code){
@@ -392,7 +395,6 @@ describe("testing Server resilience to DOS attacks", function () {
         function verify_server_channel_count(callback) {
             // verify that there are no channel opened on the server send
             console.log(" currentChannelCount =  ",serverEndpoint.currentChannelCount);
-
             setTimeout(function() {
                 spyNewChannel.callCount.should.eql(counter);
                 spyCloseChannel.callCount.should.eql(counter);
