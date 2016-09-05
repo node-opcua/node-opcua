@@ -716,3 +716,43 @@ describe("factories testing advanced cases", function () {
 
     });
 });
+
+describe("BaseUAObject#clone ",function() {
+
+    function compare_obj_by_encoding(obj1,obj2) {
+        function encoded(obj) {
+            var stream = new BinaryStream(obj.binaryStoreSize());
+            obj.encode(stream);
+            return stream._buffer.toString("hex");
+        }
+        encoded(obj1).should.eql(encoded(obj2));
+
+    }
+
+    it("should clone an object ", function () {
+        var company = new Company({name: "ACME"});
+        var employee = new Employee({lastName: "John", service: "R&D"});
+        company.employees.push(employee);
+        company.employees.push(new Employee({lastName: "Peter", service: "R&D"}));
+
+        var company_copy = company.clone();
+
+        company_copy.constructor.name.should.eql("Company");
+        company_copy.name.should.eql("ACME");
+        company_copy.employees.length.should.eql(2);
+        company_copy.employees[0].lastName.should.eql("John");
+        company_copy.employees[0].service.should.eql("R&D");
+        company_copy.employees[1].lastName.should.eql("Peter");
+        company_copy.employees[1].service.should.eql("R&D");
+        compare_obj_by_encoding(company,company_copy);
+    });
+
+    it("should clone a Shape",function() {
+        var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});
+        var shape_clone = shape.clone();
+        compare_obj_by_encoding(shape,shape_clone);
+    });
+
+
+
+});
