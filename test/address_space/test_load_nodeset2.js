@@ -151,4 +151,40 @@ describe("testing NodeSet XML file loading", function () {
             done(err);
         });
     });
+
+    it("Q1 should read a VariableType with a default value",function(done){
+
+        var Variant = require("lib/datamodel/variant").Variant;
+
+        var xml_file1 = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
+        var xml_file2= path.join(__dirname,"../fixtures/fixture_variable_type_with_default_value.xml");
+
+        var xml_files = [
+            xml_file1,xml_file2
+        ];
+        generate_address_space(addressSpace, xml_files, function (err) {
+
+            var ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
+            var  my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType",ns);
+            my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
+
+            addressSpace.findDataType(my3x3MatrixType.dataType).browseName.toString().should.eql("Float");
+
+            my3x3MatrixType.valueRank.should.eql(2);
+            my3x3MatrixType.arrayDimensions.should.eql([3,3]);
+            my3x3MatrixType.value.toString().should.eql(new Variant({
+                dataType: "Float",value:[11,12,13,21,22,23,31,32,33]
+            }).toString());
+
+            var  myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType",ns);
+            myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
+            myDoubleArrayType.valueRank.should.eql(1);
+            myDoubleArrayType.arrayDimensions.should.eql([5]);
+            myDoubleArrayType.value.toString().should.eql(
+                new Variant({dataType: "Double",value:[1,2,3,4,5]}).toString());
+
+            done(err);
+        });
+    });
+
 });

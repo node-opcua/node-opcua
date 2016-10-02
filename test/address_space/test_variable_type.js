@@ -87,6 +87,8 @@ describe("testing UAVariableType", function () {
 
     });
 
+
+
     it("UAVariableType#instantiate should be possible to instantiate a VariableType and specify its nodeId)",function() {
 
         var variableType = addressSpace.addVariableType({
@@ -155,6 +157,38 @@ describe("testing UAVariableType", function () {
         myFolder.getFolderElementByName("Instance6").browseName.toString().should.eql("Instance6");
 
     });
+    it("UAVariableType#instantiate with valueRank and arrayDimension",function() {
+
+
+        var variableType = addressSpace.addVariableType({
+            browseName: "My3x3MatrixVariableType",
+            subtypeOf: "BaseVariableType",
+            isAbstract: false,
+            dataType: "Double",
+            valueRank: 2,
+            arrayDimensions: [3,3]
+        });
+
+        var doubleDataType =addressSpace.findDataType("Double");
+
+        doubleDataType.browseName.toString().should.eql("Double");
+
+        variableType.dataType.should.eql(doubleDataType.nodeId);
+        variableType.valueRank.should.eql(2);
+        variableType.arrayDimensions.should.eql([3,3]);
+
+        var obj = variableType.instantiate({
+            browseName: "My3x3MatrixVariable"
+        });
+
+        obj.browseName.toString().should.eql("My3x3MatrixVariable");
+        obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
+        obj.dataType.should.eql(doubleDataType.nodeId);
+        obj.valueRank.should.eql(2);
+        obj.arrayDimensions.should.eql([3,3]);
+
+    });
+
 
     it("should provide a mechanism to customize newly created instance",function() {
 

@@ -12,11 +12,13 @@ var ObjectTypeIds      = require("lib/opcua_node_ids").ObjectTypeIds;
 var VariableTypeIds    = require("lib/opcua_node_ids").VariableTypeIds;
 var ReferenceTypeIds   = require("lib/opcua_node_ids").ReferenceTypeIds;
 var ObjectIds          = require("lib/opcua_node_ids").ObjectIds;
+var DataTypeIds          = require("lib/opcua_node_ids").DataTypeIds;
 
 
 module.exports =  function create_minimalist_address_space_nodeset(addressSpace) {
 
     resolveNodeId(ObjectTypeIds.BaseObjectType).toString().should.eql("ns=0;i=58");
+
 
 
     var baseObjectType = addressSpace._createNode({
@@ -95,6 +97,19 @@ module.exports =  function create_minimalist_address_space_nodeset(addressSpace)
     });
 
     rootFolder.objects.browseName.toString().should.eql("Objects");
+
+    var dataTypeFolder = addressSpace.addObject({
+        browseName: "DataType",
+        nodeId: resolveNodeId(ObjectIds.DataTypesFolder),
+        organizedBy: rootFolder
+    });
+    var doubleDataType = addressSpace._createNode({
+        browseName: "Double",
+        nodeId: resolveNodeId(DataTypeIds.Double),
+        organisedBy: dataTypeFolder,
+        nodeClass: NodeClass.DataType
+    })
+
 
 };
 
