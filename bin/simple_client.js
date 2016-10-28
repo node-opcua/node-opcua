@@ -519,12 +519,14 @@ async.series([
             client.on("send_request", function () {
                 t1 = Date.now();
             });
-            client.on("receive_response", function () {
-                var t2 = Date.now();
-                var util = require("util");
-                var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
-                console.log(str.yellow.bold);
-            });
+
+            function print_stat() {
+                 var t2 = Date.now();
+                 var util = require("util");
+                 var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
+                 console.log(str.yellow.bold);
+            }
+            client.on("receive_response", print_stat);
 
             t = Date.now();
             crawler.on("browsed", function (element) {
@@ -541,6 +543,7 @@ async.series([
                         console.log(line);
                     });
                 }
+                client.removeListener("receive_response", print_stat);
                 callback(err);
             });
 
@@ -893,4 +896,3 @@ process.on('SIGINT', function () {
         the_subscription = null;
     }
 });
-
