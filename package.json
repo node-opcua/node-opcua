@@ -62,7 +62,6 @@
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
     "byline": "5.0.0",
-    "collections": "^5.0.5",
     "colors": "1.1.2",
     "del": "^2.2.2",
     "delayed": "^1.0.1",

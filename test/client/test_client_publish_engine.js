@@ -214,7 +214,7 @@ describe("Testing the client publish engine", function () {
 
         var timerId;
 
-        var Dequeue = require("collections/deque");
+        var Dequeue = require("dequeue");
         var publishQueue = new Dequeue();
 
         function start() {
