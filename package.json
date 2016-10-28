@@ -11,7 +11,7 @@
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
     "postinstall": "node postinstall.js",
-    "pretest": "node bin/crypto_create_CA.js demo --dev > tmp/crypto_create_CA.log",
+    "pretest": "node bin/crypto_create_CA.js demo --dev --silent",
     "test": "mocha test --color -R spec --recursive --timeout 200000 --bail",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
@@ -48,11 +48,11 @@
     "mocha": "3.1.2",
     "mocha-lcov-reporter": "1.2.0",
     "node-xml": "1.0.2",
-    "request": "2.75.0",
+    "request": "2.76.0",
     "should": "11.1.1",
     "sinon": "1.17.6",
     "tmp": "0.0.29",
-    "tracer": "0.8.3",
+    "tracer": "0.8.7",
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
   },
@@ -73,10 +73,10 @@
     "fqdn": "0.0.3",
     "hexy": "0.2.7",
     "humanize": "0.0.9",
-    "moment": "^2.15.1",
+    "moment": "^2.15.2",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.5",
-    "node-opcua-pki": "0.0.4",
+    "node-opcua-pki": "0.0.8",
     "once": "^1.4.0",
     "pem": "1.8.3",
     "progress": "1.1.8",
@@ -89,6 +89,6 @@
     "unzip": "^0.1.11",
     "wget-improved": "^1.3.0",
     "xml-writer": "^1.6.0",
-    "yargs": "^6.2.0"
+    "yargs": "^6.3.0"
   }
 }
