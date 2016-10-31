@@ -252,6 +252,10 @@ registerObject("UnregisterNodesRequest");
 registerObject("Argument");
 //xx registerObject("BaseDataType");
 
+// write
+registerObject("WriteValue");
+registerObject("WriteRequest");
+registerObject("WriteResponse");
 // ContentFilter
 registerObject("FilterOperand");
 
@@ -290,10 +294,6 @@ registerObject("FindServersRequest");
 registerObject("FindServersResponse");
 
 
-// write
-registerObject("WriteValue");
-registerObject("WriteRequest");
-registerObject("WriteResponse");
 
 // node Management service
 registerObject("AddNodesItem");
