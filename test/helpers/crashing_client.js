@@ -1,9 +1,15 @@
 // a simple client that is design to crash in the middle of a connection
 // once a item has been monitored
 
+if (process.argv.length != 3) {
+    return;
+}
+console.log("process.argv.length ",process.argv.length);
+
 /*global require,console,setTimeout */
 var opcua = require("../../"); // node-opcua
 var async = require("async");
+
 
 var port = process.argv[2];
 

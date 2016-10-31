@@ -120,11 +120,14 @@ module.exports = function (test) {
                 },
                 // monitor
                 function (callback) {
+
                     var eventFilter = opcua.constructEventFilter(fields);
+
                     var itemToMonitor = {
                         nodeId: opcua.resolveNodeId("Server"),
                         attributeId: opcua.AttributeIds.EventNotifier // << EventNotifier
                     };
+
                     var requestedParameters = {
                         samplingInterval: 50,
                         discardOldest: true,
@@ -324,11 +327,9 @@ module.exports = function (test) {
             ], function final(err) {
 
                 events_received.length.should.eql(3);
-
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
                 //
-
                 // "AuditCreateSessionEventType"
                 events_received[0].SourceName.value.should.eql("Session/CreateSession");
                 events_received[0].SessionId.value.toString().should.eql(the_session.sessionId.toString());
@@ -347,12 +348,5 @@ module.exports = function (test) {
                 done(err);
             });
         });
-
     });
-
 };
-
-
-
-
-
