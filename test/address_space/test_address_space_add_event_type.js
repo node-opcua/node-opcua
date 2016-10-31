@@ -168,29 +168,31 @@ describe("AddressSpace : add event type ", function () {
 
         var eventType = addressSpace.addEventType({
             subtypeOf: "ConditionType",
-            browseName: "MyConcreteCustomEvent2",
+            browseName: "MyConditionType",
             isAbstract: false
         });
-        bench.add('test', function () {
 
-            var event = addressSpace.instantiateCondition(eventType, {
-                sourceName: {dataType: "String", value: "HelloWorld"},
-                receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
+        bench.add('test', function () {
+            var condition = addressSpace.instantiateCondition(eventType, {
+                browseName: "MyCondition",
+                sourceName:  { dataType: "String",   value: "HelloWorld"},
+                conditionSource: null,
+                receiveTime: { dataType: "DateTime", value: new Date(1789, 6, 14)}
             });
         })
 
-            .on('cycle', function (message) {
-                console.log(message);
-            })
+        .on('cycle', function (message) {
+            console.log(message);
+        })
 
-            .on('complete', function () {
+        .on('complete', function () {
 
-                console.log(' Fastest is ' + this.fastest.name);
-                //xx console.log(' count    :  ', this.fastest.count);
-                done();
-            })
+            console.log(' Fastest is ' + this.fastest.name);
+            //xx console.log(' count    :  ', this.fastest.count);
+            done();
+        })
 
-            .run({max_time: 0.1});
+        .run({max_time: 0.1});
 
     });
 
@@ -210,7 +212,7 @@ describe("AddressSpace : add event type ", function () {
         var data = addressSpace.constructEventData(auditEventType,data);
 
         var expected_fields = [
-            "$eventType",
+            "$eventDataSource",
             "__nodes",
             "actionTimeStamp",
             "clientAuditEntryId",
@@ -281,17 +283,5 @@ describe("AddressSpace : add event type ", function () {
         event.receiveTime.value.should.eql(new Date(1789, 6, 14));
 
     });
-    xit("#createEventData ", function () {
 
-        var auditEventType = addressSpace.findObjectType("AuditEventType");
-
-        var data = {
-            sourceName: {dataType: "String", value: "HelloWorld"},
-            receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
-        };
-
-        var fullData = addressSpace.deprecated_createEventData(auditEventType, data);
-
-        fullData.sourceName.value.should.eql("HelloWorld");
-    });
 });

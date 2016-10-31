@@ -3818,6 +3818,21 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3706</Reference>
         </References>
     </UAVariable>
+    <UAVariableType NodeId="i=9002" BrowseName="ConditionVariableType" ValueRank="-2">
+        <DisplayName>ConditionVariableType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=9003</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariable NodeId="i=9003" BrowseName="SourceTimestamp" ParentNodeId="i=9002" DataType="i=294">
+        <DisplayName>SourceTimestamp</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=9002</Reference>
+        </References>
+    </UAVariable>
 
     <UAReferenceType NodeId="i=9004" BrowseName="HasTrueSubState">
         <DisplayName>HasTrueSubState</DisplayName>

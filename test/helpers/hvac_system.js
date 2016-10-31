@@ -183,6 +183,8 @@ exports.createHVACSystem = function(addressSpace) {
         clearInterval(timerId);
     });
 
+    //xx console.log(" => ",myHVAC.setTargetTemperature.inputArguments.readValue().toString());
+
     // bind the method
     myHVAC.setTargetTemperature.bindMethod(function(inputArguments, context, callback) {
 

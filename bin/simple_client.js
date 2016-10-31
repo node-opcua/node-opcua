@@ -510,6 +510,13 @@ async.series([
     //------------------------------------------
     function (callback) {
 
+        function print_stat() {
+            var t2 = Date.now();
+            var util = require("util");
+            var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
+            console.log(str.yellow.bold);
+        }
+
         if (doCrawling) {
             assert(_.isObject(the_session));
             var crawler = new NodeCrawler(the_session);
@@ -520,12 +527,7 @@ async.series([
                 t1 = Date.now();
             });
 
-            function print_stat() {
-                 var t2 = Date.now();
-                 var util = require("util");
-                 var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
-                 console.log(str.yellow.bold);
-            }
+
             client.on("receive_response", print_stat);
 
             t = Date.now();

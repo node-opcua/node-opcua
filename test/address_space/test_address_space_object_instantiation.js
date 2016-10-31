@@ -64,7 +64,7 @@ describe("testing add new ObjectType ", function () {
         });
 
         var aggregates = myObjectType.getAggregates();
-        console.log("myObjectType aggregates=  ",aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
+        //xx console.log("myObjectType aggregates=  ",aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
         aggregates.length.should.eql(1);
 
 
@@ -74,7 +74,7 @@ describe("testing add new ObjectType ", function () {
         instance.browseName.toString().should.eql("Instance");
 
         var aggregates = instance.getAggregates();
-        console.log("equipmentType children=  ",aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
+        //xx console.log("equipmentType children=  ",aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
         aggregates.length.should.eql(1);
 
 
@@ -85,5 +85,106 @@ describe("testing add new ObjectType ", function () {
 
     });
 
+
+    it("should be possible to choose which optional item to instantiate in sub objects",function() {
+
+        function constructObjectType() {
+
+            var mySubObjectType1 = addressSpace.addObjectType({
+                browseName: "MySubObjectType1"
+            });
+            var prop1 = addressSpace.addVariable({
+                propertyOf: mySubObjectType1,
+                browseName: "Property1",
+                dataType: "Double",
+                modellingRule: "Mandatory"
+            });
+
+            mySubObjectType1.property1.browseName.toString().should.eql("Property1");
+
+            var prop2 = addressSpace.addVariable({
+                propertyOf: mySubObjectType1,
+                browseName: "Property2",
+                dataType: "Double",
+                modellingRule: "Optional"
+            });
+            var prop3 = addressSpace.addVariable({
+                propertyOf: mySubObjectType1,
+                browseName: "Property3",
+                dataType: "Double",
+                modellingRule: "Optional"
+            });
+
+            var myObjectType1 = addressSpace.addObjectType({
+                browseName: "MyObjectType1"
+            });
+
+            var subObj = mySubObjectType1.instantiate({
+                browseName: "SubObj",
+                modellingRule: "Optional",
+                componentOf: myObjectType1,
+                optionals: ["Property2","Property3"]
+            });
+
+            myObjectType1.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+            myObjectType1.subObj.getPropertyByName("Property1").browseName.toString().should.eql("Property1");
+            myObjectType1.subObj.getPropertyByName("Property2").browseName.toString().should.eql("Property2");
+            myObjectType1.subObj.getPropertyByName("Property3").browseName.toString().should.eql("Property3");
+
+        }
+        constructObjectType();
+
+        var myObjectType1 = addressSpace.findObjectType("MyObjectType1");
+
+        // -----------------------------------------------
+        var obj1 = myObjectType1.instantiate({
+            organizedBy: addressSpace.rootFolder.objects,
+            browseName: "Obj1"
+        });
+        should(obj1.getComponentByName("SubObj")).eql(null);
+
+
+        // -----------------------------------------------
+        var obj2 = myObjectType1.instantiate({
+            organizedBy: addressSpace.rootFolder.objects,
+            browseName: "Obj2",
+            optionals: ["SubObj"]
+        });
+        should(obj2.getComponentByName("SubObj")).not.eql(null);
+        obj2.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+
+        should(obj2.subObj.getPropertyByName("Property1")).not.eql(null);
+        should(obj2.subObj.getPropertyByName("Property2")).eql(null);
+        should(obj2.subObj.getPropertyByName("Property3")).eql(null);
+
+        // -----------------------------------------------
+        var obj3 = myObjectType1.instantiate({
+            organizedBy: addressSpace.rootFolder.objects,
+            browseName: "Obj3",
+            optionals: [
+                "SubObj.Property2",
+                "SubObj.Property3"
+            ]
+        });
+        obj3.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+
+        should(obj3.subObj.getPropertyByName("Property1")).not.eql(null);
+        should(obj3.subObj.getPropertyByName("Property2")).not.eql(null);
+        should(obj3.subObj.getPropertyByName("Property3")).not.eql(null);
+
+        // -----------------------------------------------
+        var obj4 = myObjectType1.instantiate({
+            organizedBy: addressSpace.rootFolder.objects,
+            browseName: "Obj4",
+            optionals: [
+                "SubObj.Property3"
+            ]
+        });
+        obj4.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+
+        should(obj4.subObj.getPropertyByName("Property1")).not.eql(null);
+        should(obj4.subObj.getPropertyByName("Property2")).eql(null);
+        should(obj4.subObj.getPropertyByName("Property3")).not.eql(null);
+    });
 
 });

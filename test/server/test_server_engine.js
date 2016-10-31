@@ -1477,16 +1477,17 @@ describe("testing ServerEngine", function () {
 
             browsePathResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
         });
-        it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", function () {
+
+
+        it("translating a browse path to a nodeId with an empty relativePath  shall return rootElement", function () {
+
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84), // <=== valid node id
                 relativePath: {elements: []}         // <=== empty path
             });
-
             var browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
-
-            browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
+            browsePathResult.statusCode.should.eql(StatusCodes.Good);
         });
 
         it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", function () {

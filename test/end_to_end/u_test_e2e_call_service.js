@@ -55,10 +55,18 @@ module.exports = function (test) {
                 session.getArgumentDefinition(methodId, function (err, inputArguments, outputArguments) {
 
                     exec_safely(function(){
-                        //xx console.log("inputArguments  ",inputArguments);
-                        //xx console.log("outputArguments ",outputArguments);
+                        //xx console.log("inputArguments  ",inputArguments.toString());
+                        //xx console.log("outputArguments ",outputArguments.toString());
                         inputArguments.length.should.equal(1);
+                        inputArguments[0].name.should.equal("SubscriptionId");
+                        inputArguments[0].dataType.toString().should.equal("ns=0;i=7");
+
                         outputArguments.length.should.equal(2);
+                        outputArguments[0].name.should.equal("ServerHandles");
+                        outputArguments[0].dataType.toString().should.equal("ns=0;i=7")
+
+                        outputArguments[1].name.should.equal("ClientHandles");
+                        outputArguments[1].dataType.toString().should.equal("ns=0;i=7");
 
                         inner_done(err);
                     },inner_done);
@@ -97,6 +105,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                  session.call(methodToCalls, function (err, results) {
+
                         exec_safely(function(){
 
                             should(err).equal(null);
@@ -123,7 +132,12 @@ module.exports = function (test) {
             methodToCalls.push({
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
-                inputArguments: [{dataType: DataType.String,arrayType: VariantArrayType.Scalar, value:  invalidSubscriptionID.toString() }] //
+                inputArguments: [
+                    {
+                        dataType: DataType.String,
+                        arrayType: VariantArrayType.Scalar,
+                        value:  invalidSubscriptionID.toString()
+                    }] //
             });
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {

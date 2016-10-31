@@ -85,10 +85,13 @@ describe("testing Events  ", function () {
     });
 
 
-
+    var EventData = require("lib/address_space/address_space_add_event_type").EventData;
     // select clause
     var subscription_service = require("lib/services/subscription_service");
+
     it("should extract EventData from an select clause", function () {
+
+
 
         var baseEventType = addressSpace.findEventType("BaseEventType");
 
@@ -119,9 +122,14 @@ describe("testing Events  ", function () {
         var selectClauseResults = checkSelectClauses(auditEventType, eventFilter.selectClauses);
 
         selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
-        console.log(selectClauseResults);
 
-        var eventFields = extractEventFields(auditEventType, eventFilter.selectClauses,{__nodes:{}});
+        //xx console.log(selectClauseResults);
+
+        var eventData = new EventData(baseEventType);
+
+        var eventFields = extractEventFields(eventFilter.selectClauses,eventData);
+
+
         eventFields.length.should.eql(eventFilter.selectClauses.length);
 
         var eventFieldList = new subscription_service.EventFieldList({
@@ -169,7 +177,7 @@ describe("testing Events  ", function () {
         };
         var eventData = addressSpace.constructEventData(eventType,data);
 
-        var eventFields = extractEventFields(eventType,eventFilter.selectClauses,eventData);
+        var eventFields = extractEventFields(eventFilter.selectClauses,eventData);
 
         // make sure all event fields are Variant
         eventFields.forEach(function(e){

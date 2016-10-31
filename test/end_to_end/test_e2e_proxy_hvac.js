@@ -213,7 +213,7 @@ describe("testing client Proxy", function () {
 
     it("AA one can subscribe to proxy object property change", function (done) {
 
-        this.timeout(Math.max(200000,this._timeout));
+        this.timeout(Math.max(20000,this._timeout));
 
         var proxyManager;
 
@@ -238,7 +238,7 @@ describe("testing client Proxy", function () {
 
                             console.log("Target temperature nodeId =",hvac.targetTemperature.nodeId.toString());
                             console.log("Inside temperature nodeId =",hvac.interiorTemperature.nodeId.toString());
-
+                            //xx console.log("hvac.setTargetTemperature = ",hvac.setTargetTemperature);
                             hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
                             hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double.value);
                             hvac.setTargetTemperature.inputArguments[0].valueRank.should.eql(-1);
@@ -277,7 +277,7 @@ describe("testing client Proxy", function () {
                     hvac.interiorTemperature.writeValue({
                         value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
                     },function(err) {
-                        should(err).not.eql(null," it should not be possible to set readonyl interiorTemperature");
+                        should(err).not.eql(null," it should not be possible to set readonly interiorTemperature");
                         err.message.should.match(/BadNotWritable/);
                         callback();
                     });
