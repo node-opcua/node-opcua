@@ -254,7 +254,7 @@ module.exports = function (test) {
 
             ], function final(err) {
 
-                events_received.length.should.eql(3);
+                events_received.length.should.eql(5);
 
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
@@ -326,7 +326,7 @@ module.exports = function (test) {
 
             ], function final(err) {
 
-                events_received.length.should.eql(3);
+                events_received.length.should.eql(5);
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
                 //
