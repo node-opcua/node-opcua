@@ -349,7 +349,7 @@ describe("Subscriptions and MonitoredItems", function () {
         this.clock.tick(subscription.publishingInterval);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
-        // Monitored item will report a new value evrert tick => 100 ms
+        // Monitored item will report a new value every tick => 100 ms
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });

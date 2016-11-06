@@ -57,7 +57,7 @@ describe("testing Events  ", function () {
 
     util.inherits(Observer, EventEmitter);
 
-    it("should raise a new EventType", function (done) {
+    it("should raise a new transitory event of  EventType", function (done) {
 
         var serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");

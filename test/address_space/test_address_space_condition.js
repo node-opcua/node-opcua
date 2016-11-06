@@ -8,6 +8,12 @@ var path = require("path");
 
 var async = require("async");
 
+
+var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
+var server_engine = require("lib/server/server_engine");
+var ServerEngine = server_engine.ServerEngine;
+
+
 var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
@@ -17,28 +23,35 @@ var AttributeIds = require("lib/services/read_service").AttributeIds;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
+var Variant = require("lib/datamodel/variant").Variant;
+var NodeId = require("lib/datamodel/nodeid").NodeId;
+
 
 require("lib/address_space/address_space_add_enumeration_type");
 
 describe("AddressSpace : Conditions ", function () {
 
     var addressSpace;
+    var engine;
 
     this.timeout(Math.max(this._timeout, 10000));
 
     var source;
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true, function () {
         before(function (done) {
-            addressSpace = new AddressSpace();
 
-
+            engine = new server_engine.ServerEngine();
 
             var xml_file = path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml");
             require("fs").existsSync(xml_file).should.be.eql(true);
 
-            generate_address_space(addressSpace, xml_file, function (err) {
+            engine.initialize({nodeset_filename: xml_file}, function () {
+                var FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
+                var BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
 
+                addressSpace = engine.addressSpace;
                 addressSpace.installAlarmsAndConditionsService();
+
 
                 var green  =addressSpace.addObject({
 
@@ -53,12 +66,13 @@ describe("AddressSpace : Conditions ", function () {
                     eventSourceOf: green
                 });
 
-                done(err);
+                done();
             });
-        });
 
+        });
         after(function () {
-            addressSpace.dispose();
+            engine.shutdown();
+            // addressSpace.dispose();
             addressSpace = null;
         });
     });
@@ -112,7 +126,7 @@ describe("AddressSpace : Conditions ", function () {
                 organizedBy: addressSpace.rootFolder.objects
             });
 
-            condition._setEnableState(true);
+            condition._setEnabledState(true);
 
             var dataValue = condition.enabledState.id.readValue();
             dataValue.value.value.should.eql(true);
@@ -120,28 +134,35 @@ describe("AddressSpace : Conditions ", function () {
 
             var context = {};
 
-            condition._setEnableState(false);
-            condition._setEnableState(true).should.eql(StatusCodes.Good);
-            condition._setEnableState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
+            condition._setEnabledState(false);
+            condition.getEnabledState().should.eql(false);
+            condition._setEnabledState(true).should.eql(StatusCodes.Good);
+            condition.getEnabledState().should.eql(true);
+            condition._setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
 
             condition.enabledState.id.readValue().value.value.should.eql(true);
             condition.enabledState.readValue().value.value.text.should.eql("Enabled");
 
-            condition._setEnableState(false).should.eql(StatusCodes.Good);
-            condition._setEnableState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
+            condition._setEnabledState(false).should.eql(StatusCodes.Good);
+            condition._setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
             condition.enabledState.id.readValue().value.value.should.eql(false);
             condition.enabledState.readValue().value.value.text.should.eql("Disabled");
-
+            condition.getEnabledState().should.eql(false);
 
             async.series([
 
                 function _calling_disable_when_enable_state_is_false_should_return_BadConditionAlreadyDisabled(callback) {
 
+                    condition.getEnabledState().should.eql(false);
+
                     condition.disable.execute([], context, function (err, callMethodResponse) {
 
                         callMethodResponse.statusCode.should.eql(StatusCodes.BadConditionAlreadyDisabled);
                         //xx console.log(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Here",callMethodResponse.statusCode.toString());
+
                         condition.enabledState.id.readValue().value.value.should.eql(false);
+                        condition.getEnabledState().should.eql(false);
+
                         condition.enabledState.readValue().value.value.text.should.eql("Disabled");
                         callback(err);
                     });
@@ -195,6 +216,7 @@ describe("AddressSpace : Conditions ", function () {
             done();
 
         });
+
         it("should be possible to activate the EnabledState.EffectiveTransitionTime optional property",function(done) {
 
             var condition = addressSpace.instantiateCondition(myCustomConditionType,{
@@ -217,6 +239,7 @@ describe("AddressSpace : Conditions ", function () {
             done();
 
         });
+
         it("should be possible to activate the EnabledState.EffectiveDisplayName optional property",function(done){
 
             var condition = addressSpace.instantiateCondition(myCustomConditionType,{
@@ -243,7 +266,6 @@ describe("AddressSpace : Conditions ", function () {
             done();
         });
 
-
         it("should be possible to set the comment of a condition using the addComment method of the condition instance",function(done){
 
 
@@ -264,7 +286,7 @@ describe("AddressSpace : Conditions ", function () {
                 callMethodResponse.statusCode.should.equal(StatusCodes.Good);
             });
 
-            condition.getComment().text.should.eql("Some message");
+            condition.currentBranch().getComment().text.should.eql("Some message");
 
             done();
 
@@ -292,7 +314,7 @@ describe("AddressSpace : Conditions ", function () {
                 callMethodResponse.statusCode.should.equal(StatusCodes.Good);
             });
 
-            condition.getComment().text.should.eql("Some message");
+            condition.currentBranch().getComment().text.should.eql("Some message");
 
             done();
         });
@@ -323,7 +345,7 @@ describe("AddressSpace : Conditions ", function () {
                 ]
             });
 
-            condition.getLastSeverity().should.equal(0);
+            condition.currentBranch().getLastSeverity().should.equal(0);
 
         });
 
@@ -339,14 +361,13 @@ describe("AddressSpace : Conditions ", function () {
                 ]
             });
 
-            condition.setSeverity(100);
-            condition.getLastSeverity().should.equal(0);
+            condition.currentBranch().setSeverity(100);
+            condition.currentBranch().getLastSeverity().should.equal(0);
 
-            condition.setSeverity(110);
-            condition.getLastSeverity().should.equal(100);
+            condition.currentBranch().setSeverity(110);
+            condition.currentBranch().getLastSeverity().should.equal(100);
 
         });
-
 
 
         var sinon = require("sinon");
@@ -381,29 +402,24 @@ describe("AddressSpace : Conditions ", function () {
 
             spy_on_event.callCount.should.eql(1);
 
-            var evtData =spy_on_event.getCall(0).args[0].$eventDataSource;
+            var evtData =spy_on_event.getCall(0).args[0].clone();
 
-            //xx console.log("evtData = ",evtData);
+            console.log("evtData = ",evtData.constructor.name);
 
-            console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.toString());
-            console.log(" EVENT ID :",       evtData.eventId.readValue().value.toString("hex"));
+            //Xx console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.toString());
+            //Xx console.log(" EVENT ID :",       evtData.eventId.readValue().value.toString("hex"));
 
-            should(evtData.eventId.readValue().value).not.eql(null,"Event must have a unique eventId");
-
-            evtData.severity.readValue().value.value.should.eql(1235)//,"the severity should match expecting severity");
-            evtData.quality.readValue().value.value.should.eql(StatusCodes.Good);
+            should(evtData.getEventId()).not.eql(null,"Event must have a unique eventId");
+            evtData.getSeverity().should.eql(1235); //,"the severity should match expecting severity");
+            evtData.getQuality().should.eql(StatusCodes.Good);
 
             // the sourceName of the event should match the ConditionSourceNode
-            evtData.sourceName.readValue().value.value.text.should.eql(source.browseName.toString());
 
-            evtData.eventType.readValue().value.dataType.should.eql(DataType.NodeId);
-            evtData.eventType.readValue().value.value.should.eql(myCustomConditionType.nodeId);
+            //xx todo evtData.getSourceName().text.should.eql(source.browseName.toString());
 
-            evtData.message.readValue().value.dataType.should.eql(DataType.LocalizedText);
-            evtData.message.readValue().value.value.text.should.eql("Hello Message");
-
-            evtData.sourceNode.readValue().value.value.should.eql(source.nodeId);
-
+            evtData.getEventType().should.eql(myCustomConditionType.nodeId);
+            evtData.getMessage().text.should.eql("Hello Message");
+            evtData.getSourceNode().should.eql(source.nodeId);
 
             // raise an other event
             condition.raiseNewCondition({
@@ -414,50 +430,118 @@ describe("AddressSpace : Conditions ", function () {
 
             spy_on_event.callCount.should.eql(2);
 
-            var evtData1 =spy_on_event.getCall(1).args[0].$eventDataSource;
-            console.log(" EVENT RECEIVED :", evtData1.sourceName.readValue().value.value);
-            console.log(" EVENT ID :", evtData1.eventId.readValue().value.value.toString("hex"));
+            var evtData1 =spy_on_event.getCall(1).args[0];
+            //xx console.log(" EVENT RECEIVED :", evtData1.sourceName.readValue().value.value);
+            //xx console.log(" EVENT ID :", evtData1.eventId.readValue().value.value.toString("hex"));
 
-            should(evtData1.eventId.readValue().value.value).not.eql(evtData.eventId.value,"EventId must be different from previous one");
-            evtData1.severity.readValue().value.value.should.eql(1000,"the severity should match expecting severity");
-            evtData1.quality.readValue().value.value.should.eql(StatusCodes.Bad);
+            should(evtData1.getEventId()).not.eql(evtData.getEventId(),"EventId must be different from previous one");
+            evtData1.getSeverity().should.eql(1000,"the severity should match expecting severity");
+            evtData1.getQuality().should.eql(StatusCodes.Bad);
             // raise with only severity
             condition.raiseNewCondition({
                 severity: 1001
             });
             spy_on_event.callCount.should.eql(3);
-            var evtData2 =spy_on_event.getCall(2).args[0].$eventDataSource;
-            console.log(" EVENT RECEIVED :", evtData2.sourceName.readValue().value.value);
-            console.log(" EVENT ID :", evtData2.eventId.readValue().value.value.toString("hex"));
+            var evtData2 =spy_on_event.getCall(2).args[0];
+            //xx console.log(" EVENT RECEIVED :", evtData2.sourceName.readValue().value.value);
+            //xx console.log(" EVENT ID :", evtData2.eventId.readValue().value.value.toString("hex"));
 
-            should(evtData2.eventId.readValue().value.value).not.eql(evtData.eventId.value,"EventId must be different from previous one");
-            evtData2.severity.readValue().value.value.should.eql(1001,"the severity should match expecting severity");
-            evtData2.quality.readValue().value.value.should.eql(StatusCodes.Bad);
+            should(evtData2.getEventId()).not.eql(evtData.getEventId(),"EventId must be different from previous one");
+            evtData2.getSeverity().should.eql(1001,"the severity should match expecting severity");
+            evtData2.getQuality().should.eql(StatusCodes.Bad);
 
         });
 
 
-        it("should be possible to refresh a condition",function() {
+        describe("Condition Branches",function() {
 
-            var condition = addressSpace.instantiateCondition(myCustomConditionType,{
-                organizedBy: addressSpace.rootFolder.objects,
-                browseName: "MyCustomCondition_to_test_condition_refresh",
-                conditionSource: source,
+            it("should be possible to create several branches of a condition state",function() {
+                var condition = addressSpace.instantiateCondition(myCustomConditionType,{
+                    organizedBy: addressSpace.rootFolder.objects,
+                    browseName: "MyCustomCondition_branch",
+                    conditionSource: source,
+                    optionals: [
+                        "EnabledState.EffectiveDisplayName",
+                        "EnabledState.TransitionTime"
+                    ]
+                });
+
+                condition.getBranchCount().should.eql(0);
+
+                var branch1  = condition.createBranch();
+                branch1.branchId.should.be.an.instanceOf(NodeId);
+
+                condition.getBranchCount().should.eql(1);
+
+                var branch2  = condition.createBranch();
+                branch2.branchId.should.be.an.instanceOf(NodeId);
+
+                condition.getBranchCount().should.eql(2);
+
+                branch1.branchId.toString().should.not.eql(branch2.branchId.toString());
+
             });
-            // conditionRefresh shall be called from ConditionType
-            var conditionType = addressSpace.findObjectType("ConditionType");
+        });
+        describe("Condition & Subscriptions : ConditionRefresh",function() {
 
-            var context ={
-                server: addressSpace.rootFolder.objects.server,
-                object: conditionType
-            };
+            var session, subscription;
+            before(function() {
+                session = engine.createSession();
 
-            conditionType.conditionRefresh.execute([], context, function (err, callMethodResponse) {
+                subscription = session.createSubscription({
+                    requestedPublishingInterval: 1000,  // Duration
+                    requestedLifetimeCount: 10,         // Counter
+                    requestedMaxKeepAliveCount: 10,     // Counter
+                    maxNotificationsPerPublish: 10,     // Counter
+                    publishingEnabled: true,            // Boolean
+                    priority: 14                        // Byte
+                });
+                subscription.monitoredItemCount.should.eql(0);
+
+
+                // add a event monitored item on server
+
 
             });
+            after(function() {
+                subscription.terminate();
+            });
 
+            it("should be possible to refresh a condition",function() {
+
+                var condition = addressSpace.instantiateCondition(myCustomConditionType,{
+                    organizedBy: addressSpace.rootFolder.objects,
+                    browseName: "MyCustomCondition_to_test_condition_refresh",
+                    conditionSource: source
+                });
+
+                // mark the condition as being retained so that event can be refreshed
+                condition.currentBranch().setRetain(true);
+
+                // conditionRefresh shall be called from ConditionType
+                var conditionType = addressSpace.findObjectType("ConditionType");
+
+                var context ={
+                    server: addressSpace.rootFolder.objects.server,
+                    object: conditionType
+                };
+
+
+                // install the event catcher
+                var serverObject = addressSpace.rootFolder.objects.server;
+                var spy_on_event = sinon.spy();
+                serverObject.on("event",spy_on_event);
+
+                var subscriptionIdVar = new Variant({ dataType: DataType.UInt32, value: 2});
+                conditionType.conditionRefresh.execute([subscriptionIdVar], context, function (err, callMethodResponse) {
+
+                    //
+                    // During the process we should receive 3 events
+                    //
+                    //
+                    spy_on_event.callCount.should.eql(2);
+                });
+            });
         });
     });
-
-
 });

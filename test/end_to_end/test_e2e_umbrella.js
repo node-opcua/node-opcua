@@ -44,7 +44,8 @@ describe("testing Client - Umbrella ", function () {
     var options = {
         port: port,
         maxConnectionsPerEndpoint: 500,
-        silent: true
+        silent: true,
+        nodeset_filename: [ opcua.standard_nodeset_file ]
     };
 
     function start_external_server(done) {
@@ -230,5 +231,6 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_231_protocolVersion")(test);
     require("./u_test_e2e_monitored_item_semantic_changed")(test);
     require("./u_test_e2e_issue_233")(test);
+    require("./u_test_e2e_conditions")(test);
 });
 
