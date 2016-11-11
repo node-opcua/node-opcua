@@ -45,7 +45,7 @@ module.exports = function (test) {
             addressSpace.installAlarmsAndConditionsService();
 
             var tank =  addressSpace.addObject({
-                browseName: "MyObject",
+                browseName: "Tank",
                 organizedBy: addressSpace.rootFolder.objects,
                 notifierOf:  addressSpace.rootFolder.objects.server,
             });
@@ -65,17 +65,15 @@ module.exports = function (test) {
                 conditionOf: tankLevel
             });
 
-            tankLevel.addReference({ referenceType: "HasCondition", isForward: true, nodeId: tankLevelCondition.nodeId});
-
 
             // ---------------------------
             // create a retain condition
             tankLevelCondition.currentBranch().setRetain(true);
 
             tankLevelCondition.raiseNewCondition({
-                message: "Tank almost70% full",
+                message: "Tank is almost 70% full",
                 severity: 100,
-                quality: StatusCodes.Good,
+                quality: StatusCodes.Good
             });
 
             test.tankLevelCondition = tankLevelCondition;
@@ -99,11 +97,16 @@ module.exports = function (test) {
                         var node = test.server.engine.addressSpace.findNode(v.value);
                         str = node ? node.browseName.toString() : " Unknown Node";
                     }
-                    console.log((e+"                 ").substr(0,15).cyan,v.toString() + " " + str.white.bold);
+                    console.log((e+"                             ").substr(0,25).cyan,v.toString() + " " + str.white.bold);
                 });
             }
             var fields = [
                 "EventId",
+                "ConditionName",
+                "ConditionClassName",
+                "ConditionClassId",
+                "SourceName",
+                "SourceNode",
                 "BranchId",
                 "EventType",
                 "SourceName",
@@ -112,9 +115,17 @@ module.exports = function (test) {
                 "Message",
                 "Retain",
                 "Comment",
-                "EnabledState.Id",
+                "Comment.SourceTimestamp",
                 "EnabledState",
-                "Time"
+                "EnabledState.Id",
+                "EnabledState.EffectiveDisplayName",
+                "EnabledState.TransitionTime",
+                "LastSeverity",
+                "LastSeverity.SourceTimestamp",
+                "Quality",
+                "Quality.SourceTimestamp",
+                "Time",
+                "ClientUserId"
             ];
             var eventFilter = constructEventFilter(fields);
 
@@ -161,17 +172,19 @@ module.exports = function (test) {
                     },
 
                     function checking_raised_event_after_client_calling_ConditionRefresh(callback) {
-                        console.log("-------------------");
                         var values = spy_monitored_item1_changes.getCall(0).args[0];
-                        dump_field_values(fields,values);
+                        values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
+                        // dump_field_values(fields,values);
 
                         console.log("-------------------");
                         values = spy_monitored_item1_changes.getCall(1).args[0];
                         dump_field_values(fields,values);
-
                         console.log("-------------------");
+
+
                         values = spy_monitored_item1_changes.getCall(2).args[0];
-                        dump_field_values(fields,values);
+                        values[7].value.toString().should.eql("ns=0;i=2788"); // RefreshEndEventType
+                        // dump_field_values(fields,values);
 
                         spy_monitored_item1_changes.callCount.should.eql(3);
                         spy_monitored_item1_changes.reset();
@@ -225,19 +238,21 @@ module.exports = function (test) {
                     function checking_raised_event_after_client_calling_ConditionRefresh_again(callback) {
                         spy_monitored_item1_changes.callCount.should.eql(3);
 
-                        console.log("-------------------");
+                        // console.log("-------------------");
                         var values = spy_monitored_item1_changes.getCall(0).args[0];
-                        dump_field_values(fields,values);
+                        values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
+                        //xx dump_field_values(fields,values);
 
                         console.log("-------------------");
                         values = spy_monitored_item1_changes.getCall(1).args[0];
                         dump_field_values(fields,values);
-
                         console.log("-------------------");
+
+                        //xx console.log("-------------------");
                         values = spy_monitored_item1_changes.getCall(2).args[0];
-                        dump_field_values(fields,values);
+                        values[7].value.toString().should.eql("ns=0;i=2788"); // RefreshEndEventType
+                        //dump_field_values(fields,values);
 
-                        console.log("-------------------");
 
                         //xx values = spy_monitored_item1_changes.getCall(2).args[0];
                         //xx dump_field_values(fields,values);
