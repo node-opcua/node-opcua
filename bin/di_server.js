@@ -19,11 +19,10 @@ var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 
-var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
-
+var address_space_for_conformance_testing = opcua.address_space_for_conformance_testing;
+var makeApplicationUrn = opcua.makeApplicationUrn;
 var standard_nodeset_file = opcua.standard_nodeset_file;
-
-var get_fully_qualified_domain_name = require("lib/misc/hostname").get_fully_qualified_domain_name;
+var get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 
 var port = parseInt(argv.port) || 26543;
 
@@ -40,7 +39,6 @@ var userManager = {
     }
 };
 
-var makeApplicationUrn = require("lib/misc/applicationurn").makeApplicationUrn;
 
 var server_options ={
 
@@ -51,8 +49,8 @@ var server_options ={
 
     nodeset_filename: [
         standard_nodeset_file,
-        "nodesets/Opc.Ua.Di.NodeSet2.xml",
-        "nodesets/Opc.Ua.Adi.NodeSet2.xml"
+        opcua.di_nodeset_filename,
+        opcua.adi_nodeset_filename
     ],
 
     serverInfo: {
