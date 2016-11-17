@@ -21,13 +21,22 @@
             <Reference ReferenceType="HasComponent">ns=1;i=2</Reference>
         </References>
     </UAObject>
-    <UAVariable NodeId="ns=1;i=2" BrowseName="1:SomeVariable" DataType="String">
-        <DisplayName>SomeVariable</DisplayName>
+    <UAVariable NodeId="ns=1;i=2" BrowseName="1:SomeStringVariable" DataType="String">
+        <DisplayName>SomeStringVariable</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
         </References>
         <Value>
             <uax:String>any predefined string value</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=3" BrowseName="1:SomeBoolVariable" DataType="Boolean">
+        <DisplayName>SomeBoolVariable</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>true</uax:Boolean>
         </Value>
     </UAVariable>
 </UANodeSet>
