@@ -2,6 +2,7 @@
 require("requirish")._(module);
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+var DataType = require("lib/datamodel/variant").DataType;
 var should = require("should");
 var path = require("path");
 var fs = require("fs");
@@ -127,11 +128,11 @@ describe("testing NodeSet XML file loading", function () {
         });
     });
 
-    it("should read predefined string values for variables", function(done) {
+    it.only("should read predefined values for variables", function(done) {
 
         this.timeout(Math.max(400000,this._timeout));
 
-        var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_predefined_string_variable.xml");
+        var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_predefined_variable.xml");
 
         var xml_files = [
             path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
@@ -142,11 +143,16 @@ describe("testing NodeSet XML file loading", function () {
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_files, function (err) {
-            var someVariable = addressSpace.findNode("ns=1;i=2");
 
-            someVariable.browseName.toString().should.eql("1:SomeVariable");
-            someVariable.readValue().value.dataType.key.should.be.type('string');
-            someVariable.readValue().value.value.should.eql("any predefined string value");
+            var someStringVariable = addressSpace.findNode("ns=1;i=2");
+            someStringVariable.browseName.toString().should.eql("1:SomeStringVariable");
+            someStringVariable.readValue().value.dataType.key.should.be.type('string');
+            someStringVariable.readValue().value.value.should.eql("any predefined string value");
+
+            var someBoolVariable = addressSpace.findNode("ns=1;i=3");
+            someBoolVariable.browseName.toString().should.eql("1:SomeBoolVariable");
+            someBoolVariable.readValue().value.dataType.should.equal(DataType.Boolean);
+            someBoolVariable.readValue().value.value.should.eql(true);
 
             done(err);
         });
