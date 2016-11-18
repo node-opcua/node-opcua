@@ -83,6 +83,12 @@ module.exports.AddressSpace       = require("lib/address_space/address_space").A
 module.exports.ServerState        = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
 module.exports.SecurityPolicy     = require("lib/misc/security_policy").SecurityPolicy;
 module.exports.ServiceCounter     = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServiceCounter").ServiceCounter;
+// basic opcua NodeClass
+module.exports.UAObject  = require("lib/address_space/ua_object").UAObject;
+module.exports.UAMethod  = require("lib/address_space/ua_method").UAMethod;
+module.exports.UAVariable= require("lib/address_space/ua_variable").UAVariable;
+module.exports.UADataType= require("lib/address_space/ua_data_type").UADataType;
+
 
 module.exports.AnonymousIdentityToken = module.exports.session_service.AnonymousIdentityToken;
 module.exports.UserNameIdentityToken = module.exports.session_service.UserNameIdentityToken;
@@ -122,3 +128,4 @@ module.exports.buildVariantArray = require("lib/datamodel/variant_tools").buildV
 module.exports.encode_decode = require("lib/misc/encode_decode");
 module.exports.Enum = require("lib/misc/enum");
 module.exports.factories = require("lib/misc/factories");
+
