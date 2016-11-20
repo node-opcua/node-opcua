@@ -49,5 +49,18 @@ module.exports = function (test) {
             doTest(nodeId,DataType.QualifiedName,done);
         });
 
+        it("GDT5- should fail  to find the DataType on a Object ( Server Object for instance)",function(done) {
+            var nodeId = coerceNodeId("ns=0;i=2253"); // Server Object
+            var client = new OPCUAClient();
+            var endpointUrl = test.endpointUrl;
+
+            perform_operation_on_client_session(client, endpointUrl,function(session,inner_done){
+
+                session.getBuiltInDataType(nodeId,function(err,dataType){
+                    if (!err) return inner_done(new Error("expecting a failure"));
+                    inner_done();
+                });
+            },done);
+        });
     });
 };
