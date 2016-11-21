@@ -29,7 +29,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
     var server_endpoint;
     beforeEach(function () {
 
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, serverCertificate: ""});
+        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
     });
     afterEach(function () {
         server_endpoint = null;
@@ -80,7 +80,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
 
     var server_endpoint;
     beforeEach(function () {
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}});
+        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
         server_endpoint.addStandardEndpointDescriptions();
     });
     afterEach(function () {
@@ -119,7 +119,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
 
     var server_endpoint;
     beforeEach(function () {
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}});
+        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
         server_endpoint.addStandardEndpointDescriptions({securityModes: [MessageSecurityMode.SIGNANDENCRYPT]});
     });
     afterEach(function () {
@@ -162,7 +162,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
     var server_endpoint;
     beforeEach(function () {
 
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}});
+        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
     });
     afterEach(function () {
         server_endpoint = null;

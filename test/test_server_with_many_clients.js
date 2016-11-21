@@ -44,7 +44,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
     this.timeout(Math.max(20000,this._timeout));
 
-    var serverCertificate = null;
+    var serverCertificateChain = null;
     before(function (done) {
 
         resourceLeakDetector.start();
@@ -56,7 +56,7 @@ describe("Functional test : one server with many concurrent clients", function (
         }, function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
-            serverCertificate = server.getCertificate();
+            serverCertificateChain = server.getCertificateChain();
             done(err);
         });
     });
@@ -82,7 +82,7 @@ describe("Functional test : one server with many concurrent clients", function (
     function construct_client_scenario(data) {
 
         var client = new OPCUAClient({
-            serverCertificate: serverCertificate
+            serverCertificate: serverCertificateChain
         });
 
         data.client = client;

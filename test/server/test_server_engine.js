@@ -2034,7 +2034,8 @@ describe("testing ServerEngine", function () {
         });
 
         it("should ignore nodes with attributeId!=AttributeIds.Value ", function (done) {
-
+            value1.should.equal(0);
+            value2.should.equal(0);
             var nodesToRefresh = [
                 {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
             ];

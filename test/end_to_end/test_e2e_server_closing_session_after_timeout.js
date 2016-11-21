@@ -27,12 +27,12 @@ describe("testing server dropping session after timeout if no activity has been 
         port: port,
         nodeset_filename: empty_nodeset_filename
     });
-    var serverCertificate = server.getCertificate();
+    var serverCertificateChain = server.getCertificateChain();
 
     var options = {
         //xx securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
         //xx securityPolicy: opcua.SecurityPolicy.Basic256,
-        serverCertificate: serverCertificate,
+        serverCertificate: serverCertificateChain,
         defaultSecureTokenLifetime: 2000
     };
 

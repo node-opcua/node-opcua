@@ -422,7 +422,7 @@ module.exports = function (test) {
             // SecureChannel  is the same as the  Certificate  used to create the original  SecureChannel.
             it("RQ2 -server should raise an error if a existing session is reactivated from a channel that have different certificate than the original channel", function (done) {
 
-                var serverCertificate = test.server.getCertificate();
+                var serverCertificate = test.server.getCertificateChain();
 
                 var client1, client2;
                 var session1;

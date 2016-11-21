@@ -29,7 +29,7 @@ if (!crypto_utils.isFullySupported()) {
             port: port,
             nodeset_filename: empty_nodeset_filename
         });
-        var serverCertificate = server.getCertificate();
+        var serverCertificate = server.getCertificateChain();
 
         var options = {
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,

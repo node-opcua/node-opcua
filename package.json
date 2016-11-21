@@ -48,10 +48,10 @@
     "mocha": "3.1.2",
     "mocha-lcov-reporter": "1.2.0",
     "node-xml": "1.0.2",
-    "request": "2.78.0",
+    "request": "2.79.0",
     "should": "11.1.1",
     "sinon": "1.17.6",
-    "tmp": "0.0.30",
+    "tmp": "0.0.31",
     "tracer": "0.8.7",
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
@@ -63,6 +63,7 @@
     "bomstrip": "0.1.4",
     "byline": "5.0.0",
     "colors": "1.1.2",
+    "deassertify": "^0.1.2",
     "delayed": "^1.0.1",
     "dequeue": "^1.0.5",
     "easy-table": "^1.0.0",
@@ -73,8 +74,8 @@
     "humanize": "0.0.9",
     "moment": "^2.16.0",
     "node-jsrsasign": "0.0.7",
-    "node-opcua-crypto": "0.0.6",
-    "node-opcua-pki": "0.0.9",
+    "node-opcua-crypto": "0.0.7",
+    "node-opcua-pki": "0.0.10",
     "once": "^1.4.0",
     "progress": "1.1.8",
     "q": "^1.4.1",
@@ -85,6 +86,6 @@
     "underscore": "1.8.3",
     "wget-improved": "^1.4.0",
     "xml-writer": "^1.6.0",
-    "yargs": "^6.3.0"
+    "yargs": "^6.4.0"
   }
 }
