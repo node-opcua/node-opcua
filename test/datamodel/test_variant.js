@@ -349,7 +349,7 @@ describe("Variant - Analyser", function () {
         manyValues[i] = Math.random() * 1000 - 500;
     }
 
-    var veryLargeFloatArray = new Float64Array(50 * 1024);
+    var veryLargeFloatArray = new Float64Array(10 * 1024);
     for (var i = 0; i < veryLargeFloatArray.length; i++) {
         veryLargeFloatArray[i] = (Math.random() - 0.5) * 10000;
     }
