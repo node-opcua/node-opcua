@@ -57,7 +57,7 @@
     "yuidocjs": "*"
   },
   "dependencies": {
-    "async": "2.1.2",
+    "async": "2.1.4",
     "backoff": "2.5.0",
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
@@ -72,7 +72,7 @@
     "fqdn": "0.0.3",
     "hexy": "0.2.7",
     "humanize": "0.0.9",
-    "moment": "^2.16.0",
+    "moment": "^2.17.0",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.7",
     "node-opcua-pki": "0.0.10",
