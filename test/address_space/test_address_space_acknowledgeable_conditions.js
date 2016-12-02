@@ -21,7 +21,6 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 
 require("lib/address_space/address_space_add_enumeration_type");
-
 require("lib/address_space/address_space_acknowledgeable_conditions").install(AddressSpace);
 
 describe("AddressSpace : Acknowledgeable Conditions ", function () {

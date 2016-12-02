@@ -335,11 +335,11 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         var sm = subStateMachineType.instantiate({ browseName: "MyStateMachine"});
 
-        var smw = new UAStateMachine(sm);
+        UAStateMachine.promote(sm);
 
-        dumpStateMachineToGraphViz(smw);
+        dumpStateMachineToGraphViz(sm);
 
-        dumpStateMachineToPlantUML(smw);
+        dumpStateMachineToPlantUML(sm);
 
 
         done();
@@ -359,11 +359,11 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         var sm = subStateMachineType.instantiate({ browseName: "MyStateMachine"});
 
-        var smw = new UAStateMachine(sm);
+        UAStateMachine.promote(sm);
 
-        dumpStateMachineToGraphViz(smw);
+        dumpStateMachineToGraphViz(sm);
 
-        dumpStateMachineToPlantUML(smw);
+        dumpStateMachineToPlantUML(sm);
 
 
         done();

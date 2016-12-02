@@ -41,9 +41,9 @@ describe("Testing Boiler System",function() {
 
             var psm = programStateMachine.instantiate({ browseName: "MyStateMachine#2" });
 
-            var psmw = new UAStateMachine(psm);
+            UAStateMachine.promote(psm);
 
-            psmw.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
+            psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
 
 
         });
@@ -57,11 +57,11 @@ describe("Testing Boiler System",function() {
             });
 
             var psm = myProgramStateMachine.instantiate({ browseName: "MyStateMachine#2" });
-            var psmw = new UAStateMachine(psm);
+            UAStateMachine.promote(psm);
 
-            psmw.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
+            psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
 
-            psmw.getTransitions().map(getBrowseName).should.eql([
+            psm.getTransitions().map(getBrowseName).should.eql([
                 "HaltedToReady",
                 "ReadyToRunning",
                 "RunningToHalted",

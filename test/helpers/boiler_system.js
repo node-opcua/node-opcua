@@ -22,7 +22,7 @@ var UAStateMachine = require("lib/address_space/statemachine_wrapper").UAStateMa
 function MygetExecutableFlag(toState) {
     assert(_.isString(toState));
     assert(this instanceof UAMethod);
-    var stateMachineW = new UAStateMachine(this.parent);
+    var stateMachineW = UAStateMachine.promote(this.parent);
     return stateMachineW.isValidTransition(toState);
 }
 
@@ -37,7 +37,8 @@ function implementProgramStateMachine(programStateMachine) {
             return MygetExecutableFlag.call(this, toState);
         };
         method.bindMethod(function (inputArguments, context, callback) {
-            var stateMachineW = new UAStateMachine(this.parent);
+
+            var stateMachineW = UAStateMachine.promote(this.parent);
             console.log("Hello World ! I will " + methodName + " the process");
             stateMachineW.setState(toState);
             callback();
@@ -425,8 +426,8 @@ exports.makeBoiler = function (addressSpace, options) {
         organizedBy: addressSpace.rootFolder.objects
     });
 
-
-    var boilerStateMachine = new UAStateMachine(boiler1.simulation);
+    Object.setPrototypeOf(boiler1.simulation,UAStateMachine.prototype);
+    var boilerStateMachine = boiler1.simulation;
 
     var haltedState = boilerStateMachine.getStateByName("Halted");
     assert(haltedState.browseName.toString() === "Halted");
@@ -442,11 +443,11 @@ exports.makeBoiler = function (addressSpace, options) {
     boilerStateMachine.setState(haltedState);
     boilerStateMachine.currentStateNode.browseName.toString().should.eql("Halted");
 
-    boilerStateMachine.node.halt.getExecutableFlag().should.eql(false);
+    boilerStateMachine.halt.getExecutableFlag().should.eql(false);
 
     // when state is "Reset" , the Halt method is  executable
     boilerStateMachine.setState(readyState);
-    boilerStateMachine.node.halt.getExecutableFlag().should.eql(true);
+    boilerStateMachine.halt.getExecutableFlag().should.eql(true);
 
     return boiler1;
 };

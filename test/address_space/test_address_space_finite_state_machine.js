@@ -166,12 +166,10 @@ describe("Testing Finite State Machine", function () {
                 browseName: "MyStateMachine"
             });
             console.log(myStateMachine.toString());
-
-
-            var stateMachine = new UAStateMachine(myStateMachine);
+            UAStateMachine.promote(myStateMachine);
 
             // get the states
-            var a = stateMachine.getStates().map(function(e) {
+            var a = myStateMachine.getStates().map(function(e) {
 
                 var stateNumber = e.stateNumber.readValue().value.value;
                 return e.browseName.toString() + ( (stateNumber !== null )? (" ( " + stateNumber + " )") : "" );
@@ -179,7 +177,7 @@ describe("Testing Finite State Machine", function () {
             console.log("states      : ",a.join(" "));
 
             // get the transitions
-            var t = stateMachine.getTransitions().map(function(e) {
+            var t = myStateMachine.getTransitions().map(function(e) {
                 var transitionNumber = e.transitionNumber.readValue().value.value;
                 return e.browseName.toString() + ( (transitionNumber !== null )? (" ( " + transitionNumber + " )") : "" );
 
@@ -188,24 +186,24 @@ describe("Testing Finite State Machine", function () {
 
 
             // set state and raise event
-            stateMachine.setState(stateMachine.initialState);
+            myStateMachine.setState(myStateMachine.initialState);
 
-            console.log(stateMachine.node.currentState.readValue().toString());
-            stateMachine.node.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
+            console.log(myStateMachine.currentState.readValue().toString());
+            myStateMachine.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
 
-            stateMachine.setState(stateMachine.getStates()[0]);
-            stateMachine.setState(stateMachine.getStates()[1]);
-            stateMachine.setState(stateMachine.getStates()[2]);
-            stateMachine.setState(stateMachine.getStates()[3]);
+            myStateMachine.setState(myStateMachine.getStates()[0]);
+            myStateMachine.setState(myStateMachine.getStates()[1]);
+            myStateMachine.setState(myStateMachine.getStates()[2]);
+            myStateMachine.setState(myStateMachine.getStates()[3]);
 
 
-            var lowlowState = stateMachine.getStateByName("LowLow");
+            var lowlowState = myStateMachine.getStateByName("LowLow");
             lowlowState.browseName.toString().should.eql("LowLow");
 
-            var lowState = stateMachine.getStateByName("Low");
+            var lowState = myStateMachine.getStateByName("Low");
             lowState.browseName.toString().should.eql("Low");
 
-            var lowToLowLowTransition = stateMachine.findTransitionNode(lowState,lowlowState);
+            var lowToLowLowTransition = myStateMachine.findTransitionNode(lowState,lowlowState);
 
             lowToLowLowTransition.browseName.toString().should.eql("LowToLowLow");
 
