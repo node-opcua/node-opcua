@@ -37,15 +37,15 @@
     "app-module-path": "^2.1.0",
     "autodoc": "0.6.3",
     "benchmark": "2.1.2",
-    "bignumber.js": "3.0.0",
+    "bignumber.js": "3.0.1",
     "coveralls": "2.11.15",
     "csv": "1.1.0",
-    "cucumber": "^1.3.1",
+    "cucumber": "^2.0.0-rc.2",
     "enum": "2.3.0",
     "eyes": "0.1.8",
     "jsdoc": "3.4.3",
     "litpro": "0.12.1",
-    "mocha": "3.1.2",
+    "mocha": "3.2.0",
     "mocha-lcov-reporter": "1.2.0",
     "node-xml": "1.0.2",
     "request": "2.79.0",
@@ -70,9 +70,9 @@
     "ersatz-node-expat": "0.1.6",
     "exit": "^0.1.2",
     "fqdn": "0.0.3",
-    "hexy": "0.2.7",
+    "hexy": "0.2.8",
     "humanize": "0.0.9",
-    "moment": "^2.17.0",
+    "moment": "^2.17.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.7",
     "node-opcua-pki": "0.0.10",
@@ -86,6 +86,6 @@
     "underscore": "1.8.3",
     "wget-improved": "^1.4.0",
     "xml-writer": "^1.6.0",
-    "yargs": "^6.4.0"
+    "yargs": "^6.5.0"
   }
 }
