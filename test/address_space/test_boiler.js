@@ -7,7 +7,7 @@ var async = require("async");
 var generateAddressSpace = require("lib/address_space/load_nodeset2").generate_address_space;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
-var UAStateMachine = require("lib/address_space/statemachine_wrapper").UAStateMachine;
+var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
 
 var createBoilerType = require("test/helpers/boiler_system").createBoilerType;
 var makeBoiler = require("test/helpers/boiler_system").makeBoiler;

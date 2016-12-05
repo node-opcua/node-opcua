@@ -11,7 +11,7 @@ var NodeId              = opcua.NodeId;
 var DataType            = opcua.DataType;
 var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
-var UAStateMachine = require("lib/address_space/statemachine_wrapper").UAStateMachine;
+var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
 
 // make sure extra error checking is made on object constructions
 describe("Testing Finite State Machine", function () {

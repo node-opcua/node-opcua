@@ -1,7 +1,7 @@
 "use strict";
 require("requirish")._(module);
 
-var opcua = require("../..");
+var opcua = require("../../..");
 var path = require("path");
 var should = require("should");
 var assert = require("better-assert");
@@ -12,7 +12,7 @@ var NodeId              = opcua.NodeId;
 var DataType            = opcua.DataType;
 var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
-var UAStateMachine = require("lib/address_space/statemachine_wrapper").UAStateMachine;
+var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
 
 // make sure extra error checking is made on object constructions
 describe("Testing Historical Data Node", function () {
@@ -24,9 +24,9 @@ describe("Testing Historical Data Node", function () {
 
             addressSpace = new opcua.AddressSpace();
             var xml_files = [
-                path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
+                path.join(__dirname, "../../../nodesets/Opc.Ua.NodeSet2.xml"),
             ];
-            fs.existsSync(xml_files[0]).should.be.eql(true);
+            fs.existsSync(xml_files[0]).should.be.eql(true,"file "+ xml_files[0] + " must exist");
             opcua.generate_address_space(addressSpace, xml_files, function (err) {
                 done(err);
             });
