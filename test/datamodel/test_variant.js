@@ -31,8 +31,8 @@ describe("Variant", function () {
 
         var1.dataType.should.eql(DataType.Null);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
-        should(var1.value).be.equal(null);
-        should(var1.dimensions).be.equal(null);
+        should.not.exist(var1.value);
+        should.not.exist(var1.dimensions);
 
         encode_decode_round_trip_test(var1, function (stream) {
             stream.length.should.equal(1);
@@ -824,7 +824,7 @@ describe("Variant with enumeration", function () {
 
     var ServerState = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
     before(function () {
-        should(ServerState.Running).not.eql(null);
+        should.exist(ServerState.Running);
     });
 
     it("should fail to create a variant from a enumeration item if dataType is not Int32", function () {
@@ -838,7 +838,7 @@ describe("Variant with enumeration", function () {
     });
 
     it("should create a variant from a enumeration item", function () {
-        should(ServerState.Running).not.eql(null);
+        should.exist(ServerState.Running);
         var v = new Variant({
             dataType: DataType.Int32,
             value: ServerState.Running

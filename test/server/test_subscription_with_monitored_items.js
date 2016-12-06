@@ -1237,7 +1237,7 @@ describe("monitoredItem advanced", function () {
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
-            should(monitoredItem).not.eql(null);
+            should.exist(monitoredItem);
             return monitoredItem;
         }
 

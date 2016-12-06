@@ -31,7 +31,7 @@ module.exports = function (test) {
 
     function client_session(data,done) {
 
-        should(client).not.eql(null);
+        should.exist(client);
 
 
         function r(t) {

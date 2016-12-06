@@ -70,7 +70,7 @@ describe("Code Generator", function () {
             inner: {name: "inside level1"}
         });
 
-        should(foo.inner).not.eql(null);
+        should.exist(foo.inner);
         foo.inner.name.should.eql("inside level1");
         should(foo.inner.inner).eql(null);
 
@@ -84,11 +84,11 @@ describe("Code Generator", function () {
 
             }
         });
-        should(foo.inner).not.eql(null);
+        should.exist(foo.inner);
         foo.inner.name.should.eql("inside level1");
-        should(foo.inner.inner).not.eql(null);
+        should.exist(foo.inner.inner);
         foo.inner.inner.name.should.eql("inside level2");
-        should(foo.inner.inner.inner).eql(null);
+        should.not.exist(foo.inner.inner.inner);
 
         // var foo_reloaded = encode_decode_round_trip_test(foo);
         var factories = require("lib/misc/factories");

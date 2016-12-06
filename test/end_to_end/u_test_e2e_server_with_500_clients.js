@@ -65,7 +65,7 @@ module.exports = function (test) {
             if(doDebug) { console.log("backoff".bgWhite.yellow,data.index,number,delay);}
         });
 
-        should(first_client).not.eql(null);
+        should.exist(first_client);
 
         client1._server_endpoints = first_client._server_endpoints;
         client1.knowsServerEndpoint.should.eql(true);

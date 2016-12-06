@@ -226,7 +226,7 @@ if (!crypto_utils.isFullySupported()) {
 
 
                 function (callback) {
-                    should(client.serverCertificate).not.eql(null);
+                    should.exist(client.serverCertificate);
                     console.log(" Client has detected that server certificate is ",client.serverCertificate.toString("base64"));
                     client.disconnect(callback);
                 }

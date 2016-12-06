@@ -636,7 +636,7 @@ describe("check coerce various types", function () {
 
 
             var value1 = coerceFunc(null);
-            should(value1).be.equal(null);
+            should.not.exist(value1);
 
 
             var value2 = coerceFunc();

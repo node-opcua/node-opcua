@@ -134,7 +134,7 @@ describe("testing add new DataType ", function () {
             var ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType");
 
             //xx console.log(" ftnirType = ",ftnirType.toString());
-            should(ftnirType).not.eql(undefined);
+            should.exist(ftnirType);
 
             var ftnirInstance = ftnirType.instantiate({browseName: "MyFTNIR", organizedBy: deviceSet});
 

@@ -67,7 +67,7 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     callback_buffer = callback_buffer || dump_block_in_debug_mode;
 
-    should(obj).not.eql(null);
+    should.exist(obj);
 
     var expandedNodeId = obj.encodingDefaultBinary;
 
@@ -121,7 +121,7 @@ function json_encode_decode_round_trip_test(obj, options, callback_buffer) {
     }
     callback_buffer = callback_buffer || dump_block_in_debug_mode;
 
-    should(obj).not.eql(null);
+    should.exist(obj);
 
     var json =    JSON.stringify(obj);
 

@@ -175,7 +175,7 @@ function perform_test(chunkManager, packet_length, expected_chunk_lengths, done)
         if (do_debug) {
             console.log("chunk = ", chunk.toString("hex"));
         }
-        should(chunk).not.eql(null);
+        should.exist(chunk);
 
         chunk_counter.should.not.be.greaterThan(expected_chunk_lengths.length);
 

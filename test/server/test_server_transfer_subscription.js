@@ -50,7 +50,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
     afterEach(function () {
         session1 = null;
-        should(engine).not.equal(null);
+        should.exist(engine);
         engine.shutdown();
         engine = null;
 

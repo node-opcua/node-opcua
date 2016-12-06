@@ -1335,7 +1335,7 @@ describe("testing UAVariable ", function () {
             }
         });
         temperatureVar.readValueAsync(function (err, value) {
-            should(err).not.eql(null);
+            should.exist(err);
             console.log("err=", err);
             done();
         });
@@ -1356,7 +1356,7 @@ describe("testing UAVariable ", function () {
             }
         });
         temperatureVar.readValueAsync(function (err, value) {
-            should(err).not.eql(null);
+            should.exist(err);
             console.log("err=", err);
             done();
         });

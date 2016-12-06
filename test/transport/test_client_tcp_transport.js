@@ -127,7 +127,7 @@ describe("testing ClientTCP_transport", function () {
     it("should report an error if the server close the socket unexpectedly", function (done) {
 
         var spyOnServerWrite = sinon.spy(function (socket,data) {
-            should(data).not.eql(null);
+            should.exist(data);
             // received Fake HEL Message
             // Pretend the message is malformed or that the server crashed for some reason : abort now !
             socket.end();

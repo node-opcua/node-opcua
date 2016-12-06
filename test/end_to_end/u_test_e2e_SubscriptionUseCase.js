@@ -3278,7 +3278,7 @@ module.exports = function (test) {
                         retransmitSequenceNumber: INVALID_RETRANSMIT_SEQNUM
                     });
                     g_session.republish(request, function (err, response) {
-                        should(err).not.eql(null);
+                        should.exist(err);
                         response.should.be.instanceof(subscription_service.RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
                         done();
@@ -3298,7 +3298,7 @@ module.exports = function (test) {
                         retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
                     });
                     g_session.republish(request, function (err, response) {
-                        should(err).not.eql(null);
+                        should.exist(err);
                         response.should.be.instanceof(subscription_service.RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
                         done();

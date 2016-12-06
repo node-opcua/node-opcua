@@ -72,7 +72,7 @@ module.exports = function (test) {
 
                         // note if dataValue didn't specied the timestamp it should not be overwritten.
                         if (!dataValue.serverTimestamp) {
-                            should(results[0].serverTimestamp).not.eql(null);
+                            should.exist(results[0].serverTimestamp);
                             dataValue.serverTimestamp =results[0].serverTimestamp;
                             dataValue.serverPicoseconds =results[0].serverPicoseconds;
                         }

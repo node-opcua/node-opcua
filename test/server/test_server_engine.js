@@ -149,10 +149,10 @@ describe("testing ServerEngine", function () {
         it("should provide a way to access a referenceType from its inverse name", function () {
             var addressSpace = engine.addressSpace;
             var n1 = addressSpace.findReferenceType("Organizes").nodeId;
-            should(addressSpace.findReferenceType("OrganizedBy")).eql(undefined);
+            should.not.exist(addressSpace.findReferenceType("OrganizedBy"));
 
             var n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
-            should(addressSpace.findReferenceTypeFromInverseName("Organizes")).eql(undefined);
+            should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
 
             n1.should.equal(n2);
 
@@ -1634,7 +1634,7 @@ describe("testing ServerEngine", function () {
 
             var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
             var node = engine.addressSpace.findNode(nodeid);
-            should(node).not.equal(null);
+            should.exist(node);
 
             var dataValue = node.readAttribute(13);
 
@@ -1649,8 +1649,7 @@ describe("testing ServerEngine", function () {
 
             var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
             var node = engine.addressSpace.findNode(nodeid);
-            assert(node !== null);
-            should(node).not.eql(null);
+            should.exist(node);
 
             var nodesToRead = [{
                 nodeId: nodeid,

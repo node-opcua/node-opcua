@@ -152,8 +152,8 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
             browseName: "__Channel1"
         });
 
-        should(channel1.parameterSet).eql(undefined);
-        should(channel1.getComponentByName("ParameterSet")).eql(null,"optional ParameterSet shall not be instantiate ");
+        should.not.exist(channel1.parameterSet);
+        should.not.exist(channel1.getComponentByName("ParameterSet"),"optional ParameterSet shall not be instantiate ");
 
         dumpObjectType(analyserChannelType);
 
@@ -168,7 +168,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
         console.log(channel2.toString());
         channel2.getComponents().forEach(function(c){console.log(c.browseName.toString())});
 
-        should(channel2.getComponentByName("2:ParameterSet")).not.eql(null);
+        should.exist(channel2.getComponentByName("2:ParameterSet"));
 
         channel2.getComponentByName("2:ParameterSet").browseName.toString().should.eql("2:ParameterSet");
 
@@ -205,7 +205,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         var analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType",adi_namespace);
 
-        should(analyserDeviceType).not.equal(undefined).and.not.eql(null);
+        should.exist(analyserDeviceType);
 
         analyserDeviceType.browseName.toString().should.eql("3:AnalyserDeviceType");
     });

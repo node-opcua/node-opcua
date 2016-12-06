@@ -398,7 +398,7 @@ if (!crypto_utils.isFullySupported()) {
         it("a client shall be able to establish a SIGNED connection with a server", function (done) {
 
 
-            should(serverCertificate).not.equal(null);
+            should.exist(serverCertificate);
             server.currentChannelCount.should.equal(0);
             var options = {
                 securityMode: opcua.MessageSecurityMode.SIGN,
@@ -415,7 +415,7 @@ if (!crypto_utils.isFullySupported()) {
 
         it("QQQ1 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 1024 bit client certificate", function (done) {
 
-            should(serverCertificate).not.equal(null);
+            should.exist(serverCertificate);
 
             var options = {
 
@@ -434,7 +434,7 @@ if (!crypto_utils.isFullySupported()) {
         });
         it("QQQ2 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function (done) {
 
-            should(serverCertificate).not.equal(null);
+            should.exist(serverCertificate);
 
             var options = {
 
@@ -454,7 +454,7 @@ if (!crypto_utils.isFullySupported()) {
 
         it("QQQ3 server shall reject secure connection when client provides a nonce with the wrong length", function (done) {
 
-            should(serverCertificate).not.equal(null);
+            should.exist(serverCertificate);
 
             var options = {
 
@@ -480,7 +480,7 @@ if (!crypto_utils.isFullySupported()) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
             }, function(err) {
-                console.log(err.message);
+                //xx sconsole.log(err.message);
                 err.message.should.match(/BadSecurityModeRejected/);
                 done();
             });

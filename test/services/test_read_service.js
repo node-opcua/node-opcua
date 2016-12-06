@@ -171,7 +171,7 @@ describe("TimestampsToReturn", function () {
     it("should create an invalid timestampsToReturn", function () {
 
         var v = rs.TimestampsToReturn.get(1000);
-        should(v).eql(undefined);
+        should.not.exist(v);
         v = rs.TimestampsToReturn.get(0x03);
         should(v).eql(rs.TimestampsToReturn.Neither);
 

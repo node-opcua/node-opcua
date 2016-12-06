@@ -45,7 +45,7 @@ describe("LocalizedText", function () {
         var ltext = new LocalizedText({text: "HelloWorld", locale: null});
 
         ltext.should.have.property("locale");
-        should(ltext.locale).equal(null);
+        should.not.exist(ltext.locale);
 
         var stream = new BinaryStream();
         stream.length.should.equal(0);
@@ -60,7 +60,7 @@ describe("LocalizedText", function () {
         ltext_verif.decode(stream);
 
         ltext_verif.text.should.equal("HelloWorld");
-        should(ltext_verif.locale).equal(null);
+        should.not.exist(ltext_verif.locale);
 
     });
 
@@ -69,7 +69,7 @@ describe("LocalizedText", function () {
         var ltext = new LocalizedText({text: null, locale: "en-US"});
 
         ltext.should.have.property("text");
-        should(ltext.text).equal(null);
+        should.not.exist(ltext.text);
 
         var stream = new BinaryStream();
         stream.length.should.equal(0);
@@ -86,14 +86,14 @@ describe("LocalizedText", function () {
         ltext_verif.should.eql(ltext);
         ltext_verif.locale.should.equal("en-US");
         ltext_verif.should.have.property("text");
-        should(ltext_verif.text).equal(null);
+        should.not.exist(ltext_verif.text);
 
     });
 
     var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
     it("#coerceLocalizedText - null", function () {
 
-        should(coerceLocalizedText(null)).eql(null);
+        should.not.exist(coerceLocalizedText(null));
     });
     it("#coerceLocalizedText - string", function () {
 

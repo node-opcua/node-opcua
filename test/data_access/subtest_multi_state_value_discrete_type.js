@@ -156,7 +156,7 @@ module.exports = function(engine) {
                 modellingRule: "Mandatory"
             });
 
-            should(myObjectType.getComponentByName("Color")).not.eql(null);
+            should.exist(myObjectType.getComponentByName("Color"));
 
             myObjectType.color.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
             // add

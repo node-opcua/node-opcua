@@ -11,9 +11,6 @@ var resolveNodeId = opcua.resolveNodeId;
 
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
@@ -148,7 +145,7 @@ module.exports = function (test) {
                         //xx console.log(response.toString());
                         response.results[0].statusCode.should.eql(StatusCodes.Good);
                         response.results[0].references.length.should.be.eql(1);
-                        should(response.results[0].continuationPoint).not.eql(null);
+                        should.exist(response.results[0].continuationPoint);
                         callback();
                     });
                 }
@@ -162,7 +159,7 @@ module.exports = function (test) {
 
                 function (callback) {
                     var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
-                        continuationPoints: null,
+                        continuationPoints: null
                     });
                     g_session.performMessageTransaction(browseNextRequest, function (err, response) {
                         err.message.should.match(/BadNothingToDo/);
@@ -199,7 +196,7 @@ module.exports = function (test) {
                         // console.log(response.toString());
                         response.results[0].statusCode.should.eql(StatusCodes.Good);
                         response.results[0].references.length.should.be.greaterThan(3); // want 4 at lest
-                        should(response.results[0].continuationPoint).eql(null);
+                        should.not.exist(response.results[0].continuationPoint);
                         allReferences = response.results[0].references;
                         callback();
                     });
@@ -220,9 +217,9 @@ module.exports = function (test) {
                         response.results.length.should.eql(1);
                         response.results[0].statusCode.should.eql(StatusCodes.Good);
                         response.results[0].references.length.should.be.eql(2);
-                        should(response.results[0].continuationPoint).not.eql(null);
-                        assert(response.results[0].references[0].should.eql(allReferences[0]));
-                        assert(response.results[0].references[1].should.eql(allReferences[1]));
+                        should.exist(response.results[0].continuationPoint);
+                        response.results[0].references[0].should.eql(allReferences[0]);
+                        response.results[0].references[1].should.eql(allReferences[1]);
 
                         continuationPoint = response.results[0].continuationPoint;
 
@@ -247,10 +244,10 @@ module.exports = function (test) {
                         response.results[0].references.length.should.be.eql(2);
 
                         // this is last request
-                        should(response.results[0].continuationPoint).eql(null);
+                        should.not.exist(response.results[0].continuationPoint);
 
-                        assert(response.results[0].references[0].should.eql(allReferences[2]));
-                        assert(response.results[0].references[1].should.eql(allReferences[3]));
+                        response.results[0].references[0].should.eql(allReferences[2]);
+                        response.results[0].references[1].should.eql(allReferences[3]);
 
                         callback();
 
@@ -315,7 +312,7 @@ module.exports = function (test) {
                 nodeId = resolveNodeId(nodeId);
                 //     And the node exists
                 var obj = server.engine.addressSpace.findNode(nodeId, BrowseDirection.Forward);
-                should(obj).not.eql(null);
+                should.exist(obj);
 
                 var browseDesc = new opcua.browse_service.BrowseDescription({
                     nodeId: nodeId,
@@ -346,7 +343,7 @@ module.exports = function (test) {
                             // console.log(response.toString());
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
                             response.results[0].references.length.should.be.greaterThan(3); // want 4 at lest
-                            should(response.results[0].continuationPoint).eql(null);
+                            should.not.exist(response.results[0].continuationPoint);
                             allReferences = response.results[0].references;
                             callback();
                         });
@@ -369,8 +366,8 @@ module.exports = function (test) {
                             response.results.length.should.eql(1);
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
                             response.results[0].references.length.should.be.eql(1);
-                            should(response.results[0].continuationPoint).not.eql(null);
-                            assert(response.results[0].references[0].should.eql(allReferences[0]));
+                            should.exist(response.results[0].continuationPoint);
+                            response.results[0].references[0].should.eql(allReferences[0]);
                             continuationPoint = response.results[0].continuationPoint;
                             callback();
                         });
@@ -393,8 +390,8 @@ module.exports = function (test) {
                             response.results[0].references.length.should.be.eql(1);
 
                             // continuation point should not be null
-                            should(response.results[0].continuationPoint).not.eql(null);
-                            assert(response.results[0].references[0].should.eql(allReferences[1]));
+                            should.exist(response.results[0].continuationPoint);
+                            response.results[0].references[0].should.eql(allReferences[1]);
                             callback();
 
                         });
@@ -416,7 +413,7 @@ module.exports = function (test) {
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
                             response.results[0].references.length.should.be.eql(0);
 
-                            should(response.results[0].continuationPoint).eql(null);
+                            should.not.exist(response.results[0].continuationPoint);
                             callback();
 
                         });

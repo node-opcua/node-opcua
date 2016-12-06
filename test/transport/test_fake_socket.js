@@ -45,7 +45,7 @@ function installTestFor(Transport) {
         it("server side should receive 'end' event when connection ends  on the client side", function (done) {
 
             transport.server.on("end", function (err) {
-                should(err).be.eql(undefined);
+                should.not.exist(err);
                 done();
             });
             transport.client.end();
@@ -54,7 +54,7 @@ function installTestFor(Transport) {
         it("client side should receive 'end' event when connection ends  on the server side", function (done) {
 
             transport.client.on("end", function (err) {
-                should(err).be.eql(undefined);
+                should.not.exist(err);
                 done();
             });
             transport.server.end();
@@ -64,7 +64,7 @@ function installTestFor(Transport) {
         it("client side should receive 'end' event when connection ends  on the client side", function (done) {
 
             transport.client.on("end", function (err) {
-                should(err).be.eql(undefined);
+                should.not.exist(err);
                 done();
             });
             transport.client.end();
@@ -74,7 +74,7 @@ function installTestFor(Transport) {
         it("server side should receive 'end' event when connection ends  on the server side", function (done) {
 
             transport.server.on("end", function (err) {
-                should(err).be.eql(undefined);
+                should.not.exist(err);
                 done();
             });
             transport.server.end();

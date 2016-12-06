@@ -43,22 +43,22 @@ describe("ContinuationPointManager", function () {
         var fullarray = [1, 2, 3, 4, 5, 6, 7, 8];
         var maxElements = 2;
         var results = cpm.register(maxElements, fullarray);
-        should(results.continuationPoint).not.eql(null);
+        should.exist(results.continuationPoint);
         results.references.should.eql([1, 2]);
 
         results = cpm.getNext(results.continuationPoint);
         results.statusCode.should.eql(StatusCodes.Good);
-        should(results.continuationPoint).not.eql(null);
+        should.exist(results.continuationPoint);
         results.references.should.eql([3, 4]);
 
         results = cpm.getNext(results.continuationPoint);
         results.statusCode.should.eql(StatusCodes.Good);
-        should(results.continuationPoint).not.eql(null);
+        should.exist(results.continuationPoint);
         results.references.should.eql([5, 6]);
 
         results = cpm.getNext(results.continuationPoint);
         results.statusCode.should.eql(StatusCodes.Good);
-        should(results.continuationPoint).eql(null);
+        should.not.exist(results.continuationPoint);
         results.references.should.eql([7, 8]);
 
         results = cpm.getNext(results.continuationPoint);
@@ -72,15 +72,15 @@ describe("ContinuationPointManager", function () {
         var fullarray = [1, 2, 3, 4, 5, 6, 7, 8];
         var maxElements = 2;
         var results = cpm.register(maxElements, fullarray);
-        should(results.continuationPoint).not.eql(null);
+        should.exist(results.continuationPoint);
         results.references.should.eql([1, 2]);
 
         cpm.cancel(results.continuationPoint);
 
         results = cpm.getNext(results.continuationPoint);
         results.statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
-        should(results.continuationPoint).eql(undefined);
-        should(results.references).eql(undefined);
+        should.not.exist(results.continuationPoint);
+        should.not.exist(results.references);
 
     });
 

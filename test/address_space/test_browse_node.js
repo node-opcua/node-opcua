@@ -80,7 +80,7 @@ describe("testing dump browseDescriptions", function () {
         });
     });
     it("should provide a way to find a Method object by nodeId", function () {
-        should(addressSpace.findMethod("ns=0;i=11489")).not.eql(null);
+        should.exist(addressSpace.findMethod("ns=0;i=11489"));
     });
 });
 

@@ -247,7 +247,7 @@ module.exports = function (test) {
                     filter: new opcua.subscription_service.DataChangeFilter({}) // FILTER !
                 };
                 var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
-                    should(err).not.eql(null);
+                    should.exist(err);
                     err.message.should.match(/no filter expected/);
                     //xx console.log(err.message);
                     callback();
@@ -273,7 +273,7 @@ module.exports = function (test) {
 
                 };
                 var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
-                    should(err).not.eql(null);
+                    should.exist(err);
                     err.message.should.match(/Got a DataChangeFilter but a EventFilter/);
                     console.log(err.message);
                     callback();

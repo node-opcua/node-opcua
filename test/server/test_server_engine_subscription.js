@@ -50,7 +50,7 @@ describe("ServerEngine Subscriptions service", function () {
 
     afterEach(function () {
         session = null;
-        should(engine).not.equal(null);
+        should.exist(engine);
         engine.shutdown();
         engine = null;
 

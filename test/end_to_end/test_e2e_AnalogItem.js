@@ -102,7 +102,7 @@ describe("testing AnalogItem on client side", function () {
     it("readUAAnalogItem should return an error if not doesn't exist", function (done) {
         var nodeId = "ns=4;s=invalidnode";
         client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
-            should(err).not.eql(null);
+            should.exist(err);
             done();
         });
 
@@ -155,7 +155,7 @@ describe("testing AnalogItem on client side", function () {
                 return done(err);
             }
 
-            should(propertyId).not.eql(null);
+            should.exist(propertyId);
 
             var nodeToRead = {
                 nodeId: propertyId,

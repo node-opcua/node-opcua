@@ -82,7 +82,7 @@ module.exports = function (test) {
                 session.call([], function (err) {
 
                     exec_safely(function(){
-                        should(err).not.equal(null);
+                        should.exist(err);
                         err.should.be.instanceOf(Error);
                         err.message.should.match(/BadNothingToDo/);
                         inner_done();
@@ -108,9 +108,9 @@ module.exports = function (test) {
 
                         exec_safely(function(){
 
-                            should(err).equal(null);
+                            should.not.exist(err);
 
-                            should(results).not.eql(null);
+                            should.exist(results);
 
 
                             results[0].inputArgumentResults.length.should.eql(1);
@@ -145,9 +145,9 @@ module.exports = function (test) {
                 session.call(methodToCalls, function (err, results) {
 
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
 
-                        should(results).not.eql(null);
+                        should.exist(results);
 
                         results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
 
@@ -179,9 +179,8 @@ module.exports = function (test) {
                 session.call(methodToCalls, function (err, results) {
 
                     exec_safely(function(){
-                        should(err).equal(null);
-
-                        should(results).not.eql(null);
+                        should.not.exist(err);
+                        should.exist(results);
 
                         results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
 
@@ -213,7 +212,7 @@ module.exports = function (test) {
                 session.call(methodToCalls, function (err, results) {
 
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
                         results.length.should.eql(many_calls);
                         results.map(function(result){
                             result.inputArgumentResults.length.should.eql(1);
@@ -244,12 +243,12 @@ module.exports = function (test) {
 
                 session.call(methodToCalls, function (err, results) {
                     exec_safely(function(){
-
+                        should.exist(err);
                         if (err) {
                             err.should.be.instanceOf(Error);
                             err.message.should.match(/BadTooManyOperations/);
                         }
-                        should(err).not.equal(null);
+
                         inner_done();
                     },inner_done);
                 });
@@ -271,7 +270,7 @@ module.exports = function (test) {
 
                 session.call(methodToCalls, function (err, results) {
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
                         results.length.should.eql(1);
 
                         results[0].statusCode.should.equalOneOf(StatusCodes.BadNodeIdInvalid,StatusCodes.BadMethodInvalid);
@@ -294,7 +293,7 @@ module.exports = function (test) {
 
                 session.call(methodToCalls, function (err, results) {
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
                         results.length.should.eql(1);
 
                         results[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
@@ -318,7 +317,7 @@ module.exports = function (test) {
 
                 session.call(methodToCalls, function (err, results) {
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
                         results.length.should.eql(1);
 
                         results[0].statusCode.should.equalOneOf(StatusCodes.BadNodeIdInvalid,StatusCodes.BadMethodInvalid);
@@ -343,7 +342,7 @@ module.exports = function (test) {
                 session.call(methodToCalls, function (err, results) {
 
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
                         results.length.should.eql(1);
 
                         results[0].statusCode.should.equalOneOf(StatusCodes.BadInvalidArgument,StatusCodes.BadArgumentsMissing);
@@ -370,7 +369,7 @@ module.exports = function (test) {
                 session.call(methodToCalls, function (err, results) {
 
                     exec_safely(function(){
-                        should(err).equal(null);
+                        should.not.exist(err);
                         results.length.should.eql(1);
                         results[0].statusCode.should.equalOneOf(StatusCodes.BadTypeMismatch,StatusCodes.BadInvalidArgument);
 
@@ -429,7 +428,7 @@ module.exports = function (test) {
                     session.getMonitoredItems(subscriptionId, function (err, monitoredItems) {
 
                         exec_safely(function(){
-                            should(err).not.eql(null);
+                            should.exist(err);
                             err.message.should.match(/BadSubscriptionId/);
                             inner_done();
                         },inner_done);

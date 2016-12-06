@@ -137,7 +137,7 @@ module.exports = function (test) {
 
                 session.performMessageTransaction(request, function (err) {
                     //
-                    should(err).not.eql(null);
+                    should.exist(err);
                     callback_received = true;
                     if (callback_received && event_received) {
                         inner_done();

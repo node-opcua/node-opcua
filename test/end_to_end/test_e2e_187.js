@@ -29,12 +29,12 @@ require("lib/client/state_machine_proxy");
 
 describe("testing monitoring Executable flags on methods", function () {
 
-    this.timeout(Math.max(600000, this._timeout));
+    this.timeout(Math.max(6000, this._timeout));
 
     var server, client, endpointUrl;
 
     var boiler_on_server ;
-    var port = 2000;
+    var port = 20000;
     before(function (done) {
         port += 1;
 

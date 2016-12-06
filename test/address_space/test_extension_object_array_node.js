@@ -152,15 +152,15 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         arr.readValue().value.value[1].subscriptionId.should.eql(1002);
         arr.readValue().value.value[2].subscriptionId.should.eql(1003);
 
-        should(arr.getComponentByName("1002")).not.eql(null);
+        should.exist(arr.getComponentByName("1002"));
 
         eoan.removeElement(arr,1); // at pos 1
 
         arr.readValue().value.value[0].subscriptionId.should.eql(1001);
         arr.readValue().value.value[1].subscriptionId.should.eql(1003);
 
-        should(arr.getComponentByName("1002")).eql(null);
-        should(arr.getComponentByName("1000")).eql(null);
+        should.not.exist(arr.getComponentByName("1002"));
+        should.not.exist(arr.getComponentByName("1000"));
 
     });
 

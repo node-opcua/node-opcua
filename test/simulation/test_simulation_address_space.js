@@ -135,7 +135,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 variable.readValueAsync(function (err, dataValue) {
 
-                    should(dataValue).not.eql(null);
+                    should.exist(dataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     //xx console.log("xxx ", dataValue? dataValue.toString():"" );
                     value1 = dataValue.value.value;
@@ -149,7 +149,7 @@ describe("testing address space for conformance testing", function () {
             function (callback) {
                 variable.readValueAsync(function (err, dataValue) {
 
-                    should(dataValue).not.eql(null);
+                    should.exist(dataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     var value2 = dataValue.value.value;
                     value2.should.not.eql(value1);
@@ -783,10 +783,10 @@ describe("testing address space with large number of nodes", function () {
 
         var node;
         node = engine.addressSpace.findNode(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_UInt32"));
-        should(node).not.eql(null);
+        should.exist(node);
 
         node = engine.addressSpace.findNode(coerceNodeId("ns=" + namespaceIndex + ";s=Scalar_Mass_Time"));
-        should(node).not.eql(null);
+        should.exist(node);
         done();
     });
 });

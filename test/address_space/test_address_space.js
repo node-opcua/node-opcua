@@ -96,7 +96,7 @@ describe("testing address space", function () {
             //---------------------------------------------------------
 
             // object shall not be found with a global nodeId search
-            should(addressSpace.findNode(object.nodeId)).eql(undefined);
+            should.not.exist(addressSpace.findNode(object.nodeId));
 
             // object shall not be found in parent folder anymore
             references = rootFolder.findReferences("Organizes", true);
@@ -130,8 +130,8 @@ describe("testing address space", function () {
             //---------------------------------------------------------
 
             // object shall not be found with a global nodeId search
-            should(addressSpace.findNode(object.nodeId)).eql(undefined);
-            should(addressSpace.findNode(innerVar.nodeId)).eql(undefined);
+            should.not.exist(addressSpace.findNode(object.nodeId));
+            should.not.exist(addressSpace.findNode(innerVar.nodeId));
 
             references = rootFolder.findReferences("Organizes", true);
             findReference(references, object.nodeId).length.should.eql(0);

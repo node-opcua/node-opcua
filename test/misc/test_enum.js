@@ -100,9 +100,9 @@ xdescribe("Benchmarking Enums", function () {
         function test_iteration(en) {
 
             var e1 = en.SOMEDATA;
-            should(e1).eql(undefined);
+            should.not.exist(e1);
             var e2 = en.get("OTHERDATA");
-            should(e2).eql(undefined);
+            should.not.exist(e2);
 
             en[keys[0]].value.should.eql(en.get(keys[0]).value);
 

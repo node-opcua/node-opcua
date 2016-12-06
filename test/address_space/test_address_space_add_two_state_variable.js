@@ -58,7 +58,7 @@ describe("testing add TwoStateVariable ", function () {
         node.dataTypeObj.browseName.toString().should.eql("LocalizedText");
         node.valueRank.should.eql(0);
 
-        should(node.transitionTime).eql(undefined);
+        should.not.exist(node.transitionTime);
 
         node.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
@@ -98,7 +98,7 @@ describe("testing add TwoStateVariable ", function () {
         node.dataTypeObj.browseName.toString().should.eql("LocalizedText");
         node.valueRank.should.eql(0);
 
-        should(node.transitionTime).eql(undefined);
+        should.not.exist(node.transitionTime);
 
         node.setValue(true);
         node.readValue().value.value.text.should.eql("Enabled");
@@ -113,7 +113,7 @@ describe("testing add TwoStateVariable ", function () {
             browseName: "TwoStateVariable2",
             optionals:["TransitionTime"]
         });
-        should(node.transitionTime).not.eql(undefined);
+        should.exist(node.transitionTime);
 
         this.clock.tick(100);
         node.setValue(true);
@@ -186,7 +186,7 @@ describe("testing add TwoStateVariable ", function () {
             browseName: "TwoStateVariable2",
             optionals: ["EffectiveTransitionTime","TransitionTime", "EffectiveDisplayName"]
         });
-        should(mainState.effectiveTransitionTime).not.eql(undefined);
+        should.exist(mainState.effectiveTransitionTime);
 
         var subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",

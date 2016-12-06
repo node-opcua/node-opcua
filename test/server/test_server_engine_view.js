@@ -35,7 +35,7 @@ describe("Testing the server  engine - View related ", function () {
         });
     });
     afterEach(function () {
-        should(engine).not.equal(null);
+        should.exist(engine);
         engine.shutdown();
         engine = null;
         resourceLeakDetector.stop();

@@ -81,7 +81,7 @@ describe("testing add new ObjectType ", function () {
         instance.findReferencesEx("HasWeezbe",BrowseDirection.Forward).length.should.eql(1);
 
         var c = instance.getChildByName("MyWeezBe");
-        should(c).not.eql(null)
+        should.exist(c);
 
     });
 
@@ -150,12 +150,12 @@ describe("testing add new ObjectType ", function () {
             browseName: "Obj2",
             optionals: ["SubObj"]
         });
-        should(obj2.getComponentByName("SubObj")).not.eql(null);
+        should.exist(obj2.getComponentByName("SubObj"));
         obj2.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
 
-        should(obj2.subObj.getPropertyByName("Property1")).not.eql(null);
-        should(obj2.subObj.getPropertyByName("Property2")).eql(null);
-        should(obj2.subObj.getPropertyByName("Property3")).eql(null);
+        should.exist(obj2.subObj.getPropertyByName("Property1"));
+        should.not.exist(obj2.subObj.getPropertyByName("Property2"));
+        should.not.exist(obj2.subObj.getPropertyByName("Property3"));
 
         // -----------------------------------------------
         var obj3 = myObjectType1.instantiate({
@@ -168,9 +168,9 @@ describe("testing add new ObjectType ", function () {
         });
         obj3.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
 
-        should(obj3.subObj.getPropertyByName("Property1")).not.eql(null);
-        should(obj3.subObj.getPropertyByName("Property2")).not.eql(null);
-        should(obj3.subObj.getPropertyByName("Property3")).not.eql(null);
+        should.exist(obj3.subObj.getPropertyByName("Property1"));
+        should.exist(obj3.subObj.getPropertyByName("Property2"));
+        should.exist(obj3.subObj.getPropertyByName("Property3"));
 
         // -----------------------------------------------
         var obj4 = myObjectType1.instantiate({
@@ -182,9 +182,9 @@ describe("testing add new ObjectType ", function () {
         });
         obj4.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
 
-        should(obj4.subObj.getPropertyByName("Property1")).not.eql(null);
-        should(obj4.subObj.getPropertyByName("Property2")).eql(null);
-        should(obj4.subObj.getPropertyByName("Property3")).not.eql(null);
+        should.exist(obj4.subObj.getPropertyByName("Property1"));
+        should.not.exist(obj4.subObj.getPropertyByName("Property2"));
+        should.exist(obj4.subObj.getPropertyByName("Property3"));
     });
 
 });

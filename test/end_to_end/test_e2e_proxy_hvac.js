@@ -290,7 +290,7 @@ describe("testing client Proxy", function () {
                     hvac.interiorTemperature.writeValue({
                         value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
                     },function(err) {
-                        should(err).not.eql(null);
+                        should.exist(err);
                         err.message.should.match(/BadNotWritable/);
                         callback();
                     });

@@ -1,3 +1,5 @@
+
+ 
 "use strict";
 /* global describe,it,before*/
 require("requirish")._(module);
@@ -84,10 +86,10 @@ describe("testing add new ObjectType ", function () {
 
         // perform some verification on temperatureSensorType
         var temperatureSensorType = addressSpace.findObjectType("TemperatureSensorType");
-        should(temperatureSensorType.temperature).not.eql(0);
+        should.exist(temperatureSensorType.temperature);
 
         var temperatureSensor = temperatureSensorType.instantiate({organizedBy: "RootFolder", browseName: "Test"});
-        should(temperatureSensor.temperature).not.eql(0);
+        should.exist(temperatureSensor.temperature);
 
         // perform some verification
         var baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
@@ -132,9 +134,9 @@ describe("testing add new ObjectType ", function () {
         });
 
         specialSensor.should.have.property("typeDefinitionObj");
-        specialSensor.should.not.have.property("subtypeOfObj", "Object should not have SubType");
+        //xx should.not.exist(specialSensor.subtypeOfObj);//, "Object should not have SubType");
         specialSensor.typeDefinitionObj.browseName.toString().should.eql("SpecialTemperatureSensorType");
-        should(specialSensor.temperature).not.eql(0);
+        should.exist(specialSensor.temperature);
 
         //xx console.log("done");
         done();
