@@ -167,7 +167,7 @@ module.exports = function (test) {
                     ]
                 });
 
-                should(condition.enabledState.transitionTime).not.eql(null);
+                should.exist(condition.enabledState.transitionTime);
 
                 condition.enabledState.id.readValue().value.value.should.eql(true);
 
@@ -188,10 +188,8 @@ module.exports = function (test) {
                     ]
                 });
 
-                should(condition.enabledState.trueState).not.eql(null);
-                should(condition.enabledState.falseState).not.eql(null);
-                should(condition.enabledState.transitionTime).not.eql(null);
-                should(condition.enabledState.effectiveTransitionTime).not.eql(null);
+                should.exist(condition.enabledState.transitionTime);
+                should.exist(condition.enabledState.effectiveTransitionTime);
                 condition.enabledState.id.readValue().value.value.should.eql(true);
 
                 done();
@@ -210,7 +208,7 @@ module.exports = function (test) {
                     ]
                 });
 
-                should(condition.enabledState.effectiveDisplayName).not.eql(null, "Should expose the enabledState.effectiveDisplayName property");
+                should.exist(condition.enabledState.effectiveDisplayName,"Should expose the enabledState.effectiveDisplayName property");
                 condition.enabledState.id.readValue().value.value.should.eql(true);
 
                 //as per OPCUA 1.03 Part 9 page 13:
