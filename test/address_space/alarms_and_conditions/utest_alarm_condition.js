@@ -64,6 +64,9 @@ module.exports = function (test) {
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             alarm.enabledState.getTrueSubStates().length.should.eql(2);
             alarm.browseName.toString().should.eql("AlarmCondition2");
+
+            alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId,"Input node must have been resolved properly");
+
         });
 
         describe("should instantiate AlarmConditionType with ConfirmedState", function (done) {
@@ -94,6 +97,9 @@ module.exports = function (test) {
                 alarm.ackedState.isTrueSubStateOf.should.eql(alarm.enabledState);
                 alarm.confirmedState.isTrueSubStateOf.should.eql(alarm.enabledState);
                 alarm.enabledState.getTrueSubStates().length.should.eql(5);
+
+                alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId,"Input node must have been resolved properly");
+
 
             });
             it("checking active state behavior", function () {
@@ -271,7 +277,7 @@ module.exports = function (test) {
                     });
                 });
 
-                it("one-shot-shelving an  unshelved alarm should return Good", function (done) {
+                it("one-shot-shelving an unshelved alarm should return Good", function (done) {
 
                     alarm.shelvingState.setState("Unshelved");
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");

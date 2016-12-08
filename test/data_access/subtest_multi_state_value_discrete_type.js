@@ -164,7 +164,7 @@ module.exports = function(engine) {
 
             // instanciate  the type
             var obj = myObjectType.instantiate({
-                browseName:"MyObject"
+                browseName: "MyObject"
             });
 
             // verification

@@ -78,18 +78,20 @@ module.exports = function (test) {
 
         it("NonExclusiveLimitAlarm", function () {
 
+            setVariableValue(0);
+
             var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
                 lowLowLimit: -10.0,
-                lowLimit: 1.0,
+                lowLimit: -1.0,
                 highLimit: 10.0,
                 highHighLimit: 100.0
             });
 
             alarm.getLowLowLimit().should.eql(-10);
-            alarm.getLowLimit().should.eql(1.0);
+            alarm.getLowLimit().should.eql(-1.0);
             alarm.getHighLimit().should.eql(10);
             alarm.getHighHighLimit().should.eql(100);
 

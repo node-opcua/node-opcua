@@ -85,7 +85,9 @@ describe("AddressSpace : Conditions ", function () {
         require("./utest_acknowledgeable_condition")(test);
         require("./utest_alarm_condition")(test);
         require("./utest_limit_alarm")(test);
-        require("./utest_deviation_alarm")(test);
+        require("./utest_exclusive_deviation_alarm")(test);
+        require("./utest_non_exclusive_deviation_alarm")(test);
+        require("./utest_off_normal_alarm")(test);
     });
 
 

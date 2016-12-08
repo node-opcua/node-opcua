@@ -43,7 +43,7 @@ function create_analyser_device(addressSpace) {
 
 
     var myAnalyser = myAnalyserDeviceType.instantiate({
-       browseName: "MyAnalyser"
+        browseName: "MyAnalyser"
     });
     return myAnalyser;
 
@@ -119,7 +119,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
         })
         //xx console.log(deviceType.toString());
         var myDevice = myDeviceType.instantiate({
-            browseName:"MyDevice"
+            browseName: "MyDevice"
         });
     });
 
@@ -159,7 +159,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         var channel2 = analyserChannelType.instantiate({
             browseName: "__Channel2",
-            optionals: [ "ParameterSet" ]
+            optionals: ["ParameterSet"]
         });
 
         channel2.parameterSet.browseName.toString().should.eql("2:ParameterSet");
@@ -333,7 +333,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
 
-        var sm = subStateMachineType.instantiate({ browseName: "MyStateMachine"});
+        var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
         UAStateMachine.promote(sm);
 
@@ -357,7 +357,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
 
-        var sm = subStateMachineType.instantiate({ browseName: "MyStateMachine"});
+        var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
         UAStateMachine.promote(sm);
 

@@ -27,6 +27,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 require("lib/address_space/address_space_add_enumeration_type");
 
 module.exports = function (test) {
+
     describe("AddressSpace : Conditions ", function () {
 
         var addressSpace,source,engine;
@@ -492,7 +493,7 @@ module.exports = function (test) {
                     conditionType.conditionRefresh.execute([subscriptionIdVar], context, function (err, callMethodResponse) {
 
                         //
-                        // During the process we should receive 3 events
+                        // During the process we should receive 2 events
                         //
                         //
                         spy_on_event.callCount.should.eql(2);

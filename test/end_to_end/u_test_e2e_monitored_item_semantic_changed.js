@@ -68,6 +68,7 @@ function writeIncrement(session, analogDataItem, done) {
 
 function readEURange(session, nodeId, done) {
     var euRangeNodeId;
+    var euRange ;
     async.series([
         function (callback) {
             getEURangeNodeId(session, nodeId, function (err, result) {
@@ -85,15 +86,17 @@ function readEURange(session, nodeId, done) {
                 }
             ];
             session.read(nodesToRead, function (err, r, results) {
-                if (!err) {
-                    var euRange = results[0].value.value;
-                    console.log(" euRange =", euRange.toString());
+                 if (!err) {
+                    euRange  = results[0].value.value;
+                    //xx console.log(" euRange =", euRange.toString());
                 }
-                callback(err)
+                callback(err,euRange)
             });
         }
 
-    ], done);
+    ], function(results) {
+        done(null,euRange)
+    });
 
 }
 function writeEURange(session, nodeId, euRange, done) {
@@ -110,9 +113,6 @@ function writeEURange(session, nodeId, euRange, done) {
             var nodesToWrite = [{
                 nodeId: euRangeNodeId,
                 attributeId: opcua.AttributeIds.Value,
-                indexRange: null,
-                dataEncoding: null,
-
                 value: new DataValue({
                     value: {dataType: DataType.ExtensionObject, value: new Range(euRange)}
                 })
@@ -278,7 +278,7 @@ module.exports = function (test) {
             check_semantic_change(100, done);
         });
 
-        it("YY1 should set SemanticChanged - with event based monitored item", function (done) {
+        it("YY2 should set SemanticChanged - with event based monitored item", function (done) {
             check_semantic_change(0, done);
         });
 
