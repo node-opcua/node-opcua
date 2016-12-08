@@ -156,7 +156,7 @@ describe("testing ClientTCP_transport", function () {
 
     function makeError(statusCode) {
         assert(statusCode instanceof StatusCode);
-        return new s.TCPErrorMessage({name: statusCode.value, reason: statusCode.description});
+        return new s.TCPErrorMessage({reason: statusCode.value, reason: statusCode.description});
     }
 
     it("should report an error if the server reports a protocol version mismatch", function (done) {

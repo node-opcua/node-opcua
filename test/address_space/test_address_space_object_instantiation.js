@@ -123,7 +123,7 @@ describe("testing add new ObjectType ", function () {
                 browseName: "SubObj",
                 modellingRule: "Optional",
                 componentOf: myObjectType1,
-                optionals: ["Property2","Property3"]
+                optionals: ["Property2", "Property3"]
             });
 
             myObjectType1.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");

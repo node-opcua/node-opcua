@@ -21,12 +21,20 @@ describe("Benchmarking Factory Implementation", function (done) {
         });
         variant.dataType.should.eql(DataType.Double);
 
-        variant.dataType = DataType.Variant.value;
-
+        if (variant.setDataType) {
+           variant.setDataType(DataType.Variant);
+        } else {
+           variant.dataType = DataType.Variant.value;
+        }
         variant.dataType.should.eql(DataType.Variant);
 
         should(function () {
-            variant.dataType = 34;
+            if (variant.setDataType) {
+               // new version uses the set<EnumType> helper function
+               variant.setDataType(34);
+           } else {
+              variant.dataType = 34;
+           }
         }).throw();
 
         var variant2 = new VariantX(variant);

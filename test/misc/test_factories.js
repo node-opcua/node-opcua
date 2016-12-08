@@ -323,7 +323,7 @@ describe("Factories: testing object factory", function () {
         shape.shapeType.should.equal(ShapeType.RECTANGLE);
 
         (function () {
-            shape.shapeType = 34;
+            shape.setShapeType(34);
         }).should.throw();
 
     });
@@ -381,7 +381,7 @@ describe("Factories: testing strong typed enums", function () {
         var shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});
 
         (function () {
-            shape.shapeType = "toto";
+            shape.setShapeType("toto");
         }).should.throw();
 
 

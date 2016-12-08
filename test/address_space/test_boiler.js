@@ -39,7 +39,7 @@ describe("Testing Boiler System",function() {
 
             var programStateMachine = addressSpace.findObjectType("ProgramStateMachineType");
 
-            var psm = programStateMachine.instantiate({ browseName: "MyStateMachine#2" });
+            var psm = programStateMachine.instantiate({browseName: "MyStateMachine#2"});
 
             UAStateMachine.promote(psm);
 
@@ -56,7 +56,7 @@ describe("Testing Boiler System",function() {
                 subtypeOf: "ProgramStateMachineType"
             });
 
-            var psm = myProgramStateMachine.instantiate({ browseName: "MyStateMachine#2" });
+            var psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
             UAStateMachine.promote(psm);
 
             psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);

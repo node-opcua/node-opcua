@@ -313,7 +313,7 @@
             var sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics",
                 componentOf: sessionObject,
-                value: new Variant({ dataType: DataType.ExtensionObject, value:  _sessionDiagnostics })
+                value: new Variant({dataType: DataType.ExtensionObject, value: _sessionDiagnostics})
             });
             var t8 = utils.get_clock_tick();
             //xx console.log(" t8-t7",t8-t7);

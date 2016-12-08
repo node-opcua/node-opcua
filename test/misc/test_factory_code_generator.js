@@ -32,7 +32,7 @@ describe("Code Generator", function () {
         dummy_reloaded.typeEnum.should.eql(dummy.typeEnum);
 
         (function () {
-            dummy.typeEnum = "toto";
+            dummy.setTypeEnum("toto");
         }).should.throw();
 
     });

@@ -54,9 +54,9 @@ describe("testing add new ObjectType ", function () {
         var machineTypeNode = addressSpace.addObjectType({browseName: "MachineType"});
 
         var machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
-            componentOf:   machineTypeNode,
+            componentOf: machineTypeNode,
             modellingRule: "Mandatory",
-            browseName:    "TemperatureSensor"
+            browseName: "TemperatureSensor"
         });
         assert(machineTypeNode.temperatureSensor);
         machineTypeTemperatureSensorNode.modellingRule.should.eql("Mandatory");
@@ -150,7 +150,7 @@ describe("testing add new ObjectType ", function () {
 
         var camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",
-            browseName:  "Camera1"
+            browseName: "Camera1"
         });
 
         camera1.browseName.toString().should.eql("Camera1");

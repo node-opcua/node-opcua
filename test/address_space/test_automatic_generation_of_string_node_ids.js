@@ -87,7 +87,7 @@ describe("Automatic Generation of  string nodeId", function () {
         var camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",
             nodeId: "ns=1;s=MYCAMERA",
-            browseName:  "Camera2"
+            browseName: "Camera2"
         });
         camera1.nodeId.toString().should.eql("ns=1;s=MYCAMERA");
         camera1.trigger.nodeId.toString().should.eql("ns=1;s=MYCAMERA-1:Trigger");
@@ -103,7 +103,7 @@ describe("Automatic Generation of  string nodeId", function () {
         var serverStatus = serverStatusType.instantiate({
             organizedBy: "RootFolder",
             nodeId: "ns=1;s=MyServerStatus",
-            browseName:  "MyServerStatus"
+            browseName: "MyServerStatus"
         });
         serverStatus.nodeId.toString().should.eql("ns=1;s=MyServerStatus");
         serverStatus.buildInfo.nodeId.toString().should.eql("ns=1;s=MyServerStatus-BuildInfo");

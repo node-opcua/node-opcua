@@ -58,7 +58,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         var myFolderType = addressSpace.findObjectType("MyFolderType");
 
         // now create a folder of type MyFolderType inside the Objects Folder
-        var myFolder = myFolderType.instantiate({browseName:"MyFolder",organizedBy:"ObjectsFolder" });
+        var myFolder = myFolderType.instantiate({browseName: "MyFolder", organizedBy: "ObjectsFolder"});
 
         // now create a simple var inside the new folder (method 1)
         var myObject = addressSpace.addVariable({
@@ -69,7 +69,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         myObject.browseName.toString().should.eql("Obj1");
 
         // now create a simple var isnide the new folder (method 2)
-        var myObject2 = temperatureSensorType.instantiate({ browseName:"Obj2", organizedBy: myFolder});
+        var myObject2 = temperatureSensorType.instantiate({browseName: "Obj2", organizedBy: myFolder});
 
         myObject2.browseName.toString().should.eql("Obj2");
 
