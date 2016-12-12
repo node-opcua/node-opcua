@@ -114,7 +114,7 @@ server.on("post_initialize", function () {
     console.log("ADI namespace = ",nsADI);
     console.log("ADI namespace = ",spectrometerDeviceType.browseName.toString());
 
-    var mySpectrometer= spectrometerDeviceType.instantiate({ browseName: "MySpectrometer", organizedBy: deviceSet });
+    var mySpectrometer= spectrometerDeviceType.instantiate({browseName: "MySpectrometer", organizedBy: deviceSet});
     // create a spectro meter
 
 
@@ -125,7 +125,7 @@ server.on("post_initialize", function () {
         var channel       = analyserChannelType.instantiate({
             browseName: options.browseName,
             componentOf: options.componentOf,
-            optionals: [ "ParameterSet"]
+            optionals: ["ParameterSet"]
         });
 
         var parameterSet = channel.parameterSet;

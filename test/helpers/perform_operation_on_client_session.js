@@ -62,7 +62,7 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
             }
             catch(err) {
                 console.log(err.message);
-                callback();
+                callback(err);
             }
         },
 

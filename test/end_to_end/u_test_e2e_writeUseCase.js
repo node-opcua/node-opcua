@@ -227,5 +227,53 @@ module.exports = function (test) {
             }, done);
         });
 
+        it("MMM should return BadTooManyOperation if nodesToWrite has too many elements",function(done){
+
+            test.server.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 3;
+
+            test.server.engine.serverCapabilities.operationLimits.maxNodesPerWrite.should.be.greaterThan(1);
+
+            perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
+
+                var nodeToWrite  = {
+                    nodeId: null,
+                    attributeId: AttributeIds.Value,
+                    value: /*new DataValue(*/{
+                        value: {/* Variant */dataType: DataType.Double, value: 23.0}
+                    }
+                };
+                var nodesToWrite = [
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+                    nodeToWrite,
+
+                ];
+
+
+
+                var request = new opcua.write_service.WriteRequest({nodesToWrite: nodesToWrite});
+                session.performMessageTransaction(request, function (err, response) {
+                    err.message.should.match(/BadTooManyOperations/);
+
+                    // restore limit to zero
+                    test.server.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 0;
+                    done();
+                });
+
+            }, done);
+
+
+        });
+
+
     });
 };

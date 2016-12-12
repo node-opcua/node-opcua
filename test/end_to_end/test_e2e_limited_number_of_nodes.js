@@ -12,6 +12,9 @@ var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
 
+var makeBrowsePath = opcua.browse_service.makeBrowsePath;
+assert(_.isFunction(makeBrowsePath));
+
 var port = 2000;
 
 var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixture_empty_nodeset2.xml");
@@ -41,13 +44,14 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
                 maxNodesPerWrite: 10,
                 maxNodesPerMethodCall: 10,
                 maxNodesPerBrowse: 2,
-                maxNodesPerRegisterNodes: 0,
-                maxNodesPerNodeManagement: 0,
+                maxNodesPerRegisterNodes: 3,
+                maxNodesPerNodeManagement: 4,
                 maxMonitoredItemsPerCall: 120,
-                maxNodesPerHistoryReadData: 0,
-                maxNodesPerHistoryReadEvents: 0,
-                maxNodesPerHistoryUpdateData: 0,
-                maxNodesPerHistoryUpdateEvents: 0
+                maxNodesPerHistoryReadData: 5,
+                maxNodesPerHistoryReadEvents: 6,
+                maxNodesPerHistoryUpdateData: 7,
+                maxNodesPerHistoryUpdateEvents: 8,
+                maxNodesPerTranslateBrowsePathsToNodeIds: 9
             }
         }
     });
@@ -82,7 +86,19 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     it("should be possible to customize serverCapabilities.operationLimits at construction time", function () {
         server.engine.serverCapabilities.operationLimits.maxNodesPerRead.should.eql(10);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerWrite.should.eql(10);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall.should.eql(10);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse.should.eql(2);
+
+        server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes.should.eql(3);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerNodeManagement.should.eql(4);
         server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall.should.eql(120);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData.should.eql(5);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents.should.eql(6);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryUpdateData.should.eql(7);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryUpdateEvents.should.eql(8);
+        server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds.should.eql(9);
+
 
     });
 
@@ -97,7 +113,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             var nodeId1 = opcua.makeNodeId(n1);
             var nodesToRead = [
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
+                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value}
             ];
             session.read(nodesToRead, function (err, a, results) {
                 // console.log(results);
@@ -110,7 +126,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     });
 
-    it("server should only threat MaxNodesPerRead in read operation ", function (done) {
+    it("server should return BadTooManyOperations when nodesToRead exceed MaxNodesPerRead in read operation ", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -139,10 +155,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             nodesToRead.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
 
             session.read(nodesToRead, function (err, a, results) {
-                if (!err) {
-                    results.length.should.eql(10);
-                }
-                done(err);
+                should.exist(err);
+                err.message.should.match(/BadTooManyOperations/);
+                done();
             });
 
         }, done);
@@ -150,7 +165,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     });
 
-    it("server should only threat MaxNodesPerBrowse in browse operation ", function (done) {
+    it("server should return BadTooManyOperations when browseRequest exceed MaxNodesPerBrowse in browse operation ", function (done) {
 
         server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse.should.equal(2);
 
@@ -172,10 +187,40 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             browseRequest.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse);
 
             session.browse(browseRequest, function (err, results) {
-                if (!err) {
-                    results.length.should.eql(server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse);
-                }
-                done(err);
+                should.exist(err);
+                err.message.should.match(/BadTooManyOperations/);
+                done();
+            });
+        }, done);
+
+    });
+    it("server should return BadTooManyOperations when translate exceed maxNodesPerTranslateBrowsePathsToNodeIds in translate operation ", function (done) {
+
+        server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse.should.equal(2);
+
+        perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+
+            var translateBrowsePath = [
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder","/Objects/Server"),
+
+            ];
+
+            server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds.should.be.greaterThan(1);
+            translateBrowsePath.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds);
+
+            session.translateBrowsePath(translateBrowsePath, function (err, results) {
+                should.exist(err);
+                err.message.should.match(/BadTooManyOperations/);
+                done();
             });
         }, done);
 
