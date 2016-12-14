@@ -4,7 +4,7 @@ var AddNodesItem_Schema = {
         { name: "parentNodeId" ,       fieldType: "ExpandedNodeId", documentation: "ExpandedNodeId of the parent Node for the Reference."},
         { name: "referenceTypeId" ,    fieldType: "NodeId"        , documentation: "NodeId of the hierarchical ReferenceType to use for the Reference from the parent Node to the new Node."},
 
-    /**
+    /*=
      * Client requested expanded NodeId of the Node to add. The serverIndex in the expanded NodeId shall be 0.
      * If the Server cannot use this NodeId, it rejects this Node and returns the appropriate error code.
      * If the Client does not want to request a NodeId, then it sets the value of this parameter to the null

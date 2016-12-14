@@ -4,16 +4,16 @@ var QueryDataSet_Schema = {
     name:"QueryDataSet",
     fields: [
 
-    /**
+    /*=
      * The NodeId for this Node description.
      */
      {name: "nodeId", fieldType:"ExpandedNodeId"},
 
-    /**
+    /*=
      * The NodeId for the type definition for this Node description.
      */
      {name: "typeDefinitionNode", fieldType:"ExpandedNodeId"},
-    /**
+    /*=
      * Values for the selected Attributes. The order of returned items matches the order of the requested items.
      * There is an entry for each requested item for the given TypeDefinitionNode that matches the selected instance,
      * this includes any related nodes that were specified using a relative path from the selected instance’s

@@ -325,14 +325,32 @@ function monitorAlarm(subscription,alarmNodeId, callback) {
 async.series([
     function (callback) {
 
-        client = new opcua.OPCUAClient();
+        var options = {
+            keepSessionAlive: true,
+            connectionStrategy: {
+                maxRetry: 10,
+                initialDelay: 2000,
+                maxDelay: 60*1000
+            }
+        };
+
+        client = new opcua.OPCUAClient(options);
 
         console.log(" connecting to ", endpointUrl.cyan.bold);
-        client.connect(endpointUrl, callback);
+        console.log("    strategy", client.connectionStrategy);
 
         client.on("connection_reestablished",function() {
             console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RESTABLISHED !!!!!!!!!!!!!!!!!!!");
         });
+
+        client.on("backoff", function (number, delay) {
+            console.log("backoff".bgWhite.yellow,number,delay);
+        });
+        client.on("start_reconnection", function () {
+            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!");
+        });
+
+        client.connect(endpointUrl, callback);
 
     },
 
