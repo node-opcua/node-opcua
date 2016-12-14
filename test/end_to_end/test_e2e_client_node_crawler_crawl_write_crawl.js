@@ -35,7 +35,7 @@ describe("NodeCrawler after write",function(){
 
     // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
     // so we set a big enough timeout
-    this.timeout((process.arch === 'arm') ? 400000 : 100000);
+    this.timeout((process.arch === 'arm') ? 800000 : 200000);
 
     var server , client,temperatureVariableId,endpointUrl ;
 
@@ -54,7 +54,9 @@ describe("NodeCrawler after write",function(){
     });
 
     beforeEach(function(done){
-        client = new OPCUAClient();
+        client = new OPCUAClient({
+            requestedSessionTimeout: 60*1000*4 // 4 minutes
+        });
         done();
     });
 
