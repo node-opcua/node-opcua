@@ -2,6 +2,7 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
+var sinon = require("sinon");
 var _ = require("underscore");
 var assert = require("assert");
 var path = require("path");
@@ -18,7 +19,9 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
-
+var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
+var conditions =require("lib/address_space/alarms_and_conditions/condition");
+var ConditionSnapshot = conditions.ConditionSnapshot;
 
 require("lib/address_space/address_space_add_enumeration_type");
 
@@ -177,6 +180,15 @@ module.exports = function (test) {
                 branch.getRetain().should.eql(false);
 
 
+                condition._findBranchForEventId(null).should.eql(branch);
+
+                var acknowledged_spy = new sinon.spy();
+                condition.on("acknowledged",acknowledged_spy);
+
+                var confirmed_spy = new sinon.spy();
+                condition.on("confirmed",confirmed_spy);
+
+
                 async.series([
                     function step0(callback) {
                         //    initial states:
@@ -224,6 +236,13 @@ module.exports = function (test) {
                         should(condition.confirmedState.readValue().value.value.text).eql("Unconfirmed");
                         should(condition.retain.readValue().value.value).eql(true);
 
+                        // --------------------- the 'acknowledge' event must have been raised
+                        acknowledged_spy.callCount.should.eql(1);
+                        acknowledged_spy.getCall(0).args.length.should.eql(3);
+                        should.not.exist(acknowledged_spy.getCall(0).args[0], "eventId is null");
+                        acknowledged_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
+                        acknowledged_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
+                        acknowledged_spy.thisValues[0].should.eql(condition);
                         callback();
 
                     },
@@ -259,6 +278,15 @@ module.exports = function (test) {
                         should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                         should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                         should(condition.retain.readValue().value.value).eql(false);
+
+
+                        // --------------------- the 'confirmed' event must have been raised
+                        confirmed_spy.callCount.should.eql(1);
+                        confirmed_spy.getCall(0).args.length.should.eql(3);
+                        should.not.exist(confirmed_spy.getCall(0).args[0], "eventId is null");
+                        confirmed_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
+                        confirmed_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
+
                         callback();
                     },
 

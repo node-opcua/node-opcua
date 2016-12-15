@@ -182,7 +182,7 @@ exports.register_test = function (options) {
 
 
 /*
-var expectedResult = new ExpectedAndAcceptedResults( StatusCode.Good );
+var expectedResult = new ExpectedAndAcceptedResults( StatusCodes.Good );
 item.AttributeId = Attribute.AccessLevel;
 if( !ReadHelper.Execute( {
     NodesToRead: item,
@@ -211,7 +211,7 @@ print( "AccessLevel = " + ReadHelper.Response.Results[0].Value + " (vs. CurrentW
 
 // if we reach this far then we have a node that we can test.
 // setup our expected errors
-expectedResult = new ExpectedAndAcceptedResults( [ StatusCode.BadNotWritable, StatusCode.BadUserAccessDenied ] );
+expectedResult = new ExpectedAndAcceptedResults( [ StatusCodes.BadNotWritable, StatusCodes.BadUserAccessDenied ] );
 
 // just write back the same value we received.
 WriteHelper.Execute( {
