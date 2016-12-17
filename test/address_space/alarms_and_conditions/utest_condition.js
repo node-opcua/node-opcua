@@ -22,9 +22,11 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
 var Variant = require("lib/datamodel/variant").Variant;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
+var UAObject = require("lib/address_space/ua_object").UAObject;
 
 
 require("lib/address_space/address_space_add_enumeration_type");
+
 
 module.exports = function (test) {
 
@@ -57,7 +59,7 @@ module.exports = function (test) {
             before(function (done) {
 
                 var conditionType = addressSpace.findEventType("ConditionType");
-                // create a custom
+                // create a custom conditionType
                 myCustomConditionType = addressSpace.addObjectType({
                     subtypeOf: conditionType,
                     browseName: "MyConditionType",
@@ -74,8 +76,9 @@ module.exports = function (test) {
                     browseName: "MyCustomCondition"
                 });
                 condition.browseName.toString().should.eql("MyCustomCondition");
+//xx                should.not.exist(condition.enabledState.transitionTime);
+//xx                should.not.exist(condition.enabledState.effectiveTransitionTime);
             });
-
 
             it("should be possible to enable and disable a condition", function (done) {
 
@@ -95,8 +98,10 @@ module.exports = function (test) {
 
                 condition._setEnabledState(false);
                 condition.getEnabledState().should.eql(false);
+
                 condition._setEnabledState(true).should.eql(StatusCodes.Good);
                 condition.getEnabledState().should.eql(true);
+
                 condition._setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
 
                 condition.enabledState.id.readValue().value.value.should.eql(true);
@@ -225,7 +230,6 @@ module.exports = function (test) {
 
             it("should be possible to set the comment of a condition using the addComment method of the condition instance", function (done) {
 
-
                 var condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
@@ -288,7 +292,8 @@ module.exports = function (test) {
                     ]
                 });
                 condition.sourceNode.readValue().value.value.toString().should.eql(source.nodeId.toString());
-                condition.sourceName.readValue().value.value.text.should.eql(source.browseName.toString());
+                condition.sourceName.dataType.toString().should.eql("ns=0;i=12"); // string
+                condition.sourceName.readValue().value.value.should.eql(source.browseName.toString());
             });
 
             it("initial value of lastSeverity should be zero", function () {
@@ -301,9 +306,7 @@ module.exports = function (test) {
                         "EnabledState.TransitionTime"
                     ]
                 });
-
                 condition.currentBranch().getLastSeverity().should.equal(0);
-
             });
 
             it("setting severity should record lastSeverity", function () {
@@ -326,7 +329,38 @@ module.exports = function (test) {
 
             });
 
+            xit("should produce eventData ",function() {
 
+                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                    organizedBy: addressSpace.rootFolder.objects,
+                    browseName: "MyCustomCondition_last_severity_recorded",
+                    conditionSource: source,
+                    optionals: [
+                        "EnabledState.EffectiveDisplayName",
+                        "EnabledState.TransitionTime"
+                    ]
+                });
+
+                var eventData1 = condition.currentBranch()._constructEventData();
+
+                var data= {
+                    sourceNode: condition.sourceNode.readValue().value
+                };
+                var eventData2 = addressSpace.constructEventData(myCustomConditionType,data);
+
+                function f(a) {
+                    if (a == "$eventDataSource") return false;
+                    if (a == "__nodes") return false;
+                    return true;
+                }
+
+                var checker1 = Object.keys(eventData1).filter(f).sort().join(" ");
+                var checker2 = Object.keys(eventData2).filter(f).sort().join(" ");
+
+                checker1.should.eql(checker2);
+
+
+            });
             var sinon = require("sinon");
 
             it("should raise a new condition ", function () {
@@ -359,24 +393,25 @@ module.exports = function (test) {
 
                 spy_on_event.callCount.should.eql(1);
 
-                var evtData = spy_on_event.getCall(0).args[0].clone();
+                var evtData = spy_on_event.getCall(0).args[0];
 
-                console.log("evtData = ", evtData.constructor.name);
+                //xx console.log("evtData = ", evtData.constructor.name);
+                //xx console.log("evtData = ", evtData);
 
                 //Xx console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.toString());
                 //Xx console.log(" EVENT ID :",       evtData.eventId.readValue().value.toString("hex"));
 
-                should(evtData.getEventId()).not.eql(null, "Event must have a unique eventId");
-                evtData.getSeverity().should.eql(1235); //,"the severity should match expecting severity");
-                evtData.getQuality().should.eql(StatusCodes.Good);
+                should.exist(evtData.eventId.value,"Event must have a unique eventId");
+                evtData.severity.value.should.eql(1235); //,"the severity should match expecting severity");
+                evtData.quality.value.should.eql(StatusCodes.Good);
 
                 // the sourceName of the event should match the ConditionSourceNode
 
                 //xx todo evtData.getSourceName().text.should.eql(source.browseName.toString());
 
-                evtData.getEventType().should.eql(myCustomConditionType.nodeId);
-                evtData.getMessage().text.should.eql("Hello Message");
-                evtData.getSourceNode().should.eql(source.nodeId);
+                evtData.eventType.value.should.eql(myCustomConditionType.nodeId);
+                evtData.message.value.text.should.eql("Hello Message");
+                evtData.sourceNode.value.should.eql(source.nodeId);
 
                 // raise an other event
                 condition.raiseNewCondition({
@@ -391,9 +426,9 @@ module.exports = function (test) {
                 //xx console.log(" EVENT RECEIVED :", evtData1.sourceName.readValue().value.value);
                 //xx console.log(" EVENT ID :", evtData1.eventId.readValue().value.value.toString("hex"));
 
-                should(evtData1.getEventId()).not.eql(evtData.getEventId(), "EventId must be different from previous one");
-                evtData1.getSeverity().should.eql(1000, "the severity should match expecting severity");
-                evtData1.getQuality().should.eql(StatusCodes.Bad);
+                should(evtData1.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
+                evtData1.severity.value.should.eql(1000, "the severity should match expecting severity");
+                evtData1.quality.value.should.eql(StatusCodes.Bad);
                 // raise with only severity
                 condition.raiseNewCondition({
                     severity: 1001
@@ -403,9 +438,9 @@ module.exports = function (test) {
                 //xx console.log(" EVENT RECEIVED :", evtData2.sourceName.readValue().value.value);
                 //xx console.log(" EVENT ID :", evtData2.eventId.readValue().value.value.toString("hex"));
 
-                should(evtData2.getEventId()).not.eql(evtData.getEventId(), "EventId must be different from previous one");
-                evtData2.getSeverity().should.eql(1001, "the severity should match expecting severity");
-                evtData2.getQuality().should.eql(StatusCodes.Bad);
+                should(evtData2.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
+                evtData2.severity.value.should.eql(1001, "the severity should match expecting severity");
+                evtData2.quality.value.should.eql(StatusCodes.Bad);
 
             });
 
@@ -438,6 +473,8 @@ module.exports = function (test) {
                     branch1.branchId.toString().should.not.eql(branch2.branchId.toString());
 
                 });
+
+
             });
             describe("Condition & Subscriptions : ConditionRefresh", function () {
 
@@ -464,7 +501,7 @@ module.exports = function (test) {
                     subscription.terminate();
                 });
 
-                it("should be possible to refresh a condition", function () {
+                it("%% should be possible to refresh a condition", function () {
 
                     var condition = addressSpace.instantiateCondition(myCustomConditionType, {
                         organizedBy: addressSpace.rootFolder.objects,
@@ -493,10 +530,27 @@ module.exports = function (test) {
                     conditionType.conditionRefresh.execute([subscriptionIdVar], context, function (err, callMethodResponse) {
 
                         //
-                        // During the process we should receive 2 events
+                        // During the process we should receive 3 events
                         //
                         //
-                        spy_on_event.callCount.should.eql(2);
+                        spy_on_event.callCount.should.eql(3," expecting 3 events  ");
+
+                        // RefreshStartEventType (i=2787)
+                        spy_on_event.getCall(0).thisValue.should.be.instanceof(UAObject);
+                        spy_on_event.getCall(0).thisValue.nodeId.toString().should.eql("ns=0;i=2253");
+                        spy_on_event.getCall(0).thisValue.browseName.toString().should.eql("Server");
+                        spy_on_event.getCall(0).args.length.should.eql(1);
+                        spy_on_event.getCall(0).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: ns=0;i=2787)");
+
+
+                        //xx console.log("spy_on_event.getCall(0).args[0]=",spy_on_event.getCall(1).args[0]);
+                        spy_on_event.getCall(1).thisValue.browseName.toString().should.eql("Server");
+                        spy_on_event.getCall(1).args[0].eventType.value.toString().should.eql(myCustomConditionType.nodeId.toString());
+
+                        // RefreshEndEventType (i=2788)
+                        spy_on_event.getCall(2).thisValue.browseName.toString().should.eql("Server");
+                        spy_on_event.getCall(2).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: ns=0;i=2788)");
+
                     });
                 });
             });

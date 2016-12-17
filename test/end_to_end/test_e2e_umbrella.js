@@ -232,6 +232,6 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_monitored_item_semantic_changed")(test);
     require("./u_test_e2e_issue_233")(test);
     require("./u_test_e2e_issue_273")(test);
-    require("./u_test_e2e_conditions")(test);
+    require("./alarms_and_conditions/u_test_e2e_conditions")(test);
 });
 

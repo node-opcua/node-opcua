@@ -392,7 +392,7 @@ describe("testing ReferenceType", function () {
         browseDirection = browseDirection || BrowseDirection.Forward;
         assert(_is_valid_BrowseDirection(browseDirection));
 
-        var addressSpace = this.__address_space;
+        var addressSpace = this.addressSpace;
 
         var referenceType = addressSpace.findReferenceType(strReference);
         if (!referenceType) {

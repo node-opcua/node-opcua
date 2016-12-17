@@ -29,7 +29,7 @@ function addTestUAAnalogItem(parentNode) {
 
 //xx    assert(parentNode instanceof opcua.BaseNode);
 
-    var addressSpace = parentNode.__address_space;
+    var addressSpace = parentNode.addressSpace;
 
     // add a UAAnalogItem
     var node = addressSpace.addAnalogDataItem({

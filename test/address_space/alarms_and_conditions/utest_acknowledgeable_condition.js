@@ -22,6 +22,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
 var conditions =require("lib/address_space/alarms_and_conditions/condition");
 var ConditionSnapshot = conditions.ConditionSnapshot;
+var UAMethod = require("lib/address_space/ua_method").UAMethod;
 
 require("lib/address_space/address_space_add_enumeration_type");
 
@@ -95,10 +96,12 @@ module.exports = function (test) {
                 componentOf: source,
                 browseName: "AlarmConditionType",
                 conditionSource: source,
-                optionals: ["SuppressedState", "ShelvingState", "ConfirmedState"]
+                optionals: ["SuppressedState", "ShelvingState", "ConfirmedState" ,"Confirm"]
             }, {
                 "enabledState.id": {dataType: DataType.Boolean, value: true}
             });
+            should.exist(condition.confirmedState);
+            should.exist(condition.confirm);
 
             condition.enabledState.getTrueSubStates().length.should.eql(5);
 
@@ -117,6 +120,9 @@ module.exports = function (test) {
             condition.confirmedState.browseName.toString().should.eql("ConfirmedState");
             condition.confirmedState.isTrueSubStateOf.should.eql(condition.enabledState);
 
+            condition.confirm.should.be.instanceOf(UAMethod);
+
+
             condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
 
 
@@ -128,6 +134,25 @@ module.exports = function (test) {
 
         });
 
+        it("should instantiate AcknowledgeableConditionType **Without** ConfirmedState", function (done) {
+
+            var condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+                componentOf: source,
+                browseName: "AcknowledgeableConditionTypeWithoutConfirmedState",
+                conditionSource: source,
+                optionals: [
+                    // to prevent ConfirmedState and Confirm method to appear
+                    // just do not put them in the optionals
+                ]
+            }, {
+                "enabledState.id": {dataType: DataType.Boolean, value: true}
+            });
+
+            should.not.exist(condition.confirmedState);
+            should.not.exist(condition.confirm);
+            done();
+
+        });
 
         describe("AcknowledgeableConditions: Server maintains current state only", function () {
 

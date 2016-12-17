@@ -1168,8 +1168,8 @@ describe("monitoredItem advanced", function () {
             var eventGeneratingObject = addressSpace.browsePath(browsePath);
 
             var opts = {addressSpace: engine.addressSpace};
-            console.log("eventGeneratingObject",browsePath.toString(opts));
-            console.log("eventGeneratingObject",eventGeneratingObject.toString(opts));
+            //xx console.log("eventGeneratingObject",browsePath.toString(opts));
+            //xx console.log("eventGeneratingObject",eventGeneratingObject.toString(opts));
 
             done();
         });

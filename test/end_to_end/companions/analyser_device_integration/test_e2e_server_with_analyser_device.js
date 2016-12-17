@@ -230,7 +230,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
     function dumpStateMachine(stateMachineType) {
 
-        var addressSpace = stateMachineType.__address_space;
+        var addressSpace = stateMachineType.addressSpace;
         should(!!addressSpace).eql(true);
         // enumerate states from components
 

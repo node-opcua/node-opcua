@@ -66,6 +66,7 @@ var userManager = {
 
 var path = require("path");
 
+//var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_2048.pem");
 var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_2048.pem");
 //var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
 //var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_2048_outofdate.pem");

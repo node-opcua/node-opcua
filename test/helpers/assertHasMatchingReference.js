@@ -23,7 +23,7 @@ var sameNodeId = require("lib/datamodel/nodeid").sameNodeId;
  */
 function assertHasMatchingReference(node, reference) {
 
-    var addressSpace = node.__address_space;
+    var addressSpace = node.addressSpace;
 
     var normalizedReference = addressSpace.normalizeReferenceType(reference);
     assert(typeof normalizedReference.referenceType === "string");
