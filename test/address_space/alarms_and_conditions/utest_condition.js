@@ -329,7 +329,7 @@ module.exports = function (test) {
 
             });
 
-            xit("should produce eventData ",function() {
+            it("should produce eventData ",function() {
 
                 var condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
@@ -343,8 +343,27 @@ module.exports = function (test) {
 
                 var eventData1 = condition.currentBranch()._constructEventData();
 
+                var nullVariant = {};
+
                 var data= {
-                    sourceNode: condition.sourceNode.readValue().value
+                    sourceNode: condition.sourceNode.readValue().value,
+                    conditionClassId: nullVariant,
+                    conditionClassName: nullVariant,
+                    conditionName: nullVariant,
+                    branchId: nullVariant,
+                    retain: nullVariant,
+                    clientUserId: nullVariant,
+                    "enabledState": nullVariant,
+                    "enabledState.id": nullVariant,
+                    "enabledState.effectiveDisplayName": nullVariant,
+                    "enabledState.transitionTime": nullVariant,
+                    "enabledState.effectiveTransitionTime": nullVariant,
+                    "quality": nullVariant,
+                    "quality.sourceTimestamp": nullVariant,
+                    "lastSeverity": nullVariant,
+                    "lastSeverity.sourceTimestamp": nullVariant,
+                    "comment": nullVariant,
+                    "comment.sourceTimestamp": nullVariant
                 };
                 var eventData2 = addressSpace.constructEventData(myCustomConditionType,data);
 
@@ -478,27 +497,9 @@ module.exports = function (test) {
             });
             describe("Condition & Subscriptions : ConditionRefresh", function () {
 
-                var session, subscription;
                 before(function () {
-                    session = engine.createSession();
-
-                    subscription = session.createSubscription({
-                        requestedPublishingInterval: 1000,  // Duration
-                        requestedLifetimeCount: 10,         // Counter
-                        requestedMaxKeepAliveCount: 10,     // Counter
-                        maxNotificationsPerPublish: 10,     // Counter
-                        publishingEnabled: true,            // Boolean
-                        priority: 14                        // Byte
-                    });
-                    subscription.monitoredItemCount.should.eql(0);
-
-
-                    // add a event monitored item on server
-
-
                 });
                 after(function () {
-                    subscription.terminate();
                 });
 
                 it("%% should be possible to refresh a condition", function () {

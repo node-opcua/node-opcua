@@ -27,7 +27,7 @@ module.exports = function (test) {
             variableWithAlarm.setValueFromSource({dataType: "Double", value: value});
         }
 
-        it("ExclusiveLimitAlarm", function () {
+        it("should instantiate a ExclusiveLimitAlarm", function () {
 
             var alarm = addressSpace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
                 browseName: "MyExclusiveAlarm",
@@ -74,9 +74,13 @@ module.exports = function (test) {
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
 
+            setVariableValue(11);
+            setVariableValue(4);
+            setVariableValue(0);
+
         });
 
-        it("NonExclusiveLimitAlarm", function () {
+        it("it should instantiate a NonExclusiveLimitAlarm", function () {
 
             setVariableValue(0);
 
@@ -137,6 +141,9 @@ module.exports = function (test) {
             alarm.highState.getValue().should.eql(true);
             alarm.highHighState.getValue().should.eql(true);
 
+            setVariableValue(11);
+            setVariableValue(4);
+            setVariableValue(0);
         });
 
     });

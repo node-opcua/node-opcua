@@ -331,7 +331,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeSubStateMachineType");
 
-        var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
+        var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
         var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
@@ -355,7 +355,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeExecuteSubStateMachineType");
 
-        var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
+        var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
         var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 

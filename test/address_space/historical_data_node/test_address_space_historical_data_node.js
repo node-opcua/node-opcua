@@ -12,7 +12,7 @@ var NodeId              = opcua.NodeId;
 var DataType            = opcua.DataType;
 var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
-var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
+var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
 // make sure extra error checking is made on object constructions
 describe("Testing Historical Data Node", function () {

@@ -10,6 +10,8 @@ var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 var standardUnits = opcua.standardUnits;
 
+var doDebug = false;
+
 /***
  * @method createHVACSystem
  *
@@ -188,17 +190,20 @@ exports.createHVACSystem = function(addressSpace) {
     // bind the method
     myHVAC.setTargetTemperature.bindMethod(function(inputArguments, context, callback) {
 
-        console.log(" In SetTargetTemperature".cyan.bold);
-        console.log("inputArguments",inputArguments[0].toString());
+        if (doDebug) {
+            console.log(" In SetTargetTemperature".cyan.bold);
+            console.log("inputArguments",inputArguments[0].toString());
+        }
 
         var targetTemperature = inputArguments[0];
         assert(targetTemperature instanceof opcua.Variant);
 
         var variable = myHVAC.targetTemperature;
 
-        console.log("instrumentRange=",myHVAC.targetTemperature.instrumentRange.readValue().value.toString());
-        console.log("instrumentRange=",HVACModuleType.targetTemperature.instrumentRange.readValue().value.toString());
-
+        if (doDebug) {
+            console.log("instrumentRange=", myHVAC.targetTemperature.instrumentRange.readValue().value.toString());
+            console.log("instrumentRange=", HVACModuleType.targetTemperature.instrumentRange.readValue().value.toString());
+        }
         var s = variable.isValueInRange(targetTemperature);
         if (s !== StatusCodes.Good) {
             console.log(" Invalid Value specified for targetTemperature".red.bold);

@@ -1,7 +1,7 @@
 "use strict";
 require("requirish")._(module);
 
-var opcua = require("../..");
+var opcua = require("../../../index.js");
 var path = require("path");
 var should = require("should");
 var assert = require("better-assert");
@@ -11,7 +11,7 @@ var NodeId              = opcua.NodeId;
 var DataType            = opcua.DataType;
 var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
-var UAStateMachine = require("lib/address_space/finite_state_machine").UAStateMachine;
+var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
 // make sure extra error checking is made on object constructions
 describe("Testing Finite State Machine", function () {
@@ -24,7 +24,7 @@ describe("Testing Finite State Machine", function () {
             addressSpace = new opcua.AddressSpace();
             var xml_files = [
                 // opcua.mini_nodeset_filename,
-                path.join(__dirname, "../../test/fixtures/fixture_simple_statemachine_nodeset2.xml")
+                path.join(__dirname, "../../../test/fixtures/fixture_simple_statemachine_nodeset2.xml")
             ];
             opcua.generate_address_space(addressSpace, xml_files, function (err) {
                 done(err);

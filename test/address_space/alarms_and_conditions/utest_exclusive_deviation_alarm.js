@@ -15,7 +15,7 @@ var Variant = require("lib/datamodel/variant").Variant;
 module.exports = function (test) {
 
 
-    describe("Deviation Alarms ", function () {
+    describe("Deviation Alarms : ExclusiveDeviation Alarms ", function () {
 
         var addressSpace, source, engine, variableWithAlarm, setpointNodeNode;
         before(function () {

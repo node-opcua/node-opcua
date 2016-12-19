@@ -39,13 +39,15 @@ module.exports = function (test) {
         it("should instantiate an AlarmConditionType", function () {
 
             var alarmConditionType = addressSpace.findEventType("AlarmConditionType");
-            var condition = alarmConditionType.instantiate({
+            var alarm = alarmConditionType.instantiate({
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition1"
             });
-            condition.browseName.toString().should.eql("AlarmCondition1");
+            alarm.browseName.toString().should.eql("AlarmCondition1");
 
+            should.not.exist(alarm.maxTimedShelved);
+            should.not.exist(alarm.confirmedState);
         });
 
         it("should instantiate AlarmConditionType (variation 2)", function () {
@@ -55,13 +57,11 @@ module.exports = function (test) {
                 conditionSource: source,
                 browseName: "AlarmCondition2",
                 inputNode: variableWithAlarm
-
-            }, {
-                "enabledState.id": {dataType: DataType.Boolean, value: true}
             });
 
             alarm.constructor.name.should.eql("UAAlarmConditionBase");
-
+            should.not.exist(alarm.maxTimedShelved);
+            should.not.exist(alarm.confirmedState);
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             alarm.enabledState.getTrueSubStates().length.should.eql(2);
             alarm.browseName.toString().should.eql("AlarmCondition2");
@@ -111,12 +111,14 @@ module.exports = function (test) {
                     browseName: "AlarmCondition3",
                     conditionSource: source,
                     inputNode: variableWithAlarm,
+                    maxTimeShelved : 10*1000,
                     optionals: [
                         // optionals from ConditionType
                         "ConfirmedState",
                         // optionnals from AlarmConditionType
-                        "SuppressedState", "ShelvingState",
-                        "ShelvingState", "MaxTimeShelved",
+                        "SuppressedState",
+                        "ShelvingState",
+                        /// -> not required (because of maxTimeShelved in options) "MaxTimeShelved",
                         // Method
                         "Unshelve",
 
@@ -205,8 +207,6 @@ module.exports = function (test) {
                 async.series([
                     function(callback) {
                         alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {
-
-                            console.log("callMethodResponse",callMethodResponse.toString());
                             callback(err);
                         });
                     },
@@ -231,7 +231,7 @@ module.exports = function (test) {
                             newValue.value.value.text.should.eql("Unshelved");
 
                             values.length.should.be.greaterThan(2);
-                            console.log("values = ",values);
+                            console.log("                     unshelveTime value history = ",values);
 
                             clearInterval(_timer);
 
@@ -281,8 +281,8 @@ module.exports = function (test) {
 
                 it("unshelving an already unshelved alarm should return BadConditionNotShelved", function (done) {
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
-                    alarm.shelvingState.unshelve.execute([], context, function (err, callMethodResponse) {
 
+                    alarm.shelvingState.unshelve.execute([], context, function (err, callMethodResponse) {
                         callMethodResponse.statusCode.should.eql(StatusCodes.BadConditionNotShelved);
                         done();
                     });
