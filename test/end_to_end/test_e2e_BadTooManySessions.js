@@ -21,6 +21,10 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
 
 
+    this.timeout(Math.max(300000,this._timeout));
+
+    // Given a server with only one allowed Session
+
     var server = new OPCUAServer({
         port: port,
         nodeset_filename: empty_nodeset_filename,
@@ -32,8 +36,11 @@ describe("testing the server ability to deny client session request (server with
 
     var endpointUrl;
     before(function (done) {
+
         resourceLeakDetector.start();
+
         server.start(function () {
+
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done();
         });

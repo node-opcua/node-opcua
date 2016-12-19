@@ -22,6 +22,7 @@ var DataType = opcua.DataType;
 var createBoilerType = require("test/helpers/boiler_system").createBoilerType;
 var makeBoiler       = require("test/helpers/boiler_system").makeBoiler;
 
+var doDebug = false;
 
 var UAProxyManager = require("lib/client/proxy").UAProxyManager;
 require("lib/client/state_machine_proxy");
@@ -55,7 +56,6 @@ describe("testing monitoring Executable flags on methods", function () {
 
 
             boiler_on_server = boiler_on_server.nodeId;
-            console.log("2");
         });
         server.start(function (err) {
 
@@ -65,7 +65,6 @@ describe("testing monitoring Executable flags on methods", function () {
                 return done(err);
             }
             assert(server.engine.status === "initialized");
-            console.log("1");
             done();
         });
     });
@@ -109,14 +108,15 @@ describe("testing monitoring Executable flags on methods", function () {
 
                         if (!err) {
 
-                            console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
-
-                            console.log("States       = ", obj.states.map(function (state) {
-                                return state.browseName.toString();
-                            }));
-                            console.log("Transitions  = ", obj.transitions.map(function (transition) {
-                                return transition.browseName.toString();
-                            }));
+                            if (doDebug) {
+                                console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
+                                console.log("States       = ", obj.states.map(function (state) {
+                                    return state.browseName.toString();
+                                }));
+                                console.log("Transitions  = ", obj.transitions.map(function (transition) {
+                                    return transition.browseName.toString();
+                                }));
+                            }
 
                         }
                         callback(err);
@@ -124,18 +124,22 @@ describe("testing monitoring Executable flags on methods", function () {
                 },
                 function (callback) {
 
-                    console.log(" NodeId = ",nodeId.toString());
-
+                    if (doDebug) {
+                        console.log(" NodeId = ", nodeId.toString());
+                    }
                     proxyManager.getObject(nodeId, function (err, data) {
                         if (!err) {
 
                             boiler = data;
                             //xx console.log("xXXXXX",hvac);
 
-                            console.log("Current State", boiler.simulation.currentState.toString());
-
+                            if (doDebug) {
+                                console.log("Current State", boiler.simulation.currentState.toString());
+                            }
                             boiler.simulation.currentState.readValue(function (err, value) {
-                                console.log(" Interior temperature updated ...", value.toString());
+                                if (doDebug) {
+                                    console.log(" Interior temperature updated ...", value.toString());
+                                }
                                 callback(err);
                             });
 
@@ -146,13 +150,17 @@ describe("testing monitoring Executable flags on methods", function () {
                 },
                 function (callback) {
                     boiler.simulation.halt([],function(err) {
-                        console.log(" HALT => ",err);
+                        if (doDebug) {
+                            console.log(" HALT => ", err);
+                        }
                         callback();
                     });
                 },
                 function (callback) {
                     boiler.simulation.reset([],function(err) {
-                        console.log(" Reset => ",err);
+                        if (doDebug) {
+                            console.log(" Reset => ", err);
+                        }
                         callback();
                     });
                 },
@@ -164,7 +172,9 @@ describe("testing monitoring Executable flags on methods", function () {
                     boiler.simulation.$methods["suspend"].executableFlag.should.eql(false);
                     boiler.simulation.$methods["resume"].executableFlag.should.eql(true);
                     boiler.simulation.start([],function(err) {
-                        console.log(" start => ",err);
+                        if (doDebug) {
+                            console.log(" start => ", err);
+                        }
                         callback();
                     });
                 },
@@ -178,7 +188,9 @@ describe("testing monitoring Executable flags on methods", function () {
                     boiler.simulation.$methods["resume"].executableFlag.should.eql(false);
 
                     boiler.simulation.suspend([],function(err) {
-                        console.log(" start => ",err);
+                        if (doDebug) {
+                            console.log(" start => ", err);
+                        }
                         callback();
                     });
                 },

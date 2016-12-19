@@ -39,7 +39,7 @@ function implementProgramStateMachine(programStateMachine) {
         method.bindMethod(function (inputArguments, context, callback) {
 
             var stateMachineW = UAStateMachine.promote(this.parent);
-            console.log("Hello World ! I will " + methodName + " the process");
+            //xx console.log("Hello World ! I will " + methodName + " the process");
             stateMachineW.setState(toState);
             callback();
         });

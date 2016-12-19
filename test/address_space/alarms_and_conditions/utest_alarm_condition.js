@@ -18,7 +18,8 @@ var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
-
+var DataType = require("lib/datamodel/variant").DataType;
+var Variant = require("lib/datamodel/variant").Variant;
 
 require("lib/address_space/address_space_add_enumeration_type");
 
@@ -67,6 +68,20 @@ module.exports = function (test) {
 
             alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId,"Input node must have been resolved properly");
 
+        });
+        it("should be possible to instantiate a Alarm with a inputNode as Null NodeId (ns=0;i=0)", function () {
+
+            var alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+                componentOf: source,
+                conditionSource: source,
+                browseName: "AlarmCondition3",
+                inputNode: NodeId.NullNodeId
+
+            });
+            alarm.inputNode.readValue().value.value.should.eql(NodeId.NullNodeId);
+
+            should.not.exist(alarm.getInputNodeNode());
+            should.not.exist(alarm.getInputNodeValue());
         });
 
         describe("should instantiate AlarmConditionType with ConfirmedState", function (done) {
@@ -152,6 +167,68 @@ module.exports = function (test) {
 
 
             });
+
+            it("checking shelving state behavior with automatic unshelving", function (done) {
+
+                alarm.shelvingState.constructor.name.should.eql("UAStateMachine");
+
+                alarm.shelvingState.setState("Unshelved");
+                alarm.shelvingState.getCurrentState().should.eql("Unshelved");
+
+                //xx alarm.shelvingState.maxTimeShelved.setValueFromSource({dataType: "Double",value: 100 });
+
+                // simulate a call tro timeshelved
+
+                var timeShelvedDuration = 500; // 0.5 seconds
+                var shelvingTime = new Variant({dataType: DataType.Double, value: timeShelvedDuration });
+
+                var values =[];
+                async.series([
+                    function(callback) {
+                        alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {
+
+                            console.log("callMethodResponse",callMethodResponse.toString());
+                            callback(err);
+                        });
+                    },
+                    function(callback) {
+
+                        alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
+
+                        var previous =  600.0;
+                        var _timer = setInterval(function() {
+                            var variant =alarm.shelvingState.unshelveTime.readValue().value;
+                            variant.dataType.should.eql(DataType.Double);
+                            should( variant.value <timeShelvedDuration).eql(true);
+                            should( variant.value >=0).eql(true);
+                            should( variant.value < previous).eql(true);
+
+                            values.push(variant.value);
+                            previous = variant.value ;
+                        },50);
+
+                        alarm.shelvingState.currentState.once("value_changed",function( newValue){
+                            //xx console.log(newValue.toString());
+                            newValue.value.value.text.should.eql("Unshelved");
+
+                            values.length.should.be.greaterThan(2);
+                            console.log("values = ",values);
+
+                            clearInterval(_timer);
+
+                            callback();
+                        });
+
+                    },
+                    function(callback) {
+                        callback();
+                    }
+                ],done)
+
+
+            });
+
+
             it("checking suppressedOrShelved behavior", function () {
                 //-----------------------------------------------------------------------------------------------------------
                 // playing with suppressedOrShelved ( automatically updated)
@@ -213,7 +290,7 @@ module.exports = function (test) {
                 });
                 it("timed-shelving an already timed-shelved alarm should return BadConditionAlreadyShelved", function (done) {
 
-                    var shelvingTime = {dataType: DataType.Duration, value: 10};
+                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
 
                     alarm.shelvingState.setState("TimedShelved");
                     alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
@@ -226,7 +303,7 @@ module.exports = function (test) {
                 });
                 it("timed-shelving an already oneshot-shelved alarm should return BadConditionAlreadyShelved", function (done) {
 
-                    var shelvingTime = {dataType: DataType.Duration, value: 10};
+                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
                     alarm.shelvingState.setState("OneShotShelved");
                     alarm.shelvingState.getCurrentState().should.eql("OneShotShelved");
 
@@ -240,7 +317,7 @@ module.exports = function (test) {
 
                     alarm.setMaxTimeShelved(100);
 
-                    var shelvingTime = {dataType: DataType.Duration, value: 10};
+                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
                     alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {
                         alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
@@ -253,7 +330,7 @@ module.exports = function (test) {
 
                     alarm.setMaxTimeShelved(5);
 
-                    var shelvingTime = {dataType: DataType.Duration, value: 10};
+                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
 
                     alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {

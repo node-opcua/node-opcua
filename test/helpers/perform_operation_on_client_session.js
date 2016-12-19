@@ -26,60 +26,7 @@ var AttributeIds = opcua.AttributeIds;
  * @param [done_func.err]  {Error} an optional error to pass if the function has failed
  */
 function perform_operation_on_client_session(client, endpointUrl, func, done_func) {
-
-    assert(_.isFunction(func));
-    assert(_.isFunction(done_func));
-    var the_session = null;
-
-    async.series([
-
-        // connect
-
-        function (callback) {
-            //xx console.log("xxxxx connecting to server ...");
-            client.connect(endpointUrl, function (err) {
-                //xx console.log("xxxxx connection OK");
-                callback(err);
-            });
-        },
-
-        // create session
-        function (callback) {
-            //xx console.log("xxxxx creating session ...");
-            client.createSession(function (err, session) {
-                if (!err) {
-                    //xx console.log("xxxxx session  created ...");
-                    the_session = session;
-                }
-                callback(err);
-            });
-        },
-
-        // call the user provided func
-        function (callback) {
-            try {
-                func(the_session, callback);
-            }
-            catch(err) {
-                console.log(err.message);
-                callback(err);
-            }
-        },
-
-        // closing session
-        function (callback) {
-            the_session.close(/*deleteSubscriptions=*/true,function (err) {
-                callback(err);
-            });
-        },
-
-        // disconnect
-        function (callback) {
-            client.disconnect(function () {
-                callback();
-            });
-        }
-    ], done_func);
+    return client.withSession(endpointUrl,func,done_func);
 }
 exports.perform_operation_on_client_session = perform_operation_on_client_session;
 

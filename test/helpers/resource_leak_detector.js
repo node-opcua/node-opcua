@@ -25,10 +25,14 @@ function verify_registry_counts(info) {
 
     var errorMessages = [];
 
-    if (this.clearIntervalCallCount !== this.setIntervalCallCount) {
+    var self = this;
+    if (self.clearIntervalCallCount !== this.setIntervalCallCount) {
         errorMessages.push(" setInterval doesn't match number of clearInterval calls : " + this.setIntervalCallCount + " " + this.clearIntervalCallCount);
     }
+    if (self.setTimeoutCallPendingCount !== 0) {
+        errorMessages.push(" setTimeoutCallPendingCount is not zero: some timer are still pending " + this.setTimeoutCallPendingCount);
 
+    }
     if (AddressSpace.registry.count() !== 0) {
         errorMessages.push(" some AddressSpace have not been properly terminated: "
             + AddressSpace.registry.toString());
@@ -71,22 +75,49 @@ function verify_registry_counts(info) {
 exports.resourceLeakDetector = {
 
     start: function (info) {
-
-        // perform some sanity check first
-        verify_registry_counts.call(this,info);
-
+        var self = this;
         if (trace) {
             console.log(" starting resourceLeakDetector");
         }
-        assert(!this.setInterval_old, " resourceLeakDetector.stop hasn't been called !");
-        this.setIntervalCallCount = 0;
-        this.clearIntervalCallCount = 0;
-        this.setInterval_old = global.setInterval;
-        this.clearInterval_old = global.clearInterval;
-        this.map = {};
+        assert(!self.setInterval_old,   " resourceLeakDetector.stop hasn't been called !");
+        assert(!self.clearInterval_old, " resourceLeakDetector.stop hasn't been called !");
+        assert(!self.setTimeout_old,    " resourceLeakDetector.stop hasn't been called !");
+        assert(!self.clearTimeout_old,  " resourceLeakDetector.stop hasn't been called !");
 
-        var self = this;
+        self.setIntervalCallCount = 0;
+        self.clearIntervalCallCount = 0;
+        self.setInterval_old = global.setInterval;
+        self.clearInterval_old = global.clearInterval;
+
+
+        self.setTimeout_old = global.setTimeout;
+        self.clearTimeout_old = global.clearTimeout;
+        self.setTimeoutCallPendingCount =0;
+
+
+
+        self.map = {};
+        verify_registry_counts.call(self,info);
+
+        if (false) {
+            global.setTimeout = function(func,delay) {
+                // detect invalid delays
+                assert(delay !=  undefined);
+                assert(_.isFinite(delay));
+                self.setTimeoutCallPendingCount ++;
+                self.setTimeout_old(function() {
+                    self.setTimeoutCallPendingCount --;
+                    func();
+                },delay);
+            };
+        }
+
+
+
         global.setInterval = function (func, delay) {
+
+            assert(delay !=  undefined);
+            assert(_.isFinite(delay));
 
             if (trace) {
                 console.log("setInterval \n", get_stack().red, "\n");
@@ -125,18 +156,25 @@ exports.resourceLeakDetector = {
     },
 
     stop: function (info) {
+        var self = this;
 
         if (trace) {
             console.log(" stop resourceLeakDetector");
         }
-        assert(_.isFunction(this.setInterval_old), " did you forget to call resourceLeakDetector.start() ?");
+        assert(_.isFunction(self.setInterval_old), " did you forget to call resourceLeakDetector.start() ?");
 
-        global.setInterval = this.setInterval_old;
-        this.setInterval_old = null;
-        global.clearInterval = this.clearInterval_old;
-        this.clearInterval_old = null;
+        global.setInterval = self.setInterval_old;
+        self.setInterval_old = null;
+        global.clearInterval = self.clearInterval_old;
+        self.clearInterval_old = null;
 
-        verify_registry_counts.call(this,info);
+        global.setTimeout = self.setTimeout_old;
+        self.setTimeout_old = null;
+
+        global.clearTimeout = self.clearTimeout_old;
+        self.clearTimeout_old = null;
+
+        verify_registry_counts.call(self,info);
     }
 };
 

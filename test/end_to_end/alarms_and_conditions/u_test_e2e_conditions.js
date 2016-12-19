@@ -383,7 +383,7 @@ module.exports = function (test) {
              return a status of Bad_ConditionDisabled. The Event that reports the Disabled state
              should report the properties as NULL or with a status of Bad_ConditionDisabled.
              */
-            xit("should raise an event when a Condition get disabled",function(done){
+             it("KKL should raise an event when a Condition get disabled",function(done){
 
                 perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
