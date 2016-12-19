@@ -117,7 +117,7 @@ describe("Testing Historical Data Node", function () {
     });
 
 
-    it("should keep values up to options.maxOnlineValues)  to provide historical reads",function(done) {
+    it("should keep values up to options.maxOnlineValues to provide historical reads",function(done) {
 
         var node = addressSpace.addVariable({
             browseName: "MyVar",
@@ -196,6 +196,8 @@ describe("Testing Historical Data Node", function () {
             },
 
 
+            // the queue is full, the next insertion will cause the queue to be trimmed
+
             function(callback) {
                 node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 3}));
                 node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 1}));
@@ -213,6 +215,24 @@ describe("Testing Historical Data Node", function () {
                 });
             },
 
+            // the queue is (still)  full, the next insertion will cause the queue to be trimmed, again
+
+            function(callback) {
+                node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 4}));
+                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 2}));
+                callback();
+            },
+            function(callback) {
+                node.historyRead(historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+
+                    var dataValues = historyReadResult.historyData.dataValues;
+                    dataValues.length.should.eql(3);
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today,{seconds: 2}));
+                    dataValues[1].sourceTimestamp.should.eql(date_add(today,{seconds: 3}));
+                    dataValues[2].sourceTimestamp.should.eql(date_add(today,{seconds: 4}));
+                    callback();
+                });
+            },
         ],done);
 
 
