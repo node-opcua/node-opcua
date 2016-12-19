@@ -82,6 +82,24 @@ module.exports = function (test) {
 
             should.not.exist(alarm.getInputNodeNode());
             should.not.exist(alarm.getInputNodeValue());
+
+            should.not.exist(alarm.maxTimeShelved);
+        });
+
+        it("should be possible to instantiate a Alarm with 'maxTimeShelved' ", function () {
+
+            var alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+                componentOf: source,
+                conditionSource: source,
+                browseName: "AlarmConditionWithMaxTimeShelved",
+                inputNode: NodeId.NullNodeId,
+                maxTimeShelved:   10*1000,// 10 minutes
+            });
+            should.exist(alarm.maxTimeShelved);
+
+            alarm.maxTimeShelved.readValue().value.dataType.should.eql(DataType.Double);
+            alarm.maxTimeShelved.readValue().value.value.should.eql(10 *1000);
+
         });
 
         describe("should instantiate AlarmConditionType with ConfirmedState", function (done) {
@@ -100,7 +118,8 @@ module.exports = function (test) {
                         "SuppressedState", "ShelvingState",
                         "ShelvingState", "MaxTimeShelved",
                         // Method
-                        "Unshelve"
+                        "Unshelve",
+
                     ]
                 }, {
                     "enabledState.id": {dataType: DataType.Boolean, value: true}
