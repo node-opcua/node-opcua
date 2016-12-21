@@ -467,6 +467,7 @@ module.exports = function (test) {
             describe("Condition Branches", function () {
 
                 it("should be possible to create several branches of a condition state", function () {
+
                     var condition = addressSpace.instantiateCondition(myCustomConditionType, {
                         organizedBy: addressSpace.rootFolder.objects,
                         browseName: "MyCustomCondition_branch",
@@ -480,16 +481,16 @@ module.exports = function (test) {
                     condition.getBranchCount().should.eql(0);
 
                     var branch1 = condition.createBranch();
-                    branch1.branchId.should.be.an.instanceOf(NodeId);
+                    branch1.getBranchId().should.be.an.instanceOf(NodeId);
 
                     condition.getBranchCount().should.eql(1);
 
                     var branch2 = condition.createBranch();
-                    branch2.branchId.should.be.an.instanceOf(NodeId);
+                    branch2.getBranchId().should.be.an.instanceOf(NodeId);
 
                     condition.getBranchCount().should.eql(2);
 
-                    branch1.branchId.toString().should.not.eql(branch2.branchId.toString());
+                    branch1.getBranchId().toString().should.not.eql(branch2.getBranchId().toString());
 
                 });
 

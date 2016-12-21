@@ -311,7 +311,7 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
 
 }
 
-var callConditionRefresh = require("lib/client/client_tools").callConditionRefresh;
+var callConditionRefresh = require("lib/client/alarms_and_conditions/client_tools").callConditionRefresh;
 
 function monitorAlarm(subscription,alarmNodeId, callback) {
 

@@ -178,7 +178,6 @@ describe("testing Client - Umbrella ", function () {
             stop_simple_server(data, done);
         } else if (test.server) {
             test.server.shutdown(function () {
-                console.log("resourceLeakDetector.stop()");
                 resourceLeakDetector.stop();
                 done();
             });
