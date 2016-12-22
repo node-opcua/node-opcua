@@ -689,10 +689,14 @@ module.exports = function (test) {
                     setTimeout(callback,200);
                 }
 
-                function branch_two_is_auto_confirmed_by_system_verify_branch_two_is_deleted(callback) {
+                function branch_two_acknowledged_and_auto_confirmed_by_system_verify_branch_two_is_deleted(callback) {
+
+                    var branch = test.tankLevelCondition._findBranchForEventId(branch2_EventId);
+
+                    test.tankLevelCondition.acknowledgeAndAutoConfirmBranch(branch,"AutoConfirm");
+
                     callback();
                 }
-
 
                 async.series([
 
@@ -1089,10 +1093,41 @@ module.exports = function (test) {
                         callback();
                     },
                     // 13. Prior state acknowledged, Auto Confirmed by system Branch #2 deleted.
-                    branch_two_is_auto_confirmed_by_system_verify_branch_two_is_deleted,
+                    branch_two_acknowledged_and_auto_confirmed_by_system_verify_branch_two_is_deleted,
 
                     // 14. No longer of interest.
+                    wait_a_little_bit_to_let_events_to_be_processed,
+                    function we_should_verify_than_branch_one_is_no_longer_here(callback)  {
+                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
 
+                        test.spy_monitored_item1_changes.callCount.should.eql(20);
+
+                        var dataValues0 =  test.spy_monitored_item1_changes.getCall(16).args[0];
+                        var dataValues1 =  test.spy_monitored_item1_changes.getCall(17).args[0];
+
+
+                        var dataValuesA =  test.spy_monitored_item1_changes.getCall(18).args[0];
+
+                        // ns=0;i=8961 AuditConditionConfirmEventType
+                        extract_value_for_field("EventType"       ,dataValuesA).value.toString().should.eql("ns=0;i=8961");
+
+                        var dataValuesB =  test.spy_monitored_item1_changes.getCall(19).args[0];
+                        //  i=9341 => ExclusiveLimitAlarmType
+                        extract_value_for_field("EventType"         ,dataValuesB).value.toString().should.eql("ns=0;i=9341");
+                        extract_value_for_field("BranchId"          ,dataValuesB).value.should.eql(branch2_NodeId);
+
+                        extract_value_for_field("ActiveState"       ,dataValuesB).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id"    ,dataValuesB).value.should.eql(true);
+
+                        extract_value_for_field("AckedState"        ,dataValuesB).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id"     ,dataValuesB).value.should.eql(true);
+
+                        extract_value_for_field("ConfirmedState"    ,dataValuesB).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id" ,dataValuesB).value.should.eql(true);
+                        extract_value_for_field("Retain"            ,dataValuesB).value.should.eql(false);
+
+                        callback();
+                    }
                 ], callback);
             },done);
 
