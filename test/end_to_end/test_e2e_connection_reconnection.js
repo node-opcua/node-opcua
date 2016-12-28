@@ -20,7 +20,7 @@ var VariableIds = opcua.VariableIds;
 
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
-
+var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
 
 var port = 2000;
 
@@ -52,14 +52,15 @@ var infinite_connectivity_strategy = {
     randomisationFactor: 0
 };
 
-var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
 
+var step_count =0;
 function f(func) {
 
     return function (callback) {
-        if (doDebug) {     console.log("FUNC=> ".bgWhite,func.name.yellow.bold); }
+        if (doDebug) {     console.log("FUNC=>  ".bgWhite.cyan," " , step_count, func.name.yellow.bold); }
         func(function (err) {
-            if (doDebug) { console.log("END =>  ".bgWhite,func.name.yellow.bold," => ", err ? err.name.red : "OK".green); }
+            if (doDebug) { console.log("END =>  ".bgWhite.cyan," " , step_count, func.name.yellow.bold," => ", err ? err.name.red : "OK".green); }
+            step_count++;
             callback(err);
         });
     }
@@ -716,7 +717,7 @@ describe("testing ability for client to reconnect when server close connection",
 
     function wait_a_little_while(done) {
         assert(_.isFunction(done));
-        wait_for(500, done);
+        wait_for(600, done);
     }
 
 
@@ -725,6 +726,7 @@ describe("testing ability for client to reconnect when server close connection",
     var client_has_received_start_reconnection_event;
 
     var backoff_counter =  0;
+    var requestedSessionTimeout = 10000;
 
     function create_client_and_create_a_connection_to_server(connectivity_strategy, done) {
 
@@ -732,6 +734,7 @@ describe("testing ability for client to reconnect when server close connection",
 
         var options = {
             keepSessionAlive: true,
+            requestedSessionTimeout: requestedSessionTimeout,
             connectionStrategy: connectivity_strategy
         };
         client = new OPCUAClient(options);
@@ -747,12 +750,15 @@ describe("testing ability for client to reconnect when server close connection",
 
         client.on("start_reconnection", function (err) {
             client_has_received_start_reconnection_event += 1;
+            console.log("starting reconnection");
         });
         client.on("backoff", function (err) {
             backoff_counter +=1;
             //xx console.log("backoff => err",err.message);
         });
-        client.connect(endpointUrl, done);
+        client.connect(endpointUrl, function(err) {
+            done(err);
+        });
     }
 
 
@@ -1014,6 +1020,7 @@ describe("testing ability for client to reconnect when server close connection",
         client.createSession(function (err, session) {
             if (!err) {
                 the_session = session;
+                console.log("session timeout = ",the_session.timeout," ms");
             }
             callback(err);
         });
@@ -1076,18 +1083,26 @@ describe("testing ability for client to reconnect when server close connection",
         });
     }
 
+    var previous_value_count =0;
     function reset_continuous(callback) {
         //xx console.log(" resetting value to check");
         values_to_check = [];
+        previous_value_count = 0;
         callback();
     }
 
     function ensure_continuous(callback) {
+        // ensure we have more value than previous call
+        // ensure that series is continuous
+        if (doDebug) {
+            console.log(values_to_check.join(" "));
+        }
 
-        console.log(values_to_check.join(" "));
+        values_to_check.length.should.be.greaterThan(previous_value_count+1," expecting new values");
         if (values_to_check.length > 0) {
             values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
         }
+        previous_value_count = values_to_check.length;
         callback();
     }
 
@@ -1190,7 +1205,7 @@ describe("testing ability for client to reconnect when server close connection",
 
     });
 
-    it("TR5 -  a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function (done) {
+    it("TR5 -a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function (done) {
 
         async.series([
             f(start_demo_server),
@@ -1216,6 +1231,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             f(wait_a_little_while),
             f(ensure_continuous),
+            f(wait_a_little_while),
             f(wait_a_little_while),
             f(ensure_continuous),
 
@@ -1258,6 +1274,8 @@ describe("testing ability for client to reconnect when server close connection",
 
 
             f(reset_continuous),
+            f(wait_a_little_while),
+            f(wait_a_little_while),
             f(wait_a_little_while),
             f(ensure_continuous),
 
@@ -1460,6 +1478,49 @@ describe("testing ability for client to reconnect when server close connection",
             // make sure that we have received all notifications
             // (thanks to republish )
 
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            f(terminate_subscription),
+
+            f(disconnect_client),
+            f(shutdown_server)
+        ], function (err) {
+            done(err);
+        });
+
+    });
+
+
+    it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
+
+        requestedSessionTimeout = 1000;
+
+        async.series([
+            f(start_demo_server),
+            f(reset_continuous),
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(client_create_and_activate_session),
+            f(create_subscription),
+            f(monitor_monotonous_counter),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+            f(wait_a_little_while),
+            f(ensure_continuous),
+
+            // now drop connection  for 3 times requestedSessionTimeout seconds
+            f(simulate_connection_break.bind(null, 3*requestedSessionTimeout, 'EPIPE')),
+            // make sure that we have received all notifications
+            // (thanks to republish )
+
+            f(wait_a_little_while),
             f(wait_a_little_while),
             f(ensure_continuous),
             f(wait_a_little_while),

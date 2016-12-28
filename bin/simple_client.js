@@ -330,7 +330,7 @@ async.series([
             connectionStrategy: {
                 maxRetry: 10,
                 initialDelay: 2000,
-                maxDelay: 60*1000
+                maxDelay: 10*1000
             }
         };
 
@@ -339,18 +339,11 @@ async.series([
         console.log(" connecting to ", endpointUrl.cyan.bold);
         console.log("    strategy", client.connectionStrategy);
 
-        client.on("connection_reestablished",function() {
-            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RESTABLISHED !!!!!!!!!!!!!!!!!!!");
-        });
+        client.connect(endpointUrl, callback);
 
         client.on("backoff", function (number, delay) {
-            console.log("backoff".bgWhite.yellow,number,delay);
+            console.log("backoff ".bgWhite.yellow,number,delay);
         });
-        client.on("start_reconnection", function () {
-            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!");
-        });
-
-        client.connect(endpointUrl, callback);
 
     },
 
@@ -419,7 +412,14 @@ async.series([
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 40000
+
+            defaultSecureTokenLifetime: 40000,
+
+            connectionStrategy: {
+                maxRetry: 10,
+                initialDelay: 2000,
+                maxDelay: 10*1000
+            }
         };
         console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
@@ -450,7 +450,20 @@ async.series([
             callback(err);
         });
     },
+    function set_event_handlers(callback) {
+        client.on("connection_reestablished",function() {
+            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+        });
+        client.on("backoff", function (number, delay) {
+            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+        });
+        client.on("start_reconnection", function () {
+            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+        });
 
+
+        callback();
+    },
     // ----------------------------------------
     // display namespace array
     function (callback) {
