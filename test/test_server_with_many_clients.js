@@ -69,10 +69,15 @@ describe("Functional test : one server with many concurrent clients", function (
 
     var expectedSubscriptionCount = 0;
 
+    function wait_randomly(callback) {
+       setTimeout(callback, Math.ceil(100+Math.random() * 1500));
+    }
+
     function construct_client_scenario(data) {
 
         var client = new OPCUAClient({
-            serverCertificate: serverCertificateChain
+            serverCertificate: serverCertificateChain,
+            requestedSessionTimeout: 120 * 1000
         });
 
         data.client = client;
@@ -83,10 +88,9 @@ describe("Functional test : one server with many concurrent clients", function (
         debugLog(" configuring ", data.name);
 
         var tasks = [
-            // wait randomly up to 100 ms
-            function (callback) {
-                setTimeout(callback, Math.ceil(50+Math.random() * 100));
-            },
+
+            wait_randomly,
+
             // connect the client
             function (callback) {
                 client.connect(endpointUrl, function (err) {
@@ -94,6 +98,7 @@ describe("Functional test : one server with many concurrent clients", function (
                     callback(err);
                 });
             },
+            wait_randomly,
 
             // create the session
             function (callback) {
@@ -106,9 +111,7 @@ describe("Functional test : one server with many concurrent clients", function (
             },
 
             // wait randomly up to 100 ms
-            function (callback) {
-                setTimeout(callback, Math.ceil(Math.random() * 200));
-            },
+            wait_randomly,
 
             // create a monitor item
             function (callback) {
@@ -159,9 +162,7 @@ describe("Functional test : one server with many concurrent clients", function (
             },
 
             // let the client work for a little while
-            function (callback) {
-                setTimeout(callback,500);
-            },
+            wait_randomly,
 
             // closing  session
             function (callback) {
@@ -170,6 +171,8 @@ describe("Functional test : one server with many concurrent clients", function (
                     callback(err);
                 });
             },
+
+            wait_randomly,
 
             // disconnect the client
             function (callback) {
