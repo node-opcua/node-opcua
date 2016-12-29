@@ -7,17 +7,8 @@ var async = require("async");
 var _ = require("underscore");
 
 var opcua = require("index.js");
-
 var OPCUAClient = opcua.OPCUAClient;
-var ClientSession = opcua.ClientSession;
-
-var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-
-var _port = 2000;
-
-var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
-
+var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;0
 var securityMode = opcua.MessageSecurityMode.NONE;
 var securityPolicy = opcua.SecurityPolicy.None;
 
@@ -141,7 +132,5 @@ module.exports = function (test) {
             }, done);
 
         });
-
-
     });
 };

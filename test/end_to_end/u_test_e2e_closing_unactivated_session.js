@@ -18,7 +18,11 @@ module.exports = function (test) {
 
             var endpointUrl = test.endpointUrl;
 
-            var client1 = new OPCUAClient();
+            var client1 = new OPCUAClient({
+                connectionStrategy: {
+                    maxRetry:1
+                }
+            });
 
             var session =null;
             async.series([
@@ -66,13 +70,18 @@ module.exports = function (test) {
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
 
+        var fail_fast_connectionStrategy = {
+            maxRetry: 0  // << NO RETRY !!
+        };
         var clients = [];
 
         var sessions =[];
         function create_unactivated_session(callback) {
 
             var endpointUrl = test.endpointUrl;
-            var client1 = new OPCUAClient();
+            var client1 = new OPCUAClient( {
+                connectionStrategy:fail_fast_connectionStrategy
+            });
             var session ;
             //xx console.log("xxxxx connecting to server ...");
             async.series([
@@ -94,9 +103,11 @@ module.exports = function (test) {
             ],callback);
         }
 
-        test.server.engine.currentSessionCount.should.eql(0);
+        test.server.engine.currentSessionCount.should.eql(0,"expecting server to have no session left opened ...");
 
         async.series([
+            function(callback) { setTimeout(callback,1000);},
+            function(callback) { test.server.engine.currentSessionCount.should.eql(0);callback(); },
             function(callback) { create_unactivated_session(callback);},
             function(callback) { test.server.engine.currentSessionCount.should.eql(1);callback(); },
             function(callback) { create_unactivated_session(callback);},

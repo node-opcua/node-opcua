@@ -17,7 +17,7 @@ var DataValue = opcua.DataValue;
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
 
-var port = 2000;
+var port = 2002;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
@@ -73,8 +73,13 @@ describe("testing Client - Umbrella ", function () {
             test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             test.temperatureVariableId = test.server.temperatureVariableId;
 
-            console.log(" ..... done ".grey);
-            done(err);
+            setTimeout(function() {
+
+                test.server.engine.currentSessionCount.should.eql(0," expecting ZERO session on server when test is starting !");
+                console.log(" ..... done ".grey);
+                done(err);
+
+            },1000);
         });
     }
 
@@ -95,7 +100,10 @@ describe("testing Client - Umbrella ", function () {
 
     beforeEach(function (done) {
         // make sure that test has closed all sessions
-        test.nb_backgroundsession = test.server.engine.currentSessionCount;
+        if (test.server) {
+           // test.nb_backgroundsession = test.server.engine.currentSessionCount;
+            test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession," expecting ZERO session o server when test is starting !");
+        }
         done();
     });
 
@@ -143,14 +151,10 @@ describe("testing Client - Umbrella ", function () {
 
     afterEach(function (done) {
 
-        // make sure that test has closed all sessions
-        test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession);
+        var extra_session = (test.server.engine.currentSessionCount != test.nb_backgroundsession);
 
-        if (true) {
-            return done();
-        }
 
-        if (false && test.server) {
+        if (extra_session && test.server) {
             console.log(" currentChannelCount          = ", test.server.currentChannelCount);
             console.log(" bytesWritten                 = ", test.server.bytesWritten);
             console.log(" bytesRead                    = ", test.server.bytesRead);
@@ -167,9 +171,15 @@ describe("testing Client - Umbrella ", function () {
             var addressSpace = test.server.engine.addressSpace;
             var rootFolder = addressSpace.findNode("RootFolder");
             rootFolder.getFolderElements().length.should.eql(3, "Test should not pollute the root folder: expecting 3 folders in RootFolder only");
+
+
+            dumpStatistics(test.endpointUrl, done);
         }
 
-        dumpStatistics(test.endpointUrl, done);
+
+        // make sure that test has closed all sessions
+        test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession," Test must have deleted all created session");
+        return done();
 
     });
 

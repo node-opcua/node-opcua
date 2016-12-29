@@ -55,7 +55,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = new OPCUAClient({});
                     client1.connect(test.endpointUrl, callback);
                 },
 
@@ -132,6 +132,7 @@ module.exports = function (test) {
                 },
                 //
                 function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
                     client1.disconnect(callback);
                 }
 
@@ -145,7 +146,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = new OPCUAClient({});
                     client1.connect(test.endpointUrl, callback);
                 },
                 function (callback) {
@@ -161,6 +162,10 @@ module.exports = function (test) {
                 },
                 function (callback) {
                     client1.disconnect(callback);
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
                 }
             ], done);
 
@@ -208,6 +213,10 @@ module.exports = function (test) {
 
                 function (callback) {
                     client1.disconnect(callback);
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
                 }
 
             ], function final(err) {
@@ -321,6 +330,10 @@ module.exports = function (test) {
                 },
                 function (callback) {
                     client1.disconnect(callback);
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
                 }
 
             ], done);
@@ -393,6 +406,10 @@ module.exports = function (test) {
                 },
                 function (callback) {
                     client1.disconnect(callback);
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
                 }
 
             ], done);
@@ -500,6 +517,11 @@ module.exports = function (test) {
                     },
                     function (callback) {
                         client1.disconnect(callback);
+                    },
+
+                    function (callback) {
+                        test.server.engine.currentSessionCount.should.eql(0);
+                        callback();
                     }
 
                 ], done);
@@ -563,6 +585,10 @@ module.exports = function (test) {
                     },
                     function (callback) {
                         client1.disconnect(callback);
+                    },
+                    function (callback) {
+                        test.server.engine.currentSessionCount.should.eql(0);
+                        callback();
                     }
 
                 ], done);
@@ -642,7 +668,6 @@ module.exports = function (test) {
                     // reactivate session on second channel
                     client2.reactivateSession(session1, function (err) {
                         callback(err);
-
                     });
                 },
                 function (callback) {
@@ -664,6 +689,10 @@ module.exports = function (test) {
                 },
                 function (callback) {
                     client1.disconnect(callback);
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
                 }
 
             ], done);

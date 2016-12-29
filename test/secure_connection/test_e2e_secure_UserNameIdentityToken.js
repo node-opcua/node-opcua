@@ -41,7 +41,7 @@ if (!crypto_utils.isFullySupported()) {
 
         var server, client, temperatureVariableId, endpointUrl, serverCertificate;
 
-        var port = 2001;
+        var port = 2002;
         before(function (done) {
             // we use a different port for each tests to make sure that there is
             // no left over in the tcp pipe that could generate an error
@@ -202,7 +202,7 @@ if (!crypto_utils.isFullySupported()) {
                 securityMode: opcua.MessageSecurityMode.SIGN,
                 securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
             };
-            var endpointUrl_truncated = "opc.tcp://localhost:2002";
+            var endpointUrl_truncated = "opc.tcp://localhost:" + port.toString();
 
             perform_simple_connection(endpointUrl_truncated,options, {userName: userName, password: password}, done);
 

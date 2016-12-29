@@ -342,7 +342,7 @@ async.series([
         client.connect(endpointUrl, callback);
 
         client.on("backoff", function (number, delay) {
-            console.log("backoff ".bgWhite.yellow,number,delay);
+            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
         });
 
     },

@@ -728,6 +728,10 @@ describe("testing ability for client to reconnect when server close connection",
     var backoff_counter =  0;
     var requestedSessionTimeout = 10000;
 
+    beforeEach(function() {
+        requestedSessionTimeout = 10000;
+    });
+
     function create_client_and_create_a_connection_to_server(connectivity_strategy, done) {
 
         done.should.be.instanceOf(Function);
@@ -750,17 +754,17 @@ describe("testing ability for client to reconnect when server close connection",
 
         client.on("start_reconnection", function (err) {
             client_has_received_start_reconnection_event += 1;
-            console.log("starting reconnection");
+            debugLog("starting reconnection");
         });
-        client.on("backoff", function (err) {
+        client.on("backoff", function (number,delay) {
             backoff_counter +=1;
+            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
             //xx console.log("backoff => err",err.message);
         });
         client.connect(endpointUrl, function(err) {
             done(err);
         });
     }
-
 
     function reset_backoff_counter(done) {
         backoff_counter=0;
@@ -1531,6 +1535,9 @@ describe("testing ability for client to reconnect when server close connection",
             f(disconnect_client),
             f(shutdown_server)
         ], function (err) {
+            if (server) {
+                server.engine.currentSessionCount.should.eql(0);
+            }
             done(err);
         });
 

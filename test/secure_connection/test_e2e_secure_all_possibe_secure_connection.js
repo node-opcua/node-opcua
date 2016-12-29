@@ -55,7 +55,8 @@ function stop_inner_server_local(data, callback) {
     try {
         if (data) {
             var server = data.server;
-            server.currentChannelCount.should.equal(0);
+            server.engine.currentSessionCount.should.equal(0," all sessions should have been closed");
+            server.currentChannelCount.should.equal(0,"All channel should have been closed");
             server.shutdown(callback);
         } else {
             callback();
@@ -88,8 +89,7 @@ function start_server1(options, callback) {
  */
 function get_server_channel_security_token_change_count(server) {
     var sessions = _.values(server.engine._sessions);
-    sessions.length.should.eql(1);
-
+    sessions.length.should.eql(1,"Expecting only one session on server at address "+ server.endpointUri);
     var count = server.endpoints.reduce(function (accumulated, endpoint) {
         return accumulated + endpoint.securityTokenCount;
     }, 0);
@@ -145,6 +145,7 @@ var start_server_with_2048bits_certificate = function (callback) {
 
 
 function stop_server(data, callback) {
+
     stop_inner_server_local(data, callback);
 }
 //xx start_server=start_server1;
@@ -179,18 +180,16 @@ function keep_monitoring_some_variable(session, duration, done) {
     });
 
     subscription.on("internal_error", function (err) {
-        console.log("xxx internal error in ClientSubscription".red,err.message);
+        debugLog("xxx internal error in ClientSubscription".red,err.message);
         the_error = err;
     });
     subscription.on("terminated", function () {
 
-        //xx console.log("        subscription terminated ");
-
+        console.log("        subscription terminated ");
         if (!the_error) {
             var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
             nbTokenId.should.be.greaterThan(2);
         }
-
         done(the_error);
     });
 }
@@ -203,7 +202,6 @@ function common_test(securityPolicy, securityMode, options, done) {
     //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
     opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
-
 
     options = options || {};
     options = _.extend(options, {
@@ -220,20 +218,20 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-        keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 5, function (err) {
-            token_change.should.be.greaterThan(3);
+        keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 3, function (err) {
+            token_change.should.be.greaterThan(2);
             inner_done(err);
         });
     }, done);
 
     client.on("lifetime_75", function (token) {
-        //xx console.log("received lifetime_75",JSON.stringify(token));
+        debugLog("received lifetime_75",JSON.stringify(token));
     });
     client.on("security_token_renewed", function () {
         token_change += 1;
     });
     client.on("close", function () {
-        //xx console.log(" connection has been closed");
+        debugLog(" connection has been closed");
     });
 }
 
@@ -247,11 +245,19 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
     });
     var client = new OPCUAClient(options);
+
+    client.on("backoff",function(number,delay){
+        debugLog(" backoff attempt#",number , " retry in ",delay);
+    });
+
     client.connect(endpointUrl, function (err) {
 
         if (err) {
-            console.log("Error = ", err.message);
-            done();
+            debugLog("Error = ", err.message);
+            client.disconnect(function () {
+                done();
+            });
+
         } else {
             client.disconnect(function () {
                 done(new Error("The connection succedeed, but was expected to fail!"));
@@ -267,8 +273,8 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 
     var fail_fast_connectivity_strategy = {
         maxRetry: 1,
-        initialDelay: 10,
-        maxDelay: 20,
+        initialDelay: 100,
+        maxDelay: 200,
         randomisationFactor: 0
     };
     var options = {
@@ -293,35 +299,38 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         client.on("after_reconnection",after_reconnection_spy);
 
         keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
-            inner_done(err);
+           console.log("err = ",err);
+           inner_done(err);
         });
 
     }, function (err) {
-        console.log(" RECEIVED ERROR :".yellow.bold, err);
+
+        debugLog(" RECEIVED ERROR :".yellow.bold, err);
         start_reconnection_spy.callCount.should.eql(1);
         //xx after_reconnection_spy.callCount.should.eql(1);
         should(err).be.instanceOf(Error);
+
         done();
     });
 
     client.on("lifetime_75", function (token) {
-        console.log("            received lifetime_75",JSON.stringify(token));
+        debugLog("            received lifetime_75",JSON.stringify(token));
     });
     client.on("security_token_renewed", function () {
         token_change += 1;
     });
     client.on("close", function () {
-        console.log("            connection has been closed");
+        debugLog("            connection has been closed");
     });
 }
 
 function perform_collection_of_test_with_client_configuration(message, options) {
 
-    it('should succeed with Basic128Rsa15 with Sign  ' + message, function (done) {
+    it('should succeed with Basic128Rsa15 with Sign           ' + message, function (done) {
         common_test("Basic128Rsa15", "SIGN", options, done);
     });
 
-    it('should succeed with Basic128Rsa15 with Sign ' + message, function (done) {
+    it('should succeed with Basic128Rsa15 with Sign           ' + message, function (done) {
         common_test("Basic128Rsa15", "SIGN", options, done);
     });
 
@@ -329,19 +338,19 @@ function perform_collection_of_test_with_client_configuration(message, options) 
         common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
     });
 
-    it('should succeed with Basic256 with Sign ' + message, function (done) {
+    it('should succeed with Basic256      with Sign           ' + message, function (done) {
         common_test("Basic256", "SIGN", options, done);
     });
 
-    it('should succeed with Basic256 with SignAndEncrypt ' + message, function (done) {
+    it('should succeed with Basic256      with SignAndEncrypt ' + message, function (done) {
         common_test("Basic256", "SIGNANDENCRYPT", options, done);
     });
 
-    it('should fail with Basic256Rsa15 with Sign ' + message, function (done) {
+    it('should fail    with Basic256Rsa15 with Sign           ' + message, function (done) {
         check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
     });
 
-    it('should fail with Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
+    it('should fail    with Basic256Rsa15 with SignAndEncrypt ' + message, function (done) {
         check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
     });
 }
@@ -367,7 +376,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 }
 
-var g_defaultSecureTokenLifetime = 1000;
+var g_defaultSecureTokenLifetime = 500;
 var g_cycleNumber = 3;
 var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
 
@@ -376,8 +385,7 @@ if (!crypto_utils.isFullySupported()) {
     console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
 } else {
 
-
-    describe("testing Secure Client-Server communication", function () {
+    describe("ZZA- testing Secure Client-Server communication", function () {
 
 
         this.timeout(Math.max(this._timeout,20001));
@@ -519,11 +527,9 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-
     var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
-
-    describe("ZZA testing server behavior on secure connection ", function () {
+    describe("ZZB- testing server behavior on secure connection ", function () {
 
         this.timeout(Math.max(this._timeout,20002));
 
@@ -551,8 +557,10 @@ if (!crypto_utils.isFullySupported()) {
         });
         after(function (done) {
 
+            // restoring _renew_security_token
             ClientSecureChannelLayer.prototype._renew_security_token = old_method;
-            console.log(" Disconnecting server");
+            debugLog(" Disconnecting server");
+
             stop_server(serverHandle, done);
         });
 
@@ -563,9 +571,7 @@ if (!crypto_utils.isFullySupported()) {
 
     });
 
-
-
-    describe("testing Security Policy with a valid 1024 bit certificate on server", function () {
+    describe("ZZC- testing Security Policy with a valid 1024 bit certificate on server", function () {
 
         this.timeout(Math.max(this._timeout,20003));
 
@@ -594,7 +600,7 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    describe("testing Security Policy with a valid 2048 bit certificate on server", function () {
+    describe("ZZD- testing Security Policy with a valid 2048 bit certificate on server", function () {
 
         this.timeout(Math.max(this._timeout,20004));
 
@@ -624,7 +630,7 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    describe("testing with various client certificates", function () {
+    describe("ZZE- testing with various client certificates", function () {
 
         this.timeout(Math.max(this._timeout,20005));
 

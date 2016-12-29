@@ -12,11 +12,9 @@ var sinon = require("sinon");
 module.exports = function (test) {
 
 
-    describe("ZZZA Testing timeout session ", function () {
+    describe("ZZZA Testing timeout on session ", function () {
 
-
-
-        it("A open session will eventually time out on server side if the client doesn't make transactions", function (done) {
+        it("An opened session will eventually time out on server side if the client doesn't make transactions", function (done) {
 
             var endpointUrl = test.endpointUrl;
             // Given  client connect to a server a
@@ -53,7 +51,7 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    setTimeout(callback, 2000);
+                    setTimeout(callback, client1.requestedSessionTimeout * 2.00);
                 },
 
                 function (callback) {
@@ -66,6 +64,10 @@ module.exports = function (test) {
 
             ], function final(err) {
                 client1.disconnect(function () {
+
+                    if(test.server) {
+                        test.server.engine.currentSessionCount.should.eql(0);
+                    }
                     done(err);
                 });
             });
@@ -125,7 +127,7 @@ module.exports = function (test) {
                 });
             });
         });
-        it("A open session will not time out on server side if the client has keepSessionAlive = true", function (done) {
+        it("An opened session will not time-out on server side if the client has keepSessionAlive = true", function (done) {
 
 
             var timerId;

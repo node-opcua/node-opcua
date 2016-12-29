@@ -84,12 +84,19 @@ module.exports = function (test) {
         var previous_isAuditing;
 
         beforeEach(function() {resetEventLog();});
+
         before(function (done) {
+
+            should.not.exist(auditing_client);
+            should.not.exist(auditing_session);
 
             if (test.server) {
                 previous_isAuditing = test.server.engine.isAuditing;
                 test.server.engine.isAuditing = true;
+
+                test.nb_backgroundsession+=1;
             }
+
             var endpointUrl = test.endpointUrl;
 
             auditing_client = new OPCUAClient({keepSessionAlive: true});
@@ -182,20 +189,26 @@ module.exports = function (test) {
             // restore server as we found it.
             if (test.server) {
                 test.server.engine.isAuditing =previous_isAuditing ;
+                test.nb_backgroundsession-=1;
             }
+            should.exist(auditing_client);
+            should.exist(auditing_session);
 
             async.series([
 
                 function (callback) {
-                    auditing_subscription.on("terminated", callback);
+                    auditing_subscription.once("terminated", callback);
                     auditing_subscription.terminate();
+                    auditing_subscription = null;
                 },
-
                 function (callback) {
                     auditing_session.close(callback);
+                    auditing_session = null;
                 },
                 function (callback) {
                     auditing_client.disconnect(function (err) {
+                        auditing_client = null;
+                        console.log(" shutting down auditing session");
                         callback(err);
                     });
                 }
