@@ -13,16 +13,9 @@ assert(_.isFunction(ClientSession));
 
 var ClientSubscription = opcua.ClientSubscription;
 
-var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var resolveNodeId = opcua.resolveNodeId;
 var AttributeIds = opcua.AttributeIds;
 
-var BrowseDirection = opcua.browse_service.BrowseDirection;
 var makeNodeId = opcua.makeNodeId;
 var VariableIds = opcua.VariableIds;
 
@@ -34,9 +27,7 @@ var maxConnectionsPerEndpoint = 100;
 var maxAllowedSessionNumber   =  50;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
-
 
 describe("Functional test : one server with many concurrent clients", function () {
 
@@ -62,14 +53,13 @@ describe("Functional test : one server with many concurrent clients", function (
     });
 
     beforeEach(function (done) {
-
         done();
     });
 
     afterEach(function (done) {
-
         done();
     });
+
     after(function (done) {
         server.shutdown(function () {
             resourceLeakDetector.stop();
@@ -92,14 +82,11 @@ describe("Functional test : one server with many concurrent clients", function (
 
         debugLog(" configuring ", data.name);
 
-
         var tasks = [
-
             // wait randomly up to 100 ms
             function (callback) {
                 setTimeout(callback, Math.ceil(50+Math.random() * 100));
             },
-
             // connect the client
             function (callback) {
                 client.connect(endpointUrl, function (err) {
@@ -116,12 +103,11 @@ describe("Functional test : one server with many concurrent clients", function (
                     debugLog(" Error =".yellow.bold, err);
                     callback(err);
                 });
-
             },
 
             // wait randomly up to 100 ms
             function (callback) {
-                setTimeout(callback, Math.ceil(Math.random() * 100));
+                setTimeout(callback, Math.ceil(Math.random() * 200));
             },
 
             // create a monitor item
@@ -131,23 +117,21 @@ describe("Functional test : one server with many concurrent clients", function (
                 var session = data.session;
                 assert(session instanceof ClientSession);
 
-
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval: 100,
-                    requestedLifetimeCount: 10 * 60 * 10,
-                    requestedMaxKeepAliveCount: 10,
-                    maxNotificationsPerPublish: 200,
+                    requestedPublishingInterval: 200,
+                    requestedLifetimeCount:      10 * 60 * 10,
+                    requestedMaxKeepAliveCount:  10,
+                    maxNotificationsPerPublish:  200,
                     publishingEnabled: true,
                     priority: 6
                 });
-
 
                 subscription.on("started", function () {
                     debugLog("subscription started".yellow.bold, name.cyan, expectedSubscriptionCount, server.currentSubscriptionCount);
                 });
 
                 subscription.on("terminated", function () {
-                    console.log("subscription terminated".red.bold, name);
+                    debugLog("subscription terminated".red.bold, name);
                 });
 
                 var monitoredItem = subscription.monitor(
@@ -174,20 +158,17 @@ describe("Functional test : one server with many concurrent clients", function (
                 });
             },
 
-            // let the client work for 4000 ms
+            // let the client work for a little while
             function (callback) {
-                setTimeout(callback,1000);
+                setTimeout(callback,500);
             },
-
 
             // closing  session
             function (callback) {
-
                 data.session.close(function (err) {
                     debugLog(" closing session for  ", name);
                     callback(err);
                 });
-
             },
 
             // disconnect the client
@@ -196,7 +177,6 @@ describe("Functional test : one server with many concurrent clients", function (
                     debugLog(" client ", name, " disconnected");
                     callback(err);
                 });
-
             }
         ];
         return tasks;

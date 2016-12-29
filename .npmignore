@@ -22,7 +22,6 @@ tmp/
 VagrantFile
 coverage
 output2.bin
-t.*
 specs/
 node_modules/
 tmp/
