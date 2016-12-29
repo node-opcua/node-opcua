@@ -10,31 +10,23 @@ var _ = require("underscore");
 var opcua = require("index.js");
 
 var OPCUAClient = opcua.OPCUAClient;
-var ClientSession = opcua.ClientSession;
-var ClientSubscription = opcua.ClientSubscription;
 var AttributeIds = opcua.AttributeIds;
 var resolveNodeId = opcua.resolveNodeId;
 var StatusCodes = opcua.StatusCodes;
 var DataType = opcua.DataType;
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
-var MonitoringMode = opcua.subscription_service.MonitoringMode;
-var NumericRange = opcua.NumericRange;
-var ObjectTypeIds = opcua.ObjectTypeIds;
 var NodeId = opcua.NodeId;
-
-var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
 
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-var perform_operation_on_monitoredItem = require("test/helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
-
 var constructEventFilter = require("lib/tools/tools_event_filter").constructEventFilter;
 
 var callConditionRefresh = require("lib/client/alarms_and_conditions/client_tools").callConditionRefresh;
 
-function debugLog(){}
+function debugLog() {
+}
 
-var  construct_demo_alarm_in_address_space= require("test/helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
+var construct_demo_alarm_in_address_space = require("test/helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
 
 module.exports = function (test) {
 
@@ -49,7 +41,7 @@ module.exports = function (test) {
 
             var addressSpace = test.server.engine.addressSpace;
 
-            construct_demo_alarm_in_address_space(test,addressSpace);
+            construct_demo_alarm_in_address_space(test, addressSpace);
 
             client = new OPCUAClient({});
             done();
@@ -59,25 +51,28 @@ module.exports = function (test) {
             done();
         });
 
-        function dump_field_values(fields,values){
-            _.zip(fields,values).forEach(function(a){
-                var e = a[0]; var v=a[1] || "null";
+        function dump_field_values(fields, values) {
+            _.zip(fields, values).forEach(function (a) {
+                var e = a[0];
+                var v = a[1] || "null";
 
                 var str = "";
-                if( v.dataType == DataType.NodeId) {
+                if (v.dataType == DataType.NodeId) {
                     var node = test.server.engine.addressSpace.findNode(v.value);
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }
-                debugLog((e+"                             ").substr(0,25).cyan,v.toString() + " " + str.white.bold);
+                debugLog((e + "                             ").substr(0, 25).cyan, v.toString() + " " + str.white.bold);
             });
             debugLog("--------------------");
         }
-        function extract_value_for_field(fieldName,result) {
+
+        function extract_value_for_field(fieldName, result) {
             should.exist(result);
             var index = fields.indexOf(fieldName);
-            should(index>=0," cannot find fieldName in list  : fiedName =" + fieldName + " list: "+ fields.join(" "));
+            should(index >= 0, " cannot find fieldName in list  : fiedName =" + fieldName + " list: " + fields.join(" "));
             return result[index];
         }
+
         var fields = [
             "EventId",
             "ConditionName",
@@ -111,12 +106,11 @@ module.exports = function (test) {
             "LimitState",
             "LimitState.Id",
             "ActiveState",
-            "ActiveState.Id",
-
+            "ActiveState.Id"
         ];
         var eventFilter = constructEventFilter(fields);
 
-        function  given_and_install_event_monitored_item(subscription,callback) {
+        function given_and_install_event_monitored_item(subscription, callback) {
             var test = this;
             // A spy to detect event when they are raised by the sever
             test.spy_monitored_item1_changes = sinon.spy();
@@ -130,7 +124,7 @@ module.exports = function (test) {
             var requestedParameters = {
                 samplingInterval: 10,
                 discardOldest: true,
-                queueSize:     10,
+                queueSize: 10,
                 filter: eventFilter
             };
 
@@ -139,7 +133,7 @@ module.exports = function (test) {
                 // let's install the spy on the 'changed' event
                 test.monitoredItem1.on("changed", test.spy_monitored_item1_changes);
 
-                setTimeout(callback,100);
+                setTimeout(callback, 100);
 
             });
         }
@@ -150,7 +144,7 @@ module.exports = function (test) {
 
                 async.series([
 
-                    given_and_install_event_monitored_item.bind(test,subscription),
+                    given_and_install_event_monitored_item.bind(test, subscription),
 
                     function when_tank_level_is_overfilled(callback) {
 
@@ -174,7 +168,7 @@ module.exports = function (test) {
                     function then_we_should_check_that_alarm_is_raised(callback) {
 
                         debugLog("      then_we_should_check_that_alarm_is_raised ...");
-                        test.monitoredItem1.once("changed",function(){
+                        test.monitoredItem1.once("changed", function () {
                             test.spy_monitored_item1_changes.callCount.should.eql(1);
                             callback();
                         });
@@ -196,46 +190,48 @@ module.exports = function (test) {
                     }
                 ], callback);
 
-            },done);
+            }, done);
         });
 
         it("GGG1 - ConditionRefresh", function (done) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                 async.series([
+                async.series([
 
-                    given_and_install_event_monitored_item.bind(test,subscription),
+                    given_and_install_event_monitored_item.bind(test, subscription),
 
                     function when_client_calling_ConditionRefresh(callback) {
 
                         // lets add a a event handler to detect when the Event has been
                         // raised we we will call ConditionRefresh
-                        test.monitoredItem1.once("changed",function(){
+                        test.monitoredItem1.once("changed", function () {
                             callback();
                         });                        // now client send a condition refresh
 
                         // let's call condition refresh
-                        callConditionRefresh(subscription,function(err) {
-                           // debugLog(" condition refresh has been called")
+                        callConditionRefresh(subscription, function (err) {
+                            // debugLog(" condition refresh has been called")
                         });
 
                     },
-                    function (callback) {setTimeout(callback,100);},
+                    function (callback) {
+                        setTimeout(callback, 100);
+                    },
 
                     function then_we_should_check_that_event_is_raised_after_client_calling_ConditionRefresh(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(2);
+                        test.spy_monitored_item1_changes.callCount.should.eql(3);
 
                         var values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
                         // dump_field_values(fields,values);
 
-                        //xx values = test.spy_monitored_item1_changes.getCall(1).args[0];
-                        //xx values[7].value.toString().should.eql("ns=0;i=9341"); //ExclusiveLimitAlarmType
-                        //xx //xx dump_field_values(fields,values);
-
                         values = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        values[7].value.toString().should.eql("ns=0;i=9341"); //ExclusiveLimitAlarmType
+                        //xx dump_field_values(fields,values);
+
+                        values = test.spy_monitored_item1_changes.getCall(2).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2788"); // RefreshEndEventType
                         // dump_field_values(fields,values);
 
@@ -245,7 +241,7 @@ module.exports = function (test) {
 
                     function then_when_server_raises_a_new_condition_event(callback) {
 
-                        test.monitoredItem1.once("changed",function(){
+                        test.monitoredItem1.once("changed", function () {
                             callback();
                         });
                         // ---------------------------
@@ -259,8 +255,10 @@ module.exports = function (test) {
                         });
 
                     },
-                    function (callback) {setTimeout(callback,100);  },
-                    function(callback) {
+                    function (callback) {
+                        setTimeout(callback, 100);
+                    },
+                    function (callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(1);
                         var values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=9341");//ExclusiveLimitAlarmType
@@ -272,15 +270,17 @@ module.exports = function (test) {
 
                     function when_client_calling_ConditionRefresh_again(callback) {
 
-                        test.monitoredItem1.once("changed",function(){
+                        test.monitoredItem1.once("changed", function () {
                             callback();
                         });                        // now client send a condition refresh
-                        callConditionRefresh(subscription,function(err) {
+                        callConditionRefresh(subscription, function (err) {
                             //  callback(err);
                         });
                     },
 
-                    function (callback) { setTimeout(callback,100); },
+                    function (callback) {
+                        setTimeout(callback, 100);
+                    },
 
                     function then_we_should_check_that_event_is_raised_after_client_calling_ConditionRefresh_again(callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(3);
@@ -302,18 +302,18 @@ module.exports = function (test) {
                     },
 
 
-                    function(callback) {
+                    function (callback) {
                         callback();
                     }
 
-                ],callback)
+                ], callback)
 
             }, done);
 
 
         });
 
-        describe("test on Disabled conditions",function() {
+        describe("test on Disabled conditions", function () {
 
             /*
              For any Condition that exists in the AddressSpace the Attributes and the following
@@ -323,7 +323,7 @@ module.exports = function (test) {
              return a status of Bad_ConditionDisabled. The Event that reports the Disabled state
              should report the properties as NULL or with a status of Bad_ConditionDisabled.
              */
-             it("KKL should raise an event when a Condition get disabled",function(done){
+            it("KKL should raise an event when a Condition get disabled", function (done) {
 
                 perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
@@ -336,7 +336,7 @@ module.exports = function (test) {
                             callback();
                         },
 
-                        given_and_install_event_monitored_item.bind(test,subscription),
+                        given_and_install_event_monitored_item.bind(test, subscription),
 
                         function when_the_condition_is_disabled_by_the_client(callback) {
                             //xx test.tankLevelCondition.enabledState.setValue(false);
@@ -354,10 +354,10 @@ module.exports = function (test) {
                         },
 
                         function then_we_should_verify_that_the_client_has_received_a_notification(callback) {
-                            setTimeout(function(){
+                            setTimeout(function () {
                                 test.spy_monitored_item1_changes.callCount.should.eql(1);
                                 callback();
-                            },500);
+                            }, 500);
                         },
 
                         function and_we_should_verify_that_the_propertie_are_null_or_with_status_Bad_ConditionDisabled() {
@@ -365,16 +365,19 @@ module.exports = function (test) {
                             // The Event that reports the Disabled state
                             // should report the properties as NULL or with a status of Bad_ConditionDisabled.
                             var results = test.spy_monitored_item1_changes.getCall(0).args[0];
-                            dump_field_values(fields,results);
+                            dump_field_values(fields, results);
 
-                            var conditionDisabledVar = new opcua.Variant({dataType: opcua.DataType.StatusCode, value: StatusCodes.BadConditionDisabled});
+                            var conditionDisabledVar = new opcua.Variant({
+                                dataType: opcua.DataType.StatusCode,
+                                value: StatusCodes.BadConditionDisabled
+                            });
 
                             // shall be valid EventId, EventType, SourceNode, SourceName, Time, and EnabledState
 
                             // other shall be invalid
 
-                            var value_severity = extract_value_for_field("Severity",results);
-                            debugLog("value_severity ", extract_value_for_field("Severity",results).toString());
+                            var value_severity = extract_value_for_field("Severity", results);
+                            debugLog("value_severity ", extract_value_for_field("Severity", results).toString());
                             value_severity.should.eql(conditionDisabledVar);
 
 
@@ -384,10 +387,10 @@ module.exports = function (test) {
                         // to do : same test when disable/enable is set by the server
 
                     ], callback);
-                },done);
+                }, done);
             });
 
-            xit("EventId, EventType, Source Node, Source Name, Time, and EnabledState shall return valid values when condition is disabled ",function(done){
+            xit("EventId, EventType, Source Node, Source Name, Time, and EnabledState shall return valid values when condition is disabled ", function (done) {
 //             "EventId",
 //             "ConditionName",
 //             "ConditionClassName",
@@ -417,23 +420,26 @@ module.exports = function (test) {
                 done();
             });
 
-            xit("reading no longer provided variables of a disabled Condition shall return Bad_ConditionDisabled",function(done) {
+            xit("reading no longer provided variables of a disabled Condition shall return Bad_ConditionDisabled", function (done) {
                 done();
             });
         });
 
-        xit("should raise an event when commenting  a Condition ",function(done){
+        xit("should raise an event when commenting a Condition ", function (done) {
             done();
         });
-        xit("should raise an event when acknowledging a AcknowledgeableCondition ",function(done){
+
+        xit("should raise an event when acknowledging an AcknowledgeableCondition ", function (done) {
             done();
         });
-        xit("a condition should expose ReadOnly condition values",function(done){
+
+        xit("a condition should expose ReadOnly condition values", function (done) {
             done();
         });
 
 
-        it("Example of a Condition that maintains previous states via branches",function(done) {
+        function perform_test_with_condition(eventTypeNodeId,levelNode,alarmNode, done) {
+
             // this test implements the example of the Spec 1.03 part 9 page, cited below:
             //     B.1.3 Server maintains previous states
             //            This example is for Servers that are able to maintain previous states of a Condition and
@@ -504,17 +510,16 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-
                 function initial_state_of_condition(callback) {
 
-                    test.tankLevel.setValueFromSource({dataType:"Double",value: 0.5});
+                    levelNode.setValueFromSource({dataType: "Double", value: 0.5});
 
-                    test.tankLevelCondition.currentBranch().setConfirmedState(true);
-                    test.tankLevelCondition.currentBranch().setAckedState(true);
+                    alarmNode.currentBranch().setConfirmedState(true);
+                    alarmNode.currentBranch().setAckedState(true);
 
-                    test.tankLevelCondition.activeState.getValue().should.eql(false);
-                    test.tankLevelCondition.confirmedState.getValue().should.eql(true,"confirmedState supposed to be set");
-                    test.tankLevelCondition.ackedState.getValue().should.eql(true,"ackedState supposed to be set");
+                    alarmNode.activeState.getValue().should.eql(false);
+                    alarmNode.confirmedState.getValue().should.eql(true, "confirmedState supposed to be set");
+                    alarmNode.ackedState.getValue().should.eql(true, "ackedState supposed to be set");
 
                     callback();
                 }
@@ -522,12 +527,12 @@ module.exports = function (test) {
                 function alarm_goes_active(callback) {
 
                     // sanity check - verify that previous state was inactive
-                    test.tankLevel.readValue().value.value.should.eql(0.5);
-                    test.tankLevelCondition.activeState.getValue().should.eql(false);
+                    levelNode.readValue().value.value.should.eql(0.5);
+                    alarmNode.activeState.getValue().should.eql(false);
 
                     // set the value so it exceed one of the limit => alarm will be raised
-                    test.tankLevel.setValueFromSource({dataType:"Double",value: 0.99});
-                    test.tankLevelCondition.activeState.getValue().should.eql(true);
+                    levelNode.setValueFromSource({dataType: "Double", value: 0.99});
+                    alarmNode.activeState.getValue().should.eql(true);
 
                     callback();
                 }
@@ -535,23 +540,23 @@ module.exports = function (test) {
                 function alarm_goes_inactive(callback) {
 
                     // sanity check - verify that previous state was active
-                    test.tankLevel.readValue().value.value.should.eql(0.99);
-                    test.tankLevelCondition.activeState.getValue().should.eql(true);
+                    levelNode.readValue().value.value.should.eql(0.99);
+                    alarmNode.activeState.getValue().should.eql(true);
 
                     // set the value so it is in normal range  => alarm no active
-                    test.tankLevel.setValueFromSource({dataType:"Double",value: 0.50});
-                    test.tankLevelCondition.activeState.getValue().should.eql(false);
+                    levelNode.setValueFromSource({dataType: "Double", value: 0.50});
+                    alarmNode.activeState.getValue().should.eql(false,"expecting alarm to be inactive");
 
                     callback();
                 }
 
                 function condition_acknowledged_requires_confirm(callback) {
 
-                    should(test.tankLevelCondition.nodeId).be.instanceOf(opcua.NodeId);
+                    should(alarmNode.nodeId).be.instanceOf(opcua.NodeId);
 
-                    var conditionId = test.tankLevelCondition.nodeId;
+                    var conditionId = alarmNode.nodeId;
                     var eventId = eventId_Step0;
-                    session.acknowledgeCondition(conditionId,eventId,"Some comment",function(err,result){
+                    session.acknowledgeCondition(conditionId, eventId, "Some comment", function (err, result) {
                         should.not.exist(err);
                         result.should.eql(StatusCodes.Good);
                         callback(err);
@@ -561,29 +566,30 @@ module.exports = function (test) {
 
                 function condition_is_confirmed(callback) {
 
-                    var conditionId = test.tankLevelCondition.nodeId;
+                    var conditionId = alarmNode.nodeId;
                     var eventId = eventId_Step0;
-                    session.confirmCondition(conditionId,eventId,"Some comment",function(err,result){
+                    session.confirmCondition(conditionId, eventId, "Some comment", function (err, result) {
                         should.not.exist(err);
                         result.should.eql(StatusCodes.Good);
                         callback(err);
                     });
-                 }
+                }
 
                 function verify_that_branch_one_is_created(callback) {
                     callback();
 
                 }
+
                 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
-                   // setImmediate(callback);
-                    setTimeout(callback,200);
+                    // setImmediate(callback);
+                    setTimeout(callback, 200);
                 }
 
                 function branch_two_acknowledged_and_auto_confirmed_by_system_verify_branch_two_is_deleted(callback) {
 
-                    var branch = test.tankLevelCondition._findBranchForEventId(branch2_EventId);
+                    var branch = alarmNode._findBranchForEventId(branch2_EventId);
 
-                    test.tankLevelCondition.acknowledgeAndAutoConfirmBranch(branch,"AutoConfirm");
+                    alarmNode.acknowledgeAndAutoConfirmBranch(branch, "AutoConfirm");
 
                     callback();
                 }
@@ -593,13 +599,13 @@ module.exports = function (test) {
                     // a/ initial_state_of_condition
                     initial_state_of_condition,
 
-                    given_and_install_event_monitored_item.bind(test,subscription),
+                    given_and_install_event_monitored_item.bind(test, subscription),
 
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_no_event_has_been_raised_yet(callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(0);
 
-                        test.tankLevelCondition.confirmedState.getValue().should.eql(true,"confirmedState supposed to be set");
+                        alarmNode.confirmedState.getValue().should.eql(true, "confirmedState supposed to be set");
                         callback();
                     },
 
@@ -607,28 +613,29 @@ module.exports = function (test) {
                     alarm_goes_active,
 
                     wait_a_little_bit_to_let_events_to_be_processed,
-                    function we_should_verify_that_an_event_has_been_raised(callback) {
-                        test.spy_monitored_item1_changes.callCount.should.eql(1);
 
-                        var dataValues =  test.spy_monitored_item1_changes.getCall(0).args[0];
+                    function we_should_verify_that_an_event_has_been_raised(callback) {
+                        test.spy_monitored_item1_changes.callCount.should.eql(1,"an event should have been raised");
+
+                        var dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
 
-                        eventId_Step0 = extract_value_for_field("EventId",dataValues).value;
+                        eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
                         should(eventId_Step0).be.instanceOf(Buffer);
-                        extract_value_for_field("BranchId"          ,dataValues).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues).value.should.eql("TankLevel");
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("ActiveState"       ,dataValues).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues).value.should.eql(true);
-                        extract_value_for_field("AckedState"        ,dataValues).value.text.should.eql("Unacknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues).value.should.eql(false);
-                        extract_value_for_field("ConfirmedState"    ,dataValues).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValues).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValues).value.text.should.eql("Unacknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues).value.should.eql(false);
+                        extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValues).value.should.eql(true);
 
                         //
-                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
 
                     },
@@ -642,35 +649,34 @@ module.exports = function (test) {
                         // and need to be confirmed
                         test.spy_monitored_item1_changes.callCount.should.eql(3);
 
-                        var dataValues =  test.spy_monitored_item1_changes.getCall(2).args[0];
+                        var dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
                         //xx dump_field_values(fields,dataValues);
                         // ns=0;i=8944 AuditConditionAcknowledgeEventType
-                        extract_value_for_field("EventType"       ,dataValues).value.toString().should.eql("ns=0;i=8944");
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=8944");
 
-                        dataValues =  test.spy_monitored_item1_changes.getCall(1).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //xx dump_field_values(fields,dataValues);
 
-                        eventId_Step2 = extract_value_for_field("EventId",dataValues).value;
+                        eventId_Step2 = extract_value_for_field("EventId", dataValues).value;
                         should(eventId_Step2).be.instanceOf(Buffer);
 
-                        // ns=0;i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"       ,dataValues).value.toString().should.eql("ns=0;i=9341");
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
 
-                        eventId_Step2.toString("hex").should.not.eql(eventId_Step0.toString("hex"),"eventId must have changed");
+                        eventId_Step2.toString("hex").should.not.eql(eventId_Step0.toString("hex"), "eventId must have changed");
 
-                        extract_value_for_field("BranchId"          ,dataValues).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues).value.should.eql("TankLevel");
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("ActiveState"       ,dataValues).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues).value.should.eql(true);
-                        extract_value_for_field("AckedState"        ,dataValues).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValues).value.text.should.eql("Unconfirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues).value.should.eql(false);
-                        extract_value_for_field("Retain"            ,dataValues).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValues).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Unconfirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(false);
+                        extract_value_for_field("Retain", dataValues).value.should.eql(true);
 
-                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
                     },
 
@@ -684,30 +690,30 @@ module.exports = function (test) {
                         // and need to be confirmed
                         test.spy_monitored_item1_changes.callCount.should.eql(4);
 
-                        var dataValues =  test.spy_monitored_item1_changes.getCall(3).args[0];
+                        var dataValues = test.spy_monitored_item1_changes.getCall(3).args[0];
                         // dump_field_values(fields,dataValues);
 
-                        eventId_Step0 = extract_value_for_field("EventId",dataValues).value;
+                        eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
                         should(eventId_Step0).be.instanceOf(Buffer);
 
 
                         // ns=0;i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"       ,dataValues).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValues).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues).value.should.eql("TankLevel");
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
 
-                        extract_value_for_field("ActiveState"       ,dataValues).value.text.should.eql("Inactive");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues).value.should.eql(false);
-                        extract_value_for_field("AckedState"        ,dataValues).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValues).value.text.should.eql("Unconfirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues).value.should.eql(false);
-                        extract_value_for_field("Retain"            ,dataValues).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues).value.text.should.eql("Inactive");
+                        extract_value_for_field("ActiveState.Id", dataValues).value.should.eql(false);
+                        extract_value_for_field("AckedState", dataValues).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Unconfirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(false);
+                        extract_value_for_field("Retain", dataValues).value.should.eql(true);
 
                         //
-                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
                     },
                     // 4. Confirmed
@@ -717,27 +723,27 @@ module.exports = function (test) {
                     function we_should_verify_that_a_third_event_has_been_raised(callback) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(6);
-                        var dataValues =  test.spy_monitored_item1_changes.getCall(4).args[0];
+                        var dataValues = test.spy_monitored_item1_changes.getCall(4).args[0];
                         //  i=8961 => AuditConditionConfirmEventType
-                        extract_value_for_field("EventType"       ,dataValues).value.toString().should.eql("ns=0;i=8961");
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=8961");
 
-                        dataValues =  test.spy_monitored_item1_changes.getCall(5).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(5).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"       ,dataValues).value.toString().should.eql("ns=0;i=9341");
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId"          ,dataValues).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues).value.should.eql("TankLevel");
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("ActiveState"       ,dataValues).value.text.should.eql("Inactive");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues).value.should.eql(false);
-                        extract_value_for_field("AckedState"        ,dataValues).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValues).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValues).value.should.eql(false);
+                        extract_value_for_field("ActiveState", dataValues).value.text.should.eql("Inactive");
+                        extract_value_for_field("ActiveState.Id", dataValues).value.should.eql(false);
+                        extract_value_for_field("AckedState", dataValues).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValues).value.should.eql(false);
 
-                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
                     },
 
@@ -748,25 +754,25 @@ module.exports = function (test) {
                     function we_should_verify_that_a_fourth_event_has_been_raised(callback) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(7);
-                        var dataValues =  test.spy_monitored_item1_changes.getCall(6).args[0];
+                        var dataValues = test.spy_monitored_item1_changes.getCall(6).args[0];
 
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"       ,dataValues).value.toString().should.eql("ns=0;i=9341");
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId"          ,dataValues).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues).value.should.eql("TankLevel");
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("ActiveState"       ,dataValues).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues).value.should.eql(true);
-                        extract_value_for_field("AckedState"        ,dataValues).value.text.should.eql("Unacknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues).value.should.eql(false);
-                        extract_value_for_field("ConfirmedState"    ,dataValues).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValues).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValues).value.text.should.eql("Unacknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues).value.should.eql(false);
+                        extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValues).value.should.eql(true);
 
 
-                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
                     },
 
@@ -776,46 +782,46 @@ module.exports = function (test) {
                     function we_should_verify_that_a_fifth_and_sixth_event_have_been_raised(callback) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(9);
-                        var dataValues7 =  test.spy_monitored_item1_changes.getCall(7).args[0];
+                        var dataValues7 = test.spy_monitored_item1_changes.getCall(7).args[0];
                         // dump_field_values(fields,dataValues7);
 
                         // event value for branch #1 -----------------------------------------------------
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValues7).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValues7).value.should.not.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues7).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues7).value.should.eql("TankLevel");
-                        branch1_NodeId =extract_value_for_field("BranchId"  ,dataValues7).value;
-                        branch1_EventId=extract_value_for_field("EventId"   ,dataValues7).value;
+                        extract_value_for_field("EventType", dataValues7).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValues7).value.should.not.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues7).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues7).value.should.eql(levelNode.browseName.toString());
+                        branch1_NodeId = extract_value_for_field("BranchId", dataValues7).value;
+                        branch1_EventId = extract_value_for_field("EventId", dataValues7).value;
 
-                        extract_value_for_field("ActiveState"       ,dataValues7).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues7).value.should.eql(true);
-                        extract_value_for_field("AckedState"        ,dataValues7).value.text.should.eql("Unacknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues7).value.should.eql(false);
-                        extract_value_for_field("ConfirmedState"    ,dataValues7).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues7).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValues7).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues7).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValues7).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValues7).value.text.should.eql("Unacknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues7).value.should.eql(false);
+                        extract_value_for_field("ConfirmedState", dataValues7).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues7).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValues7).value.should.eql(true);
 
 
-                        var dataValues8 =  test.spy_monitored_item1_changes.getCall(8).args[0];
-                        dump_field_values(fields,dataValues8);
+                        var dataValues8 = test.spy_monitored_item1_changes.getCall(8).args[0];
+                        dump_field_values(fields, dataValues8);
 
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValues8).value.toString().should.eql("ns=0;i=9341");
+                        extract_value_for_field("EventType", dataValues8).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId"          ,dataValues8).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues8).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues8).value.should.eql("TankLevel");
+                        extract_value_for_field("BranchId", dataValues8).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues8).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues8).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("ActiveState"       ,dataValues8).value.text.should.eql("Inactive");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues8).value.should.eql(false);
-                        extract_value_for_field("AckedState"        ,dataValues8).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues8).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValues8).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues8).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValues8).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues8).value.text.should.eql("Inactive");
+                        extract_value_for_field("ActiveState.Id", dataValues8).value.should.eql(false);
+                        extract_value_for_field("AckedState", dataValues8).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues8).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValues8).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues8).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValues8).value.should.eql(true);
 
-                        test.tankLevelCondition.getBranchCount().should.eql(1," Expecting one extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
                         callback();
                     },
@@ -829,24 +835,24 @@ module.exports = function (test) {
 
                     function we_should_verify_that_a_new_event_is_raised(callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(10);
-                        var dataValues9 =  test.spy_monitored_item1_changes.getCall(9).args[0];
+                        var dataValues9 = test.spy_monitored_item1_changes.getCall(9).args[0];
                         // dump_field_values(fields,dataValues);
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValues9).value.toString().should.eql("ns=0;i=9341");
+                        extract_value_for_field("EventType", dataValues9).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId"          ,dataValues9).value.should.eql(opcua.NodeId.NullNodeId);
-                        extract_value_for_field("ConditionName"     ,dataValues9).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValues9).value.should.eql("TankLevel");
+                        extract_value_for_field("BranchId", dataValues9).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues9).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues9).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("ActiveState"       ,dataValues9).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValues9).value.should.eql(true);
-                        extract_value_for_field("AckedState"        ,dataValues9).value.text.should.eql("Unacknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValues9).value.should.eql(false);
-                        extract_value_for_field("ConfirmedState"    ,dataValues9).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValues9).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValues9).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValues9).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValues9).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValues9).value.text.should.eql("Unacknowledged");
+                        extract_value_for_field("AckedState.Id", dataValues9).value.should.eql(false);
+                        extract_value_for_field("ConfirmedState", dataValues9).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValues9).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValues9).value.should.eql(true);
 
-                        test.tankLevelCondition.getBranchCount().should.eql(1," Expecting one extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
                         callback();
                     },
@@ -854,10 +860,10 @@ module.exports = function (test) {
                     // 9. Prior state acknowledged, Confirm required.
                     function (callback) {
                         debugLog("9. Prior state acknowledged, Confirm required.");
-                        var conditionId = test.tankLevelCondition.nodeId;
-                        var eventId =  branch1_EventId;
-                        debugLog("EventId = ",eventId);
-                        session.acknowledgeCondition(conditionId,eventId,"Branch#1 Some comment",function(err,result){
+                        var conditionId = alarmNode.nodeId;
+                        var eventId = branch1_EventId;
+                        debugLog("EventId = ", eventId);
+                        session.acknowledgeCondition(conditionId, eventId, "Branch#1 Some comment", function (err, result) {
                             should.not.exist(err);
                             result.should.eql(StatusCodes.Good);
                             callback(err);
@@ -868,32 +874,31 @@ module.exports = function (test) {
                     function we_should_verify_that_an_event_is_raised_for_branch_and_that_confirm_is_false(callback) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(12);
-                        var dataValuesA=  test.spy_monitored_item1_changes.getCall(11).args[0];
-                        dump_field_values(fields,dataValuesA);
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(11).args[0];
+                        dump_field_values(fields, dataValuesA);
 
                         // ns=0;i=8944 AuditConditionAcknowledgeEventType
-                        extract_value_for_field("EventType"         ,dataValuesA).value.toString().should.eql("ns=0;i=8944");
+                        extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8944");
                         // xx should(extract_value_for_field("BranchId",   dataValuesA).value).eql(branch1_NodeId);
 
-                        var dataValuesB =  test.spy_monitored_item1_changes.getCall(10).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(10).args[0];
 
-                        //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValuesB).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValuesB).value.should.eql(branch1_NodeId);
+                        extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch1_NodeId);
                         // update last known event of branch1_EventId
-                        branch1_EventId=extract_value_for_field("EventId"   ,dataValuesB).value;
+                        branch1_EventId = extract_value_for_field("EventId", dataValuesB).value;
 
-                        extract_value_for_field("ActiveState"       ,dataValuesB).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("ConditionName"     ,dataValuesB).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValuesB).value.should.eql("TankLevel");
-                        extract_value_for_field("AckedState"        ,dataValuesB).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValuesB).value.text.should.eql("Unconfirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValuesB).value.should.eql(false);
-                        extract_value_for_field("Retain"            ,dataValuesB).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValuesB).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("ConditionName", dataValuesB).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValuesB).value.should.eql(levelNode.browseName.toString());
+                        extract_value_for_field("AckedState", dataValuesB).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValuesB).value.text.should.eql("Unconfirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(false);
+                        extract_value_for_field("Retain", dataValuesB).value.should.eql(true);
 
-                        test.tankLevelCondition.getBranchCount().should.eql(1," Expecting one extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
                         callback();
                     },
@@ -902,57 +907,57 @@ module.exports = function (test) {
 
                     wait_a_little_bit_to_let_events_to_be_processed,
                     // 11. Prior state needs acknowledgment. Branch #2 created.
-                    function we_should_verify_that_a_second_branch_is_created(callback){
+                    function we_should_verify_that_a_second_branch_is_created(callback) {
 
 
                         test.spy_monitored_item1_changes.callCount.should.eql(14);
 
                         // -----------------------------  Event on a second  Branch !
-                        var dataValuesA =  test.spy_monitored_item1_changes.getCall(12).args[0];
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(12).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValuesA).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValuesA).value.should.not.eql(NodeId.NullNodeId);
-                        extract_value_for_field("BranchId"          ,dataValuesA).value.should.not.eql(branch1_NodeId);
-                        branch2_NodeId = extract_value_for_field("BranchId"          ,dataValuesA).value;
+                        extract_value_for_field("EventType", dataValuesA).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(branch1_NodeId);
+                        branch2_NodeId = extract_value_for_field("BranchId", dataValuesA).value;
                         // update last known event of branch2_NodeId
-                        branch2_EventId=extract_value_for_field("EventId"   ,dataValuesA).value;
+                        branch2_EventId = extract_value_for_field("EventId", dataValuesA).value;
 
-                        extract_value_for_field("ActiveState"       ,dataValuesA).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValuesA).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValuesA).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValuesA).value.should.eql(true);
 
-                        extract_value_for_field("ConditionName"     ,dataValuesA).value.should.eql("Test");
-                        extract_value_for_field("SourceName"        ,dataValuesA).value.should.eql("TankLevel");
+                        extract_value_for_field("ConditionName", dataValuesA).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValuesA).value.should.eql(levelNode.browseName.toString());
 
-                        extract_value_for_field("AckedState"        ,dataValuesA).value.text.should.eql("Unacknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValuesA).value.should.eql(false);
-                        extract_value_for_field("ConfirmedState"    ,dataValuesA).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValuesA).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValuesA).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValuesA).value.text.should.eql("Unacknowledged");
+                        extract_value_for_field("AckedState.Id", dataValuesA).value.should.eql(false);
+                        extract_value_for_field("ConfirmedState", dataValuesA).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValuesA).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValuesA).value.should.eql(true);
 
 
                         // -----------------------------  Event on main branch !
-                        var dataValuesB =  test.spy_monitored_item1_changes.getCall(13).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(13).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValuesB).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValuesB).value.should.eql(NodeId.NullNodeId);
-                        extract_value_for_field("ActiveState"       ,dataValuesB).value.text.should.eql("Inactive");
-                        extract_value_for_field("ActiveState.Id"    ,dataValuesB).value.should.eql(false);
-                        extract_value_for_field("AckedState"        ,dataValuesB).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValuesB).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValuesB).value.should.eql(true);
+                        extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValuesB).value.should.eql(NodeId.NullNodeId);
+                        extract_value_for_field("ActiveState", dataValuesB).value.text.should.eql("Inactive");
+                        extract_value_for_field("ActiveState.Id", dataValuesB).value.should.eql(false);
+                        extract_value_for_field("AckedState", dataValuesB).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValuesB).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValuesB).value.should.eql(true);
 
 
-                        test.tankLevelCondition.getBranchCount().should.eql(2," Expecting two extra branches apart from current branch");
+                        alarmNode.getBranchCount().should.eql(2, " Expecting two extra branches apart from current branch");
                         callback();
                     },
 
                     // 12. Prior state confirmed. Branch #1 deleted.
                     function branch_one_is_confirmed_verify_branch_one_is_deleted(callback) {
 
-                        debugLog("Confirming branchId with eventId  = ",branch1_EventId.toString("hex"));
-                        session.confirmCondition(test.tankLevelCondition.nodeId,branch1_EventId,"Some Message",function(err,result) {
+                        debugLog("Confirming branchId with eventId  = ", branch1_EventId.toString("hex"));
+                        session.confirmCondition(alarmNode.nodeId, branch1_EventId, "Some Message", function (err, result) {
                             should.not.exist(err);
                             should(result).eql(StatusCodes.Good);
                             callback(err);
@@ -960,25 +965,25 @@ module.exports = function (test) {
                     },
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_branch_one_is_deleted(callback) {
-                        test.tankLevelCondition.getBranchCount().should.eql(1," Expecting one extra branch apart from current branch");
+                        alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
                         test.spy_monitored_item1_changes.callCount.should.eql(16);
-                        var dataValuesA =  test.spy_monitored_item1_changes.getCall(14).args[0];
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(14).args[0];
 
                         // ns=0;i=8961 AuditConditionConfirmEventType
-                        extract_value_for_field("EventType"       ,dataValuesA).value.toString().should.eql("ns=0;i=8961");
+                        extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8961");
 
-                        var dataValuesB =  test.spy_monitored_item1_changes.getCall(15).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(15).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValuesB).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValuesB).value.should.eql(branch1_NodeId);
-                        extract_value_for_field("ActiveState"       ,dataValuesB).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("AckedState"        ,dataValuesB).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("ConfirmedState"    ,dataValuesB).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValuesB).value.should.eql(false);
+                        extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch1_NodeId);
+                        extract_value_for_field("ActiveState", dataValuesB).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValuesB).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("ConfirmedState", dataValuesB).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValuesB).value.should.eql(false);
 
                         callback();
                     },
@@ -987,40 +992,48 @@ module.exports = function (test) {
 
                     // 14. No longer of interest.
                     wait_a_little_bit_to_let_events_to_be_processed,
-                    function we_should_verify_than_branch_one_is_no_longer_here(callback)  {
-                        test.tankLevelCondition.getBranchCount().should.eql(0," Expecting no extra branch apart from current branch");
+                    function we_should_verify_than_branch_one_is_no_longer_here(callback) {
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
                         test.spy_monitored_item1_changes.callCount.should.eql(20);
 
-                        var dataValues0 =  test.spy_monitored_item1_changes.getCall(16).args[0];
-                        var dataValues1 =  test.spy_monitored_item1_changes.getCall(17).args[0];
+                        var dataValues0 = test.spy_monitored_item1_changes.getCall(16).args[0];
+                        var dataValues1 = test.spy_monitored_item1_changes.getCall(17).args[0];
 
 
-                        var dataValuesA =  test.spy_monitored_item1_changes.getCall(18).args[0];
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(18).args[0];
 
                         // ns=0;i=8961 AuditConditionConfirmEventType
-                        extract_value_for_field("EventType"       ,dataValuesA).value.toString().should.eql("ns=0;i=8961");
+                        extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8961");
 
-                        var dataValuesB =  test.spy_monitored_item1_changes.getCall(19).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(19).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
-                        extract_value_for_field("EventType"         ,dataValuesB).value.toString().should.eql("ns=0;i=9341");
-                        extract_value_for_field("BranchId"          ,dataValuesB).value.should.eql(branch2_NodeId);
+                        extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
+                        extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch2_NodeId);
 
-                        extract_value_for_field("ActiveState"       ,dataValuesB).value.text.should.eql("Active");
-                        extract_value_for_field("ActiveState.Id"    ,dataValuesB).value.should.eql(true);
+                        extract_value_for_field("ActiveState", dataValuesB).value.text.should.eql("Active");
+                        extract_value_for_field("ActiveState.Id", dataValuesB).value.should.eql(true);
 
-                        extract_value_for_field("AckedState"        ,dataValuesB).value.text.should.eql("Acknowledged");
-                        extract_value_for_field("AckedState.Id"     ,dataValuesB).value.should.eql(true);
+                        extract_value_for_field("AckedState", dataValuesB).value.text.should.eql("Acknowledged");
+                        extract_value_for_field("AckedState.Id", dataValuesB).value.should.eql(true);
 
-                        extract_value_for_field("ConfirmedState"    ,dataValuesB).value.text.should.eql("Confirmed");
-                        extract_value_for_field("ConfirmedState.Id" ,dataValuesB).value.should.eql(true);
-                        extract_value_for_field("Retain"            ,dataValuesB).value.should.eql(false);
+                        extract_value_for_field("ConfirmedState", dataValuesB).value.text.should.eql("Confirmed");
+                        extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(true);
+                        extract_value_for_field("Retain", dataValuesB).value.should.eql(false);
 
                         callback();
                     }
                 ], callback);
-            },done);
+            }, done);
+        }
 
+        it("A&C1 Example of a Condition that maintains previous states via branches - with exclusive condition", function (done) {
+            // ns=0;i=9341 => ExclusiveLimitAlarmType
+            perform_test_with_condition("ns=0;i=9341",test.tankLevel,test.tankLevelCondition, done);
+        });
+        it("A&C2 Example of a Condition that maintains previous states via branches - with non exclusive condition", function (done) {
+            // ns=0;i=9906 => NonExclusiveLimitAlarmType
+            perform_test_with_condition("ns=0;i=9906",test.tankLevel2,test.tankLevelCondition2, done);
         });
 
     });

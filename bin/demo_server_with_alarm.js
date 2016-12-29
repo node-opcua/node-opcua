@@ -39,10 +39,15 @@ function post_initialize() {
         function simulate_variation() {
             var value = (1.0 + Math.sin(time/360*3))/2.0;
             data.tankLevel.setValueFromSource({dataType: "Double",value:value});
+
+            data.tankLevel2.setValueFromSource({dataType: "Double",value:value});
+
             time +=1;
         }
         setInterval(simulate_variation,200);
         simulate_variation();
+
+
     }
     construct_my_address_space(server);
 
