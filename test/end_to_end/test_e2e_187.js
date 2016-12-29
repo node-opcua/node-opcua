@@ -179,7 +179,7 @@ describe("testing monitoring Executable flags on methods", function () {
                     });
                 },
 
-                function (callback) { setTimeout(callback,200); },
+                function (callback) { setTimeout(callback,500); },
 
                 function (callback) {
 

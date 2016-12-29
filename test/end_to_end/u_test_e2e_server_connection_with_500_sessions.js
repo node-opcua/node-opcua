@@ -48,7 +48,6 @@ module.exports = function (test) {
                             console.log("   ", msg.red, err.message, r(getTick() - t));
                         } else {
                             console.log("   ", msg.green, r(getTick() - t));
-
                         }
                     }
                     return callback(err);
@@ -70,8 +69,10 @@ module.exports = function (test) {
             perform.bind(null,"create session " + data.index,function(callback) {
 
                 client.createSession(function (err, session) {
-                    the_session = session
-                    console.log(session.authenticationToken.toString("hex"));
+                    the_session = session;
+                    if (doDebug) {
+                        console.log("session.authenticationToken = ",session.authenticationToken.toString("hex"));
+                    }
                     callback(err);
                 });
             }),

@@ -1467,7 +1467,7 @@ module.exports = function (test) {
                 });
 
                 setTimeout(function () {
-                    console.log(" Restoring default behavior");
+                    ///xx console.log(" Restoring default behavior");
                     subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
                     subscription.publish_engine._send_publish_request.restore();
                     subscription.publish_engine._send_publish_request();
@@ -2247,7 +2247,7 @@ module.exports = function (test) {
                     callback(err, response);
                 }
                 catch (err) {
-                    console.log('================> error =>'.red,err);
+                    //xx console.log('================> error =>'.red,err);
                     callback(err,response);
                 }
             });
@@ -2605,7 +2605,7 @@ module.exports = function (test) {
                             createSubscription2(session,createSubscriptionRequest,callback);
                         },
                         function (callback) {
-                            console.log(" SubscriptionId =",subscriptionId);
+                            //xx console.log(" SubscriptionId =",subscriptionId);
                             callback();
                         },
                         function (callback) {
@@ -2616,12 +2616,12 @@ module.exports = function (test) {
                         },
 
                         function (callback) {
-                            console.log("--------------");
+                            //xx console.log("--------------");
                             // we should get notified immediately that the session has timedout
                             sendPublishRequest(session, function (err, response) {
                                 response.notificationMessage.notificationData.length.should.eql(1);
                                 var notificationData = response.notificationMessage.notificationData[0];
-                                console.log(notificationData.toString());
+                                //xx console.log(notificationData.toString());
                                 //.monitoredItems[0];
                                 notificationData.constructor.name.should.eql("StatusChangeNotification");
                                 notificationData.statusCode.should.eql(StatusCodes.BadTimeout);

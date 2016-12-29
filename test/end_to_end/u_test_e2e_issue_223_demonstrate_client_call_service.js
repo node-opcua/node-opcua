@@ -9,6 +9,7 @@ var opcua = require("index");
 var OPCUAClient = opcua.OPCUAClient;
 var VariantArrayType = opcua.VariantArrayType;
 var DataType         = opcua.DataType;
+var StatusCodes = opcua.StatusCodes;
 
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
@@ -96,7 +97,8 @@ module.exports = function (test) {
                     });
                     the_session.call(methodsToCall,function(err,results){
                         results.length.should.eql(1);
-                        console.log(results[0].toString());
+                        results[0].statusCode.should.eql(StatusCodes.Good);
+                        ///xx console.log(results[0].toString());
                         callback(err);
                     });
                 },

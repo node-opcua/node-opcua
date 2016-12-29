@@ -17,6 +17,7 @@ require("lib/client/state_machine_proxy");
 
 var dumpStateMachineToGraphViz = require("lib/misc/dump_statemachine").dumpStateMachineToGraphViz;
 var dumpStateMachineToPlantUML = require("lib/misc/dump_statemachine").dumpStateMachineToPlantUML;
+var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 
 var makeRefId = require("lib/client/proxy").makeRefId;
@@ -337,9 +338,13 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         UAStateMachine.promote(sm);
 
-        dumpStateMachineToGraphViz(sm);
+        redirectToFile("OperatingModeSubStateMachineType.graphviz",function() {
+            dumpStateMachineToGraphViz(sm);
+        });
+        redirectToFile("OperatingModeSubStateMachineType.plantuml",function() {
+            dumpStateMachineToPlantUML(sm);
+        });
 
-        dumpStateMachineToPlantUML(sm);
 
 
         done();
@@ -361,9 +366,12 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         UAStateMachine.promote(sm);
 
-        dumpStateMachineToGraphViz(sm);
-
-        dumpStateMachineToPlantUML(sm);
+        redirectToFile("OperatingModeExecuteSubStateMachineType.graphviz",function() {
+            dumpStateMachineToGraphViz(sm);
+        });
+        redirectToFile("OperatingModeExecuteSubStateMachineType.plantuml",function() {
+            dumpStateMachineToPlantUML(sm);
+        });
 
 
         done();

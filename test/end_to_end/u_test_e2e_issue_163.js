@@ -47,10 +47,10 @@ module.exports = function (test) {
                     get: function () {
                         if (variable2 >= 20.0) {
                             variable2 = 10.0;
-                            console.log("return bad");
+                            //xx  console.log("return bad");
                             return opcua.StatusCodes.Bad;
                         }
-                        console.log("return normal");
+                        //xx console.log("return normal");
                         variable2++;
                         return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2});
                     },
@@ -133,12 +133,8 @@ module.exports = function (test) {
                     done(err);
                 });
             });
-
-        })
-        ;
-
+        });
     });
-
 };
 
 

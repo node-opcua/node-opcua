@@ -109,7 +109,8 @@ describe("Automatic Generation of  string nodeId", function () {
         serverStatus.buildInfo.nodeId.toString().should.eql("ns=1;s=MyServerStatus-BuildInfo");
         serverStatus.buildInfo.productUri.nodeId.toString().should.eql("ns=1;s=MyServerStatus-BuildInfo-ProductUri");
 
-        console.log(serverStatus.toString());
+        //xx console.log(serverStatus.toString());
+
         serverStatus.getComponentByName("BuildInfo").should.eql(serverStatus.buildInfo);
 
         //xx console.log(serverStatus.toString());
@@ -168,7 +169,7 @@ describe("Automatic Generation of  string nodeId", function () {
             });
             obj.browseName.toString().should.eql("MyInstance2");
 
-            console.log(obj.toString());
+            //xx console.log(obj.toString());
 
             should(obj.getComponentByName("Status")).not.eql(null,"We asked for optional component Status");
 

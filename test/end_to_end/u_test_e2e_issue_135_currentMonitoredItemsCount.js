@@ -12,6 +12,8 @@ var ClientSubscription = opcua.ClientSubscription;
 
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
+function debugLog() {}
+
 
 module.exports = function (test) {
 
@@ -79,7 +81,7 @@ module.exports = function (test) {
                     the_subscription = subscription;
 
                     subscription.once("started",function() {
-                        console.log("publishingInterval",subscription.publishingInterval);
+                        debugLog("publishingInterval",subscription.publishingInterval);
                         callback();
                     });
 
@@ -112,7 +114,7 @@ module.exports = function (test) {
                     ];
                     the_session.translateBrowsePath(browsePath,function(err,browsePathResults){
                         if (err) { return callback(err); }
-                        // console.log(" browsePathResults",browsePathResults[0].toString());
+                        // debugLog(" browsePathResults",browsePathResults[0].toString());
                         browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
                         browsePathResults[1].statusCode.should.eql(opcua.StatusCodes.Good);
                         browsePathResults[2].statusCode.should.eql(opcua.StatusCodes.Good);
@@ -136,12 +138,17 @@ module.exports = function (test) {
 
                             var currentMonitoredItemsCount =  results[0].value.value;
                             var currentSubcriptionsCount   =  results[1].value.value;
-                            console.log("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
-                            console.log("currentSubcriptionsCount   = ", currentSubcriptionsCount);
+
+                            debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
+                            debugLog("currentSubcriptionsCount   = ", currentSubcriptionsCount);
 
                             currentSubcriptionsCount.should.eql(1);
                             currentMonitoredItemsCount.should.eql(2);
-                            console.log("diagnostic = ", results[2].value.toString());
+
+                            results[2].value.value.constructor.name.should.eql("SessionDiagnostics");
+                            results[2].value.value.sessionName.toString().should.eql("Session1");
+
+                            debugLog("diagnostic = ", results[2].value.toString());
 
                             callback(err);
                         });
@@ -151,7 +158,7 @@ module.exports = function (test) {
 
                 function (callback) {
                     the_subscription.once("terminated", function () {
-                        console.log("subscription terminated");
+                        debugLog("subscription terminated");
                         callback();
                     });
                     the_subscription.terminate();
@@ -163,7 +170,7 @@ module.exports = function (test) {
 
             ], function final(err) {
                 client1.disconnect(function () {
-                    console.log(" Client disconnected ",(err ? err.message : "null"));
+                    debugLog(" Client disconnected ",(err ? err.message : "null"));
                     done(err);
                 });
             });

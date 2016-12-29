@@ -221,23 +221,31 @@ module.exports = function (test) {
                         alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
 
                         var previous =  600.0;
+
+
                         var _timer = setInterval(function() {
+
                             var variant =alarm.shelvingState.unshelveTime.readValue().value;
                             variant.dataType.should.eql(DataType.Double);
+
                             should( variant.value <timeShelvedDuration).eql(true);
                             should( variant.value >=0).eql(true);
                             should( variant.value < previous).eql(true);
 
                             values.push(variant.value);
                             previous = variant.value ;
-                        },50);
+
+                        },100);
 
                         alarm.shelvingState.currentState.once("value_changed",function( newValue){
-                            //xx console.log(newValue.toString());
+
                             newValue.value.value.text.should.eql("Unshelved");
 
                             values.length.should.be.greaterThan(2);
-                            console.log("                     unshelveTime value history = ",values);
+
+                            if(doDebug) {
+                                console.log("                     unshelveTime value history = ",values);
+                            }
 
                             clearInterval(_timer);
 

@@ -641,7 +641,9 @@ describe("Subscriptions and MonitoredItems", function () {
             test.clock.tick(subscription.publishingInterval);
 
             pubFunc.callCount.should.eql(1);
-            console.log(pubFunc.getCall(0).args[1].toString());
+
+            //xx console.log(pubFunc.getCall(0).args[1].toString());
+
             pubFunc.getCall(0).args[1].subscriptionId.should.eql(subscription.id);
 
         }
@@ -814,7 +816,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         it("CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ",function() {
 
-            console.log(accessLevel_CurrentRead_NotUserNode.toString());
+            //xx console.log(accessLevel_CurrentRead_NotUserNode.toString());
             accessLevel_CurrentRead_NotUserNode.isReadable().should.eql(false);
 
             var nodeId = accessLevel_CurrentRead_NotUserNode.nodeId;
@@ -860,7 +862,7 @@ describe("Subscriptions and MonitoredItems", function () {
                     notifs.length.should.eql(1," should have one pending notification");
                     notifs[0].value.statusCode.should.eql(expectedStatusCode);
 
-                    console.log(notifs[0].value.toString());
+                    //xx console.log(notifs[0].value.toString());
                 }
             }
 

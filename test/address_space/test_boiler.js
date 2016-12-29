@@ -12,6 +12,8 @@ var UAStateMachine = require("lib/address_space/state_machine/finite_state_machi
 var createBoilerType = require("test/helpers/boiler_system").createBoilerType;
 var makeBoiler = require("test/helpers/boiler_system").makeBoiler;
 
+var doDebug = false;
+
 describe("Testing Boiler System",function() {
 
     function getBrowseName(x) { return x.browseName.toString(); }
@@ -121,7 +123,9 @@ describe("Testing Boiler System",function() {
                     suspendMethod.getExecutableFlag().should.eql(false);
 
                     haltMethod.execute([],{},function(err,callMethodResponse) {
-                        console.log(" Halt has been called".bgWhite,err,callMethodResponse.statusCode.toString());
+                        if (doDebug) {
+                            console.log(" Halt has been called".bgWhite.cyan, err, callMethodResponse.statusCode.toString());
+                        }
                         haltMethod.getExecutableFlag().should.eql(false);
                         resetMethod.getExecutableFlag().should.eql(true);
                         startMethod.getExecutableFlag().should.eql(false);
@@ -131,7 +135,9 @@ describe("Testing Boiler System",function() {
                 },
                 function (callback) {
                     resetMethod.execute([],{},function(err,callMethodResponse) {
-                        console.log(" resetMethod has been called".bgWhite,err,callMethodResponse.statusCode.toString());
+                        if (doDebug) {
+                            console.log(" resetMethod has been called".bgWhite.cyan, err, callMethodResponse.statusCode.toString());
+                        }
                         haltMethod.getExecutableFlag().should.eql(true);
                         resetMethod.getExecutableFlag().should.eql(false);
                         startMethod.getExecutableFlag().should.eql(true);
@@ -142,7 +148,9 @@ describe("Testing Boiler System",function() {
 
                 function (callback) {
                     startMethod.execute([],{},function(err,callMethodResponse) {
-                        console.log(" startMethod has been called".bgWhite,err,callMethodResponse.statusCode.toString());
+                        if (doDebug) {
+                            console.log(" startMethod has been called".bgWhite.cyan, err, callMethodResponse.statusCode.toString());
+                        }
                         haltMethod.getExecutableFlag().should.eql(true);
                         resetMethod.getExecutableFlag().should.eql(true);
                         startMethod.getExecutableFlag().should.eql(false);
@@ -153,7 +161,9 @@ describe("Testing Boiler System",function() {
 
                 function (callback) {
                     suspendMethod.execute([],{},function(err,callMethodResponse) {
-                        console.log(" suspendMethod has been called".bgWhite,err,callMethodResponse.statusCode.toString());
+                        if (doDebug) {
+                            console.log(" suspendMethod has been called".bgWhite.cyan,err,callMethodResponse.statusCode.toString());
+                        }
                         haltMethod.getExecutableFlag().should.eql(true);
                         resetMethod.getExecutableFlag().should.eql(true);
                         startMethod.getExecutableFlag().should.eql(true);

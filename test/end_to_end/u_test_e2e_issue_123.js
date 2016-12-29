@@ -15,6 +15,8 @@ var ClientSubscription = opcua.ClientSubscription;
 
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
+var doDebug = false;
+
 
 module.exports = function (test) {
 
@@ -79,11 +81,15 @@ module.exports = function (test) {
                     });
 
                     subscription.once("terminated", function () {
-                        console.log("subscription terminated");
+                        if (doDebug) {
+                            console.log("subscription terminated");
+                        }
                         callback();
                     });
                     subscription.once("started",function() {
-                        console.log("publishingInterval",subscription.publishingInterval);
+                        if (doDebug) {
+                            console.log("publishingInterval",subscription.publishingInterval);
+                        }
 
                     });
 
@@ -99,7 +105,9 @@ module.exports = function (test) {
                         });
 
                     monitoredItem1.on("changed",function(dataValue){
-                        console.log("DataValue1 = ",dataValue.value.toString());
+                        if (doDebug) {
+                            console.log("DataValue1 = ",dataValue.value.toString());
+                        }
                     });
 
 
@@ -114,7 +122,9 @@ module.exports = function (test) {
                         });
 
                     monitoredItem2.on("changed",function(dataValue){
-                        console.log("DataValue2 = ",dataValue.value.toString());
+                        if(doDebug) {
+                            console.log("DataValue2 = ",dataValue.value.toString());
+                        }
                     });
 
 
@@ -130,7 +140,9 @@ module.exports = function (test) {
             ], function final(err) {
                 client1.disconnect(function () {
 
-                    console.log(" Client disconnected ",(err ? err.message : "null"));
+                    if (doDebug) {
+                        console.log(" Client disconnected ",(err ? err.message : "null"));
+                    }
                     done(err);
                 });
             });

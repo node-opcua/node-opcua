@@ -51,9 +51,9 @@ describe("AddressSpace : add event type ", function () {
         var id1 = addressSpace.generateEventId();
         var id2 = addressSpace.generateEventId();
         var id3 = addressSpace.generateEventId();
-        console.log(id1.value.toString("hex"));
-        console.log(id2.value.toString("hex"));
-        console.log(id3.value.toString("hex"));
+        //xx console.log(id1.value.toString("hex"));
+        //xx console.log(id2.value.toString("hex"));
+        //xx console.log(id3.value.toString("hex"));
         id1.value.toString("hex").should.not.eql(id2.value.toString("hex"));
         id1.value.toString("hex").should.not.eql(id3.value.toString("hex"));
     });
@@ -182,12 +182,12 @@ describe("AddressSpace : add event type ", function () {
         })
 
         .on('cycle', function (message) {
-            console.log(message);
+            //xx console.log(message);
         })
 
         .on('complete', function () {
 
-            console.log(' Fastest is ' + this.fastest.name);
+            console.log('    Fastest is ' + this.fastest.name);
             //xx console.log(' count    :  ', this.fastest.count);
             done();
         })

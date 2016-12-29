@@ -13,6 +13,8 @@ var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
 var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
+var doDebug = false;
+
 // make sure extra error checking is made on object constructions
 describe("Testing Finite State Machine", function () {
 
@@ -165,7 +167,9 @@ describe("Testing Finite State Machine", function () {
             var myStateMachine = exclusiveLimitStateMachineType.instantiate({
                 browseName: "MyStateMachine"
             });
-            console.log(myStateMachine.toString());
+            if (doDebug) {
+                console.log(myStateMachine.toString());
+            }
             UAStateMachine.promote(myStateMachine);
 
             // get the states
@@ -174,7 +178,10 @@ describe("Testing Finite State Machine", function () {
                 var stateNumber = e.stateNumber.readValue().value.value;
                 return e.browseName.toString() + ( (stateNumber !== null )? (" ( " + stateNumber + " )") : "" );
             });
-            console.log("states      : ",a.join(" "));
+
+            if (doDebug) {
+                console.log("states      : ",a.join(" "));
+            }
 
             // get the transitions
             var t = myStateMachine.getTransitions().map(function(e) {
@@ -182,13 +189,17 @@ describe("Testing Finite State Machine", function () {
                 return e.browseName.toString() + ( (transitionNumber !== null )? (" ( " + transitionNumber + " )") : "" );
 
             });
-            console.log("transitions : ",t.join(" "));
+            if (doDebug) {
+                console.log("transitions : ",t.join(" "));
+            }
 
 
             // set state and raise event
             myStateMachine.setState(myStateMachine.initialState);
 
-            console.log(myStateMachine.currentState.readValue().toString());
+            if (doDebug) {
+                console.log(myStateMachine.currentState.readValue().toString());
+            }
             myStateMachine.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
 
             myStateMachine.setState(myStateMachine.getStates()[0]);

@@ -32,6 +32,8 @@ var constructEventFilter = require("lib/tools/tools_event_filter").constructEven
 
 var callConditionRefresh = require("lib/client/alarms_and_conditions/client_tools").callConditionRefresh;
 
+function debugLog(){}
+
 module.exports = function (test) {
 
     describe("A&C monitoring conditions", function () {
@@ -113,9 +115,9 @@ module.exports = function (test) {
                     var node = test.server.engine.addressSpace.findNode(v.value);
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }
-                console.log((e+"                             ").substr(0,25).cyan,v.toString() + " " + str.white.bold);
+                debugLog((e+"                             ").substr(0,25).cyan,v.toString() + " " + str.white.bold);
             });
-            console.log("--------------------");
+            debugLog("--------------------");
         }
         function extract_value_for_field(fieldName,result) {
             should.exist(result);
@@ -218,13 +220,13 @@ module.exports = function (test) {
 
                     function then_we_should_check_that_alarm_is_raised(callback) {
 
-                        console.log("      then_we_should_check_that_alarm_is_raised ...");
+                        debugLog("      then_we_should_check_that_alarm_is_raised ...");
                         test.monitoredItem1.once("changed",function(){
                             test.spy_monitored_item1_changes.callCount.should.eql(1);
                             callback();
                         });
 
-                        console.log(" ... when the value goes off limit");
+                        debugLog(" ... when the value goes off limit");
                         test.tankLevel.setValueFromSource({
                             dataType: "Double",
                             value: 0.991
@@ -263,7 +265,7 @@ module.exports = function (test) {
 
                         // let's call condition refresh
                         callConditionRefresh(subscription,function(err) {
-                           // console.log(" condition refresh has been called")
+                           // debugLog(" condition refresh has been called")
                         });
 
                     },
@@ -421,7 +423,7 @@ module.exports = function (test) {
                             // other shall be invalid
 
                             var value_severity = extract_value_for_field("Severity",results);
-                            console.log("value_severity ", extract_value_for_field("Severity",results).toString());
+                            debugLog("value_severity ", extract_value_for_field("Severity",results).toString());
                             value_severity.should.eql(conditionDisabledVar);
 
 
@@ -479,69 +481,6 @@ module.exports = function (test) {
             done();
         });
 
-/*
-            var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-
-            //xx console.log("filter = ",filter.toString());
-
-            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
-
-                var itemToMonitor = new opcua.read_service.ReadValueId({
-                    nodeId: resolveNodeId("Server"),
-                    attributeId: AttributeIds.EventNotifier
-                });
-
-                var parameters = {
-                    samplingInterval: 0,
-                    discardOldest: false,
-                    queueSize: 1,
-                    filter: eventFilter
-                };
-
-                var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
-                    subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
-                    itemsToCreate: [{
-                        itemToMonitor: itemToMonitor,
-                        requestedParameters: parameters,
-                        monitoringMode: MonitoringMode.Reporting
-                    }]
-                });
-
-                session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    try {
-                        //xx console.log("createMonitoredItemsResponse", createMonitoredItemsResponse.toString());
-
-                        createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                        createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
-
-                        should(createMonitoredItemsResponse.results[0].filterResult).not.eql(null, "a filter result is requested");
-
-
-                        var filterResult = createMonitoredItemsResponse.results[0].filterResult;
-                        filterResult.should.be.instanceof(opcua.subscription_service.EventFilterResult);
-
-                        // verify selectClauseResults count
-                        eventFilter.selectClauses.length.should.eql(3);
-                        filterResult.selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
-                        filterResult.selectClauseResults[0].should.eql(StatusCodes.Good);
-                        filterResult.selectClauseResults[1].should.eql(StatusCodes.Good);
-                        filterResult.selectClauseResults[2].should.eql(StatusCodes.Good);
-
-                        // verify whereClauseResult
-                        var ContentFilterResult = opcua.subscription_service.ContentFilterResult;
-                        filterResult.whereClauseResult.should.be.instanceof(ContentFilterResult);
-
-                    }
-                    catch (err) {
-                        return callback(err);
-                    }
-                    callback();
-                });
-*/
 
         it("Example of a Condition that maintains previous states via branches",function(done) {
             // this test implements the example of the Spec 1.03 part 9 page, cited below:
@@ -963,10 +902,10 @@ module.exports = function (test) {
 
                     // 9. Prior state acknowledged, Confirm required.
                     function (callback) {
-                         console.log("9. Prior state acknowledged, Confirm required.");
+                        debugLog("9. Prior state acknowledged, Confirm required.");
                         var conditionId = test.tankLevelCondition.nodeId;
                         var eventId =  branch1_EventId;
-                        console.log("EventId = ",eventId);
+                        debugLog("EventId = ",eventId);
                         session.acknowledgeCondition(conditionId,eventId,"Branch#1 Some comment",function(err,result){
                             should.not.exist(err);
                             result.should.eql(StatusCodes.Good);
@@ -1061,7 +1000,7 @@ module.exports = function (test) {
                     // 12. Prior state confirmed. Branch #1 deleted.
                     function branch_one_is_confirmed_verify_branch_one_is_deleted(callback) {
 
-                        console.log("Confirming branchId with eventId  = ",branch1_EventId.toString("hex"));
+                        debugLog("Confirming branchId with eventId  = ",branch1_EventId.toString("hex"));
                         session.confirmCondition(test.tankLevelCondition.nodeId,branch1_EventId,"Some Message",function(err,result) {
                             should.not.exist(err);
                             should(result).eql(StatusCodes.Good);

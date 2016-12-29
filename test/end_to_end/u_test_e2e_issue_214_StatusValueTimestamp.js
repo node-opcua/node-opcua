@@ -11,6 +11,7 @@ var OPCUAClient = opcua.OPCUAClient;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
+var debugLog = function() {};
 
 module.exports = function (test) {
 
@@ -45,11 +46,11 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, endpointUrl, function (session, the_subscription, inner_done) {
 
                 the_subscription.on("started", function () {
-                    console.log("subscription started for 10 seconds - subscriptionId=", the_subscription.subscriptionId);
+                    debugLog("subscription started for 10 seconds - subscriptionId=", the_subscription.subscriptionId);
                 }).on("keepalive", function () {
-                    console.log("keepalive");
+                    debugLog("keepalive");
                 }).on("terminated", function () {
-                    console.log(" subscription terminated");
+                    debugLog(" subscription terminated");
                 });
 
                 setTimeout(function () {
@@ -77,21 +78,20 @@ module.exports = function (test) {
                     },
                     opcua.read_service.TimestampsToReturn.Both
                     , function (err) {
-                        console.log(" ERR =", err);
+                        debugLog(" ERR =", err);
                     });
 
                 monitoredItem.on("initialized", function () {
-                    console.log("monitoredItem initialized");
+                    debugLog("monitoredItem initialized");
                 });
                 monitoredItem.on("changed", function (dataValue) {
-                    console.log("  value = ", dataValue.value.toString());
+                    debugLog("  value = ", dataValue.value.toString());
                     nbChanges +=1;
                 });
                 monitoredItem.on("err", function (err_message) {
-                    console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
+                    debugLog(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
                 });
             }, function(err){
-
 
                 nbChanges.should.be.above(5);
                 done(err);

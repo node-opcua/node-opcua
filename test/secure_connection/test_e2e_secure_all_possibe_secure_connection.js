@@ -185,7 +185,7 @@ function keep_monitoring_some_variable(session, duration, done) {
     });
     subscription.on("terminated", function () {
 
-        console.log("        subscription terminated ");
+        debugLog("        subscription terminated ");
         if (!the_error) {
             var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
             nbTokenId.should.be.greaterThan(2);
