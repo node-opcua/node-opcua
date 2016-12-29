@@ -24,6 +24,7 @@ var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
 var conditions =require("lib/address_space/alarms_and_conditions/condition");
 var ConditionSnapshot = conditions.ConditionSnapshot;
 
+var doDebug = false;
 
 var sinon = require("sinon");
 
