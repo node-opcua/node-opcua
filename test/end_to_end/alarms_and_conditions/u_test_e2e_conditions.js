@@ -28,6 +28,12 @@ function debugLog() {
 
 var construct_demo_alarm_in_address_space = require("test/helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
 
+
+function wait_a_little_bit_to_let_events_to_be_processed(callback) {
+    // setImmediate(callback);
+    setTimeout(callback, 200);
+}
+
 module.exports = function (test) {
 
     describe("A&C monitoring conditions", function () {
@@ -61,9 +67,9 @@ module.exports = function (test) {
                     var node = test.server.engine.addressSpace.findNode(v.value);
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }
-                debugLog((e + "                             ").substr(0, 25).cyan, v.toString() + " " + str.white.bold);
+                console.log((e + "                             ").substr(0, 25).cyan, v.toString() + " " + str.white.bold);
             });
-            debugLog("--------------------");
+            console.log("--------------------");
         }
 
         function extract_value_for_field(fieldName, result) {
@@ -203,6 +209,8 @@ module.exports = function (test) {
 
                     function when_client_calling_ConditionRefresh(callback) {
 
+                        test.spy_monitored_item1_changes.reset();
+
                         // lets add a a event handler to detect when the Event has been
                         // raised we we will call ConditionRefresh
                         test.monitoredItem1.once("changed", function () {
@@ -211,7 +219,7 @@ module.exports = function (test) {
 
                         // let's call condition refresh
                         callConditionRefresh(subscription, function (err) {
-                            // debugLog(" condition refresh has been called")
+                            // debugLog(" condition refresh has been called");
                         });
 
                     },
@@ -272,7 +280,8 @@ module.exports = function (test) {
 
                         test.monitoredItem1.once("changed", function () {
                             callback();
-                        });                        // now client send a condition refresh
+                        });
+                        // now client send a condition refresh
                         callConditionRefresh(subscription, function (err) {
                             //  callback(err);
                         });
@@ -365,7 +374,7 @@ module.exports = function (test) {
                             // The Event that reports the Disabled state
                             // should report the properties as NULL or with a status of Bad_ConditionDisabled.
                             var results = test.spy_monitored_item1_changes.getCall(0).args[0];
-                            dump_field_values(fields, results);
+                            //xx dump_field_values(fields, results);
 
                             var conditionDisabledVar = new opcua.Variant({
                                 dataType: opcua.DataType.StatusCode,
@@ -425,8 +434,55 @@ module.exports = function (test) {
             });
         });
 
-        xit("should raise an event when commenting a Condition ", function (done) {
-            done();
+        it("GGGH should raise an event when commenting a Condition ", function (done) {
+
+            var levelNode = test.tankLevel;
+            var alarmNode = test.tankLevelCondition;
+
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+
+                async.series([
+
+                    function given_a_enabled_condition(callback) {
+                        alarmNode.enabledState.setValue(true);
+                        alarmNode.enabledState.getValue().should.eql(true);
+                        callback();
+                    },
+
+                    given_and_install_event_monitored_item.bind(test, subscription),
+
+                    function when_we_set_a_comment(callback) {
+
+                        test.spy_monitored_item1_changes.callCount.should.eql(0,"no event should have been raised");
+                        var eventId= alarmNode.eventId.readValue().value.value;
+                        var alarmNodeId = alarmNode.nodeId;
+                        session.addCommentCondition(alarmNodeId,eventId,"SomeComment!!!",function(err) {
+                            callback(err);
+                        });
+                    },
+                    wait_a_little_bit_to_let_events_to_be_processed,
+
+                    function we_should_verify_that_an_event_has_been_raised(callback) {
+
+                        test.spy_monitored_item1_changes.callCount.should.eql(2,"an event should have been raised");
+
+                        var dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        //xx dump_field_values(fields,dataValues);
+
+                        var eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
+                        should(eventId_Step0).be.instanceOf(Buffer);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test");
+                        extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
+
+                        extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
+
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
+                        callback();
+                    }
+
+                ],callback);
+            },done);
         });
 
         xit("should raise an event when acknowledging an AcknowledgeableCondition ", function (done) {
@@ -507,6 +563,7 @@ module.exports = function (test) {
 
             var branch2_NodeId = null;
             var branch2_EventId = null;
+            var dataValues;
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
@@ -580,10 +637,6 @@ module.exports = function (test) {
 
                 }
 
-                function wait_a_little_bit_to_let_events_to_be_processed(callback) {
-                    // setImmediate(callback);
-                    setTimeout(callback, 200);
-                }
 
                 function branch_two_acknowledged_and_auto_confirmed_by_system_verify_branch_two_is_deleted(callback) {
 
@@ -615,9 +668,10 @@ module.exports = function (test) {
                     wait_a_little_bit_to_let_events_to_be_processed,
 
                     function we_should_verify_that_an_event_has_been_raised(callback) {
+
                         test.spy_monitored_item1_changes.callCount.should.eql(1,"an event should have been raised");
 
-                        var dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
 
                         eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
@@ -639,22 +693,27 @@ module.exports = function (test) {
                         callback();
 
                     },
+                    function(callback) {
+                        test.spy_monitored_item1_changes.reset();
+                        callback();
+                    },
 
                     // 2. Condition acknowledged requires Confirm
                     condition_acknowledged_requires_confirm,
 
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_a_second_event_has_been_raised(callback) {
+
                         // showing that alarm has been Acknowledged
                         // and need to be confirmed
-                        test.spy_monitored_item1_changes.callCount.should.eql(3);
+                        test.spy_monitored_item1_changes.callCount.should.eql(2);
 
-                        var dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //xx dump_field_values(fields,dataValues);
                         // ns=0;i=8944 AuditConditionAcknowledgeEventType
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=8944");
 
-                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
 
                         eventId_Step2 = extract_value_for_field("EventId", dataValues).value;
@@ -677,6 +736,8 @@ module.exports = function (test) {
                         extract_value_for_field("Retain", dataValues).value.should.eql(true);
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
+
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
 
@@ -688,9 +749,9 @@ module.exports = function (test) {
                     function we_should_verify_that_a_third_event_has_been_raised(callback) {
                         // showing that alarm has been Acknowledged
                         // and need to be confirmed
-                        test.spy_monitored_item1_changes.callCount.should.eql(4);
+                        test.spy_monitored_item1_changes.callCount.should.eql(1);
 
-                        var dataValues = test.spy_monitored_item1_changes.getCall(3).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         // dump_field_values(fields,dataValues);
 
                         eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
@@ -714,6 +775,8 @@ module.exports = function (test) {
 
                         //
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
+
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
                     // 4. Confirmed
@@ -722,13 +785,18 @@ module.exports = function (test) {
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_a_third_event_has_been_raised(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(6);
-                        var dataValues = test.spy_monitored_item1_changes.getCall(4).args[0];
+                        test.spy_monitored_item1_changes.callCount.should.eql(3);
+
+                        //  i=2829 => AuditConditionCommentEventType
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=2829");
+
                         //  i=8961 => AuditConditionConfirmEventType
+                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=8961");
 
-                        dataValues = test.spy_monitored_item1_changes.getCall(5).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
+                        dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
                         extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
@@ -744,6 +812,8 @@ module.exports = function (test) {
                         extract_value_for_field("Retain", dataValues).value.should.eql(false);
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
+
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
 
@@ -753,8 +823,8 @@ module.exports = function (test) {
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_a_fourth_event_has_been_raised(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(7);
-                        var dataValues = test.spy_monitored_item1_changes.getCall(6).args[0];
+                        test.spy_monitored_item1_changes.callCount.should.eql(1);
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
 
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
@@ -773,6 +843,8 @@ module.exports = function (test) {
 
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
+
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
 
@@ -781,9 +853,10 @@ module.exports = function (test) {
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_a_fifth_and_sixth_event_have_been_raised(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(9);
-                        var dataValues7 = test.spy_monitored_item1_changes.getCall(7).args[0];
-                        // dump_field_values(fields,dataValues7);
+                        test.spy_monitored_item1_changes.callCount.should.eql(2);
+
+                        var dataValues7 = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        //xx dump_field_values(fields,dataValues7);
 
                         // event value for branch #1 -----------------------------------------------------
                         //  i=9341 => ExclusiveLimitAlarmType
@@ -792,7 +865,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConditionName", dataValues7).value.should.eql("Test");
                         extract_value_for_field("SourceName", dataValues7).value.should.eql(levelNode.browseName.toString());
                         branch1_NodeId = extract_value_for_field("BranchId", dataValues7).value;
-                        branch1_EventId = extract_value_for_field("EventId", dataValues7).value;
+                            branch1_EventId = extract_value_for_field("EventId", dataValues7).value;
 
                         extract_value_for_field("ActiveState", dataValues7).value.text.should.eql("Active");
                         extract_value_for_field("ActiveState.Id", dataValues7).value.should.eql(true);
@@ -803,8 +876,8 @@ module.exports = function (test) {
                         extract_value_for_field("Retain", dataValues7).value.should.eql(true);
 
 
-                        var dataValues8 = test.spy_monitored_item1_changes.getCall(8).args[0];
-                        dump_field_values(fields, dataValues8);
+                        var dataValues8 = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        //xx dump_field_values(fields, dataValues8);
 
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues8).value.toString().should.eql(eventTypeNodeId);
@@ -823,6 +896,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
                     // 7. b) Prior state needs acknowledgment. Branch #1 created.
@@ -834,8 +908,9 @@ module.exports = function (test) {
                     wait_a_little_bit_to_let_events_to_be_processed,
 
                     function we_should_verify_that_a_new_event_is_raised(callback) {
-                        test.spy_monitored_item1_changes.callCount.should.eql(10);
-                        var dataValues9 = test.spy_monitored_item1_changes.getCall(9).args[0];
+
+                        test.spy_monitored_item1_changes.callCount.should.eql(1);
+                        var dataValues9 = test.spy_monitored_item1_changes.getCall(0).args[0];
                         // dump_field_values(fields,dataValues);
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues9).value.toString().should.eql(eventTypeNodeId);
@@ -854,11 +929,13 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
 
                     // 9. Prior state acknowledged, Confirm required.
                     function (callback) {
+
                         debugLog("9. Prior state acknowledged, Confirm required.");
                         var conditionId = alarmNode.nodeId;
                         var eventId = branch1_EventId;
@@ -873,15 +950,15 @@ module.exports = function (test) {
 
                     function we_should_verify_that_an_event_is_raised_for_branch_and_that_confirm_is_false(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(12);
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(11).args[0];
-                        dump_field_values(fields, dataValuesA);
+                        test.spy_monitored_item1_changes.callCount.should.eql(2);
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        // dump_field_values(fields, dataValuesA);
 
                         // ns=0;i=8944 AuditConditionAcknowledgeEventType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8944");
                         // xx should(extract_value_for_field("BranchId",   dataValuesA).value).eql(branch1_NodeId);
 
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(10).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(0).args[0];
 
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch1_NodeId);
@@ -900,6 +977,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
                     // 10. b) Alarm goes inactive again.
@@ -910,10 +988,10 @@ module.exports = function (test) {
                     function we_should_verify_that_a_second_branch_is_created(callback) {
 
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(14);
+                        test.spy_monitored_item1_changes.callCount.should.eql(2);
 
                         // -----------------------------  Event on a second  Branch !
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(12).args[0];
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(NodeId.NullNodeId);
@@ -936,7 +1014,7 @@ module.exports = function (test) {
 
 
                         // -----------------------------  Event on main branch !
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(13).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(NodeId.NullNodeId);
@@ -950,6 +1028,7 @@ module.exports = function (test) {
 
 
                         alarmNode.getBranchCount().should.eql(2, " Expecting two extra branches apart from current branch");
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
 
@@ -967,13 +1046,17 @@ module.exports = function (test) {
                     function we_should_verify_that_branch_one_is_deleted(callback) {
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(16);
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(14).args[0];
+                        test.spy_monitored_item1_changes.callCount.should.eql(3);
+
+                        //  i=2829 => AuditConditionCommentEventType
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=2829");
 
                         // ns=0;i=8961 AuditConditionConfirmEventType
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(1).args[0];
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8961");
 
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(15).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(2).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch1_NodeId);
@@ -985,6 +1068,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(true);
                         extract_value_for_field("Retain", dataValuesB).value.should.eql(false);
 
+                        test.spy_monitored_item1_changes.reset();
                         callback();
                     },
                     // 13. Prior state acknowledged, Auto Confirmed by system Branch #2 deleted.
@@ -995,18 +1079,19 @@ module.exports = function (test) {
                     function we_should_verify_than_branch_one_is_no_longer_here(callback) {
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(20);
+                        test.spy_monitored_item1_changes.callCount.should.eql(5);
 
-                        var dataValues0 = test.spy_monitored_item1_changes.getCall(16).args[0];
-                        var dataValues1 = test.spy_monitored_item1_changes.getCall(17).args[0];
+                        var dataValues0 = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        var dataValues1 = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        var dataValues2 = test.spy_monitored_item1_changes.getCall(2).args[0];
 
 
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(18).args[0];
+                        var dataValuesA = test.spy_monitored_item1_changes.getCall(3).args[0];
 
                         // ns=0;i=8961 AuditConditionConfirmEventType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8961");
 
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(19).args[0];
+                        var dataValuesB = test.spy_monitored_item1_changes.getCall(4).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch2_NodeId);
