@@ -24,6 +24,8 @@ var Variant = require("lib/datamodel/variant").Variant;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var UAObject = require("lib/address_space/ua_object").UAObject;
 
+var ConditionInfo = require("lib/address_space/alarms_and_conditions/condition").ConditionInfo;
+
 
 require("lib/address_space/address_space_add_enumeration_type");
 
@@ -236,12 +238,18 @@ module.exports = function (test) {
                     browseName: "MyCustomCondition4"
                 });
 
+                // make sure condition is raised once
+                condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
+                var eventId = condition.eventId.readValue().value.value;
+                should(eventId).be.instanceOf(Buffer);
+
                 var context = {object: condition};
+
                 var param = [
                     // the eventId
-                    {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
+                    new Variant({dataType: DataType.ByteString, value: eventId}),
                     //
-                    {dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message")}
+                    new Variant({dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message")})
                 ];
                 condition.addComment.execute(param, context, function (err, callMethodResponse) {
                     callMethodResponse.statusCode.should.equal(StatusCodes.Good);
@@ -261,12 +269,17 @@ module.exports = function (test) {
                     browseName: "MyCustomCondition12"
                 });
 
+                condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
+
                 var context = {object: condition};
+                var eventId = condition.eventId.readValue().value.value;
+                should(eventId).be.instanceOf(Buffer);
+
                 var param = [
                     // the eventId
-                    {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
+                    new Variant({dataType: DataType.ByteString, value:eventId }),
                     //
-                    {dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message")}
+                    new Variant({dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message")})
                 ];
 
                 var conditionType = addressSpace.findObjectType("ConditionType");
