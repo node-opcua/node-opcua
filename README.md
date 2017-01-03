@@ -112,7 +112,7 @@ This will give us full of motivation to carry on and keep working on the roadmap
 | Attribute Service Set      |                       ||
 |                            |Read()                 |:white_check_mark:|
 |                            |Write()                |:white_check_mark:|
-|                            |HistoryRead()          |:white_check_mark:|
+|                            |HistoryRead()          |:waxing_crescent_moon:|
 |                            |HistoryUpdate()        |:waxing_crescent_moon:|
 |MonitoredItems Service Set  |                       ||
 |                            |CreateMonitoredItems() |:white_check_mark:|
@@ -126,7 +126,7 @@ This will give us full of motivation to carry on and keep working on the roadmap
 |                            |DeleteSubscriptions()  |:white_check_mark:|
 |                            |Publish()              |:white_check_mark:|
 |                            |Republish()            |:white_check_mark:|
-|                            |TransferSubscriptions()|:new_moon:|
+|                            |TransferSubscriptions()|:waxing_crescent_moon:|
 |Node Management Service Set |                       ||
 |                            |AddNodes()             |:new_moon:|
 |                            |AddReferences()        |:new_moon:|
@@ -164,7 +164,7 @@ This will give us full of motivation to carry on and keep working on the roadmap
 | Discovery                              |:white_check_mark:       | |
 | Event Subscription                     |:white_check_mark:       | |
 | Method call                            |:white_check_mark:       | |
-| Historical Access                      |:new_moon:               | |
+| Historical Access                      |:first_quarter_moon:     | |
 | Advanced Type                          |:white_check_mark:       | |
 | Programming                            |:new_moon:               | |
 | Auditing                               |:new_moon:               | |
