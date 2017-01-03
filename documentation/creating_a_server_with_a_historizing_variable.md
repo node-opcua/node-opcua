@@ -24,6 +24,8 @@ function construct_address_space(server) {
   var addressSpace = server.engine.addressSpace;
   _"create the vessel object"
   _"create historizing variable"
+  _"adding historical configuration"
+  _"simulating data"
 };
 function post_initialize() {
     construct_address_space(server);
@@ -67,8 +69,6 @@ var vesselPressure = addressSpace.addAnalogDataItem({
     componentOf: vessel
 });
 ```
-_"adding historical configuration"
-_"simulating data"
 
 ### adding historical configuration
 
