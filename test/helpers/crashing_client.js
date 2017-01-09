@@ -2,7 +2,7 @@
 // once a item has been monitored
 
 if (process.argv.length != 3) {
-    return;
+    // throw new Error('Improper Args length')
 }
 console.log("process.argv.length ",process.argv.length);
 
