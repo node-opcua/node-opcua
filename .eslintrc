@@ -29,5 +29,10 @@
     "dot-notation": 0
   },
    "plugins": [
-   ]
+   ],
+   "settings": {
+      "import/resolver": {
+        "babel-module": {}
+      }
+    }
 }
