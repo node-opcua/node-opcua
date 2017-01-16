@@ -14,7 +14,8 @@
     "pretest": "node bin/crypto_create_CA.js demo --dev --silent",
     "test": "mocha test --color -R spec --recursive --timeout 200000 --bail --compilers js:babel-core/register",
     "generate_doc": "make doc",
-    "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
+    "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js",
+    "build": "babel index.js --presets babel-preset-es2015 --out-dir distribution"
   },
   "repository": {
     "type": "git",
@@ -40,6 +41,7 @@
     "babel-eslint": "^7.1.1",
     "babel-plugin-module-resolver": "^2.4.0",
     "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-2": "^6.18.0",
     "babel-register": "^6.18.0",
     "benchmark": "2.1.2",
     "bignumber.js": "3.0.1",
