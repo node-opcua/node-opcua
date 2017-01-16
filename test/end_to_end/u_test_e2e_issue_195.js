@@ -84,6 +84,7 @@ module.exports = function (test) {
 
             var the_subscription = 0;
             var the_monitoredItem =0;
+            var the_session;
             async.series([
 
                 function (callback) {
@@ -154,6 +155,7 @@ module.exports = function (test) {
             var the_monitoredItem =0;
 
             var subscriptionId = null;
+            var the_session;
             async.series([
 
                 function (callback) {

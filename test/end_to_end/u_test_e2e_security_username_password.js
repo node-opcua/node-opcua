@@ -46,7 +46,7 @@ module.exports = function (test) {
             });
 
             it("C1 - testing with username === null ", function (done) {
-
+                var the_session;
                 var client1;
                 async.series([
 

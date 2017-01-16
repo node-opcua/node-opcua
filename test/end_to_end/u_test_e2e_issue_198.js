@@ -27,7 +27,7 @@ module.exports = function (test) {
 
             var client1 = new OPCUAClient();
             var endpointUrl = test.endpointUrl;
-
+            var the_session;
             // Hijack internal method _nextSessionName to return null !
             client1._nextSessionName = function() {
                 return null;
