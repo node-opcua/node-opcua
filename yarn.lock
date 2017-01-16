@@ -390,7 +390,7 @@ babel-plugin-external-helpers@^6.18.0:
   dependencies:
     babel-runtime "^6.0.0"
 
-babel-plugin-module-resolver@^2.2.0:
+babel-plugin-module-resolver@^2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-module-resolver/-/babel-plugin-module-resolver-2.4.0.tgz#b7b66e1494ebf955d5f6d83d59d3f282d7c1d71f"
   dependencies:
@@ -1413,7 +1413,7 @@ eslint-config-airbnb@^14.0.0:
   dependencies:
     eslint-config-airbnb-base "^11.0.1"
 
-eslint-import-resolver-babel-module@^2.0.1:
+eslint-import-resolver-babel-module@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/eslint-import-resolver-babel-module/-/eslint-import-resolver-babel-module-2.2.1.tgz#6c42f33a6f09f3944d8cfa9e1de470fc8a3c2cfc"
   dependencies:

@@ -29,8 +29,12 @@ if (!crypto_utils.isFullySupported()) {
 
         before(function () {
             OPCUAServer.registry.count().should.eql(0);
-            server = new OPCUAServer({port: 1235});
-            server.serverType = opcua.ApplicationType.SERVER;
+            server = new OPCUAServer({
+                port: 1235, 
+                serverInfo: {
+                    applicationType: opcua.ApplicationType.SERVER
+                }
+            });
         });
 
         after(function () {

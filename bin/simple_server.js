@@ -1,6 +1,9 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 require("requirish")._(module);
+
+require("babel-register");
+
 Error.stackTraceLimit = Infinity;
 
 var argv = require('yargs')

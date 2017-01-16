@@ -34,7 +34,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 describe("ServerEngine Subscriptions Transfer", function () {
 
 
-    var engine, session1, FolderTypeId, BaseDataVariableTypeId;
+    var engine, session1, session2, FolderTypeId, BaseDataVariableTypeId;
 
     beforeEach(function (done) {
 

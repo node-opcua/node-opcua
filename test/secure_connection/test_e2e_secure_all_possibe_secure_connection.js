@@ -477,7 +477,7 @@ if (!crypto_utils.isFullySupported()) {
             var old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
             var crypto = require("crypto");
             ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
-                if(requestMessage.constructor.name = "OpenSecureChannelRequest") {
+                if(requestMessage.constructor.name == "OpenSecureChannelRequest") {
                     assert(requestMessage.clientNonce.length === 16);
                     this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
                     ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
