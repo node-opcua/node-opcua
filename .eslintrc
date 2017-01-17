@@ -26,7 +26,8 @@
     "no-lone-blocks": 0,
     "no-shadow": 0,
     "comma-dangle": 0,
-    "dot-notation": 0
+    "dot-notation": 0,
+    "no-console": 0
   },
    "plugins": [
    ],
