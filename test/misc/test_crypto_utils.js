@@ -2,7 +2,7 @@ require("requirish")._(module);
 var hexy = require("hexy");
 var should = require("should");
 var path = require("path");
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
 var make_lorem_ipsum_buffer = require("test/helpers/make_lorem_ipsum_buffer").make_lorem_ipsum_buffer;
 
 describe("Crypto utils", function () {

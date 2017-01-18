@@ -1,5 +1,7 @@
 require("requirish")._(module);
 
+import crypto_utils from "lib/misc/crypto_utils";
+    
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");
@@ -25,7 +27,6 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 module.exports = function (test) {
 
-    var crypto_utils = require("lib/misc/crypto_utils");
     if (!crypto_utils.isFullySupported()) {
         console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
     } else {

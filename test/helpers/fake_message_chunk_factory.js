@@ -7,7 +7,8 @@ var SequenceNumberGenerator = require("lib/misc/sequence_number_generator").Sequ
 var AsymmetricAlgorithmSecurityHeader = require("lib/services/secure_channel_service").AsymmetricAlgorithmSecurityHeader;
 var SymmetricAlgorithmSecurityHeader = require("lib/services/secure_channel_service").SymmetricAlgorithmSecurityHeader;
 
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
+    
 var fs = require("fs");
 var path = require("path");
 

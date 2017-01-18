@@ -12,7 +12,7 @@ var _ = require("underscore");
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
-var Enum = require("lib/misc/enum");
+import Enum from "lib/misc/enum";
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
 var assert = require("assert");

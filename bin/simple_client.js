@@ -107,7 +107,7 @@ var doHistory = argv.history ? true : false;
 var serverCertificate = null;
 
 var path = require("path");
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
 
 
 function getBrowseName(session,nodeId,callback) {

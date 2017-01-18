@@ -126,6 +126,7 @@ module.exports.constructEventFilter = require("lib/tools/tools_event_filter").co
 module.exports.checkSelectClause = require("lib/tools/tools_event_filter").checkSelectClause;
 module.exports.buildVariantArray = require("lib/datamodel/variant_tools").buildVariantArray;
 module.exports.encode_decode = require("lib/misc/encode_decode");
-module.exports.Enum = require("lib/misc/enum");
+import Enum from "lib/misc/enum";
+module.exports.Enum = Enum;
 module.exports.factories = require("lib/misc/factories");
 

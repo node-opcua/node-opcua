@@ -1,6 +1,6 @@
 "use strict";
 require("requirish")._(module);
-var Enum = require("lib/misc/enum");
+import Enum from "lib/misc/enum";
 var should = require("should");
 var _ = require("underscore");
 
@@ -86,7 +86,6 @@ var Benchmarker = require("test/helpers/benchmarker").Benchmarker;
 
 
 var EnumSlow = require("enum");
-var EnumFast = require("lib/misc/enum");
 
 xdescribe("Benchmarking Enums", function () {
 

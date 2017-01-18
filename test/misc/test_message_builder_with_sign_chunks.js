@@ -13,7 +13,7 @@ var fake_message_chunk_factory = require("test/helpers/fake_message_chunk_factor
 
 var MessageBuilder = require("lib/misc/message_builder").MessageBuilder;
 var SecurityPolicy = require("lib/misc/security_policy").SecurityPolicy;
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
 var opcua = require("../..");
 
 if (!crypto_utils.isFullySupported()) {

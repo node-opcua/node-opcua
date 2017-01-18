@@ -6,7 +6,7 @@ var _ = require("underscore");
 var path = require("path");
 var assert = require("better-assert");
 
-var Enum = require("lib/misc/enum");
+import Enum from "lib/misc/enum";
 
 var opcua = require("index");
 

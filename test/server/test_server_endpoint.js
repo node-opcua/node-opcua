@@ -1,4 +1,5 @@
 require("requirish")._(module);
+import crypto_utils from "lib/misc/crypto_utils";
 
 var should = require("should");
 
@@ -9,7 +10,6 @@ var MessageSecurityMode = opcua.MessageSecurityMode;
 var SecurityPolicy = opcua.SecurityPolicy;
 var EndpointDescription = opcua.EndpointDescription;
 
-var crypto_utils = require("lib/misc/crypto_utils");
 var it_with_crypto = (crypto_utils.isFullySupported()) ? it : xit;
 
 var default_port = 1234;

@@ -4,7 +4,8 @@ var path = require("path");
 var fs = require("fs");
 var util = require("util");
 
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
+    
 var assert = require("better-assert");
 var hexDump = require("lib/misc/utils").hexDump;
 

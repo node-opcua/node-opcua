@@ -1,6 +1,7 @@
 require("requirish")._(module);
+import crypto_utils from "lib/misc/crypto_utils";
+    
 var colors = require("colors");
-var crypto_utils = require("lib/misc/crypto_utils");
 var path = require("path");
 var _ = require("underscore");
 var spawn = require("child_process").spawn;
