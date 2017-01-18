@@ -347,12 +347,13 @@ describe("Factories: testing object factory", function () {
 
         var schema_helpers =  require("lib/misc/factories_schema_helpers");
 
-        var old_schema_helpers_doDebug = schema_helpers.doDebug;
-        schema_helpers.doDebug = true;
+        var old_schema_helpers_doDebug = schema_helpers.doDebug();
+        schema_helpers.setDebug(true);
         // redirect stdout to null as test will be noisy
         var old_process_stdout_write = process.stdout.write;
 
         (function test_constructor_with_invalid_args() {
+            console.log('testing...§')
             var a = new Shape({
 
                 this_invalid_field_should_cause_Shape_Constructor_to_raise_an_exception: "**bingo**",
@@ -364,7 +365,7 @@ describe("Factories: testing object factory", function () {
 
         }).should.throw();
 
-        schema_helpers.doDebug = old_schema_helpers_doDebug;
+        schema_helpers.setDebug (old_schema_helpers_doDebug);
      });
 
 });
