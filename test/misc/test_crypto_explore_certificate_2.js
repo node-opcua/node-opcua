@@ -9,7 +9,10 @@ import crypto_utils from "lib/misc/crypto_utils";
 var assert = require("better-assert");
 var hexDump = require("lib/misc/utils").hexDump;
 
-var exploreCertificate = require("lib/misc/crypto_explore_certificate").exploreCertificate;
+
+import crypto_explore_certificate from "lib/misc/crypto_explore_certificate";
+
+const { exploreCertificate } = crypto_explore_certificate;
 
 
 var makebuffer_from_trace = require("test/helpers/makebuffer_from_trace").makebuffer_from_trace;
