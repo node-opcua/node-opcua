@@ -1343,7 +1343,7 @@ describe("testing ability for client to reconnect when server close connection",
             backoff_event_counter+=1;
         });
 
-        var endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.galaxy:42";
+        var endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.galaxy.com:4242";
 
         // let's call connect.
         // because the endpointUrl doesn't exist,  and the the infinite_connectivity_strategy
