@@ -23,9 +23,7 @@ export {isValidVariant};
 
 
 function calculate_product(array) {
-    return array.reduce(function (n, p) {
-        return n * p;
-    }, 1);
+    return array.reduce((n, p) => n * p, 1);
 }
 
 function get_encoder(dataType) {

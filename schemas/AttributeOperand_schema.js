@@ -1,4 +1,3 @@
-"use strict";
 require("requirish")._(module);
 import {NumericRange} from "lib/datamodel/numeric_range";
 

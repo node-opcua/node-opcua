@@ -1,5 +1,3 @@
-"use strict";
-
 import {next_available_id} from "lib/misc/factories";
 
 // OPC Unified Architecture, Part 4 page 106

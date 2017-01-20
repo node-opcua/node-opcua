@@ -1,4 +1,3 @@
-"use strict";
 import { registerEnumeration } from "lib/misc/factories";
 
 const EnumNodeClass_Schema = {

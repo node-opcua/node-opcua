@@ -1,4 +1,3 @@
-"use strict";
 require("requirish")._(module);
 
 import {BrowseDirection} from "schemas/BrowseDirection_enum";

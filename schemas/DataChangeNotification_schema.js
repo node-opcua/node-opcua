@@ -1,4 +1,3 @@
-"use strict";
 const DataChangeNotification_Schema = {
     name: "DataChangeNotification",
     //  BaseType="NotificationData"

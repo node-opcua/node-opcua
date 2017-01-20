@@ -1,5 +1,3 @@
-"use strict";
-
 require("./DataChangeTrigger_enum");
 require("./DeadbandType_enum");
 

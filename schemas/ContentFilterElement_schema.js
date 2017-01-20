@@ -1,4 +1,3 @@
-"use strict";
 require("requirish")._(module);
 import {FilterOperator} from "schemas/FilterOperator_enum";
 
