@@ -1,4 +1,3 @@
-"use strict";
 /*
  <UADataType NodeId="i=296" BrowseName="Argument">
      <DisplayName>Argument</DisplayName>
@@ -25,24 +24,20 @@
      </Definition>
  </UADataType>
  */
-require("requirish")._(module);
-var _ = require("underscore");
-var assert = require("better-assert");
-
-var factories = require("lib/misc/factories");
-var NodeId = require("lib/datamodel/nodeid").NodeId;
-var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
-var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
-
-var DataType = require("lib/datamodel/variant").DataType;
+import _ from "underscore";
+import assert from "better-assert";
+import {NodeId} from "lib/datamodel/nodeid";
+import {makeNodeId} from "lib/datamodel/nodeid";
+import {coerceNodeId} from "lib/datamodel/nodeid";
+import {DataType} from "lib/datamodel/variant";
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
-var Argument_Schema = {
+const Argument_Schema = {
     name: "Argument",
     documentation: "An argument for a method.",
     construct_hook: function(options) {
 
-        var dataType = options.dataType;
+        let dataType = options.dataType;
         if (dataType) {
             if (typeof dataType === "string") {
                 dataType = makeNodeId(dataType.value, 0);
@@ -111,4 +106,4 @@ var Argument_Schema = {
 
     ]
 };
-exports.Argument_Schema = Argument_Schema;
+export {Argument_Schema};

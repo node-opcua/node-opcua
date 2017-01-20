@@ -1,4 +1,4 @@
-var CancelResponse_Schema =  {
+const CancelResponse_Schema =  {
     documentation: "Closes a session with the server.",
     name: "CancelResponse",
     fields: [
@@ -6,4 +6,4 @@ var CancelResponse_Schema =  {
         { name:"CancelCount",           fieldType:"UInt32",          documentation:"The number of requests successfully cancelled."}
     ]
 };
-exports.CancelResponse_Schema = CancelResponse_Schema;
+export {CancelResponse_Schema};

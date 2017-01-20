@@ -1,5 +1,5 @@
 
-var TranslateBrowsePathsToNodeIdsResponse_Schema = {
+const TranslateBrowsePathsToNodeIdsResponse_Schema = {
     name: "TranslateBrowsePathsToNodeIdsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -7,4 +7,4 @@ var TranslateBrowsePathsToNodeIdsResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo", documentation: "The diagnostics associated with the results." }
     ]
 };
-exports.TranslateBrowsePathsToNodeIdsResponse_Schema = TranslateBrowsePathsToNodeIdsResponse_Schema;
+export {TranslateBrowsePathsToNodeIdsResponse_Schema};

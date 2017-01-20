@@ -1,12 +1,11 @@
 "use strict";
 require("requirish")._(module);
 
-var BrowseDirection = require("schemas/BrowseDirection_enum").BrowseDirection;
-var NodeClass = require("schemas/NodeClass_enum").NodeClass;
+import {BrowseDirection} from "schemas/BrowseDirection_enum";
+import {NodeClass} from "schemas/NodeClass_enum";
+import {ResultMask} from "schemas/ResultMask_enum";
 
-var ResultMask = require("schemas/ResultMask_enum").ResultMask;
-
-var BrowseDescription_Schema = {
+const BrowseDescription_Schema = {
     name: "BrowseDescription",
     documentation: 'A request to browse the the references from a node.',
     fields: [
@@ -42,4 +41,4 @@ var BrowseDescription_Schema = {
         {name: "resultMask", fieldType: "UInt32", defaultValue: 0, documentation: "A mask indicating which fields in the ReferenceDescription should be returned in the results."}
     ]
 };
-exports.BrowseDescription_Schema = BrowseDescription_Schema;
+export {BrowseDescription_Schema};

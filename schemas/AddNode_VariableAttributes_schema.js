@@ -1,4 +1,4 @@
-var AddNodes_VariableAttributes_Schema = {
+const AddNodes_VariableAttributes_Schema = {
     name: "VariableAttributes",
     fields: [
         {
@@ -20,4 +20,4 @@ var AddNodes_VariableAttributes_Schema = {
         {name: "userWriteMask",             fieldType: "UInt32"},
     ]
 };
-exports.AddNodes_VariableAttributes_Schema = AddNodes_VariableAttributes_Schema;
+export {AddNodes_VariableAttributes_Schema};

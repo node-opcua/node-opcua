@@ -1,5 +1,5 @@
 
-var TimestampsToReturn = require("./TimestampsToReturn_enum").TimestampsToReturn;
+import {TimestampsToReturn} from "./TimestampsToReturn_enum";
 
 /*
  * Maximum age of the value to be read in milliseconds. The age of the value is based on the difference between the
@@ -21,7 +21,7 @@ var TimestampsToReturn = require("./TimestampsToReturn_enum").TimestampsToReturn
  * @class ReadRequest
  */
 
-var ReadRequest_Schema = {
+const ReadRequest_Schema = {
     name: "ReadRequest",
     fields: [
         {   name: "requestHeader" ,               fieldType: "RequestHeader"},
@@ -39,4 +39,4 @@ var ReadRequest_Schema = {
         }
     ]
 };
-exports.ReadRequest_Schema = ReadRequest_Schema;
+export {ReadRequest_Schema};

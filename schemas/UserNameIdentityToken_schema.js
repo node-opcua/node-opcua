@@ -1,5 +1,5 @@
 
-var UserNameIdentityToken_Schema = {
+const UserNameIdentityToken_Schema = {
     name:"UserNameIdentityToken",
     documentation: "A token representing a user identified by a user name and password",
     fields: [
@@ -19,4 +19,4 @@ var UserNameIdentityToken_Schema = {
         { name: "encryptionAlgorithm" , fieldType:"String" ,    documentation:"The algorithm used to encrypt the password."}
     ]
 };
-exports.UserNameIdentityToken_Schema = UserNameIdentityToken_Schema;
+export {UserNameIdentityToken_Schema};

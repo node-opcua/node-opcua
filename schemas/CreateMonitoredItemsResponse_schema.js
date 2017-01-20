@@ -1,5 +1,5 @@
 
-var CreateMonitoredItemsResponse_Schema = {
+const CreateMonitoredItemsResponse_Schema = {
     name: "CreateMonitoredItemsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -7,5 +7,5 @@ var CreateMonitoredItemsResponse_Schema = {
         { name: "diagnosticInfos", isArray:true,  fieldType:"DiagnosticInfo" }
     ]
 };
-exports.CreateMonitoredItemsResponse_Schema = CreateMonitoredItemsResponse_Schema;
+export {CreateMonitoredItemsResponse_Schema};
 

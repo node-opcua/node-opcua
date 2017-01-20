@@ -1,5 +1,5 @@
 
-var RelativePathElement_Schema = {
+const RelativePathElement_Schema = {
     name: "RelativePathElement",
     documentation: "An element in a relative path.",
     fields: [
@@ -9,4 +9,4 @@ var RelativePathElement_Schema = {
         { name: "targetName", fieldType: "QualifiedName", documentation: "The browse name of the target." }
     ]
 };
-exports.RelativePathElement_Schema = RelativePathElement_Schema;
+export {RelativePathElement_Schema};

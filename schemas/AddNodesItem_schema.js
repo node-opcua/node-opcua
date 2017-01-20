@@ -1,4 +1,4 @@
-var AddNodesItem_Schema = {
+const AddNodesItem_Schema = {
     name:"AddNodesItem",
     fields: [
         { name: "parentNodeId" ,       fieldType: "ExpandedNodeId", documentation: "ExpandedNodeId of the parent Node for the Reference."},
@@ -20,4 +20,4 @@ var AddNodesItem_Schema = {
 
     ]
 };
-exports.AddNodesItem_Schema =AddNodesItem_Schema;
+export {AddNodesItem_Schema};

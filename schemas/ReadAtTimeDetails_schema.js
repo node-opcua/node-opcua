@@ -1,4 +1,4 @@
-var ReadAtTimeDetails_Schema = {
+const ReadAtTimeDetails_Schema = {
     name: "ReadAtTimeDetails",
     baseType: "HistoryReadDetails",
     fields: [
@@ -6,4 +6,4 @@ var ReadAtTimeDetails_Schema = {
         { name: "useSimpleBounds", fieldType: "Boolean" }
     ]
 };
-exports.ReadAtTimeDetails_Schema = ReadAtTimeDetails_Schema;
+export {ReadAtTimeDetails_Schema};

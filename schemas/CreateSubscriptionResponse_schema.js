@@ -1,4 +1,4 @@
-var CreateSubscriptionResponse_Schema = {
+const CreateSubscriptionResponse_Schema = {
     name: "CreateSubscriptionResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -8,6 +8,6 @@ var CreateSubscriptionResponse_Schema = {
         { name: "revisedMaxKeepAliveCount", fieldType: "Counter" }
     ]
 };
-exports.CreateSubscriptionResponse_Schema = CreateSubscriptionResponse_Schema;
+export {CreateSubscriptionResponse_Schema};
 
 

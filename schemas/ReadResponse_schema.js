@@ -1,4 +1,4 @@
-var ReadResponse_Schema = {
+const ReadResponse_Schema = {
     name: "ReadResponse",
     fields: [
         { name: "responseHeader" ,                fieldType: "ResponseHeader"},
@@ -11,5 +11,5 @@ var ReadResponse_Schema = {
         { name: "diagnosticInfos", isArray:true,  fieldType: "DiagnosticInfo" }
     ]
 };
-exports.ReadResponse_Schema = ReadResponse_Schema;
+export {ReadResponse_Schema};
 

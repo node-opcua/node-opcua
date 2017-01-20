@@ -13,7 +13,7 @@
 
  */
 
-var SetMonitoringModeRequest_Schema = {
+const SetMonitoringModeRequest_Schema = {
     name: "SetMonitoringModeRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },
@@ -27,4 +27,4 @@ var SetMonitoringModeRequest_Schema = {
         { name: "monitoredItemIds", isArray: true, fieldType: "IntegerId" }
     ]
 };
-exports.SetMonitoringModeRequest_Schema = SetMonitoringModeRequest_Schema;
+export {SetMonitoringModeRequest_Schema};

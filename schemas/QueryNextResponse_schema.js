@@ -1,4 +1,4 @@
-var QueryNextResponse_Schema = {
+const QueryNextResponse_Schema = {
     name: "QueryNextResponse",
     fields: [
         { name: "responseHeader",                   fieldType: "ResponseHeader" },
@@ -6,5 +6,5 @@ var QueryNextResponse_Schema = {
         { name: "revisedContinuationPoint",         fieldType: "ContinuationPoint" },
     ]
 };
-exports.QueryNextResponse_Schema = QueryNextResponse_Schema;
+export {QueryNextResponse_Schema};
 

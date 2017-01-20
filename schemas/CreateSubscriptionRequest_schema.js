@@ -1,5 +1,5 @@
 
-var CreateSubscriptionRequest_Schema = {
+const CreateSubscriptionRequest_Schema = {
     name: "CreateSubscriptionRequest",
     fields: [
 
@@ -36,4 +36,4 @@ var CreateSubscriptionRequest_Schema = {
         { name: "priority", fieldType: "Byte"}
     ]
 };
-exports.CreateSubscriptionRequest_Schema = CreateSubscriptionRequest_Schema;
+export {CreateSubscriptionRequest_Schema};

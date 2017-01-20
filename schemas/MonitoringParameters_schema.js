@@ -1,4 +1,4 @@
-var MonitoringParameters_Schema = {
+const MonitoringParameters_Schema = {
     name: "MonitoringParameters",
     fields: [
         /*
@@ -75,5 +75,5 @@ var MonitoringParameters_Schema = {
         { name: "discardOldest", fieldType: "Boolean" }
     ]
 };
-exports.MonitoringParameters_Schema = MonitoringParameters_Schema;
+export {MonitoringParameters_Schema};
 

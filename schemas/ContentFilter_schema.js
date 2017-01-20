@@ -1,5 +1,5 @@
 
-var ContentFilter_Schema = {
+const ContentFilter_Schema = {
     name: "ContentFilter",
     fields: [
         // List of operators and their operands that compose the filter criteria. The filter is
@@ -8,5 +8,5 @@ var ContentFilter_Schema = {
         { name: "elements", isArray: true,  fieldType:"ContentFilterElement" }
     ]
 };
-exports.ContentFilter_Schema = ContentFilter_Schema;
+export {ContentFilter_Schema};
 

@@ -1,4 +1,4 @@
-var IssuedIdentityToken_Schema = {
+const IssuedIdentityToken_Schema = {
     name:"IssuedIdentityToken",
     documentation: "A token representing a user identified by a WS-Security XML token.",
     fields: [
@@ -9,4 +9,4 @@ var IssuedIdentityToken_Schema = {
         { name: "encryptionAlgorithm"  , fieldType:"String",     documentation:"The algorithm used to encrypt the password."}
     ]
 };
-exports.IssuedIdentityToken_Schema = IssuedIdentityToken_Schema;
+export {IssuedIdentityToken_Schema};

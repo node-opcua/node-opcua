@@ -1,10 +1,8 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
-var assert = require("better-assert");
+import { registerEnumeration } from "lib/misc/factories";
+import {BinaryStream} from "lib/misc/binaryStream";
+import assert from "better-assert";
 
-var EnumBrowseDirection_Schema = {
+const EnumBrowseDirection_Schema = {
     name: "BrowseDirection",
     enumValues: {
         Invalid: -1, //
@@ -15,14 +13,13 @@ var EnumBrowseDirection_Schema = {
     decode: function(stream) {
 
         assert(stream instanceof BinaryStream);
-        var value = stream.readInteger();
+        const value = stream.readInteger();
         if (value<0 || value>2) {
             return exports.BrowseDirection.Invalid;
         }
         return exports.BrowseDirection.get(value);
     }
 };
-exports.EnumBrowseDirection_Schema = EnumBrowseDirection_Schema;
-
-exports.BrowseDirection = factories.registerEnumeration(EnumBrowseDirection_Schema);
+export {EnumBrowseDirection_Schema};
+export const BrowseDirection = registerEnumeration(EnumBrowseDirection_Schema);
 

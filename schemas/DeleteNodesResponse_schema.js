@@ -1,5 +1,5 @@
 
-var DeleteNodesResponse_Schema = {
+const DeleteNodesResponse_Schema = {
     name:"DeleteNodesResponse",
     fields: [
         {name: "responseHeader", fieldType: "ResponseHeader", documentation: "A standard header included in all responses returned by servers."},
@@ -7,4 +7,4 @@ var DeleteNodesResponse_Schema = {
         {name: "diagnostics", fieldType: "DiagnosticInfo",  isArray: true, documentation: " "}
     ]
 };
-exports.DeleteNodesResponse_Schema =DeleteNodesResponse_Schema;
+export {DeleteNodesResponse_Schema};

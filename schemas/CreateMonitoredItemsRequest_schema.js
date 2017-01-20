@@ -1,4 +1,4 @@
-var CreateMonitoredItemsRequest_Schema = {
+const CreateMonitoredItemsRequest_Schema = {
     name: "CreateMonitoredItemsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },
@@ -7,4 +7,4 @@ var CreateMonitoredItemsRequest_Schema = {
         { name: "itemsToCreate", isArray: true, fieldType: "MonitoredItemCreateRequest" }
     ]
 };
-exports.CreateMonitoredItemsRequest_Schema = CreateMonitoredItemsRequest_Schema;
+export {CreateMonitoredItemsRequest_Schema};

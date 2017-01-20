@@ -1,24 +1,25 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-var ec = require("lib/misc/encode_decode");
-var assert = require("better-assert");
-var _ = require("underscore");
+import {
+    next_available_id,
+    findBuiltInType
+} from "lib/misc/factories";
 
+import * as ec from "lib/misc/encode_decode";
+import assert from "better-assert";
+import _ from "underscore";
+import {DataType} from "./DataType_enum";
+import {VariantArrayType} from "./VariantArrayType_enum";
+import { isNullOrUndefined } from "lib/misc/utils";
 
-var DataType = require("./DataType_enum").DataType;
-var VariantArrayType = require("./VariantArrayType_enum").VariantArrayType;
-var utils = require("lib/misc/utils");
+const Variant_ArrayMask = 0x80;
+const Variant_ArrayDimensionsMask = 0x40;
+const Variant_TypeMask = 0x3F;
 
-var Variant_ArrayMask = 0x80;
-var Variant_ArrayDimensionsMask = 0x40;
-var Variant_TypeMask = 0x3F;
+import {
+    coerceVariantType,
+    isValidVariant
+} from "lib/datamodel/variant_tools";
 
-var variant_tools = require("lib/datamodel/variant_tools");
-
-var coerceVariantType = variant_tools.coerceVariantType;
-var isValidVariant = variant_tools.isValidVariant;
-exports.isValidVariant = isValidVariant;
+export {isValidVariant};
 
 
 function calculate_product(array) {
@@ -28,7 +29,7 @@ function calculate_product(array) {
 }
 
 function get_encoder(dataType) {
-    var encode = factories.findBuiltInType(dataType.key).encode;
+    const encode = findBuiltInType(dataType.key).encode;
     /* istanbul ignore next */
     if (!encode) {
         throw new Error("Cannot find encode function for dataType " + dataType.key);
@@ -37,19 +38,19 @@ function get_encoder(dataType) {
 }
 
 function get_decoder(dataType) {
-    var decode = factories.findBuiltInType(dataType.key).decode;
+    const decode = findBuiltInType(dataType.key).decode;
     /* istanbul ignore next */
     if (!decode) {
         throw new Error("Variant.decode : cannot find decoder for type " + dataType.key);
     }
     return decode;
 }
-var displayWarning = true;
+const displayWarning = true;
 function convertTo(dataType, ArrayType, value) {
 
 
     if (ArrayType && value instanceof ArrayType) {
-        var newArray = new value.constructor(value.length); // deep copy
+        const newArray = new value.constructor(value.length); // deep copy
 
         if (newArray instanceof Buffer) {
            // required for nodejs 4.x 
@@ -61,10 +62,10 @@ function convertTo(dataType, ArrayType, value) {
         return newArray;
 
     }
-    var coerceFunc = coerceVariantType.bind(null, dataType);
-    var n = value.length;
-    var newArr = ArrayType ? new ArrayType(n) : new Array(n);
-    for (var i = 0; i < n; i++) {
+    const coerceFunc = coerceVariantType.bind(null, dataType);
+    const n = value.length;
+    const newArr = ArrayType ? new ArrayType(n) : new Array(n);
+    for (let i = 0; i < n; i++) {
         newArr[i] = coerceFunc(value[i]);
     }
     if (ArrayType && displayWarning && n > 10) {
@@ -75,7 +76,7 @@ function convertTo(dataType, ArrayType, value) {
     return newArr;
 }
 
-var typedArrayHelpers = {};
+const typedArrayHelpers = {};
 
 function _getHelper(dataType) {
     return typedArrayHelpers[dataType.key];
@@ -83,7 +84,7 @@ function _getHelper(dataType) {
 
 function coerceVariantArray(dataType, value) {
 
-    var helper = _getHelper(dataType);
+    const helper = _getHelper(dataType);
     if (helper) {
         return helper.coerce(value);
     }
@@ -103,13 +104,13 @@ function encodeTypedArray(ArrayType, stream, value) {
 }
 
 function encodeGeneralArray(dataType, stream, value) {
-
-    var arr = value || [];
+    const arr = value || [];
 
     ec.encodeUInt32(arr.length, stream);
 
-    var encode = get_encoder(dataType);
-    var i, n = arr.length;
+    const encode = get_encoder(dataType);
+    let i;
+    const n = arr.length;
     for (i = 0; i < n; i++) {
         encode(arr[i], stream);
     }
@@ -130,37 +131,37 @@ function encodeVariantArray(dataType, stream, value) {
 
 function decodeTypedArray(ArrayType, stream) {
 
-    var length = ec.decodeUInt32(stream);
+    const length = ec.decodeUInt32(stream);
     if (length === 0xFFFFFFFF) {
         return null;
     }
 
-    var byteLength = length * ArrayType.BYTES_PER_ELEMENT;
-    var arr = stream.readArrayBuffer(byteLength);
-    var value = new ArrayType(arr.buffer);
+    const byteLength = length * ArrayType.BYTES_PER_ELEMENT;
+    const arr = stream.readArrayBuffer(byteLength);
+    const value = new ArrayType(arr.buffer);
     assert(value.length === length);
     return value;
 }
 
 function decodeGeneralArray(dataType, stream) {
 
-    var length = ec.decodeUInt32(stream);
+    const length = ec.decodeUInt32(stream);
 
     if (length === 0xFFFFFFFF) {
         return null;
     }
 
-    var decode = get_decoder(dataType);
+    const decode = get_decoder(dataType);
 
-    var arr = [];
-    for (var i = 0; i < length; i++) {
+    const arr = [];
+    for (let i = 0; i < length; i++) {
         arr.push(decode(stream));
     }
     return arr;
 }
 
 function decodeVariantArray(dataType, stream) {
-    var helper = _getHelper(dataType);
+    const helper = _getHelper(dataType);
     if (helper) {
         return helper.decode(stream);
     }
@@ -188,12 +189,12 @@ _declareTypeArrayHelper(DataType.UInt32, Uint32Array);
 
 function _decodeVariantArrayDebug(stream, decode, tracer, dataType) {
 
-    var cursor_before = stream.length;
-    var length = ec.decodeUInt32(stream);
-    var i, element;
+    let cursor_before = stream.length;
+    const length = ec.decodeUInt32(stream);
+    let i, element;
     tracer.trace("start_array", "Variant", length, cursor_before, stream.length);
 
-    var n1 = Math.min(10, length);
+    const n1 = Math.min(10, length);
     // display a maximum of 10 elements
     for (i = 0; i < n1; i++) {
         tracer.trace("start_element", "", i);
@@ -222,9 +223,9 @@ function encodeDimension(dimensions, stream) {
     return encodeGeneralArray(DataType.UInt32, stream, dimensions);
 }
 
-var Variant_Schema = {
+const Variant_Schema = {
     name: "Variant",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [{
         name: "dataType",
         fieldType: "DataType",
@@ -247,7 +248,7 @@ var Variant_Schema = {
     }],
     encode: function (variant, stream) {
 
-        var encodingByte = variant.dataType.value;
+        let encodingByte = variant.dataType.value;
 
         if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
             encodingByte |= Variant_ArrayMask;
@@ -261,7 +262,7 @@ var Variant_Schema = {
             encodeVariantArray(variant.dataType, stream, variant.value);
         }
         else {
-            var encode = get_encoder(variant.dataType);
+            const encode = get_encoder(variant.dataType);
             encode(variant.value, stream);
         }
 
@@ -272,12 +273,12 @@ var Variant_Schema = {
     },
     decode_debug: function (self, stream, options) {
 
-        var tracer = options.tracer;
+        const tracer = options.tracer;
 
-        var encodingByte = ec.decodeUInt8(stream);
+        const encodingByte = ec.decodeUInt8(stream);
 
-        var isArray = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
-        var hasDimension = ((encodingByte & Variant_ArrayDimensionsMask) === Variant_ArrayDimensionsMask);
+        const isArray = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
+        const hasDimension = ((encodingByte & Variant_ArrayDimensionsMask) === Variant_ArrayDimensionsMask);
 
         self.dataType = DataType.get(encodingByte & Variant_TypeMask);
 
@@ -285,14 +286,14 @@ var Variant_Schema = {
         tracer.dump("isArray:   ", isArray ? "true" : "false");
         tracer.dump("dimension: ", hasDimension);
 
-        var decode = factories.findBuiltInType(self.dataType.key).decode;
+        const decode = findBuiltInType(self.dataType.key).decode;
 
         /* istanbul ignore next */
         if (!decode) {
             throw new Error("Variant.decode : cannot find decoder for type " + self.dataType.key);
         }
 
-        var cursor_before = stream.length;
+        const cursor_before = stream.length;
 
         if (isArray) {
             self.arrayType = hasDimension ? VariantArrayType.Matrix : VariantArrayType.Array;
@@ -312,16 +313,16 @@ var Variant_Schema = {
         //    If ArrayDimensions are inconsistent with the ArrayLength then the decoder shall stop and raise a Bad_DecodingError.
         if (hasDimension) {
             self.dimensions = decodeDimension(stream);
-            var verification = calculate_product(self.dimensions);
+            const verification = calculate_product(self.dimensions);
         }
     },
     decode: function (self, stream) {
 
-        var encodingByte = ec.decodeUInt8(stream);
+        const encodingByte = ec.decodeUInt8(stream);
 
-        var isArray = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
+        const isArray = ((encodingByte & Variant_ArrayMask) === Variant_ArrayMask);
 
-        var hasDimension = (( encodingByte & Variant_ArrayDimensionsMask  ) === Variant_ArrayDimensionsMask);
+        const hasDimension = (( encodingByte & Variant_ArrayDimensionsMask  ) === Variant_ArrayDimensionsMask);
 
         self.dataType = DataType.get(encodingByte & Variant_TypeMask);
 
@@ -334,12 +335,12 @@ var Variant_Schema = {
         }
         else {
             self.arrayType = VariantArrayType.Scalar;
-            var decode = get_decoder(self.dataType);
+            const decode = get_decoder(self.dataType);
             self.value = decode(stream);
         }
         if (hasDimension) {
             self.dimensions = decodeDimension(stream);
-            var verification = calculate_product(self.dimensions);
+            const verification = calculate_product(self.dimensions);
             if (verification !== self.value.length) {
                 throw new Error("BadDecodingError");
             }
@@ -362,11 +363,11 @@ var Variant_Schema = {
         // dataType could be a string
         if (typeof options.dataType === "string") {
 
-            var d = factories.findBuiltInType(options.dataType);
-            var t = DataType[d.name];
+            const d = findBuiltInType(options.dataType);
+            const t = DataType[d.name];
 
             // istanbul ignore next
-            if (utils.isNullOrUndefined(t)) {
+            if (isNullOrUndefined(t)) {
                 throw new Error("DataType: invalid " + options.dataType);
             }
             options.dataType = t;
@@ -418,7 +419,7 @@ var Variant_Schema = {
     },
     toString: function (options) {
 
-        var self = this;
+        const self = this;
 
         function toString(value) {
             switch (self.dataType) {
@@ -442,7 +443,7 @@ var Variant_Schema = {
             return toString(value);
         }
 
-        var data = self.arrayType.toString();
+        let data = self.arrayType.toString();
 
         if (self.dimensions && self.dimensions.length > 0) {
             data += "[ " + self.dimensions.join(",") + " ]";
@@ -457,9 +458,9 @@ var Variant_Schema = {
             if (!self.value) {
                 data += ", null";
             } else {
-                var a = [];
+                const a = [];
                 assert(_.isArray(self.value) || (self.value.buffer instanceof ArrayBuffer));
-                for (var i = 0; i < Math.min(10, self.value.length); i++) {
+                for (let i = 0; i < Math.min(10, self.value.length); i++) {
                     a[i] = self.value[i];
                 }
                 if (self.value.length > 10) {
@@ -472,4 +473,4 @@ var Variant_Schema = {
     }
 
 };
-exports.Variant_Schema = Variant_Schema;
+export {Variant_Schema};

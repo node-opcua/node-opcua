@@ -1,4 +1,4 @@
-var X509IdentityToken_Schema = {
+const X509IdentityToken_Schema = {
     name:"X509IdentityToken",
     documentation: "A token representing a user identified by an X509 certificate.",
     fields: [
@@ -8,4 +8,4 @@ var X509IdentityToken_Schema = {
         { name: "certificateData"            , fieldType:"ByteString", documentation:"The certificate."}
     ]
 };
-exports.X509IdentityToken_Schema = X509IdentityToken_Schema;
+export {X509IdentityToken_Schema};

@@ -1,6 +1,6 @@
 
 
-var RegisterServerRequest_Schema = {
+const RegisterServerRequest_Schema = {
     documentation:"Registers a server with the discovery server.",
     name: "RegisterServerRequest",
     fields: [
@@ -8,4 +8,4 @@ var RegisterServerRequest_Schema = {
         { name:"server",                      fieldType:"RegisteredServer", documentation: "The server to register."}
     ]
 };
-exports.RegisterServerRequest_Schema = RegisterServerRequest_Schema;
+export {RegisterServerRequest_Schema};

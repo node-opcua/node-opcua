@@ -1,5 +1,5 @@
 
-var DeleteMonitoredItemsResponse_Schema = {
+const DeleteMonitoredItemsResponse_Schema = {
     name: "DeleteMonitoredItemsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -7,4 +7,4 @@ var DeleteMonitoredItemsResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.DeleteMonitoredItemsResponse_Schema = DeleteMonitoredItemsResponse_Schema;
+export {DeleteMonitoredItemsResponse_Schema};

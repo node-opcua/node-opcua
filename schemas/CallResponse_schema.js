@@ -1,6 +1,6 @@
 
 
-var CallResponse_Schema = {
+const CallResponse_Schema = {
     name: "CallResponse",
     documentation: "This Service is used to call (invoke) a list of Methods.",
     fields: [
@@ -20,4 +20,4 @@ var CallResponse_Schema = {
         { name: "diagnosticInfos" , fieldType:"DiagnosticInfo", isArray:true, documentation: "The List of diagnostic information for the statusCode of the results." }
     ]
 };
-exports.CallResponse_Schema = CallResponse_Schema;
+export {CallResponse_Schema};

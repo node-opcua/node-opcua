@@ -1,8 +1,7 @@
 "use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 
-var EnumNodeClass_Schema = {
+const EnumNodeClass_Schema = {
     name: "NodeClass",
     documentation: "A mask specifying the class of the node.",
     enumValues: {
@@ -17,6 +16,6 @@ var EnumNodeClass_Schema = {
         View:            128   // The node is a view.
     }
 };
-exports.EnumNodeClass_Schema = EnumNodeClass_Schema;
-exports.NodeClass = factories.registerEnumeration(EnumNodeClass_Schema);
+export {EnumNodeClass_Schema};
+export const NodeClass = registerEnumeration(EnumNodeClass_Schema);
 

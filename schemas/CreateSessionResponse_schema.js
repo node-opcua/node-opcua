@@ -2,7 +2,7 @@ require("requirish")._(module);
 require("lib/datamodel/SessionAuthenticationToken");
 
 
-var CreateSessionResponse_Schema = {
+const CreateSessionResponse_Schema = {
     documentation: "Creates a new session with the server.",
     name: "CreateSessionResponse",
     fields: [
@@ -20,4 +20,4 @@ var CreateSessionResponse_Schema = {
 
     ]
 };
-exports.CreateSessionResponse_Schema = CreateSessionResponse_Schema;
+export {CreateSessionResponse_Schema};

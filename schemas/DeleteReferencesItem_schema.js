@@ -1,4 +1,4 @@
-var DeleteReferencesItem_Schema = {
+const DeleteReferencesItem_Schema = {
     name:"DeleteReferencesItem",
     fields: [
         { name: "sourceNodeId" ,           fieldType: "NodeId", documentation: ""},
@@ -9,4 +9,4 @@ var DeleteReferencesItem_Schema = {
 
     ]
 };
-exports.DeleteReferencesItem_Schema =DeleteReferencesItem_Schema;
+export {DeleteReferencesItem_Schema};

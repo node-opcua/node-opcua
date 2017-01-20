@@ -1,5 +1,5 @@
 // OPC Unified Architecture, Part 6  page 36
-var ChannelSecurityToken_Schema = {
+const ChannelSecurityToken_Schema = {
     name: "ChannelSecurityToken",
     fields: [
         { name: "secureChannelId", fieldType: "UInt32"                     },
@@ -10,4 +10,4 @@ var ChannelSecurityToken_Schema = {
         { name: "revisedLifeTime", fieldType: "UInt32", defaultValue: 30000   }
     ]
 };
-exports.ChannelSecurityToken_Schema =ChannelSecurityToken_Schema;
+export {ChannelSecurityToken_Schema};

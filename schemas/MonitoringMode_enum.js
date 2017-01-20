@@ -1,6 +1,4 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 
 // OPCUA Spec 1.02 Part 4 page 5.12.1.3 Monitoring Mode:
 // The monitoring mode parameter is used to enable and disable the sampling of a MonitoredItem, and also to provide
@@ -11,7 +9,7 @@ var factories = require("lib/misc/factories");
 // or it is created in the enabled state, the Server shall report the first sample as soon as possible and the time
 // of this sample becomes the starting point for the next sampling interval.
 
-var MonitoringMode_Schema = {
+const MonitoringMode_Schema = {
     name: "MonitoringMode",
     enumValues: {
         /*
@@ -40,5 +38,5 @@ var MonitoringMode_Schema = {
         Invalid: -1
     }
 };
-exports.MonitoringMode_Schema = MonitoringMode_Schema;
-exports.MonitoringMode = factories.registerEnumeration(MonitoringMode_Schema);
+export {MonitoringMode_Schema};
+export const MonitoringMode = registerEnumeration(MonitoringMode_Schema);

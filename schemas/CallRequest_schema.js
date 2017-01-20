@@ -1,6 +1,6 @@
 
 
-var CallRequest_Schema = {
+const CallRequest_Schema = {
     name: "CallRequest",
     documentation: "This Service is used to call (invoke) a list of Methods.",
     fields: [
@@ -9,5 +9,5 @@ var CallRequest_Schema = {
         {name: "methodsToCall" ,fieldType: "CallMethodRequest", isArray: true, documentation: "List of Methods to call."}
     ]
 };
-exports.CallRequest_Schema = CallRequest_Schema;
+export {CallRequest_Schema};
 

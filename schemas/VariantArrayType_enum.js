@@ -1,8 +1,6 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 
-var VariantArrayType_Schema = {
+const VariantArrayType_Schema = {
     name:"VariantArrayType",
     enumValues: {
         Scalar: 0x00,
@@ -11,4 +9,4 @@ var VariantArrayType_Schema = {
     }
 };
 
-exports.VariantArrayType = factories.registerEnumeration(VariantArrayType_Schema);
+export const VariantArrayType = registerEnumeration(VariantArrayType_Schema);

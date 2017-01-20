@@ -1,5 +1,5 @@
 
-var EventFilter_Schema = {
+const EventFilter_Schema = {
     name: "EventFilter",
     baseType: "MonitoringFilter",
     fields: [
@@ -7,4 +7,4 @@ var EventFilter_Schema = {
         { name: "whereClause",   fieldType: "ContentFilter", dataType: "i=583" }
     ]
 };
-exports.EventFilter_Schema = EventFilter_Schema;
+export {EventFilter_Schema};

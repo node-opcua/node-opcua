@@ -1,9 +1,7 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 
 // see part 4 $7.14
-var HistoryUpdateType_Schema = {
+const HistoryUpdateType_Schema = {
     name: "HistoryUpdateType",
     enumValues: {
         INVALID: 0, // The MessageSecurityMode is invalid
@@ -14,4 +12,4 @@ var HistoryUpdateType_Schema = {
     }
 };
 
-exports.HistoryUpdateType = factories.registerEnumeration(HistoryUpdateType_Schema);
+export const HistoryUpdateType = registerEnumeration(HistoryUpdateType_Schema);

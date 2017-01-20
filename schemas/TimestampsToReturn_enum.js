@@ -1,10 +1,8 @@
-"use strict";
-require("requirish")._(module);
-var assert = require("better-assert");
-var factories = require("lib/misc/factories");
-var BinaryStream = require("lib/misc/binaryStream").BinaryStream;
+import { registerEnumeration } from "lib/misc/factories";
+import assert from "better-assert";
+import {BinaryStream} from "lib/misc/binaryStream";
 
-var TimestampsToReturn_Schema = {
+const TimestampsToReturn_Schema = {
     name: "TimestampsToReturn",
     enumValues: {
         Invalid:      -1,
@@ -16,12 +14,12 @@ var TimestampsToReturn_Schema = {
     decode: function(stream) {
 
         assert(stream instanceof BinaryStream);
-        var value = stream.readInteger();
+        const value = stream.readInteger();
         if (value<0 || value>3) {
             return TimestampsToReturn.Invalid;
         }
         return TimestampsToReturn.get(value);
     }
 };
-exports.TimestampsToReturn_Schema = TimestampsToReturn_Schema;
-var TimestampsToReturn = exports.TimestampsToReturn = factories.registerEnumeration(TimestampsToReturn_Schema);
+export {TimestampsToReturn_Schema};
+var TimestampsToReturn = exports.TimestampsToReturn = registerEnumeration(TimestampsToReturn_Schema);

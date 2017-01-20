@@ -1,13 +1,11 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { next_available_id } from "lib/misc/factories";
 
 // OPC UA Secure Conversation Message Header : Part 6 page 36
 
 //Asymmetric algorithms are used to secure the OpenSecureChannel messages.
-var AsymmetricAlgorithmSecurityHeader_Schema = {
+const AsymmetricAlgorithmSecurityHeader_Schema = {
     name: "AsymmetricAlgorithmSecurityHeader",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         // length shall not exceed 256
         // The URI of the security policy used to secure the message.
@@ -39,4 +37,4 @@ var AsymmetricAlgorithmSecurityHeader_Schema = {
         { name:"receiverCertificateThumbprint" , fieldType:"ByteString", defaultValue: null}
     ]
 };
-exports.AsymmetricAlgorithmSecurityHeader_Schema = AsymmetricAlgorithmSecurityHeader_Schema;
+export {AsymmetricAlgorithmSecurityHeader_Schema};

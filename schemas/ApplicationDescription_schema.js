@@ -1,8 +1,8 @@
 
-var ApplicationType = require("./ApplicationType_enum").ApplicationType;
+import {ApplicationType} from "./ApplicationType_enum";
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
-var ApplicationDescription_Schema = {
+const ApplicationDescription_Schema = {
     name: "ApplicationDescription",
     fields: [
         // The globally unique identifier for the application instance.
@@ -28,4 +28,4 @@ var ApplicationDescription_Schema = {
 
     ]
 };
-exports.ApplicationDescription_Schema = ApplicationDescription_Schema;
+export {ApplicationDescription_Schema};

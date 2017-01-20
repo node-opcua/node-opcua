@@ -1,4 +1,4 @@
-var EventFilterResult_Schema = {
+const EventFilterResult_Schema = {
     name: "EventFilterResult",
     baseType: "MonitoringFilter", // todo Correct to use?
     fields: [
@@ -7,4 +7,4 @@ var EventFilterResult_Schema = {
         { name: "whereClauseResult",   fieldType: "ContentFilterResult"}
     ]
 };
-exports.EventFilterResult_Schema = EventFilterResult_Schema;
+export {EventFilterResult_Schema};

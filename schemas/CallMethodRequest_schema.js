@@ -1,19 +1,18 @@
 require("requirish")._(module);
 
-var _ = require("underscore");
-var assert = require("better-assert");
-var NodeId = require("lib/datamodel/nodeid").NodeId;
-
-var _defaultTypeMap = require("lib/misc/factories_builtin_types")._defaultTypeMap;
-var encode_NodeId = _defaultTypeMap.NodeId.encode;
-var decode_NodeId = _defaultTypeMap.NodeId.decode;
+import _ from "underscore";
+import assert from "better-assert";
+import {NodeId} from "lib/datamodel/nodeid";
+import {_defaultTypeMap} from "lib/misc/factories_builtin_types";
+const encode_NodeId = _defaultTypeMap.NodeId.encode;
+const decode_NodeId = _defaultTypeMap.NodeId.decode;
 assert(_.isFunction(encode_NodeId));
 assert(_.isFunction(decode_NodeId));
 
-var decode_ArgumentList = require("lib/datamodel/argument_list").decode_ArgumentList;
-var encode_ArgumentList = require("lib/datamodel/argument_list").encode_ArgumentList;
+import {decode_ArgumentList} from "lib/datamodel/argument_list";
+import {encode_ArgumentList} from "lib/datamodel/argument_list";
 
-var CallMethodRequest_Schema = {
+const CallMethodRequest_Schema = {
     name: "CallMethodRequest",
     fields: [
 
@@ -50,4 +49,4 @@ var CallMethodRequest_Schema = {
     ]
 
 };
-exports.CallMethodRequest_Schema = CallMethodRequest_Schema;
+export {CallMethodRequest_Schema};

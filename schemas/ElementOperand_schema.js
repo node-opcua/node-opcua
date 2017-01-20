@@ -6,11 +6,11 @@
 // Reference a non-existent element. Clients shall construct filters in this way to avoid circular and
 // invalid References. Servers should protect against invalid indexes by verifying the index prior to
 // using it.
-var ElementOperand_Schema = {
+const ElementOperand_Schema = {
     name:"ElementOperand",
     baseType:"FilterOperand",
     fields: [
         {name: "index", fieldType:"UInt32", documentation:"Index into the element array"}
     ]
 };
-exports.ElementOperand_Schema = ElementOperand_Schema;
+export {ElementOperand_Schema};

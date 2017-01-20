@@ -1,5 +1,5 @@
 // <   BaseType="ua:">
-var ReadEventDetails_Schema = {
+const ReadEventDetails_Schema = {
     name: "ReadEventDetails",
     baseType: "HistoryReadDetails",
     fields: [
@@ -9,4 +9,4 @@ var ReadEventDetails_Schema = {
         { name: "filter", fieldType: "EventFilter" }
     ]
 };
-exports.ReadEventDetails_Schema = ReadEventDetails_Schema;
+export {ReadEventDetails_Schema};

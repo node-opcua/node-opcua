@@ -1,5 +1,5 @@
 // OPC Unified Architecture, Part 4 page 16
-var GetEndpointsRequest_Schema = {
+const GetEndpointsRequest_Schema = {
     name: "GetEndpointsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  },
@@ -21,4 +21,4 @@ var GetEndpointsRequest_Schema = {
     ]
 };
 
-exports.GetEndpointsRequest_Schema = GetEndpointsRequest_Schema;
+export {GetEndpointsRequest_Schema};

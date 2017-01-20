@@ -1,9 +1,7 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { next_available_id } from "lib/misc/factories";
 
-var EventFieldList_Schema = {
-    id: factories.next_available_id(),
+const EventFieldList_Schema = {
+    id: next_available_id(),
     name: "EventFieldList",
     fields: [
         {name: "clientHandle", fieldType: "IntegerId", documentation: "Client-supplied handle for the MonitoredItem"},
@@ -15,4 +13,4 @@ var EventFieldList_Schema = {
         }
     ]
 };
-exports.EventFieldList_Schema = EventFieldList_Schema;
+export {EventFieldList_Schema};

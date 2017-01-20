@@ -1,4 +1,4 @@
-var ActivateSessionResponse_Schema =  {
+const ActivateSessionResponse_Schema =  {
     documentation: "Activates a session with the server.",
     name: "ActivateSessionResponse",
     fields: [
@@ -9,4 +9,4 @@ var ActivateSessionResponse_Schema =  {
 
     ]
 };
-exports.ActivateSessionResponse_Schema = ActivateSessionResponse_Schema;
+export {ActivateSessionResponse_Schema};

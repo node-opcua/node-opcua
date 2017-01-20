@@ -1,4 +1,4 @@
-var HistoryReadValueId_Schema = {
+const HistoryReadValueId_Schema = {
     name: "HistoryReadValueId",
     // baseType: "ExtensionObject"
     fields: [
@@ -8,4 +8,4 @@ var HistoryReadValueId_Schema = {
         {   name: "continuationPoint", fieldType: "ByteString",defaultValue:null}
     ]
 };
-exports.HistoryReadValueId_Schema = HistoryReadValueId_Schema;
+export {HistoryReadValueId_Schema};

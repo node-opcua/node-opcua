@@ -1,4 +1,4 @@
-var BrowseResponse_Schema = {
+const BrowseResponse_Schema = {
     name: "BrowseResponse",
     documentation: "Browse the references for one or more nodes from the server address space.",
     fields: [
@@ -7,6 +7,6 @@ var BrowseResponse_Schema = {
         {name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo", documentation: "The diagnostics associated with the results."}
     ]
 };
-exports.BrowseResponse_Schema = BrowseResponse_Schema;
+export {BrowseResponse_Schema};
 
 

@@ -1,4 +1,4 @@
-var AddReferencesItem_Schema = {
+const AddReferencesItem_Schema = {
     name:"AddReferencesItem",
     fields: [
         { name: "sourceNodeId",      fieldType: "NodeId"},
@@ -10,4 +10,4 @@ var AddReferencesItem_Schema = {
 
     ]
 };
-exports.AddReferencesItem_Schema =AddReferencesItem_Schema;
+export {AddReferencesItem_Schema};

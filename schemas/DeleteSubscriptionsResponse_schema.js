@@ -1,4 +1,4 @@
-var DeleteSubscriptionsResponse_Schema = {
+const DeleteSubscriptionsResponse_Schema = {
     name: "DeleteSubscriptionsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -6,4 +6,4 @@ var DeleteSubscriptionsResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.DeleteSubscriptionsResponse_Schema = DeleteSubscriptionsResponse_Schema;
+export {DeleteSubscriptionsResponse_Schema};

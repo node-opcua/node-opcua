@@ -1,7 +1,7 @@
-var MessageSecurityMode = require("./MessageSecurityMode_enum").MessageSecurityMode;
+import {MessageSecurityMode} from "./MessageSecurityMode_enum";
 
 // OPC Unified Architecture, Part 4 page 121
-var EndpointDescription_Schema = {
+const EndpointDescription_Schema = {
     name: "EndpointDescription",
     fields: [
         // The URL for the Endpoint described.
@@ -36,4 +36,4 @@ var EndpointDescription_Schema = {
     ]
 };
 
-exports.EndpointDescription_Schema = EndpointDescription_Schema;
+export {EndpointDescription_Schema};

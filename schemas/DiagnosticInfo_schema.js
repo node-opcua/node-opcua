@@ -1,20 +1,16 @@
 /*
  * @module opcua.datamodel
  */
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-
-var ec = require("lib/misc/encode_decode");
-var assert = require('better-assert');
-
-var QualifiedName   = require("lib/datamodel/qualified_name").QualifiedName;
-var LocalizedText   = require("lib/datamodel/localized_text").LocalizedText;
-var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
+import { registerEnumeration } from "lib/misc/factories";
+import * as ec from "lib/misc/encode_decode";
+import assert from 'better-assert';
+import {QualifiedName} from "lib/datamodel/qualified_name";
+import {LocalizedText} from "lib/datamodel/localized_text";
+import {StatusCodes} from "lib/datamodel/opcua_status_code";
 assert(QualifiedName, " expecting QualifiedName here to be defined");
 assert(LocalizedText, " expecting Localized Text here to be defined");
 
-var DiagnosticInfo_EncodingByte_Schema = {
+const DiagnosticInfo_EncodingByte_Schema = {
     name: "DiagnosticInfo_EncodingByte",
     enumValues: {
         SymbolicId:          0x01,
@@ -27,14 +23,14 @@ var DiagnosticInfo_EncodingByte_Schema = {
     }
 };
 
-var DiagnosticInfo_EncodingByte = exports.DiagnosticInfo_EncodingByte = factories.registerEnumeration(DiagnosticInfo_EncodingByte_Schema);
+const DiagnosticInfo_EncodingByte = exports.DiagnosticInfo_EncodingByte = registerEnumeration(DiagnosticInfo_EncodingByte_Schema);
 
 
 
 function getDiagnosticInfoEncodingByte(diagnosticInfo) {
     assert(diagnosticInfo);
 
-    var encoding_mask = 0;
+    let encoding_mask = 0;
 
     if (diagnosticInfo.symbolicId  >=0) {
         encoding_mask = set_flag(encoding_mask, DiagnosticInfo_EncodingByte.SymbolicId);
@@ -60,8 +56,8 @@ function getDiagnosticInfoEncodingByte(diagnosticInfo) {
     return encoding_mask;
 }
 
-var set_flag = require("lib/misc/utils").set_flag;
-var check_flag = require("lib/misc/utils").check_flag;
+import {set_flag} from "lib/misc/utils";
+import {check_flag} from "lib/misc/utils";
 
 // Note:
 // the SymbolicId, NamespaceUri, LocalizedText and Locale fields are indexes in a string table which is returned
@@ -69,7 +65,7 @@ var check_flag = require("lib/misc/utils").check_flag;
 // of −1 indicates that there is no value for the string.
 //
 
-var DiagnosticInfo_Schema = {
+const DiagnosticInfo_Schema = {
     name: "DiagnosticInfo",
     fields: [
         { name: "namespaceUri",        fieldType: "Int32",  defaultValue: -1 ,  documentation: "The symbolicId is defined within the context of a namespace."},
@@ -84,7 +80,7 @@ var DiagnosticInfo_Schema = {
     id:  25 ,
     encode: function (diagnosticInfo, stream) {
 
-        var encoding_mask = getDiagnosticInfoEncodingByte(diagnosticInfo);
+        const encoding_mask = getDiagnosticInfoEncodingByte(diagnosticInfo);
 
         // write encoding byte
         ec.encodeByte(encoding_mask, stream);
@@ -122,12 +118,12 @@ var DiagnosticInfo_Schema = {
 
     decode_debug: function (diagnosticInfo, stream, options) {
 
-        var tracer = options.tracer;
+        const tracer = options.tracer;
 
         tracer.trace("start", options.name + "(" + "DiagnosticInfo" + ")", stream.length, stream.length);
 
-        var cursor_before = stream.length;
-        var encoding_mask = ec.decodeByte(stream);
+        let cursor_before = stream.length;
+        const encoding_mask = ec.decodeByte(stream);
 
         tracer.trace("member", "encodingByte", "0x" + encoding_mask.toString(16), cursor_before, stream.length, "Mask");
         tracer.encoding_byte(encoding_mask,DiagnosticInfo_EncodingByte,cursor_before,stream.length);
@@ -173,7 +169,7 @@ var DiagnosticInfo_Schema = {
         }
         // read inner status code
         if (check_flag(encoding_mask, DiagnosticInfo_EncodingByte.InnerDiagnosticInfo)) {
-            var DiagnosticInfo = require("../_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
+            const DiagnosticInfo = require("../_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
 
             diagnosticInfo.innerDiagnosticInfo = new DiagnosticInfo({});
 
@@ -187,7 +183,7 @@ var DiagnosticInfo_Schema = {
 
     decode: function (diagnosticInfo, stream, options) {
 
-        var encoding_mask = ec.decodeByte(stream);
+        const encoding_mask = ec.decodeByte(stream);
 
         // read symbolic id
         if (check_flag(encoding_mask, DiagnosticInfo_EncodingByte.SymbolicId)) {
@@ -216,11 +212,11 @@ var DiagnosticInfo_Schema = {
         // read inner status code
         if (check_flag(encoding_mask, DiagnosticInfo_EncodingByte.InnerDiagnosticInfo)) {
 
-            var DiagnosticInfo = require("../_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
+            const DiagnosticInfo = require("../_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
             diagnosticInfo.innerDiagnosticInfo = new DiagnosticInfo({});
             diagnosticInfo.innerDiagnosticInfo.decode(stream, options);
         }
     }
 };
-exports.DiagnosticInfo_Schema =DiagnosticInfo_Schema;
+export {DiagnosticInfo_Schema};
 

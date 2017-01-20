@@ -1,4 +1,4 @@
-var AddNodes_ReferenceTypeAttributes_Schema = {
+const AddNodes_ReferenceTypeAttributes_Schema = {
     name: "ReferenceTypeAttributes",
     fields: [
         {
@@ -15,4 +15,4 @@ var AddNodes_ReferenceTypeAttributes_Schema = {
         {name: "userWriteMask", fieldType: "UInt32"}
     ]
 };
-exports.AddNodes_ReferenceTypeAttributes_Schema = AddNodes_ReferenceTypeAttributes_Schema;
+export {AddNodes_ReferenceTypeAttributes_Schema};

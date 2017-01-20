@@ -1,11 +1,9 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-var ec = require("lib/misc/encode_decode");
-var assert = require("better-assert");
+import { next_available_id } from "lib/misc/factories";
+import * as ec from "lib/misc/encode_decode";
+import assert from "better-assert";
 
 function getLocalizeText_EncodingByte(localizedText) {
-    var encoding_mask = 0;
+    let encoding_mask = 0;
     if (localizedText.locale) {
         encoding_mask += 1;
     }
@@ -16,9 +14,9 @@ function getLocalizeText_EncodingByte(localizedText) {
 }
 
 // see Part 3 - $8.5 page 63
-var LocalizedText_Schema = {
+const LocalizedText_Schema = {
     name: "LocalizedText",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         { name: "text", fieldType: "String", defaultValue : function () { return null; } },
         { name: "locale", fieldType: "LocaleId" }
@@ -26,7 +24,7 @@ var LocalizedText_Schema = {
 
     // OPCUA Part 6 $ 5.2.2.14 : localizedText have a special encoding
     encode: function (localizedText, stream) {
-        var encoding_mask = getLocalizeText_EncodingByte(localizedText);
+        const encoding_mask = getLocalizeText_EncodingByte(localizedText);
         ec.encodeByte(encoding_mask, stream);
         if ((encoding_mask & 0x01) === 0x01) {
             ec.encodeString(localizedText.locale, stream);
@@ -37,12 +35,12 @@ var LocalizedText_Schema = {
     },
     decode_debug: function (self, stream , options) {
 
-        var cursor_before;
-        var tracer = options.tracer;
+        let cursor_before;
+        const tracer = options.tracer;
         tracer.trace("start", options.name + "(" + "LocalizedText" + ")", stream.length, stream.length);
         cursor_before = stream.length;
 
-        var encoding_mask = ec.decodeByte(stream);
+        const encoding_mask = ec.decodeByte(stream);
         tracer.trace("member", "encodingByte", "0x" + encoding_mask.toString(16), cursor_before, stream.length, "Mask");
         cursor_before = stream.length;
 
@@ -64,7 +62,7 @@ var LocalizedText_Schema = {
     },
     decode: function (self, stream) {
 
-        var encoding_mask = ec.decodeByte(stream);
+        const encoding_mask = ec.decodeByte(stream);
         if ((encoding_mask & 0x01) === 0x01) {
             self.locale = ec.decodeString(stream);
         } else {
@@ -81,4 +79,4 @@ var LocalizedText_Schema = {
     }
 
 };
-exports.LocalizedText_Schema = LocalizedText_Schema;
+export {LocalizedText_Schema};

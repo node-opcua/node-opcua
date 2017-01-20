@@ -1,4 +1,4 @@
-var AddNodes_MethodAttributes_Schema = {
+const AddNodes_MethodAttributes_Schema = {
     name: "AddNodes_MethodAttributes",
     fields: [
         {
@@ -14,4 +14,4 @@ var AddNodes_MethodAttributes_Schema = {
         {name: "userWriteMask", fieldType: "UInt32"},
     ]
 };
-exports.AddNodes_MethodAttributes_Schema = AddNodes_MethodAttributes_Schema;
+export {AddNodes_MethodAttributes_Schema};

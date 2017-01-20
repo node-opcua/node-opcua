@@ -1,5 +1,5 @@
 
-var NotificationMessage_Schema = {
+const NotificationMessage_Schema = {
     name: "NotificationMessage",
     fields: [
         { name: "sequenceNumber", fieldType: "Counter" },
@@ -8,5 +8,5 @@ var NotificationMessage_Schema = {
         // could be DataChangeNotification or EventNotificationList
     ]
 };
-exports.NotificationMessage_Schema = NotificationMessage_Schema;
+export {NotificationMessage_Schema};
 

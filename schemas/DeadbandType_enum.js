@@ -1,8 +1,6 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 
-var DeadbandType_Schema = {
+const DeadbandType_Schema = {
     name:"DeadbandType",
     enumValues: {
         None:       0x00,
@@ -12,5 +10,5 @@ var DeadbandType_Schema = {
 
     }
 };
-exports.DeadbandType_Schema = DeadbandType_Schema;
-exports.DeadbandType = factories.registerEnumeration(DeadbandType_Schema);
+export {DeadbandType_Schema};
+export const DeadbandType = registerEnumeration(DeadbandType_Schema);

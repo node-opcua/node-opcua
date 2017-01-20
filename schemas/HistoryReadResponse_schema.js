@@ -1,4 +1,4 @@
-var HistoryReadResponse_Schema = {
+const HistoryReadResponse_Schema = {
     name: "HistoryReadResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader"},
@@ -6,4 +6,4 @@ var HistoryReadResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.HistoryReadResponse_Schema = HistoryReadResponse_Schema;
+export {HistoryReadResponse_Schema};

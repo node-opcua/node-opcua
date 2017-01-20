@@ -1,10 +1,8 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { next_available_id } from "lib/misc/factories";
 
-var ErrorMessage_Schema = {
+const ErrorMessage_Schema = {
     name: "ErrorMessage",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         {
             name: "Error",
@@ -18,4 +16,4 @@ var ErrorMessage_Schema = {
         }
     ]
 };
-exports.ErrorMessage_Schema = ErrorMessage_Schema;
+export {ErrorMessage_Schema};

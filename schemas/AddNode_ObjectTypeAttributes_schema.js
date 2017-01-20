@@ -1,4 +1,4 @@
-var AddNodes_ObjectTypeAttributes_Schema = {
+const AddNodes_ObjectTypeAttributes_Schema = {
     name: "ObjectTypeAttributes",
     fields: [
         {
@@ -13,4 +13,4 @@ var AddNodes_ObjectTypeAttributes_Schema = {
         {name: "userWriteMask", fieldType: "UInt32"}
     ]
 };
-exports.AddNodes_ObjectTypeAttributes_Schema = AddNodes_ObjectTypeAttributes_Schema;
+export {AddNodes_ObjectTypeAttributes_Schema};

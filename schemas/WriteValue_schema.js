@@ -1,6 +1,6 @@
 import * as __ from "lib/datamodel/numeric_range"
 
-var WriteValue_Schema = {
+const WriteValue_Schema = {
     name: "WriteValue",
     fields: [
         { name: "nodeId" ,       fieldType: "NodeId"},
@@ -9,4 +9,4 @@ var WriteValue_Schema = {
         { name: "value",         fieldType: "DataValue"}
     ]
 };
-exports.WriteValue_Schema = WriteValue_Schema;
+export {WriteValue_Schema};

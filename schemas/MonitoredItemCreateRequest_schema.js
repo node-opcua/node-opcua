@@ -1,6 +1,6 @@
-var MonitoringMode = require("./MonitoringMode_enum").MonitoringMode;
+import {MonitoringMode} from "./MonitoringMode_enum";
 
-var MonitoredItemCreateRequest_Schema = {
+const MonitoredItemCreateRequest_Schema = {
     name: "MonitoredItemCreateRequest",
     fields: [
         { name: "itemToMonitor", fieldType: "ReadValueId" },
@@ -8,5 +8,5 @@ var MonitoredItemCreateRequest_Schema = {
         { name: "requestedParameters", fieldType: "MonitoringParameters" }
     ]
 };
-exports.MonitoredItemCreateRequest_Schema = MonitoredItemCreateRequest_Schema;
+export {MonitoredItemCreateRequest_Schema};
 

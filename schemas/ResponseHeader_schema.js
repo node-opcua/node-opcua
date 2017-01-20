@@ -1,6 +1,6 @@
 
 // OPC Unified Architecture, Part 4  $7.27 page 139
-var ResponseHeader_Schema = {
+const ResponseHeader_Schema = {
     name: "ResponseHeader",
     fields: [
         // The time the Server sent the response.
@@ -27,4 +27,4 @@ var ResponseHeader_Schema = {
     ]
 };
 
-exports.ResponseHeader_Schema = ResponseHeader_Schema;
+export {ResponseHeader_Schema};

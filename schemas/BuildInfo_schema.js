@@ -1,9 +1,6 @@
 
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
 
-var BuildInfo_Schema = {
+const BuildInfo_Schema = {
     name:"BuildInfo",
     documentation:'Server build Info',
 
@@ -16,4 +13,4 @@ var BuildInfo_Schema = {
         { name: "buildDate" ,        fieldType: "UtcTime", documentation: "the software build date"}
     ]
 };
-exports.BuildInfo_Schema = BuildInfo_Schema;
+export {BuildInfo_Schema};

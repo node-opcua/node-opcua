@@ -1,4 +1,4 @@
-var FindServersRequest_Schema = {
+const FindServersRequest_Schema = {
     documentation:"Finds the servers known to the discovery server.",
     name: "FindServersRequest",
     fields: [
@@ -8,4 +8,4 @@ var FindServersRequest_Schema = {
         { name:"serverUris",   isArray:true,  fieldType:"String",         documentation: "The URIs of the servers to return (all servers returned if none specified)."}
     ]
 };
-exports.FindServersRequest_Schema = FindServersRequest_Schema;
+export {FindServersRequest_Schema};

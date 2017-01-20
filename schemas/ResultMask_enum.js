@@ -1,12 +1,9 @@
-var BrowseDescriptionResultMask = {
+const BrowseDescriptionResultMask = {
 
 };
+import { registerEnumeration } from "lib/misc/factories";
 
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-
-var ResultMask_Schema = {
+const ResultMask_Schema = {
     name: "ResultMask",
     enumValues: {
         ReferenceType: 0x01,
@@ -17,7 +14,7 @@ var ResultMask_Schema = {
         TypeDefinition:0x20
     }
 };
-exports.ResultMask_Schema = ResultMask_Schema;
-exports.ResultMask = factories.registerEnumeration(ResultMask_Schema);
+export {ResultMask_Schema};
+export const ResultMask = registerEnumeration(ResultMask_Schema);
 
 

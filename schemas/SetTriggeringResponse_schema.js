@@ -1,4 +1,4 @@
-var SetTriggeringResponse_Schema = {
+const SetTriggeringResponse_Schema = {
     name: "SetTriggeringResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -8,4 +8,4 @@ var SetTriggeringResponse_Schema = {
         { name: "removeDiagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.SetTriggeringResponse_Schema = SetTriggeringResponse_Schema;
+export {SetTriggeringResponse_Schema};

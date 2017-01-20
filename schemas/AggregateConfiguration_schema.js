@@ -1,4 +1,4 @@
-var AggregateConfiguration_Schema = {
+const AggregateConfiguration_Schema = {
     name: "AggregateConfiguration",
     //xx baseType:"ExtensionObject",
     isAbstract: true,
@@ -10,4 +10,4 @@ var AggregateConfiguration_Schema = {
         { name: "useSlopedExtrapolation", fieldType: "Boolean" }
     ]
 };
-exports.AggregateConfiguration_Schema = AggregateConfiguration_Schema;
+export {AggregateConfiguration_Schema};

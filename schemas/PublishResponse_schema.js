@@ -1,6 +1,6 @@
 
 
-var PublishResponse_Schema = {
+const PublishResponse_Schema = {
     name: "PublishResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -16,5 +16,5 @@ var PublishResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.PublishResponse_Schema = PublishResponse_Schema;
+export {PublishResponse_Schema};
 

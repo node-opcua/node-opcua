@@ -1,8 +1,8 @@
 
-var TimestampsToReturn = require("./TimestampsToReturn_enum").TimestampsToReturn;
+import {TimestampsToReturn} from "./TimestampsToReturn_enum";
 
 
-var HistoryReadRequest_Schema = {
+const HistoryReadRequest_Schema = {
     name: "HistoryReadRequest",
     fields: [
         {   name: "requestHeader", fieldType: "RequestHeader"},
@@ -23,4 +23,4 @@ var HistoryReadRequest_Schema = {
         }
     ]
 };
-exports.HistoryReadRequest_Schema = HistoryReadRequest_Schema;
+export {HistoryReadRequest_Schema};

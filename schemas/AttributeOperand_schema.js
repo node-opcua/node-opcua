@@ -1,8 +1,8 @@
 "use strict";
 require("requirish")._(module);
-var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
+import {NumericRange} from "lib/datamodel/numeric_range";
 
-var AttributeOperand_Schema = {
+const AttributeOperand_Schema = {
     name:"AttributeOperand",
     baseType:"FilterOperand",
     fields:[
@@ -20,6 +20,6 @@ var AttributeOperand_Schema = {
         { name: "indexRange", fieldType:"NumericRange",documentation:"This parameter is used to identify a single element of an array or a single range of indexes for an array. The first element is identified by index 0 (zero)."}
     ]
 };
-exports.AttributeOperand_Schema = AttributeOperand_Schema;
+export {AttributeOperand_Schema};
 
 

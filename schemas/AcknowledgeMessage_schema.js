@@ -1,10 +1,7 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-
-var AcknowledgeMessage_Schema = {
+import {next_available_id} from "lib/misc/factories";
+const AcknowledgeMessage_Schema = {
     name: "AcknowledgeMessage",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         { name: "protocolVersion"   , fieldType: "UInt32" , documentation: "The latest version of the OPC UA TCP protocol supported by the Server." },
         { name: "receiveBufferSize" , fieldType: "UInt32"  },
@@ -14,4 +11,4 @@ var AcknowledgeMessage_Schema = {
     ]
 };
 
-exports.AcknowledgeMessage_Schema = AcknowledgeMessage_Schema;
+export {AcknowledgeMessage_Schema};

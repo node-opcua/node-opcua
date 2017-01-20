@@ -1,4 +1,4 @@
-var QueryFirstResponse_Schema = {
+const QueryFirstResponse_Schema = {
     name: "QueryFirstResponse",
     fields: [
         { name: "responseHeader",                   fieldType: "ResponseHeader" },
@@ -9,5 +9,5 @@ var QueryFirstResponse_Schema = {
         { name: "filterResult" ,                    fieldType: "ContentFilterResult"}
     ]
 };
-exports.QueryFirstResponse_Schema = QueryFirstResponse_Schema;
+export {QueryFirstResponse_Schema};
 
