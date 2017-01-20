@@ -1,5 +1,4 @@
-require("requirish")._(module);
-require("lib/datamodel/numeric_range");
+import * as __ from "lib/datamodel/numeric_range"
 
 var WriteValue_Schema = {
     name: "WriteValue",
