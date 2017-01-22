@@ -12,7 +12,7 @@ describe("Code Generator", function () {
         // code should compile
         var DummyObject = require(schema_file).DummyObject;
         var SomeEnumeration = require(schema_file).SomeEnumeration;
-
+        var main = require(schema_file)
         var dummy = new DummyObject({
             viewVersion: 50,
             name: "Paris",
@@ -92,6 +92,7 @@ describe("Code Generator", function () {
 
         // var foo_reloaded = encode_decode_round_trip_test(foo);
         var factories = require("lib/misc/factories");
+        const schema = require(schema_file2)
         factories.unregisterObject(require(schema_file2).FooWithRecursion_Schema);
 
     });

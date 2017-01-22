@@ -18,7 +18,7 @@ import { ServerSideUnimplementedRequest_Schema } from './test_server_resilience_
 var _ = require("underscore");
 
 
-var empty_nodeset_filename = require("path").join(__dirname, "./fixtures/fixture_empty_nodeset2.xml");
+var empty_nodeset_filename = require("path").join(__dirname, "../fixtures/fixture_empty_nodeset2.xml");
 
 
 var factories = require("lib/misc/factories");

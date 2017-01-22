@@ -5,3 +5,5 @@ import createObject from "lib/misc/create-factory";
 createObject(FooWithRecursion_Schema, "tmp", "_schema");
 
 exports.FooWithRecursion = registerObject(FooWithRecursion_Schema, "tmp");
+exports.FooWithRecursion_Schema = FooWithRecursion_Schema;
+

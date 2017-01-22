@@ -587,8 +587,8 @@ describe("factories testing advanced cases", function () {
                 options["value_" + key] = random();
                 options["array_" + key] = [random(), random()];
             }
-        });
-        createObject(Blob6, "tmp", "_schema");
+        });       
+        createObject(Blob6_Schema, "tmp", "_schema");
         var Blob6 = factories.registerObject(Blob6_Schema, "tmp");
 
         var blob = new Blob6(options);

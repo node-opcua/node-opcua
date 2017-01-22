@@ -18,3 +18,5 @@ exports.DummyObject = registerObject(DummyObject_Schema, "tmp");
 createObject(FooBarDerived_Schema, "tmp", "_schema");
 
 exports.FooBarDerived = registerObject(FooBarDerived_Schema, "tmp");
+
+exports.SomeEnumeration = SomeEnumeration;
