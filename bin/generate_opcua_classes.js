@@ -22,6 +22,11 @@
 // ---------------------------------------------------------------------------------------------------------------------
 require("requirish")._(module);
 
+import glob from 'glob-fs';
+import registerObject from "lib/misc/create-factory";
+import path from 'path';
+require("lib/misc/extension_object");
+
 var argv = require('yargs')
     .strict()
     .usage('Usage: $0 --clear --verbose ')
@@ -37,7 +42,6 @@ var argv = require('yargs')
     }).help("help")
     .argv;
 
-var path = require("path");
 var fs = require("fs");
 
 function remove_files_in_folder(dirPath, removeSelf) {
@@ -87,11 +91,11 @@ if (argv.clear) {
 if (argv.verbose) {
     require("lib/misc/factories").verbose = true;
 }
-
 // make sure ExtensionObject is defined
-require("lib/misc/extension_object");
-
-var registerObject = require("lib/misc/factories").registerObject;
+//console.log('now here')
+//glob().readdir('schemas/*_schema.js', function(err, files) {
+//  files.forEach(f=> registerObject(f.replace('schemas/','').replace('_schema.js', '')));
+//});
 
 registerObject("TCPErrorMessage");
 
@@ -100,12 +104,12 @@ registerObject("LocalizedText");
 registerObject("DiagnosticInfo");
 registerObject("RequestHeader");
 registerObject("ResponseHeader");
+
 registerObject("AcknowledgeMessage");
 registerObject("HelloMessage");
 registerObject("ErrorMessage");
 registerObject("Variant");
 registerObject("BuildInfo");
-
 
 // browse service
 registerObject("ViewDescription");
@@ -327,7 +331,6 @@ registerObject("QueryFirstResponse");
 registerObject("QueryNextRequest");
 registerObject("QueryNextResponse");
 
-
 // -------------------------------------------------------------------------
 var filename = path.join(__dirname, "../nodesets/Opc.Ua.NodeSet2.xml");
 
@@ -342,12 +345,10 @@ var createExtensionObjectDefinition = require("lib/address_space/convert_nodeset
 var addressSpace = new AddressSpace();
 
 generate_address_space(addressSpace, filename, function () {
-
     createExtensionObjectDefinition(addressSpace);
 
-    console.log("done");
+    console.log("done it");
 
 });
-
 
 

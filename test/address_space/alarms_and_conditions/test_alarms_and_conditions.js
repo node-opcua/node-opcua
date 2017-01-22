@@ -8,7 +8,6 @@ var path = require("path");
 
 var async = require("async");
 
-
 var server_engine = require("lib/server/server_engine");
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 

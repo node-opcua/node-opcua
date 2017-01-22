@@ -5,7 +5,7 @@ var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_tr
 
 describe("Code Generator", function () {
 
-    var schema_file = path.join(__dirname,"../fixtures/fixture_dummy_object_schema.js");
+    var schema_file = path.join(__dirname,"../fixtures/fixture_dummy_object.js");
 
     it("should produce the javascript for new complex type using template ", function () {
 
@@ -57,7 +57,7 @@ describe("Code Generator", function () {
     it("should handle Schema with recursion ", function () {
 
         //xx should(function(){
-        var schema_file2 = path.join(__dirname,"../fixtures/fixture_foo_object_with_recursion_schema.js");
+        var schema_file2 = path.join(__dirname,"../fixtures/fixture_foo_object_with_recursion.js");
         var FooWithRecursion = require(schema_file2).FooWithRecursion;
         //xx }).not.throwError();
 

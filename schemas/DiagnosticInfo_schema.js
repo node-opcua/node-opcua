@@ -1,12 +1,15 @@
 /*
  * @module opcua.datamodel
  */
-import { registerEnumeration } from "lib/misc/factories";
+
+
+import { registerEnumeration } from "lib/misc/factories_enumerations";
 import * as ec from "lib/misc/encode_decode";
 import assert from 'better-assert';
 import {QualifiedName} from "lib/datamodel/qualified_name";
 import {LocalizedText} from "lib/datamodel/localized_text";
 import {StatusCodes} from "lib/datamodel/opcua_status_code";
+
 assert(QualifiedName, " expecting QualifiedName here to be defined");
 assert(LocalizedText, " expecting Localized Text here to be defined");
 

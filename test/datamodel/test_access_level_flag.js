@@ -8,6 +8,10 @@ var assert = require("assert");
 
 var _ = require("underscore");
 
+import createObject from "lib/misc/create-factory";
+
+createObject("test/fixtures/schemas|ObjWithAccessLevel", "tmp");
+
 
 var ObjWithAccessLevel = registerObject("test/fixtures/schemas|ObjWithAccessLevel", "tmp");
 

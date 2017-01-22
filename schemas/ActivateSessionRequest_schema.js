@@ -1,4 +1,3 @@
-require("requirish")._(module);
 import {ExtensionObject} from "lib/misc/extension_object";
 
 const ActivateSessionRequest_Schema =  {
