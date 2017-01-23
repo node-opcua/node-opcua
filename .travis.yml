@@ -22,7 +22,7 @@ before_script:
 after_success:
   - make test-cov
 script:
-  - npm test
+  - npm test 
 
 addons:
   code_climate:
