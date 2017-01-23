@@ -85,7 +85,7 @@ const generate_address_space = require("lib/address_space/load_nodeset2").genera
 const AddressSpace       = require("lib/address_space/address_space").AddressSpace;
 const ServerState        = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
 const SecurityPolicy     = require("lib/misc/security_policy").SecurityPolicy;
-const ServiceCounter     = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServiceCounter").ServiceCounter;
+const ServiceCounter     = require("_generated_/_auto_generated_ServiceCounter").ServiceCounter;
 // basic opcua NodeClass
 const UAObject  = require("lib/address_space/ua_object").UAObject;
 const UAMethod  = require("lib/address_space/ua_method").UAMethod;

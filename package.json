@@ -10,14 +10,15 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "postinstall": "node postinstall.js",
+    "postinstall": "node bin/crypto_create_CA.js demo --silent",
     "pretest": "node bin/crypto_create_CA.js demo --dev --silent && mkdir -p tmp",
     "test": "mocha test --color -R spec --recursive --timeout 200000 --bail --compilers js:babel-core/register",
     "lint": "eslint lib",
     "fix": "eslint --fix lib",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js",
-    "build": "babel index.js --presets babel-preset-es2015 --out-dir distribution"
+    "build": "babel-node bin/generate_opcua_classes.js --clear",
+    "webpack": "webpack"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,7 @@
   "devDependencies": {
     "app-module-path": "^2.1.0",
     "autodoc": "0.6.3",
-    "babel-cli": "^6.18.0",
+    "babel-cli": "^6.22.2",
     "babel-core": "^6.22.1",
     "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.10",
@@ -92,6 +93,7 @@
     "fqdn": "0.0.3",
     "hexy": "0.2.8",
     "humanize": "0.0.9",
+    "module-resolver": "^1.0.0",
     "moment": "^2.17.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.7",
@@ -105,6 +107,7 @@
     "timespan": "^2.3.0",
     "treeify": "1.0.1",
     "underscore": "1.8.3",
+    "webpack": "^1.14.0",
     "wget-improved": "^1.4.0",
     "xml-writer": "^1.6.0",
     "yargs": "^6.5.0"

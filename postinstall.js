@@ -17,7 +17,8 @@ function exec(cmd,callback) {
     });
 }
 
-exec("babel-node bin/generate_opcua_classes.js --clear ",function() {
-    exec( "babel-node bin/crypto_create_CA.js demo --silent",function() {
+//exec("babel-node bin/generate_opcua_classes.js --clear ",function() {
+    exec( "../node_modules/babel-cli/bin/babel-node bin/crypto_create_CA.js demo",function(result) {
+        console.log('certifictes generated', result);
     });
-});
+//});
