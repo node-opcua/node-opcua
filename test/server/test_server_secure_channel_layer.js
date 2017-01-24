@@ -1,5 +1,5 @@
 require("requirish")._(module);
-var ServerSecureChannelLayer = require("lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
+import ServerSecureChannelLayer from "lib/server/ServerSecureChannelLayer";
 var should = require("should");
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 var DirectTransport = require("test/helpers/fake_socket").DirectTransport;

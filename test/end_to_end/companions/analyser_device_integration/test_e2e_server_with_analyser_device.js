@@ -11,6 +11,7 @@ var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
+import UAStateMachine from "lib/address_space/state_machine/UAStateMachine";
 
 import UAProxyManager from "lib/client/UAProxyManager"
 
@@ -333,8 +334,7 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeSubStateMachineType");
 
-        var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
-
+        
         var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
         UAStateMachine.promote(sm);
@@ -360,8 +360,6 @@ describe("ADI - Testing a server that exposes Analyser Devices",function(){
         var subStateMachineType = addressSpace.findObjectType("AnalyserChannel_OperatingModeExecuteSubStateMachineType",adi_namespace);
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeExecuteSubStateMachineType");
-
-        var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
         var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 

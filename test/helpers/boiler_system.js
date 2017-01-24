@@ -16,7 +16,7 @@ var standardUnits = opcua.standardUnits;
 var UAMethod = require("lib/address_space/ua_method").UAMethod;
 var UAObject = require("lib/address_space/ua_object").UAObject;
 
-var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
+import UAStateMachine from "lib/address_space/state_machine/UAStateMachine";
 
 
 function MygetExecutableFlag(toState) {
