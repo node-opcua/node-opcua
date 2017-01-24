@@ -9,7 +9,7 @@ Error.stackTraceLimit = Infinity;
 
 
 var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+import OPCUAClient from "lib/client/OPCUAClient";
 var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 var sinon  = require("sinon");
 

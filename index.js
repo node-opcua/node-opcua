@@ -72,10 +72,10 @@ const ReferenceTypeIds   = require("lib/opcua_node_ids").ReferenceTypeIds;
 const ApplicationType    = get_endpoints_service.ApplicationType;
 
 // client services
-const OPCUAClient        = require("lib/client/opcua_client").OPCUAClient;
+import OPCUAClient from "lib/client/OPCUAClient";
 const NodeCrawler        = require("lib/client/node_crawler").NodeCrawler;
 const ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
-const ClientSession      = require("lib/client/opcua_client").ClientSession;
+import ClientSession     from "lib/client/ClientSession";
 
 // Server services
 const OPCUAServer        = require("lib/server/opcua_server").OPCUAServer;
