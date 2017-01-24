@@ -2,6 +2,7 @@ require("requirish")._(module);
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 
 import crypto_utils from "lib/misc/crypto_utils";
+import ClientSecureChannelLayer from "lib/client/ClientSecureChannelLayer";
 
 
 var opcua = require("index.js");
@@ -528,8 +529,7 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
-
+    
     describe("ZZB- testing server behavior on secure connection ", function () {
 
         this.timeout(Math.max(this._timeout,20002));

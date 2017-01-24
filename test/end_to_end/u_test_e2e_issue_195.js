@@ -1,5 +1,7 @@
 /*global describe, it, require*/
 require("requirish")._(module);
+import ServerSession from "lib/server/ServerSession";
+
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
@@ -62,7 +64,7 @@ module.exports = function (test) {
                 ],done);
             }
 
-            var ServerSession = require("lib/server/server_session").ServerSession;
+           
             var oldValue = ServerSession.maxPublishRequestInQueue;
             oldValue.should.be.greaterThan(20);
             ServerSession.maxPublishRequestInQueue = 10;

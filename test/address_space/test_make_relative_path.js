@@ -3,7 +3,7 @@ var should = require("should");
 
 
 
-var server_engine = require("lib/server/server_engine");
+import ServerEngine from "lib/server/ServerEngine";
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var coerceNodeId =  require("lib/datamodel/nodeid").coerceNodeId;

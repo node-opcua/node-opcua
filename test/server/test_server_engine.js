@@ -2,8 +2,10 @@ require("requirish")._(module);
 /* jslint */
 /*global require,describe, it, before, after */
 var should = require("should");
-var server_engine = require("lib/server/server_engine");
-var ServerEngine = server_engine.ServerEngine;
+import ServerEngine, { 
+    mini_nodeset_filename,
+    standard_nodeset_file 
+} from "lib/server/ServerEngine";
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
@@ -61,7 +63,7 @@ describe("testing ServerEngine", function () {
         resourceLeakDetector.start();
         engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
 
             FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
@@ -2139,7 +2141,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities",function() {
         resourceLeakDetector.start();
         engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
-        engine.initialize({nodeset_filename: server_engine.standard_nodeset_file}, function () {
+        engine.initialize({nodeset_filename: standard_nodeset_file}, function () {
             done();
         });
 

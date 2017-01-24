@@ -8,8 +8,7 @@ var path = require("path");
 
 var async = require("async");
 
-var server_engine = require("lib/server/server_engine");
-var ServerEngine = server_engine.ServerEngine;
+import ServerEngine from "lib/server/ServerEngine";
 
 
 var Method = require("lib/address_space/ua_method").Method;
@@ -24,8 +23,7 @@ var Variant = require("lib/datamodel/variant").Variant;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var UAObject = require("lib/address_space/ua_object").UAObject;
 
-var ConditionInfo = require("lib/address_space/alarms_and_conditions/condition").ConditionInfo;
-
+import ConditionInfo from "lib/address_space/alarms_and_conditions/ConditionInfo";
 
 require("lib/address_space/address_space_add_enumeration_type");
 

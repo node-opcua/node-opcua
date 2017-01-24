@@ -1,6 +1,6 @@
 require("requirish")._(module);
 var should = require("should");
-var server_engine = require("lib/server/server_engine");
+import ServerEngine , { mini_nodeset_filename } from "lib/server/ServerEngine";
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var browse_service = require("lib/services/browse_service");
@@ -27,8 +27,8 @@ describe("Testing the server  engine - View related ", function () {
     var engine;
     beforeEach(function (done) {
         resourceLeakDetector.start();
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
             var FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             var BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();

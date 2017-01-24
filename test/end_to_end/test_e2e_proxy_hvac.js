@@ -17,7 +17,8 @@ var perform_operation_on_client_session = require("test/helpers/perform_operatio
 
 var DataType = opcua.DataType;
 
-var UAProxyManager = require("lib/client/proxy").UAProxyManager;
+import UAProxyManager from "lib/client/UAProxyManager"
+
 
 describe("testing client Proxy", function () {
 

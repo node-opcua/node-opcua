@@ -10,7 +10,7 @@ var assert = require("better-assert");
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
 var OPCUAServer = opcua.OPCUAServer;
-var OPCUADiscoveryServer = require("lib/server/opcua_discovery_server").OPCUADiscoveryServer;
+import OPCUADiscoveryServer from "lib/server/OPCUADiscoveryServer";
 var perform_findServersRequest = require("lib/findservers").perform_findServersRequest;
 
 import crypto_utils from "lib/misc/crypto_utils";

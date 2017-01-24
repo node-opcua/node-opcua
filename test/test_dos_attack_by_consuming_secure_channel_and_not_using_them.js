@@ -7,10 +7,10 @@ require("requirish")._(module);
 Error.stackTraceLimit = Infinity;
 
 
-
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
+import OPCUAServer from "lib/server/OPCUAServer";
 import OPCUAClient from "lib/client/OPCUAClient";
-var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
+import ClientSecureChannelLayer from "lib/client/ClientSecureChannelLayer";
+
 var sinon  = require("sinon");
 
 var should = require("should");

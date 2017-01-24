@@ -4,7 +4,7 @@ var should = require("should");
 var sinon = require("sinon");
 
 var subscription_service = require("lib/services/subscription_service");
-var SubscriptionState = require("lib/server/subscription").SubscriptionState;
+import SubscriptionState from "lib/server/SubscriptionState";
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 

@@ -73,14 +73,14 @@ const ApplicationType    = get_endpoints_service.ApplicationType;
 
 // client services
 import OPCUAClient from "lib/client/OPCUAClient";
-const NodeCrawler        = require("lib/client/node_crawler").NodeCrawler;
-const ClientSubscription = require("lib/client/client_subscription").ClientSubscription;
+import NodeCrawler  from "lib/client/NodeCrawler";
+import ClientSubscription from "lib/client/ClientSubscription";
 import ClientSession     from "lib/client/ClientSession";
 
 // Server services
-const OPCUAServer        = require("lib/server/opcua_server").OPCUAServer;
-const OPCUADiscoveryServer = require("lib/server/opcua_discovery_server").OPCUADiscoveryServer;
-const ServerEngine       = require("lib/server/server_engine").ServerEngine;
+import OPCUAServer from "lib/server/OPCUAServer";
+import OPCUADiscoveryServer from "lib/server/OPCUADiscoveryServer";
+import ServerEngine from "lib/server/ServerEngine";
 const generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 const AddressSpace       = require("lib/address_space/address_space").AddressSpace;
 const ServerState        = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
@@ -109,13 +109,15 @@ const makeEUInformation              = require("lib/data_access/EUInformation").
 
 // version
 const version               = require("./package.json").version;
-const standard_nodeset_file  = require("lib/server/server_engine").standard_nodeset_file;
-const di_nodeset_filename    = require("lib/server/server_engine").di_nodeset_filename;
-const adi_nodeset_filename   = require("lib/server/server_engine").adi_nodeset_filename;
 
+import { 
+  standard_nodeset_file,
+  di_nodeset_filename,
+  adi_nodeset_filename,
 // an incomplete but sufficient nodeset file used during testing
-const mini_nodeset_filename  = require("lib/server/server_engine").mini_nodeset_filename;
-const part8_nodeset_filename = require("lib/server/server_engine").part8_nodeset_filename;
+  mini_nodeset_filename,
+  part8_nodeset_filename
+} from "lib/server/ServerEngine";
 
 
 const is_valid_endpointUrl = require("lib/nodeopcua").is_valid_endpointUrl;

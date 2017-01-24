@@ -1,16 +1,24 @@
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 "use strict";
 require("requirish")._(module);
+
+import ServerEngine, {
+    nodeset_filename,
+    mini_nodeset_filename
+} from "lib/server/ServerEngine";
+import ServerSidePublishEngine from "lib/server/ServerSidePublishEngine";
+
 var should = require("should");
 var sinon = require("sinon");
 
 var subscription_service = require("lib/services/subscription_service");
-var SubscriptionState = require("lib/server/subscription").SubscriptionState;
+import SubscriptionState from "lib/server/SubscriptionState";
+
 
 
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var Subscription = require("lib/server/subscription").Subscription;
-var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
+import Subscription from "lib/server/Subscription";
+import MonitoredItem from "lib/server/MonitoredItem";
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 
 var fake_publish_engine = {};
@@ -339,7 +347,6 @@ describe("Subscriptions", function () {
         var Variant = require("lib/datamodel/variant").Variant;
 
 
-        var server_engine = require("lib/server/server_engine");
         var DataType = require("lib/datamodel/variant").DataType;
 
         var addressSpace;
@@ -365,8 +372,8 @@ describe("Subscriptions", function () {
 
 
         before(function (done) {
-            engine = new server_engine.ServerEngine();
-            engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+            engine = new ServerEngine();
+            engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
                 addressSpace = engine.addressSpace;
                 var node = addressSpace.addVariable({
                     componentOf: "RootFolder",
@@ -383,7 +390,6 @@ describe("Subscriptions", function () {
             engine = null;
         });
 
-        var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
         var publish_engine;
 
         function simulate_client_adding_publish_request(publishEngine, callback) {

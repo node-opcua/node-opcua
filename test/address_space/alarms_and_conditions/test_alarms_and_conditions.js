@@ -8,7 +8,7 @@ var path = require("path");
 
 var async = require("async");
 
-var server_engine = require("lib/server/server_engine");
+import ServerEngine from "lib/server/ServerEngine";
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
 require("lib/address_space/address_space_add_enumeration_type");
@@ -26,7 +26,7 @@ describe("AddressSpace : Conditions ", function () {
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true, function () {
         before(function (done) {
 
-            engine = new server_engine.ServerEngine();
+            engine = new ServerEngine();
 
             var xml_file = path.join(__dirname, "../../../nodesets/Opc.Ua.NodeSet2.xml");
             require("fs").existsSync(xml_file).should.be.eql(true);

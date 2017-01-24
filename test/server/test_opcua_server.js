@@ -1,7 +1,7 @@
 "use strict";
 require("requirish")._(module);
 
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
+import OPCUAServer from "lib/server/OPCUAServer";
 
 var should = require("should");
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;

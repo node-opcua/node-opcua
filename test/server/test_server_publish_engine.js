@@ -37,9 +37,9 @@ var sinon = require("sinon");
 var should = require("should");
 var _ = require("underscore");
 
-var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
-var Subscription = require("lib/server/subscription").Subscription;
-var SubscriptionState = require("lib/server/subscription").SubscriptionState;
+import ServerSidePublishEngine from "lib/server/ServerSidePublishEngine";
+import Subscription from "lib/server/Subscription";
+import SubscriptionState from "lib/server/SubscriptionState";
 var subscription_service = require("lib/services/subscription_service");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 

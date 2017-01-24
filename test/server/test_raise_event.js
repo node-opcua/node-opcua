@@ -4,7 +4,7 @@ require("requirish")._(module);
 /*global require,describe, it, before, after */
 var should = require("should");
 
-var server_engine = require("lib/server/server_engine");
+import ServerEngine from "lib/server/ServerEngine";
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 var DataType = require("lib/datamodel/variant").DataType;

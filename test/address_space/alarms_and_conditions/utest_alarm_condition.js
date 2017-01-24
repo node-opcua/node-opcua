@@ -21,9 +21,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;
 var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
-var conditions =require("lib/address_space/alarms_and_conditions/condition");
-var ConditionSnapshot = conditions.ConditionSnapshot;
-
+import ConditionSnapshot from "lib/address_space/alarms_and_conditions/ConditionSnapshot";
 var doDebug = false;
 
 var sinon = require("sinon");

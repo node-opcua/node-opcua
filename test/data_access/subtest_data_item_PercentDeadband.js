@@ -1,7 +1,7 @@
 require("requirish")._(module);
 var _ = require("underscore");
 var should = require("should");
-var server_engine = require("lib/server/server_engine");
+import ServerEngine from "lib/server/ServerEngine";
 
 var DataValue = require("lib/datamodel/datavalue").DataValue;
 var Variant = require("lib/datamodel/variant").Variant;

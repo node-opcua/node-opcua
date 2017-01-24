@@ -7,7 +7,7 @@ require('colors');
 var sprintf = require('sprintf');
 
 var opcua = require("..");
-var UAProxyManager = require("lib/client/proxy").UAProxyManager;
+import UAProxyManager from "lib/client/UAProxyManager"
 
 
 var utils = require('lib/misc/utils');

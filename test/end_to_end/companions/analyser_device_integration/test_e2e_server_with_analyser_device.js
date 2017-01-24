@@ -12,7 +12,8 @@ var Variant = opcua.Variant;
 var DataType = opcua.DataType;
 var DataValue = opcua.DataValue;
 
-var UAProxyManager = require("lib/client/proxy").UAProxyManager;
+import UAProxyManager from "lib/client/UAProxyManager"
+
 require("lib/client/state_machine_proxy");
 
 var dumpStateMachineToGraphViz = require("lib/misc/dump_statemachine").dumpStateMachineToGraphViz;
@@ -20,7 +21,7 @@ var dumpStateMachineToPlantUML = require("lib/misc/dump_statemachine").dumpState
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 
 
-var makeRefId = require("lib/client/proxy").makeRefId;
+import makeRefId from "lib/client/UAProxyManager/makeRefId";
 
 function ns(namespaceIndex,browseName) {
     return namespaceIndex.toString() + ":" + browseName;

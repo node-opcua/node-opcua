@@ -21,7 +21,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 var AddressSpace = require("lib/address_space/address_space").AddressSpace;
 
 // make sure all namespace 0 data type are properly loaded
-var Engine = require("lib/server/server_engine");
+import ServerEngine from "lib/server/ServerEngine";
 
 var fs = require("fs");
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;

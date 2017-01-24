@@ -1,7 +1,7 @@
 require("requirish")._(module);
 
 
-var OPCUAServer = require("lib/server/opcua_server").OPCUAServer;
+import OPCUAServer from "lib/server/OPCUAServer";
 import OPCUAClient from "lib/client/OPCUAClient";
 
 var should = require("should");

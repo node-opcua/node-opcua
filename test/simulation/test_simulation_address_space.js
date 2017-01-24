@@ -1,6 +1,13 @@
 "use strict";
 require("requirish")._(module);
 
+import ServerEngine, {
+    nodeset_filename,
+    mini_nodeset_filename,
+    part8_nodeset_filename
+} from "lib/server/ServerEngine";
+
+
 var _ = require("underscore");
 var async = require("async");
 
@@ -33,7 +40,6 @@ var address_space_for_conformance_testing = require("lib/simulation/address_spac
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 var address_space = require("lib/address_space/address_space");
-var server_engine = require("lib/server/server_engine");
 
 
 
@@ -56,10 +62,10 @@ describe("testing address space for conformance testing", function () {
     before(function (done) {
         resourceLeakDetector.start();
 
-        engine = new server_engine.ServerEngine();
+        engine = new ServerEngine();
         var nodeset_filename = [
-            server_engine.mini_nodeset_filename,
-            server_engine.part8_nodeset_filename
+            mini_nodeset_filename,
+            part8_nodeset_filename
         ];
         engine.initialize({nodeset_filename: nodeset_filename}, function () {
             build_address_space_for_conformance_testing(engine, {mass_variables: false});
@@ -754,10 +760,10 @@ describe("testing address space with large number of nodes", function () {
     before(function (done) {
         resourceLeakDetector.start();
 
-        engine = new server_engine.ServerEngine();
+        engine = new ServerEngine();
         var nodeset_filename = [
-            server_engine.mini_nodeset_filename,
-            server_engine.part8_nodeset_filename
+            mini_nodeset_filename,
+            part8_nodeset_filename
         ];
         engine.initialize({nodeset_filename: nodeset_filename}, function () {
 

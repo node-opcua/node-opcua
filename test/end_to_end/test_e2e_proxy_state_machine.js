@@ -20,9 +20,10 @@ var build_client_server_session = require("test/helpers/build_client_server_sess
 
 var DataType = opcua.DataType;
 
-var UAProxyManager = require("lib/client/proxy").UAProxyManager;
+import UAProxyManager from "lib/client/UAProxyManager";
 
-var UAProxyManager = require("lib/client/state_machine_proxy").UAProxyManager;
+
+require("lib/client/state_machine_proxy");
 
 
 describe("testing client Proxy", function () {

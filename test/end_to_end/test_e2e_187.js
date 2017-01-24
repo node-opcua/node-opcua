@@ -24,7 +24,8 @@ var makeBoiler       = require("test/helpers/boiler_system").makeBoiler;
 
 var doDebug = false;
 
-var UAProxyManager = require("lib/client/proxy").UAProxyManager;
+import UAProxyManager from "lib/client/UAProxyManager"
+
 require("lib/client/state_machine_proxy");
 
 
