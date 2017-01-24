@@ -1,7 +1,6 @@
 require("requirish")._(module);
 
-var address_space = require("lib/address_space/address_space");
-var AddressSpace = address_space.AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var should = require("should");
 var path = require("path");

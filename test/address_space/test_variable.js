@@ -3,7 +3,7 @@ require("requirish")._(module);
 
 var async = require("async");
 var path = require("path");
-var address_space = require("lib/address_space/address_space");
+import AddressSpace from "lib/address_space/AddressSpace";
 var UAVariable = require("lib/address_space/ua_variable").UAVariable;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
@@ -24,7 +24,7 @@ describe("testing Variables ", function () {
 
         it("a variable should return attributes with  the expected data type ", function () {
 
-            var addressSpace = new address_space.AddressSpace();
+            var addressSpace = new AddressSpace();
 
             var v = new UAVariable({
                 browseName: "some variable",
@@ -97,7 +97,7 @@ describe("Address Space : add Variable :  testing various variations for specify
     var rootFolder;
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
         before(function (done) {
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
                 rootFolder = addressSpace.findNode("RootFolder");
@@ -227,7 +227,7 @@ describe("testing Variable#bindVariable", function () {
     var addressSpace, rootFolder;
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
         before(function (done) {
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
                 rootFolder = addressSpace.findNode("RootFolder");
@@ -729,7 +729,7 @@ describe("testing Variable#writeValue Scalar", function () {
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
         before(function (done) {
 
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
                 rootFolder = addressSpace.findNode("RootFolder");
@@ -804,7 +804,7 @@ describe("testing Variable#writeValue Array", function () {
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
         before(function (done) {
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
                 rootFolder = addressSpace.findNode("RootFolder");
@@ -1076,7 +1076,7 @@ describe("testing Variable#writeValue on Integer", function () {
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
         before(function (done) {
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function () {
 
                 rootFolder = addressSpace.findNode("RootFolder");
@@ -1222,7 +1222,7 @@ describe("testing UAVariable ", function () {
         before(function (done) {
 
 
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             generate_address_space(addressSpace, nodeset_filename, function (err) {
 
                 if (!err) {

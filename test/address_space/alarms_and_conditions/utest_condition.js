@@ -17,7 +17,7 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
 var Variant = require("lib/datamodel/variant").Variant;
 var NodeId = require("lib/datamodel/nodeid").NodeId;

@@ -9,7 +9,7 @@ var path = require("path");
 var async = require("async");
 
 import ServerEngine from "lib/server/ServerEngine";
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 
 require("lib/address_space/address_space_add_enumeration_type");
 

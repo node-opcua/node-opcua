@@ -334,10 +334,9 @@ function doit() {
     
     // -------------------------------------------------------------------------
     var filename = path.join(__dirname, "../nodesets/Opc.Ua.NodeSet2.xml");
-
-    var address_space = require("lib/address_space/address_space");
-    var AddressSpace = address_space.AddressSpace;
-
+    //has to be required otherwise we get in a mess
+    var AddressSpace = require("lib/address_space/AddressSpace").default;
+    
     var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
     var createExtensionObjectDefinition = require("lib/address_space/convert_nodeset_to_types").createExtensionObjectDefinition;

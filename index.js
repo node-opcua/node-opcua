@@ -82,7 +82,7 @@ import OPCUAServer from "lib/server/OPCUAServer";
 import OPCUADiscoveryServer from "lib/server/OPCUADiscoveryServer";
 import ServerEngine from "lib/server/ServerEngine";
 const generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
-const AddressSpace       = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 const ServerState        = require("schemas/39394884f696ff0bf66bacc9a8032cc074e0158e/ServerState_enum").ServerState;
 const SecurityPolicy     = require("lib/misc/security_policy").SecurityPolicy;
 const ServiceCounter     = require("_generated_/_auto_generated_ServiceCounter").ServiceCounter;

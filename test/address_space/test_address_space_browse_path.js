@@ -7,7 +7,7 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var add_eventGeneratorObject = address_space_for_conformance_testing.add_eventGeneratorObject;
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 

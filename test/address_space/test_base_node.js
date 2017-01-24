@@ -6,7 +6,7 @@ var path = require("path");
 var should = require("should");
 var _ = require("underscore");
 
-var address_space = require("lib/address_space/address_space");
+import AddressSpace from "lib/address_space/AddressSpace";
 
 var UAVariable = require("lib/address_space/ua_variable").UAVariable;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;

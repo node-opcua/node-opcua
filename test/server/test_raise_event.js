@@ -11,7 +11,7 @@ var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;
 
 var AttributeIds = require("lib/services/read_service").AttributeIds;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var _ = require("underscore");
 var path = require("path");
 var assert = require("better-assert");

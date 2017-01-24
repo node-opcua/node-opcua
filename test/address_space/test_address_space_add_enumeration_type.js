@@ -16,7 +16,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 var DataType = opcua.DataType;
 var Variant = opcua.Variant;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 
 
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;

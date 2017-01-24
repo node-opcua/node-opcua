@@ -2,8 +2,7 @@
 /* global describe,it,require,before*/
 require("requirish")._(module);
 
-var address_space = require("lib/address_space/address_space");
-var AddressSpace = address_space.AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var should = require("should");
 var nodeid = require("lib/datamodel/nodeid");
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
