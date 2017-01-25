@@ -1,7 +1,7 @@
 "use strict";
 require("requirish")._(module);
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var DataType = require("lib/datamodel/variant").DataType;
 var should = require("should");
 var path = require("path");

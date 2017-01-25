@@ -6,9 +6,9 @@ var opcua = require("index.js");
 
 var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
-var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
-var Subscription = require("lib/server/subscription").Subscription;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import MonitoredItem from "lib/server/MonitoredItem";
+import Subscription from "lib/server/Subscription";
+import AddressSpace from "lib/address_space/AddressSpace";
 
 var colors = require("colors");
 

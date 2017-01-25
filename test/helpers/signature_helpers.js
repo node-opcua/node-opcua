@@ -3,7 +3,8 @@ require("requirish")._(module);
 
 var assert = require("assert");
 var fs = require("fs");
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
+    
 var path = require("path");
 
 function construct_makeMessageChunkSignatureForTest() {

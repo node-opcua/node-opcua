@@ -1,4 +1,4 @@
-var QueryDataDescription_Schema = {
+const QueryDataDescription_Schema = {
     name: "QueryDataDescription",
     fields: [
         {name: "relativePath",fieldType: "RelativePath",
@@ -10,4 +10,4 @@ var QueryDataDescription_Schema = {
 
     ]
 };
-exports.QueryDataDescription_Schema = QueryDataDescription_Schema;
+export {QueryDataDescription_Schema};

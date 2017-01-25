@@ -1,4 +1,4 @@
-var TransferSubscriptionsResponse_Schema = {
+const TransferSubscriptionsResponse_Schema = {
     name: "TransferSubscriptionsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -6,4 +6,4 @@ var TransferSubscriptionsResponse_Schema = {
         { name: "diagnosticInfos",    isArray: true, fieldType: "DiagnosticInfo" },
     ]
 };
-exports.TransferSubscriptionsResponse_Schema = TransferSubscriptionsResponse_Schema;
+export {TransferSubscriptionsResponse_Schema};

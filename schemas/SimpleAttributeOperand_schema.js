@@ -4,7 +4,7 @@
 // B.1 only use AttributeOperand, however, the AttributeOperand can be replaced by a
 // SimpleAttributeOperand whenever all ReferenceTypes in the RelativePath are subtypes of
 // HierarchicalReferences and the targets are Object or Variable Nodes and an Alias is not required
-var SimpleAttributeOperand_Schema = {
+const SimpleAttributeOperand_Schema = {
 
     name:"SimpleAttributeOperand",
 
@@ -44,4 +44,4 @@ var SimpleAttributeOperand_Schema = {
         { name: "indexRange", fieldType:"NumericRange"}
     ]
 };
-exports.SimpleAttributeOperand_Schema = SimpleAttributeOperand_Schema;
+export {SimpleAttributeOperand_Schema};

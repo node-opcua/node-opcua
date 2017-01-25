@@ -1,4 +1,4 @@
-var CloseSessionRequest_Schema =  {
+const CloseSessionRequest_Schema =  {
     documentation: "Closes a session with the server.",
     name: "CloseSessionRequest",
     fields: [
@@ -6,4 +6,4 @@ var CloseSessionRequest_Schema =  {
         { name:"deleteSubscriptions",  fieldType:"Boolean",         documentation:"If TRUE all subscriptions are deleted when the session is closed."}
     ]
 };
-exports.CloseSessionRequest_Schema = CloseSessionRequest_Schema;
+export {CloseSessionRequest_Schema};

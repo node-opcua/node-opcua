@@ -1,5 +1,5 @@
 
-var CreateSessionRequest_Schema = {
+const CreateSessionRequest_Schema = {
     documentation: "Creates a new session with the server.",
     name: "CreateSessionRequest",
     fields: [
@@ -54,4 +54,4 @@ var CreateSessionRequest_Schema = {
             documentation:"The maximum message size accepted by the client." }
     ]
 };
-exports.CreateSessionRequest_Schema = CreateSessionRequest_Schema;
+export {CreateSessionRequest_Schema};

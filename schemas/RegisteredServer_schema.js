@@ -1,11 +1,9 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import {next_available_id} from "lib/misc/factories";
 
-var RegisteredServer_Schema = {
+const RegisteredServer_Schema = {
     documentation:"The information required to register a server with a discovery server.",
     name: "RegisteredServer",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         {name:"serverUri",                    fieldType:"String",          documentation:"The globally unique identifier for the server." },
         {name:"productUri",                   fieldType:"String",          documentation:"The globally unique identifier for the product." },
@@ -18,4 +16,4 @@ var RegisteredServer_Schema = {
 
     ]
 };
-exports.RegisteredServer_Schema = RegisteredServer_Schema;
+export {RegisteredServer_Schema};

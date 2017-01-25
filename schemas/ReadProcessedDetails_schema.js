@@ -1,4 +1,4 @@
-var ReadProcessedDetails_Schema = {
+const ReadProcessedDetails_Schema = {
     name: "ReadProcessedDetails",
     baseType: "HistoryReadDetails",
     fields: [
@@ -9,4 +9,4 @@ var ReadProcessedDetails_Schema = {
         { name: "aggregateConfiguration", fieldType: "AggregateConfiguration" }
     ]
 };
-exports.ReadProcessedDetails_Schema = ReadProcessedDetails_Schema;
+export {ReadProcessedDetails_Schema};

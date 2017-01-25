@@ -1,5 +1,5 @@
 
-var ModifyMonitoredItemsRequest_Schema = {
+const ModifyMonitoredItemsRequest_Schema = {
     name: "ModifyMonitoredItemsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },
@@ -8,4 +8,4 @@ var ModifyMonitoredItemsRequest_Schema = {
         { name: "itemsToModify", isArray: true, fieldType: "MonitoredItemModifyRequest" }
     ]
 };
-exports.ModifyMonitoredItemsRequest_Schema = ModifyMonitoredItemsRequest_Schema;
+export {ModifyMonitoredItemsRequest_Schema};

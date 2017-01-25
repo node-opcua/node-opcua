@@ -15,14 +15,14 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var coerceLocalizedText = require("lib/datamodel/localized_text").coerceLocalizedText;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
-var conditions =require("lib/address_space/alarms_and_conditions/condition");
+//var conditions =require("lib/address_space/alarms_and_conditions/condition");
 var UAMethod = require("lib/address_space/ua_method").UAMethod;
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 
 module.exports = function (test) {

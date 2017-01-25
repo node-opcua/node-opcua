@@ -1,6 +1,9 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 require("requirish")._(module);
+
+require("babel-register");
+
 Error.stackTraceLimit = Infinity;
 
 var argv = require('yargs')
@@ -42,7 +45,8 @@ var makeApplicationUrn = opcua.makeApplicationUrn;
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-var install_optional_cpu_and_memory_usage_node = require("lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
+var installOptionalCpuAndMemoryUsageNode = require("lib/server/installOptionalCpuAndMemoryUsageNode").installOptionalCpuAndMemoryUsageNode;
+
 
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
@@ -125,7 +129,7 @@ server.on("post_initialize", function () {
 
     build_address_space_for_conformance_testing(server.engine);
 
-    install_optional_cpu_and_memory_usage_node(server);
+    installOptionalCpuAndMemoryUsageNode(server);
 
     var addressSpace = server.engine.addressSpace;
 

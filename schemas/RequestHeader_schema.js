@@ -1,9 +1,8 @@
-"use strict";
 require("requirish")._(module);
-var ExtensionObject = require("lib/misc/extension_object").ExtensionObject;
+import {ExtensionObject} from "lib/misc/extension_object";
 
 // OPC Unified Architecture, Part 4  $7.27 page 139
-var RequestHeader_Schema = {
+const RequestHeader_Schema = {
     name: "RequestHeader",
     fields: [
 
@@ -37,4 +36,4 @@ var RequestHeader_Schema = {
     ]
 };
 
-exports.RequestHeader_Schema = RequestHeader_Schema;
+export {RequestHeader_Schema};

@@ -1,13 +1,10 @@
-"use strict";
-
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import {next_available_id} from "lib/misc/factories";
 
 // OPC Unified Architecture, Part 4 page 106
-var ApplicationInstanceCertificate_Schema = {
+const ApplicationInstanceCertificate_Schema = {
     // ApplicationInstanceCertificate with signature created by a Certificate Authority
     name: "ApplicationInstanceCertificate",
-    id: factories.next_available_id(),
+    id: next_available_id(),
 
     fields: [
         // An identifier for the version of the Certificate encoding.
@@ -59,4 +56,4 @@ var ApplicationInstanceCertificate_Schema = {
 
     ]
 };
-exports.ApplicationInstanceCertificate_Schema = ApplicationInstanceCertificate_Schema;
+export {ApplicationInstanceCertificate_Schema};

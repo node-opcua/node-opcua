@@ -1,7 +1,6 @@
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 
-var DataType_Schema = {
+const DataType_Schema = {
     name:"DataType",
     enumValues: {
         Null:              0,
@@ -33,4 +32,4 @@ var DataType_Schema = {
     }
 };
 
-exports.DataType = factories.registerEnumeration(DataType_Schema);
+export const DataType = registerEnumeration(DataType_Schema);

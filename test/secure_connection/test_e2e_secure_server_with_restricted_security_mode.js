@@ -15,7 +15,7 @@ var build_server_with_temperature_device = require("test/helpers/build_server_wi
 var session_service = require("lib/services/session_service");
 var UserNameIdentityToken = session_service.UserNameIdentityToken;
 
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
 if (!crypto_utils.isFullySupported()) {
     console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
 } else {

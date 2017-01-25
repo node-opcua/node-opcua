@@ -3,7 +3,7 @@ var should = require("should");
 var makebuffer_from_trace = require("test/helpers/makebuffer_from_trace").makebuffer_from_trace;
 var inlineText = require("test/helpers/makebuffer_from_trace").inlineText;
 var hexDump = require("lib/misc/utils").hexDump;
-var crypto_utils = require("lib/misc/crypto_utils");
+import crypto_utils from "lib/misc/crypto_utils";
 
 var buffer = makebuffer_from_trace(
     function () {

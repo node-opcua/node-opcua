@@ -1,12 +1,8 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-
-var MessageSecurityMode =  require("./MessageSecurityMode_enum").MessageSecurityMode;
-var SecurityTokenRequestType = require("./SecurityTokenRequestType_enum").SecurityTokenRequestType;
+import {MessageSecurityMode} from "./MessageSecurityMode_enum";
+import {SecurityTokenRequestType} from "./SecurityTokenRequestType_enum";
 
 // see OPCUA.Part4. page 22
-var OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
+const OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
     name: "OpenSecureChannelRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  },
@@ -20,7 +16,7 @@ var OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
     ]
 };
 // or  OPCUA.Part6. Release 1.0  6.4.4 Establishing a ClientSecureChannelLayer page 39
-var OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA = {
+const OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA = {
     name: "OpenSecureChannelRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  },
@@ -44,4 +40,4 @@ var OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA = {
     ]
 };
 
-exports.OpenSecureChannelRequest_Schema =OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA;
+export {OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA as OpenSecureChannelRequest_Schema};

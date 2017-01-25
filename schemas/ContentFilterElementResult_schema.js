@@ -1,5 +1,5 @@
 
-var ContentFilterElementResult_Schema = {
+const ContentFilterElementResult_Schema = {
     name: "ContentFilterElementResult",
     //baseType: "MonitoringFilter",
     fields: [
@@ -9,4 +9,4 @@ var ContentFilterElementResult_Schema = {
     ]
 };
 
-exports.ContentFilterElementResult_Schema = ContentFilterElementResult_Schema;
+export {ContentFilterElementResult_Schema};

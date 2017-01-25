@@ -1,4 +1,4 @@
-var EventNotificationList_Schema = {
+const EventNotificationList_Schema = {
     name: "EventNotificationList",
     fields: [
         {
@@ -9,4 +9,4 @@ var EventNotificationList_Schema = {
         }
     ]
 };
-exports.EventNotificationList_Schema = EventNotificationList_Schema;
+export {EventNotificationList_Schema};

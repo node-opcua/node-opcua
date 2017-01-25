@@ -1,7 +1,7 @@
 "use strict";
 require("requirish")._(module);
 
-var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
+import MonitoredItem from "lib/server/MonitoredItem";
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var subscription_service = require("lib/services/subscription_service");
 var MonitoringMode = subscription_service.MonitoringMode;

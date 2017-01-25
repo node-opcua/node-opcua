@@ -1,8 +1,7 @@
 require("requirish")._(module);
-var _ = require("underscore");
-var assert = require("better-assert");
-
-var NodeId = require("lib/datamodel/nodeid").NodeId;
+import _ from "underscore";
+import assert from "better-assert";
+import {NodeId} from "lib/datamodel/nodeid";
 
 /*
  * results []
@@ -10,7 +9,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
  * CallMethodResult
  *
  */
-CallMethodResult_Schema = {
+const CallMethodResult_Schema = {
     name: "CallMethodResult",
     documentation: "The result of a Method call.",
     fields: [
@@ -62,4 +61,4 @@ CallMethodResult_Schema = {
 
     ]
 };
-exports.CallMethodResult_Schema = CallMethodResult_Schema;
+export {CallMethodResult_Schema};

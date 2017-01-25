@@ -1,5 +1,6 @@
 require("requirish")._(module);
-
+import crypto_utils from "lib/misc/crypto_utils";
+    
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");
@@ -429,7 +430,6 @@ module.exports = function (test) {
             return p;
         }
 
-        var crypto_utils = require("lib/misc/crypto_utils");
         if (!crypto_utils.isFullySupported()) {
             console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
         } else {

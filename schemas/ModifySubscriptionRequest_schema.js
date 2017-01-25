@@ -1,4 +1,4 @@
-var ModifySubscriptionRequest_Schema = {
+const ModifySubscriptionRequest_Schema = {
     name: "ModifySubscriptionRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },
@@ -10,4 +10,4 @@ var ModifySubscriptionRequest_Schema = {
         { name: "priority", fieldType: "Byte" }
     ]
 };
-exports.ModifySubscriptionRequest_Schema = ModifySubscriptionRequest_Schema;
+export {ModifySubscriptionRequest_Schema};

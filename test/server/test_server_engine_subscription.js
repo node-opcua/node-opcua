@@ -1,13 +1,13 @@
 require("requirish")._(module);
 var should = require("should");
-var server_engine = require("lib/server/server_engine");
+import ServerEngine, { mini_nodeset_filename } from "lib/server/ServerEngine";
 var browse_service = require("lib/services/browse_service");
 var read_service = require("lib/services/read_service");
 var subscription_service = require("lib/services/subscription_service");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var VariableIds = require("lib/opcua_node_ids").VariableIds;
-var SubscriptionState = require("lib/server/subscription").SubscriptionState;
+import SubscriptionState from "lib/server/SubscriptionState";
 var PublishRequest = subscription_service.PublishRequest;
 
 
@@ -40,8 +40,8 @@ describe("ServerEngine Subscriptions service", function () {
 
         resourceLeakDetector.start();
 
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
             FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
@@ -257,8 +257,7 @@ describe("ServerEngine Subscriptions service", function () {
 
             var test = this;
 
-            var SubscriptionState = require("lib/server/subscription").SubscriptionState;
-
+            
             // CTT : deleteSub5106004
             var subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration

@@ -1,16 +1,19 @@
-require("requirish")._(module);
+import { registerEnumeration, registerObject } from "lib/misc/factories";
 
 var AccessLevelFlag = require("lib/datamodel/access_level").AccessLevelFlag;
 var makeAccessLevel = require("lib/datamodel/access_level").makeAccessLevel;
 var should = require("should");
 var findBuiltInType = require("lib/misc/factories_builtin_types").findBuiltInType;
 var assert = require("assert");
-var factories = require("lib/misc/factories");
 
 var _ = require("underscore");
 
+import createObject from "lib/misc/create-factory";
 
-var ObjWithAccessLevel = factories.registerObject("test/fixtures/schemas|ObjWithAccessLevel", "tmp");
+createObject("test/fixtures/schemas|ObjWithAccessLevel", "tmp");
+
+
+var ObjWithAccessLevel = registerObject("test/fixtures/schemas|ObjWithAccessLevel", "tmp");
 
 assert(_.isFunction(ObjWithAccessLevel));
 

@@ -1,5 +1,5 @@
 
-var ModifySubscriptionResponse_Schema = {
+const ModifySubscriptionResponse_Schema = {
     name: "ModifySubscriptionResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -8,5 +8,5 @@ var ModifySubscriptionResponse_Schema = {
         { name: "revisedMaxKeepAliveCount", fieldType: "Counter" }
     ]
 };
-exports.ModifySubscriptionResponse_Schema = ModifySubscriptionResponse_Schema;
+export {ModifySubscriptionResponse_Schema};
 

@@ -1,5 +1,5 @@
 
-var QueryDataSet_Schema = {
+const QueryDataSet_Schema = {
     documentation:"Data related to a Node returned in a Query response.",
     name:"QueryDataSet",
     fields: [
@@ -27,4 +27,4 @@ var QueryDataSet_Schema = {
         {name: "values", isArray: true, fieldType:"Variant" },
     ]
 };
-exports.QueryDataSet_Schema = QueryDataSet_Schema;
+export {QueryDataSet_Schema};

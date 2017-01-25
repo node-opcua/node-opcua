@@ -1,9 +1,9 @@
 var should = require("should");
 require("requirish")._(module);
+
+import ContinuationPointManager from "lib/server/ContinuationPointManager"
+
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-
-
-var ContinuationPointManager = require("lib/server/continuation_point_manager").ContinuationPointManager;
 
 describe("ContinuationPointManager", function () {
 

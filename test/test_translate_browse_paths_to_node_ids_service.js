@@ -64,7 +64,8 @@ describe("TranslateBrowsePathsToNodeIds service", function () {
 
 
 var _ = require("underscore");
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+import OPCUAClient from "lib/client/OPCUAClient";
+
 var should = require("should");
 
 var opcua = require("index");

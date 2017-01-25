@@ -1,13 +1,12 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
 
-var NodeClass = require("schemas/NodeClass_enum").NodeClass;
-var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
-var ReferenceDescription_Schema = {
+import { next_available_id } from "lib/misc/factories";
+
+import {NodeClass} from "schemas/NodeClass_enum";
+import {resolveNodeId} from "lib/datamodel/nodeid";
+const ReferenceDescription_Schema = {
     name: "ReferenceDescription",
     documentation: "The description of a reference.",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         {name: "referenceTypeId", fieldType: "NodeId",         documentation: "The type of references."},
         {name: "isForward",       fieldType: "Boolean",        documentation: "TRUE if the reference is a forward reference."},
@@ -19,6 +18,6 @@ var ReferenceDescription_Schema = {
 
     ]
 };
-exports.ReferenceDescription_Schema = ReferenceDescription_Schema;
+export {ReferenceDescription_Schema};
 
 

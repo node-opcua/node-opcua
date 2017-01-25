@@ -1,4 +1,4 @@
-var SetPublishingModeResponse_Schema = {
+const SetPublishingModeResponse_Schema = {
     name: "SetPublishingModeResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -6,4 +6,4 @@ var SetPublishingModeResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.SetPublishingModeResponse_Schema = SetPublishingModeResponse_Schema;
+export {SetPublishingModeResponse_Schema};

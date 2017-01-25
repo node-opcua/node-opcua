@@ -1,8 +1,6 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { registerEnumeration } from "lib/misc/factories";
 // OPC Unified Architecture, Part 4 Release 1.02 page 115
-var FilterOperator_Schema = {
+const FilterOperator_Schema = {
 
     name: "FilterOperator",
     enumValues: {
@@ -264,5 +262,5 @@ var FilterOperator_Schema = {
         BitwiseOr:          17
     }
 };
-exports.FilterOperator_Schema = FilterOperator_Schema;
-exports.FilterOperator = factories.registerEnumeration(FilterOperator_Schema);
+export {FilterOperator_Schema};
+export const FilterOperator = registerEnumeration(FilterOperator_Schema);

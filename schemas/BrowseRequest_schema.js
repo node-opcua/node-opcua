@@ -1,4 +1,4 @@
-var BrowseRequest_Schema = {
+const BrowseRequest_Schema = {
     name: "BrowseRequest",
     documentation: "Browse the references for one or more nodes from the server address space.",
     fields: [
@@ -17,4 +17,4 @@ var BrowseRequest_Schema = {
         {name: "nodesToBrowse", isArray: true, fieldType: "BrowseDescription", documentation: "The list of nodes to browse."  }
     ]
 };
-exports.BrowseRequest_Schema = BrowseRequest_Schema;
+export {BrowseRequest_Schema};

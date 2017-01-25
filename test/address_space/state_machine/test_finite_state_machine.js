@@ -11,7 +11,7 @@ var NodeId              = opcua.NodeId;
 var DataType            = opcua.DataType;
 var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
-var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
+import UAStateMachine from "lib/address_space/state_machine/UAStateMachine";
 
 var doDebug = false;
 

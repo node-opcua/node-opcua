@@ -1,4 +1,6 @@
 require("requirish")._(module);
+import crypto_utils from "lib/misc/crypto_utils";
+
 var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
@@ -32,7 +34,6 @@ var userManagerAsync = {
     }
 };
 
-var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
     console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
 } else {

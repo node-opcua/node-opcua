@@ -1,6 +1,6 @@
 
 
-var QueryNextRequest_Schema = {
+const QueryNextRequest_Schema = {
     name: "QueryNextRequest",
     fields: [
         { name:"requestHeader",               fieldType:"RequestHeader",   documentation: "A standard header included in all requests sent to a server."},
@@ -23,4 +23,4 @@ var QueryNextRequest_Schema = {
         { name:"continuationPoint",           fieldType:"ContinuationPoint"}
     ]
 };
-exports.QueryNextRequest_Schema = QueryNextRequest_Schema;
+export {QueryNextRequest_Schema};

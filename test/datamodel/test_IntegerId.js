@@ -5,7 +5,9 @@ var should = require("should");
 var factories = require("lib/misc/factories");
 var encode_decode_round_trip_test = require("test/helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var _ = require("underscore");
+import createObject from "lib/misc/create-factory";
 
+createObject("test/fixtures/schemas|ObjWithIntegerId", "tmp");
 
 var ObjWithIntegerId = factories.registerObject("test/fixtures/schemas|ObjWithIntegerId", "tmp");
 

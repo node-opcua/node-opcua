@@ -8,7 +8,7 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 
 describe("testing address space namespace", function () {
 

@@ -1,10 +1,8 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import { next_available_id } from "lib/misc/factories";
 
-var HelloMessage_Schema = {
+const HelloMessage_Schema = {
     name: "HelloMessage",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         {
             name: "protocolVersion",
@@ -30,4 +28,4 @@ var HelloMessage_Schema = {
         }
     ]
 };
-exports.HelloMessage_Schema = HelloMessage_Schema;
+export {HelloMessage_Schema};

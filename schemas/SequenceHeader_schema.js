@@ -1,10 +1,8 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import {next_available_id} from "lib/misc/factories";
 
-var SequenceHeader_Schema = {
+const SequenceHeader_Schema = {
     name: "SequenceHeader",
-    id: factories.next_available_id(),
+    id: next_available_id(),
     fields: [
         // A monotonically increasing sequence number assigned by the sender to each
         // MessageChunk sent over the ClientSecureChannelLayer.
@@ -14,4 +12,4 @@ var SequenceHeader_Schema = {
         { name: "requestId",          fieldType: "UInt32" }
     ]
 };
-exports.SequenceHeader_Schema = SequenceHeader_Schema;
+export {SequenceHeader_Schema};

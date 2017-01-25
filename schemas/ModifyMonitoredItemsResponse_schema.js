@@ -1,4 +1,4 @@
-var ModifyMonitoredItemsResponse_Schema = {
+const ModifyMonitoredItemsResponse_Schema = {
     name: "ModifyMonitoredItemsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },
@@ -10,4 +10,4 @@ var ModifyMonitoredItemsResponse_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.ModifyMonitoredItemsResponse_Schema = ModifyMonitoredItemsResponse_Schema;
+export {ModifyMonitoredItemsResponse_Schema};

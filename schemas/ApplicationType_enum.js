@@ -1,8 +1,6 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
+import {registerEnumeration} from "lib/misc/factories";
 
-var ApplicationType_Schema = {
+const ApplicationType_Schema = {
     name: "ApplicationType",
     enumValues: {
         SERVER: 0, // The application is a Server
@@ -11,4 +9,4 @@ var ApplicationType_Schema = {
         DISCOVERYSERVER: 3  // The application is a DiscoveryServer
     }
 };
-exports.ApplicationType = factories.registerEnumeration(ApplicationType_Schema);
+export const ApplicationType = registerEnumeration(ApplicationType_Schema);

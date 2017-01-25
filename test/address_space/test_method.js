@@ -6,7 +6,7 @@ var UAMethod = require("lib/address_space/ua_method").UAMethod;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
-var address_space = require("lib/address_space/address_space");
+import AddressSpace from "lib/address_space/AddressSpace";
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 var _ = require("underscore");
 
@@ -16,7 +16,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
         before(function () {
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
         });
         after(function (done) {
             if (addressSpace) {

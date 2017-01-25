@@ -1,8 +1,9 @@
 require("requirish")._(module);
 var should = require("should");
 
-var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
-var ServerSecureChannelLayer = require("lib/server/server_secure_channel_layer").ServerSecureChannelLayer;
+import ClientSecureChannelLayer from "lib/client/ClientSecureChannelLayer";
+
+import ServerSecureChannelLayer from "lib/server/ServerSecureChannelLayer";
 
 
 describe("Testing ClientSecureChannel 1", function () {

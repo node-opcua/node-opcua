@@ -3,7 +3,8 @@
 "use strict";
 require("requirish")._(module);
 
-var OPCUAClient = require("lib/client/opcua_client").OPCUAClient;
+import OPCUAClient from "lib/client/OPCUAClient";
+
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");

@@ -6,7 +6,7 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var UADataType = require("lib/address_space/ua_data_type").UADataType;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
-var address_space = require("lib/address_space/address_space");
+import AddressSpace from "lib/address_space/AddressSpace";
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 
 describe("testing UADataype -  Attribute", function () {
@@ -16,7 +16,7 @@ describe("testing UADataype -  Attribute", function () {
         before(function (done) {
             get_mini_address_space(function (err, data) {
                 addressSpace = data;
-                addressSpace.should.be.instanceOf(address_space.AddressSpace);
+                addressSpace.should.be.instanceOf(AddressSpace);
                 done(err);
             });
         });

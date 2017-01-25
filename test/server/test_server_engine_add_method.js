@@ -2,7 +2,7 @@ require("requirish")._(module);
 var _ = require("underscore");
 var should = require("should");
 
-var server_engine = require("lib/server/server_engine");
+import ServerEngine, { mini_nodeset_filename } from "lib/server/ServerEngine";
 
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var DataValue = require("lib/datamodel/datavalue").DataValue;
@@ -26,9 +26,9 @@ describe("ServerEngine - addMethod", function () {
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
         before(function (done) {
 
-            engine = new server_engine.ServerEngine();
+            engine = new ServerEngine();
 
-            engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+            engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
 
                 FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
                 BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;

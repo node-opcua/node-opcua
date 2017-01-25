@@ -1,9 +1,6 @@
-"use strict";
+import {ExtensionObject} from "lib/misc/extension_object";
 
-require("requirish")._(module);
-var ExtensionObject = require("lib/misc/extension_object").ExtensionObject;
-
-var ActivateSessionRequest_Schema =  {
+const ActivateSessionRequest_Schema =  {
     documentation: "Activates a session with the server.",
     name: "ActivateSessionRequest",
     fields: [
@@ -16,4 +13,4 @@ var ActivateSessionRequest_Schema =  {
 
     ]
 };
-exports.ActivateSessionRequest_Schema = ActivateSessionRequest_Schema;
+export {ActivateSessionRequest_Schema};

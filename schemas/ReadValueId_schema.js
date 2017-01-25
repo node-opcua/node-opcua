@@ -1,13 +1,9 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-
-var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
-var is_valid_attributeId = require("lib/datamodel/attributeIds").is_valid_attributeId;
+import {AttributeIds} from "lib/datamodel/attributeIds";
+import {is_valid_attributeId} from "lib/datamodel/attributeIds";
 
 require("lib/datamodel/numeric_range");
 
-var ReadValueId_Schema = {
+const ReadValueId_Schema = {
     name: "ReadValueId",
     fields: [
         { name: "nodeId" ,       fieldType: "NodeId"},
@@ -61,4 +57,4 @@ var ReadValueId_Schema = {
         { name: "dataEncoding",  fieldType: "QualifiedName" }
     ]
 };
-exports.ReadValueId_Schema = ReadValueId_Schema;
+export {ReadValueId_Schema};

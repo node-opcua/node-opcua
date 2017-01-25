@@ -1,4 +1,4 @@
-var WriteResponse_Schema = {
+const WriteResponse_Schema = {
     name: "WriteResponse",
     fields: [
         { name: "responseHeader" ,                fieldType: "ResponseHeader" },
@@ -6,5 +6,5 @@ var WriteResponse_Schema = {
         { name: "diagnosticInfos", isArray:true,  fieldType: "DiagnosticInfo" }
     ]
 };
-exports.WriteResponse_Schema = WriteResponse_Schema;
+export {WriteResponse_Schema};
 

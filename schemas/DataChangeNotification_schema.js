@@ -1,5 +1,4 @@
-"use strict";
-var DataChangeNotification_Schema = {
+const DataChangeNotification_Schema = {
     name: "DataChangeNotification",
     //  BaseType="NotificationData"
     fields: [
@@ -7,4 +6,4 @@ var DataChangeNotification_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.DataChangeNotification_Schema = DataChangeNotification_Schema;
+export {DataChangeNotification_Schema};

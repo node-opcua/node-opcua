@@ -1,7 +1,5 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-var DataValueEncodingByte_Schema = {
+import { registerEnumeration } from "lib/misc/factories";
+const DataValueEncodingByte_Schema = {
     name:"DataValue_EncodingByte",
     enumValues: {
         Value:              0x01,
@@ -12,5 +10,5 @@ var DataValueEncodingByte_Schema = {
         ServerPicoseconds:  0x20
     }
 };
-exports.DataValueEncodingByte_Schema = DataValueEncodingByte_Schema;
-exports.DataValueEncodingByte = factories.registerEnumeration(DataValueEncodingByte_Schema);
+export {DataValueEncodingByte_Schema};
+export const DataValueEncodingByte = registerEnumeration(DataValueEncodingByte_Schema);

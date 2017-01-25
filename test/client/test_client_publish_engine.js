@@ -8,7 +8,7 @@ var should = require("should");
 var _ = require("underscore");
 var sinon = require("sinon");
 
-var ClientSidePublishEngine = require("lib/client/client_publish_engine").ClientSidePublishEngine;
+import ClientSidePublishEngine from "lib/client/ClientSidePublishEngine";
 var SubscriptionAcknowledgement = require("_generated_/_auto_generated_SubscriptionAcknowledgement").SubscriptionAcknowledgement;
 
 

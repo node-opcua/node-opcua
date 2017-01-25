@@ -2,13 +2,19 @@
 "use strict";
 require("requirish")._(module);
 
+import ServerEngine, {
+    nodeset_filename,
+    mini_nodeset_filename
+} from "lib/server/ServerEngine";
+import ServerSidePublishEngine from "lib/server/ServerSidePublishEngine";
+
 var should = require("should");
 var sinon = require("sinon");
 
 var subscription_service = require("lib/services/subscription_service");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
-var Subscription = require("lib/server/subscription").Subscription;
-var SubscriptionState = require("lib/server/subscription").SubscriptionState;
+import Subscription from "lib/server/Subscription";
+import SubscriptionState from "lib/server/SubscriptionState";
 
 var TimestampsToReturn = require("lib/services/read_service").TimestampsToReturn;
 
@@ -65,7 +71,6 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-var server_engine = require("lib/server/server_engine");
 var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
 var add_eventGeneratorObject = address_space_for_conformance_testing.add_eventGeneratorObject;
 
@@ -90,8 +95,8 @@ describe("Subscriptions and MonitoredItems", function () {
 
     before(function (done) {
         resourceLeakDetector.start();
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
 
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
@@ -1138,7 +1143,6 @@ describe("Subscriptions and MonitoredItems", function () {
 
 
 
-var ServerSidePublishEngine = require("lib/server/server_publish_engine").ServerSidePublishEngine;
 
 describe("monitoredItem advanced", function () {
 
@@ -1148,9 +1152,9 @@ describe("monitoredItem advanced", function () {
     var publishEngine;
     before(function (done) {
         resourceLeakDetector.start();
-        engine = new server_engine.ServerEngine();
+        engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
 

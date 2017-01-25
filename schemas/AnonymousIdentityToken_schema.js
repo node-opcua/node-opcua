@@ -2,7 +2,7 @@
 //---------------------------------------------------------
 // extension objects
 //---------------------------------------------------------
-var UserIdentityToken_Schema = {
+const UserIdentityToken_Schema = {
     name:"UserIdentityToken",
     documentation: "A base type for a user identity token.",
     fields: [
@@ -10,7 +10,7 @@ var UserIdentityToken_Schema = {
     ]
 };
 
-var AnonymousIdentityToken_Schema = {
+const AnonymousIdentityToken_Schema = {
     name:"AnonymousIdentityToken",
     documentation: "A token representing an anonymous user.",
     fields: [
@@ -18,4 +18,4 @@ var AnonymousIdentityToken_Schema = {
         { name: "policyId",             fieldType:"String", documentation:"The policy id specified in a user token policy for the endpoint being used."}
     ]
 };
-exports.AnonymousIdentityToken_Schema = AnonymousIdentityToken_Schema;
+export {AnonymousIdentityToken_Schema};

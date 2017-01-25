@@ -6,7 +6,7 @@
  * node types shall have an associated status code.
  */
 
-var ParsingResult_Schema = {
+const ParsingResult_Schema = {
     name:"ParsingResult",
 
     fields: [
@@ -27,4 +27,4 @@ var ParsingResult_Schema = {
 
     ]
 };
-exports.ParsingResult_Schema = ParsingResult_Schema;
+export {ParsingResult_Schema};

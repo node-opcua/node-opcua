@@ -1,9 +1,7 @@
-"use strict";
-
 require("./DataChangeTrigger_enum");
 require("./DeadbandType_enum");
 
-var DataChangeFilter_Schema = {
+const DataChangeFilter_Schema = {
     name: "DataChangeFilter",
     //  BaseType="MonitoringFilter"
     fields: [
@@ -12,4 +10,4 @@ var DataChangeFilter_Schema = {
         { name:"deadbandValue",fieldType:"Double" }
     ]
 };
-exports.DataChangeFilter_Schema = DataChangeFilter_Schema;
+export {DataChangeFilter_Schema};

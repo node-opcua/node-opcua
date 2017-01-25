@@ -1,4 +1,4 @@
-var ReadRawModifiedDetails_Schema = {
+const ReadRawModifiedDetails_Schema = {
     name: "ReadRawModifiedDetails",
     baseType: "HistoryReadDetails",
     fields: [
@@ -9,4 +9,4 @@ var ReadRawModifiedDetails_Schema = {
         { name: "returnBounds", fieldType: "Boolean"  }
     ]
 };
-exports.ReadRawModifiedDetails_Schema = ReadRawModifiedDetails_Schema;
+export {ReadRawModifiedDetails_Schema};

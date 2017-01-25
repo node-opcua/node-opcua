@@ -1,6 +1,6 @@
 
 
-var BrowseNextRequest_Schema = {
+const BrowseNextRequest_Schema = {
     name: "BrowseNextRequest",
     documentation: "Continues one or more browse operations.",
     fields: [
@@ -28,4 +28,4 @@ var BrowseNextRequest_Schema = {
         {name: "continuationPoints", isArray: true, fieldType: "ContinuationPoint", documentation: "The maximum number of references to return in the response."}
     ]
 };
-exports.BrowseNextRequest_Schema = BrowseNextRequest_Schema;
+export {BrowseNextRequest_Schema};

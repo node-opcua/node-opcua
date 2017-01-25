@@ -1,6 +1,6 @@
 
 
-var DeleteMonitoredItemsRequest_Schema = {
+const DeleteMonitoredItemsRequest_Schema = {
     name: "DeleteMonitoredItemsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },
@@ -8,4 +8,4 @@ var DeleteMonitoredItemsRequest_Schema = {
         { name: "monitoredItemIds", isArray: true, fieldType: "IntegerId" }
     ]
 };
-exports.DeleteMonitoredItemsRequest_Schema = DeleteMonitoredItemsRequest_Schema;
+export {DeleteMonitoredItemsRequest_Schema};

@@ -1,7 +1,5 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
-var DataChangeTrigger_Schema = {
+import { registerEnumeration } from "lib/misc/factories";
+const DataChangeTrigger_Schema = {
     name:"DataChangeTrigger",
     enumValues: {
         Status:                  0x00,
@@ -11,5 +9,5 @@ var DataChangeTrigger_Schema = {
 
     }
 };
-exports.DataChangeTrigger_Schema = DataChangeTrigger_Schema;
-exports.DataChangeTrigger = factories.registerEnumeration(DataChangeTrigger_Schema);
+export {DataChangeTrigger_Schema};
+export const DataChangeTrigger = registerEnumeration(DataChangeTrigger_Schema);

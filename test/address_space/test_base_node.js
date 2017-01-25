@@ -6,9 +6,9 @@ var path = require("path");
 var should = require("should");
 var _ = require("underscore");
 
-var address_space = require("lib/address_space/address_space");
+import AddressSpace from "lib/address_space/AddressSpace";
 
-var UAVariable = require("lib/address_space/ua_variable").UAVariable;
+import UAVariable from "lib/address_space/UAVariable";
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;

@@ -1,5 +1,5 @@
 
-var GetEndpointsResponse_Schema = {
+const GetEndpointsResponse_Schema = {
     name: "GetEndpointsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader"       },
@@ -7,4 +7,4 @@ var GetEndpointsResponse_Schema = {
     ]
 };
 
-exports.GetEndpointsResponse_Schema = GetEndpointsResponse_Schema;
+export {GetEndpointsResponse_Schema};

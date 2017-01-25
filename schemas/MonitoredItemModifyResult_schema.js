@@ -1,4 +1,4 @@
-var MonitoredItemModifyResult_Schema = {
+const MonitoredItemModifyResult_Schema = {
     name: "MonitoredItemModifyResult",
     fields: [
         { name: "statusCode", fieldType: "StatusCode" },
@@ -7,4 +7,4 @@ var MonitoredItemModifyResult_Schema = {
         { name: "filterResult", fieldType: "ExtensionObject" }
     ]
 };
-exports.MonitoredItemModifyResult_Schema = MonitoredItemModifyResult_Schema;
+export {MonitoredItemModifyResult_Schema};

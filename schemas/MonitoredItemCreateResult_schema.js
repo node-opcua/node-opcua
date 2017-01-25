@@ -1,5 +1,5 @@
 
-var MonitoredItemCreateResult_Schema = {
+const MonitoredItemCreateResult_Schema = {
     name: "MonitoredItemCreateResult",
     fields: [
         { name: "statusCode", fieldType: "StatusCode" },
@@ -9,4 +9,4 @@ var MonitoredItemCreateResult_Schema = {
         { name: "filterResult", fieldType: "ExtensionObject" }
     ]
 };
-exports.MonitoredItemCreateResult_Schema = MonitoredItemCreateResult_Schema;
+export {MonitoredItemCreateResult_Schema};

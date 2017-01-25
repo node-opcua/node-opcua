@@ -1,6 +1,6 @@
 
 
-var RegisterNodesRequest_Schema = {
+const RegisterNodesRequest_Schema = {
     documentation:"Registers Nodes",
     name: "RegisterNodesRequest",
     fields: [
@@ -8,4 +8,4 @@ var RegisterNodesRequest_Schema = {
         { name:"nodesToRegister",isArray:true,fieldType:"NodeId", documentation: "List of NodeIds to register that the client has retrieved through browsing, querying or in some other manner"}
     ]
 };
-exports.RegisterNodesRequest_Schema = RegisterNodesRequest_Schema;
+export {RegisterNodesRequest_Schema};

@@ -1,5 +1,6 @@
 require("requirish")._(module);
-var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
+import ClientSecureChannelLayer from "lib/client/ClientSecureChannelLayer";
+
 var should = require("should");
 var assert = require("better-assert");
 

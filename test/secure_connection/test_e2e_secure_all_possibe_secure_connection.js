@@ -1,6 +1,9 @@
 require("requirish")._(module);
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 
+import crypto_utils from "lib/misc/crypto_utils";
+import ClientSecureChannelLayer from "lib/client/ClientSecureChannelLayer";
+
 
 var opcua = require("index.js");
 
@@ -380,7 +383,6 @@ var g_defaultSecureTokenLifetime = 500;
 var g_cycleNumber = 3;
 var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
 
-var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
     console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
 } else {
@@ -477,7 +479,7 @@ if (!crypto_utils.isFullySupported()) {
             var old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
             var crypto = require("crypto");
             ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
-                if(requestMessage.constructor.name = "OpenSecureChannelRequest") {
+                if(requestMessage.constructor.name == "OpenSecureChannelRequest") {
                     assert(requestMessage.clientNonce.length === 16);
                     this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
                     ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
@@ -527,8 +529,7 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
-
+    
     describe("ZZB- testing server behavior on secure connection ", function () {
 
         this.timeout(Math.max(this._timeout,20002));

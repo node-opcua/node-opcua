@@ -6,14 +6,14 @@ var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var _ = require("underscore");
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 var UADataType = require("lib/address_space/ua_data_type").UADataType;
 var UAObject = require("lib/address_space/ua_object").UAObject;
-var UAVariable = require("lib/address_space/ua_variable").UAVariable;
+import UAVariable from "lib/address_space/UAVariable";
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 

@@ -10,7 +10,7 @@ var UAObjectType = require("lib/address_space/ua_object_type").UAObjectType;
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 

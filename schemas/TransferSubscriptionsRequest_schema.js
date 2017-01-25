@@ -1,4 +1,4 @@
-var TransferSubscriptionsRequest_Schema = {
+const TransferSubscriptionsRequest_Schema = {
     name: "TransferSubscriptionsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },
@@ -7,4 +7,4 @@ var TransferSubscriptionsRequest_Schema = {
 
     ]
 };
-exports.TransferSubscriptionsRequest_Schema = TransferSubscriptionsRequest_Schema;
+export {TransferSubscriptionsRequest_Schema};

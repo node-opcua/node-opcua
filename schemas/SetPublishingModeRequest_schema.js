@@ -1,5 +1,5 @@
 
-var SetPublishingModeRequest_Schema = {
+const SetPublishingModeRequest_Schema = {
     name: "SetPublishingModeRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },
@@ -7,4 +7,4 @@ var SetPublishingModeRequest_Schema = {
         { name: "subscriptionIds", isArray: true, fieldType: "IntegerId" }
     ]
 };
-exports.SetPublishingModeRequest_Schema = SetPublishingModeRequest_Schema;
+export {SetPublishingModeRequest_Schema};

@@ -1,6 +1,6 @@
 
 
-var UnregisterNodesRequest_Schema = {
+const UnregisterNodesRequest_Schema = {
     documentation:"Registers Nodes",
     name: "UnregisterNodesRequest",
     fields: [
@@ -8,4 +8,4 @@ var UnregisterNodesRequest_Schema = {
         { name:"nodesToUnregister",isArray:true,fieldType:"NodeId", documentation: "A list of NodeIds that have been obtained via the RegisterNodes service."}
     ]
 };
-exports.UnregisterNodesRequest_Schema = UnregisterNodesRequest_Schema;
+export {UnregisterNodesRequest_Schema};

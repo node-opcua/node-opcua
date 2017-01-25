@@ -1,5 +1,5 @@
 
-var HistoryUpdateResult_Schema = {
+const HistoryUpdateResult_Schema = {
     name: "HistoryUpdateResult",
     fields: [
     /*=
@@ -27,4 +27,4 @@ var HistoryUpdateResult_Schema = {
         { name: "diagnosticInfos", isArray: true, fieldType: "DiagnosticInfo" }
     ]
 };
-exports.HistoryUpdateResult_Schema = HistoryUpdateResult_Schema;
+export {HistoryUpdateResult_Schema};

@@ -6,7 +6,7 @@ var _ = require("underscore");
 var path = require("path");
 var assert = require("better-assert");
 
-var Enum = require("lib/misc/enum");
+import Enum from "lib/misc/enum";
 
 var opcua = require("index");
 
@@ -16,13 +16,13 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 var DataType = opcua.DataType;
 var Variant = opcua.Variant;
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 
 
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 describe("AddressSpace : testing add enumeration type", function () {
 

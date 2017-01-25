@@ -15,7 +15,7 @@
 //     network delays.
 
 
-var OpenSecureChannelResponse_Schema_as_per_Spec_Part4 = {
+const OpenSecureChannelResponse_Schema_as_per_Spec_Part4 = {
     name: "OpenSecureChannelResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader"                 },
@@ -23,7 +23,7 @@ var OpenSecureChannelResponse_Schema_as_per_Spec_Part4 = {
         { name: "serverNonce", fieldType: "ByteString"                     }
     ]
 };
-var OpenSecureChannelResponse_Schema_as_per_Spec_Part6 = {
+const OpenSecureChannelResponse_Schema_as_per_Spec_Part6 = {
     name: "OpenSecureChannelResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader"                 },
@@ -32,4 +32,4 @@ var OpenSecureChannelResponse_Schema_as_per_Spec_Part6 = {
         { name: "serverNonce", fieldType: "ByteString"                     }
     ]
 };
-exports.OpenSecureChannelResponse_Schema =OpenSecureChannelResponse_Schema_as_per_Spec_Part6;
+export {OpenSecureChannelResponse_Schema_as_per_Spec_Part6 as OpenSecureChannelResponse_Schema};

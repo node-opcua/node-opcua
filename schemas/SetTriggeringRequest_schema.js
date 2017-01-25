@@ -1,4 +1,4 @@
-var SetTriggeringRequest_Schema = {
+const SetTriggeringRequest_Schema = {
     name:"SetTriggeringRequest",
     fields:[
         { name:"requestHeader",                            fieldType:"RequestHeader",               documentation:"A standard header included in all requests sent to a server." },
@@ -8,5 +8,5 @@ var SetTriggeringRequest_Schema = {
         {name:"linksToRemove",  isArray: true,fieldType: "IntegerId"}
     ]
 };
-exports.SetTriggeringRequest_Schema = SetTriggeringRequest_Schema;
+export {SetTriggeringRequest_Schema};
 

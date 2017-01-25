@@ -1,4 +1,4 @@
-var RegisterNodesResponse_Schema = {
+const RegisterNodesResponse_Schema = {
     documentation:" A standard header included in all responses returned by servers.",
     name: "RegisterNodesResponse",
     fields: [
@@ -14,4 +14,4 @@ var RegisterNodesResponse_Schema = {
         { name:"registeredNodeIds",isArray:true,fieldType:"NodeId", documentation: "A list of NodeIds which the Client shall use for subsequent access operations. "}
     ]
 };
-exports.RegisterNodesResponse_Schema = RegisterNodesResponse_Schema;
+export {RegisterNodesResponse_Schema};

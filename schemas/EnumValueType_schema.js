@@ -1,6 +1,3 @@
-"use strict";
-require("requirish")._(module);
-var factories = require("lib/misc/factories");
 
 // OPCUA 1.03 : Part 3  $ 8.40 page 65
 
@@ -8,7 +5,7 @@ var factories = require("lib/misc/factories");
 // When this type is used in an array representing human-readable representations of an enumeration,
 // each Value shall be unique in that array.
 
-var EnumValueType_Schema = {
+const EnumValueType_Schema = {
     name: "EnumValueType",
     fields: [
         {
@@ -28,4 +25,4 @@ var EnumValueType_Schema = {
         }
     ]
 };
-exports.EnumValueType_Schema = EnumValueType_Schema;
+export {EnumValueType_Schema};

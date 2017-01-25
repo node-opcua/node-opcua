@@ -3,7 +3,7 @@
 require("requirish")._(module);
 var should = require("should");
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 var assert = require("better-assert");
 var generateAddressSpace = require("lib/address_space/load_nodeset2").generate_address_space;
 var nodeId = require("lib/datamodel/nodeid");

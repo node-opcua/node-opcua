@@ -18,17 +18,17 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 
-var AddressSpace = require("lib/address_space/address_space").AddressSpace;
+import AddressSpace from "lib/address_space/AddressSpace";
 
 // make sure all namespace 0 data type are properly loaded
-var Engine = require("lib/server/server_engine");
+import ServerEngine from "lib/server/ServerEngine";
 
 var fs = require("fs");
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
 
 var UADataType = require("lib/address_space/ua_data_type").UADataType;
-var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
+import UAVariableType from "lib/address_space/ua-variable-type/UAVariableType";
 var UAObject = require("lib/address_space/ua_object").UAObject;
 var DataType = require("lib/datamodel/variant").DataType;
 var Variant = require("lib/datamodel/variant").Variant;

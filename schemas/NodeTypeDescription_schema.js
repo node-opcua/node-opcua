@@ -1,4 +1,4 @@
-var NodeTypeDescription_Schema = {
+const NodeTypeDescription_Schema = {
     name: "NodeTypeDescription",
     fields: [
         {name: "typeDefinitionNode",fieldType: "ExpandedNodeId",
@@ -9,4 +9,4 @@ var NodeTypeDescription_Schema = {
             documentation: "Specifies an Attribute or Reference from the originating typeDefinitionNode along a given relativePath for which to return data. This structure is defined in-line with the following indented items."},
     ]
 };
-exports.NodeTypeDescription_Schema = NodeTypeDescription_Schema;
+export {NodeTypeDescription_Schema};

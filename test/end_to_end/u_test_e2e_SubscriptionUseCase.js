@@ -24,7 +24,7 @@ var MonitoringMode = opcua.subscription_service.MonitoringMode;
 var makeNodeId = opcua.makeNodeId;
 var VariantArrayType = opcua.VariantArrayType;
 
-var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
+import MonitoredItem from "lib/server/MonitoredItem";
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;

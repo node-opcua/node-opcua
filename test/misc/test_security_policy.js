@@ -4,7 +4,8 @@ var should = require("should");
 
 var securityPolicy_m = require("lib/misc/security_policy");
 var SecurityPolicy = securityPolicy_m.SecurityPolicy;
-
+import crypto_utils from "lib/misc/crypto_utils";
+    
 
 describe("Security Policy", function () {
 
@@ -46,7 +47,6 @@ describe("Security Policy", function () {
 describe("Security Policy computeSignature, verifySignature", function () {
 
 
-    var crypto_utils = require("lib/misc/crypto_utils");
     var path = require("path");
     var crypto = require("crypto");
 

@@ -1,11 +1,11 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
-var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
+import UAVariableType from "lib/address_space/ua-variable-type/UAVariableType";
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
-var address_space = require("lib/address_space/address_space");
+import AddressSpace from "lib/address_space/AddressSpace";
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
@@ -21,7 +21,7 @@ describe("testing UAVariableType", function () {
 
         before(function () {
 
-            addressSpace = new address_space.AddressSpace();
+            addressSpace = new AddressSpace();
             create_minimalist_address_space_nodeset(addressSpace);
 
         });

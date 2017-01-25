@@ -1,13 +1,15 @@
 require("requirish")._(module);
 var should = require("should");
-var server_engine = require("lib/server/server_engine");
+import ServerEngine, {
+    mini_nodeset_filename
+} from "lib/server/ServerEngine";
 var browse_service = require("lib/services/browse_service");
 var read_service = require("lib/services/read_service");
 var subscription_service = require("lib/services/subscription_service");
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var makeNodeId = require("lib/datamodel/nodeid").makeNodeId;
 var VariableIds = require("lib/opcua_node_ids").VariableIds;
-var SubscriptionState = require("lib/server/subscription").SubscriptionState;
+import SubscriptionState from "lib/server/SubscriptionState";
 var PublishRequest = subscription_service.PublishRequest;
 
 
@@ -34,14 +36,14 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 describe("ServerEngine Subscriptions Transfer", function () {
 
 
-    var engine, session1, FolderTypeId, BaseDataVariableTypeId;
+    var engine, session1, session2, FolderTypeId, BaseDataVariableTypeId;
 
     beforeEach(function (done) {
 
         resourceLeakDetector.start();
 
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
             FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
