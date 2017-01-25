@@ -1298,7 +1298,7 @@ describe("testing ability for client to reconnect when server close connection",
         });
     });
 
-    xit("TR7 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding session life time", function (done) {
+    xit("TR7 -  a client with some active monitored items should be able to reconnect seamlessly after a very long connection break exceeding session life time", function (done) {
         // to do
         async.series([
 
@@ -1339,11 +1339,11 @@ describe("testing ability for client to reconnect when server close connection",
 
         var backoff_event_counter =0;
         client.on("backoff", function (err) {
-            // xx console.log("...");
+            console.log("...");
             backoff_event_counter+=1;
         });
 
-        var endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.galaxy.com:4242";
+        endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.galaxy.com:4242";
 
         // let's call connect.
         // because the endpointUrl doesn't exist,  and the the infinite_connectivity_strategy
@@ -1353,42 +1353,48 @@ describe("testing ability for client to reconnect when server close connection",
         var connect_err = null;
         client.connect(endpointUrl, function(err) {
             connect_err = err;
+            //xx console.log("client.connect(err) err = ",err);
             connect_done = true;
         });
 
         var count_ref = 0;
 
         async.series([
-            f(wait_a_little_while),
-            f(wait_a_little_while),
+
+            // Wait until backoff is raised several times
+            function(callback) {
+                client.once("backoff", function(number,delay) { callback(); });
+            },
+            function(callback) {
+                client.once("backoff", function(number,delay) { callback(); });
+            },
+            function(callback) {
+                client.once("backoff", function(number,delay) { callback(); });
+            },
             function(callback) {
 
-                //  When client#disconnect is called
-
                 backoff_event_counter.should.be.greaterThan(2);
-
                 // client should be still trying to connect
                 connect_done.should.eql(false);
+
+                //  When client#disconnect is called
                 client_has_received_close_event.should.eql(0);
 
                 client.disconnect(function(err) {
 
-                    //xx setTimeout(function() {
-                        client_has_received_close_event.should.eql(1);
-                        // connect callback should have been called...
-                        connect_done.should.eql(true);
+                    client_has_received_close_event.should.eql(1);
+                    // connect callback should have been called...
+                    connect_done.should.eql(true);
 
-                        //xx console.log("-----------------------------------------------------");
-                        callback(err);
-                        count_ref = backoff_event_counter;
+                    callback(err);
+                    count_ref = backoff_event_counter;
 
-                    //xx },10);
                 });
             },
             f(wait_a_little_while),
             function(callback) {
                 client_has_received_close_event.should.eql(1);
-                // backof must be terminated now
+                // backoff must be terminated now
                 count_ref.should.eql(backoff_event_counter);
                 callback(null);
             }
