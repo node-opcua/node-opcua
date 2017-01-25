@@ -22,7 +22,7 @@ import AddressSpace from "lib/address_space/AddressSpace";
 var generate_address_space = require("lib/address_space/load_nodeset2").generate_address_space;
 
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 describe("AddressSpace : testing add enumeration type", function () {
 

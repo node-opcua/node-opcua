@@ -41,7 +41,7 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 var assert_arrays_are_equal = require("test/helpers/typedarray_helpers").assert_arrays_are_equal;
 var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;
-var UAVariable = require("lib/address_space/ua_variable").UAVariable;
+import UAVariable from "lib/address_space/UAVariable";
 var UAObject = require("lib/address_space/ua_object").UAObject;
 var Reference = require("lib/address_space/reference").Reference;
 

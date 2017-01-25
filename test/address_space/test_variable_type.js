@@ -1,7 +1,7 @@
 /* global describe,it,before*/
 require("requirish")._(module);
 var should = require("should");
-var UAVariableType = require("lib/address_space/ua_variable_type").UAVariableType;
+import UAVariableType from "lib/address_space/ua-variable-type/UAVariableType";
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;

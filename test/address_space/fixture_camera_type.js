@@ -1,6 +1,6 @@
 "use strict";
 require("requirish")._(module);
-require("lib/address_space/address_space_add_method");
+import install from "lib/address_space/add-method/install";
 var should = require("should");
 var DataType = require("lib/datamodel/variant").DataType;
 var QualifiedName = require("lib/datamodel/qualified_name").QualifiedName;

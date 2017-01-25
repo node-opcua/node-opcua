@@ -26,7 +26,7 @@ var doDebug = false;
 
 var sinon = require("sinon");
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 module.exports = function (test) {
 

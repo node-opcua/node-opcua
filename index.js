@@ -89,7 +89,8 @@ const ServiceCounter     = require("_generated_/_auto_generated_ServiceCounter")
 // basic opcua NodeClass
 const UAObject  = require("lib/address_space/ua_object").UAObject;
 const UAMethod  = require("lib/address_space/ua_method").UAMethod;
-const UAVariable= require("lib/address_space/ua_variable").UAVariable;
+import UAVariable from "lib/address_space/UAVariable";
+
 const UADataType= require("lib/address_space/ua_data_type").UADataType;
 
 

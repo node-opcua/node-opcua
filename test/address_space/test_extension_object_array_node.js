@@ -13,7 +13,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 
 var UADataType = require("lib/address_space/ua_data_type").UADataType;
 var UAObject = require("lib/address_space/ua_object").UAObject;
-var UAVariable = require("lib/address_space/ua_variable").UAVariable;
+import UAVariable from "lib/address_space/UAVariable";
 var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 

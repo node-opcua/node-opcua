@@ -25,7 +25,7 @@ var UAObject = require("lib/address_space/ua_object").UAObject;
 
 import ConditionInfo from "lib/address_space/alarms_and_conditions/ConditionInfo";
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 
 module.exports = function (test) {

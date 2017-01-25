@@ -11,7 +11,7 @@ var async = require("async");
 import ServerEngine from "lib/server/ServerEngine";
 import AddressSpace from "lib/address_space/AddressSpace";
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 describe("AddressSpace : Conditions ", function () {
 

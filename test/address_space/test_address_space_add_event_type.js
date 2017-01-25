@@ -18,7 +18,7 @@ var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 var assert = require("assert");
 var path = require("path");
 
-require("lib/address_space/address_space_add_enumeration_type");
+require("lib/address_space/add-enumeration-type/install");
 
 describe("AddressSpace : add event type ", function () {
 
@@ -274,7 +274,6 @@ describe("AddressSpace : add event type ", function () {
         event.should.have.property("message");
         event.should.have.property("severity");
 
-        //  var UAVariable = require("lib/address_space/ua_variable").UAVariable;
         var Variant = require("lib/datamodel/variant").Variant;
         event.eventId.should.be.instanceof(Variant);
 
