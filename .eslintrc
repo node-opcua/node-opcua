@@ -14,6 +14,7 @@
     "no-trailing-spaces": 0,        // disallow trailing whitespace at the end of lines
     "no-unused-vars": 0,              // disallow declaration of variables that are not used in the code
     // styling issues
+    "indent": ["error",4],
     "camelcase": 0,
     "complexity": [2, 20 ],
     "max-depth": [2, 5],  // Maximum of 2 deep.
