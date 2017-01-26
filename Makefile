@@ -2,7 +2,7 @@
 test-cov: istanbul coveralls codeclimate
 
 istanbul:
-	istanbul cover -x "tmp/**" ./node_modules/mocha/bin/_mocha -- -R spec --recursive --timeout 100000 --bail test
+	istanbul cover -x "tmp/**" ./node_modules/mocha/bin/_mocha -- -R spec --recursive --timeout 100000 --bail test --compilers js:babel/register
 
 coveralls: istanbul
 	cat ./coverage/lcov.info | node ./node_modules/coveralls/bin/coveralls.js --exclude tmp
