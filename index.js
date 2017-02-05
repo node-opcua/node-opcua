@@ -37,6 +37,8 @@ module.exports.NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 
 // services
 module.exports.browse_service                             = require("lib/services/browse_service");
+module.exports.BrowseDirection = module.exports.browse_service.BrowseDirection;
+
 module.exports.read_service                               = require("lib/services/read_service");
 module.exports.write_service                              = require("lib/services/write_service");
 module.exports.call_service                               = require("lib/services/call_service");
