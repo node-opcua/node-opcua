@@ -434,7 +434,7 @@ module.exports = function (test) {
             });
         });
 
-        it("GGGH should raise an event when commenting a Condition ", function (done) {
+        it("KKL1 should raise an (OPUCA) event when commenting a Condition ", function (done) {
 
             var levelNode = test.tankLevel;
             var alarmNode = test.tankLevelCondition;
@@ -453,10 +453,10 @@ module.exports = function (test) {
 
                     function when_we_set_a_comment(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(0,"no event should have been raised");
-                        var eventId= alarmNode.eventId.readValue().value.value;
+                        test.spy_monitored_item1_changes.callCount.should.eql(0, "no event should have been raised");
+                        var eventId = alarmNode.eventId.readValue().value.value;
                         var alarmNodeId = alarmNode.nodeId;
-                        session.addCommentCondition(alarmNodeId,eventId,"SomeComment!!!",function(err) {
+                        session.addCommentCondition(alarmNodeId, eventId, "SomeComment!!!", function (err) {
                             callback(err);
                         });
                     },
@@ -464,7 +464,7 @@ module.exports = function (test) {
 
                     function we_should_verify_that_an_event_has_been_raised(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(2,"an event should have been raised");
+                        test.spy_monitored_item1_changes.callCount.should.eql(2, "an event should have been raised");
 
                         var dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //xx dump_field_values(fields,dataValues);
@@ -481,8 +481,62 @@ module.exports = function (test) {
                         callback();
                     }
 
-                ],callback);
-            },done);
+                ], callback);
+            }, done);
+        });
+
+        it("KKL2 should raise an (INTERNAL) event when commenting a Condition ", function (done) {
+
+            var levelNode = test.tankLevel;
+            var alarmNode = test.tankLevelCondition;
+
+            var addCommentSpy = sinon.spy();
+            alarmNode.on("addComment", addCommentSpy);
+            var the_new_comment = " The NEW COMMENT !!!";
+
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+
+                async.series([
+
+                    function given_a_enabled_condition(callback) {
+                        alarmNode.enabledState.setValue(true);
+                        alarmNode.enabledState.getValue().should.eql(true);
+
+                        addCommentSpy.callCount.should.eql(0);
+
+                        callback();
+                    },
+
+                    function when_we_set_a_comment(callback) {
+                        var eventId = alarmNode.eventId.readValue().value.value;
+                        var alarmNodeId = alarmNode.nodeId;
+                        session.addCommentCondition(alarmNodeId, eventId, the_new_comment, function (err) {
+
+                            callback(err);
+                        });
+
+                    },
+                    wait_a_little_bit_to_let_events_to_be_processed,
+                    function then_we_should_verify_that_the_internal_addComment_event_has_been_raised(callback) {
+
+                        addCommentSpy.callCount.should.eql(1);
+                        addCommentSpy.getCall(0).args[0].should.be.instanceOf(Buffer); // eventId
+                        addCommentSpy.getCall(0).args[1].should.be.instanceOf(opcua.LocalizedText);
+                        addCommentSpy.getCall(0).args[2].constructor.name.should.eql("ConditionSnapshot");
+
+
+                        addCommentSpy.getCall(0).args[1].text.should.eql(the_new_comment);
+
+                        callback();
+                    },
+                    function tear_down(callback) {
+                        alarmNode.removeListener("addComment", addCommentSpy);
+                        callback();
+                    }
+                ], callback);
+
+            }, done);
+
         });
 
         xit("should raise an event when acknowledging an AcknowledgeableCondition ", function (done) {
@@ -494,7 +548,7 @@ module.exports = function (test) {
         });
 
 
-        function perform_test_with_condition(eventTypeNodeId,levelNode,alarmNode, done) {
+        function perform_test_with_condition(eventTypeNodeId, levelNode, alarmNode, done) {
 
             // this test implements the example of the Spec 1.03 part 9 page, cited below:
             //     B.1.3 Server maintains previous states
@@ -602,7 +656,7 @@ module.exports = function (test) {
 
                     // set the value so it is in normal range  => alarm no active
                     levelNode.setValueFromSource({dataType: "Double", value: 0.50});
-                    alarmNode.activeState.getValue().should.eql(false,"expecting alarm to be inactive");
+                    alarmNode.activeState.getValue().should.eql(false, "expecting alarm to be inactive");
 
                     callback();
                 }
@@ -669,7 +723,7 @@ module.exports = function (test) {
 
                     function we_should_verify_that_an_event_has_been_raised(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(1,"an event should have been raised");
+                        test.spy_monitored_item1_changes.callCount.should.eql(1, "an event should have been raised");
 
                         dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
@@ -693,7 +747,7 @@ module.exports = function (test) {
                         callback();
 
                     },
-                    function(callback) {
+                    function (callback) {
                         test.spy_monitored_item1_changes.reset();
                         callback();
                     },
@@ -865,7 +919,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConditionName", dataValues7).value.should.eql("Test");
                         extract_value_for_field("SourceName", dataValues7).value.should.eql(levelNode.browseName.toString());
                         branch1_NodeId = extract_value_for_field("BranchId", dataValues7).value;
-                            branch1_EventId = extract_value_for_field("EventId", dataValues7).value;
+                        branch1_EventId = extract_value_for_field("EventId", dataValues7).value;
 
                         extract_value_for_field("ActiveState", dataValues7).value.text.should.eql("Active");
                         extract_value_for_field("ActiveState.Id", dataValues7).value.should.eql(true);
@@ -1114,12 +1168,13 @@ module.exports = function (test) {
 
         it("A&C1 Example of a Condition that maintains previous states via branches - with exclusive condition", function (done) {
             // ns=0;i=9341 => ExclusiveLimitAlarmType
-            perform_test_with_condition("ns=0;i=9341",test.tankLevel,test.tankLevelCondition, done);
+            perform_test_with_condition("ns=0;i=9341", test.tankLevel, test.tankLevelCondition, done);
         });
         it("A&C2 Example of a Condition that maintains previous states via branches - with non exclusive condition", function (done) {
             // ns=0;i=9906 => NonExclusiveLimitAlarmType
-            perform_test_with_condition("ns=0;i=9906",test.tankLevel2,test.tankLevelCondition2, done);
+            perform_test_with_condition("ns=0;i=9906", test.tankLevel2, test.tankLevelCondition2, done);
         });
+
 
     });
 
