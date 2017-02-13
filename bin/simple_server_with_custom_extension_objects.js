@@ -1,5 +1,6 @@
 /* eslint no-process-exit: 0 */
 "use strict";
+require("babel-register");
 require("requirish")._(module);
 Error.stackTraceLimit = Infinity;
 
@@ -9,7 +10,6 @@ var argv = require('yargs')
     .describe("port")
     .alias('p', 'port')
     .argv;
-
 var opcua = require("../index");
 var _ = require("underscore");
 var path = require("path");

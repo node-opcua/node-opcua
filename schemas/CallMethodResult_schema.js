@@ -10,7 +10,7 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
  * CallMethodResult
  *
  */
-CallMethodResult_Schema = {
+var CallMethodResult_Schema = {
     name: "CallMethodResult",
     documentation: "The result of a Method call.",
     fields: [

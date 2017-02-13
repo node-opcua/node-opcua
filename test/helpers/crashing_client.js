@@ -1,8 +1,10 @@
+require("babel-register");
+
 // a simple client that is design to crash in the middle of a connection
 // once a item has been monitored
 
 if (process.argv.length != 3) {
-    return;
+    // throw new Error('Improper Args length')
 }
 console.log("process.argv.length ",process.argv.length);
 

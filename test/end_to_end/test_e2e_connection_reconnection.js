@@ -670,7 +670,7 @@ describe("testing ability for client to reconnect when server close connection",
                 timerId = setInterval(function () {
                     c = c + 1;
                     counterNode.setValueFromSource(new Variant({dataType: "UInt32", value: c}), StatusCodes.Good);
-                }, 100);
+                }, 10);
 
             }
             done(err);

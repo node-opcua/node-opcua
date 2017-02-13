@@ -1,0 +1,8 @@
+{
+  "plugins": [
+  ["module-resolver", {
+    "root": ["./"]
+  }]
+],
+  "presets": [["es2015", { "loose": true }]]
+}
