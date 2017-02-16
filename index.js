@@ -49,7 +49,7 @@ module.exports.historizing_service                        = require("lib/service
 module.exports.register_server_service                    = require("lib/services/register_server_service");
 module.exports.secure_channel_service                     = require("lib/services/secure_channel_service");
 module.exports.translate_browse_paths_to_node_ids_service = require("lib/services/translate_browse_paths_to_node_ids_service");
-
+module.exports.BrowsePath = module.exports.translate_browse_paths_to_node_ids_service.BrowsePath;
 
 module.exports.query_service           = require("lib/services/query_service");
 module.exports.node_managment_service  = require("lib/services/node_management_service");

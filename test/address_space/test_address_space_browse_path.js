@@ -126,9 +126,8 @@ describe("AddressSpace#browsePath", function () {
         var rootFolder = addressSpace.rootFolder;
         var browsePath = makeBrowsePath(rootFolder, "");
         var result = addressSpace.browsePath(browsePath);
-        result.statusCode.should.eql(StatusCodes.Good);
-        result.targets.length.should.eql(1);
-        result.targets[0].targetId.toString().should.eql(rootFolder.nodeId.toString());
+        result.statusCode.should.eql(StatusCodes.BadNothingToDo);
+        result.targets.length.should.eql(0);
 
 
     });

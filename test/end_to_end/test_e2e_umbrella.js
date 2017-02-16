@@ -196,6 +196,8 @@ describe("testing Client - Umbrella ", function () {
         }
     });
 
+    require("./u_test_e2e_ctt_5.10.5_test3")(test);
+    require("./u_test_e2e_cttt_5.10.2_test7")(test);
     require("./u_test_e2e_monitoring_large_number_of_nodes")(test);
     require("./u_test_e2e_BrowseRequest")(test);
     require("./u_test_e2e_security_username_password")(test);

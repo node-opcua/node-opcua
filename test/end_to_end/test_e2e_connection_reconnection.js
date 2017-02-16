@@ -747,7 +747,7 @@ describe("testing ability for client to reconnect when server close connection",
         client_has_received_start_reconnection_event = 0;
         client.on("close", function (err) {
             if (err) {
-                console.log("err=", err.message);
+                //xx console.log("err=", err.message);
             }
             client_has_received_close_event += 1;
         });
@@ -758,8 +758,6 @@ describe("testing ability for client to reconnect when server close connection",
         });
         client.on("backoff", function (number,delay) {
             backoff_counter +=1;
-            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
-            //xx console.log("backoff => err",err.message);
         });
         client.connect(endpointUrl, function(err) {
             done(err);
@@ -1024,7 +1022,7 @@ describe("testing ability for client to reconnect when server close connection",
         client.createSession(function (err, session) {
             if (!err) {
                 the_session = session;
-                console.log("session timeout = ",the_session.timeout," ms");
+                ///xx console.log("session timeout = ",the_session.timeout," ms");
             }
             callback(err);
         });
@@ -1099,7 +1097,7 @@ describe("testing ability for client to reconnect when server close connection",
         // ensure we have more value than previous call
         // ensure that series is continuous
         if (doDebug) {
-            console.log(values_to_check.join(" "));
+            //xx console.log(values_to_check.join(" "));
         }
 
         values_to_check.length.should.be.greaterThan(previous_value_count+1," expecting new values");
@@ -1339,7 +1337,6 @@ describe("testing ability for client to reconnect when server close connection",
 
         var backoff_event_counter =0;
         client.on("backoff", function (err) {
-            console.log("...");
             backoff_event_counter+=1;
         });
 

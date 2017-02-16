@@ -98,5 +98,33 @@ module.exports = function (test) {
             }, done);
         });
 
+        it("TBP2 server should return BadNothingToDo when the translateBrowsePath browse path relativePath is empty", function (done) {
+
+            /*
+             CTT Test 5.7.3-Err-5
+             Given an existent starting node and no RelativePath elements.
+             When TranslateBrowsePathsToNodeIds is called server returns operation result Bad_NothingToDo.
+             */
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                var browsePath = new opcua.BrowsePath({
+                    startingNode: opcua.resolveNodeId("ObjectsFolder"), ///ec.makeNodeId(opcua.ObjectIds.Server),
+                    relativePath: { // RelativePath
+                        elements: []
+                    }
+                });
+                session.translateBrowsePath(browsePath, function (err, browsePathResult) {
+                    should.not.exist(err);
+                    browsePathResult._schema.name.should.equal("BrowsePathResult");
+                    browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
+                    console.log(browsePathResult.toString())
+                    browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
+
+                    inner_done();
+                });
+            }, done);
+
+        });
+
     });
 };
