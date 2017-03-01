@@ -1479,7 +1479,7 @@ describe("testing ServerEngine", function () {
         });
 
 
-        it("translating a browse path to a nodeId with an empty relativePath  shall return rootElement", function () {
+        it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", function () {
 
             var browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84), // <=== valid node id
@@ -1487,7 +1487,7 @@ describe("testing ServerEngine", function () {
             });
             var browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
-            browsePathResult.statusCode.should.eql(StatusCodes.Good);
+            browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
         });
 
         it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", function () {
