@@ -5,25 +5,26 @@
 export interface ErrorCallback {
     (err?: Error): void;
 }
+
 export interface ResponseCallback<T> {
     (err?: Error| null, response?: T): void;
 }
 export declare enum MessageSecurityMode {
-    INVALID= 0, // The MessageSecurityMode is invalid
-    NONE= 1, // No security is applied.
-    SIGN= 2, // All messages are signed but not encrypted.
-    SIGNANDENCRYPT= 3  // All messages are signed and encrypted.
+    INVALID,        // The MessageSecurityMode is invalid
+    NONE,           // No security is applied.
+    SIGN,           // All messages are signed but not encrypted.
+    SIGNANDENCRYPT  // All messages are signed and encrypted.
 
 }
 export declare enum SecurityPolicy {
-    None=            "http://opcfoundation.org/UA/SecurityPolicy#None",
-    Basic128=       "http://opcfoundation.org/UA/SecurityPolicy#Basic128",
-    Basic128Rsa15=  "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
-    Basic192=       "http://opcfoundation.org/UA/SecurityPolicy#Basic192",
-    Basic192Rsa15=  "http://opcfoundation.org/UA/SecurityPolicy#Basic192Rsa15",
-    Basic256=       "http://opcfoundation.org/UA/SecurityPolicy#Basic256",
-    Basic256Rsa15=  "http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15",
-    Basic256Sha256= "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+    None,           // "http://opcfoundation.org/UA/SecurityPolicy#None",
+    Basic128,       // "http://opcfoundation.org/UA/SecurityPolicy#Basic128",
+    Basic128Rsa15,  // "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
+    Basic192,       // "http://opcfoundation.org/UA/SecurityPolicy#Basic192",
+    Basic192Rsa15,  // "http://opcfoundation.org/UA/SecurityPolicy#Basic192Rsa15",
+    Basic256,       // "http://opcfoundation.org/UA/SecurityPolicy#Basic256",
+    Basic256Rsa15,  // "http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15",
+    Basic256Sha256  // "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
 }
 
 export interface OPCUAClientOptions {
