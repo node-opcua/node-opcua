@@ -80,7 +80,7 @@ describe("testing client Proxy", function () {
 
      @enduml
      */
-    it("Z1 should read a state machine", function (done) {
+    it("Z1a should read a state machine", function (done) {
 
         dumpStats();
 
@@ -117,7 +117,7 @@ describe("testing client Proxy", function () {
             }
         ], done);
     });
-    it("Z1 should read a state machine", function (done) {
+    it("Z1b should read a state machine", function (done) {
 
         var UAProxyManager = require("lib/client/state_machine_proxy").UAProxyManager;
 
