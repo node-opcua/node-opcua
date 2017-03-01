@@ -77,6 +77,20 @@ describe("testing coerceNodeId", function () {
         coerceNodeId("ns=2;s=TemperatureSensor").should.eql(ref_nodeId);
     });
 
+    it("should coerce a string of a form 'ns=4;s=Test32;datatype=Int32'  (Mika)", function () {
+        var ref_nodeId = new NodeId(NodeIdType.STRING, "Test32;datatype=Int32", 4);
+        coerceNodeId("ns=4;s=Test32;datatype=Int32").should.eql(ref_nodeId);
+        try {
+            makeNodeId("ns=4;s=Test32;datatype=Int32").should.eql(ref_nodeId);
+        }
+        catch(err){
+            should.exist(err);
+        }
+
+
+    });
+
+
     it("should coerce a integer", function () {
         coerceNodeId(1234).should.eql(makeNodeId(1234));
     });
