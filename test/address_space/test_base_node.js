@@ -80,7 +80,8 @@ describe("Testing UAObject", function () {
         var nbReferencesAfter = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
         //xx console.log("",nbReferencesBefore,nbReferencesAfter);
 
-        nbReferencesAfter.should.eql(nbReferencesBefore + 1, "we should have one more inverse reference more on the BaseObjectType");
+        nbReferencesAfter.should.eql(nbReferencesBefore,
+          "we should have no more inverse references on the BaseObjectType because we do not add backward reference when reference is HasTypeDefinition");
 
         should(node1.parent).eql(undefined,"node1 should have no parent");
     });
