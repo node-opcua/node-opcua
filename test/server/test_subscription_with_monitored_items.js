@@ -20,6 +20,7 @@ var Variant = require("lib/datamodel/variant").Variant;
 var VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
+var coerceNodeId = require("lib/datamodel/nodeid").coerceNodeId;
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
@@ -1364,7 +1365,8 @@ describe("monitoredItem advanced", function () {
                 maxKeepAliveCount:     21,
                 lifeTimeCount:         67,
                 publishingEnabled: true,              //  PUBLISHING IS ENABLED !!!
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                sessionId: coerceNodeId("i=5;s=tmp")
             });
 
             subscription.sessionId = 100;
@@ -1401,7 +1403,7 @@ describe("monitoredItem advanced", function () {
         var MonitoringMode = subscription_service.MonitoringMode;
 
         it("should update Subscription.subscriptionDiagnostics.sessionId",function() {
-            subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.sessionId);
+            subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.getSessionId());
         });
 
         it("should update Subscription.subscriptionDiagnostics.subscriptionId",function() {

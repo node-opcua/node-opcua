@@ -1606,7 +1606,7 @@ module.exports = function (test) {
                         setTimeout(function () {
                             change_count.should.be.greaterThan(2);
                             callback();
-                        }, 400);
+                        }, 600);
 
                     },
                     function (callback) {

@@ -375,7 +375,7 @@ describe("testing client Proxy", function () {
 
                     // subscriptionDiagnosticsArray should have no elements this time
                     //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
-                    subscriptionDiagnosticsArray.$components.length.should.be.greaterThan(5);
+                    subscriptionDiagnosticsArray.$components.length.should.be.greaterThan(1);
                     //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
 
                     callback();

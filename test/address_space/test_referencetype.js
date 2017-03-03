@@ -564,7 +564,7 @@ describe(" improving performance of isSupertypeOf", function () {
                 console.log(' Speed Up : x', this.speedUp);
                 this.fastest.name.should.eql("isSupertypeOf fast");
 
-                this.speedUp.should.be.greaterThan(4); // at least 4 time faster
+                this.speedUp.should.be.greaterThan(3); // at least 3 time faster
 
                 done();
             })

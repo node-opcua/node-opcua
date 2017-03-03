@@ -12,61 +12,210 @@ var sinon = require("sinon");
 var opcua = require("index.js");
 
 var OPCUAClient = opcua.OPCUAClient;
-var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
 var StatusCodes = opcua.StatusCodes;
 var DataType = opcua.DataType;
-var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
-var MonitoringMode = opcua.subscription_service.MonitoringMode;
-var makeNodeId = opcua.makeNodeId;
+var VariantArrayType = opcua.VariantArrayType;
 
-var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
-
-var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("test/helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-var perform_operation_on_monitoredItem = require("test/helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
-
-
 
 module.exports = function (test) {
 
     describe("SubscriptionDiagnostics", function () {
 
-        it("SubscriptionDiagnostics : server should maintain dataChangeNotificationsCount", function (done) {
+
+        it("SubscriptionDiagnostics : server should expose SubscriptionDiagnosticsArray", function (done) {
 
             var client = new OPCUAClient();
             var endpointUrl = test.endpointUrl;
-            //xx var endpointUrl = "opc.tcp://localhost:12111";
-            //xx var endpointUrl =  "opc.tcp://KANARY:26543";
 
             // Given a connected client and a subscription
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
                 // find the session diagnostic info...
 
-                console.log(" getting diagnostic for subscription.id=",subscription.subscriptionId);
+                console.log(" getting diagnostic for subscription.id=", subscription.subscriptionId);
+
                 var relativePath = "/Objects/Server.ServerDiagnostics.SubscriptionDiagnosticsArray";
 
                 var browsePath = [
-                    opcua.browse_service.makeBrowsePath("RootFolder",relativePath),
-                    opcua.browse_service.makeBrowsePath("RootFolder",relativePath+"."+ subscription.subscriptionId)
+                    opcua.browse_service.makeBrowsePath("RootFolder", relativePath),
+                    opcua.browse_service.makeBrowsePath("RootFolder", relativePath + "." + subscription.subscriptionId)
                 ];
-                session.translateBrowsePath(browsePath,function(err,result) {
-                    //xx console.log("Result = ",result.toString());
-                    if (!err) {
-                        //
-                        // ... Work in progress ...
+                session.translateBrowsePath(browsePath, function (err, result) {
+                    //xx console.log("Result = ", result.toString());
+                    if (err) {
+                        return inner_done(err);
                     }
-                    inner_done();
-                });
 
+                    // we should have a SubscriptionDiagnosticsArray
+
+                    result[0].statusCode.should.eql(StatusCodes.Good,
+                      "server should expose a SubscriptionDiagnosticsArray node");
+
+                    result[0].targets[0].targetId.toString().should.eql("ns=0;i=2290",
+                      "SubscriptionDiagnosticsArray must have well known node id i=2290"); //
+
+                    // SubscriptionDiagnosticsArray must expose the SubscriptionDiagnostics node of the current session
+                    result[1].statusCode.should.eql(StatusCodes.Good,
+                      "SubscriptionDiagnosticsArray should expose a SubscriptionDiagnostics node");
+
+                    result[1].targets[0].targetId.namespace.should.eql(1,
+                      "SubscriptionDiagnostics nodeId must be in namespace 1"); //
+
+
+                    async.series([
+
+                        // it should expose the SubscriptionDiagnostics of the session
+                        function (callback) {
+
+                            var subscriptionDiagnosticNodeId = result[1].targets[0].targetId;
+                            session.read([{
+                                nodeId: subscriptionDiagnosticNodeId,
+                                attributeId: opcua.AttributeIds.Value
+                            }], function (err, nodesToRead, results) {
+
+                                if(err) {return callback(err);}
+
+                                var dataValue = results[0];
+                                dataValue.statusCode.should.eql(StatusCodes.Good);
+                                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+                                dataValue.value.arrayType.should.eql(VariantArrayType.Scalar);
+                                dataValue.value.value.constructor.name.should.eql("SubscriptionDiagnostics");
+
+                                //Xx console.log(results[0]);
+                                callback();
+
+                            });
+                        },
+
+                        function (callback) {
+
+                            // reading SubscriptionDiagnosticsArray should return an array of extension object
+                            var subscriptionDiagnosticArrayNodeId = result[0].targets[0].targetId;
+                            session.read([{
+                                nodeId: subscriptionDiagnosticArrayNodeId,
+                                attributeId: opcua.AttributeIds.Value
+                            }], function (err, nodesToRead, results) {
+                                if(err) {return callback(err);}
+
+                                var dataValue = results[0];
+                                dataValue.statusCode.should.eql(StatusCodes.Good);
+                                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+                                dataValue.value.arrayType.should.eql(VariantArrayType.Array);
+
+                                dataValue.value.value.length.should.be.greaterThan(0,
+                                    "the SubscriptionDiagnosticsArray must expose at least one value");
+
+                                var lastIndex = dataValue.value.value.length -1;
+                                dataValue.value.value[0].constructor.name.should.eql("SubscriptionDiagnostics",
+                                  "the value inside the array  must be of type SubscriptionDiagnostics");
+
+                                //xx console.log(dataValue.value.value[0]);
+                                //xx console.log(session);
+
+                                var sessionDiagnostic = dataValue.value.value[lastIndex];
+
+                                var expectedSessionId = session.sessionId;
+                                sessionDiagnostic.sessionId.toString().should.eql(expectedSessionId.toString(),
+                                    "the session diagnostic should expose the correct sessionId");
+
+                                callback();
+
+                            });
+
+                        }
+
+                    ], inner_done);
+                });
 
             }, done);
 
 
+        });
+
+        function  readSubscriptionDiagnosticArray(session,callback) {
+            var subscriptionDiagnosticArrayNodeId = "ns=0;i=2290";
+            session.read([{
+                nodeId: subscriptionDiagnosticArrayNodeId,
+                attributeId: opcua.AttributeIds.Value
+            }], function (err, nodesToRead, results) {
+                if (err) {return callback(err);}
+                results[0].statusCode.should.eql(StatusCodes.Good);
+                callback(null,results[0].value.value);
+            });
+
+        }
+        it("SubscriptionDiagnostics : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription is terminated", function (done) {
+
+            var client = new OPCUAClient();
+            var endpointUrl = test.endpointUrl;
+
+            var subscriptionDiagnosticArrayLengthBefore = 0;
+            // Given a connected client and a subscription
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                var subscription;
+                async.series([
+
+                    // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose no SubscriptionDiagnostics anympore
+                    function(callback) {
+                        readSubscriptionDiagnosticArray(session,function(err,subscriptionDiagnosticArray)  {
+                            if (err) {return callback(err);}
+
+                            subscriptionDiagnosticArrayLengthBefore = subscriptionDiagnosticArray.length;
+                            if (subscriptionDiagnosticArray.length) {
+                                console.log(" Warning : subscriptionDiagnosticArray is not zero : " +
+                                  "it  looks like subscriptions have not been closed propertly by previous running test")
+                            }
+                            //subscriptionDiagnosticArray.length.should.eql(0,"expecting no subscriptionDiagnosticArray");
+                            callback();
+                        });
+                    },
+                    // when a subscription is created
+                    function(callback) {
+                        subscription = new ClientSubscription(session, {
+                            requestedPublishingInterval: 100,
+                            requestedLifetimeCount: 10 * 60,
+                            requestedMaxKeepAliveCount: 5,
+                            maxNotificationsPerPublish: 2,
+                            publishingEnabled: true,
+                            priority: 6
+                        });
+                        subscription.on("started", function () {
+                            callback();
+                        });
+                    },
+
+                    // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose one SubscriptionDiagnostics
+                    function(callback) {
+
+                        readSubscriptionDiagnosticArray(session,function(err,subscriptionDiagnosticArray)  {
+                            if (err) {return callback(err);}
+                            subscriptionDiagnosticArray.length.should.eql(subscriptionDiagnosticArrayLengthBefore+1);
+                            callback();
+                        });
+                    },
+
+                    // When the subscription is delete
+                    function (callback) {
+                        subscription.terminate(function(err) {
+                            // ignore errors
+                            if (err) { console.log(err.message);}
+                            callback();
+                        });
+                    },
+                    // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose no SubscriptionDiagnostics anympore
+                    function(callback) {
+                        readSubscriptionDiagnosticArray(session,function(err,subscriptionDiagnosticArray)  {
+                            if (err) {return callback(err);}
+                            subscriptionDiagnosticArray.length.should.eql(subscriptionDiagnosticArrayLengthBefore+0);
+                            callback();
+                        });
+                    }
+
+                ], inner_done);
+            }, done);
         });
     });
 };
