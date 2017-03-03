@@ -93,6 +93,7 @@ module.exports = function (test) {
                 },
 
                 function(callback) {
+                    // create a session without activating it...
                     client1._createSession(function (err, l_session) {
                         session = l_session;
                         sessions.push(session);
