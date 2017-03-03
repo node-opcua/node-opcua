@@ -51,27 +51,28 @@ module.exports = function (test) {
             });
 
             subscription_raw_notification_event = sinon.spy();
-            subscription.on("raw_notification", subscription_raw_notification_event);
-            spy_publish = sinon.spy(the_session, "publish");
 
             subscription.once("terminated", function () {
             });
             subscription.once("started", function () {
-                callback();
+
+                // monitor 1
+                monitoredItem1 = subscription.monitor(
+                  {nodeId: nodeId, attributeId: opcua.AttributeIds.Value},
+                  {
+                      samplingInterval: 100,
+                      discardOldest: true,
+                      queueSize: 100
+                  });
+
+                monitoredItem1.once("changed", function (dataValue) {
+
+                    subscription.on("raw_notification", subscription_raw_notification_event);
+                    spy_publish = sinon.spy(the_session, "publish");
+                    callback();
+                });
             });
 
-            // monitor 1
-            monitoredItem1 = subscription.monitor(
-              {nodeId: nodeId, attributeId: opcua.AttributeIds.Value},
-              {
-                  samplingInterval: 100,
-                  discardOldest: true,
-                  queueSize: 100
-              });
-
-            monitoredItem1.on("changed", function (dataValue) {
-                //xx console.log("DataValue1 = ", dataValue.value.toString());
-            });
         }
 
         function prevent_publish_request_acknowledgement(session, callback) {
@@ -125,7 +126,7 @@ module.exports = function (test) {
             var sequenceNumbers = [];
 
             function verify_republish(session,index, callback) {
-
+                // index  => used to identify sequenceNumbers to retransmit
                 var request = new opcua.subscription_service.RepublishRequest({
                     subscriptionId: subscription.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
@@ -134,6 +135,7 @@ module.exports = function (test) {
                 session.republish(request, function (err, response) {
                     //xx console.log(" xx = ",index,request.toString());
                     //xx console.log(" xx = ",index,response.toString());
+                    should.not.exist(err);
                     response.notificationMessage.notificationData[0].monitoredItems[0].should.eql(expected_values[index]);
                     callback(err);
                 });
@@ -142,7 +144,9 @@ module.exports = function (test) {
 
 
                 async.series([
+                    //xx write_value.bind(null,session),
                     create_subscription_and_monitor_item.bind(null, session),
+                   //Xx function(callback){setTimeout(callback,100);},
                     write_value_and_wait_for_change.bind(null, session),
                     prevent_publish_request_acknowledgement.bind(null, session),
                     write_value_and_wait_for_change.bind(null, session),
@@ -168,7 +172,7 @@ module.exports = function (test) {
                         expected_values.push(subscription_raw_notification_event.getCall(2).args[0].notificationData[0].monitoredItems[0]);
                         expected_values.push(subscription_raw_notification_event.getCall(3).args[0].notificationData[0].monitoredItems[0]);
 
-                        spy_publish.callCount.should.eql(8);
+                        spy_publish.callCount.should.eql(4);
                         //xx console.log(spy_publish.getCall(7).args[0].toString());
 
                         sequenceNumbers = [seqNumber1 + 1, seqNumber1 + 2, seqNumber1 + 3];
