@@ -66,12 +66,74 @@ function save_history(callback) {
     callback();
 }
 
+function w(str,width) {
+    return (str + "                                                      ").substr(0,width);
+}
+/**
+ *
+ * @param str
+ *
+ * @example
+ *    toDate("now");
+ *    toDate("13:00");      => today at 13:00
+ *    toDate("1 hour ago"); => today one our ago....
+ *
+ * @returns {Date}
+ */
+function toDate(str) {
+    console.log(" parsing : '" + str + "'");
+    var now = new Date();
+    if (!str) {
+        return now;
+    }
+    if (str.toLowerCase() === "now") {
+        return now;
+    }
 
+    // check if provided date is  <HH>:<MM>
+
+    var t = /([0-9]{1,2}):([0-9]{1,2})/;
+    var tt = str.match(t);
+    if (tt) {
+        // HH:MM of current date
+        var year = now.getFullYear();
+        var month = now.getMonth(); // 0  : jan , 1: feb etc ...
+        var day  = now.getDate();
+        var hours = parseInt(tt[1]);
+        var minutes = parseInt(tt[2]);
+        var seconds = 0;
+        var date = new Date(year,month,day,hours,minutes,seconds);
+        return date;
+    }
+    // check if provided date looks like "3 hours ago" | "1 day ago" etc...
+    var r = /([0-9]*)(day|days|d|hours|hour|h|minutes|minutes|m)\s?((ago)?)/
+    var m = str.match(r);
+    if (m) {
+        var t = parseInt(m[1]);
+        switch(m[2][0]) {
+            case "d":
+                t *= 24*3600;
+                break;
+            case "h":
+                t *= 3600;
+                break;
+            case "m":
+                t *= 60;
+                break;
+            default:
+                throw new Error(" invalidate date");
+        }
+        return  new Date(now - t*1000);
+    } else {
+        return new Date(str);
+    }
+
+}
 function log()
 {
     rl.pause();
     rl.clearLine(process.stdout);
-    var str = Object.values(arguments).join(" ");
+    var str =_.map(arguments).join(" ");
     process.stdout.write(str);
     rl.resume();
 }
@@ -308,7 +370,42 @@ function dump_dataValues(nodesToRead, dataValues) {
         log("      statusCode: 0x", dataValue.statusCode.toString(16));
         log(" sourceTimestamp: ", dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
     }
+}
 
+function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult) {
+
+    log("           Node : ", (nodeToRead.nodeId.toString()).cyan.bold, nodeToRead.attributeId.toString());
+    log("      startDate : ",startDate);
+    log("        endDate : ",endDate);
+    if (historyReadResult.statusCode !== opcua.StatusCodes.Good) {
+        log("                          error ",historyReadResult.statusCode.toString());
+        return;
+    }
+
+    log("historyReadResult = ",historyReadResult.toString());
+
+    var dataValues = historyReadResult.historyData.dataValues;
+    log(" Length = ",dataValues.length);
+
+    if (!dataValues || dataValues.length === 0) {
+        log("                          No Data");
+        return;
+    }
+    if (dataValues.length > 0 && dataValues[0].value) {
+        log("           type : ", colorize(dataValues[0].value.dataType.key));
+    }
+    for (var i = 0; i < dataValues.length; i++) {
+        var dataValue = dataValues[i];
+        if (dataValue.value) {
+            log(
+              dataValue.sourceTimestamp,
+              w(dataValue.sourcePicoseconds,4),
+              colorize(w(dataValue.value.value,15)),
+              w(dataValue.statusCode.toString(16),16));
+        } else {
+            log("           value: <null>" , dataValue.toString());
+        }
+    }
 }
 
 function open_session(callback) {
@@ -504,6 +601,40 @@ function process_line(line) {
             apply_on_valid_session(cmd, function (the_session,callback) {
 
                 get_root_folder(callback);
+            });
+            break;
+
+        case 'hr':
+        case 'readHistoryValue':
+            apply_on_valid_session(cmd, function (the_session,callback ) {
+
+                // example:
+                // hr ns=2;s=Demo.History.DoubleWithHistory 13:45 13:59
+                nodes = [args[1]];
+
+                var startTime = toDate(args[2]);// "2015-06-10T09:00:00.000Z"
+                var endTime = toDate(args[3]);  // "2015-06-10T09:01:00.000Z"
+                if (startTime>endTime) {
+                    var tmp = endTime;endTime = startTime;startTime =tmp;
+                }
+                nodes = nodes.map(opcua.coerceNodeId);
+
+                the_session.readHistoryValue(nodes,startTime,endTime, function (err, historyReadResults) {
+                    if (err) {
+                        log(err);
+                        log(historyReadResults.toString());
+                    } else {
+                        save_history(function () {});
+                        assert(historyReadResults.length === 1);
+                        dump_historyDataValues({
+                            nodeId: nodes[0],
+                            attributeId: 13
+                        }, startTime,endTime,historyReadResults[0]);
+                    }
+                    callback();
+
+                });
+
             });
             break;
         case 'r':
