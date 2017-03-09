@@ -32,6 +32,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
         componentOf:     tank,
         conditionSource: tankLevel,
         browseName:      "TankLevelCondition",
+        conditionName: "Test2",
         optionals: [
             "ConfirmedState", "Confirm" // confirm state and confirm Method
         ],
@@ -72,6 +73,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
         componentOf:     tank,
         conditionSource: tankLevel2,
         browseName:      "TankLevelCondition2",
+        conditionName: "Test",
         optionals: [
             "ConfirmedState", "Confirm" // confirm state and confirm Method
         ],

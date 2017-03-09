@@ -23,6 +23,9 @@ describe("AddressSpace : Conditions ", function () {
 
     this.timeout(Math.max(this._timeout, 10000));
 
+    it("s",function(){
+
+    });
     var source;
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true, function () {
         before(function (done) {
@@ -88,6 +91,8 @@ describe("AddressSpace : Conditions ", function () {
         require("./utest_exclusive_deviation_alarm")(test);
         require("./utest_non_exclusive_deviation_alarm")(test);
         require("./utest_off_normal_alarm")(test);
+        require("./utest_issue_316")(test);
+
     });
 
 
