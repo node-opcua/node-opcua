@@ -177,7 +177,7 @@ describe("testing ClientTCP_transport", function () {
         });
         fake_server.pushResponse(spyOnServerWrite);
 
-        transport.timeout = 10; // very short timeout;
+        transport.timeout = 1000; // very short timeout;
 
         transport.connect(url, function (err) {
             if (err) {
