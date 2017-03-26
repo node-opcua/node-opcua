@@ -201,6 +201,7 @@ if (!crypto_utils.isFullySupported()) {
                     perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
                         console.log(servers[0].toString());
                         servers.length.should.eql(initialServerCount + 1);
+                        assert(servers[1].applicationUri === "urn:NodeOPCUA-Server-default");
                         callback(err);
                     });
                 },
