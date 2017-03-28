@@ -20,6 +20,9 @@ var argv = require('yargs')
     .alias('m', 'maxAllowedSessionNumber')
     .defaults("maxAllowedSessionNumber",500)
 
+    .number("maxAllowedSubscriptionNumber")
+    .describe("maxAllowedSubscriptionNumber")
+
     .boolean("silent")
     .describe("slient","no trace")
 
@@ -50,6 +53,8 @@ var standard_nodeset_file = opcua.standard_nodeset_file;
 var port = argv.port;
 var maxAllowedSessionNumber   = argv.maxAllowedSessionNumber;
 var maxConnectionsPerEndpoint = maxAllowedSessionNumber;
+var maxAllowedSubscriptionNumber = argv.maxAllowedSubscriptionNumber  || 50;
+opcua.OPCUAServer.MAX_SUBSCRIPTION = maxAllowedSubscriptionNumber;
 
 var userManager = {
     isValidUser: function (userName, password) {
