@@ -55,6 +55,7 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
 
     perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
+        var do_func_err =null;
         var subscription;
         async.series([
 
@@ -73,7 +74,16 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
             },
 
             function (callback) {
-                do_func(session, subscription, callback);
+               try {
+                   do_func(session, subscription, function(err) {
+                       do_func_err = err;
+                       callback(null);
+                   });
+               }
+               catch(err) {
+                   do_func_err = err;
+                   callback(null);
+               }
             },
 
             function (callback) {
@@ -87,6 +97,9 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
                 });
             }
         ], function (err) {
+            if (do_func_err) {
+                err = do_func_err;
+            }
             done(err);
         });
 
