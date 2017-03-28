@@ -1421,7 +1421,7 @@ describe("monitoredItem advanced", function () {
         });
 
         it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount",function() {
-            subscription.lifeTimeCount.should.eql(67);
+            subscription.lifeTimeCount.should.be.above(subscription.maxKeepAliveCount*3-1);
             subscription.subscriptionDiagnostics.maxLifetimeCount.should.eql(subscription.lifeTimeCount);
         });
 

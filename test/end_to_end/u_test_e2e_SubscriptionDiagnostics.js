@@ -25,7 +25,7 @@ module.exports = function (test) {
     describe("SubscriptionDiagnostics", function () {
 
 
-        it("SubscriptionDiagnostics : server should expose SubscriptionDiagnosticsArray", function (done) {
+        it("SubscriptionDiagnostics-1 : server should expose SubscriptionDiagnosticsArray", function (done) {
 
             var client = new OPCUAClient();
             var endpointUrl = test.endpointUrl;
@@ -147,7 +147,7 @@ module.exports = function (test) {
             });
 
         }
-        it("SubscriptionDiagnostics : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription is terminated", function (done) {
+        it("SubscriptionDiagnostics-2 : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription is terminated", function (done) {
 
             var client = new OPCUAClient();
             var endpointUrl = test.endpointUrl;
@@ -216,6 +216,121 @@ module.exports = function (test) {
 
                 ], inner_done);
             }, done);
+        });
+        it("SubscriptionDiagnostics-3 : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription has timedout", function (done) {
+            var client = new OPCUAClient();
+            var endpointUrl = test.endpointUrl;
+
+            var subscriptionDiagnosticArrayLengthBefore = 0;
+
+            function checkSubscriptionExists(session,subscriptionId, callback){
+                var setMonitoringModeRequest = {
+                    subscriptionId: subscriptionId
+                };
+                session.setMonitoringMode(setMonitoringModeRequest, function (err) {
+                    var exists = !err ||  !(err.message.match(/BadSubscriptionIdInvalid/));
+                    callback(null, exists);
+                });
+            }
+
+            var subscriptionId  = null;
+            var subscriptionTimeOut = 0;
+
+            // Given a connected client and a subscription
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                var subscription;
+                async.series([
+
+                    // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose no SubscriptionDiagnostics anympore
+                    function(callback) {
+                        readSubscriptionDiagnosticArray(session,function(err,subscriptionDiagnosticArray)  {
+                            if (err) {return callback(err);}
+
+                            subscriptionDiagnosticArrayLengthBefore = subscriptionDiagnosticArray.length;
+                            if (subscriptionDiagnosticArray.length) {
+                                console.log(" Warning : subscriptionDiagnosticArray is not zero : " +
+                                  "it  looks like subscriptions have not been closed propertly by previous running test")
+                            }
+                            //subscriptionDiagnosticArray.length.should.eql(0,"expecting no subscriptionDiagnosticArray");
+                            callback();
+                        });
+                    },
+                    // when a subscription is created
+                    function(callback) {
+
+                        // Note: we use the bare API here as we don't want the keep alive machinery to be used
+                        var options ={
+                            requestedPublishingInterval: 100,
+                            requestedLifetimeCount: 10,
+                            requestedMaxKeepAliveCount: 5,
+                            maxNotificationsPerPublish: 2,
+                            publishingEnabled: true,
+                            priority: 6
+                        };
+                        session.createSubscription(options,function(err,results) {
+                            if (err) { return callback(err); }
+                            //xx console.log(results.toString());
+                            subscriptionId = results.subscriptionId;
+                            subscriptionTimeOut = results.revisedPublishingInterval * results.revisedLifetimeCount ;
+                            callback(null);
+                        });
+                    },
+
+                    // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose one SubscriptionDiagnostics
+                    function(callback) {
+
+                        readSubscriptionDiagnosticArray(session,function(err,subscriptionDiagnosticArray)  {
+                            if (err) {return callback(err);}
+                            subscriptionDiagnosticArray.length.should.eql(subscriptionDiagnosticArrayLengthBefore+1);
+                            callback();
+                        });
+                    },
+                    // I should verify that the subscription DO EXIST on the server side (
+                    function (callback) {
+
+                        checkSubscriptionExists(session,subscriptionId,function(err,exists){
+                            if (!exists) {
+                                return callback(new Error("Subscription should exist"));
+                            }
+                            callback(err);
+                        });
+
+                    },
+
+                    // When the subscription timeout
+                    function (callback) {
+                        // prevent our client to answer and process keep-alive
+
+                        var time_to_wait_to_make_subscription_to_time_out = subscriptionTimeOut + 2000;
+                        setTimeout(callback,time_to_wait_to_make_subscription_to_time_out);
+                    },
+
+                    // I should verify that the subscription no longer exists on the server side (
+                    function (callback) {
+
+                        checkSubscriptionExists(session,subscriptionId,function(err,exists){
+                            if (exists) {
+                                return callback(new Error("Subscription should have timed out"));
+                            }
+                            callback(err);
+                        });
+
+                    },
+                    // and I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose no SubscriptionDiagnostics anympore
+                    function(callback) {
+                        readSubscriptionDiagnosticArray(session,function(err,subscriptionDiagnosticArray)  {
+                            if (err) {return callback(err);}
+                            subscriptionDiagnosticArray.length.should.eql(subscriptionDiagnosticArrayLengthBefore+0,
+                              "sSubscriptionDiagnostic of subscription that reach their timeout prior to be explicitly terminate shall be deleted ");
+                            callback();
+                        });
+                    }
+
+                ], inner_done);
+            }, done);
+
+
+
         });
     });
 };

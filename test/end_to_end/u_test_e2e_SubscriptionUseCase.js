@@ -1451,7 +1451,7 @@ module.exports = function (test) {
 
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval: 10,
+                    requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6,
                     requestedMaxKeepAliveCount: 2,
                     maxNotificationsPerPublish: 10,
@@ -1459,24 +1459,14 @@ module.exports = function (test) {
                     priority: 6
                 });
 
-
                 subscription.publish_engine._send_publish_request.should.be.instanceOf(Function);
-
                 // replace _send_publish_request so that it doesn't do anything for a little while
-                sinon.stub(subscription.publish_engine, "_send_publish_request", function () {
-                });
-
-                setTimeout(function () {
-                    ///xx console.log(" Restoring default behavior");
-                    subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
-                    subscription.publish_engine._send_publish_request.restore();
-                    subscription.publish_engine._send_publish_request();
-                }, 1000);
-
+                sinon.stub(subscription.publish_engine, "_send_publish_request", function () {});
 
                 subscription.on("keepalive", function () {
                     nb_keep_alive_received += 1;
                 });
+
                 subscription.on("started", function () {
 
                     if (false) {
@@ -1485,6 +1475,14 @@ module.exports = function (test) {
                         console.log("lifetimeCount      :", subscription.lifetimeCount);
                         console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
                     }
+
+                    setTimeout(function () {
+                        ///xx console.log(" Restoring default behavior");
+                        subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
+                        subscription.publish_engine._send_publish_request.restore();
+                        subscription.publish_engine._send_publish_request();
+                    }, subscription.publishingInterval * ( subscription.lifetimeCount + 10) +500 );
+
 
                 }).on("status_changed", function (statusCode) {
 
@@ -2259,7 +2257,7 @@ module.exports = function (test) {
             session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
                 response.subscriptionId.should.be.greaterThan(0);
                 subscriptionId = response.subscriptionId;
-                callback(err, response.subscriptionId);
+                callback(err, response.subscriptionId,response);
             });
         }
 
@@ -2590,19 +2588,24 @@ module.exports = function (test) {
                 });
 
 
+                var time_to_wait = 0;
+
                 async.series([
 
                         function (callback) {
                             var publishingInterval = 100;
                             var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
                                 requestedPublishingInterval: publishingInterval,
-                                requestedLifetimeCount: 6,
-                                requestedMaxKeepAliveCount: 2,
+                                requestedLifetimeCount: 30,
+                                requestedMaxKeepAliveCount: 10,
                                 maxNotificationsPerPublish: 10,
                                 publishingEnabled: true,
                                 priority: 6
                             });
-                            createSubscription2(session,createSubscriptionRequest,callback);
+                            createSubscription2(session,createSubscriptionRequest,function(err,subscriptionId,response){
+                                time_to_wait = response.revisedPublishingInterval * response.revisedLifetimeCount;
+                                callback(err);
+                            });
                         },
                         function (callback) {
                             //xx console.log(" SubscriptionId =",subscriptionId);
@@ -2612,7 +2615,7 @@ module.exports = function (test) {
                             createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                         },
                         function (callback) {
-                            setTimeout(callback,1000*5);
+                            setTimeout(callback,time_to_wait+1500);
                         },
 
                         function (callback) {
