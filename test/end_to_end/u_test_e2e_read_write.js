@@ -19,7 +19,7 @@ var sameDataValue = require("lib/datamodel/datavalue").sameDataValue;
 
 module.exports = function (test) {
 
-    describe("end-to-end testing of read and write operation on a Variable", function () {
+    describe("JHJ1 end-to-end testing of read and write operation on a Variable", function () {
 
 
         var client, endpointUrl;
@@ -85,7 +85,18 @@ module.exports = function (test) {
 
                         //xx console.log(results[0].toString());
 
+                        // verify that server provides a valid serverTimestamp and sourceTimestamp, regardless
+                        // of what we wrote into the variable
+                        results[0].serverTimestamp.should.be.instanceOf(Date);
+                        results[0].sourceTimestamp.should.be.instanceOf(Date);
+
+
                         // verify that value and status codes are identical
+                        (results[0].serverTimestamp.getTime()+1).should.be.greaterThan(dataValue.serverTimestamp.getTime());
+
+                        // now disregard serverTimestamp
+                        dataValue.serverTimestamp = null;
+                        results[0].serverTimestamp = null;
                         if (!sameDataValue(dataValue, results[0])) {
                             console.log(" ------- > expected".yellow);
                             console.log(dataValue.toString().yellow);
@@ -94,10 +105,6 @@ module.exports = function (test) {
                             // dataValue.toString().split("\n").should.eql(results[0].toString().split("\n"));
                             return inner_done(new Error("dataValue is not as expected"));
                         }
-                        // verify that server provides a valid serverTimestamp and sourceTimestamp, regardless
-                        // of what we wrote into the variable
-                        results[0].serverTimestamp.should.be.instanceOf(Date);
-                        results[0].sourceTimestamp.should.be.instanceOf(Date);
                         inner_done(err);
                     });
                 });
