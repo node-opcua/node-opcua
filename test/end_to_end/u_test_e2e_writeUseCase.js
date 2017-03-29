@@ -1,4 +1,4 @@
-"use strict";
+    "use strict";
 /* global describe,it,before,after,beforeEach,afterEach*/
 require("requirish")._(module);
 
