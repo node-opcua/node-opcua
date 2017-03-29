@@ -36,7 +36,7 @@
   "devDependencies": {
     "app-module-path": "^2.2.0",
     "autodoc": "0.6.4",
-    "benchmark": "2.1.3",
+    "benchmark": "2.1.4",
     "bignumber.js": "4.0.0",
     "coveralls": "2.12.0",
     "csv": "1.1.1",
@@ -48,9 +48,9 @@
     "mocha": "3.2.0",
     "mocha-lcov-reporter": "1.3.0",
     "node-xml": "1.0.2",
-    "request": "2.80.0",
-    "should": "11.2.0",
-    "sinon": "1.17.7",
+    "request": "2.81.0",
+    "should": "11.2.1",
+    "sinon": "2.1.0",
     "tmp": "0.0.31",
     "tracer": "0.8.7",
     "yuidoc-bootstrap-theme": "*",
@@ -58,7 +58,7 @@
   },
   "typings":"./node-opcua.d.ts",
   "dependencies": {
-    "async": "2.1.5",
+    "async": "2.2.0",
     "backoff": "2.5.0",
     "better-assert": "1.0.2",
     "bomstrip": "0.1.4",
@@ -74,13 +74,13 @@
     "fqdn": "0.0.3",
     "hexy": "0.2.9",
     "humanize": "0.0.9",
-    "moment": "^2.17.1",
+    "moment": "^2.18.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.7",
     "node-opcua-pki": "0.0.11",
     "once": "^1.4.0",
     "progress": "1.1.8",
-    "q": "^1.4.1",
+    "q": "^1.5.0",
     "requirish": "0.3.0",
     "set-prototype-of": "^1.0.0",
     "sprintf": "0.1.5",
@@ -89,6 +89,6 @@
     "underscore": "1.8.3",
     "wget-improved": "^1.4.0",
     "xml-writer": "^1.7.0",
-    "yargs": "^7.0.1"
+    "yargs": "^7.0.2"
   }
 }
