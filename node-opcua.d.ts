@@ -26,7 +26,6 @@ export declare enum SecurityPolicy {
     Basic256Rsa15,  // "http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15",
     Basic256Sha256  // "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
 }
-
 export interface OPCUAClientOptions {
 
     defaultSecureTokenLiveTime?: number, //default secure token lifetime in ms
@@ -163,4 +162,207 @@ export declare class OPCUAClient extends OPCUAClientBase {
                  callback: (err: Error|null) => void): void;
 
 }
+//----------------------------------------------------------------------------------------------------------------------
 
+declare type ValidUserFunc = (username:string,password:string) => boolean;
+declare type ValidUserAsyncFunc = (username:string,password:string,callback)=>void;
+
+export interface OPCUAServerOptions {
+   defaultSecureTokenLifetime? : number, // the default secure token life time in ms.
+   timeout? :number,                     // (default:10000)    the HEL/ACK transaction timeout in ms. Use a large value
+                                         // ( i.e 15000 ms) for slow connections or embedded devices.
+   port?: number,                        //  (default:26543)            the TCP port to listen to.
+   maxAllowedSessionNumber?:number,      //(deafult:10) the maximum number of concurrent sessions allowed.
+
+    nodeset_filename?: Array<string>|string, // the nodeset.xml file(s) to load
+    serverInfo?: {                       //  the information used in the end point description
+        applicationUri?: string,         //  (default "urn:NodeOPCUA-Server")
+        productUri?: string,             // = "NodeOPCUA-Server"]{String}
+        applicationName?: LocalizedText|string, // "applicationName"}]{LocalizedText}
+        gatewayServerUri?: string,
+        discoveryProfileUri?: string
+        discoveryUrls?: Array<string>
+    },
+    securityPolicies?:  Array<SecurityPolicy>,      // SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
+    securityModes?:     Array<MessageSecurityMode>, // MessageSecurityMode.NONE,MessageSecurityMode.SIGN,MessageSecurityMode.SIGNANDENCRYPT]]
+    allowAnonymous?:    boolean,             // [default = true] tells if the server default endpoints should allow anonymous connection.
+    userManager?: {                          // an object that implements user authentication methods
+        isValidUser?: ValidUserFunc,          // synchronous function to check the credentials - can be overruled by isValidUserAsync
+        isValidUserAsync?: ValidUserAsyncFunc // asynchronous function to check if the credentials - overrules isValidUser
+
+    },
+    resourcePath?: string,                    // resource Path is a string added at the end of the url such as "/UA/Server"
+    alternateHostname?: string,               // alternate hostname to use
+    isAuditing?: boolean                      // (default=true) if server shall raise AuditingEvent
+}
+
+
+export declare enum ServerState {
+    Running,
+    Failed,
+    NoConfiguration,
+    Suspended,
+    Shutdown,
+    Test,
+    CommunicationFault,
+    Unknown
+}
+
+export declare class BrowseName {
+    name: string;
+    namespace: number;
+}
+
+export declare enum DataType {
+    Boolean,
+    Uint16,
+    Uint32,
+    Int16,
+    Int32,
+    Float,
+    Double
+    // to be continued ...
+}
+
+export declare interface AddReferenceOpts {
+    referenceType: string|NodeId;
+    nodeId:  NodeId|string;
+}
+export declare class UAReference {
+
+}
+
+export declare class BaseNode {
+
+    browseName : BrowseName;
+    addReference(options: AddReferenceOpts): UAReference;
+
+}
+export declare class UAView extends BaseNode {
+
+}
+export declare class UAVariable extends BaseNode {
+
+}
+export declare class UAAnalogItem extends UAVariable {
+
+}
+
+declare interface StatusCode {
+    Good,
+    BadWaitingForInitialData
+    // to be continued
+}
+export interface VariantOpts {
+    dataType: DataType;
+    value: any;
+}
+
+export declare class Variant implements VariantOpts {
+    constructor(options: VariantOpts)
+    dataType: DataType;
+    value: any;
+
+}
+declare interface DataValueOpts {
+    value: Variant;
+    sourceTimestamp: Date;
+    serverTimestamp: Date;
+    sourcePicosecond: number;
+    serverPicosecond: number;
+    statusCode: StatusCode;
+}
+
+export declare class DataValue implements DataValueOpts {
+    constructor(options: DataValueOpts);
+    value: Variant;
+    sourceTimestamp: Date;
+    serverTimestamp: Date;
+    sourcePicosecond: number;
+    serverPicosecond: number;
+    statusCode: StatusCode;
+}
+
+export interface _AddNodeOpts {
+    browseName: string;
+    organizedBy?: NodeId|BaseNode;
+    nodeId?: string|NodeId;
+}
+
+export interface AddVariableOpts extends _AddNodeOpts {
+    dataType: string|DataType;
+    value: {
+        get?: ()=>Variant,
+        timestamp_get?: ()=>DataValue,
+        refreshFunc?: (err:null|Error,dataValue?: DataValue)=>void;
+    }
+}
+export enum EUEngineeringUnit {
+    degree_celsius,
+    meter,
+    // to be continued
+}
+
+export interface AddAnalogDataItemOpts extends _AddNodeOpts{
+    definition: string; // exemple  "(tempA -25) + tempB",
+    valuePrecision: number; // 0.5,
+    engineeringUnitsRange: {
+        low: number,
+        high: number
+    },
+    instrumentRange: {
+        low: number,
+        high: number
+    },
+    engineeringUnits: EUEngineeringUnit
+}
+export declare class AddressSpace {
+
+    find(node: NodeId|string): BaseNode;
+
+    addVariable(options: AddVariableOpts): UAVariable;
+
+    addAnalogDataItem(options: AddAnalogDataItemOpts): UAAnalogItem;
+
+    addView(options: _AddNodeOpts):   UAView;
+
+}
+
+//xx declare type BuildInfo;
+export declare class ServerEngine{
+    addressSpace: AddressSpace;
+}
+export declare class OPCUAServer {
+    constructor(options: OPCUAServerOptions);
+
+    bytesWritten: number;
+    bytesRead: number;
+    transactionsCount: number;
+    currentSubscriptionCount: number;
+    rejectedSessionCount: number;
+    sessionAbortCount: number;
+    publishingIntervalCount: number;
+    sessionTimeoutCount: number;
+    /**
+     * the number of connected channel on all existing end points
+     */
+    currentChannelCount: number;
+    buildInfo: any;
+
+
+    secondsTillShutdown(): number;
+
+    serverName: string;
+    serverNameUrn: string;
+
+    engine: ServerEngine;
+
+    setServerState(serverState:ServerState):void;
+
+    start(callback: (error:Error)=>void);
+
+    shutdown(timeout: number,callback: ResponseCallback<void>);
+
+    // "postinitialize" , "session_closed", "create_session"
+    on(event:string,eventhandler: ()=>void);
+}
