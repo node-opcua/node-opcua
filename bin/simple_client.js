@@ -311,6 +311,59 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
 
 }
 
+
+var makeNodeId = opcua.makeNodeId;
+var ObjectTypeIds = opcua.ObjectTypeIds;
+
+/**
+ * getAllEventType recursively
+ * @param callback
+ */
+function getAllEventTypes(session,callback)
+{
+    var baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
+
+    var q = new async.queue(function(task,callback) {
+
+        _getAllEventTypes(task.nodeId,task.tree,function(err){
+            if(err){return callback(err);}
+            callback(null,result);
+        });
+
+    });
+    function _getAllEventTypes(baseNodeId,tree,callback) {
+
+        //xx console.log(" exploring elements,",element.nodeId.toString());
+        var browseDesc1 = {
+            nodeId: baseNodeId,
+            referenceTypeId: opcua.resolveNodeId("HasSubtype"),
+            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            includeSubtypes: true,
+            nodeClassMask: opcua.browse_service.NodeClassMask.ObjectType, // Objects
+            resultMask: 63
+        };
+
+        var nodesToBrowse = [browseDesc1];
+        session.browse(nodesToBrowse,function(err,results){
+            // to do continuation points
+            results[0].references.forEach(function(reference) {
+                var subtree = { nodeId: reference.nodeId.toString() };
+                tree[reference.browseName.toString()] = subtree;
+                q.push({nodeId: reference.nodeId, tree: subtree});
+            });
+
+            callback();
+        });
+    }
+    var result ={};
+
+    q.push({nodeId: baseNodeId,tree: result});
+
+    q.drain = function( ) {
+        callback(null,result);
+    };
+
+}
 var callConditionRefresh = require("lib/client/alarms_and_conditions/client_tools").callConditionRefresh;
 
 function monitorAlarm(subscription,alarmNodeId, callback) {
@@ -481,6 +534,17 @@ async.series([
             }
             console.log(" -----------------------");
             callback(err);
+        });
+    },
+
+    function (callback) {
+
+        getAllEventTypes(the_session,function(err,result){
+
+            console.log("--------------------------------------------------------------- All Event Types ".cyan);
+            console.log(treeify.asTree(result, true));
+
+            callback();
         });
     },
 
