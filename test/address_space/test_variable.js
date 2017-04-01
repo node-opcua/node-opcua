@@ -716,6 +716,66 @@ describe("testing Variable#bindVariable", function () {
             ], done);
         });
 
+
+        it("Q4- issue#332 should create a variable with async setter and an async getter",function(done){
+
+            var value_with_timestamp = new DataValue({
+                value: new Variant({dataType: DataType.Double, value: 100}),
+                sourceTimestamp: new Date(1999, 9, 9),
+                sourcePicoseconds: 100
+            });
+
+            var value_options = {
+                timestamped_get: function (callback) {
+                    setTimeout(function(){
+                        callback(null,value_with_timestamp);
+                    },100);
+                },
+                timestamped_set: function (ts_value, callback) {
+                    setTimeout(function(){
+                        value_with_timestamp.value = ts_value.value;
+                        value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
+                        value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
+                        callback(null, StatusCodes.Good);
+                    },100);
+                }
+            };
+
+            var variable = addressSpace.addVariable({
+                organizedBy: rootFolder,
+                browseName: "SomeVariableQ1",
+                dataType: "Double",
+                typeDefinition: makeNodeId(68),
+                value: value_options
+            });
+
+            //, now use it ....
+            var expected_date1 = new Date(1999, 9, 9);
+            var expected_date2 = new Date(2010, 9, 9);
+
+            async.series([
+
+                read_double_and_check.bind(null, variable, 100, expected_date1),
+
+                function write_simple_value(callback) {
+                    var dataValue = new DataValue({
+                        sourceTimestamp: expected_date2,
+                        value: {
+                            dataType: DataType.Double,
+                            value: 200
+                        }
+                    });
+                    variable.writeValue(dataValue, function (err, statusCode) {
+                        statusCode.should.eql(StatusCodes.Good);
+                        callback(err);
+                    });
+                },
+
+                read_double_and_check.bind(null, variable, 200, expected_date2)
+            ], done);
+
+        });
+
     });
 
 
