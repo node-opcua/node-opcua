@@ -10,6 +10,9 @@ var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
 
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
+
 var create_minimalist_address_space_nodeset = require("../helpers/create_minimalist_address_space_nodeset");
 
 describe("testing UAObjectType", function () {
@@ -39,7 +42,7 @@ describe("testing UAObjectType", function () {
         });
 
         var value;
-        value = objType.readAttribute(AttributeIds.IsAbstract);
+        value = objType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(false);
@@ -54,13 +57,13 @@ describe("testing UAObjectType", function () {
         });
 
         var value;
-        value = objType.readAttribute(AttributeIds.IsAbstract);
+        value = objType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(true);
 
 
-        value = objType.readAttribute(AttributeIds.NodeId);
+        value = objType.readAttribute(context, AttributeIds.NodeId);
 
     });
 
@@ -99,8 +102,6 @@ describe("testing UAObjectType", function () {
         obj.browseName.toString().should.eql("Instance4");
 
         obj.nodeId.toString().should.eql("ns=3;s=HelloWorld");
-
-
         
     });
 

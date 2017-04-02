@@ -11,7 +11,7 @@ var UAStateMachine = require("lib/address_space/state_machine/finite_state_machi
 
 var createBoilerType = require("test/helpers/boiler_system").createBoilerType;
 var makeBoiler = require("test/helpers/boiler_system").makeBoiler;
-
+var context = require("lib/server/session_context").SessionContext.defaultContext;
 var doDebug = false;
 
 describe("Testing Boiler System",function() {
@@ -117,57 +117,57 @@ describe("Testing Boiler System",function() {
 
                 function (callback) {
                     // expecting initial state to be Ready
-                    haltMethod.getExecutableFlag().should.eql(true);
-                    resetMethod.getExecutableFlag().should.eql(false);
-                    startMethod.getExecutableFlag().should.eql(true);
-                    suspendMethod.getExecutableFlag().should.eql(false);
+                    haltMethod.getExecutableFlag(context).should.eql(true);
+                    resetMethod.getExecutableFlag(context).should.eql(false);
+                    startMethod.getExecutableFlag(context).should.eql(true);
+                    suspendMethod.getExecutableFlag(context).should.eql(false);
 
-                    haltMethod.execute([],{},function(err,callMethodResponse) {
+                    haltMethod.execute([], context, function (err, callMethodResponse) {
                         if (doDebug) {
                             console.log(" Halt has been called".bgWhite.cyan, err, callMethodResponse.statusCode.toString());
                         }
-                        haltMethod.getExecutableFlag().should.eql(false);
-                        resetMethod.getExecutableFlag().should.eql(true);
-                        startMethod.getExecutableFlag().should.eql(false);
-                        suspendMethod.getExecutableFlag().should.eql(false);
+                        haltMethod.getExecutableFlag(context).should.eql(false);
+                        resetMethod.getExecutableFlag(context).should.eql(true);
+                        startMethod.getExecutableFlag(context).should.eql(false);
+                        suspendMethod.getExecutableFlag(context).should.eql(false);
                         callback(err);
                     });
                 },
                 function (callback) {
-                    resetMethod.execute([],{},function(err,callMethodResponse) {
+                    resetMethod.execute([], context, function (err, callMethodResponse) {
                         if (doDebug) {
                             console.log(" resetMethod has been called".bgWhite.cyan, err, callMethodResponse.statusCode.toString());
                         }
-                        haltMethod.getExecutableFlag().should.eql(true);
-                        resetMethod.getExecutableFlag().should.eql(false);
-                        startMethod.getExecutableFlag().should.eql(true);
-                        suspendMethod.getExecutableFlag().should.eql(false);
+                        haltMethod.getExecutableFlag(context).should.eql(true);
+                        resetMethod.getExecutableFlag(context).should.eql(false);
+                        startMethod.getExecutableFlag(context).should.eql(true);
+                        suspendMethod.getExecutableFlag(context).should.eql(false);
                         callback(err);
                     });
                 },
 
                 function (callback) {
-                    startMethod.execute([],{},function(err,callMethodResponse) {
+                    startMethod.execute([], context, function (err, callMethodResponse) {
                         if (doDebug) {
                             console.log(" startMethod has been called".bgWhite.cyan, err, callMethodResponse.statusCode.toString());
                         }
-                        haltMethod.getExecutableFlag().should.eql(true);
-                        resetMethod.getExecutableFlag().should.eql(true);
-                        startMethod.getExecutableFlag().should.eql(false);
-                        suspendMethod.getExecutableFlag().should.eql(true);
+                        haltMethod.getExecutableFlag(context).should.eql(true);
+                        resetMethod.getExecutableFlag(context).should.eql(true);
+                        startMethod.getExecutableFlag(context).should.eql(false);
+                        suspendMethod.getExecutableFlag(context).should.eql(true);
                         callback(err);
                     });
                 },
 
                 function (callback) {
-                    suspendMethod.execute([],{},function(err,callMethodResponse) {
+                    suspendMethod.execute([], context, function (err, callMethodResponse) {
                         if (doDebug) {
                             console.log(" suspendMethod has been called".bgWhite.cyan,err,callMethodResponse.statusCode.toString());
                         }
-                        haltMethod.getExecutableFlag().should.eql(true);
-                        resetMethod.getExecutableFlag().should.eql(true);
-                        startMethod.getExecutableFlag().should.eql(true);
-                        suspendMethod.getExecutableFlag().should.eql(false);
+                        haltMethod.getExecutableFlag(context).should.eql(true);
+                        resetMethod.getExecutableFlag(context).should.eql(true);
+                        startMethod.getExecutableFlag(context).should.eql(true);
+                        suspendMethod.getExecutableFlag(context).should.eql(false);
                         callback(err);
                     });
                 },

@@ -17,10 +17,9 @@ var opcua = require("index");
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var DataType = opcua.DataType;
-
-var createBoilerType = require("test/helpers/boiler_system").createBoilerType;
 var makeBoiler       = require("test/helpers/boiler_system").makeBoiler;
+
+var context = require("lib/server/session_context").SessionContext.defaultContext;
 
 var doDebug = false;
 
@@ -49,10 +48,10 @@ describe("testing monitoring Executable flags on methods", function () {
             var resetMethod = boiler_on_server.simulation.getMethodByName("Reset");
             var startMethod   = boiler_on_server.simulation.getMethodByName("Start");
             var suspendMethod   = boiler_on_server.simulation.getMethodByName("Suspend");
-            haltMethod.getExecutableFlag().should.eql(true);
-            resetMethod.getExecutableFlag().should.eql(false);
-            startMethod.getExecutableFlag().should.eql(true);
-            suspendMethod.getExecutableFlag().should.eql(false);
+            haltMethod.getExecutableFlag(context).should.eql(true);
+            resetMethod.getExecutableFlag(context).should.eql(false);
+            startMethod.getExecutableFlag(context).should.eql(true);
+            suspendMethod.getExecutableFlag(context).should.eql(false);
 
 
             boiler_on_server = boiler_on_server.nodeId;

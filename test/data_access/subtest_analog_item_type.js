@@ -15,12 +15,18 @@ var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
 var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
+
+
 var async = require("async");
 
 
 module.exports = function (engine) {
 
     describe("AnalogDataItem", function () {
+
+        var context = SessionContext.defaultContext;
 
         it("should add an analog data item in the addresss_space", function (done) {
 
@@ -81,7 +87,7 @@ module.exports = function (engine) {
             async.series([
 
                 function (callback) {
-                    analogItem.instrumentRange.readValueAsync(function (err, dataValue) {
+                    analogItem.instrumentRange.readValueAsync(context, function (err, dataValue) {
                         if (!err) {
                             dataValue.statusCode.should.eql(StatusCodes.Good);
                             dataValue.value.dataType.should.eql(DataType.ExtensionObject);
@@ -96,7 +102,7 @@ module.exports = function (engine) {
 
                 function (callback) {
                     //xx console.log(analogItem._dataValue);
-                    analogItem.readValueAsync(function (err, dataValue) {
+                    analogItem.readValueAsync(context, function (err, dataValue) {
                         if (!err) {
                             dataValue.statusCode.should.eql(StatusCodes.Good);
                             dataValue.value.dataType.should.eql(DataType.Double);
@@ -109,7 +115,7 @@ module.exports = function (engine) {
 
                     fakeValue = 2.0;
 
-                    analogItem.readValueAsync(function (err, dataValue) {
+                    analogItem.readValueAsync(context, function (err, dataValue) {
                         //xx console.log(analogItem._dataValue);
                         if (!err) {
                             dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -147,7 +153,7 @@ module.exports = function (engine) {
                 value: new Variant({dataType: DataType.Double, value: -1000.0})// out of range
             });
 
-            analogItem.writeValue(dataValue, null, function (err, statusCode) {
+            analogItem.writeValue(context, dataValue, null, function (err, statusCode) {
                 statusCode.should.eql(StatusCodes.BadOutOfRange);
                 done(err);
             });
@@ -176,7 +182,7 @@ module.exports = function (engine) {
                 value: new Variant({dataType: DataType.Double, value: 150})// in range
             });
 
-            analogItem.writeValue(dataValue, null, function (err, statusCode) {
+            analogItem.writeValue(context, dataValue, null, function (err, statusCode) {
                 statusCode.should.eql(StatusCodes.Good);
                 done(err);
             });

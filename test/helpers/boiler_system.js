@@ -18,6 +18,7 @@ var UAObject = require("lib/address_space/ua_object").UAObject;
 
 var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 
+var context = require("lib/server/session_context").SessionContext.defaultContext;
 
 function MygetExecutableFlag(toState) {
     assert(_.isString(toState));
@@ -33,7 +34,7 @@ function implementProgramStateMachine(programStateMachine) {
 
         var method = programStateMachine.getMethodByName(methodName);
         assert(method instanceof UAMethod);
-        method._getExecutableFlag = function () {
+        method._getExecutableFlag = function (context) {
             return MygetExecutableFlag.call(this, toState);
         };
         method.bindMethod(function (inputArguments, context, callback) {
@@ -443,11 +444,11 @@ exports.makeBoiler = function (addressSpace, options) {
     boilerStateMachine.setState(haltedState);
     boilerStateMachine.currentStateNode.browseName.toString().should.eql("Halted");
 
-    boilerStateMachine.halt.getExecutableFlag().should.eql(false);
+    boilerStateMachine.halt.getExecutableFlag(context).should.eql(false);
 
     // when state is "Reset" , the Halt method is  executable
     boilerStateMachine.setState(readyState);
-    boilerStateMachine.halt.getExecutableFlag().should.eql(true);
+    boilerStateMachine.halt.getExecutableFlag(context).should.eql(true);
 
     return boiler1;
 };

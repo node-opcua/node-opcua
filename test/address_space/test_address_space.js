@@ -8,6 +8,7 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var browse_service = require("lib/services/browse_service");
 var BrowseDirection = browse_service.BrowseDirection;
+var context = require("lib/server/session_context").SessionContext.defaultContext;
 
 describe("testing address space", function () {
 
@@ -340,9 +341,9 @@ describe("testing address space", function () {
 
         var read_service = require("lib/services/read_service");
         var AttributeIds = read_service.AttributeIds;
-        view1.readAttribute(AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
-        view1.readAttribute(AttributeIds.ContainsNoLoops).value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
-        view1.readAttribute(AttributeIds.BrowseName).value.value.toString().should.eql("View1");
+        view1.readAttribute(context, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
+        view1.readAttribute(context, AttributeIds.ContainsNoLoops).value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
+        view1.readAttribute(context, AttributeIds.BrowseName).value.value.toString().should.eql("View1");
 
     });
 

@@ -10,6 +10,8 @@ var NodeId = require("lib/datamodel/nodeid").NodeId;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
 var read_service = require("lib/services/read_service");
 var AttributeIds = read_service.AttributeIds;
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
 
 var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
@@ -79,7 +81,7 @@ module.exports = function(engine) {
                 var dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 100})// out of range
                 });
-                multiState.writeValue(dataValue,null,function(err,statusCode){
+                multiState.writeValue(context, dataValue, null, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.BadOutOfRange);
                     done(err);
                 });
@@ -90,7 +92,7 @@ module.exports = function(engine) {
                 var dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 2})// OK
                 });
-                multiState.writeValue(dataValue,null,function(err,statusCode){
+                multiState.writeValue(context, dataValue, null, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     done(err);
                 });

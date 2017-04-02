@@ -26,6 +26,10 @@ var resourceLeakDetector = require("test/helpers/resource_leak_detector").resour
 
 var encode_decode = require("lib/misc/encode_decode");
 
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
+
+
 var now = (new Date()).getTime();
 
 var fake_publish_engine = {
@@ -818,7 +822,8 @@ describe("Subscriptions and MonitoredItems", function () {
         it("CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ",function() {
 
             //xx console.log(accessLevel_CurrentRead_NotUserNode.toString());
-            accessLevel_CurrentRead_NotUserNode.isReadable().should.eql(false);
+            accessLevel_CurrentRead_NotUserNode.isReadable(context).should.eql(true);
+            accessLevel_CurrentRead_NotUserNode.isUserReadable(context).should.eql(false);
 
             var nodeId = accessLevel_CurrentRead_NotUserNode.nodeId;
             nodeId.should.be.instanceOf(NodeId);
@@ -867,7 +872,7 @@ describe("Subscriptions and MonitoredItems", function () {
                 }
             }
 
-            simulate_publish_request_expected_statusCode(StatusCodes.BadNotReadable);
+            simulate_publish_request_expected_statusCode(StatusCodes.BadUserAccessDenied);
 
         });
 

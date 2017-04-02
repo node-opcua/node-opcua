@@ -17,6 +17,9 @@ var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
 var standardUnits = require("lib/data_access/EUInformation").standardUnits;
 
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
+
 var async = require("async");
 var sinon = require("sinon");
 
@@ -61,7 +64,7 @@ module.exports = function (engine) {
 
         function modifyEURange(analogItem,done) {
 
-            var dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
+            var dataValueOrg = analogItem.readAttribute(context, AttributeIds.Value);
 
             var dataValue = {
                 value : {
@@ -77,7 +80,7 @@ module.exports = function (engine) {
                 attributeId: AttributeIds.Value,
                 value: dataValue
             });
-            analogItem.euRange.writeAttribute(writeValue,done);
+            analogItem.euRange.writeAttribute(context, writeValue, done);
         }
 
         it("should emit a 'semantic_changed' event when EURange changes", function (done) {
@@ -105,7 +108,7 @@ module.exports = function (engine) {
             analogItem.on("semantic_changed",spy_on_semantic_changed);
 
             var dataValue = analogItem.readValue();
-            analogItem.writeValue(dataValue,function(err){
+            analogItem.writeValue(context, dataValue, function (err) {
                 analogItem.semantic_version.should.eql(original_semantic_version);
                 spy_on_semantic_changed.callCount.should.eql(0);
 

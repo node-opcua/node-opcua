@@ -34,7 +34,8 @@ var build_address_space_for_conformance_testing = address_space_for_conformance_
 
 var address_space = require("lib/address_space/address_space");
 var server_engine = require("lib/server/server_engine");
-
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
 
 
 var should = require("should");
@@ -86,7 +87,7 @@ describe("testing address space for conformance testing", function () {
         engine.refreshValues(nodesToRefresh, function (err) {
 
             if (!err) {
-                var value = engine.readSingleNode(nodeId, AttributeIds.Value);
+                var value = engine.readSingleNode(context, nodeId, AttributeIds.Value);
 
                 value.statusCode.should.eql(StatusCodes.Good);
                 value.value.dataType.should.eql(DataType.Int32);
@@ -104,7 +105,7 @@ describe("testing address space for conformance testing", function () {
                         }
                     }
                 });
-                engine.writeSingleNode(writeValue, function (err, statusCode) {
+                engine.writeSingleNode(context, writeValue, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.BadNotWritable, " writing on AccessLevel_CurrentRead_NotCurrentWrite should raise BadNotWritable ");
                     done(err);
                 });
@@ -130,10 +131,10 @@ describe("testing address space for conformance testing", function () {
                 var nodeId = makeNodeId("Scalar_Simulation_Interval", namespaceIndex);
                 var simulationInterval = engine.addressSpace.findNode(nodeId, namespaceIndex);
                 var dataValue = new DataValue({value: {dataType: "UInt16", value: 100}});
-                simulationInterval.writeValue(dataValue, callback);
+                simulationInterval.writeValue(context, dataValue, callback);
             },
             function (callback) {
-                variable.readValueAsync(function (err, dataValue) {
+                variable.readValueAsync(context, function (err, dataValue) {
 
                     should.exist(dataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -147,7 +148,7 @@ describe("testing address space for conformance testing", function () {
             },
 
             function (callback) {
-                variable.readValueAsync(function (err, dataValue) {
+                variable.readValueAsync(context, function (err, dataValue) {
 
                     should.exist(dataValue);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -162,7 +163,7 @@ describe("testing address space for conformance testing", function () {
     it("should be able to write a array of double on Scalar_Static_Array_Double", function (done) {
 
         var nodeId = makeNodeId("Scalar_Static_Array_Double", namespaceIndex);
-        var value = engine.readSingleNode(nodeId, AttributeIds.Value);
+        var value = engine.readSingleNode(context, nodeId, AttributeIds.Value);
 
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Double);
@@ -181,7 +182,7 @@ describe("testing address space for conformance testing", function () {
                 }
             }
         });
-        engine.writeSingleNode(writeValue, function (err, statusCode) {
+        engine.writeSingleNode(context, writeValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             done(err);
         });
@@ -203,7 +204,7 @@ describe("testing address space for conformance testing", function () {
                 }
             }
         });
-        engine.writeSingleNode(writeValue, function (err, statusCode) {
+        engine.writeSingleNode(context, writeValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             done(err);
         });
@@ -225,7 +226,7 @@ describe("testing address space for conformance testing", function () {
                 }
             }
         });
-        engine.writeSingleNode(writeValue, function (err, statusCode) {
+        engine.writeSingleNode(context, writeValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             done(err);
         });
@@ -246,7 +247,7 @@ describe("testing address space for conformance testing", function () {
                 }
             }
         });
-        engine.writeSingleNode(writeValue, function (err, statusCode) {
+        engine.writeSingleNode(context, writeValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             done(err);
         });
@@ -273,7 +274,7 @@ describe("testing address space for conformance testing", function () {
                     }
                 });
 
-                engine.writeSingleNode(writeValue, function (err, statusCode) {
+                engine.writeSingleNode(context, writeValue, function (err, statusCode) {
                     callback(err);
                 });
             },
@@ -293,7 +294,7 @@ describe("testing address space for conformance testing", function () {
                     }
                 });
 
-                engine.writeSingleNode(writeValue, function (err, statusCode) {
+                engine.writeSingleNode(context, writeValue, function (err, statusCode) {
                     callback(err);
                 });
             }
@@ -316,7 +317,7 @@ describe("testing address space for conformance testing", function () {
             }
         });
 
-        engine.writeSingleNode(request, function (err, statusCode) {
+        engine.writeSingleNode(context, request, function (err, statusCode) {
             callback(err, statusCode);
         });
 
@@ -332,7 +333,7 @@ describe("testing address space for conformance testing", function () {
             nodeId: nodeId,
             attributeId: AttributeIds.Value
         });
-        var dataValue = engine._readSingleNode(request);
+        var dataValue = engine._readSingleNode(context, request);
         callback(null, dataValue.value.value);
     }
 
@@ -375,7 +376,7 @@ describe("testing address space for conformance testing", function () {
             nodeId: nodeId,
             attributeId: AttributeIds.Value
         });
-        var dataValue = engine._readSingleNode(request);
+        var dataValue = engine._readSingleNode(context, request);
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.be.instanceOf(Array);
         dataValue.value.value.length.should.eql(10);
@@ -387,7 +388,7 @@ describe("testing address space for conformance testing", function () {
             indexRange: "1",
             attributeId: AttributeIds.Value
         });
-        dataValue = engine._readSingleNode(request);
+        dataValue = engine._readSingleNode(context, request);
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.be.instanceOf(Array);
         dataValue.value.value.length.should.eql(1);
@@ -405,7 +406,7 @@ describe("testing address space for conformance testing", function () {
             indexRange: indexRange,
             attributeId: AttributeIds.Value
         });
-        var dataValue = engine._readSingleNode(request);
+        var dataValue = engine._readSingleNode(context, request);
         dataValue.statusCode.should.eql(StatusCodes.Good);
         callback(null, dataValue.value.value);
     }
@@ -431,7 +432,7 @@ describe("testing address space for conformance testing", function () {
             console.log(" indexRange = ", request.indexRange.type.toString());
             console.log("    request = ", request.toString());
         }
-        engine.writeSingleNode(request, function (err, statusCode) {
+        engine.writeSingleNode(context, request, function (err, statusCode) {
             callback(err, statusCode);
         });
     }

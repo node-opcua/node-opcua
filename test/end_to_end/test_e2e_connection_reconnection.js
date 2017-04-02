@@ -18,6 +18,8 @@ var makeNodeId = opcua.makeNodeId;
 var ReferenceTypeIds = opcua.ReferenceTypeIds;
 var VariableIds = opcua.VariableIds;
 
+var context = require("lib/server/session_context").SessionContext.defaultContext;
+
 var BrowseDirection = opcua.browse_service.BrowseDirection;
 var debugLog = opcua.utils.make_debugLog(__filename);
 var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);

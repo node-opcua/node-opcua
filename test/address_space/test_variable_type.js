@@ -9,6 +9,7 @@ var address_space = require("lib/address_space/address_space");
 var NodeClass = require("lib/datamodel/nodeclass").NodeClass;
 var NodeId = require("lib/datamodel/nodeid").NodeId;
 var resolveNodeId = require("lib/datamodel/nodeid").resolveNodeId;
+var context = require("lib/server/session_context").SessionContext.defaultContext;
 
 var sinon = require("sinon");
 
@@ -42,7 +43,7 @@ describe("testing UAVariableType", function () {
         });
 
         var value;
-        value = variableType.readAttribute(AttributeIds.IsAbstract);
+        value = variableType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(false);
@@ -57,13 +58,13 @@ describe("testing UAVariableType", function () {
         });
 
         var value;
-        value = variableType.readAttribute(AttributeIds.IsAbstract);
+        value = variableType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(true);
 
 
-        value = variableType.readAttribute(AttributeIds.NodeId);
+        value = variableType.readAttribute(context, AttributeIds.NodeId);
 
     });
 

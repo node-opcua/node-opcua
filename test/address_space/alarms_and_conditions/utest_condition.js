@@ -10,7 +10,7 @@ var async = require("async");
 
 var server_engine = require("lib/server/server_engine");
 var ServerEngine = server_engine.ServerEngine;
-
+var SessionContext = require("lib/server/session_context").SessionContext;
 
 var Method = require("lib/address_space/ua_method").Method;
 var StatusCodes = require("lib/datamodel/opcua_status_code").StatusCodes;
@@ -96,7 +96,7 @@ module.exports = function (test) {
                 dataValue.value.value.should.eql(true);
                 condition.browseName.toString().should.eql("MyCustomCondition2");
 
-                var context = {};
+                var context = new SessionContext();
 
                 condition._setEnabledState(false);
                 condition.getEnabledState().should.eql(false);
@@ -243,7 +243,7 @@ module.exports = function (test) {
                 var eventId = condition.eventId.readValue().value.value;
                 should(eventId).be.instanceOf(Buffer);
 
-                var context = {object: condition};
+                var context = new SessionContext({object: condition});
 
                 var param = [
                     // the eventId
@@ -271,7 +271,7 @@ module.exports = function (test) {
 
                 condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
 
-                var context = {object: condition};
+                var context = new SessionContext({object: condition});
                 var eventId = condition.eventId.readValue().value.value;
                 should(eventId).be.instanceOf(Buffer);
 
@@ -530,10 +530,10 @@ module.exports = function (test) {
                     // conditionRefresh shall be called from ConditionType
                     var conditionType = addressSpace.findObjectType("ConditionType");
 
-                    var context = {
+                    var context = new SessionContext({
                         server: addressSpace.rootFolder.objects.server,
                         object: conditionType
-                    };
+                    });
 
 
                     // install the event catcher

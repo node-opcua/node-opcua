@@ -23,6 +23,7 @@ var Variant = require("lib/datamodel/variant").Variant;
 var LocalizedText = require("lib/datamodel/localized_text").LocalizedText;
 var conditions =require("lib/address_space/alarms_and_conditions/condition");
 var ConditionSnapshot = conditions.ConditionSnapshot;
+var SessionContext = require("lib/server/session_context").SessionContext;
 
 var doDebug = false;
 
@@ -210,6 +211,8 @@ module.exports = function (test) {
                 var timeShelvedDuration = 500; // 0.5 seconds
                 var shelvingTime = new Variant({dataType: DataType.Double, value: timeShelvedDuration });
 
+                var context = new SessionContext();
+
                 var values =[];
                 async.series([
                     function(callback) {
@@ -293,6 +296,7 @@ module.exports = function (test) {
                     alarm.suppressedState.setValue(false);
                 });
 
+                var context = new SessionContext();
 
                 it("unshelving an already unshelved alarm should return BadConditionNotShelved", function (done) {
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
@@ -521,7 +525,7 @@ module.exports = function (test) {
                     // 1) null      |  true    | true  | false      | true   |
 
 
-                    var context = {object: condition};
+                    var context = new SessionContext({object: condition});
                     var param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
@@ -581,7 +585,8 @@ module.exports = function (test) {
                     //    null      |  False   | true  | true      | false   |
 
 
-                    var context = {object: condition};
+                    var context = new SessionContext({object: condition});
+
                     var param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
@@ -659,7 +664,7 @@ module.exports = function (test) {
                     //    null      |  false   | true  | false     | true   |
 
 
-                    var context = {object: condition};
+                    var context = new SessionContext({object: condition});
                     var param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
@@ -690,7 +695,7 @@ module.exports = function (test) {
                     //    null      |  false   | true  | true      | false   |
 
 
-                    var context = {object: condition};
+                    var context = new SessionContext({object: condition});
                     var param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},

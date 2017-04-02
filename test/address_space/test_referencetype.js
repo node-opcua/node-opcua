@@ -19,6 +19,7 @@ var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_
 
 var browse_service = require("lib/services/browse_service");
 
+var context = require("lib/server/session_context").SessionContext.defaultContext;
 
 describe("testing ReferenceType", function () {
     var addressSpace;
@@ -61,7 +62,7 @@ describe("testing ReferenceType", function () {
     it("HierarchicalReferences should have an Abstract attribute set to true ", function () {
 
         var hr = addressSpace.findReferenceType("HierarchicalReferences");
-        var v = hr.readAttribute(AttributeIds.IsAbstract);
+        var v = hr.readAttribute(context, AttributeIds.IsAbstract);
         v.statusCode.should.eql(StatusCodes.Good);
         v.value.dataType.should.eql(DataType.Boolean);
         v.value.value.should.eql(true);
@@ -71,7 +72,7 @@ describe("testing ReferenceType", function () {
     it("Organizes should have an Abstract attribute set to true ", function () {
 
         var hr = addressSpace.findReferenceType("Organizes");
-        var v = hr.readAttribute(AttributeIds.IsAbstract);
+        var v = hr.readAttribute(context, AttributeIds.IsAbstract);
         v.statusCode.should.eql(StatusCodes.Good);
         v.value.dataType.should.eql(DataType.Boolean);
         v.value.value.should.eql(false);

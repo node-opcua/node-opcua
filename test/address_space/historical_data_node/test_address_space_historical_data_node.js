@@ -5,16 +5,13 @@ var opcua = require("../../..");
 var path = require("path");
 var should = require("should");
 var assert = require("better-assert");
-var _ = require("underscore");
 var fs = require("fs");
 var timespan = require("timespan");
 
-var NodeId              = opcua.NodeId;
-var DataType            = opcua.DataType;
-var coerceLocalizedText = opcua.coerceLocalizedText;
 var StatusCodes         = opcua.StatusCodes;
-var UAStateMachine = require("lib/address_space/state_machine/finite_state_machine").UAStateMachine;
 var async = require("async");
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
 
 var historizing_service = opcua.historizing_service;
 require("date-utils");
@@ -97,7 +94,8 @@ describe("Testing Historical Data Node", function () {
         var dataEncoding = null;
         var continuationPoint = null;
 
-        node.historyRead(historyReadDetails,indexRange,dataEncoding,continuationPoint,function(err,historyReadResult) {
+
+        node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
             should.not.exist(historyReadResult.continuationPoint);
             historyReadResult.statusCode.should.eql(StatusCodes.Good);
@@ -152,7 +150,7 @@ describe("Testing Historical Data Node", function () {
                 callback();
             },
             function(callback) {
-                node.historyRead(historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(1);
@@ -167,7 +165,7 @@ describe("Testing Historical Data Node", function () {
                 callback();
             },
             function(callback) {
-                node.historyRead(historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(2);
@@ -184,7 +182,7 @@ describe("Testing Historical Data Node", function () {
                 callback();
             },
             function(callback) {
-                node.historyRead(historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
@@ -204,7 +202,7 @@ describe("Testing Historical Data Node", function () {
                 callback();
             },
             function(callback) {
-                node.historyRead(historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
@@ -223,7 +221,7 @@ describe("Testing Historical Data Node", function () {
                 callback();
             },
             function(callback) {
-                node.historyRead(historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
@@ -235,10 +233,6 @@ describe("Testing Historical Data Node", function () {
             },
         ],done);
 
-
-
-
     });
 
-
-    });
+});

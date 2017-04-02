@@ -10,6 +10,9 @@ var address_space = require("lib/address_space/address_space");
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
 var _ = require("underscore");
 
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
+
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
     var addressSpace;
@@ -36,12 +39,12 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
         });
 
         var value;
-        value = method.readAttribute(AttributeIds.UserExecutable);
+        value = method.readAttribute(context, AttributeIds.UserExecutable);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
         value.value.value.should.equal(false);
 
-        value = method.readAttribute(AttributeIds.Executable);
+        value = method.readAttribute(context, AttributeIds.Executable);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
         value.value.value.should.equal(false);
@@ -62,12 +65,12 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
         method.bindMethod(fakeMethod);
 
         var value;
-        value = method.readAttribute(AttributeIds.UserExecutable);
+        value = method.readAttribute(context, AttributeIds.UserExecutable);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
         value.value.value.should.equal(true);
 
-        value = method.readAttribute(AttributeIds.Executable);
+        value = method.readAttribute(context, AttributeIds.Executable);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
         value.value.value.should.equal(true);
@@ -178,8 +181,8 @@ describe("testing Method binding", function () {
         rootFolder.objects.server.getMonitoredItems.bindMethod(fake_getMonitoredItemId.bind(this));
 
         var inputArguments = [{dataType: DataType.UInt32, value: 5}];
-        var context = {};
 
+        var context = SessionContext.defaultContext;
         rootFolder.objects.server.getMonitoredItems.execute(inputArguments, context, function (err, result) {
 
             done(err);

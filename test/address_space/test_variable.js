@@ -18,11 +18,14 @@ var NumericRange = require("lib/datamodel/numeric_range").NumericRange;
 
 var nodeset_filename = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
 
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
+
 describe("testing Variables ", function () {
 
     require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        it("a variable should return attributes with  the expected data type ", function () {
+        it("ZZ1- a variable should return attributes with  the expected data type ", function () {
 
             var addressSpace = new address_space.AddressSpace();
 
@@ -37,45 +40,45 @@ describe("testing Variables ", function () {
 
             var value;
 
-            value = v.readAttribute(AttributeIds.AccessLevel);
+            value = v.readAttribute(context, AttributeIds.AccessLevel);
             value.value.dataType.should.eql(DataType.Byte);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.UserAccessLevel);
+            value = v.readAttribute(context, AttributeIds.UserAccessLevel);
             value.value.dataType.should.eql(DataType.Byte);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.ValueRank);
+            value = v.readAttribute(context, AttributeIds.ValueRank);
             value.value.dataType.should.eql(DataType.Int32);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.ArrayDimensions);
+            value = v.readAttribute(context, AttributeIds.ArrayDimensions);
             value.value.arrayType.should.eql(VariantArrayType.Array);
             value.value.value.should.eql(new Uint32Array([1, 2, 3]));
             (value.value.value instanceof Uint32Array).should.eql(true);
             value.value.dataType.should.eql(DataType.UInt32);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.Historizing);
+            value = v.readAttribute(context, AttributeIds.Historizing);
             value.value.dataType.should.eql(DataType.Boolean);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.BrowseName);
+            value = v.readAttribute(context, AttributeIds.BrowseName);
             value.value.dataType.should.eql(DataType.QualifiedName);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.DisplayName);
+            value = v.readAttribute(context, AttributeIds.DisplayName);
             value.value.dataType.should.eql(DataType.LocalizedText);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.MinimumSamplingInterval);
+            value = v.readAttribute(context, AttributeIds.MinimumSamplingInterval);
             value.value.dataType.should.eql(DataType.Double);
             value.statusCode.should.eql(StatusCodes.Good);
 
-            value = v.readAttribute(AttributeIds.IsAbstract);
+            value = v.readAttribute(context, AttributeIds.IsAbstract);
             value.statusCode.name.should.eql("BadAttributeIdInvalid");
 
-            value = v.readAttribute(AttributeIds.NodeClass);
+            value = v.readAttribute(context, AttributeIds.NodeClass);
             value.value.dataType.should.eql(DataType.Int32);
             value.value.value.should.eql(NodeClass.Variable.value);
             value.statusCode.should.eql(StatusCodes.Good);
@@ -258,13 +261,13 @@ describe("testing Variable#bindVariable", function () {
                 },
                 accessLevel: "CurrentRead"
             });
-            variable.isWritable().should.eql(false);
+            variable.isWritable(context).should.eql(false);
             (typeof variable.asyncRefresh).should.eql("undefined");
 
             async.series([
                 function read_simple_value(callback) {
 
-                    var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                    var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                     dataValue_check.should.be.instanceOf(DataValue);
                     dataValue_check.statusCode.should.eql(StatusCodes.Good);
 
@@ -281,14 +284,14 @@ describe("testing Variable#bindVariable", function () {
                         }
                     });
 
-                    variable.writeValue(dataValue, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.BadNotWritable);
                         callback(err);
                     });
                 },
                 function read_simple_value(callback) {
 
-                    var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                    var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                     dataValue_check.should.be.instanceOf(DataValue);
                     dataValue_check.value.value.should.eql(5678);
 
@@ -391,9 +394,9 @@ describe("testing Variable#bindVariable", function () {
                 function read_simple_value(callback) {
 
                     //var
-                    variable.readValueAsync(function (err) {
+                    variable.readValueAsync(context, function (err) {
                         if (!err) {
-                            var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                            var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                             dataValue_check.should.be.instanceOf(DataValue);
                             dataValue_check.statusCode.should.eql(StatusCodes.Good);
                             //xx console.log("dataValue_check =",dataValue_check.toString());
@@ -413,7 +416,7 @@ describe("testing Variable#bindVariable", function () {
                         }
                     });
 
-                    variable.writeValue(dataValue, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.Good);
                         value.should.eql(200);
                         callback(err);
@@ -421,7 +424,7 @@ describe("testing Variable#bindVariable", function () {
                 },
                 function read_simple_value(callback) {
 
-                    var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                    var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                     dataValue_check.should.be.instanceOf(DataValue);
                     dataValue_check.value.value.should.eql(200);
 
@@ -460,7 +463,7 @@ describe("testing Variable#bindVariable", function () {
                 function read_simple_value(callback) {
 
                     counter = 0;
-                    variable.readValueAsync(function (err, dataValue_check) {
+                    variable.readValueAsync(context, function (err, dataValue_check) {
                         counter.should.eql(1, "expecting timestamped_get to have been called");
                         if (!err) {
                             dataValue_check.should.be.instanceOf(DataValue);
@@ -479,14 +482,14 @@ describe("testing Variable#bindVariable", function () {
                             value: 200
                         }
                     });
-                    variable.writeValue(dataValue, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.BadNotWritable);
                         callback(err);
                     });
                 },
                 function read_simple_value(callback) {
 
-                    variable.readValueAsync(function (err, dataValue_check) {
+                    variable.readValueAsync(context, function (err, dataValue_check) {
                         if (!err) {
                             dataValue_check.should.be.instanceOf(DataValue);
                             dataValue_check.value.value.should.eql(987654);
@@ -558,7 +561,7 @@ describe("testing Variable#bindVariable", function () {
 
     function read_double_and_check(variable, expected_value, expected_date, callback) {
 
-        variable.readValueAsync(function (err, dataValue_check) {
+        variable.readValueAsync(context, function (err, dataValue_check) {
             if (!err) {
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
@@ -609,7 +612,7 @@ describe("testing Variable#bindVariable", function () {
                             value: 200
                         }
                     });
-                    variable.writeValue(dataValue, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.Good);
                         callback(err);
                     });
@@ -656,7 +659,7 @@ describe("testing Variable#bindVariable", function () {
                             value: 200
                         }
                     });
-                    variable.writeValue(dataValue, null, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, null, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.Good);
                         callback(err);
                     });
@@ -706,7 +709,7 @@ describe("testing Variable#bindVariable", function () {
                             value: 200
                         }
                     });
-                    variable.writeValue(dataValue, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.Good);
                         callback(err);
                     });
@@ -765,7 +768,7 @@ describe("testing Variable#bindVariable", function () {
                             value: 200
                         }
                     });
-                    variable.writeValue(dataValue, function (err, statusCode) {
+                    variable.writeValue(context, dataValue, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.Good);
                         callback(err);
                     });
@@ -822,9 +825,9 @@ describe("testing Variable#writeValue Scalar", function () {
             }
         });
 
-        variable.writeValue(dataValue, function (err, statusCode) {
+        variable.writeValue(context, dataValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
-            var dataValue_check = variable.readAttribute(AttributeIds.Value);
+            var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
             dataValue_check.value.value.should.eql(10.0);
             done(err);
         });
@@ -848,9 +851,9 @@ describe("testing Variable#writeValue Scalar", function () {
                 value: 12.0
             }
         });
-        variable.writeValue(dataValue, function (err, statusCode) {
+        variable.writeValue(context, dataValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
-            var dataValue_check = variable.readAttribute(AttributeIds.Value);
+            var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
             dataValue_check.value.value.should.eql(12.0);
             done(err);
         });
@@ -899,9 +902,9 @@ describe("testing Variable#writeValue Array", function () {
                 }
             });
 
-            variable.writeValue(dataValue, function (err, statusCode) {
+            variable.writeValue(context, dataValue, function (err, statusCode) {
                 statusCode.should.eql(StatusCodes.Good);
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
                 done(err);
             });
@@ -924,7 +927,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
@@ -941,7 +944,7 @@ describe("testing Variable#writeValue Array", function () {
                     }
                 });
 
-                variable.writeValue(dataValue, function (err, statusCode) {
+                variable.writeValue(context, dataValue, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
@@ -949,7 +952,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([2, 3, 4, 5, 6, 7]));
@@ -965,7 +968,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
@@ -984,7 +987,7 @@ describe("testing Variable#writeValue Array", function () {
 
                 should(dataValue.value.value instanceof Float64Array).be.eql(true);
 
-                variable.writeValue(dataValue, "1", function (err, statusCode) {
+                variable.writeValue(context, dataValue, "1", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
@@ -992,7 +995,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 500, 3, 4, 5, 6]));
@@ -1008,7 +1011,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
@@ -1025,14 +1028,14 @@ describe("testing Variable#writeValue Array", function () {
                     }
                 });
 
-                variable.writeValue(dataValue, function (err, statusCode) {
+                variable.writeValue(context, dataValue, function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
             },
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
@@ -1048,7 +1051,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
@@ -1065,14 +1068,14 @@ describe("testing Variable#writeValue Array", function () {
                     }
                 });
 
-                variable.writeValue(dataValue, "1", function (err, statusCode) {
+                variable.writeValue(context, dataValue, "1", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
             },
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 200, 3, 4, 5, 6]));
@@ -1088,7 +1091,7 @@ describe("testing Variable#writeValue Array", function () {
 
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
@@ -1107,14 +1110,14 @@ describe("testing Variable#writeValue Array", function () {
                     }
                 });
 
-                variable.writeValue(dataValue, "1", function (err, statusCode) {
+                variable.writeValue(context, dataValue, "1", function (err, statusCode) {
                     statusCode.should.eql(StatusCodes.Good);
                     callback(err);
                 });
             },
             function (callback) {
 
-                var dataValue_check = variable.readAttribute(AttributeIds.Value);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.statusCode.should.eql(StatusCodes.GoodClamped);
                 dataValue_check.value.value.should.eql(new Float64Array([1, 200, 3, 4, 5, 6]));
@@ -1199,7 +1202,7 @@ describe("testing Variable#writeValue on Integer", function () {
             }
         });
 
-        variable.writeValue(dataValue, function (err, statusCode) {
+        variable.writeValue(context, dataValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.BadTypeMismatch);
             done(err);
         });
@@ -1214,7 +1217,7 @@ describe("testing Variable#writeValue on Integer", function () {
             }
         });
 
-        variable.writeValue(dataValue, function (err, statusCode) {
+        variable.writeValue(context, dataValue, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             done(err);
         });
@@ -1362,7 +1365,7 @@ describe("testing UAVariable ", function () {
         variable_not_readable._dataValue.value.value.should.eql(2);
         variable_not_readable._dataValue.statusCode.should.eql(StatusCodes.Good);
 
-        variable_not_readable.readValueAsync(function(err,dataValue){
+        variable_not_readable.readValueAsync(context, function (err, dataValue) {
             dataValue.statusCode.should.eql(StatusCodes.BadNotReadable);
             should(dataValue.value).eql(null);
             should(dataValue.serverTimestamp).eql(null);
@@ -1394,7 +1397,7 @@ describe("testing UAVariable ", function () {
                 }
             }
         });
-        temperatureVar.readValueAsync(function (err, value) {
+        temperatureVar.readValueAsync(context, function (err, value) {
             should.exist(err);
             console.log("err=", err);
             done();
@@ -1415,7 +1418,7 @@ describe("testing UAVariable ", function () {
                 }
             }
         });
-        temperatureVar.readValueAsync(function (err, value) {
+        temperatureVar.readValueAsync(context, function (err, value) {
             should.exist(err);
             console.log("err=", err);
             done();
@@ -1462,10 +1465,10 @@ describe("testing UAVariable ", function () {
         }
 
         // calling 4 times readValueAsync in parallel should cause the callback
-        temperatureVar.readValueAsync(my_callback);
-        temperatureVar.readValueAsync(my_callback);
-        temperatureVar.readValueAsync(my_callback);
-        temperatureVar.readValueAsync(my_callback);
+        temperatureVar.readValueAsync(context, my_callback);
+        temperatureVar.readValueAsync(context, my_callback);
+        temperatureVar.readValueAsync(context, my_callback);
+        temperatureVar.readValueAsync(context, my_callback);
 
 
     });
@@ -1477,7 +1480,7 @@ describe("testing UAVariable ", function () {
             attributeId: AttributeIds.Description,
             value: {value: {dataType: DataType.String, value: "New Description"}}
         });
-        variableInteger.writeAttribute(v, function (err, statusCode) {
+        variableInteger.writeAttribute(context, v, function (err, statusCode) {
             should(err).eql(null);
             done(err);
         });

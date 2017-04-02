@@ -8,6 +8,9 @@ var opcua = require("index");
 var async = require("async");
 var should= require("should");
 
+var AttributeIds = opcua.AttributeIds;
+var StatusCodes = opcua.StatusCodes;
+
 describe("testing extension object with client residing on a different process than the server process", function () {
 
     this.timeout(Math.max(600000,this._timeout));
@@ -47,11 +50,19 @@ describe("testing extension object with client residing on a different process t
                 function(callback) {
 
                     var nodesToRead = [
-                        new opcua.read_service.ReadValueId({ nodeId:  nodeId, attributeId: 13 })
+                        new opcua.read_service.ReadValueId({nodeId: nodeId, attributeId: AttributeIds.Value})
                     ];
-                    session.read(nodesToRead,function(err,nodesToRead,results){
+
+                    session.read(nodesToRead, function (err, nodesToRead, results) {
+
+                        should.not.exist(err);
+                        results.length.should.eql(1);
+                        console.log(results[0]);
 
                         if (!err) {
+
+                            results[0].statusCode.should.eql(StatusCodes.Good);
+
                             //xx console.log(" input,",nodesToRead[0].toString());
                             //xx console.log(" result,",results[0].toString());
                             var xmlData = results[0].value.value.toString("ascii");

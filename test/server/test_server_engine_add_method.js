@@ -16,6 +16,7 @@ var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
 var getMethodDeclaration_ArgumentList = require("lib/datamodel/argument_list").getMethodDeclaration_ArgumentList;
 var UAMethod = require("lib/address_space/ua_method").UAMethod;
+var SessionContext = require("lib/server/session_context").SessionContext;
 
 var translate_service = require("lib/services/translate_browse_paths_to_node_ids_service");
 
@@ -119,7 +120,8 @@ describe("ServerEngine - addMethod", function () {
         });
         // now call it
         var inputArguments = [{dataType: DataType.UInt32, value: 3}];
-        var context = {};
+
+        var context = new SessionContext({});
 
 
         // it should be possible to find the InputArguments and OutputArguments property

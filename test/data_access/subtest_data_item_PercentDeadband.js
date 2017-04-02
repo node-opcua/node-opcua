@@ -14,6 +14,8 @@ var AttributeIds = read_service.AttributeIds;
 var EUInformation = require("lib/data_access/EUInformation").EUInformation;
 var Range = require("lib/data_access/Range").Range;
 var standardUnits = require("lib/data_access/EUInformation").standardUnits;
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
 
 var async = require("async");
 
@@ -48,7 +50,7 @@ module.exports = function (engine) {
 
             async.series([
                 function (callback) {
-                    analogItem.writeValue(dataValue, null, function (err, statusCode) {
+                    analogItem.writeValue(context, dataValue, null, function (err, statusCode) {
                         statusCode.should.eql(StatusCodes.BadOutOfRange);
                         callback(err);
                     });

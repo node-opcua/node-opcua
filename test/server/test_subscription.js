@@ -13,6 +13,7 @@ var Subscription = require("lib/server/subscription").Subscription;
 var MonitoredItem = require("lib/server/monitored_item").MonitoredItem;
 var AttributeIds = require("lib/datamodel/attributeIds").AttributeIds;
 
+var SessionContext = require("lib/server/session_context").SessionContext;
 var fake_publish_engine = {};
 
 var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
@@ -1314,8 +1315,8 @@ describe("Subscription#adjustSamplingInterval", function () {
     });
 
     var fake_node = {
-        readAttribute: function(attributeId) {
-
+        readAttribute: function (context, attributeId) {
+            context.should.be.instanceOf(SessionContext);
             attributeId.should.eql(AttributeIds.MinimumSamplingInterval);
             return  new DataValue({value: {dataType: DataType.Double, value: 0.0 }});
         }

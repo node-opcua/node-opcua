@@ -8,6 +8,8 @@ var DataType = require("lib/datamodel/variant").DataType;
 var AttributeIds = require("lib/services/read_service").AttributeIds;
 var address_space = require("lib/address_space/address_space");
 var get_mini_address_space = require("test/fixtures/fixture_mininodeset_address_space").get_mini_address_space;
+var SessionContext = require("lib/server/session_context").SessionContext;
+var context = SessionContext.defaultContext;
 
 describe("testing UADataype -  Attribute", function () {
 
@@ -40,12 +42,12 @@ describe("testing UADataype -  Attribute", function () {
 
         var value;
 
-        value = dataType.readAttribute(AttributeIds.IsAbstract);
+        value = dataType.readAttribute(context, AttributeIds.IsAbstract);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
         value.value.value.should.equal(true);
 
-        value = dataType.readAttribute(AttributeIds.UserExecutable);
+        value = dataType.readAttribute(context, AttributeIds.UserExecutable);
         value.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
 
 
