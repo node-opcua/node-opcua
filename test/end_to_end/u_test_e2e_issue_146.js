@@ -47,7 +47,7 @@ module.exports = function (test) {
                 // change user
                 function (callback) {
 
-                    console.log("    inpersonate user user2 on existing session");
+                    console.log("    impersonate user user2 on existing session");
                     var userIdentity = {userName: "user2", password:"password2"};
 
                     client1.changeSessionIdentity(the_session,userIdentity,function (err) {

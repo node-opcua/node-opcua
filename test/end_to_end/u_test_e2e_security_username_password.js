@@ -9,19 +9,6 @@ var _ = require("underscore");
 var opcua = require("index");
 
 var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-
-var BrowseDirection = opcua.browse_service.BrowseDirection;
-var debugLog = opcua.utils.make_debugLog(__filename);
-
-
-var port = 2000;
-
-var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var resourceLeakDetector = require("test/helpers/resource_leak_detector").resourceLeakDetector;
 
 module.exports = function (test) {
 

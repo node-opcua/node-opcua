@@ -3,14 +3,12 @@ require("requirish")._(module);
 var should = require("should");
 var assert = require("better-assert");
 var async = require("async");
-var util = require("util");
 var _ = require("underscore");
 
 var opcua = require("index");
 
 var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
 
 var port = 2000;
 

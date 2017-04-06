@@ -819,9 +819,18 @@ describe("Subscriptions and MonitoredItems", function () {
             done();
         });
 
-        it("CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ",function() {
+        it("pp CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ", function () {
 
-            //xx console.log(accessLevel_CurrentRead_NotUserNode.toString());
+            // specs:
+            // When a user adds a monitored item that the user is denied read access to, the add operation for
+            // the item shall succeed and the bad status Bad_NotReadable or Bad_UserAccessDenied shall be
+            // returned in the Publish response. This is the same behaviour for the case where the access rig hts
+            // are changed after the call to CreateMonitoredItems. If the access rights change to read rights, the
+            // Server shall start sending data for the MonitoredItem. The same procedure shall be applied for an
+            // IndexRange that does not deliver data for the current value but could deliver data in the future.
+
+            console.log("    ", accessLevel_CurrentRead_NotUserNode.toString());
+            console.log("   accessLevel_CurrentRead_NotUserNode.isUserReadable(context)  ", accessLevel_CurrentRead_NotUserNode.isUserReadable(context));
             accessLevel_CurrentRead_NotUserNode.isReadable(context).should.eql(true);
             accessLevel_CurrentRead_NotUserNode.isUserReadable(context).should.eql(false);
 

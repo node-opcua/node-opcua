@@ -6,14 +6,11 @@ var path   = require("path");
 var opcua = require("index");
 
 var OPCUAClient = opcua.OPCUAClient;
-var SecurityPolicy = opcua.SecurityPolicy;
-var MessageSecurityMode = opcua.MessageSecurityMode;
 
 var build_server_with_temperature_device = require("test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
 var session_service = require("lib/services/session_service");
-var UserNameIdentityToken = session_service.UserNameIdentityToken;
 
 var userManager = {
 
@@ -27,7 +24,7 @@ var userManagerAsync = {
     isValidUserAsync: function (userName, password, callback) {
         async.setImmediate(function() {
             var authorized = ( userName === "username" && password === "p@ssw0rd_@sync" );
-            callback(null,authorized); 
+            callback(null, authorized);
         });
     }
 };
