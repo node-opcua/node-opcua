@@ -5,9 +5,11 @@
     "force": false,
     "pkgFiles": ["package.json"],
     "increment": "patch",
-    "commitMessage": "v%s",
-    "tagName": "v%s",
-    "tagAnnotation": "v%s",
+    "src": {
+       "tagName": "v%s",
+       "tagAnnotation": "v%s",
+       "commitMessage": "v%s"
+    },
     "buildCommand": false,
     "dist": {
        "repo": false,
