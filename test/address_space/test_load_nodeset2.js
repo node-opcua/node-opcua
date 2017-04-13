@@ -14,7 +14,7 @@ describe("testing NodeSet XML file loading", function () {
 
     var addressSpace;
 
-    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true,function() {
+    require("test/helpers/resource_leak_detector").installResourceLeakDetector(true, function () {
 
         beforeEach(function () {
 
@@ -36,7 +36,7 @@ describe("testing NodeSet XML file loading", function () {
 
     it("should load a nodeset xml file", function (done) {
 
-        var xml_file = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
+        var xml_file = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -54,9 +54,9 @@ describe("testing NodeSet XML file loading", function () {
     it("should load a large nodeset xml file", function (done) {
 
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
-        this.timeout(Math.max(400000,this._timeout));
+        this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = path.join(__dirname,"../../nodesets/Opc.Ua.NodeSet2.xml");
+        var xml_file = path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml");
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
@@ -74,7 +74,7 @@ describe("testing NodeSet XML file loading", function () {
     it("should load the DI nodeset ", function (done) {
 
         var xml_files = [
-            path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
+            path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
             path.join(__dirname, "../../nodesets/Opc.Ua.Di.NodeSet2.xml")
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
@@ -92,14 +92,14 @@ describe("testing NodeSet XML file loading", function () {
         });
     });
 
-    it("should read accessLevel and userAccessLevel attributes", function(done) {
+    it("should read accessLevel and userAccessLevel attributes", function (done) {
 
-        this.timeout(Math.max(400000,this._timeout));
+        this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_various_access_level_nodeset.xml");
+        var xml_file = path.join(__dirname, "../fixtures/fixture_node_with_various_access_level_nodeset.xml");
 
         var xml_files = [
-            path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
+            path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
             xml_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true);
@@ -118,7 +118,6 @@ describe("testing NodeSet XML file loading", function () {
             readOnlyVar.userAccessLevel.toString().should.eql("CurrentRead");
 
 
-
             var readWriteVar = addressSpace.findNode("ns=1;i=4");
             readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
             readWriteVar.userAccessLevel.toString().should.eql("CurrentRead | CurrentWrite");
@@ -128,14 +127,14 @@ describe("testing NodeSet XML file loading", function () {
         });
     });
 
-    it("should read predefined values for variables", function(done) {
+    it("should read predefined values for variables", function (done) {
 
-        this.timeout(Math.max(400000,this._timeout));
+        this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = path.join(__dirname,"../fixtures/fixture_node_with_predefined_variable.xml");
+        var xml_file = path.join(__dirname, "../fixtures/fixture_node_with_predefined_variable.xml");
 
         var xml_files = [
-            path.join(__dirname ,"../../nodesets/Opc.Ua.NodeSet2.xml"),
+            path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
             xml_file
         ];
 
@@ -158,39 +157,52 @@ describe("testing NodeSet XML file loading", function () {
         });
     });
 
-    it("Q1 should read a VariableType with a default value",function(done){
+    it("Q1 should read a VariableType with a default value", function (done) {
 
         var Variant = require("lib/datamodel/variant").Variant;
 
-        var xml_file1 = path.join(__dirname,"../../lib/server/mini.Node.Set2.xml");
-        var xml_file2= path.join(__dirname,"../fixtures/fixture_variable_type_with_default_value.xml");
+        var xml_file1 = path.join(__dirname, "../../lib/server/mini.Node.Set2.xml");
+        var xml_file2 = path.join(__dirname, "../fixtures/fixture_variable_type_with_default_value.xml");
 
         var xml_files = [
-            xml_file1,xml_file2
+            xml_file1, xml_file2
         ];
         generate_address_space(addressSpace, xml_files, function (err) {
 
             var ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
-            var  my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType",ns);
+            var my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType", ns);
             my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
 
             addressSpace.findDataType(my3x3MatrixType.dataType).browseName.toString().should.eql("Float");
 
             my3x3MatrixType.valueRank.should.eql(2);
-            my3x3MatrixType.arrayDimensions.should.eql([3,3]);
+            my3x3MatrixType.arrayDimensions.should.eql([3, 3]);
             my3x3MatrixType.value.toString().should.eql(new Variant({
-                dataType: "Float",value:[11,12,13,21,22,23,31,32,33]
+                dataType: "Float", value: [11, 12, 13, 21, 22, 23, 31, 32, 33]
             }).toString());
 
-            var  myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType",ns);
+            var myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns);
             myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
             myDoubleArrayType.valueRank.should.eql(1);
             myDoubleArrayType.arrayDimensions.should.eql([5]);
             myDoubleArrayType.value.toString().should.eql(
-                new Variant({dataType: "Double",value:[1,2,3,4,5]}).toString());
+              new Variant({dataType: "Double", value: [1, 2, 3, 4, 5]}).toString());
 
             done(err);
         });
     });
 
+    it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", function (done) {
+
+        var xml_files = [
+            path.join(__dirname, "../../nodesets/Opc.Ua.NodeSet2.xml"),
+        ];
+        fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
+
+        generate_address_space(addressSpace, xml_files, function (err) {
+            addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
+            done(err);
+        });
+
+    });
 });
