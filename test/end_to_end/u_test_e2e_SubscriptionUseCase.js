@@ -1461,7 +1461,7 @@ module.exports = function (test) {
 
                 subscription.publish_engine._send_publish_request.should.be.instanceOf(Function);
                 // replace _send_publish_request so that it doesn't do anything for a little while
-                sinon.stub(subscription.publish_engine, "_send_publish_request", function () {});
+                sinon.stub(subscription.publish_engine, "_send_publish_request").callsFake(function () {});
 
                 subscription.on("keepalive", function () {
                     nb_keep_alive_received += 1;
