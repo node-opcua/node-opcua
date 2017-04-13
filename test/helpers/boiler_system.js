@@ -20,7 +20,7 @@ var UAStateMachine = require("lib/address_space/state_machine/finite_state_machi
 
 var context = require("lib/server/session_context").SessionContext.defaultContext;
 
-function MygetExecutableFlag(toState) {
+function MygetExecutableFlag(toState,methodName) {
     assert(_.isString(toState));
     assert(this instanceof UAMethod);
     var stateMachineW = UAStateMachine.promote(this.parent);
@@ -30,13 +30,15 @@ function MygetExecutableFlag(toState) {
 function implementProgramStateMachine(programStateMachine) {
 
     assert(programStateMachine instanceof UAObject);
+
     function installMethod(methodName, toState) {
 
         var method = programStateMachine.getMethodByName(methodName);
         assert(method instanceof UAMethod);
         method._getExecutableFlag = function (context) {
-            return MygetExecutableFlag.call(this, toState);
+            return MygetExecutableFlag.call(this, toState,methodName);
         };
+
         method.bindMethod(function (inputArguments, context, callback) {
 
             var stateMachineW = UAStateMachine.promote(this.parent);

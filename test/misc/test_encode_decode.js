@@ -660,6 +660,30 @@ describe("UInt64", function () {
     });
 });
 
+describe("DateTime",function() {
+
+    it("converting 1491684476245",function() {
+
+        function check_date(t) {
+            var date1  = new Date();
+            date1.setTime(t);
+
+            var stream = new BinaryStream(10);
+            ec.encodeDateTime(date1, stream);
+            //xx console.log(stream._buffer.toString("hex"));
+
+            stream.rewind();
+            var date2 = ec.decodeDateTime(stream);
+
+            date1.getTime().should.eql(date2.getTime());
+        }
+
+        // -1491685621859
+        // +1491685621853
+        check_date(1491685621859);
+        check_date(1491685621853);
+    });
+});
 
 describe("Float", function () {
 

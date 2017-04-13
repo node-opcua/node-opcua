@@ -232,12 +232,12 @@ describe("Server Side MonitoredItem", function () {
 
         var sourceTimestamp = new Date(Date.UTC(2000, 0, 1));
         sourceTimestamp.setMilliseconds(100);
-        var picoSeconds = 456;
+        var picoseconds = 456;
 
         monitoredItem._enqueue_value(new DataValue({
             value: {dataType: DataType.UInt32, value: 1000},
             sourceTimestamp: sourceTimestamp,
-            sourcePicoseconds: picoSeconds,
+            sourcePicoseconds: picoseconds,
             serverTimestamp: now
         }));
 
@@ -245,7 +245,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.serverTimestamp.should.eql(now);
 
         monitoredItem.queue[0].value.sourceTimestamp.should.eql(sourceTimestamp);
-        monitoredItem.queue[0].value.sourcePicoseconds.should.eql(picoSeconds);
+        monitoredItem.queue[0].value.sourcePicoseconds.should.eql(picoseconds);
 
         monitoredItem.terminate();
         done();

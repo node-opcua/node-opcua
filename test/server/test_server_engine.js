@@ -1241,20 +1241,20 @@ describe("testing ServerEngine", function () {
 
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+            //xx should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourceTimestamp).be.eql(null);
-            should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
 
             dataValues[1].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[1].serverTimestamp).be.instanceOf(Date);
+            //xx should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourceTimestamp).be.eql(null);
-            should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
 
             dataValues[2].statusCode.should.eql(StatusCodes.Good);
             should(dataValues[2].serverTimestamp).be.instanceOf(Date);
+            //xx should(dataValues[2].serverPicoseconds).be.eql(0);
             should(dataValues[2].sourceTimestamp).be.eql(null);
-            should(dataValues[2].serverPicoseconds).be.eql(0);
             should(dataValues[2].sourcePicoseconds).be.eql(0);
 
         });
@@ -1310,13 +1310,13 @@ describe("testing ServerEngine", function () {
             dataValues[2].should.be.instanceOf(DataValue);
 
             should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+            //xx should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
-            should(dataValues[0].serverPicoseconds).be.eql(0);
             should(dataValues[0].sourcePicoseconds).be.eql(0);
 
             should(dataValues[1].serverTimestamp).be.instanceOf(Date);
+            //xx should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourceTimestamp).be.eql(null); /// SourceTimestamp only for AttributeIds.Value
-            should(dataValues[1].serverPicoseconds).be.eql(0);
             should(dataValues[1].sourcePicoseconds).be.eql(0);
 
             should(dataValues[2].sourceTimestamp).be.instanceOf(Date);
