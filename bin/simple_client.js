@@ -762,7 +762,7 @@ async.series([
             callback();
         });
         monitoredItem.on("changed", function (dataValue) {
-            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.value);
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.toString());
         });
         monitoredItem.on("err", function (err_message) {
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
@@ -861,6 +861,9 @@ async.series([
         var timerId;
         if (timeout > 0) {
             timerId = setTimeout(function () {
+                if (!the_subscription) {
+                    return callack();
+                }
                 the_subscription.once("terminated",function() {
                     callback();
                 });
