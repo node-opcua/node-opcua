@@ -56,7 +56,7 @@ describe("testing add TwoStateVariable ", function () {
         node.browseName.toString().should.eql("TwoStateVariable1");
         node.typeDefinitionObj.browseName.toString().should.eql("TwoStateVariableType");
         node.dataTypeObj.browseName.toString().should.eql("LocalizedText");
-        node.valueRank.should.eql(0);
+        node.valueRank.should.eql(-1);
 
         should.not.exist(node.transitionTime);
 
@@ -96,7 +96,7 @@ describe("testing add TwoStateVariable ", function () {
         node.browseName.toString().should.eql("TwoStateVariable1");
         node.typeDefinitionObj.browseName.toString().should.eql("TwoStateVariableType");
         node.dataTypeObj.browseName.toString().should.eql("LocalizedText");
-        node.valueRank.should.eql(0);
+        node.valueRank.should.eql(-1);
 
         should.not.exist(node.transitionTime);
 
