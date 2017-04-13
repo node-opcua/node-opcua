@@ -352,7 +352,8 @@ var Variant_Schema = {
             return {
                 dataType: options.dataType,
                 arrayType: options.arrayType,
-                value: options.value
+                value: options.value,
+                dimensions: options.dimensions,
             };
         }
         assert(options);
@@ -393,6 +394,9 @@ var Variant_Schema = {
                 options.value = options.value || [];
                 options.value = coerceVariantArray(options.dataType, options.value);
 
+                if (!options.dimensions) {
+                    throw new Error("Matrix Variant : missing dimensions");
+                }
                 if (options.value.length !== calculate_product(options.dimensions)) {
                     throw new Error("Matrix Variant : invalid value size");
                 }
@@ -414,7 +418,7 @@ var Variant_Schema = {
         return options;
     },
     isValid: function (self) {
-        return isValidVariant(self.arrayType, self.dataType, self.value);
+        return isValidVariant(self.arrayType, self.dataType, self.value,self.dimensions);
     },
     toString: function (options) {
 

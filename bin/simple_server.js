@@ -283,6 +283,44 @@ server.on("post_initialize", function () {
     });
 
 
+   var m3x3 =  addressSpace.addVariable({
+        organizedBy: addressSpace.rootFolder.objects,
+        nodeId: "ns=1;s=Matrix",
+        browseName: "Matrix",
+        dataType: "Double",
+        valueRank: 2,
+        arrayDimensions: [3, 3],
+        value: {
+            get: function(){
+                return new opcua.Variant({
+                    dataType: opcua.DataType.Double,
+                    arrayType: opcua.VariantArrayType.Matrix,
+                    dimensions: [3, 3],
+                    value: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                });
+            }
+        }
+    });
+
+    var xyz =  addressSpace.addVariable({
+        organizedBy: addressSpace.rootFolder.objects,
+        nodeId: "ns=1;s=Position",
+        browseName: "Position",
+        dataType: "Double",
+        valueRank: 1,
+        arrayDimensions: null,
+        value: {
+            get: function(){
+                return new opcua.Variant({
+                    dataType: opcua.DataType.Double,
+                    arrayType: opcua.VariantArrayType.Array,
+                    value: [1, 2, 3, 4]
+                });
+            }
+        }
+    });
+
+
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------

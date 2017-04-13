@@ -55,7 +55,11 @@ describe("Testing bug found in #337",function() {
             }
         });
 
-        n.readValue(null,new opcua.NumericRange());
+        var dataValue = n.readValue(null,new opcua.NumericRange());
+        dataValue.isValid().should.eql(true);
+        dataValue.value.arrayType.should.eql(opcua.VariantArrayType.Matrix);
+        dataValue.value.dimensions.should.eql([3,3]);
+
     });
 
 });
