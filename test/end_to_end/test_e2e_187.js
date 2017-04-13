@@ -29,7 +29,7 @@ require("lib/client/state_machine_proxy");
 
 describe("testing monitoring Executable flags on methods", function () {
 
-    this.timeout(Math.max(6000, this._timeout));
+    this.timeout(Math.max(60000, this._timeout));
 
     var server, client, endpointUrl;
 
@@ -167,10 +167,18 @@ describe("testing monitoring Executable flags on methods", function () {
                 function (callback) { setTimeout(callback,500); },
 
                 function (callback) {
-                    boiler.simulation.$methods["start"].executableFlag.should.eql(true);
-                    boiler.simulation.$methods["suspend"].executableFlag.should.eql(false);
-                    boiler.simulation.$methods["resume"].executableFlag.should.eql(true);
-                    boiler.simulation.start([],function(err) {
+                    boiler.simulation.currentState.dataValue.value.value.text.should.eql("Ready");
+
+                    boiler.simulation.$methods["start"].executableFlag.should.eql(true,   "When system is Ready, start method shall be executable");
+                    boiler.simulation.$methods["suspend"].executableFlag.should.eql(false,"When system is Ready, suspend method shall not be executable");
+                    boiler.simulation.$methods["resume"].executableFlag.should.eql(true, "When system is Ready , start method shall be executable");
+
+
+
+                    if (doDebug) {
+                        console.log("    ====================================================================== STARTING .... ".bgWhite.cyan);
+                    }
+                   boiler.simulation.start([],function(err) {
                         if (doDebug) {
                             console.log(" start => ", err);
                         }
@@ -181,10 +189,14 @@ describe("testing monitoring Executable flags on methods", function () {
                 function (callback) { setTimeout(callback,500); },
 
                 function (callback) {
+                    if (doDebug) {
+                        console.log("    ====================================================================== STARTED .... ".bgWhite.cyan);
+                    }
 
-                    boiler.simulation.$methods["start"].executableFlag.should.eql(false);
-                    boiler.simulation.$methods["suspend"].executableFlag.should.eql(true);
-                    boiler.simulation.$methods["resume"].executableFlag.should.eql(false);
+                    boiler.simulation.currentState.dataValue.value.value.text.should.eql("Running");
+                    boiler.simulation.$methods["start"].executableFlag.should.eql(false,   "when system is Running, start method shall NOT be executable");
+                    boiler.simulation.$methods["suspend"].executableFlag.should.eql(true,  "when system is Running, suspend method shall be executable");
+                    boiler.simulation.$methods["resume"].executableFlag.should.eql(false,  "when system is Running, resume method shall NOT be executable");
 
                     boiler.simulation.suspend([],function(err) {
                         if (doDebug) {
