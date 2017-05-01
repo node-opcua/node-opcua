@@ -2460,7 +2460,9 @@ module.exports = function (test) {
                     function (callback) {
                         writeValue(nodeId, session, 7, callback);
                     },
-
+                    function (callback) {
+                        setTimeout(callback, 100);
+                    },
                     function (callback) {
 
                         sendPublishRequest(session, function (err, response) {
