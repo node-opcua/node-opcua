@@ -64,18 +64,19 @@ module.exports = function (test) {
                     deadbandValue: 1.0
                 });
 
+                var itemToMonitor = {
+                    nodeId: nodeId,
+                    attributeId: opcua.AttributeIds.Value
+                };
+                var options = {
+                    samplingInterval: 100,
+                    discardOldest: false,
+                    queueSize: 10000,
+                    filter: filter
+                };
                 // install monitored item
-                var monitoredItem = the_subscription.monitor({
-                        nodeId: nodeId,
-                        attributeId: opcua.AttributeIds.Value
-                    },
-                    {
-                        clientHandle: 13,
-                        samplingInterval: 100,
-                        discardOldest: false,
-                        queueSize: 10000,
-                        filter: filter
-                    },
+                var monitoredItem = the_subscription.monitor(itemToMonitor,
+                  options,
                     opcua.read_service.TimestampsToReturn.Both
                     , function (err) {
                         debugLog(" ERR =", err);

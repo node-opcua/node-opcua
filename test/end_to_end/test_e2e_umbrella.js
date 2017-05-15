@@ -202,6 +202,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_BrowseRequest")(test);
     require("./u_test_e2e_security_username_password")(test);
     require("./u_test_e2e_SubscriptionUseCase")(test);
+    require("./u_test_e2e_ClientMonitoredItemGroup")(test);
     require("./u_test_e2e_writeUseCase")(test);
     require("./u_test_e2e_transfer_session")(test);
     require("./u_test_e2e_registerNode")(test);
