@@ -750,7 +750,6 @@ async.series([
                 attributeId: AttributeIds.Value
             },
             {
-                clientHandle: 13,
                 samplingInterval: 250,
                 //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
                 queueSize: 10000,
