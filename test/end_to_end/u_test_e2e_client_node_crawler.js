@@ -19,6 +19,9 @@ var NodeCrawler = opcua.NodeCrawler;
 var redirectToFile = require("lib/misc/utils").redirectToFile;
 var debugLog = require("lib/misc/utils").make_debugLog(__filename);
 
+function xredirectToFile(file, fun, callback) {
+    fun(callback);
+}
 
 var perform_operation_on_client_session = require("test/helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
@@ -63,7 +66,7 @@ module.exports = function (test) {
         }
 
 
-        it("should crawl for a complete tree", function (done) {
+        it("CRAWL1- should crawl for a complete tree", function (done) {
 
             redirectToFile("NodeCrawler_complete_tree.log", function (done) {
 
@@ -104,7 +107,7 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("should crawl for a complete tree with limited node per browse and read request", function (done) {
+        it("CRAWL2- should crawl for a complete tree with limited node per browse and read request", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -126,15 +129,16 @@ module.exports = function (test) {
                 crawler2.on("browsed", function (nodeElement, data) {
                     browsed_node2++;
                 });
-                var data1 = {};
+                var data1 = {onBrowse: NodeCrawler.follow};
+
                 crawler1.crawl(nodeToCrawl, data1, function (err) {
                     if (err) {
                         return done(err);
                     }
-                    browsed_node1.should.be.greaterThan(10);
+                    browsed_node1.should.be.greaterThan(10, "expecting more than 10 nodes being browsed");
                     browsed_node2.should.equal(0);
 
-                    var data2 = {};
+                    var data2 = {onBrowse: NodeCrawler.follow};
                     crawler2.crawl(nodeToCrawl, data2, function (err) {
                         if (err) {
                             return done(err);
@@ -148,7 +152,7 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("should crawl one at a time", function (done) {
+        it("CRAWL3- should crawl one at a time", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -177,8 +181,7 @@ module.exports = function (test) {
             }, done);
         });
 
-
-        it("should crawl faster the second time", function (done) {
+        it("CRAWL4- should crawl faster the second time", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
@@ -213,7 +216,7 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("should display a tree", function (done) {
+        it("CRAWL5- should display a tree", function (done) {
 
             var redirectToFile = require("lib/misc/utils").redirectToFile;
 

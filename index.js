@@ -19,6 +19,7 @@ module.exports.DataValue        = require("lib/datamodel/datavalue").DataValue;
 module.exports.Variant          = require("lib/datamodel/variant").Variant;
 module.exports.VariantArrayType = require("lib/datamodel/variant").VariantArrayType;
 module.exports.NodeId           = require("lib/datamodel/nodeid").NodeId;
+module.exports.sameNodeId = require("lib/datamodel/nodeid").sameNodeId;
 module.exports.NumericRange     = require("lib/datamodel/numeric_range").NumericRange;
 module.exports.AccessLevelFlag  = require("lib/datamodel/access_level").AccessLevelFlag;
 

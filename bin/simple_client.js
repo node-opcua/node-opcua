@@ -325,7 +325,7 @@ function getAllEventTypes(session,callback)
 
     var q = new async.queue(function(task,callback) {
 
-        _getAllEventTypes(task.nodeId,task.tree,function(err){
+        _getAllEventTypes(task.nodeId, task.tree, function (err, result) {
             if(err){return callback(err);}
             callback(null,result);
         });
@@ -345,12 +345,17 @@ function getAllEventTypes(session,callback)
 
         var nodesToBrowse = [browseDesc1];
         session.browse(nodesToBrowse,function(err,results){
-            // to do continuation points
-            results[0].references.forEach(function(reference) {
-                var subtree = { nodeId: reference.nodeId.toString() };
-                tree[reference.browseName.toString()] = subtree;
-                q.push({nodeId: reference.nodeId, tree: subtree});
-            });
+            if (err) {
+                console.log(" ERROR = ", err);
+            } else {
+                // to do continuation points
+                results[0].references.forEach(function (reference) {
+                    var subtree = {nodeId: reference.nodeId.toString()};
+                    tree[reference.browseName.toString()] = subtree;
+                    q.push({nodeId: reference.nodeId, tree: subtree});
+                });
+
+            }
 
             callback();
         });
@@ -569,22 +574,31 @@ async.series([
             });
 
 
-            client.on("receive_response", print_stat);
+            //client.on("receive_response", print_stat);
 
             t = Date.now();
-            crawler.on("browsed", function (element) {
-                // console.log("->",element.browseName.name,element.nodeId.toString());
-            });
+            //xx crawler.on("browsed", function (element) {
+            //xx     console.log("->",(new Date()).getTime()-t,element.browseName.name,element.nodeId.toString());
+            //xx });
 
             var nodeId = "ObjectsFolder";
             console.log("now crawling object folder ...please wait...");
             crawler.read(nodeId, function (err, obj) {
+                console.log(" Time         = ", (new Date()).getTime() - t);
+                console.log(" read        = ", crawler.readCounter);
+                console.log(" browse      = ", crawler.browseCounter);
+                console.log(" transaction = ", crawler.transactionCounter);
                 if (!err) {
-                    // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
-                    //xx console.log(treeify.asTree(obj, true));
-                    treeify.asLines(obj, true, true, function (line) {
-                        console.log(line);
-                    });
+
+                    if (false) {
+                        // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
+                        //xx console.log(treeify.asTree(obj, true));
+                        treeify.asLines(obj, true, true, function (line) {
+                            console.log(line);
+                        });
+                    } else {
+                        process.exit(1);
+                    }
                 }
                 client.removeListener("receive_response", print_stat);
                 callback(err);
@@ -861,7 +875,7 @@ async.series([
         if (timeout > 0) {
             timerId = setTimeout(function () {
                 if (!the_subscription) {
-                    return callack();
+                    return callback();
                 }
                 the_subscription.once("terminated",function() {
                     callback();
