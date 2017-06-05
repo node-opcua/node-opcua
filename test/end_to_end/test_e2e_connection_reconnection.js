@@ -1306,6 +1306,8 @@ describe("testing ability for client to reconnect when server close connection",
     });
 
     it("TR8 -  disconnecting during connect", function(done) {
+
+
         // Given a client that has a infinite connection retry strategy,
         //   And that client#connect is call to connect to an non-existent server.
         //
@@ -1342,7 +1344,7 @@ describe("testing ability for client to reconnect when server close connection",
             backoff_event_counter+=1;
         });
 
-        endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.galaxy.com:4242";
+        endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.__galaxy__.com:4242";
 
         // let's call connect.
         // because the endpointUrl doesn't exist,  and the the infinite_connectivity_strategy
