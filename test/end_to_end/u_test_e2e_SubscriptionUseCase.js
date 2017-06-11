@@ -2233,9 +2233,11 @@ module.exports = function (test) {
                 session.write(nodesToWrite, function (err, statusCodes) {
                     statusCodes.length.should.eql(1);
                     statusCodes[0].should.eql(StatusCodes.Good);
-                    callback(err);
+                    setTimeout(function () {
+                        callback(err);
+                    }, 100);
                 });
-            }, 1);
+            }, 100);
         }
 
         function sendPublishRequest(session, callback) {
@@ -2265,8 +2267,8 @@ module.exports = function (test) {
             var publishingInterval = 400;
             var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
                 requestedPublishingInterval: publishingInterval,
-                requestedLifetimeCount: 60,
-                requestedMaxKeepAliveCount: 10,
+                requestedLifetimeCount: 60000,
+                requestedMaxKeepAliveCount: 10000,
                 maxNotificationsPerPublish: 10,
                 publishingEnabled: true,
                 priority: 6
@@ -2373,7 +2375,6 @@ module.exports = function (test) {
 
                                 var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                 //xx console.log("notification= ", notification.toString().red);
-
                                 notification.value.value.value.should.eql(7);
 
                                 parameters.queueSize.should.eql(1);
