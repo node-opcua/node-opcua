@@ -31,14 +31,15 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client,test.endpointUrl,function(session,subscription,callback) {
 
-                  var monitoredItem = subscription.monitor(
-                    {nodeId: "ns=2;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
-                    {
-                        samplingInterval: 10, // sampling twice as fast as variable refresh rate
-                        discardOldest: true,
-                        queueSize: 10
-                    });
+                redirectToFile("issue_355", function (callback) {
 
+                    var monitoredItem = subscription.monitor(
+                      {nodeId: "ns=2;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
+                      {
+                          samplingInterval: 10, // sampling twice as fast as variable refresh rate
+                          discardOldest: true,
+                          queueSize: 10
+                      });
 
                     var count = 0;
                     var timerId ;
@@ -47,7 +48,7 @@ module.exports = function (test) {
                         count++;
                         if (count >= 5) {
                             clearInterval(timerId);
-                            callback();
+                            return callback();
                         }
                         // simulate an user error in event handler
                         throw new Error("Exception in user code");
@@ -58,10 +59,12 @@ module.exports = function (test) {
                         var node = test.server.engine.addressSpace.findNode("ns=2;s=FanSpeed");
                         console.log("Set")
                         node.setValueFromSource( new opcua.Variant({
-                              value: Math.random(),
-                              dataType: "Float"
-                          }));
+                            value: Math.random(),
+                            dataType: "Float"
+                        }));
                     },100);
+
+                }, callback);
 
 
             },done);
