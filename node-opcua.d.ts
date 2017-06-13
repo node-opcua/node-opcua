@@ -135,7 +135,7 @@ export declare interface ClientSession {
     browse(nodeToBrowse: Array<CoercibleToBrowseDescription>,
            callback: ResponseCallback<Array<BrowseResponse> >):void;
 
-
+    writeSingleNode(path: string, value: Variant, callback: Function): void;
 }
 
 export interface UserIdentityInfo {
@@ -359,10 +359,83 @@ export declare class OPCUAServer {
 
     setServerState(serverState:ServerState):void;
 
-    start(callback: (error:Error)=>void);
+    start(callback: (error: Error) => void): void;
 
-    shutdown(timeout: number,callback: ResponseCallback<void>);
+    shutdown(timeout: number, callback: ResponseCallback<void>): void;
 
     // "postinitialize" , "session_closed", "create_session"
-    on(event:string,eventhandler: ()=>void);
+    on(event: string, eventhandler: () => void): void;
 }
+
+export declare class ClientMonitoredItem {
+    terminate(callback: Function): void;
+    on(event: string, eventhandler: (v:Variant) => void): void;
+}
+
+export interface TimestampsToReturn {
+    Invalid: -1,
+    Source: 0,
+    Server: 1,
+    Both: 2,
+    Neither: 3
+}
+
+export declare class read_service {
+    static TimestampsToReturn: TimestampsToReturn;
+}
+
+export interface ItemToMonitor {
+    nodeId: NodeId
+    attributeId: AttributeIds
+    // TODO: figure out how to represent indexRange (NumericRange) and dataEncoding (unknown)
+}
+
+export interface ItemToMonitorRequestedParameters {
+    samplingInterval: number
+    discardOldest: boolean
+    queueSize: number
+    // TODO: add filter parameter (extension object)
+}
+
+export interface ClientSubscriptionOptions {
+    requestedPublishingInterval: number
+    requestedLifetimeCount: number
+    requestedMaxKeepAliveCount: number
+    maxNotificationsPerPublish: number
+    publishingEnabled: boolean
+    priority: number
+}
+
+export declare class ClientSubscription {
+    constructor(session: ClientSession, options: ClientSubscriptionOptions);
+    monitor(itemToMonitor: ItemToMonitor, requestedParameters: ItemToMonitorRequestedParameters, timestampsToReturn: number, done?: Function): ClientMonitoredItem;
+}
+
+export declare enum AttributeIds {
+    NodeId = 1,
+    NodeClass = 2,
+    BrowseName = 3,
+    DisplayName = 4,
+    Description = 5,
+    WriteMask = 6,
+    UserWriteMask = 7,
+    IsAbstract = 8,
+    Symmetric = 9,
+    InverseName = 10,
+    ContainsNoLoops = 11,
+    EventNotifier = 12,
+    Value = 13,
+    DataType = 14,
+    ValueRank = 15,
+    ArrayDimensions = 16,
+    AccessLevel = 17,
+    UserAccessLevel = 18,
+    MinimumSamplingInterval = 19,
+    Historizing = 20,
+    Executable = 21,
+    UserExecutable = 22,
+    INVALID = 999
+}
+
+export declare function resolveNodeId(id: NodeId | string): NodeId;
+
