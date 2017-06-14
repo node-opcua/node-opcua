@@ -78,6 +78,7 @@ export declare class OPCUAClientBase {
     performMessageTransaction(request: any,
                               callback: ResponseCallback<any>): void;
 
+    on(event: string, eventhandler: Function): void;
 }
 
 export interface BrowseResponse {
