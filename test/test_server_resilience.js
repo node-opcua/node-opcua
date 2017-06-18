@@ -162,12 +162,11 @@ describe("testing Server resilience with bad internet connection", function () {
 
             // wait for time out
             function (callback) {
-                setTimeout(callback, 1000);
+                setTimeout(callback, 4000);
             },
 
             // assert that server has no more session
             function (callback) {
-
                 server.currentSessionCount.should.eql(0);
                 callback();
             }
