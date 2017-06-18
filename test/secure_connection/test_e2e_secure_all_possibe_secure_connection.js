@@ -29,6 +29,12 @@ var perform_operation_on_client_session = require("test/helpers/perform_operatio
 var start_simple_server = require("test/helpers/external_server_fixture").start_simple_server;
 var stop_simple_server = require("test/helpers/external_server_fixture").stop_simple_server;
 
+var g_defaultSecureTokenLifetime = 500;
+var g_cycleNumber = 3;
+var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
+
+var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
+
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
 function start_inner_server_local(options, callback) {
@@ -127,8 +133,6 @@ var start_server_with_1024bits_certificate = function (callback) {
 var start_server_with_2048bits_certificate = function (callback) {
 
     var path = require("path");
-    //var server_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
-    //var server_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
 
     var server_certificate256_pem_file        = path.join(certificate_store, "./server_cert_2048.pem");
     var server_certificate256_privatekey_file = path.join(certificate_store, "./server_key_2048.pem");
@@ -305,7 +309,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 
     }, function (err) {
 
-        debugLog(" RECEIVED ERROR :".yellow.bold, err);
+        debugLog(" RECEIVED ERROR :".yellow, err);
         start_reconnection_spy.callCount.should.eql(1);
         //xx after_reconnection_spy.callCount.should.eql(1);
         should(err).be.instanceOf(Error);
@@ -358,8 +362,6 @@ function perform_collection_of_test_with_client_configuration(message, options) 
 function perform_collection_of_test_with_various_client_configuration(prefix) {
 
     prefix = prefix || "";
-    //var client_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
-    //var client_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
 
     var client_certificate256_pem_file        = path.join(certificate_store, "./client_cert_2048.pem");
     var client_certificate256_privatekey_file = path.join(certificate_store,  "./client_key_2048.pem");
@@ -376,9 +378,6 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 }
 
-var g_defaultSecureTokenLifetime = 500;
-var g_cycleNumber = 3;
-var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
 
 var crypto_utils = require("lib/misc/crypto_utils");
 if (!crypto_utils.isFullySupported()) {
@@ -477,7 +476,7 @@ if (!crypto_utils.isFullySupported()) {
             var old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
             var crypto = require("crypto");
             ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
-                if(requestMessage.constructor.name = "OpenSecureChannelRequest") {
+                if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
                     assert(requestMessage.clientNonce.length === 16);
                     this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
                     ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
@@ -517,6 +516,7 @@ if (!crypto_utils.isFullySupported()) {
             }, done);
 
             client.on("lifetime_75", function (token) {
+                token;
                 //xx console.log("received lifetime_75", JSON.stringify(token));
             });
             client.on("security_token_renewed", function () {
@@ -527,7 +527,6 @@ if (!crypto_utils.isFullySupported()) {
         });
     });
 
-    var ClientSecureChannelLayer = require("lib/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
     describe("ZZB- testing server behavior on secure connection ", function () {
 
