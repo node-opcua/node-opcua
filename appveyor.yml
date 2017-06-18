@@ -7,7 +7,7 @@ environment:
 
 platform:
   - x64
-  - x32
+  - x86
 
 matrix:
   allow_failures:
