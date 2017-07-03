@@ -137,6 +137,8 @@ export declare interface ClientSession {
            callback: ResponseCallback<Array<BrowseResponse> >):void;
 
     writeSingleNode(path: string, value: Variant, callback: Function): void;
+
+    read(paths: Array<ItemToMonitor>, max_age: number, callback: Function): void;
 }
 
 export interface UserIdentityInfo {
