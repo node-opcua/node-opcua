@@ -138,7 +138,7 @@ export declare interface ClientSession {
 
     writeSingleNode(path: string, value: Variant, callback: Function): void;
 
-    read(paths: Array<ItemToMonitor>, max_age: number, callback: Function): void;
+    read(paths: Array<NodeAttributeId>, max_age: number, callback: Function): void;
 }
 
 export interface UserIdentityInfo {
@@ -387,7 +387,7 @@ export declare class read_service {
     static TimestampsToReturn: TimestampsToReturn;
 }
 
-export interface ItemToMonitor {
+export interface NodeAttributeId {
     nodeId: NodeId
     attributeId: AttributeIds
     // TODO: figure out how to represent indexRange (NumericRange) and dataEncoding (unknown)
@@ -411,7 +411,7 @@ export interface ClientSubscriptionOptions {
 
 export declare class ClientSubscription {
     constructor(session: ClientSession, options: ClientSubscriptionOptions);
-    monitor(itemToMonitor: ItemToMonitor, requestedParameters: ItemToMonitorRequestedParameters, timestampsToReturn: number, done?: Function): ClientMonitoredItem;
+    monitor(itemToMonitor: NodeAttributeId, requestedParameters: ItemToMonitorRequestedParameters, timestampsToReturn: number, done?: Function): ClientMonitoredItem;
 }
 
 export declare enum AttributeIds {
