@@ -8,8 +8,8 @@ SET "NODE_PATH=%CD%"
 
 MKDIR dist
 REM CALL browserify  --bare bin\simple_server.js --exclude usage --exclude memcpy --exclude node-expat --exclude ursa --exclude x509  --list
-CALL browserify  --bare bin\simple_server.js --exclude usage --exclude memcpy --exclude node-expat --exclude ursa --exclude x509 > tmp\tmp.js
-cat tmp\tmp.js  | minifyjs %OPTIONS% -m -o dist/simple_server.min.js
+CALL browserify  --bare bin\simple_server.js --exclude spawn-sync --exclude usage --exclude memcpy --exclude node-expat --exclude ursa --exclude x509 > tmp\tmp.js
+type tmp\tmp.js  | minifyjs %OPTIONS% -m -o dist/simple_server.min.js
 
 REM   you can now launch the standalone version of simple_server
 REM      node dist/simple_server.min.js
