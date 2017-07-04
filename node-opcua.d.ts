@@ -168,7 +168,7 @@ export declare class OPCUAClient extends OPCUAClientBase {
 //----------------------------------------------------------------------------------------------------------------------
 
 declare type ValidUserFunc = (username:string,password:string) => boolean;
-declare type ValidUserAsyncFunc = (username:string,password:string,callback)=>void;
+declare type ValidUserAsyncFunc = (username:string,password:string,callback:Function)=>void;
 
 export interface OPCUAServerOptions {
    defaultSecureTokenLifetime? : number, // the default secure token life time in ms.
@@ -252,8 +252,8 @@ export declare class UAAnalogItem extends UAVariable {
 }
 
 declare interface StatusCode {
-    Good,
-    BadWaitingForInitialData
+    Good:any,
+    BadWaitingForInitialData:any
     // to be continued
 }
 export interface VariantOpts {
