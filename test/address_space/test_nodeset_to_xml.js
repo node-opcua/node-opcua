@@ -170,6 +170,14 @@ describe("testing nodeset to xml", function () {
         str.should.match(/UAObjectType/g);
         str.should.match(/UAObjectType/g);
     });
+    it("should output an instance of variable type to xml", function () {
+
+        var variableType = addressSpace.addVariableType({browseName: 'MyCustomVariableType'});
+
+        var str = dumpXml(variableType, {});
+        if(doDebug) {
+            console.log(str);
+        }
+        str.should.match(/UAVariableType/g);
+    });
 });
-
-
