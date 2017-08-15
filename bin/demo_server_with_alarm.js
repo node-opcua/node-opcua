@@ -5,9 +5,10 @@ var path = require("path");
 var fs = require("fs");
 var assert = require("assert");
 // Let's create an instance of OPCUAServer
+var constructFilename = require("node-opcua-utils").constructFilename;
 
-var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_2048.pem");
-var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_2048.pem");
+var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
+var server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 
 var nodeset_filenames = [ opcua.standard_nodeset_file ];
 
@@ -25,7 +26,6 @@ var server = new opcua.OPCUAServer({
     nodeset_filename: nodeset_filenames
 });
 
-var  construct_demo_alarm_in_address_space= require("test/helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
 
 function post_initialize() {
     function construct_my_address_space(server) {
@@ -33,7 +33,7 @@ function post_initialize() {
         var addressSpace = server.engine.addressSpace;
 
         var data = {};
-        construct_demo_alarm_in_address_space(data,addressSpace);
+        opcua.construct_demo_alarm_in_address_space(data,addressSpace);
 
         var time  = 1;
         function simulate_variation() {

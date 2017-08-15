@@ -1,0 +1,27 @@
+{
+  "name": "node-opcua-transport",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-binary-stream": "*",
+    "node-opcua-buffer-utils": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-chunkmanager":"*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-nodeid": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-packet-assembler": "*",
+    "node-opcua-test-helpers": "*",
+    "node-opcua-generator": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

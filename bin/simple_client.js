@@ -1,13 +1,12 @@
 "use strict";
-require("requirish")._(module);
+
 var fs = require("fs");
-var treeify = require('treeify');
+var treeify = require("treeify");
 var _ = require("underscore");
 var colors = require("colors");
 var util = require("util");
-var Table = require('easy-table');
+var Table = require("easy-table");
 var async = require("async");
-var utils = require('lib/misc/utils');
 var assert = require("better-assert");
 var opcua = require("../");
 var VariableIds = opcua.VariableIds;
@@ -16,7 +15,7 @@ var VariableIds = opcua.VariableIds;
 //xx var SecurityPolicy = opcua.SecurityPolicy;
 
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-var argv = require('yargs')
+var argv = require("yargs")
     .wrap(132)
     //.usage('Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl')
 
@@ -91,7 +90,7 @@ var endpointUrl = argv.endpoint;
 
 
 if (!endpointUrl) {
-    require('yargs').showHelp();
+    require("yargs").showHelp();
     return;
 }
 var the_session = null;
@@ -107,7 +106,7 @@ var doHistory = argv.history ? true : false;
 var serverCertificate = null;
 
 var path = require("path");
-var crypto_utils = require("lib/misc/crypto_utils");
+var crypto_utils = opcua.crypto_utils;
 
 
 function getBrowseName(session,nodeId,callback) {
@@ -185,7 +184,7 @@ function enumerateAllConditionTypes(the_session,callback) {
         var browseDesc1 = {
             nodeId: typeNodeId,
             referenceTypeId: opcua.resolveNodeId("HasSubtype"),
-            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             resultMask: 63
 
@@ -193,7 +192,7 @@ function enumerateAllConditionTypes(the_session,callback) {
         var browseDesc2 = {
             nodeId: typeNodeId,
             referenceTypeId: opcua.resolveNodeId("HasTypeDefinition"),
-            browseDirection: opcua.browse_service.BrowseDirection.Inverse,
+            browseDirection: BrowseDirection.Inverse,
             includeSubtypes: true,
             resultMask: 63
 
@@ -201,7 +200,7 @@ function enumerateAllConditionTypes(the_session,callback) {
         var browseDesc3 = {
             nodeId: typeNodeId,
             referenceTypeId: opcua.resolveNodeId("HasTypeDefinition"),
-            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             resultMask: 63
 
@@ -258,7 +257,7 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
             var browseDesc1 = {
                 nodeId: element.nodeId,
                 referenceTypeId: opcua.resolveNodeId("HierarchicalReferences"),
-                browseDirection: opcua.browse_service.BrowseDirection.Forward,
+                browseDirection: BrowseDirection.Forward,
                 includeSubtypes: true,
                 nodeClassMask: 0x1, // Objects
                 resultMask: 63
@@ -337,7 +336,7 @@ function getAllEventTypes(session,callback)
         var browseDesc1 = {
             nodeId: baseNodeId,
             referenceTypeId: opcua.resolveNodeId("HasSubtype"),
-            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             nodeClassMask: opcua.browse_service.NodeClassMask.ObjectType, // Objects
             resultMask: 63
@@ -369,7 +368,7 @@ function getAllEventTypes(session,callback)
     };
 
 }
-var callConditionRefresh = require("lib/client/alarms_and_conditions/client_tools").callConditionRefresh;
+var callConditionRefresh = opcua.callConditionRefresh;
 
 function monitorAlarm(subscription,alarmNodeId, callback) {
 
@@ -462,7 +461,7 @@ async.series([
     // reconnect using the correct end point URL now
     function (callback) {
 
-        var hexDump = require("lib/misc/utils").hexDump;
+        var hexDump = opcua.utils.hexDump;
         console.log("Server Certificate :".cyan);
         console.log(hexDump(serverCertificate).yellow);
 

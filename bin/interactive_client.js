@@ -1,21 +1,23 @@
 /* eslint no-process-exit: 0 */
 "use strict";
-require("requirish")._(module);
+
 var readline = require('readline');
 var treeify = require('treeify');
 require('colors');
 var sprintf = require('sprintf');
-
-var opcua = require("..");
-var UAProxyManager = require("lib/client/proxy").UAProxyManager;
-
-
-var utils = require('lib/misc/utils');
-var assert = require('better-assert');
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
+
+var opcua = require("..");
+var UAProxyManager = opcua.UAProxyManager;
+
+
+
+var utils = opcua.utils;
+
+var assert = require("better-assert");
 
 console.log(" Version ", opcua.version);
 
@@ -144,7 +146,7 @@ var nodePath = [];
 var nodePathName = [];
 var curNode = null;
 var curNodeCompletion = [];
-var lowerFirstLetter = require("lib/misc/utils").lowerFirstLetter;
+var lowerFirstLetter = opcua.utils.lowerFirstLetter;
 
 function setRootNode(node) {
     nodePath = [];
@@ -260,8 +262,7 @@ client.on("receive_chunk", function (message_chunk) {
 client.on("send_request", function (message) {
     if (dumpPacket) {
         log(" sending request".red);
-        var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
-        analyze_object_binary_encoding(message);
+        opcua.analyze_object_binary_encoding(message);
     }
 });
 
@@ -269,8 +270,7 @@ client.on("receive_response", function (message) {
     if (dumpPacket) {
         assert(message);
         log(" receive response".cyan.bold);
-        var analyze_object_binary_encoding = require("lib/misc/packet_analyzer").analyze_object_binary_encoding;
-        analyze_object_binary_encoding(message);
+        opcua.analyze_object_binary_encoding(message);
     }
 });
 

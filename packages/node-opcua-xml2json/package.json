@@ -1,0 +1,11 @@
+{
+  "name": "node-opcua-xml2json",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/xml2json.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "node-opcua-data-value",
+  "main": "./index.js",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-variant": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-factory":"*",
+    "node-opcua-date-time":"*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-numeric-range":"*",
+    "node-opcua-benchmarker":"*"
+  }
+}

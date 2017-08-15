@@ -1,0 +1,13 @@
+{
+  "name": "node-opcua-hostname",
+  "main": "./src/hostname.js",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}

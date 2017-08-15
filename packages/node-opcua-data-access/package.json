@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-data-access",
+  "main": "./index.js",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-factory": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-data-model":"*",
+    "node-opcua-variant":"*",
+    "node-opcua-data-value":"*",
+    "node-opcua-constants": "*",
+    "node-opcua-basic-types": "*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*",
+    "node-opcua-service-write": "*"
+  }
+}

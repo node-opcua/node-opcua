@@ -1,11 +1,12 @@
 "use strict";
-require("requirish")._(module);
+
 /**
  * this script queries the discovery server and display the discovery urls
  *
  */
+var opcua = require("../");
 
-var perform_findServersRequest = require("lib/findservers").perform_findServersRequest;
+var perform_findServersRequest = opcua.perform_findServersRequest;
 
 var discovery_server_endpointUrl = "opc.tcp://localhost:4840/UADiscovery";
 

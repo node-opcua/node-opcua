@@ -1,0 +1,44 @@
+{
+  "name": "node-opcua-client",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_1024.pem",
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-common": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-buffer-utils": "*",
+    "node-opcua-data-value": "*",
+    "node-opcua-hostname": "*",
+    "node-opcua-variant": "*",
+    "node-opcua-service-endpoints": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-service-session": "*",
+    "node-opcua-service-secure-channel": "*",
+    "node-opcua-service-subscription": "*",
+    "node-opcua-service-call": "*",
+    "node-opcua-service-browse": "*",
+    "node-opcua-service-read": "*",
+    "node-opcua-service-write": "*",
+    "node-opcua-service-query": "*",
+    "node-opcua-service-register-server": "*",
+    "node-opcua-service-translate-browse-path": "*",
+    "node-opcua-service-history": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-secure-channel": "*",
+    "node-opcua-nodeid": "*"
+  },
+  "devDependencies": {
+    "node-opcua-test-helpers":"*"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true
+    }
+  }
+}

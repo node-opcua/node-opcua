@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-packet-analyzer",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-opcua-binary-stream": "*",
+    "node-opcua-enum": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-basic-types": "*"
+  },
+  "devDependencies": {
+    "node-opcua-factory": "*",
+    "node-opcua-generator": "*"
+  }
+}

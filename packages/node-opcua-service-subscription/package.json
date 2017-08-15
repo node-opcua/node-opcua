@@ -1,0 +1,36 @@
+{
+  "name": "node-opcua-service-subscription",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-extension-object": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-data-value": "*",
+    "node-opcua-secure-channel": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-service-read": "*",
+    "node-opcua-service-browse": "*",
+    "node-opcua-service-history": "*",
+    "node-opcua-service-filter": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-service-translate-browse-path": "*",
+    "node-opcua-service-secure-channel": "*"
+  },
+  "devDependencies": {
+    "node-opcua-debug": "*",
+    "node-opcua-buffer-utils":"*",
+    "node-opcua-variant": "*",
+    "node-opcua-generator": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

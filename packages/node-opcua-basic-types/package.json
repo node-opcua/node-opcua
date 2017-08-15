@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-basic-types",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  },
+  "dependencies": {
+    "node-opcua-guid": "*",
+    "node-opcua-buffer-utils": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-date-time": "*",
+    "node-opcua-enum": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-debug": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

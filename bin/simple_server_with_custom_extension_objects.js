@@ -1,9 +1,9 @@
 /* eslint no-process-exit: 0 */
 "use strict";
-require("requirish")._(module);
+
 Error.stackTraceLimit = Infinity;
 
-var argv = require('yargs')
+var argv = require("yargs")
     .wrap(132)
     .string("port")
     .describe("port")
@@ -11,6 +11,7 @@ var argv = require('yargs')
     .argv;
 
 var opcua = require("../index");
+var constructFilename = require("node-opcua-utils").constructFilename;
 var _ = require("underscore");
 var path = require("path");
 var assert = require("assert");
@@ -25,8 +26,8 @@ var standard_nodeset_file = opcua.standard_nodeset_file;
 var rootFolder = path.join(__dirname,"../");
 
 var port = parseInt(argv.port) || 26555;
-var server_certificate_file            = path.join(rootFolder, "certificates/server_cert_1024.pem");
-var server_certificate_privatekey_file = path.join(rootFolder, "certificates/server_key_1024.pem");
+var server_certificate_file            = constructFilename("certificates/server_cert_1024.pem");
+var server_certificate_privatekey_file = constructFilename("certificates/server_key_1024.pem");
 
 var server_options = {
     certificateFile: server_certificate_file,

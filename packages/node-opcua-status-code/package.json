@@ -1,0 +1,15 @@
+{
+  "name": "node-opcua-status-code",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./src/opcua_status_code.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-constants": "*",
+    "node-opcua-binary-stream": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

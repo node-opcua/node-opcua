@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-server-discovery",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-server": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-service-register-server": "*",
+    "node-opcua-service-endpoints": "*",
+    "node-opcua-hostname": "*",
+    "node-opcua-utils":"*",
+    "node-opcua-debug":"*",
+    "node-opcua-common":"*"
+
+  },
+  "devDependencies": {
+  }
+}

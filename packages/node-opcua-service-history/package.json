@@ -1,0 +1,26 @@
+{
+  "name": "node-opcua-service-history",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-data-value": "*",
+    "node-opcua-service-secure-channel": "*",
+    "node-opcua-service-filter": "*",
+    "node-opcua-extension-object": "*",
+    "node-opcua-service-read": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-binary-stream": "*",
+    "node-opcua-service-subscription": "*",
+    "node-opcua-generator": "*"
+  }
+}

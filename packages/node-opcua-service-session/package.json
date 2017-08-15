@@ -1,0 +1,26 @@
+{
+  "name": "node-opcua-service-session",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-extension-object": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-secure-channel":"*",
+    "node-opcua-data-model": "*",
+    "node-opcua-service-endpoints": "*",
+    "node-opcua-service-secure-channel":"*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

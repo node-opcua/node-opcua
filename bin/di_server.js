@@ -1,5 +1,5 @@
 "use strict";
-require("requirish")._(module);
+
 Error.stackTraceLimit = Infinity;
 var assert = require("better-assert");
 var argv = require('yargs')
