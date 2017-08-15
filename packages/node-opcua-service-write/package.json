@@ -1,0 +1,24 @@
+{
+  "name": "node-opcua-service-write",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types":"*",
+    "node-opcua-nodeid":"*",
+    "node-opcua-data-model":"*",
+    "node-opcua-data-value":"*",
+    "node-opcua-numeric-range":"*",
+    "node-opcua-service-secure-channel":"*",
+    "node-opcua-status-code":"*"
+  },
+  "devDependencies": {
+    "node-opcua-binary-stream":"*",
+    "node-opcua-generator": "*"
+  }
+}

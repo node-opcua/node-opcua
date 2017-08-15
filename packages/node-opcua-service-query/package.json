@@ -1,0 +1,26 @@
+{
+  "name": "node-opcua-service-query",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-data-value": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-service-browse": "*",
+    "node-opcua-service-filter": "*",
+    "node-opcua-service-subscription": "*",
+    "node-opcua-service-translate-browse-path": "*",
+    "node-opcua-service-secure-channel": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*"
+  }
+}

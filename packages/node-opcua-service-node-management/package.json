@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-service-node-management",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-data-value": "*",
+    "node-opcua-extension-object": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-service-secure-channel": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*"
+  }
+}

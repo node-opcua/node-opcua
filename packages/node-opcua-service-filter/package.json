@@ -1,0 +1,28 @@
+{
+  "name": "node-opcua-service-filter",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-extension-object": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-variant": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-service-translate-browse-path":"*",
+    "node-opcua-service-secure-channel":"*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

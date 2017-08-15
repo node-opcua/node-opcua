@@ -1,0 +1,20 @@
+
+{
+  "name": "node-opcua-test-fixtures",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": ""
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT",
+  "dependencies": {
+    "node-opcua-factory":"*",
+    "node-opcua-generator":"*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-debug": "*"
+  },
+  "devDependencies": {
+  }
+}

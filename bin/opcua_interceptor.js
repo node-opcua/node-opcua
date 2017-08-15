@@ -25,7 +25,6 @@ var TrafficAnalyser = function (id) {
     this.id = id;
 };
 
-var readMessageHeader = require("lib/misc/message_header").readMessageHeader;
 
 TrafficAnalyser.prototype.add = function (data) {
 
@@ -34,7 +33,7 @@ TrafficAnalyser.prototype.add = function (data) {
         console.log(hexDump(data));
         return;
     }
-    var messageHeader = readMessageHeader(stream);
+    var messageHeader = opcua.readMessageHeader(stream);
 
     if (messageHeader.msgType === "ERR") {
 

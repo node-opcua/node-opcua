@@ -1,0 +1,28 @@
+{
+  "name": "node-opcua-factory",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo no test"
+  },
+  "dependencies": {
+    "node-opcua-binary-stream": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-guid": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-enum": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-debug": "*"
+
+
+  },
+  "devDependencies": {
+    "node-opcua-debug": "*",
+    "node-opcua-test-helpers": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

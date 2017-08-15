@@ -1,0 +1,22 @@
+{
+  "name": "node-opcua-client-crawler",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-client":"*",
+    "node-opcua-data-model":    "*",
+    "node-opcua-nodeid":        "*",
+    "node-opcua-constants":        "*",
+    "node-opcua-utils":        "*",
+    "node-opcua-debug":        "*",
+    "node-opcua-service-browse": "*",
+    "node-opcua-status-code":   "*"
+
+  },
+  "devDependencies": {
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-address-space-loader",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test":"echo no test"
+  },
+  "dependencies": {
+    "node-opcua-address-space": "*",
+    "node-opcua-service-call":"*",
+    "node-opcua-data-model":"*",
+    "node-opcua-nodeid":"*",
+    "node-opcua-variant":"*",
+    "node-opcua-data-value":"*",
+    "node-opcua-basic-types":"*",
+    "node-opcua-xml2json":"*"
+  },
+  "devDependencies": {
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "node-opcua-service-endpoints",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo no test"
+  },
+  "dependencies": {
+    "node-opcua-data-model":"*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types":"*",
+    "node-opcua-service-secure-channel":"*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

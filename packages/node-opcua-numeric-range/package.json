@@ -1,0 +1,22 @@
+{
+  "name": "node-opcua-numeric-range",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/numeric_range.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-opcua-status-code":"*",
+    "node-opcua-basic-types":"*",
+    "node-opcua-factory":"*",
+    "node-opcua-enum": "*"
+  },
+  "devDependencies": {
+    "node-opcua-test-helpers":"*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-generator": "*"
+  }
+}

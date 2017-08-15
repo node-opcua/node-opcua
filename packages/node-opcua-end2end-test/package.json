@@ -1,0 +1,30 @@
+{
+  "name": "node-opcua-end2end-test",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "pretest": "node test_helpers/create_certificates.js demo --dev",
+    "test": "mocha --recursive test"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "node-opcua":"*",
+    "node-opcua-client-proxy": "*",
+    "node-opcua-address-space": "*",
+    "node-opcua-address-space-for-conformance-testing": "*",
+    "node-opcua-debug":"*",
+    "node-opcua-test-helpers": "*",
+    "node-opcua-nodeid":"*",
+    "node-opcua-basic-types":"*",
+    "node-opcua-server":"*",
+    "node-opcua-utils":"*",
+    "node-opcua-client":"*",
+    "node-opcua-factory":"*",
+    "node-opcua-service-secure-channel":"*",
+    "node-opcua-service-filter": "*",
+    "node-opcua-generator":"*",
+    "node-opcua-benchmarker": "*",
+    "node-opcua-server-discovery":"*"
+  }
+}

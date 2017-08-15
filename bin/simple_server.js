@@ -1,7 +1,8 @@
 /* eslint no-process-exit: 0 */
 "use strict";
-require("requirish")._(module);
+
 Error.stackTraceLimit = Infinity;
+var constructFilename = require("node-opcua-utils").constructFilename;
 
 var argv = require('yargs')
     .wrap(132)
@@ -42,10 +43,7 @@ var DataValue = opcua.DataValue;
 var get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 var makeApplicationUrn = opcua.makeApplicationUrn;
 
-var address_space_for_conformance_testing = require("lib/simulation/address_space_for_conformance_testing");
-var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
-
-var install_optional_cpu_and_memory_usage_node = require("lib/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
+var install_optional_cpu_and_memory_usage_node = opcua.install_optional_cpu_and_memory_usage_node;
 
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
@@ -69,11 +67,11 @@ var userManager = {
     }
 };
 
-//var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_2048.pem");
-var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_2048.pem");
-//var server_certificate_file            = path.join(__dirname, "../certificates/server_selfsigned_cert_1024.pem");
-//var server_certificate_file            = path.join(__dirname, "../certificates/server_cert_2048_outofdate.pem");
-var server_certificate_privatekey_file = path.join(__dirname, "../certificates/server_key_2048.pem");
+//var server_certificate_file            = constructFilename("certificates/server_cert_2048.pem");
+var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
+//var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_1024.pem");
+//var server_certificate_file            = constructFilename("certificates/server_cert_2048_outofdate.pem");
+var server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 
 var server_options = {
 
@@ -126,7 +124,7 @@ var hostname = require("os").hostname();
 
 server.on("post_initialize", function () {
 
-    build_address_space_for_conformance_testing(server.engine);
+    opcua.build_address_space_for_conformance_testing(server.engine);
 
     install_optional_cpu_and_memory_usage_node(server);
 

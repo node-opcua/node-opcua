@@ -1,0 +1,14 @@
+{
+  "name": "node-opcua-packet-assembler",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/packet_assembler.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "node-opcua-test-helpers": "*"
+  }
+}

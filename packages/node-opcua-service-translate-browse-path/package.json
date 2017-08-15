@@ -1,0 +1,25 @@
+{
+  "name": "node-opcua-service-translate-browse-path",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-enum": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-variant": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-service-secure-channel": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-binary-stream": "*",
+    "node-opcua-generator": "*"
+  }
+}

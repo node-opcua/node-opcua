@@ -1,0 +1,28 @@
+{
+  "name": "node-opcua-service-secure-channel",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-extension-object": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-secure-channel":"*",
+    "node-opcua-data-model": "*"
+  },
+  "devDependencies": {
+    "node-opcua-buffer-utils": "*",
+    "node-opcua-generator": "*",
+    "node-opcua-packet-analyzer": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-debug": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

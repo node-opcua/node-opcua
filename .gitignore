@@ -12,6 +12,7 @@ coverage
 *~
 tmptmp/
 demo/
+_generated_
 code_gen/*.csv
 code_gen/*.xsd
 code_gen/*.wsdl
@@ -26,7 +27,7 @@ Vagrantfile
 .vagrant
 .c9
 output2.bin
-_generated_
+_test_generated_
 pending_*
 schemas/[0-9]*
 schemas/ServerState_enum.js
@@ -50,3 +51,4 @@ code_gen/old
 out
 bin/crypto_create_CA_config.js
 pki/untrusted
+_source_ignored_

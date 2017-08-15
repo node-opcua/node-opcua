@@ -1,0 +1,46 @@
+{
+  "name": "node-opcua-address-space",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  },
+  "dependencies": {
+    "node-opcua-guid": "*",
+    "node-opcua-buffer-utils": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-common": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-date-time": "*",
+    "node-opcua-enum": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-variant": "*",
+    "node-opcua-data-value": "*",
+    "node-opcua-service-browse": "*",
+    "node-opcua-service-call": "*",
+    "node-opcua-service-filter": "*",
+    "node-opcua-service-history": "*",
+    "node-opcua-service-read": "*",
+    "node-opcua-service-subscription": "*",
+    "node-opcua-service-translate-browse-path": "*",
+    "node-opcua-service-write": "*",
+    "node-opcua-data-access": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-status-code": "*"
+  },
+  "devDependencies": {
+    "node-opcua-nodesets": "*",
+    "node-opcua-benchmarker": "*",
+    "node-opcua-test-fixtures": "*",
+    "node-opcua-test-helpers": "*",
+    "node-opcua-generator": "*",
+    "node-opcua-address-space-loader": "*",
+    "node-opcua-debug": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

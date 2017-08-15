@@ -1,0 +1,23 @@
+{
+  "name": "node-opcua-client-proxy",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-client": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-variant": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-service-call": "*",
+    "node-opcua-service-read": "*",
+    "node-opcua-service-browse": "*"
+  },
+  "devDependencies": {
+  }
+}

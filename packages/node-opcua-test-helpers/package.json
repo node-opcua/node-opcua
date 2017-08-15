@@ -1,0 +1,18 @@
+{
+  "name": "node-opcua-test-helpers",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo no test"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT",
+  "dependencies": {
+    "node-opcua-binary-stream": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-debug": "*"
+  },
+  "devDependencies": {
+  }
+}

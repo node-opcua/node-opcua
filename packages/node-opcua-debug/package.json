@@ -1,0 +1,12 @@
+{
+  "name": "node-opcua-debug",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-buffer-utils": "*"
+  },
+  "main": "index.js"
+}

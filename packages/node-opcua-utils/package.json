@@ -1,0 +1,17 @@
+{
+  "name": "node-opcua-utils",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-debug": "*"
+  },
+  "devDependencies": {
+    "node-opcua-test-helpers": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

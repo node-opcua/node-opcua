@@ -1,0 +1,24 @@
+{
+  "name": "node-opcua-common",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "node-opcua-extension-object": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-secure-channel":"*",
+    "node-opcua-data-model": "*",
+    "node-opcua-service-endpoints": "*",
+    "node-opcua-service-secure-channel":"*"
+  },
+  "devDependencies": {
+    "node-opcua-generator": "*"
+  }
+}
