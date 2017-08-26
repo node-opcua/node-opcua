@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test",
+    "generate": "node ./generate"
+
   },
   "dependencies": {
     "node-opcua-factory": "*",

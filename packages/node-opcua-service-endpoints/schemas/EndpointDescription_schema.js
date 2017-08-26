@@ -1,4 +1,6 @@
-require("node-opcua-service-secure-channel").MessageSecurityMode;
+"use strict";
+require("node-opcua-service-secure-channel");
+require("../_generated_/_auto_generated_ApplicationDescription");
 
 // OPC Unified Architecture, Part 4 page 121
 var EndpointDescription_Schema = {
