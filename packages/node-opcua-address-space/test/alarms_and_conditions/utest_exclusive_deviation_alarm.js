@@ -1,13 +1,6 @@
 "use strict";
 /* global describe,it,before*/
-
-
 var should = require("should");
-var _ = require("underscore");
-var assert = require("assert");
-
-var async = require("async");
-
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var Variant = require("node-opcua-variant").Variant;

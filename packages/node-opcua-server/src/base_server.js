@@ -21,7 +21,9 @@ function constructFilename(p) {
     var fs = require("fs");
     var filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
-    assert(fs.existsSync(filename));
+    if(!fs.existsSync(filename)) {
+        throw new Error("Cannot find filename " + filename + " ( __dirname = " + __dirname);
+    }
     return filename;
 }
 
@@ -316,7 +318,7 @@ OPCUABaseServer.prototype._on_GetEndpointsRequest = function (message, channel) 
     }
 
     // adjust locale on ApplicationName to match requested local or provide 
-    // a string with neutral locale (locale == null)
+    // a string with neutral locale (locale === null)
     // TODO: find a better way to handle this
     response.endpoints.forEach(function (endpoint) {
         endpoint.server.applicationName.locale = null;

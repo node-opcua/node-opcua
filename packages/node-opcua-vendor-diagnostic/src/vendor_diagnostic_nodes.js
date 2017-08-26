@@ -3,9 +3,11 @@
 
 var assert = require("better-assert");
 
-var opcua = require("node-opcua");
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
+var ServerEngine = require("node-opcua-server").ServerEngine;
+var Variant = require("node-opcua-variant").Variant;
+var DataType = require("node-opcua-variant").DataType;
+var ObjectIds = require("node-opcua-constants").ObjectIds;
+var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var humanize = require("humanize");
 
 /**
@@ -54,7 +56,7 @@ function addVariableWithHumanizeText(engine, options) {
 function install_optional_cpu_and_memory_usage_node(server) {
 
     var engine = server.engine;
-    assert(engine instanceof opcua.ServerEngine);
+    assert(engine instanceof ServerEngine);
 
     var usage;
     try {
@@ -65,7 +67,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
         //xx return;
     }
 
-    var folder = engine.addressSpace.findNode(opcua.ObjectIds.Server_VendorServerInfo);
+    var folder = engine.addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
 
     var usage_result = {memory: 0, cpu: 100};
 
@@ -95,7 +97,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
             value: {
                 get: function () {
                     if (!usage_result) {
-                        return opcua.StatusCodes.BadResourceUnavailable;
+                        return StatusCodes.BadResourceUnavailable;
                     }
                     return new Variant({dataType: DataType.Double, value: Math.round(usage_result.cpu, 2)});
                 }
@@ -113,7 +115,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
             value: {
                 get: function () {
                     if (!usage_result) {
-                        return opcua.StatusCodes.BadResourceUnavailable;
+                        return StatusCodes.BadResourceUnavailable;
                     }
                     return new Variant({dataType: DataType.UInt32, value: usage_result.memory});
                 }

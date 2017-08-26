@@ -704,7 +704,7 @@ function _install_condition_variable_type(node) {
     // structure for the ConditionVariable Value Attribute.
 
     assert(node.typeDefinitionObj.browseName.toString() === "ConditionVariableType");
-    assert(node.sourceTimestamp.browseName.toString() == "SourceTimestamp");
+    assert(node.sourceTimestamp.browseName.toString() === "SourceTimestamp");
     node.on("value_changed", _update_sourceTimestamp);
 
 }
@@ -811,19 +811,19 @@ UAConditionBase.prototype.setTime = function (time) {
 UAConditionBase.prototype._assert_valid = function () {
 
     var self = this;
-    assert(self.receiveTime.readValue().value.dataType == DataType.DateTime);
+    assert(self.receiveTime.readValue().value.dataType === DataType.DateTime);
     assert(self.receiveTime.readValue().value.value instanceof Date);
 
-    assert(self.localTime.readValue().value.dataType == DataType.ExtensionObject);
-    assert(self.message.readValue().value.dataType == DataType.LocalizedText);
-    assert(self.severity.readValue().value.dataType == DataType.UInt16);
+    assert(self.localTime.readValue().value.dataType === DataType.ExtensionObject);
+    assert(self.message.readValue().value.dataType === DataType.LocalizedText);
+    assert(self.severity.readValue().value.dataType === DataType.UInt16);
 
-    assert(self.time.readValue().value.dataType == DataType.DateTime);
+    assert(self.time.readValue().value.dataType === DataType.DateTime);
     assert(self.time.readValue().value.value instanceof Date);
 
-    assert(self.quality.readValue().value.dataType == DataType.StatusCode);
-    assert(self.enabledState.readValue().value.dataType == DataType.LocalizedText);
-    assert(self.branchId.readValue().value.dataType == DataType.NodeId);
+    assert(self.quality.readValue().value.dataType === DataType.StatusCode);
+    assert(self.enabledState.readValue().value.dataType === DataType.LocalizedText);
+    assert(self.branchId.readValue().value.dataType === DataType.NodeId);
 };
 
 
@@ -836,10 +836,10 @@ var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
  */
 UAConditionBase.prototype.conditionOfNode = function() {
     var refs = this.findReferencesExAsObject("HasCondition",BrowseDirection.Inverse);
-    if(refs.length ==0) {
+    if(refs.length === 0) {
         return null;
     }
-    assert(refs.length != 0,"UAConditionBase must be the condition of some node");
+    assert(refs.length !== 0,"UAConditionBase must be the condition of some node");
     assert(refs.length === 1,"expecting only one ConditionOf");
     var node = refs[0];
     assert(node instanceof UAObject || node instanceof UAVariable,"node for which we are the condition shall be an UAObject or UAVariable");
@@ -893,19 +893,19 @@ function ConditionInfo(options){
     this.message  = null;
     this.retain   = null;
 
-    if (options.hasOwnProperty("message") && options.message !=null) {
+    if (options.hasOwnProperty("message") && options.message !== null) {
         options.message = LocalizedText.coerce(options.message);
         assert(options.message instanceof LocalizedText);
         this.message  = options.message;
     }
-    if (options.hasOwnProperty("quality")  && options.quality !=null) {
+    if (options.hasOwnProperty("quality")  && options.quality !== null) {
         this.quality  = options.quality;
     }
-    if (options.hasOwnProperty("severity")  && options.severity !=null) {
+    if (options.hasOwnProperty("severity")  && options.severity !== null) {
         assert(_.isNumber(options.severity));
         this.severity  = options.severity;
     }
-    if (options.hasOwnProperty("retain")  && options.retain !=null) {
+    if (options.hasOwnProperty("retain")  && options.retain !== null) {
         assert(_.isBoolean(options.retain));
         this.retain  = options.retain;
     }
@@ -918,9 +918,9 @@ function ConditionInfo(options){
  */
 ConditionInfo.prototype.isDifferentFrom = function(otherConditionInfo)
 {
-    return this.severity != otherConditionInfo.severity  ||
-        this.quality  != otherConditionInfo.quality ||
-        this.message  != otherConditionInfo.message  ;
+    return this.severity !== otherConditionInfo.severity  ||
+        this.quality  !== otherConditionInfo.quality ||
+        this.message  !== otherConditionInfo.message  ;
 
 };
 exports.ConditionInfo = ConditionInfo;
@@ -963,13 +963,13 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
     // todo receive time : when the server received the event from the underlying system.
     // self.receiveTime.setValueFromSource();
 
-    if (conditionInfo.hasOwnProperty("severity") && conditionInfo.severity != null) {
+    if (conditionInfo.hasOwnProperty("severity") && conditionInfo.severity !== null) {
         branch.setSeverity(conditionInfo.severity);
     }
-    if (conditionInfo.hasOwnProperty("quality") && conditionInfo.quality != null) {
+    if (conditionInfo.hasOwnProperty("quality") && conditionInfo.quality !== null) {
         branch.setQuality(conditionInfo.quality);
     }
-    if (conditionInfo.hasOwnProperty("retain") && conditionInfo.retain != null) {
+    if (conditionInfo.hasOwnProperty("retain") && conditionInfo.retain !== null) {
         branch.setRetain(!!conditionInfo.retain);
     }
 
@@ -1002,17 +1002,17 @@ function sameBuffer(b1, b2) {
     }
     assert(b1 instanceof Buffer);
     assert(b2 instanceof Buffer);
-    if (b1.length != b2.length) {
+    if (b1.length !== b2.length) {
         return false;
     }
 /*
     var bb1 = (Buffer.from(b1)).toString("hex");
     var bb2 = (Buffer.from(b2)).toString("hex");
-    return bb1 == bb2;
+    return bb1 === bb2;
 */
     var n = b1.length;
     for (var i = 0; i < n; i++) {
-        if (b1[i] != b2[i]) {
+        if (b1[i] !== b2[i]) {
             return false;
         }
     }
@@ -1026,7 +1026,7 @@ UAConditionBase.prototype._findBranchForEventId = function (eventId) {
     var e = _.filter(conditionNode._branches,function(branch,key){
         return sameBuffer(branch.getEventId(),eventId);
     });
-    if (e.length ==1 ) {
+    if (e.length === 1 ) {
         return e[0];
     }
     assert(e.length === 0,"cannot have 2 branches with same eventId");
@@ -1046,7 +1046,7 @@ exports.UAConditionBase = UAConditionBase;
  */
 UAConditionBase.prototype._raiseAuditConditionCommentEvent = function (sourceName, eventId, comment) {
 
-    assert(eventId == null || eventId instanceof Buffer);
+    assert(eventId === null || eventId instanceof Buffer);
     assert(comment instanceof LocalizedText);
     var server = this.addressSpace.rootFolder.objects.server;
 
@@ -1127,8 +1127,8 @@ UAConditionBase.with_condition_method = function (inputArguments, context, callb
     // EventId  => ByteString    The Identifier of the event to comment
     // Comment  => LocalizedText The Comment to add to the condition
     assert(inputArguments.length === 2);
-    assert(inputArguments[0].dataType == DataType.ByteString);
-    assert(inputArguments[1].dataType == DataType.LocalizedText);
+    assert(inputArguments[0].dataType === DataType.ByteString);
+    assert(inputArguments[1].dataType === DataType.LocalizedText);
 
     var eventId = inputArguments[0].value;
     assert(!eventId || eventId instanceof Buffer);
@@ -1328,7 +1328,7 @@ function _check_subscription_id_is_valid(subscriptionId, context) {
 function _condition_refresh_method(inputArguments, context, callback) {
 
     // arguments : IntegerId SubscriptionId
-    assert(inputArguments.length == 1);
+    assert(inputArguments.length === 1);
 
     var addressSpace = context.object.addressSpace;
     if (doDebug) {
@@ -1337,7 +1337,7 @@ function _condition_refresh_method(inputArguments, context, callback) {
     var subscriptionId = inputArguments[0].value;
 
     var statusCode = _check_subscription_id_is_valid(subscriptionId, context);
-    if (statusCode != StatusCodes.Good) {
+    if (statusCode !== StatusCodes.Good) {
         return statusCode;
     }
 
@@ -1349,7 +1349,7 @@ function _condition_refresh2_method(inputArguments, context, callback) {
 
     // arguments : IntegerId SubscriptionId
     // arguments : IntegerId MonitoredItemId
-    assert(inputArguments.length == 2);
+    assert(inputArguments.length === 2);
 
     var addressSpace = context.object.addressSpace;
     assert(context.server instanceof OPCUAServer);
@@ -1370,7 +1370,7 @@ function _condition_refresh2_method(inputArguments, context, callback) {
 UAConditionBase.install_condition_refresh_handle = function _install_condition_refresh_handle(addressSpace) {
 
     //xx 21/08/17 var OPCUAServer = require("node-opcua-server").OPCUAServer;
-    //xx 21/08/17 assert(OPCUAServer != null);
+    //xx 21/08/17 assert(OPCUAServer !== null);
 
     //
     // install CondititionRefresh
@@ -1388,7 +1388,7 @@ UAConditionBase.install_condition_refresh_handle = function _install_condition_r
     // shall be the well known ObjectId of the ConditionType Object.
 
     var conditionType = addressSpace.findEventType("ConditionType");
-    assert(conditionType != null);
+    assert(conditionType !== null);
 
     conditionType.disable.bindMethod(_disable_method);
     conditionType.enable.bindMethod(_enable_method);
@@ -1512,7 +1512,7 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
         assert(options.conditionOf instanceof UAObject || options.conditionOf instanceof UAVariable);
 
         conditionNode.addReference({referenceType: "HasCondition", isForward: false, nodeId: options.conditionOf});
-        assert(conditionNode.conditionOfNode().nodeId == options.conditionOf.nodeId);
+        assert(conditionNode.conditionOfNode().nodeId === options.conditionOf.nodeId);
     }
 
 
@@ -1584,8 +1584,8 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
         trueState: "Enabled",
         falseState: "Disabled"
     });
-    assert(conditionNode.enabledState._trueState == "Enabled");
-    assert(conditionNode.enabledState._falseState == "Disabled");
+    assert(conditionNode.enabledState._trueState === "Enabled");
+    assert(conditionNode.enabledState._falseState === "Disabled");
 
     // installing sourceName and sourceNode
     conditionNode.enabledState.setValue(true);
@@ -1652,7 +1652,7 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
      * dataType is DataType.NodeId
      */
 
-    if (options.conditionSource != null) {
+    if (options.conditionSource !== null) {
 
         options.conditionSource = addressSpace._coerceNode(options.conditionSource);
         assert(options.conditionSource instanceof BaseNode);
@@ -1744,7 +1744,7 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
     // set SourceNode and SourceName based on HasCondition node
     var sourceNodes = conditionNode.findReferencesAsObject("HasCondition", false);
     if (sourceNodes.length) {
-        assert(sourceNodes.length == 1);
+        assert(sourceNodes.length === 1);
         conditionNode.setSourceNode(sourceNodes[0].nodeId);
         conditionNode.setSourceName(sourceNodes[0].browseName.toString());
     }

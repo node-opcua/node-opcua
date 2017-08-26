@@ -1,5 +1,8 @@
 /* eslint no-process-exit: 0 */
 "use strict";
+var _ = require("underscore");
+var path = require("path");
+var opcua = require("./node-opcua");
 
 Error.stackTraceLimit = Infinity;
 
@@ -7,19 +10,15 @@ var argv = require("yargs")
     .wrap(132)
     .string("port")
     .describe("port")
-    .alias('p', 'port')
+    .alias("p", "port")
     .argv;
 
-var opcua = require("../index");
-var constructFilename = require("node-opcua-utils").constructFilename;
-var _ = require("underscore");
-var path = require("path");
-var assert = require("assert");
+
+function constructFilename(filename) {
+    return path.join(__dirname,"../",filename);
+}
 
 var OPCUAServer = opcua.OPCUAServer;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
 
 var standard_nodeset_file = opcua.standard_nodeset_file;
 
@@ -65,7 +64,7 @@ server.start(function (err) {
     console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
 });
 
-process.on('SIGINT', function () {
+process.on("SIGINT", function () {
     // only work on linux apparently
     server.shutdown(1000, function () {
         console.log(" shutting down completed ".red.bold);

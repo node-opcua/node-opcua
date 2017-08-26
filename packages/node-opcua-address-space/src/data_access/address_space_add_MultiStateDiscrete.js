@@ -44,7 +44,7 @@ UAMultiStateDiscreteType.prototype.getIndex = function(value) {
 
 UAMultiStateDiscreteType.prototype.setValue = function(value) {
 
-    if (typeof(value) == "string") {
+    if (typeof(value) === "string") {
         var index = this.getIndex(value);
         assert(index>=0," invalid multi state value provided");
         return this.setValue(index);

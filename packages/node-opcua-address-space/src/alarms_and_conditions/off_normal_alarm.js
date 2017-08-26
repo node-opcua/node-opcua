@@ -78,7 +78,7 @@ UAOffNormalAlarm.prototype._updateAlarmState = function (normalStateValue,inputV
     if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
         this.activeState.setValue(false);
     }
-    var activate = (normalStateValue != inputValue);
+    var activate = (normalStateValue !== inputValue);
     this.activeState.setValue(activate);
 };
 

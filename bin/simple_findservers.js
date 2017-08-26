@@ -4,7 +4,7 @@
  * this script queries the discovery server and display the discovery urls
  *
  */
-var opcua = require("../");
+var opcua = require("./node-opcua");
 
 var perform_findServersRequest = opcua.perform_findServersRequest;
 

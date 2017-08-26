@@ -646,7 +646,7 @@ function check_valid_array(dataType, array) {
  * the method broadcasts an "value_changed" event
  * @method setValueFromSource
  * @param variant  {Variant}
- * @param [statusCode  {StatusCode} == StatusCodes.Good]
+ * @param [statusCode  {StatusCode} === StatusCodes.Good]
  * @param [sourceTimestamp= Now]
  */
 UAVariable.prototype.setValueFromSource = function (variant, statusCode, sourceTimestamp) {

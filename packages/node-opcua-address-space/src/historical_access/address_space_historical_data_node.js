@@ -78,7 +78,7 @@ exports.install = function (AddressSpace) {
                 node._timeline.shift();
             }
         }
-        if (node._timeline.length >= node._maxOnlineValues || node._timeline.length == 1) {
+        if (node._timeline.length >= node._maxOnlineValues || node._timeline.length === 1) {
             var first = node._timeline.first();
             _update_startOfOnlineArchive.call(node, first.sourceTimestamp);
             //we update the node startOnlineDate

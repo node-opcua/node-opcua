@@ -56,7 +56,7 @@ EventData.prototype.resolveSelectClause = function(selectClause) {
     var browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
     var browsePathResult = addressSpace.browsePath(browsePath);
     //xx console.log(" br",self.$eventDataSource.nodeId.toString(),selectClause.browsePath.toString(),browsePathResult.targets[0] ? browsePathResult.targets[0].targetId.toString() : "!!!NOT FOUNF!!!".cyan)
-    if (browsePathResult.statusCode != StatusCodes.Good) {
+    if (browsePathResult.statusCode !== StatusCodes.Good) {
         return null;
     }
     // istanbul ignore next

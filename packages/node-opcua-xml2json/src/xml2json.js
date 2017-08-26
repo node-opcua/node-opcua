@@ -278,7 +278,7 @@ Xml2Json.prototype.parse = function (xmlFile, callback) {
         // slightly faster but require more memory ..
         fs.readFile(xmlFile,function(err, data){
             if (!err) {
-                if (data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF) {
+                if (data[0] === 0xEF && data[1] === 0xBB && data[2] === 0xBF) {
                     data = data.slice(3);
                 }
                 data = data.toString();

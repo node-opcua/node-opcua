@@ -1,0 +1,19 @@
+{
+  "name": "node-opcua-vendor-diagnostic",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-server": "*",
+    "node-opcua-variant": "*",
+    "node-opcua-constants":"*",
+    "node-opcua-status-code":"*"
+  },
+  "devDependencies": {
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}

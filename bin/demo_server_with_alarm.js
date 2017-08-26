@@ -1,12 +1,10 @@
-/*global require,setInterval,console */
-var opcua = require("../index");
-
+"use strict";
+ /*global require,setInterval,console */
 var path = require("path");
-var fs = require("fs");
-var assert = require("assert");
-// Let's create an instance of OPCUAServer
-var constructFilename = require("node-opcua-utils").constructFilename;
-
+var opcua = require("./node-opcua");
+function constructFilename(filename) {
+    return path.join(__dirname,"../",filename);
+}
 var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
 var server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 

@@ -2,9 +2,6 @@
 /* global describe,it,before*/
 
 var should = require("should");
-var _ = require("underscore");
-var assert = require("assert");
-var path = require("path");
 
 var async = require("async");
 var sinon = require("sinon");
@@ -20,7 +17,6 @@ var NodeId = require("node-opcua-nodeid").NodeId;
 
 var ConditionInfo = require("../..").ConditionInfo;
 
-var AddressSpace = require("../..").AddressSpace;
 var SessionContext = require("../..").SessionContext;
 var UAObject = require("../..").UAObject;
 
@@ -375,8 +371,8 @@ module.exports = function (test) {
                 var eventData2 = addressSpace.constructEventData(myCustomConditionType,data);
 
                 function f(a) {
-                    if (a == "$eventDataSource") return false;
-                    if (a == "__nodes") return false;
+                    if (a === "$eventDataSource") return false;
+                    if (a === "__nodes") return false;
                     return true;
                 }
 

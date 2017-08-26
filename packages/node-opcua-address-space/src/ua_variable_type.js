@@ -141,7 +141,7 @@ function MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap) {
     var self = this;
     // should we clone the node to be a component or propertyOf of a instance
     assert(_.isObject(optionalsMap));
-    assert(null != instance);
+    assert(null !== instance);
     self.optionalsMap= optionalsMap;
     self.instance = instance;
     self.references = [].concat(_.map(

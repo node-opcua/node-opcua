@@ -1,24 +1,34 @@
 /* eslint no-process-exit: 0 */
 "use strict";
+var path = require("path");
+var _ = require("underscore");
+var assert = require("assert");
+var opcua = require("./node-opcua");
+
 
 Error.stackTraceLimit = Infinity;
-var constructFilename = require("node-opcua-utils").constructFilename;
 
-var argv = require('yargs')
+function constructFilename(filename) {
+    return path.join(__dirname,"../",filename);
+}
+
+var yargs = require("yargs/yargs");
+
+var argv = yargs()
     .wrap(132)
 
     .string("alternateHostname")
     .describe("alternateHostname")
-    .alias('a', 'alternateHostname')
+    .alias("a", "alternateHostname")
 
     .number("port")
     .describe("port")
-    .alias('p', 'port')
+    .alias("p", "port")
     .defaults("port",26543)
 
     .number("maxAllowedSessionNumber")
     .describe("maxAllowedSessionNumber")
-    .alias('m', 'maxAllowedSessionNumber')
+    .alias("m", "maxAllowedSessionNumber")
     .defaults("maxAllowedSessionNumber",500)
 
     .number("maxAllowedSubscriptionNumber")
@@ -31,10 +41,6 @@ var argv = require('yargs')
     .alias("h","help")
     .argv;
 
-var opcua = require("..");
-var _ = require("underscore");
-var path = require("path");
-var assert = require("assert");
 
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
@@ -68,10 +74,10 @@ var userManager = {
 };
 
 //var server_certificate_file            = constructFilename("certificates/server_cert_2048.pem");
-var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
+var server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_2048.pem");
 //var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_1024.pem");
 //var server_certificate_file            = constructFilename("certificates/server_cert_2048_outofdate.pem");
-var server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
+var server_certificate_privatekey_file   = constructFilename("certificates/server_key_2048.pem");
 
 var server_options = {
 
@@ -86,7 +92,7 @@ var server_options = {
 
     nodeset_filename: [
         standard_nodeset_file,
-        path.join(__dirname,"../nodesets/Opc.Ua.Di.NodeSet2.xml")
+        opcua.constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml")
     ],
 
     serverInfo: {
@@ -124,7 +130,7 @@ var hostname = require("os").hostname();
 
 server.on("post_initialize", function () {
 
-    opcua.build_address_space_for_conformance_testing(server.engine);
+    opcua.build_address_space_for_conformance_testing(server.engine.addressSpace);
 
     install_optional_cpu_and_memory_usage_node(server);
 
@@ -365,7 +371,7 @@ server.start(function (err) {
 
     if (argv.silent) {
         console.log(" silent");
-        console.log = function() {}
+        console.log = function() {};
     }
     //  console.log = function(){};
 
@@ -397,7 +403,7 @@ function t(d) {
 
 server.on("response", function (response) {
 
-    if (argv.silent) { return};
+    if (argv.silent) { return;}
 
     console.log(t(response.responseHeader.timeStamp), response.responseHeader.requestHandle,
         response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
@@ -432,7 +438,7 @@ function indent(str, nb) {
 }
 server.on("request", function (request, channel) {
 
-    if (argv.silent) { return};
+    if (argv.silent) { return;}
 
     console.log(t(request.requestHeader.timeStamp), request.requestHeader.requestHandle,
         request._schema.name.yellow, " ID =", channel.secureChannelId.toString().cyan);
@@ -479,7 +485,7 @@ server.on("request", function (request, channel) {
     }
 });
 
-process.on('SIGINT', function () {
+process.on("SIGINT", function () {
     // only work on linux apparently
     console.error(" Received server interruption from user ".red.bold);
     console.error(" shutting down ...".red.bold);

@@ -219,7 +219,7 @@ describe("Testing the client publish engine", function () {
 
             timerId = setInterval(function () {
 
-                if (publishQueue.length == 0) {
+                if (publishQueue.length === 0) {
                     return ;
                 }
 

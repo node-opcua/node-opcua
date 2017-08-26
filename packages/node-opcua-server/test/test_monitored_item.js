@@ -651,7 +651,7 @@ describe("Server Side MonitoredItem", function () {
 
     });
 
-    it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest == true)",function(done){
+    it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest === true)",function(done){
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -688,7 +688,7 @@ describe("Server Side MonitoredItem", function () {
         done();
     });
 
-    it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest == false)",function(done){
+    it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest === false)",function(done){
 
         var monitoredItem = new MonitoredItem({
             clientHandle: 1,

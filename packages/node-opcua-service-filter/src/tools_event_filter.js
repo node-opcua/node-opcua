@@ -176,7 +176,7 @@ function extractEventField(eventData, selectClause) {
 
     var handle = eventData.resolveSelectClause(selectClause);
 
-    if (handle !=null) {
+    if (handle !== null) {
         var value = eventData.readValue(handle,selectClause);
         assert(value instanceof Variant);
         return value;

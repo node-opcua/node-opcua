@@ -1297,7 +1297,7 @@ ClientSession.prototype.getBuiltInDataType = function(nodeId,callback){
     ];
     session.read(nodes_to_read, 0, function(err,nodes_to_read,dataValues) {
         if (err) return callback(err);
-        if (dataValues[0].statusCode != StatusCodes.Good) {
+        if (dataValues[0].statusCode !== StatusCodes.Good) {
             return callback(new Error("cannot read DataType Attribute "+  dataValues[0].statusCode.toString()));
         }
         dataTypeId = dataValues[0].value.value;

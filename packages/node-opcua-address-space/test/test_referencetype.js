@@ -12,15 +12,12 @@ var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var DataType = require("node-opcua-variant").DataType;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-var makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
 
 
 var _ = require("underscore");
-var assert = require("better-assert");
 var redirectToFile = require("node-opcua-debug").redirectToFile;
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var browse_service = require("node-opcua-service-browse");
 
 var context = require("..").SessionContext.defaultContext;
 var BaseNode = require("..").BaseNode;
@@ -261,7 +258,7 @@ describe("testing ReferenceType", function () {
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
         redirectToFile("ReferenceDescription1.log", function () {
-            assert(_.isArray(references));
+            _.isArray(references).should.eql(true);
             var dump = require("../src/base_node").dumpReferenceDescriptions;
             dump(addressSpace, references);
         }, done);
@@ -290,7 +287,7 @@ describe("testing ReferenceType", function () {
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
         redirectToFile("ReferenceDescription2.log", function () {
-            assert(_.isArray(references));
+            _.isArray(references).should.eql(true);
             var dump = require("../src/base_node").dumpReferenceDescriptions;
             dump(addressSpace, references);
         }, done);
@@ -400,7 +397,7 @@ describe("testing ReferenceType", function () {
     BaseNode.prototype.findReferencesEx_deprecated = function (strReference, browseDirection) {
 
         browseDirection = browseDirection || BrowseDirection.Forward;
-        assert(_is_valid_BrowseDirection(browseDirection));
+        _is_valid_BrowseDirection(browseDirection).should.eql(true);
 
         var addressSpace = this.addressSpace;
 
@@ -410,7 +407,7 @@ describe("testing ReferenceType", function () {
             // throw new Error("expecting valid reference name " + strReference);
             return [];
         }
-        assert(referenceType.nodeId instanceof NodeId);
+        referenceType.nodeId.should.be.instanceOf(NodeId);
 
         var browseResults = this.browseNode({
             browseDirection: browseDirection,
@@ -507,7 +504,7 @@ describe(" improving performance of isSupertypeOf", function () {
                 return e !== undefined;
             });
 
-            assert(referenceTypes[0].nodeClass === NodeClass.ReferenceType);
+            referenceTypes[0].nodeClass.should.eql(NodeClass.ReferenceType);
             done();
         });
     });

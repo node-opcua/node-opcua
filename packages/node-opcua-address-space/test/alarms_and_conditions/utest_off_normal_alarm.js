@@ -3,13 +3,6 @@
 
 
 var should = require("should");
-var _ = require("underscore");
-var assert = require("assert");
-
-var async = require("async");
-
-
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 
 module.exports = function (test) {
