@@ -10,7 +10,6 @@ var DataType = require("node-opcua-variant").DataType;
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 
-
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 var address_space = require("..");
@@ -18,22 +17,23 @@ var UAMethod = address_space.UAMethod;
 var SessionContext = address_space.SessionContext;
 var context = SessionContext.defaultContext;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function () {
-            addressSpace = new address_space.AddressSpace();
-        });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    before(function () {
+        addressSpace = new address_space.AddressSpace();
     });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
+    });
+
     it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
         var method = new UAMethod({
@@ -88,20 +88,18 @@ describe("testing Method in address space", function () {
 
 
     var addressSpace = null;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
     it("should provide a way to find a Method object by nodeId", function () {
 
@@ -137,26 +135,25 @@ describe("testing Method in address space", function () {
 
 
 });
+
 describe("testing Method binding", function () {
     var addressSpace = null;
     var rootFolder;
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                rootFolder = addressSpace.rootFolder;
-                rootFolder.browseName.toString().should.equal("Root");
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            rootFolder = addressSpace.rootFolder;
+            rootFolder.browseName.toString().should.equal("Root");
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     function fake_getMonitoredItemId(inputArguments, context, callback) {

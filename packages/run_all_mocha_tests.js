@@ -19,6 +19,9 @@ function collect_files(test_folder) {
             collect_files(f);
         } else {
             if (file.match(/^test_.*/)) {
+                //xx if (!file.match("test_e2e_connection_reconnection.js")) {
+                //xx     return;
+                //xx }
                 test_files.push(f);
             } else {
                 console.log("skipping file ",f);
@@ -39,6 +42,7 @@ fs.readdirSync(".").forEach(function (file) {
 test_files = test_files.sort();
 // Add each .js file to the mocha instance
 test_files.filter(function (file) {
+
     // Only keep the .js files
     return file.substr(-3) === ".js";
 
@@ -54,6 +58,7 @@ test_files.filter(function (file) {
         }
     }
     test_no_leak();
+
     mocha.addFile(file);
 });
 

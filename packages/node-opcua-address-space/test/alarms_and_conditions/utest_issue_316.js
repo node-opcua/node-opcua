@@ -1,20 +1,16 @@
 "use strict";
-
-
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
 
 module.exports = function (test) {
 
-    describe("Alarm&Condition ConditionClassname and ConditionName ", function () {
+    describe("Alarm&Condition ConditionClassName and ConditionName ", function () {
 
-        var addressSpace,source,engine;
+        var addressSpace,source;
         before(function() {
-            addressSpace = test.addressSpace; source = test.source;engine = test.engine;
+            addressSpace = test.addressSpace;
+            source = test.source;
         });
         it("CC1 - should be possible to set the ConditionName and ConditionClassName of an alarm",function() {
-
 
             var condition = addressSpace.instantiateCondition("AlarmConditionType",{
                 componentOf: source,
@@ -29,8 +25,6 @@ module.exports = function (test) {
             // ConditionClassId : NodeId
             // ConditionClassName: LocalizedText
             // ConditionName:      String
-
-
 
 
             // The ConditionType inherits all Properties of the BaseEventType. Their semantic is defined in

@@ -14,33 +14,32 @@ var DataType = require("node-opcua-variant").DataType;
 var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("testing add new DataType ", function () {
 
-    this.timeout(Math.max(300000,this._timeout));
+    this.timeout(Math.max(300000, this._timeout));
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            addressSpace = new AddressSpace();
+    before(function (done) {
+        addressSpace = new AddressSpace();
 
-            var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
-            require("fs").existsSync(xml_file).should.be.eql(true);
+        var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+        require("fs").existsSync(xml_file).should.be.eql(true);
 
-            generate_address_space(addressSpace, xml_file, function (err) {
+        generate_address_space(addressSpace, xml_file, function (err) {
 
-                done(err);
-            });
-
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;

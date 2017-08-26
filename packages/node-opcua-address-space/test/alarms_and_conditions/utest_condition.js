@@ -7,6 +7,7 @@ var assert = require("assert");
 var path = require("path");
 
 var async = require("async");
+var sinon = require("sinon");
 
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
@@ -386,7 +387,6 @@ module.exports = function (test) {
 
 
             });
-            var sinon = require("sinon");
 
             it("should raise a new condition ", function () {
 

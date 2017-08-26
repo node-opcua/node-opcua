@@ -6,9 +6,8 @@ var subscription_service = require("node-opcua-service-subscription");
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var PublishRequest = subscription_service.PublishRequest;
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions Transfer", function () {
 
 
@@ -16,7 +15,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
     beforeEach(function (done) {
 
-        resourceLeakDetector.start();
 
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
@@ -32,7 +30,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
         engine.shutdown();
         engine = null;
 
-        resourceLeakDetector.stop();
     });
 
 
@@ -78,6 +75,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
         subscription.terminate();
 
-    })
+    });
 
 });

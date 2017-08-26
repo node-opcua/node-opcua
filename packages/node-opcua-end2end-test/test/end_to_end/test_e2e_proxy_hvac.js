@@ -8,6 +8,7 @@ var _ = require("underscore");
 
 
 var opcua = require("node-opcua");
+var OPCUAClient = opcua.OPCUAClient;
 
 var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -16,6 +17,7 @@ var DataType = opcua.DataType;
 
 var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing client Proxy", function () {
 
     this.timeout(Math.max(600000,this._timeout));
@@ -38,7 +40,7 @@ describe("testing client Proxy", function () {
     });
 
     beforeEach(function (done) {
-        client = new opcua.OPCUAClient();
+        client = new OPCUAClient();
         done();
     });
 
@@ -55,7 +57,6 @@ describe("testing client Proxy", function () {
     it("client should expose a nice little handy javascript object that proxies the HVAC UAObject", function (done) {
 
         var proxyManager;
-
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
@@ -85,7 +86,7 @@ describe("testing client Proxy", function () {
                             return;
                         }
                         callback(err);
-                    })
+                    });
                 },
                 function (callback) {
                     proxyManager.stop(callback);
@@ -99,9 +100,7 @@ describe("testing client Proxy", function () {
 
     it("client should expose a nice little handy javascript object that proxies the server UAObject", function (done) {
 
-
         var proxyManager ;
-
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
@@ -211,9 +210,7 @@ describe("testing client Proxy", function () {
     it("AA one can subscribe to proxy object property change", function (done) {
 
         this.timeout(Math.max(20000,this._timeout));
-
         var proxyManager;
-
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
@@ -255,7 +252,7 @@ describe("testing client Proxy", function () {
 
                         }
                         callback(err);
-                    })
+                    });
                 },
 
                 function (callback) {
@@ -341,9 +338,7 @@ describe("testing client Proxy", function () {
     it("ZZ1 should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", function(done) {
 
         var proxyManager;
-
         //xx endpointUrl = "opc.tcp://localhost:48010";
-
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager = new UAProxyManager(session);
@@ -411,7 +406,6 @@ describe("testing client Proxy", function () {
             ], inner_done);
 
         },done);
-
     });
 });
 

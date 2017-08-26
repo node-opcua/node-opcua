@@ -10,23 +10,22 @@ var redirectToFile = require("node-opcua-debug").redirectToFile;
 
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing address space", function () {
 
     var addressSpace = null;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     it("should dump references", function (done) {
@@ -61,27 +60,26 @@ describe("testing address space", function () {
         obj.full_name().should.eql("Server.ServerStatus.BuildInfo");
 
     });
+
+
 });
+
 describe("testing dump browseDescriptions", function () {
 
 
     var addressSpace = null;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            done(err);
         });
-        after(function () {
-            if (addressSpace) {
-                addressSpace.dispose();
-            }
-        });
+    });
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
     });
     it("should provide a way to find a Method object by nodeId", function () {
         should.exist(addressSpace.findMethod("ns=0;i=11489"));
     });
 });
-
-

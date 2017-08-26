@@ -6,23 +6,12 @@ var path = require("path");
 var should = require("should");
 var _ = require("underscore");
 
-var address_space = require("..");
-
-var UAVariable = address_space.UAVariable;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var DataValue =  require("node-opcua-data-value").DataValue;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var NodeClass = require("node-opcua-data-model").NodeClass;
-
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var browse_service = require("node-opcua-service-browse");
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 var sinon = require("sinon");
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("Testing UAObject", function () {
 
@@ -31,24 +20,22 @@ describe("Testing UAObject", function () {
     var hasTypeDefinitionReferenceType;
     var baseObjectType;
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                rootFolder = addressSpace.findNode("RootFolder");
-                organizesReferenceType = addressSpace.findReferenceType("Organizes");
-                hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
-                baseObjectType = addressSpace.findObjectType("BaseObjectType");
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            rootFolder = addressSpace.findNode("RootFolder");
+            organizesReferenceType = addressSpace.findReferenceType("Organizes");
+            hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
+            baseObjectType = addressSpace.findObjectType("BaseObjectType");
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace){
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     function dump(e) {
@@ -83,7 +70,7 @@ describe("Testing UAObject", function () {
         nbReferencesAfter.should.eql(nbReferencesBefore,
           "we should have no more inverse references on the BaseObjectType because we do not add backward reference when reference is HasTypeDefinition");
 
-        should(node1.parent).eql(undefined,"node1 should have no parent");
+        should(node1.parent).eql(undefined, "node1 should have no parent");
     });
 
     function _test_with_custom_referenceType(referenceType) {
@@ -168,7 +155,7 @@ describe("Testing UAObject", function () {
             browseName: "nodeDest"
         });
 
-        should(function() {
+        should(function () {
             node1.addReference({
                 referenceType: "INVALID TYPE",
                 isForward: true,
@@ -179,20 +166,20 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#addReference - four equivalent cases", function () {
 
-        var view = addressSpace.addObject({browseName: "View" });
-        var node1 = addressSpace.addObject({browseName: "Node1" });
-        var node2 = addressSpace.addObject({browseName: "Node2" });
-        var node3 = addressSpace.addObject({browseName: "Node3" });
-        var node4 = addressSpace.addObject({browseName: "Node4" });
-        var node5 = addressSpace.addObject({browseName: "Node5" });
+        var view = addressSpace.addObject({browseName: "View"});
+        var node1 = addressSpace.addObject({browseName: "Node1"});
+        var node2 = addressSpace.addObject({browseName: "Node2"});
+        var node3 = addressSpace.addObject({browseName: "Node3"});
+        var node4 = addressSpace.addObject({browseName: "Node4"});
+        var node5 = addressSpace.addObject({browseName: "Node5"});
 
 
         // the following addReference usages produce the same relationship
-        node1.addReference({ referenceType: "OrganizedBy", nodeId: view.nodeId });
-        node2.addReference({ referenceType: "OrganizedBy", nodeId: view });
-        node3.addReference({ referenceType: "Organizes",   isForward: false, nodeId: view.nodeId });
-        view.addReference({  referenceType: "Organizes", nodeId: node4 });
-        view.addReference({  referenceType: "OrganizedBy", isForward: false, nodeId: node5 });
+        node1.addReference({referenceType: "OrganizedBy", nodeId: view.nodeId});
+        node2.addReference({referenceType: "OrganizedBy", nodeId: view});
+        node3.addReference({referenceType: "Organizes", isForward: false, nodeId: view.nodeId});
+        view.addReference({referenceType: "Organizes", nodeId: node4});
+        view.addReference({referenceType: "OrganizedBy", isForward: false, nodeId: node5});
 
 
         view.getFolderElementByName("Node1").browseName.toString().should.eql(node1.browseName.toString());
@@ -377,7 +364,7 @@ describe("Testing UAObject", function () {
 
     });
 
-    it("BaseNode#namespaceIndex",function() {
+    it("BaseNode#namespaceIndex", function () {
         var node1 = addressSpace.addObject({
             browseName: "Node1"
         });
@@ -386,7 +373,7 @@ describe("Testing UAObject", function () {
         addressSpace.rootFolder.namespaceIndex.should.eql(0);
     });
 
-    it("BaseNode#namespaceUri",function() {
+    it("BaseNode#namespaceUri", function () {
 
         var node1 = addressSpace.addObject({
             browseName: "Node2"
@@ -410,10 +397,9 @@ describe("Testing UAObject", function () {
 
 
         var child3 = addressSpace.addObject({organizedBy: parentNode, browseName: "Child3"});
-        should(child3.parent).eql(undefined,"OrganizedBy is not a Parent/Child relation");
+        should(child3.parent).eql(undefined, "OrganizedBy is not a Parent/Child relation");
 
     });
-
 
 
 });

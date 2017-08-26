@@ -2,16 +2,11 @@
 // When the session is closed, we are JUST going to close the Session. The subscription and monitoredItem will NOT be cleaned-up.
 // We'll then create another session. We'll try to TRANSFER the subscription to the new session. We're expecting the subscription to be present!
 // We ARE checking if TransferSubscription is Bad_NotImplemented. If so, then the test result is a Warning with a message of Inconclusive. */
-/*global xit,it,describe,before,after,beforeEach,afterEach*/
+/*global it,describe,beforeEach*/
 "use strict";
-
-
-
-var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
 var sinon = require("sinon");
-var _ = require("underscore");
 
 var opcua = require("node-opcua");
 var StatusCodes = opcua.StatusCodes;
@@ -22,8 +17,6 @@ var ClientSubscription = opcua.ClientSubscription;
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 module.exports = function (test) {
 
@@ -85,13 +78,15 @@ module.exports = function (test) {
                         callback(err);
                     });
                 },
-
+                function (callback) {
+                    client.disconnect(callback);
+                }
             ], function (err) {
                 callback(err, the_subscriptionId);
             });
         }
 
-        it("should transfer a subscription", function (done) {
+        it("TSS-1 should transfer a subscription", function (done) {
 
             var the_subscriptionId;
             async.series([
@@ -133,8 +128,7 @@ module.exports = function (test) {
             ], done);
         });
 
-
-        it("GG2 should transfer a subscription from a live session to an other", function (done) {
+        it("TSS-2 should transfer a subscription from a live session to an other", function (done) {
 
             var client = new OPCUAClient();
 
@@ -248,12 +242,15 @@ module.exports = function (test) {
                     the_session2.close(/*deleteSubscription=*/true, function (err) {
                         callback(err);
                     });
+                },
+                function (callback) {
+                    client.disconnect(callback);
                 }
             ], done);
 
         });
 
-        it("GG3 should send a StatusChangeNotificiation to the old session wiith GoodSubscriptionTransfered", function (done) {
+        it("TSS-3 should send a StatusChangeNotification to the old session with GoodSubscriptionTransferred", function (done) {
             var client = new OPCUAClient();
             var spy_status_changed = new sinon.spy();
             var the_session2;
@@ -271,7 +268,7 @@ module.exports = function (test) {
                             spy_status_changed.callCount.should.eql(0);
                             spy_keepalive.callCount.should.be.greaterThan(1);
                             callback();
-                        }, 1500)
+                        }, 1500);
                     },
                     function (callback) {
                         client.createSession(function (err, session) {
@@ -282,7 +279,9 @@ module.exports = function (test) {
                         });
                     },
 
-                    function (callback) {setTimeout(callback,500); },
+                    function (callback) {
+                        setTimeout(callback, 500);
+                    },
 
                     // session2.transferSubscriptions
                     function (callback) {
@@ -305,11 +304,11 @@ module.exports = function (test) {
                             console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(1);
                             callback();
-                        }, 1000)
+                        }, 1000);
                     },
                     function (callback) {
                         the_session2.close(callback);
-                    },
+                    }
 
                 ], function (err) {
                     console.log("-------------------", subscription.subscriptionId);
@@ -320,7 +319,7 @@ module.exports = function (test) {
 
         });
 
-        it("GG4 should resend initialValue on monitored Item", function (done) {
+        it("TSS-4 should resend initialValue on monitored Item", function (done) {
 
             var client = new OPCUAClient();
             var the_session2;
@@ -404,7 +403,7 @@ module.exports = function (test) {
                     function (callback) {
                         setTimeout(function () {
                             callback();
-                        }, parameters.samplingInterval)
+                        }, parameters.samplingInterval);
                     },
 
                     // create Session 2
@@ -437,7 +436,7 @@ module.exports = function (test) {
                     function (callback) {
                         setTimeout(function () {
                             callback();
-                        }, parameters.samplingInterval)
+                        }, parameters.samplingInterval);
                     },
 
                     // session 1 should receive StatusChangeNotification
@@ -475,13 +474,13 @@ module.exports = function (test) {
                     function (callback) {
                         setTimeout(function () {
                             callback();
-                        }, parameters.samplingInterval)
+                        }, parameters.samplingInterval);
                     },
                     // wait a little bit
                     function (callback) {
                         setTimeout(function () {
                             callback();
-                        }, parameters.samplingInterval)
+                        }, parameters.samplingInterval);
                     },
 
                     function (callback) {

@@ -13,21 +13,20 @@ var DataType = require("node-opcua-variant").DataType;
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace =__addressSpace__;
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, __addressSpace__) {
+            addressSpace = __addressSpace__;
+            done(err);
+        });
 
-        });
-        after(function () {
-            addressSpace.dispose();
-            addressSpace = null;
-        });
+    });
+    after(function () {
+        addressSpace.dispose();
+        addressSpace = null;
     });
 
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
@@ -147,7 +146,7 @@ describe("testing add new ObjectType ", function () {
 
         // camera should have one component
         var c = camera1.getComponents();
-        c.length.should.eql(1," expecting camera1 to have 1 component => the Method");
+        c.length.should.eql(1, " expecting camera1 to have 1 component => the Method");
 
         c[0].should.be.instanceOf(UAMethod);
         c[0].browseName.toString().should.eql("1:Trigger");

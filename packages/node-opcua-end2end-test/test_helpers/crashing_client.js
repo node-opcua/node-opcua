@@ -2,6 +2,7 @@
 // once a item has been monitored
 "use strict";
 if (process.argv.length !== 3) {
+    console.log(" Invalid number of argument, please specify port number");
     return;
 }
 console.log("process.argv.length ",process.argv.length);
@@ -54,6 +55,7 @@ async.series([
 
         // step 3 : browse
         function(callback) {
+            console.log("About to CRASH !!!!");
             setTimeout(function(){
                 console.log(" CRASHING !!!!");
                 process.exit(-1);

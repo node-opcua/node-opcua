@@ -9,23 +9,13 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 var port = 2000;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing server dropping session after timeout if no activity has been recorded", function () {
 
 
     this.timeout(Math.max(200000, this._timeout));
 
-    var server = new OPCUAServer({
-        port: port,
-        nodeset_filename: empty_nodeset_filename
-    });
-    var serverCertificateChain = server.getCertificateChain();
-
-    var options = {
-        //xx securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
-        //xx securityPolicy: opcua.SecurityPolicy.Basic256,
-        serverCertificate: serverCertificateChain,
-        defaultSecureTokenLifetime: 2000
-    };
+    var server;
 
     var nodeId = opcua.resolveNodeId("ns=0;i=2258");
 
@@ -35,13 +25,28 @@ describe("testing server dropping session after timeout if no activity has been 
         nodesToRead: [
             {
                 nodeId: nodeId,
-                attributeId: opcua.read_service.AttributeIds.Value,
+                attributeId: opcua.read_service.AttributeIds.Value
             }
         ]
     });
 
-    var endpointUrl;
+    var endpointUrl,serverCertificateChain;
+
+    var options = {
+        //xx securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+        //xx securityPolicy: opcua.SecurityPolicy.Basic256,
+        serverCertificate: serverCertificateChain,
+        defaultSecureTokenLifetime: 2000
+    };
+
     before(function (done) {
+
+        server = new OPCUAServer({
+            port: port,
+            nodeset_filename: empty_nodeset_filename
+        });
+        serverCertificateChain = server.getCertificateChain();
+
         server.start(function (err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             OPCUAServer.registry.count().should.eql(1);
@@ -89,6 +94,7 @@ describe("testing server dropping session after timeout if no activity has been 
     });
 
     it("should denied service call with BadSessionClosed on a timed out session", function (done) {
+
         var client = new OPCUAClient(options);
 
         var l_session = null;
@@ -124,14 +130,14 @@ describe("testing server dropping session after timeout if no activity has been 
 
                 server.currentSessionCount.should.eql(0);
                 l_session.read(readRequest.nodesToRead, function (err, results) {
+                    should.exist(results);
                     err.message.should.match(/BadSessionIdInvalid/);
                     callback(null);
                 });
             },
             function (callback) {
 
-                callback();
-                //xx client.disconnect(callback);
+                client.disconnect(callback);
             }
 
         ], done);

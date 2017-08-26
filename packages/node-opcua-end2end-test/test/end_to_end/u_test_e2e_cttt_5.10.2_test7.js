@@ -1,3 +1,4 @@
+"use strict";
 /* based on  Test 5.10.2 Test case 7
    Description: Modifies a subscription setting RequestedPublishingInterval=LARGENUMBER;
    Server should revise the value to a value it supports. */
@@ -10,7 +11,6 @@ var _ = require("underscore");
 
 var OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {

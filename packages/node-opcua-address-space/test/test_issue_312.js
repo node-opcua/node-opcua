@@ -1,14 +1,13 @@
 "use strict";
+var path = require("path");
+var fs = require("fs");
 
 var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
-var DataType = require("node-opcua-variant").DataType;
-var should = require("should");
-var path = require("path");
-var fs = require("fs");
+
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Issue 132", function () {
 
 
@@ -16,37 +15,35 @@ describe("Issue 132", function () {
 
     var addressSpace;
 
-    //xx require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        beforeEach(function (done) {
-            addressSpace = new AddressSpace();
-            done();
+    beforeEach(function (done) {
+        addressSpace = new AddressSpace();
+        done();
+    });
+    afterEach(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
+        done();
+    });
+
+    it("#312 - should load a nodeset xml file containing MandatoryPlaceHolder f", function (done) {
+
+        var xml_file0 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        var xml_file1 = getFixture("fixture_issue_312_nodeset2.xml");
+
+        fs.existsSync(xml_file0).should.be.eql(true);
+
+        fs.existsSync(xml_file1).should.be.eql(true);
+
+        var xml_files = [
+            xml_file0,
+            xml_file1
+        ];
+
+        generate_address_space(addressSpace, xml_files, function (err) {
+            done(err);
         });
-        afterEach(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-            }
-            done();
-        });
+    });
 
-        it("#312 - should load a nodeset xml file containing MandatoryPlaceHolder f", function (done) {
-
-            var xml_file0 = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
-            var xml_file1 = getFixture("fixture_issue_312_nodeset2.xml");
-
-            fs.existsSync(xml_file0).should.be.eql(true);
-
-            fs.existsSync(xml_file1).should.be.eql(true);
-
-            var xml_files = [
-                xml_file0,
-                xml_file1
-            ];
-
-            generate_address_space(addressSpace, xml_files, function (err) {
-                done(err);
-            });
-        });
-
-    //xx });
 });

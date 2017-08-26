@@ -177,7 +177,7 @@ exports.createHVACSystem = function(addressSpace) {
         //xx console.log("Tick = target temp = ",targetTemp," current =",currentTemp," new= ",newInteriorTemp);
     }
 
-    var timerId = setInterval(updateInteriorTemperature,10);
+    var timerId = setInterval(updateInteriorTemperature,60);
 
     myHVAC.on("dispose",function() {
         clearInterval(timerId);

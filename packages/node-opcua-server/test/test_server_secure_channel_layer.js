@@ -4,10 +4,10 @@ var should = require("should");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var DirectTransport = require("node-opcua-transport/test_helpers/fake_socket").DirectTransport;
 
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
 
-    it("should create a ServerSecureChannelLayer", function () {
+    it("KK1 should create a ServerSecureChannelLayer", function () {
 
         var server_secure_channel = new ServerSecureChannelLayer();
         server_secure_channel.setSecurity("NONE", "None");
@@ -15,10 +15,10 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     });
 
-    it("should end with a timeout if no message is received from client", function (done) {
+    it("KK2 should end with a timeout if no message is received from client", function (done) {
 
         var node = new DirectTransport();
-        var server_secure_channel = new ServerSecureChannelLayer();
+        var server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server, function (err) {
@@ -32,7 +32,7 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
     });
 
-    it("should end with a timeout if HEL/ACK is OK but no further message is received from client", function (done) {
+    it("KK3 should end with a timeout if HEL/ACK is OK but no further message is received from client", function (done) {
 
         var node = new DirectTransport();
 
@@ -60,7 +60,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     });
 
-    it("should return an error and shutdown if first message is not OpenSecureChannelRequest ", function (done) {
+    it("KK4 should return an error and shutdown if first message is not OpenSecureChannelRequest ", function (done) {
 
         var node = new DirectTransport();
 
@@ -85,16 +85,17 @@ describe("testing ServerSecureChannelLayer ", function () {
         node.client.write(fake_NotAOpenSecureChannelMessage);
     });
 
-    it("should handle a OpenSecureChannelRequest and pass no err in the init callback ", function (done) {
+    it("KK5 should handle a OpenSecureChannelRequest and pass no err in the init callback ", function (done) {
 
         var node = new DirectTransport();
 
-        var server_secure_channel = new ServerSecureChannelLayer();
+        var server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server, function (err) {
             should(err).eql(null);
-            done();
+
+            server_secure_channel.close(done);
         });
 
         var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
@@ -105,7 +106,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     });
 
-    it("should handle a OpenSecureChannelRequest start emitting subsequent messages ", function (done) {
+    it("KK6 should handle a OpenSecureChannelRequest start emitting subsequent messages ", function (done) {
 
         var node = new DirectTransport();
 
@@ -117,7 +118,9 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
         server_secure_channel.on("message", function (message) {
             message.request._schema.name.should.equal("GetEndpointsRequest");
-            done();
+            setImmediate(function() {
+                server_secure_channel.close(done);
+            });
         });
 
         var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
@@ -131,7 +134,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     });
 
-    it("should handle a CloseSecureChannelRequest directly and emit a abort event", function (done) {
+    it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", function (done) {
 
         var node = new DirectTransport();
 

@@ -3,7 +3,6 @@
 var should = require("should");
 
 
-
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
@@ -17,23 +16,22 @@ var sinon = require("sinon");
 
 var create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing UAVariableType", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function () {
+    before(function () {
 
-            addressSpace = new address_space.AddressSpace();
-            create_minimalist_address_space_nodeset(addressSpace);
+        addressSpace = new address_space.AddressSpace();
+        create_minimalist_address_space_nodeset(addressSpace);
 
-        });
+    });
 
-        after(function () {
-            if (addressSpace) {
-                addressSpace.dispose();
-            }
-        });
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
     });
 
     it("should read Attribute IsAbstract on UAVariableType ", function () {
@@ -70,7 +68,7 @@ describe("testing UAVariableType", function () {
 
     });
 
-    it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeid not specified)",function() {
+    it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeid not specified)", function () {
 
 
         var variableType = addressSpace.addVariableType({
@@ -91,8 +89,7 @@ describe("testing UAVariableType", function () {
     });
 
 
-
-    it("UAVariableType#instantiate should be possible to instantiate a VariableType and specify its nodeId)",function() {
+    it("UAVariableType#instantiate should be possible to instantiate a VariableType and specify its nodeId)", function () {
 
         var variableType = addressSpace.addVariableType({
             browseName: "MyVariable4",
@@ -111,12 +108,12 @@ describe("testing UAVariableType", function () {
         obj.nodeId.toString().should.eql("ns=3;s=HelloWorld");
     });
 
-    it("UAVariableType#instantiate with componentOf",function() {
+    it("UAVariableType#instantiate with componentOf", function () {
 
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
 
         var myFolder = addressSpace.addObject({
-            browseName:"MyFolder",
+            browseName: "MyFolder",
             organizedBy: addressSpace.rootFolder.objects
         });
 
@@ -135,12 +132,12 @@ describe("testing UAVariableType", function () {
         myFolder.getComponentByName("Instance5").browseName.toString().should.eql("Instance5");
 
     });
-    it("UAVariableType#instantiate with organizedBy",function() {
+    it("UAVariableType#instantiate with organizedBy", function () {
 
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
 
         var myFolder = addressSpace.addObject({
-            browseName:"MyFolder2",
+            browseName: "MyFolder2",
             organizedBy: addressSpace.rootFolder.objects
         });
 
@@ -160,7 +157,7 @@ describe("testing UAVariableType", function () {
         myFolder.getFolderElementByName("Instance6").browseName.toString().should.eql("Instance6");
 
     });
-    it("UAVariableType#instantiate with valueRank and arrayDimension",function() {
+    it("UAVariableType#instantiate with valueRank and arrayDimension", function () {
 
 
         var variableType = addressSpace.addVariableType({
@@ -169,16 +166,16 @@ describe("testing UAVariableType", function () {
             isAbstract: false,
             dataType: "Double",
             valueRank: 2,
-            arrayDimensions: [3,3]
+            arrayDimensions: [3, 3]
         });
 
-        var doubleDataType =addressSpace.findDataType("Double");
+        var doubleDataType = addressSpace.findDataType("Double");
 
         doubleDataType.browseName.toString().should.eql("Double");
 
         variableType.dataType.should.eql(doubleDataType.nodeId);
         variableType.valueRank.should.eql(2);
-        variableType.arrayDimensions.should.eql([3,3]);
+        variableType.arrayDimensions.should.eql([3, 3]);
 
         var obj = variableType.instantiate({
             browseName: "My3x3MatrixVariable"
@@ -188,12 +185,12 @@ describe("testing UAVariableType", function () {
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
         obj.dataType.should.eql(doubleDataType.nodeId);
         obj.valueRank.should.eql(2);
-        obj.arrayDimensions.should.eql([3,3]);
+        obj.arrayDimensions.should.eql([3, 3]);
 
     });
 
 
-    it("should provide a mechanism to customize newly created instance",function() {
+    it("should provide a mechanism to customize newly created instance", function () {
 
 
         var postInstantiateFunc = sinon.spy();

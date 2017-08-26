@@ -1,9 +1,7 @@
+"use strict";
 /* global describe,it,before*/
 
 var should = require("should");
-
-
-
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
@@ -17,11 +15,11 @@ var SessionContext = require("..").SessionContext;
 var context = SessionContext.defaultContext;
 
 var create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("testing UAObjectType", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
         before(function () {
             addressSpace = new address_space.AddressSpace();
@@ -34,7 +32,6 @@ describe("testing UAObjectType", function () {
             }
             done();
         });
-    });
 
     it("should read Attribute IsAbstract on UAObjectType ", function () {
 

@@ -16,7 +16,6 @@ var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var SessionContext = require("node-opcua-address-space").SessionContext;
 var fake_publish_engine = {};
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var fakeNotificationData =[new subscription_service.DataChangeNotification()];
 
@@ -47,14 +46,9 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 
 var add_mock_monitored_item = require("./helper").add_mock_monitored_item;
 
-describe("Subscriptions", function () {
+var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describeWithLeakDetector("Subscriptions", function () {
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
@@ -63,8 +57,6 @@ describe("Subscriptions", function () {
     afterEach(function () {
         this.clock.restore();
     });
-
-
 
     it("T1 - a subscription will make sure that lifeTimeCount is at least 3 times maxKeepAliveCount", function () {
 
@@ -585,7 +577,6 @@ describe("Subscriptions", function () {
 
     });
 
-
     it("T7 - a subscription that hasn't been pinged by client within the lifetime interval shall terminate", function () {
     
         var subscription = new Subscription({
@@ -770,6 +761,7 @@ describe("Subscriptions", function () {
 
 
     });
+
     describe("T12 - NotificationMessages are retained in this queue until they are acknowledged or until they have been in the queue for a minimum of one keep-alive interval.", function () {
 
         it("T12-1 a NotificationMessage is retained in this queue until it is acknowledged", function () {
@@ -859,7 +851,6 @@ describe("Subscriptions", function () {
             subscription.terminate();
 
         });
-
 
         it("T12-3 - 1.02 the server shall retain a maximum number of un-acknowledge NotificationMessage until they are acknoledged", function () {
             // TODO
@@ -1023,6 +1014,7 @@ describe("Subscriptions", function () {
         subscription.terminate();
 
     });
+
     xit("closing a Subscription causes its MonitoredItems to be deleted. ", function () {
 
     });
@@ -1031,13 +1023,6 @@ describe("Subscriptions", function () {
 });
 
 describe("Subscription#setPublishingMode", function () {
-
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
@@ -1276,13 +1261,6 @@ describe("Subscription#setPublishingMode", function () {
 });
 
 describe("Subscription#adjustSamplingInterval", function () {
-
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     beforeEach(function () {
 //xx        this.clock = sinon.useFakeTimers();

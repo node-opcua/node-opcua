@@ -9,84 +9,81 @@ var path = require("path");
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 var Variant = require("node-opcua-variant").Variant;
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var NodeClass = require("node-opcua-data-model").NodeClass;
 
-var nodeset_filename = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
+var nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
 
 var address_space = require("..");
 var UAVariable = address_space.UAVariable;
-var SessionContext =address_space.SessionContext;
+var SessionContext = address_space.SessionContext;
 var context = SessionContext.defaultContext;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing Variables ", function () {
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
+    it("ZZ1- a variable should return attributes with  the expected data type ", function () {
 
-        it("ZZ1- a variable should return attributes with  the expected data type ", function () {
+        var addressSpace = new address_space.AddressSpace();
 
-            var addressSpace = new address_space.AddressSpace();
-
-            var v = new UAVariable({
-                browseName: "some variable",
-                addressSpace: addressSpace,
-                minimumSamplingInterval: 10,
-                arrayDimensions: [1, 2, 3],
-                userAccessLevel: "CurrentRead",
-                accessLevel: "CurrentRead"
-            });
-
-            var value;
-
-            value = v.readAttribute(context, AttributeIds.AccessLevel);
-            value.value.dataType.should.eql(DataType.Byte);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.UserAccessLevel);
-            value.value.dataType.should.eql(DataType.Byte);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.ValueRank);
-            value.value.dataType.should.eql(DataType.Int32);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.ArrayDimensions);
-            value.value.arrayType.should.eql(VariantArrayType.Array);
-            value.value.value.should.eql(new Uint32Array([1, 2, 3]));
-            (value.value.value instanceof Uint32Array).should.eql(true);
-            value.value.dataType.should.eql(DataType.UInt32);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.Historizing);
-            value.value.dataType.should.eql(DataType.Boolean);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.BrowseName);
-            value.value.dataType.should.eql(DataType.QualifiedName);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.DisplayName);
-            value.value.dataType.should.eql(DataType.LocalizedText);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.MinimumSamplingInterval);
-            value.value.dataType.should.eql(DataType.Double);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            value = v.readAttribute(context, AttributeIds.IsAbstract);
-            value.statusCode.name.should.eql("BadAttributeIdInvalid");
-
-            value = v.readAttribute(context, AttributeIds.NodeClass);
-            value.value.dataType.should.eql(DataType.Int32);
-            value.value.value.should.eql(NodeClass.Variable.value);
-            value.statusCode.should.eql(StatusCodes.Good);
-
-            addressSpace.dispose();
+        var v = new UAVariable({
+            browseName: "some variable",
+            addressSpace: addressSpace,
+            minimumSamplingInterval: 10,
+            arrayDimensions: [1, 2, 3],
+            userAccessLevel: "CurrentRead",
+            accessLevel: "CurrentRead"
         });
 
+        var value;
+
+        value = v.readAttribute(context, AttributeIds.AccessLevel);
+        value.value.dataType.should.eql(DataType.Byte);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.UserAccessLevel);
+        value.value.dataType.should.eql(DataType.Byte);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.ValueRank);
+        value.value.dataType.should.eql(DataType.Int32);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.ArrayDimensions);
+        value.value.arrayType.should.eql(VariantArrayType.Array);
+        value.value.value.should.eql(new Uint32Array([1, 2, 3]));
+        (value.value.value instanceof Uint32Array).should.eql(true);
+        value.value.dataType.should.eql(DataType.UInt32);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.Historizing);
+        value.value.dataType.should.eql(DataType.Boolean);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.BrowseName);
+        value.value.dataType.should.eql(DataType.QualifiedName);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.DisplayName);
+        value.value.dataType.should.eql(DataType.LocalizedText);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.MinimumSamplingInterval);
+        value.value.dataType.should.eql(DataType.Double);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        value = v.readAttribute(context, AttributeIds.IsAbstract);
+        value.statusCode.name.should.eql("BadAttributeIdInvalid");
+
+        value = v.readAttribute(context, AttributeIds.NodeClass);
+        value.value.dataType.should.eql(DataType.Int32);
+        value.value.value.should.eql(NodeClass.Variable.value);
+        value.statusCode.should.eql(StatusCodes.Good);
+
+        addressSpace.dispose();
     });
 
 });
@@ -99,22 +96,20 @@ describe("Address Space : add Variable :  testing various variations for specify
 
     var addressSpace;
     var rootFolder;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            addressSpace = new address_space.AddressSpace();
-            generate_address_space(addressSpace, nodeset_filename, function () {
+    before(function (done) {
+        addressSpace = new address_space.AddressSpace();
+        generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findNode("RootFolder");
+            rootFolder = addressSpace.findNode("RootFolder");
 
-                done();
-            });
+            done();
         });
-        after(function () {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-        });
+    });
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
     });
 
     it("AddressSpace#addVariable should accept a dataType as String", function () {
@@ -163,8 +158,6 @@ describe("Address Space : add Variable :  testing various variations for specify
         nodeVar.dataType.toString().should.eql("ns=0;i=2003");
 
     });
-
-
     it("AddressSpace#addVariable({propertyOf:..}) should accept a typeDefinition as a String", function () {
 
         var nodeVar = addressSpace.addVariable({
@@ -178,7 +171,6 @@ describe("Address Space : add Variable :  testing various variations for specify
         nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
 
     });
-
     it("AddressSpace#addVariable should accept a typeDefinition as a VariableTypeId value", function () {
 
         var VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
@@ -229,335 +221,330 @@ describe("Address Space : add Variable :  testing various variations for specify
 describe("testing Variable#bindVariable", function () {
 
     var addressSpace, rootFolder;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            addressSpace = new address_space.AddressSpace();
-            generate_address_space(addressSpace, nodeset_filename, function () {
+    before(function (done) {
+        addressSpace = new address_space.AddressSpace();
+        generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findNode("RootFolder");
+            rootFolder = addressSpace.findNode("RootFolder");
 
-                done();
-            });
-        });
-        after(function () {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            rootFolder = null;
+            done();
         });
     });
-    describe("testing Variable#bindVariable -> Getter", function () {
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        rootFolder = null;
+    });
 
-        it("T1 should create a static read only variable ( static value defined at construction time)", function (done) {
+    it("T1 - testing Variable#bindVariable -> Getter - should create a static read only variable ( static value defined at construction time)", function (done) {
 
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariableT1",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68),
-                value: {
-                    dataType: DataType.Double,
-                    value: 5678
-                },
-                accessLevel: "CurrentRead"
-            });
-            variable.isWritable(context).should.eql(false);
-            (typeof variable.asyncRefresh).should.eql("undefined");
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariableT1",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68),
+            value: {
+                dataType: DataType.Double,
+                value: 5678
+            },
+            accessLevel: "CurrentRead"
+        });
+        variable.isWritable(context).should.eql(false);
+        (typeof variable.asyncRefresh).should.eql("undefined");
 
-            async.series([
-                function read_simple_value(callback) {
+        async.series([
+            function read_simple_value(callback) {
 
-                    var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
-                    dataValue_check.should.be.instanceOf(DataValue);
-                    dataValue_check.statusCode.should.eql(StatusCodes.Good);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.statusCode.should.eql(StatusCodes.Good);
 
-                    //xx console.log("dataValue_check =",dataValue_check.toString());
-                    dataValue_check.value.value.should.eql(5678);
-                    callback(null);
-                },
-                function write_simple_value(callback) {
+                //xx console.log("dataValue_check =",dataValue_check.toString());
+                dataValue_check.value.value.should.eql(5678);
+                callback(null);
+            },
+            function write_simple_value(callback) {
 
-                    var dataValue = new DataValue({
-                        value: {
-                            dataType: DataType.Double,
-                            value: 200
-                        }
-                    });
+                var dataValue = new DataValue({
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200
+                    }
+                });
 
-                    variable.writeValue(context, dataValue, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.BadNotWritable);
-                        callback(err);
-                    });
-                },
-                function read_simple_value(callback) {
+                variable.writeValue(context, dataValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.BadNotWritable);
+                    callback(err);
+                });
+            },
+            function read_simple_value(callback) {
 
-                    var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
-                    dataValue_check.should.be.instanceOf(DataValue);
-                    dataValue_check.value.value.should.eql(5678);
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.value.value.should.eql(5678);
 
-                    callback(null);
-                }
-            ], done);
+                callback(null);
+            }
+        ], done);
 
+    });
+
+    it("T2 - testing Variable#bindVariable -> Getter - should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value", function (done) {
+
+        var sinon = require("sinon");
+
+        var sameDataValue = require("node-opcua-data-value").sameDataValue;
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "Variable37",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
         });
 
-        it("should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value", function (done) {
+        var value = 100.0;
 
-            var sinon = require("sinon");
-
-            var sameDataValue = require("node-opcua-data-value").sameDataValue;
-
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "Variable37",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
+        var getFunc = sinon.spy(function () {
+            return new Variant({
+                dataType: DataType.Double,
+                value: value
             });
+        });
+        var options = {
+            get: getFunc,
+            set: function (variant) {
+                variant.should.be.instanceOf(Variant);
+                value = variant.value;
+                return StatusCodes.Good;
+            }
+        };
+        variable.bindVariable(options);
 
-            var value = 100.0;
 
-           var getFunc = sinon.spy(function() {
+        var base = options.get.callCount;
+
+        var dataValue1 = variable.readValue();
+        console.log("Value1", dataValue1.toString().green);
+
+        options.get.callCount.should.eql(1 + base);
+
+        var dataValue2 = variable.readValue();
+        console.log("Value2", dataValue2.toString().green);
+        options.get.callCount.should.eql(2 + base);
+
+        sameDataValue(dataValue1, dataValue2).should.eql(true);
+        dataValue1.serverTimestamp.getTime().should.eql(dataValue2.serverTimestamp.getTime());
+
+
+        // now change data value
+        value = value + 200;
+
+        var dataValue3 = variable.readValue();
+        console.log("Value3", dataValue3.toString().green);
+        options.get.callCount.should.eql(3 + base);
+        sameDataValue(dataValue1, dataValue3).should.eql(false); // dataValue must have changed
+
+        dataValue1.serverTimestamp.getTime().should.be.belowOrEqual(dataValue3.serverTimestamp.getTime());
+
+
+        done();
+    });
+
+    it("T3 - testing Variable#bindVariable -> Getter - should create a variable with synchronous get and set functor", function (done) {
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariable",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
+        });
+
+        var value = 100.0;
+
+        var options = {
+            get: function () {
                 return new Variant({
                     dataType: DataType.Double,
                     value: value
                 });
-            });
-            var options = {
-                get: getFunc,
-                set: function (variant) {
-                    variant.should.be.instanceOf(Variant);
-                    value = variant.value;
-                    return StatusCodes.Good;
-                }
-            };
-            variable.bindVariable(options);
+            },
+            set: function (variant) {
+                variant.should.be.instanceOf(Variant);
+                value = variant.value;
+                return StatusCodes.Good;
+            }
+        };
+        variable.bindVariable(options);
 
 
-            var base = options.get.callCount;
+        async.series([
+            function read_simple_value(callback) {
 
-            var dataValue1 = variable.readValue();
-            console.log("Value1" ,dataValue1.toString().green);
+                //var
+                variable.readValueAsync(context, function (err) {
+                    if (!err) {
+                        var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+                        dataValue_check.should.be.instanceOf(DataValue);
+                        dataValue_check.statusCode.should.eql(StatusCodes.Good);
+                        //xx console.log("dataValue_check =",dataValue_check.toString());
+                        dataValue_check.value.value.should.eql(100);
+                    }
+                    callback(err);
 
-            options.get.callCount.should.eql(1 + base);
+                });
 
-            var dataValue2 = variable.readValue();
-            console.log("Value2" ,dataValue2.toString().green);
-            options.get.callCount.should.eql(2 + base);
+            },
+            function write_simple_value(callback) {
 
-            sameDataValue(dataValue1,dataValue2).should.eql(true);
-            dataValue1.serverTimestamp.getTime().should.eql(dataValue2.serverTimestamp.getTime());
-
-
-            // now change data value
-            value = value +200;
-
-            var dataValue3 = variable.readValue();
-            console.log("Value3" ,dataValue3.toString().green);
-            options.get.callCount.should.eql(3 + base);
-            sameDataValue(dataValue1,dataValue3).should.eql(false); // dataValue must have changed
-
-            dataValue1.serverTimestamp.getTime().should.be.belowOrEqual(dataValue3.serverTimestamp.getTime());
-
-
-
-            done();
-        });
-
-        it("T2 should create a variable with synchronous get and set functor", function (done) {
-
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariable",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
-            });
-
-            var value = 100.0;
-
-            var options = {
-                get: function () {
-                    return new Variant({
+                var dataValue = new DataValue({
+                    value: {
                         dataType: DataType.Double,
-                        value: value
-                    });
-                },
-                set: function (variant) {
-                    variant.should.be.instanceOf(Variant);
-                    value = variant.value;
-                    return StatusCodes.Good;
-                }
-            };
-            variable.bindVariable(options);
+                        value: 200
+                    }
+                });
 
+                variable.writeValue(context, dataValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    value.should.eql(200);
+                    callback(err);
+                });
+            },
+            function read_simple_value(callback) {
 
-            async.series([
-                function read_simple_value(callback) {
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.value.value.should.eql(200);
 
-                    //var
-                    variable.readValueAsync(context, function (err) {
-                        if (!err) {
-                            var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
-                            dataValue_check.should.be.instanceOf(DataValue);
-                            dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                            //xx console.log("dataValue_check =",dataValue_check.toString());
-                            dataValue_check.value.value.should.eql(100);
-                        }
-                        callback(err);
+                callback(null);
+            }
+        ], done);
 
-                    });
+    });
 
-                },
-                function write_simple_value(callback) {
+    it("T4 - testing Variable#bindVariable -> Getter - should create a read only variable with a timestamped_get", function (done) {
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariableT3",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
+        });
+
+        var value_with_timestamp = new DataValue({
+            value: new Variant({dataType: DataType.Double, value: 987654.0}),
+            sourceTimestamp: new Date(1789, 7, 14),
+            sourcePicoseconds: 0
+        });
+        var counter = 0;
+        var options = {
+            timestamped_get: function () {
+                counter += 1;
+                return value_with_timestamp;
+            }
+        };
+        variable.bindVariable(options);
+
+        // xx (_.isFunction(variable.asyncRefresh)).should.be(true);
+
+        async.series([
+            function read_simple_value(callback) {
+
+                counter = 0;
+                variable.readValueAsync(context, function (err, dataValue_check) {
+                    counter.should.eql(1, "expecting timestamped_get to have been called");
+                    if (!err) {
+                        dataValue_check.should.be.instanceOf(DataValue);
+                        dataValue_check.statusCode.should.eql(StatusCodes.Good);
+                        dataValue_check.value.value.should.eql(987654);
+                        dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
+                    }
+                    callback(err);
+
+                });
+            },
+            function write_simple_value(callback) {
+                var dataValue = new DataValue({
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200
+                    }
+                });
+                variable.writeValue(context, dataValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.BadNotWritable);
+                    callback(err);
+                });
+            },
+            function read_simple_value(callback) {
+
+                variable.readValueAsync(context, function (err, dataValue_check) {
+                    if (!err) {
+                        dataValue_check.should.be.instanceOf(DataValue);
+                        dataValue_check.value.value.should.eql(987654);
+                        dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
+                    }
+                    callback(err);
+                });
+
+            }
+        ], done);
+
+    });
+
+    it("T5 - testing Variable#bindVariable -> Getter - should create a read only variable with a refreshFunc", function (done) {
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariableT4",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
+        });
+        var options = {
+            refreshFunc: function (callback) {
+                setTimeout(function () {
 
                     var dataValue = new DataValue({
                         value: {
                             dataType: DataType.Double,
-                            value: 200
-                        }
+                            value: 2468
+                        },
+                        sourceTimestamp: new Date()
                     });
+                    callback(null, dataValue);
+                }, 10);
+            }
+        };
+        variable.bindVariable(options);
 
-                    variable.writeValue(context, dataValue, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.Good);
-                        value.should.eql(200);
-                        callback(err);
-                    });
-                },
-                function read_simple_value(callback) {
-
-                    var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
-                    dataValue_check.should.be.instanceOf(DataValue);
-                    dataValue_check.value.value.should.eql(200);
-
-                    callback(null);
-                }
-            ], done);
-
-        });
-
-        it("T3 should create a read only variable with a timestamped_get", function (done) {
-
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariableT3",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
-            });
-
-            var value_with_timestamp = new DataValue({
-                value: new Variant({dataType: DataType.Double, value: 987654.0}),
-                sourceTimestamp: new Date(1789, 7, 14),
-                sourcePicoseconds: 0
-            });
-            var counter = 0;
-            var options = {
-                timestamped_get: function () {
-                    counter += 1;
-                    return value_with_timestamp;
-                }
-            };
-            variable.bindVariable(options);
-
-            // xx (_.isFunction(variable.asyncRefresh)).should.be(true);
-
-            async.series([
-                function read_simple_value(callback) {
-
-                    counter = 0;
-                    variable.readValueAsync(context, function (err, dataValue_check) {
-                        counter.should.eql(1, "expecting timestamped_get to have been called");
-                        if (!err) {
-                            dataValue_check.should.be.instanceOf(DataValue);
-                            dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                            dataValue_check.value.value.should.eql(987654);
-                            dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
-                        }
-                        callback(err);
-
-                    });
-                },
-                function write_simple_value(callback) {
-                    var dataValue = new DataValue({
-                        value: {
-                            dataType: DataType.Double,
-                            value: 200
-                        }
-                    });
-                    variable.writeValue(context, dataValue, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.BadNotWritable);
-                        callback(err);
-                    });
-                },
-                function read_simple_value(callback) {
-
-                    variable.readValueAsync(context, function (err, dataValue_check) {
-                        if (!err) {
-                            dataValue_check.should.be.instanceOf(DataValue);
-                            dataValue_check.value.value.should.eql(987654);
-                            dataValue_check.sourceTimestamp.should.eql(new Date(1789, 7, 14));
-                        }
-                        callback(err);
-                    });
-
-                }
-            ], done);
-
-        });
-
-        it("T4 should create a read only variable with a refreshFunc", function (done) {
-
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariableT4",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
-            });
-            var options = {
-                refreshFunc: function (callback) {
-                    setTimeout(function () {
-
-                        var dataValue = new DataValue({
-                            value: {
-                                dataType: DataType.Double,
-                                value: 2468
-                            },
-                            sourceTimestamp: new Date()
-                        });
-                        callback(null, dataValue);
-                    }, 10);
-                }
-            };
-            variable.bindVariable(options);
-
-            async.series([
+        async.series([
 
 
-                function read_simple_value(callback) {
+            function read_simple_value(callback) {
 
-                    var dataValue_check = variable.readValue();
-                    dataValue_check.should.be.instanceOf(DataValue);
-                    dataValue_check.statusCode.should.eql(StatusCodes.UncertainInitialValue);
-                    callback();
-                },
+                var dataValue_check = variable.readValue();
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.statusCode.should.eql(StatusCodes.UncertainInitialValue);
+                callback();
+            },
 
-                function call_refresh(callback) {
-                    variable.asyncRefresh(callback);
-                },
+            function call_refresh(callback) {
+                variable.asyncRefresh(callback);
+            },
 
-                function read_simple_value_after_refresh(callback) {
+            function read_simple_value_after_refresh(callback) {
 
-                    var dataValue_check = variable.readValue();
+                var dataValue_check = variable.readValue();
 
-                    dataValue_check.should.be.instanceOf(DataValue);
-                    dataValue_check.statusCode.should.eql(StatusCodes.Good);
-                    dataValue_check.value.value.should.eql(2468);
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.statusCode.should.eql(StatusCodes.Good);
+                dataValue_check.value.value.should.eql(2468);
 
-                    callback();
+                callback();
 
-                }
-            ], done);
+            }
+        ], done);
 
-        });
     });
 
     function read_double_and_check(variable, expected_value, expected_date, callback) {
@@ -576,212 +563,206 @@ describe("testing Variable#bindVariable", function () {
         });
     }
 
-    describe("testing Variable#bindVariable -> Setter", function () {
+    it("Q1 - testing Variable#bindVariable -> Setter - should create a variable with a sync  setter", function (done) {
 
-        it("Q1 should create a variable with a sync  setter", function (done) {
+        var variable = addressSpace.addVariable({
+            browseName: "SomeVariableQ1",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
+        });
 
-            var variable = addressSpace.addVariable({
-                browseName: "SomeVariableQ1",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
-            });
+        var value_with_timestamp = {
+            value: new Variant({dataType: DataType.Double, value: 100}),
+            sourceTimestamp: new Date(),
+            sourcePicoseconds: 100
+        };
+        var options = {
+            get: function () {
+                return value_with_timestamp.value;
+            },
+            set: function (value) {
+                value_with_timestamp.value = value;
+                return StatusCodes.Good;
+            }
+        };
+        variable.bindVariable(options);
 
-            var value_with_timestamp = {
-                value: new Variant({dataType: DataType.Double, value: 100}),
-                sourceTimestamp: new Date(),
-                sourcePicoseconds: 100
-            };
-            var options = {
-                get: function () {
-                    return value_with_timestamp.value;
-                },
-                set: function (value) {
+        async.series([
+
+            read_double_and_check.bind(null, variable, 100, null),
+
+            function write_simple_value(callback) {
+                var dataValue = new DataValue({
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200
+                    }
+                });
+                variable.writeValue(context, dataValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
+            read_double_and_check.bind(null, variable, 200, null)
+        ], done);
+    });
+
+    it("Q2 - testing Variable#bindVariable -> Setter - should create a variable with a async  setter", function (done) {
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariableQ1",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
+        });
+
+        var value_with_timestamp = {
+            value: new Variant({dataType: DataType.Double, value: 100}),
+            sourceTimestamp: new Date(),
+            sourcePicoseconds: 100
+        };
+        var options = {
+            get: function () {
+                return value_with_timestamp.value;
+            },
+            set: function (value, callback) {
+                setTimeout(function () {
                     value_with_timestamp.value = value;
-                    return StatusCodes.Good;
-                }
-            };
-            variable.bindVariable(options);
+                    callback(null, StatusCodes.Good);
+                }, 10);
+            }
+        };
+        variable.bindVariable(options);
 
-            async.series([
+        async.series([
 
-                read_double_and_check.bind(null, variable, 100, null),
+            read_double_and_check.bind(null, variable, 100, null),
 
-                function write_simple_value(callback) {
-                    var dataValue = new DataValue({
-                        value: {
-                            dataType: DataType.Double,
-                            value: 200
-                        }
-                    });
-                    variable.writeValue(context, dataValue, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.Good);
-                        callback(err);
-                    });
-                },
-                read_double_and_check.bind(null, variable, 200, null)
-            ], done);
+            function write_simple_value(callback) {
+                var dataValue = new DataValue({
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200
+                    }
+                });
+                variable.writeValue(context, dataValue, null, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
+            read_double_and_check.bind(null, variable, 200, null)
+        ], done);
+    });
+
+    it("Q3 - testing Variable#bindVariable -> Setter - should create a variable with a sync timestamped setter", function (done) {
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariableQ1",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68)
         });
 
-        it("Q2 should create a variable with a async  setter", function (done) {
+        var value_with_timestamp = new DataValue({
+            value: new Variant({dataType: DataType.Double, value: 100}),
+            sourceTimestamp: new Date(1999, 9, 9),
+            sourcePicoseconds: 100
+        });
+        var options = {
+            timestamped_get: function () {
+                return value_with_timestamp;
+            },
+            timestamped_set: function (ts_value, callback) {
+                value_with_timestamp.value = ts_value.value;
+                value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
+                value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
+                callback(null, StatusCodes.Good);
+            }
+        };
+        variable.bindVariable(options);
 
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariableQ1",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
-            });
+        var expected_date1 = new Date(1999, 9, 9);
+        var expected_date2 = new Date(2010, 9, 9);
+        async.series([
 
-            var value_with_timestamp = {
-                value: new Variant({dataType: DataType.Double, value: 100}),
-                sourceTimestamp: new Date(),
-                sourcePicoseconds: 100
-            };
-            var options = {
-                get: function () {
-                    return value_with_timestamp.value;
-                },
-                set: function (value, callback) {
-                    setTimeout(function () {
-                        value_with_timestamp.value = value;
-                        callback(null, StatusCodes.Good);
-                    }, 10);
-                }
-            };
-            variable.bindVariable(options);
+            read_double_and_check.bind(null, variable, 100, expected_date1),
 
-            async.series([
+            function write_simple_value(callback) {
+                var dataValue = new DataValue({
+                    sourceTimestamp: expected_date2,
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200
+                    }
+                });
+                variable.writeValue(context, dataValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
 
-                read_double_and_check.bind(null, variable, 100, null),
+            read_double_and_check.bind(null, variable, 200, expected_date2)
+        ], done);
+    });
 
-                function write_simple_value(callback) {
-                    var dataValue = new DataValue({
-                        value: {
-                            dataType: DataType.Double,
-                            value: 200
-                        }
-                    });
-                    variable.writeValue(context, dataValue, null, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.Good);
-                        callback(err);
-                    });
-                },
-                read_double_and_check.bind(null, variable, 200, null)
-            ], done);
+    it("Q4 - testing Variable#bindVariable -> Setter - issue#332 should create a variable with async setter and an async getter", function (done) {
+
+        var value_with_timestamp = new DataValue({
+            value: new Variant({dataType: DataType.Double, value: 100}),
+            sourceTimestamp: new Date(1999, 9, 9),
+            sourcePicoseconds: 100
         });
 
-        it("Q3 should create a variable with a sync timestamped setter", function (done) {
-
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariableQ1",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68)
-            });
-
-            var value_with_timestamp = new DataValue({
-                value: new Variant({dataType: DataType.Double, value: 100}),
-                sourceTimestamp: new Date(1999, 9, 9),
-                sourcePicoseconds: 100
-            });
-            var options = {
-                timestamped_get: function () {
-                    return value_with_timestamp;
-                },
-                timestamped_set: function (ts_value, callback) {
+        var value_options = {
+            timestamped_get: function (callback) {
+                setTimeout(function () {
+                    callback(null, value_with_timestamp);
+                }, 100);
+            },
+            timestamped_set: function (ts_value, callback) {
+                setTimeout(function () {
                     value_with_timestamp.value = ts_value.value;
                     value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
                     value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
                     callback(null, StatusCodes.Good);
-                }
-            };
-            variable.bindVariable(options);
+                }, 100);
+            }
+        };
 
-            var expected_date1 = new Date(1999, 9, 9);
-            var expected_date2 = new Date(2010, 9, 9);
-            async.series([
-
-                read_double_and_check.bind(null, variable, 100, expected_date1),
-
-                function write_simple_value(callback) {
-                    var dataValue = new DataValue({
-                        sourceTimestamp: expected_date2,
-                        value: {
-                            dataType: DataType.Double,
-                            value: 200
-                        }
-                    });
-                    variable.writeValue(context, dataValue, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.Good);
-                        callback(err);
-                    });
-                },
-
-                read_double_and_check.bind(null, variable, 200, expected_date2)
-            ], done);
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeVariableQ1",
+            dataType: "Double",
+            typeDefinition: makeNodeId(68),
+            value: value_options
         });
 
+        //, now use it ....
+        var expected_date1 = new Date(1999, 9, 9);
+        var expected_date2 = new Date(2010, 9, 9);
 
-        it("Q4- issue#332 should create a variable with async setter and an async getter",function(done){
+        async.series([
 
-            var value_with_timestamp = new DataValue({
-                value: new Variant({dataType: DataType.Double, value: 100}),
-                sourceTimestamp: new Date(1999, 9, 9),
-                sourcePicoseconds: 100
-            });
+            read_double_and_check.bind(null, variable, 100, expected_date1),
 
-            var value_options = {
-                timestamped_get: function (callback) {
-                    setTimeout(function(){
-                        callback(null,value_with_timestamp);
-                    },100);
-                },
-                timestamped_set: function (ts_value, callback) {
-                    setTimeout(function(){
-                        value_with_timestamp.value = ts_value.value;
-                        value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
-                        value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
-                        callback(null, StatusCodes.Good);
-                    },100);
-                }
-            };
+            function write_simple_value(callback) {
+                var dataValue = new DataValue({
+                    sourceTimestamp: expected_date2,
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200
+                    }
+                });
+                variable.writeValue(context, dataValue, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
 
-            var variable = addressSpace.addVariable({
-                organizedBy: rootFolder,
-                browseName: "SomeVariableQ1",
-                dataType: "Double",
-                typeDefinition: makeNodeId(68),
-                value: value_options
-            });
-
-            //, now use it ....
-            var expected_date1 = new Date(1999, 9, 9);
-            var expected_date2 = new Date(2010, 9, 9);
-
-            async.series([
-
-                read_double_and_check.bind(null, variable, 100, expected_date1),
-
-                function write_simple_value(callback) {
-                    var dataValue = new DataValue({
-                        sourceTimestamp: expected_date2,
-                        value: {
-                            dataType: DataType.Double,
-                            value: 200
-                        }
-                    });
-                    variable.writeValue(context, dataValue, function (err, statusCode) {
-                        statusCode.should.eql(StatusCodes.Good);
-                        callback(err);
-                    });
-                },
-
-                read_double_and_check.bind(null, variable, 200, expected_date2)
-            ], done);
-
-        });
+            read_double_and_check.bind(null, variable, 200, expected_date2)
+        ], done);
 
     });
-
 
 });
 
@@ -790,32 +771,31 @@ describe("testing Variable#writeValue Scalar", function () {
 
     var addressSpace, rootFolder, variable;
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
+    before(function (done) {
 
-            addressSpace = new address_space.AddressSpace();
-            generate_address_space(addressSpace, nodeset_filename, function () {
+        addressSpace = new address_space.AddressSpace();
+        generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findNode("RootFolder");
+            rootFolder = addressSpace.findNode("RootFolder");
 
-                variable = new UAVariable({
-                    browseName: "some variable",
-                    addressSpace: addressSpace,
-                    minimumSamplingInterval: 10,
-                    userAccessLevel: "CurrentRead | CurrentWrite",
-                    accessLevel: "CurrentRead | CurrentWrite",
-                    dataType: "Duration",
+            variable = new UAVariable({
+                browseName: "some variable",
+                addressSpace: addressSpace,
+                minimumSamplingInterval: 10,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
+                dataType: "Duration",
 
-                    value: new Variant({
-                        arrayType: VariantArrayType.Scalar,
-                        dataType: DataType.Double,
-                        value: 100.0
-                    })
-                });
-
-                done();
+                value: new Variant({
+                    arrayType: VariantArrayType.Scalar,
+                    dataType: DataType.Double,
+                    value: 100.0
+                })
             });
+
+            done();
         });
+    });
     beforeEach(function (done) {
 
         var dataValue = new DataValue({
@@ -841,7 +821,6 @@ describe("testing Variable#writeValue Scalar", function () {
         }
         rootFolder = null;
     });
-    });
 
     it("should write a double in a Duration ", function (done) {
 
@@ -865,61 +844,59 @@ describe("testing Variable#writeValue Scalar", function () {
 describe("testing Variable#writeValue Array", function () {
 
     var addressSpace, rootFolder, variable;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            addressSpace = new address_space.AddressSpace();
-            generate_address_space(addressSpace, nodeset_filename, function () {
+    before(function (done) {
+        addressSpace = new address_space.AddressSpace();
+        generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findNode("RootFolder");
+            rootFolder = addressSpace.findNode("RootFolder");
 
 
-                variable = new UAVariable({
-                    browseName: "some variable",
-                    addressSpace: addressSpace,
-                    minimumSamplingInterval: 10,
-                    userAccessLevel: "CurrentRead | CurrentWrite",
-                    accessLevel: "CurrentRead | CurrentWrite",
-                    arrayDimensions: [1, 2, 3],
-                    dataType: "Double",
+            variable = new UAVariable({
+                browseName: "some variable",
+                addressSpace: addressSpace,
+                minimumSamplingInterval: 10,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
+                arrayDimensions: [1, 2, 3],
+                dataType: "Double",
 
-                    value: new Variant({
-                        arrayType: VariantArrayType.Array,
-                        dataType: DataType.Double,
-                        value: []
-                    })
-
-                });
-
-                done();
-            });
-        });
-        beforeEach(function (done) {
-            var dataValue = new DataValue({
-                value: {
-                    dataType: DataType.Double,
+                value: new Variant({
                     arrayType: VariantArrayType.Array,
-                    value: [1, 2, 3, 4, 5, 6]
-                }
+                    dataType: DataType.Double,
+                    value: []
+                })
+
             });
 
-            variable.writeValue(context, dataValue, function (err, statusCode) {
-                statusCode.should.eql(StatusCodes.Good);
-                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
-                dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
-                done(err);
-            });
-        });
-
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            rootFolder = null;
-            variable = null;
             done();
         });
+    });
+    beforeEach(function (done) {
+        var dataValue = new DataValue({
+            value: {
+                dataType: DataType.Double,
+                arrayType: VariantArrayType.Array,
+                value: [1, 2, 3, 4, 5, 6]
+            }
+        });
+
+        variable.writeValue(context, dataValue, function (err, statusCode) {
+            statusCode.should.eql(StatusCodes.Good);
+            var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+            dataValue_check.value.value.should.eql(new Float64Array([1, 2, 3, 4, 5, 6]));
+            done(err);
+        });
+    });
+
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        rootFolder = null;
+        variable = null;
+        done();
     });
 
     it("A1 should write an array ", function (done) {
@@ -1046,6 +1023,7 @@ describe("testing Variable#writeValue Array", function () {
         ], done);
 
     });
+
     it("A4 should write statusCode= GoodClamped and retrieve statusCode GoodClamped with index range", function (done) {
 
         async.series([
@@ -1086,7 +1064,8 @@ describe("testing Variable#writeValue Array", function () {
         ], done);
 
     });
-    it("should write sourceTimestamp and retrieve sourceTimestamp", function (done) {
+
+    it("A5 should write sourceTimestamp and retrieve sourceTimestamp", function (done) {
 
         async.series([
 
@@ -1130,68 +1109,65 @@ describe("testing Variable#writeValue Array", function () {
 
     });
 
-
 });
 
 
 describe("testing Variable#writeValue on Integer", function () {
 
     var addressSpace, rootFolder, variableInteger, variableInt32;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            addressSpace = new address_space.AddressSpace();
-            generate_address_space(addressSpace, nodeset_filename, function () {
+    before(function (done) {
+        addressSpace = new address_space.AddressSpace();
+        generate_address_space(addressSpace, nodeset_filename, function () {
 
-                rootFolder = addressSpace.findNode("RootFolder");
+            rootFolder = addressSpace.findNode("RootFolder");
 
 
-                variableInteger = new UAVariable({
-                    browseName: "some INTEGER Variable",
-                    addressSpace: addressSpace,
-                    minimumSamplingInterval: 10,
-                    userAccessLevel: "CurrentRead | CurrentWrite",
-                    accessLevel: "CurrentRead | CurrentWrite",
-                    arrayDimensions: [1, 2, 3],
-                    dataType: "Integer",
+            variableInteger = new UAVariable({
+                browseName: "some INTEGER Variable",
+                addressSpace: addressSpace,
+                minimumSamplingInterval: 10,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
+                arrayDimensions: [1, 2, 3],
+                dataType: "Integer",
 
-                    value: new Variant({
-                        dataType: DataType.Integer,
-                        value: 1
-                    })
+                value: new Variant({
+                    dataType: DataType.Integer,
+                    value: 1
+                })
 
-                });
-
-                variableInt32 = new UAVariable({
-                    browseName: "some Int32 Variable",
-                    addressSpace: addressSpace,
-                    minimumSamplingInterval: 10,
-                    userAccessLevel: "CurrentRead | CurrentWrite",
-                    accessLevel: "CurrentRead | CurrentWrite",
-                    arrayDimensions: [1, 2, 3],
-                    dataType: "Int32",
-
-                    value: new Variant({
-                        dataType: DataType.Int32,
-                        value: 1
-                    })
-
-                });
-
-                done();
             });
-        });
-        beforeEach(function (done) {
-            done();
-        });
 
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
+            variableInt32 = new UAVariable({
+                browseName: "some Int32 Variable",
+                addressSpace: addressSpace,
+                minimumSamplingInterval: 10,
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                accessLevel: "CurrentRead | CurrentWrite",
+                arrayDimensions: [1, 2, 3],
+                dataType: "Int32",
+
+                value: new Variant({
+                    dataType: DataType.Int32,
+                    value: 1
+                })
+
+            });
+
             done();
         });
+    });
+    beforeEach(function (done) {
+        done();
+    });
+
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     function verify_badtypemismatch(variable, dataType, value, done) {
@@ -1281,54 +1257,51 @@ describe("testing UAVariable ", function () {
     var addressSpace, rootFolder, variableInteger;
 
     var variable_not_readable;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
+    before(function (done) {
 
+        addressSpace = new address_space.AddressSpace();
+        generate_address_space(addressSpace, nodeset_filename, function (err) {
 
-            addressSpace = new address_space.AddressSpace();
-            generate_address_space(addressSpace, nodeset_filename, function (err) {
+            if (!err) {
+                rootFolder = addressSpace.findNode("RootFolder");
 
-                if (!err) {
-                    rootFolder = addressSpace.findNode("RootFolder");
+                variableInteger = addressSpace.addVariable({
+                    organizedBy: rootFolder,
+                    browseName: "some INTEGER Variable",
+                    minimumSamplingInterval: 10,
+                    userAccessLevel: "CurrentRead | CurrentWrite",
+                    accessLevel: "CurrentRead | CurrentWrite",
+                    arrayDimensions: [1, 2, 3],
+                    dataType: "Integer",
+                    value: new Variant({
+                        dataType: DataType.Int32,
+                        value: 1
+                    })
+                });
 
-                    variableInteger = addressSpace.addVariable({
-                        organizedBy: rootFolder,
-                        browseName: "some INTEGER Variable",
-                        minimumSamplingInterval: 10,
-                        userAccessLevel: "CurrentRead | CurrentWrite",
-                        accessLevel: "CurrentRead | CurrentWrite",
-                        arrayDimensions: [1, 2, 3],
-                        dataType: "Integer",
-                        value: new Variant({
-                            dataType: DataType.Int32,
-                            value: 1
-                        })
-                    });
+                variable_not_readable = addressSpace.addVariable({
+                    organizedBy: rootFolder,
+                    browseName: "NotReadableVariable",
+                    userAccessLevel: "CurrentWrite",
+                    accessLevel: "CurrentWrite",
+                    dataType: "Integer",
+                    value: new Variant({
+                        dataType: DataType.Int32,
+                        value: 2
+                    })
 
-                    variable_not_readable = addressSpace.addVariable({
-                        organizedBy: rootFolder,
-                        browseName: "NotReadableVariable",
-                        userAccessLevel: "CurrentWrite",
-                        accessLevel: "CurrentWrite",
-                        dataType: "Integer",
-                        value: new Variant({
-                            dataType: DataType.Int32,
-                            value: 2
-                        })
-
-                    });
-                }
-                done(err);
-            });
-        });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
+                });
             }
-            done();
+            done(err);
         });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     it("UAVariable#clone should clone a variable", function () {
@@ -1347,7 +1320,7 @@ describe("testing UAVariable ", function () {
         variableIntegerClone._dataValue.value.should.eql(variableInteger._dataValue.value);
     });
 
-    it("UAVariable#readValue should return an error if value is not readable",function() {
+    it("UAVariable#readValue should return an error if value is not readable", function () {
 
         variable_not_readable._dataValue.value.dataType.should.eql(DataType.Int32);
         variable_not_readable._dataValue.value.value.should.eql(2);
@@ -1360,7 +1333,7 @@ describe("testing UAVariable ", function () {
         should(dataValue.sourceTimestamp).eql(null);
     });
 
-    it("UAVariable#readValueAsync should return an error if value is not readable",function(done) {
+    it("UAVariable#readValueAsync should return an error if value is not readable", function (done) {
 
         variable_not_readable._dataValue.value.dataType.should.eql(DataType.Int32);
         variable_not_readable._dataValue.value.value.should.eql(2);
@@ -1374,7 +1347,6 @@ describe("testing UAVariable ", function () {
             done();
         });
     });
-
 
     it("UAVariable#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", function (done) {
 
@@ -1473,6 +1445,7 @@ describe("testing UAVariable ", function () {
 
 
     });
+
     it("UAVariable#writeAttribute ", function (done) {
         var write_service = require("node-opcua-service-write");
         var WriteValue = write_service.WriteValue;
@@ -1488,7 +1461,7 @@ describe("testing UAVariable ", function () {
 
     });
 
-    it("UAVariable#setValueFromSource should cause 'value_changed' event to be raised",function(done) {
+    it("UAVariable#setValueFromSource should cause 'value_changed' event to be raised", function (done) {
 
         var objectsFolder = addressSpace.findNode("ObjectsFolder");
 
@@ -1504,14 +1477,17 @@ describe("testing UAVariable ", function () {
         temperatureVar.minimumSamplingInterval.should.eql(0);
 
         var changeDetected = 0;
-        temperatureVar.on("value_changed",function(dataValue) {
-            changeDetected+=1;
+        temperatureVar.on("value_changed", function (dataValue) {
+            changeDetected += 1;
         });
 
-        function wait_a_little_bit(callback) { setTimeout(callback,100);}
+        function wait_a_little_bit(callback) {
+            setTimeout(callback, 100);
+        }
+
         async.series([
             function (callback) {
-                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 3.14},StatusCodes.Good);
+                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 3.14}, StatusCodes.Good);
                 changeDetected.should.equal(1);
 
                 callback();
@@ -1520,7 +1496,7 @@ describe("testing UAVariable ", function () {
 
             function (callback) {
                 // calling setValueFromSource with same variant will cause change event, as in fact timestamps are also updated
-                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 3.14},StatusCodes.Good);
+                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 3.14}, StatusCodes.Good);
                 changeDetected.should.equal(2);
                 callback();
 
@@ -1530,12 +1506,12 @@ describe("testing UAVariable ", function () {
             wait_a_little_bit,
 
             function (callback) {
-                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 6.28},StatusCodes.Good);
+                temperatureVar.setValueFromSource({dataType: DataType.Double, value: 6.28}, StatusCodes.Good);
                 changeDetected.should.equal(3);
                 callback();
             }
 
-        ],done);
+        ], done);
 
     });
 });

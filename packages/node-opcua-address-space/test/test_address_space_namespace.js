@@ -5,11 +5,9 @@ var path = require("path");
 var AddressSpace = require("..").AddressSpace;
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing address space namespace", function () {
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-    });
     it("#getNamespaceUri : should have namespace 0", function () {
 
         var addressSpace = new AddressSpace();
@@ -38,8 +36,6 @@ var generate_address_space = require("node-opcua-address-space-loader").generate
 
 describe("testing  address space namespace loading", function () {
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-    });
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
 
         var addressSpace = new AddressSpace();

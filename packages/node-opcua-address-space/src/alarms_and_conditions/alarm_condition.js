@@ -12,18 +12,10 @@ var Variant = require("node-opcua-variant").Variant;
 var DataType = require("node-opcua-variant").DataType;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var UAObjectType = require("../ua_object_type").UAObjectType;
-var UAObject = require("../ua_object").UAObject;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
-
 
 var util = require("util");
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
 var conditions = require("./condition");
-var UAConditionBase = conditions.UAConditionBase;
 var ConditionSnapshot = conditions.ConditionSnapshot;
 var AddressSpace = require("../address_space").AddressSpace;
 var NodeId = require("node-opcua-nodeid").NodeId;
@@ -36,15 +28,18 @@ var doDebug = false;
 //----------------------------------------------------------------------------------------------------------------------
 var UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
 
-function UAShelvingStateMachine()
-{
+function UAShelvingStateMachine() {
 
 }
-util.inherits(UAShelvingStateMachine,UAStateMachine);
 
-UAShelvingStateMachine.promote = function(shelvingState) {
+util.inherits(UAShelvingStateMachine, UAStateMachine);
+
+UAShelvingStateMachine.promote = function (shelvingState) {
 
     UAStateMachine.promote(shelvingState);
+
+    Object.setPrototypeOf(shelvingState,UAShelvingStateMachine.prototype);
+    shelvingState._timer = null;
 
     if (shelvingState.unshelve) {
         shelvingState.unshelve.bindMethod(_unshelve_method);
@@ -58,11 +53,11 @@ UAShelvingStateMachine.promote = function(shelvingState) {
     // install unshelveTime
     if (shelvingState.unshelveTime) {
         shelvingState.unshelveTime.minimumSamplingInterval = 500;
-        shelvingState.unshelveTime.bindVariable({ get: _unShelveTimeFunc.bind(null,shelvingState)},true)
+        shelvingState.unshelveTime.bindVariable({get: _unShelveTimeFunc.bind(null, shelvingState)}, true);
     }
 
+    assert(shelvingState instanceof UAShelvingStateMachine);
 };
-
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -91,18 +86,18 @@ ConditionSnapshot.prototype.setSuppressedState = function (suppressed) {
     self._set_twoStateVariable("suppressedState", suppressed);
 };
 
-ConditionSnapshot.prototype.getActiveState = function() {
-  var self = this;
-  return self._get_twoStateVariable("activeState");
+ConditionSnapshot.prototype.getActiveState = function () {
+    var self = this;
+    return self._get_twoStateVariable("activeState");
 };
 
-ConditionSnapshot.prototype.setActiveState = function(newActiveState) {
+ConditionSnapshot.prototype.setActiveState = function (newActiveState) {
     var self = this;
     var activeState = self.getActiveState();
-    if (activeState == newActiveState) {
+    if (activeState === newActiveState) {
         return StatusCodes.Bad;
     }
-    self._set_twoStateVariable("activeState",newActiveState);
+    self._set_twoStateVariable("activeState", newActiveState);
     return StatusCodes.Good;
 };
 
@@ -118,15 +113,22 @@ ConditionSnapshot.prototype.setShelvingState = function (state) {
 function UAAlarmConditionBase() {
 
 }
+
 util.inherits(UAAlarmConditionBase, UAAcknowledgeableConditionBase);
 
-
+UAAlarmConditionBase.prototype.dispose = function () {
+    var self = this;
+    if (self.shelvingState) {
+        _clear_timer_if_any(self.shelvingState);
+    }
+    UAAcknowledgeableConditionBase.prototype.dispose.apply(self, arguments);
+};
 
 
 /**
  * @method activateAlarm
  */
-UAAlarmConditionBase.prototype.activateAlarm = function() {
+UAAlarmConditionBase.prototype.activateAlarm = function () {
     // will set acknowledgeable to false and retain to true
     var self = this;
     var branch = self.currentBranch();
@@ -138,8 +140,7 @@ UAAlarmConditionBase.prototype.activateAlarm = function() {
 /**
  * @method desactivateAlarm
  */
-UAAlarmConditionBase.prototype.desactivateAlarm = function() {
-    var self = this;
+UAAlarmConditionBase.prototype.desactivateAlarm = function () {
     var self = this;
     var branch = self.currentBranch();
     branch.setRetain(true);
@@ -161,7 +162,7 @@ UAAlarmConditionBase.prototype.isSuppressedOrShelved = function () {
     var shelved = false;
     if (node.shelvingState) {
         var shelvedValue = node.shelvingState.currentState.readValue().value.value;
-        if (shelvedValue && shelvedValue.text != "Unshelved") {
+        if (shelvedValue && shelvedValue.text !== "Unshelved") {
             shelved = true;
         }
         //console.log("shelved = shelved",shelvedValue,shelved);
@@ -198,11 +199,11 @@ UAAlarmConditionBase.MaxDuration = 999999999.999;
  */
 UAAlarmConditionBase.prototype.getMaxTimeShelved = function () {
     var node = this;
-    if (!node.maxTimeShelved)  {
+    if (!node.maxTimeShelved) {
         return UAAlarmConditionBase.MaxDuration;
     }
     var dataValue = node.maxTimeShelved.readValue();
-    assert(dataValue.value.dataType == DataType.Double); // Double <= Duration
+    assert(dataValue.value.dataType === DataType.Double); // Double <= Duration
     return dataValue.value.value;
 };
 
@@ -234,7 +235,7 @@ function _unshelve_method(inputArguments, context, callback) {
     // }
 
     var shelvingState = context.object;
-    if (shelvingState.getCurrentState() == "Unshelved") {
+    if (shelvingState.getCurrentState() === "Unshelved") {
         return callback(null, {statusCode: StatusCodes.BadConditionNotShelved});
     }
     shelvingState.setState("Unshelved");
@@ -248,11 +249,45 @@ function _unshelve_method(inputArguments, context, callback) {
 }
 
 function _clear_timer_if_any(shelvingState) {
+    assert(shelvingState instanceof UAShelvingStateMachine);
     if (shelvingState._timer) {
         clearTimeout(shelvingState._timer);
+        console.log("_clear_timer_if_any shelvingState = ",shelvingState._timer,shelvingState.constructor.name);
         shelvingState._timer = null;
     }
+}
 
+function _automatically_unshelve(shelvingState) {
+
+    assert(shelvingState._timer, "expecting timerId to be set");
+    shelvingState._timer = null;
+
+    if (doDebug) {
+        console.log("Automatically unshelving variable ", shelvingState.browseName.toString());
+    }
+
+    if (shelvingState.getCurrentState() === "Unshelved") {
+        throw new Error(StatusCodes.BadConditionNotShelved);
+    }
+    shelvingState.setState("Unshelved");
+
+    shelvingState._unsheveldTime = new Date(); // now
+    assert(!shelvingState._timer);
+}
+
+function _start_timer_for_automatic_unshelve(shelvingState,duration) {
+
+    shelvingState._sheveldTime = new Date(); // now
+    shelvingState._duration = duration;
+    if (doDebug) {
+        console.log("shelvingState._duration", shelvingState._duration);
+    }
+
+    assert(!shelvingState._timer);
+    if (duration !== UAAlarmConditionBase.MaxDuration) {
+        assert(!shelvingState._timer);
+        shelvingState._timer = setTimeout(_automatically_unshelve.bind(null, shelvingState), shelvingState._duration);
+    }
 }
 
 // Spec 1.03:
@@ -276,7 +311,9 @@ function _timedShelve_method(inputArguments, context, callback) {
     assert(inputArguments.length === 1);
 
     var shelvingState = context.object;
-    if (shelvingState.getCurrentState() != "Unshelved") {
+    assert(shelvingState instanceof UAShelvingStateMachine);
+
+    if (shelvingState.getCurrentState() !== "Unshelved") {
         return callback(null, {statusCode: StatusCodes.BadConditionAlreadyShelved});
     }
     // checking duration ...
@@ -289,7 +326,7 @@ function _timedShelve_method(inputArguments, context, callback) {
     var maxTimeShelved = alarmNode.getMaxTimeShelved();
     assert(_.isFinite(maxTimeShelved));
 
-    assert(inputArguments[0].dataType == DataType.Double); // Duration
+    assert(inputArguments[0].dataType === DataType.Double); // Duration
     assert(inputArguments[0] instanceof Variant);
 
     //xx console.log("inputArguments",inputArguments[0].toString());
@@ -297,43 +334,16 @@ function _timedShelve_method(inputArguments, context, callback) {
     var proposedDuration = inputArguments[0].value;// as double (milliseconds)
     if (proposedDuration > maxTimeShelved) {
         return callback(null, {statusCode: StatusCodes.BadShelvingTimeOutOfRange});
-
     }
+
     _clear_timer_if_any(shelvingState);
-
     shelvingState.setState("TimedShelved");
-
-    shelvingState._sheveldTime = new Date(); // now
-    shelvingState._duration    = proposedDuration;
-    assert(!shelvingState._timer);
-
-    if (doDebug) {
-        console.log("shelvingState._duration",shelvingState._duration);
-    }
-    shelvingState._timer = setTimeout(_automatically_unshelve.bind(null,shelvingState),shelvingState._duration);
+    _start_timer_for_automatic_unshelve(shelvingState,proposedDuration);
 
     return callback(null, {statusCode: StatusCodes.Good});
 
 }
 
-function _automatically_unshelve(shelvingState){
-
-    if (doDebug) {
-        console.log("Automatically unshelving variable " ,shelvingState.browseName.toString());
-    }
-
-    if (shelvingState.getCurrentState() == "Unshelved") {
-      throw new Error(StatusCodes.BadConditionNotShelved);
-    }
-    shelvingState.setState("Unshelved");
-
-    shelvingState._unsheveldTime = new Date(); // now
-    if (shelvingState._timer) {
-        clearTimeout(shelvingState._timer);
-        shelvingState._timer = null;
-    }
-    assert(!shelvingState._timer);
-}
 
 // Spec 1.03:
 // OneShotShelve Method
@@ -346,7 +356,7 @@ function _oneShotShelve_method(inputArguments, context, callback) {
 
     assert(inputArguments.length === 0);
     var shelvingState = context.object;
-    if (shelvingState.getCurrentState() == "OneShotShelved") {
+    if (shelvingState.getCurrentState() === "OneShotShelved") {
         return callback(null, {statusCode: StatusCodes.BadConditionAlreadyShelved});
     }
     // checking duration ...
@@ -357,26 +367,19 @@ function _oneShotShelve_method(inputArguments, context, callback) {
         return callback(null, {statusCode: StatusCodes.BadNodeIdInvalid});
     }
 
-    _clear_timer_if_any(shelvingState);
-
-    shelvingState.setState("OneShotShelved");
 
     var maxTimeShelved = alarmNode.getMaxTimeShelved();
     assert(_.isFinite(maxTimeShelved));
     assert(maxTimeShelved !== UAAlarmConditionBase.MaxDuration);
 
-    shelvingState._sheveldTime = new Date(); // now
-    shelvingState._duration    = maxTimeShelved;
-
     // set automatic unshelving timer
-    assert(!shelvingState._timer);
-
-    if (maxTimeShelved != UAAlarmConditionBase.MaxDuration) {
-        shelvingState._timer = setTimeout(_automatically_unshelve.bind(null,shelvingState),shelvingState._duration);
-    }
+    _clear_timer_if_any(shelvingState);
+    shelvingState.setState("OneShotShelved");
+    _start_timer_for_automatic_unshelve(shelvingState,maxTimeShelved);
 
     return callback(null, {statusCode: StatusCodes.Good});
 }
+
 // from spec 1.03 :
 // * UnshelveTime specifies the remaining time in milliseconds until the Alarm automatically
 //   transitions into the Un-shelved state.
@@ -387,21 +390,21 @@ function _oneShotShelve_method(inputArguments, context, callback) {
 function _unShelveTimeFunc(shelvingState) {
 
 
-    if (shelvingState.getCurrentState() == "Unshelved") {
+    if (shelvingState.getCurrentState() === "Unshelved") {
         return new Variant({
             dataType: DataType.StatusCode,
             value: StatusCodes.BadConditionNotShelved
         });
     }
 
-    if (shelvingState.getCurrentState() == "OneShotShelved" &&  shelvingState._duration === UAAlarmConditionBase.MaxDuration ) {
+    if (shelvingState.getCurrentState() === "OneShotShelved" && shelvingState._duration === UAAlarmConditionBase.MaxDuration) {
         return new Variant({
             dataType: DataType.Double,
             value: UAAlarmConditionBase.MaxDuration
         });
     }
-    var now =new Date();
-    var timeToAutomaticUnshelvedState = shelvingState._duration - (now - shelvingState._sheveldTime) ;
+    var now = new Date();
+    var timeToAutomaticUnshelvedState = shelvingState._duration - (now - shelvingState._sheveldTime);
     // timeToAutomaticUnshelvedState should be greater than zero
 
     return new Variant({
@@ -426,8 +429,10 @@ UAAlarmConditionBase.prototype.getInputNodeNode = function () {
  * @returns {*}
  */
 UAAlarmConditionBase.prototype.getInputNodeValue = function () {
-    var node= this.getInputNodeNode();
-    if(!node) { return null;}
+    var node = this.getInputNodeNode();
+    if (!node) {
+        return null;
+    }
     assert(node instanceof UAVariable);
     return node.readValue().value.value;
 };
@@ -460,13 +465,13 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
         throw new Error("cannot find AlarmConditionType");
     }
 
-    options.optionals = options.optionals ||[];
-    if(options.hasOwnProperty("maxTimeShelved")) {
+    options.optionals = options.optionals || [];
+    if (options.hasOwnProperty("maxTimeShelved")) {
         options.optionals.push("MaxTimeShelved");
         assert(_.isFinite(options.maxTimeShelved));
     }
 
-    assert(alarmConditionTypeBase == alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
+    assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
 
     var alarmNode = UAAcknowledgeableConditionBase.instantiate(addressSpace, alarmConditionTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UAAlarmConditionBase.prototype);
@@ -565,13 +570,12 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
      */
     if (alarmNode.maxTimeShelved) {
         options.maxTimeShelved = options.maxTimeShelved || 60.0 * 1000; // 60 seconds
-        alarmNode.maxTimeShelved.setValueFromSource({dataType: "Duration", value: options.maxTimeShelved})
+        alarmNode.maxTimeShelved.setValueFromSource({dataType: "Duration", value: options.maxTimeShelved});
     }
 
 
-
     // ---------- install inputNode
-    assert(options.inputNode," must provide options.inputNode (NodeId or BaseNode object)");
+    assert(options.inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
     if (options.inputNode === NodeId.NullNodeId) {
         alarmNode.inputNode.setValueFromSource({dataType: DataType.NodeId, value: options.inputNode});
     } else {

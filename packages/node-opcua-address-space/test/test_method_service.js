@@ -20,25 +20,24 @@ var hexDump = require("node-opcua-debug").hexDump;
 
 var build_retrieveInputArgumentsDefinition = require("../src/argument_list").build_retrieveInputArgumentsDefinition;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("CallRequest on custom method", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            addressSpace = new AddressSpace();
-            var xml_file = path.join(__dirname,"../test_helpers/test_fixtures/fixuture_nodeset_objects_with_some_methods.xml");
-            require("fs").existsSync(xml_file).should.be.eql(true);
+    before(function (done) {
+        addressSpace = new AddressSpace();
+        var xml_file = path.join(__dirname, "../test_helpers/test_fixtures/fixuture_nodeset_objects_with_some_methods.xml");
+        require("fs").existsSync(xml_file).should.be.eql(true);
 
-            generate_address_space(addressSpace, xml_file, function (err) {
-                done(err);
-            });
+        generate_address_space(addressSpace, xml_file, function (err) {
+            done(err);
         });
-        after(function(){
-            if(addressSpace) {
-                addressSpace.dispose();
-            }
-        });
+    });
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
     });
     it("Q3 should encode and decode a method call request", function (done) {
 

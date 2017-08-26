@@ -626,6 +626,9 @@ OPCUAClient.prototype._closeSession = function (session, deleteSubscriptions, ca
         deleteSubscriptions: deleteSubscriptions
     });
 
+    if (!self._secureChannel.isValid()) {
+        return callback();
+    }
     session.performMessageTransaction(request, function (err, response) {
 
         if (err) {
@@ -890,14 +893,15 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
 
     var the_session;
     var the_error;
+    var need_disconnect = false;
     async.series([
 
         // step 1 : connect to
         function (callback) {
             client.connect(endpointUrl, function (err) {
+                need_disconnect = true;
                 if (err) {
                     console.log(" cannot connect to endpoint :", endpointUrl);
-                } else {
                 }
                 callback(err);
             });
@@ -908,12 +912,8 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
             client.createSession(function (err, session) {
                 if (!err) {
                     the_session = session;
-                    callback(err);
-                } else {
-                    return client.disconnect(function(err2){
-                        callback(err || err2);
-                    });
                 }
+                callback(err);
             });
         },
 
@@ -942,6 +942,7 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
         },
         function (callback) {
             client.disconnect(function (err) {
+                need_disconnect = false;
                 if (err) {
                     console.log("OPCUAClient#withClientSession: client disconnect failed ?");
                 }
@@ -950,6 +951,13 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
         }
 
     ], function(err1) {
-        return callback(the_error||err1);
+        if(need_disconnect) {
+            console.log("Disconnecting client after failure")
+            client.disconnect(function(err2) {
+                return callback(the_error||err1||err2);
+            });
+        } else {
+            return callback(the_error||err1);
+        }
     });
 };

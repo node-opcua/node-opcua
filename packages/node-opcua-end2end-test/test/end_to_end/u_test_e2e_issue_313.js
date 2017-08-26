@@ -23,35 +23,39 @@ module.exports = function (test) {
         // "subscription.monitorItem:Error: BadNodeIdUnknown (0x80340000)"
         // So far, so good - when I inject again, Node-Red would crash with the following error
 
-        it("Should not crash when monitoring the same invalid nodeId for the second time ",function(done) {
+        it("Should not crash when monitoring the same invalid nodeId for the second time ", function (done) {
 
             var nodeId = coerceNodeId("ns=4;s=TestVerzeichnis.TestKnotn"); // Server Object
             var client = new OPCUAClient();
             var endpointUrl = test.endpointUrl;
 
-            function add_monitored_item(subscription,callback) {
-
-                console.log("Hello");
-                var monitoredItem = subscription.monitor(
-                  {
+            function add_monitored_item(subscription, callback) {
+                var monitoredItem = subscription.monitor({
                       nodeId: nodeId,
                       attributeId: opcua.AttributeIds.Value
                   },
                   {samplingInterval: 50, discardOldest: true, queueSize: 1},
-                opcua.read_service.TimestampsToReturn.Both,
-                function(err){
-                      console.log("err",err.message);
-                      callback();
+                  opcua.read_service.TimestampsToReturn.Both,
+                  function (err) {
+                      should.not.exist(err);
+                      console.log("err", err ? err.message :"<no error>");
+                      setTimeout(callback,1000);
+                  });
+                monitoredItem.on("changed",function(dataValue){
+                    // should not get here !
+                    console.log("value = ",dataValue.toString());
                 });
-
+                monitoredItem.on("err",function(errMessage){
+                    console.log("err = ",errMessage);
+                });
             }
-            perform_operation_on_subscription(client, endpointUrl,function(session,subscription,inner_done){
 
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
                 async.series([
-                    add_monitored_item.bind(null,subscription),
-                    add_monitored_item.bind(null,subscription)
-                ],inner_done);
-            },done);
+                    add_monitored_item.bind(null, subscription),
+                    add_monitored_item.bind(null, subscription)
+                ], inner_done);
+            }, done);
         });
     });
 };

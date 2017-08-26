@@ -8,34 +8,32 @@ var _ = require("underscore");
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 var DataType = require("node-opcua-variant").DataType;
-var BrowseDescription= require("node-opcua-service-browse").BrowseDescription;
+var BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 require("../src/address_space_add_enumeration_type");
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("AddressSpace : testing add enumeration type", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace =__addressSpace__;
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, __addressSpace__) {
+            addressSpace = __addressSpace__;
+            done(err);
+        });
 
-        });
-        after(function () {
-            addressSpace.dispose();
-            addressSpace = null;
-        });
+    });
+    after(function () {
+        addressSpace.dispose();
+        addressSpace = null;
     });
 
     it("should add a new Enumeration type into an address space - Form 1", function () {
 
         var myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType2",
-            enumeration: ["RUNNING", "BLOCKED" ,"IDLE" ,"UNDER MAINTENANCE"]
+            enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
         myEnumType.browseName.toString().should.eql("MyEnumType2");
@@ -49,10 +47,14 @@ describe("AddressSpace : testing add enumeration type", function () {
             browseDirection: BrowseDirection.Forward,
             resultMask: 0x3F
         });
-        var r = enumerationType.browseNode(browseDescription,null);
-        var names = r.map(function(x) { return  x.browseName.toString(); });
+        var r = enumerationType.browseNode(browseDescription, null);
+        var names = r.map(function (x) {
+            return x.browseName.toString();
+        });
 
-        names.filter(function(x) { return x==="MyEnumType2"; }).length.should.eql(1,"MyEnumType2 should be find in enum");
+        names.filter(function (x) {
+            return x === "MyEnumType2";
+        }).length.should.eql(1, "MyEnumType2 should be find in enum");
 
 
         // now instantiate a variable that have this type.
@@ -63,45 +65,45 @@ describe("AddressSpace : testing add enumeration type", function () {
 
         });
 
-        e.setValueFromSource({ dataType: DataType.Int32, value: 1 });
+        e.setValueFromSource({dataType: DataType.Int32, value: 1});
 
         e.readValue().value.value.should.eql(1);
-        e.readEnumValue().should.eql({ name: "BLOCKED" , value: 1});
+        e.readEnumValue().should.eql({name: "BLOCKED", value: 1});
 
-        e.setValueFromSource({ dataType: DataType.Int32, value: 2 });
+        e.setValueFromSource({dataType: DataType.Int32, value: 2});
 
         e.readValue().value.value.should.eql(2);
-        e.readEnumValue().should.eql({ name: "IDLE" , value: 2});
+        e.readEnumValue().should.eql({name: "IDLE", value: 2});
 
         // now use writeEnumValue helper
 
         e.writeEnumValue("BLOCKED");
-        e.readEnumValue().should.eql({ name: "BLOCKED" , value: 1});
+        e.readEnumValue().should.eql({name: "BLOCKED", value: 1});
 
         e.writeEnumValue("IDLE");
-        e.readEnumValue().should.eql({ name: "IDLE" , value: 2});
+        e.readEnumValue().should.eql({name: "IDLE", value: 2});
 
         e.writeEnumValue(1);
-        e.readEnumValue().should.eql({ name: "BLOCKED" , value: 1});
+        e.readEnumValue().should.eql({name: "BLOCKED", value: 1});
 
         e.writeEnumValue(2);
-        e.readEnumValue().should.eql({ name: "IDLE" , value: 2});
+        e.readEnumValue().should.eql({name: "IDLE", value: 2});
 
 
-        should(function(){
+        should(function () {
             e.writeEnumValue(-2);
         }).throwError();
 
-        should(function(){
+        should(function () {
             e.writeEnumValue(10);
         }).throwError();
 
-        should(function(){
+        should(function () {
             e.writeEnumValue("BLOCKED--BAD");
         }).throwError();
 
-        should(function(){
-            e.writeEnumValue({ value: "invalid type"});
+        should(function () {
+            e.writeEnumValue({value: "invalid type"});
         }).throwError();
 
     });
@@ -111,10 +113,10 @@ describe("AddressSpace : testing add enumeration type", function () {
         var myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType3",
             enumeration: [
-                { displayName: "VALUE01", value: 0x01 },
-                { displayName: "VALUE02", value: 0x02 },
-                { displayName: "VALUE04", value: 0x04 },
-                { displayName: "VALUE08", value: 0x08 }
+                {displayName: "VALUE01", value: 0x01},
+                {displayName: "VALUE02", value: 0x02},
+                {displayName: "VALUE04", value: 0x04},
+                {displayName: "VALUE08", value: 0x08}
             ]
         });
 
@@ -129,10 +131,14 @@ describe("AddressSpace : testing add enumeration type", function () {
             browseDirection: BrowseDirection.Forward,
             resultMask: 0x3F
         });
-        var r = enumerationType.browseNode(browseDescription,null);
-        var names = r.map(function(x) { return  x.browseName.toString(); });
+        var r = enumerationType.browseNode(browseDescription, null);
+        var names = r.map(function (x) {
+            return x.browseName.toString();
+        });
 
-        names.filter(function(x) { return x==="MyEnumType2"; }).length.should.eql(1,"MyEnumType2 should be find in enum");
+        names.filter(function (x) {
+            return x === "MyEnumType2";
+        }).length.should.eql(1, "MyEnumType2 should be find in enum");
 
 
         // now instantiate a variable that have this type.
@@ -143,45 +149,45 @@ describe("AddressSpace : testing add enumeration type", function () {
 
         });
 
-        e.setValueFromSource({ dataType: DataType.Int32, value: 1 });
+        e.setValueFromSource({dataType: DataType.Int32, value: 1});
 
         e.readValue().value.value.should.eql(1);
-        e.readEnumValue().should.eql({ name: "VALUE01" , value: 1});
+        e.readEnumValue().should.eql({name: "VALUE01", value: 1});
 
-        e.setValueFromSource({ dataType: DataType.Int32, value: 2 });
+        e.setValueFromSource({dataType: DataType.Int32, value: 2});
 
         e.readValue().value.value.should.eql(2);
-        e.readEnumValue().should.eql({ name: "VALUE02" , value: 2});
+        e.readEnumValue().should.eql({name: "VALUE02", value: 2});
 
         // now use writeEnumValue helper
 
         e.writeEnumValue("VALUE04");
-        e.readEnumValue().should.eql({ name: "VALUE04" , value: 4});
+        e.readEnumValue().should.eql({name: "VALUE04", value: 4});
 
         e.writeEnumValue("VALUE08");
-        e.readEnumValue().should.eql({ name: "VALUE08" , value: 8});
+        e.readEnumValue().should.eql({name: "VALUE08", value: 8});
 
         e.writeEnumValue(2);
-        e.readEnumValue().should.eql({ name: "VALUE02" , value: 2});
+        e.readEnumValue().should.eql({name: "VALUE02", value: 2});
 
         e.writeEnumValue(4);
-        e.readEnumValue().should.eql({ name: "VALUE04" , value: 4});
+        e.readEnumValue().should.eql({name: "VALUE04", value: 4});
 
 
-        should(function(){
+        should(function () {
             e.writeEnumValue(-2);
         }).throwError();
 
-        should(function(){
+        should(function () {
             e.writeEnumValue(10);
         }).throwError();
 
-        should(function(){
+        should(function () {
             e.writeEnumValue("BLOCKED--BAD");
         }).throwError();
 
-        should(function(){
-            e.writeEnumValue({ value: "invalid type"});
+        should(function () {
+            e.writeEnumValue({value: "invalid type"});
         }).throwError();
 
     });

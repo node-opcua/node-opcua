@@ -13,34 +13,33 @@ var get_mini_address_space = require("../test_helpers/get_mini_address_space").g
 
 var doDebug = false;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing nodeset to xml", function () {
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        beforeEach(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace =__addressSpace__;
-                done(err);
-            });
+    beforeEach(function (done) {
+        get_mini_address_space(function (err, __addressSpace__) {
+            addressSpace = __addressSpace__;
+            done(err);
+        });
 
-        });
-        afterEach(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    afterEach(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
     var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
     it("should output a standard extension object datatype to xml (Argument)", function () {
 
         var argumentDataType = addressSpace.findDataType("Argument");
-        if(doDebug) {
+        if (doDebug) {
             console.log(argumentDataType.toString());
         }
         var str = dumpXml(argumentDataType, {});
-        if(doDebug) {
+        if (doDebug) {
             console.log(str);
         }
         str.should.match(/Argument/);
@@ -50,7 +49,7 @@ describe("testing nodeset to xml", function () {
         // TemperatureSensorType
         var serverStateType = addressSpace.findDataType("ServerState");
         var str = dumpXml(serverStateType, {});
-        if(doDebug) {
+        if (doDebug) {
             console.log(str);
         }
         str.should.match(/CommunicationFault/);
@@ -60,12 +59,12 @@ describe("testing nodeset to xml", function () {
 
         var myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumTypeForm1",
-            enumeration: [ "RUNNING" , "STOPPED" ]
+            enumeration: ["RUNNING", "STOPPED"]
         });
 
         myEnumType.browseName.toString().should.eql("MyEnumTypeForm1");
         var str = dumpXml(myEnumType, {});
-        if(doDebug) {
+        if (doDebug) {
             console.log(str);
         }
         str.should.match(/RUNNING/);
@@ -86,7 +85,7 @@ describe("testing nodeset to xml", function () {
 
         myEnumType.browseName.toString().should.eql("MyEnumType");
         var str = dumpXml(myEnumType, {});
-        if(doDebug) {
+        if (doDebug) {
             console.log(str);
         }
         str.should.match(/RUNNING/);
@@ -110,7 +109,7 @@ describe("testing nodeset to xml", function () {
         // TemperatureSensorType
         var temperatureSensorType = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
         addressSpace.addVariable({
-            componentOf:temperatureSensorType,
+            componentOf: temperatureSensorType,
             browseName: "Temperature",
             description: "the temperature value of the sensor in Celsius <�C>",
             dataType: "Double",
@@ -135,7 +134,7 @@ describe("testing nodeset to xml", function () {
 
 
         var str = dumpXml(temperatureSensor, {});
-        if(doDebug) {
+        if (doDebug) {
             //xx console.log(str);
         }
         str.should.match(/UAObjectType/g);
@@ -152,7 +151,7 @@ describe("testing nodeset to xml", function () {
             browseName: "Camera1"
         });
         var str = dumpXml(camera1, {});
-        if(doDebug) {
+        if (doDebug) {
             console.log(str);
         }
         str.should.match(/UAObjectType/g);

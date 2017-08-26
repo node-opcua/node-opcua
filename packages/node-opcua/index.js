@@ -83,6 +83,8 @@ module.exports.utils              = require("node-opcua-utils");
 
 // client services
 module.exports.OPCUAClient        = require("node-opcua-client").OPCUAClient;
+module.exports.OPCUAClientBase    = require("node-opcua-client").OPCUAClientBase;
+
 module.exports.NodeCrawler        = require("node-opcua-client-crawler").NodeCrawler;
 module.exports.ClientSubscription = require("node-opcua-client").ClientSubscription;
 module.exports.ClientSession      = require("node-opcua-client").ClientSession;

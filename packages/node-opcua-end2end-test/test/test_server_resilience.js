@@ -8,12 +8,11 @@ var OPCUAServer = require("node-opcua-server").OPCUAServer;
 var OPCUAClient = require("node-opcua-client").OPCUAClient;
 
 var opcua = require("node-opcua");
-var browse_service = opcua.browse_service;
 var ObjectIds = opcua.ObjectIds;
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var empty_nodeset_filename =opcua.empty_nodeset_filename;
+var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 // a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
@@ -28,17 +27,19 @@ var ServerSideUnimplementedRequest_Schema = {
 
 var generator = require("node-opcua-generator");
 var path = require("path");
-var temporary_folder = path.join(__dirname,"..","_test_generated");
+var temporary_folder = path.join(__dirname, "..", "_test_generated");
 
 exports.ServerSideUnimplementedRequest_Schema = ServerSideUnimplementedRequest_Schema;
 var ServerSideUnimplementedRequest = generator.registerObject(ServerSideUnimplementedRequest_Schema, temporary_folder);
+
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("testing Server resilience to unsupported request", function () {
     var server, client;
     var endpointUrl, g_session;
 
 
-    this.timeout(Math.max(20000,this._timeout));
+    this.timeout(Math.max(20000, this._timeout));
 
     before(function (done) {
 
@@ -89,12 +90,12 @@ function abrupty_disconnect_client(client, callback) {
     client._secureChannel._transport.disconnect(callback);
 
 }
+
 describe("testing Server resilience with bad internet connection", function () {
     var server, client;
-    var endpointUrl, g_session;
+    var endpointUrl;
 
-
-    this.timeout(Math.max(20000,this._timeout));
+    this.timeout(Math.max(20000, this._timeout));
 
     before(function (done) {
 
@@ -166,6 +167,9 @@ describe("testing Server resilience with bad internet connection", function () {
             function (callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
+            },
+            function (callback) {
+                client.disconnect(callback);
             }
 
         ], done);

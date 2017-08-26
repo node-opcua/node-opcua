@@ -24,7 +24,7 @@ var crypto_utils = require("node-opcua-crypto").crypto_utils;
 var verify_message_chunk = require("node-opcua-chunkmanager").verify_message_chunk;
 var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var backoff = require('backoff');
+var backoff = require("backoff");
 
 var debug =  require("node-opcua-debug");
 var debugLog = debug.make_debugLog(__filename);
@@ -157,6 +157,10 @@ var g_channelId = 0;
  */
 function ClientSecureChannelLayer(options) {
 
+
+    if (global.hasResourceLeakDetector && !global.ResourceLeakDetectorStarted){
+        throw new Error("ClientSecureChannelLayer not in ResourceLeakDetectorStarted")
+    }
     options = options || {};
 
     EventEmitter.call(this);
@@ -223,6 +227,8 @@ function ClientSecureChannelLayer(options) {
 
     self._timedout_request_count = 0;
 
+    self._securityTokenTimeoutId = null;
+
     self.transportTimeout = options.transportTimeout || ClientSecureChannelLayer.defaultTransportTimeout;
 
     self.channelId = g_channelId;
@@ -238,7 +244,7 @@ function ClientSecureChannelLayer(options) {
     var r = options.connectionStrategy.randomisationFactor;
     self.connectionStrategy.randomisationFactor = ( r === undefined ) ? 0 : r;
 
-};
+}
 util.inherits(ClientSecureChannelLayer, EventEmitter);
 
 ClientSecureChannelLayer.defaultTransportTimeout = 10 * 1000; // 1 minute
@@ -412,9 +418,9 @@ function _install_security_token_watchdog() {
     assert(liveTime && liveTime > 20);
     debugLog(" revisedLifeTime = ".red.bold, liveTime);
 
+    assert(self._securityTokenTimeoutId === null);
     self._securityTokenTimeoutId = setTimeout(function () {
-
-        _cancel_security_token_watchdog.call(self);
+        self._securityTokenTimeoutId = null;
         _on_security_token_about_to_expire.call(self);
 
     }, liveTime * 75 / 100);
@@ -686,7 +692,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
                     if (self.__call) {
                         // connection cannot be establish ? if not, abort the backoff process
                         if (should_abort) {
-                            debugLog(" Aborting backoff process prematuraly - err = ", err.message);
+                            debugLog(" Aborting backoff process prematurally - err = ", err.message);
                             self.__call.abort();
                         } else {
                             debugLog(" backoff - keep trying - err = ", err.message);
@@ -713,9 +719,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
                 self.__call.removeAllListeners();
                 self.__call = null;
 
-                //console.log('xxx Num retries: ' + transport.numberOfRetry );
                 if (err) {
-                    //xx console.log('xxx Error: ' + err.message,last_err.message);
                     callback(last_err);
                 } else {
                     callback();
@@ -729,7 +733,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
         self.__call.failAfter(Math.max(self.connectionStrategy.maxRetry,1));
 
 
-        self.__call.on('backoff', function(number, delay) {
+        self.__call.on("backoff", function(number, delay) {
 
             debugLog(" Backoff #".bgWhite.cyan,number,"delay = ",delay,self.__call.maxNumberOfRetry_);
             // Do something when backoff starts, e.g. show to the
@@ -740,7 +744,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
             self.emit("backoff",number,delay);
         });
 
-        self.__call.on('abort', function(err) {
+        self.__call.on("abort", function() {
             debugLog(" abort #".bgWhite.cyan," after ",self.__call.getNumRetries(), " retries");
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
@@ -776,6 +780,17 @@ ClientSecureChannelLayer.prototype.__defineGetter__("isConnecting",function() {
     return (!!this.__call);
 });
 
+
+ClientSecureChannelLayer.prototype.dispose = function() {
+    var self = this;
+    _cancel_security_token_watchdog.call(self);
+    //xx console.log("DDDDD = ",self._request_data);
+    //xx console.log("DDDDDD = ",self.__call);
+    if(self.__call) {
+        self.__call.abort();
+    }
+
+};
 
 ClientSecureChannelLayer.prototype.abortConnection = function(callback) {
     assert(_.isFunction(callback));
@@ -818,7 +833,7 @@ ClientSecureChannelLayer.prototype._renew_security_token = function () {
                 self.emit("security_token_renewed");
 
             } else {
-                console.error("Warning: securityToken hasn't been renewed");
+                console.error("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed");
             }
         });
         self._renew_security_token_requested = 0;
@@ -885,6 +900,10 @@ ClientSecureChannelLayer.prototype.performMessageTransaction = function (request
     this._performMessageTransaction("MSG", requestMessage, callback);
 };
 
+ClientSecureChannelLayer.prototype.isValid = function() {
+    var self = this;
+    return self._transport && self._transport.isValid();
+};
 
 var defaultTransactionTimeout = 60 * 1000; // 1 minute
 /**
@@ -913,20 +932,29 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     assert(_.isFunction(callback));
     var self = this;
 
+
+    if (!self.isValid()) {
+        return callback(new Error("ClientSecureChannelLayer => Socket is closed !"));
+    }
+
+
     var local_callback = callback;
 
     var timeout = requestMessage.requestHeader.timeoutHint || defaultTransactionTimeout;
+
     var timerId = null;
+
+    var hasTimedOut = false;
 
     function modified_callback(err, response) {
 
-        if (!timerId) {
-            return; // already processed
-        }
         if (!local_callback) {
             return; // already processed by time  out
         }
-        clearTimeout(timerId);
+        // when response === null we are processing the timeout , therefore there is no need to clearTimeout
+        if (!hasTimedOut && timerId) {
+            clearTimeout(timerId);
+        }
         timerId = null;
 
         if (!err && response) {
@@ -943,17 +971,22 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
         // invoke user callback if it has not been intercepted first ( by a abrupt disconnection for instance )
         try {
             local_callback.apply(this, arguments);
-            local_callback = null;
         }
         catch (err) {
             console.log("ERROR !!! , please check here !!!! callback may be called twice !! ",err);
             callback(err);
         }
+        finally {
+            local_callback = null;
+        }
     }
 
     timerId = setTimeout(function () {
+        timerId = null;
         console.log(" Timeout .... waiting for response for ", requestMessage.constructor.name,requestMessage.requestHeader.toString());
-        modified_callback(new Error("Transaction has timed out"));
+
+        hasTimedOut = true;
+        modified_callback(new Error("Transaction has timed out"),null);
 
         self._timedout_request_count += 1;
         /**
@@ -1239,7 +1272,7 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
 
     self.__in_normal_close_operation = true;
 
-    if (self._transport.__disconnecting__) {
+    if (!self._transport || self._transport.__disconnecting__) {
         return callback(new Error("Transport disconnected"));
     }
 

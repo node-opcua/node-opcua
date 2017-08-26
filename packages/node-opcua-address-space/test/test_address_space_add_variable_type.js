@@ -9,38 +9,38 @@ var get_mini_address_space = require("../test_helpers/get_mini_address_space").g
 var NodeClass = require("node-opcua-data-model").NodeClass;
 
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+
 describe("testing add new ObjectType ", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace =__addressSpace__;
-                done(err);
-            });
-        });
-        after(function () {
-            addressSpace.dispose();
-            addressSpace = null;
+    before(function (done) {
+        get_mini_address_space(function (err, __addressSpace__) {
+            addressSpace = __addressSpace__;
+            done(err);
         });
     });
-    it("should add a new ObjectType (=> BaseObjectType)",function() {
+    after(function () {
+        addressSpace.dispose();
+        addressSpace = null;
+    });
+    it("should add a new ObjectType (=> BaseObjectType)", function () {
 
-        var myObjectType = addressSpace.addObjectType({ browseName: "MyObjectType"});
+        var myObjectType = addressSpace.addObjectType({browseName: "MyObjectType"});
         myObjectType.browseName.toString().should.eql("MyObjectType");
         myObjectType.subtypeOfObj.browseName.toString().should.eql("BaseObjectType");
         myObjectType.nodeClass.should.eql(NodeClass.ObjectType);
     });
-    it("should add a new VariableType (=> BaseVariableType)",function() {
+    it("should add a new VariableType (=> BaseVariableType)", function () {
 
-        var myVariableType = addressSpace.addVariableType({ browseName: "MyVariableType"});
+        var myVariableType = addressSpace.addVariableType({browseName: "MyVariableType"});
         myVariableType.browseName.toString().should.eql("MyVariableType");
         myVariableType.subtypeOfObj.browseName.toString().should.eql("BaseVariableType");
         myVariableType.nodeClass.should.eql(NodeClass.VariableType);
 
     });
-    it("should add a new VariableType (=> BaseDataVariableType)",function() {
+    it("should add a new VariableType (=> BaseDataVariableType)", function () {
 
         var myVariableType = addressSpace.addVariableType({
             browseName: "MyVariableType2",
@@ -51,5 +51,4 @@ describe("testing add new ObjectType ", function () {
         myVariableType.nodeClass.should.eql(NodeClass.VariableType);
 
     });
-
 });

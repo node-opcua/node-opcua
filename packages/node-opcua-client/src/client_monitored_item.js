@@ -1,12 +1,9 @@
-
+"use strict";
 var util = require("util");
 var _ = require("underscore");
 var assert = require("better-assert");
 
-var EventEmitter = require("events").EventEmitter;
-var subscription_service = require("node-opcua-service-subscription");
 var read_service = require("node-opcua-service-read");
-
 
 var ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;
 var TimestampsToReturn = read_service.TimestampsToReturn;

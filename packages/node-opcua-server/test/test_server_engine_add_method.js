@@ -1,4 +1,3 @@
-
 var _ = require("underscore");
 var should = require("should");
 
@@ -19,29 +18,27 @@ var SessionContext = require("node-opcua-address-space").SessionContext;
 var translate_service = require("node-opcua-service-translate-browse-path");
 
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("ServerEngine - addMethod", function () {
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
+    before(function (done) {
 
-            engine = new server_engine.ServerEngine();
+        engine = new server_engine.ServerEngine();
 
-            engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
-                FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
-                BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
-                ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
-                ref_Organizes_Id.toString().should.eql("ns=0;i=35");
+            FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
+            BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
+            ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
+            ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
-                done();
-            });
-
-        });
-        after(function () {
-            engine.shutdown();
-            engine = null;
+            done();
         });
 
+    });
+    after(function () {
+        engine.shutdown();
+        engine = null;
     });
 
 
@@ -51,7 +48,7 @@ describe("ServerEngine - addMethod", function () {
         var objectFolder = engine.addressSpace.findNode("ObjectsFolder");
 
         var object = engine.addressSpace.addObject({
-            organizedBy:objectFolder,
+            organizedBy: objectFolder,
             browseName: "MyObject",
             nodeId: "ns=1;s=MyObject"
         });

@@ -262,14 +262,11 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
             }
         });
 
-
         channel.on("message", function (message) {
             // forward
             self.emit("message", message, channel, self);
         });
-
     }
-
 };
 
 /**

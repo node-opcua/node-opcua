@@ -43,18 +43,12 @@ var SubscriptionState = require("../src/subscription").SubscriptionState;
 var subscription_service = require("node-opcua-service-subscription");
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var fakeNotificationData = [new subscription_service.DataChangeNotification()];
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Testing the server publish engine", function () {
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();

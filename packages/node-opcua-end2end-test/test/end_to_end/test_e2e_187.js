@@ -6,6 +6,9 @@ var _ = require("underscore");
 
 
 var opcua = require("node-opcua");
+var OPCUAClient = opcua.OPCUAClient;
+var OPCUAServer = opcua.OPCUAServer;
+
 var context = opcua.SessionContext.defaultContext;
 
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -17,9 +20,9 @@ var doDebug = false;
 
 var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
-describeWithLeakDetector("testing monitoring Executable flags on methods", function () {
+describe("testing monitoring Executable flags on methods", function () {
 
 
     this.timeout(Math.max(60000, this._timeout));
@@ -32,7 +35,7 @@ describeWithLeakDetector("testing monitoring Executable flags on methods", funct
         port += 1;
 
         var options = {port: port};
-        server = new opcua.OPCUAServer(options);
+        server = new OPCUAServer(options);
 
         server.on("post_initialize", function () {
             boiler_on_server = makeBoiler(server.engine.addressSpace, {browseName: "Boiler#1"});
@@ -62,7 +65,7 @@ describeWithLeakDetector("testing monitoring Executable flags on methods", funct
     });
 
     beforeEach(function (done) {
-        client = new opcua.OPCUAClient();
+        client = new OPCUAClient();
         done();
     });
 
@@ -138,7 +141,7 @@ describeWithLeakDetector("testing monitoring Executable flags on methods", funct
                             return;
                         }
                         callback(err);
-                    })
+                    });
                 },
                 function (callback) {
                     boiler.simulation.halt([], function (err) {

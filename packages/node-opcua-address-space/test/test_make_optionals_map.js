@@ -1,6 +1,5 @@
+"use strict";
 
-
-var assert = require("better-assert");
 var should = require("should");
 
 var makeOptionalsMap = require("../src/make_optionals_map").makeOptionalsMap;
