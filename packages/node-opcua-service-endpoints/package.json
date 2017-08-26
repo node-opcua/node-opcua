@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo no test"
+    "test": "echo no test",
+    "generate": "node ./generate"
+
   },
   "dependencies": {
     "node-opcua-data-model":"*",
