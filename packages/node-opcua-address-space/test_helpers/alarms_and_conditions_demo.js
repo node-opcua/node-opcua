@@ -27,7 +27,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     //---------------------------------------------------------------------------------
 
     var exclusiveLimitAlarmType = addressSpace.findEventType("ExclusiveLimitAlarmType");
-    assert(exclusiveLimitAlarmType != null);
+    assert(exclusiveLimitAlarmType !== null);
 
     var tankLevelCondition = addressSpace.instantiateExclusiveLimitAlarm(exclusiveLimitAlarmType,{
         componentOf:     tank,
@@ -68,7 +68,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     });
 
     var nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
-    assert(nonExclusiveLimitAlarmType != null);
+    assert(nonExclusiveLimitAlarmType !== null);
 
     var tankLevelCondition2 = addressSpace.instantiateNonExclusiveLimitAlarm(nonExclusiveLimitAlarmType,{
         componentOf:     tank,

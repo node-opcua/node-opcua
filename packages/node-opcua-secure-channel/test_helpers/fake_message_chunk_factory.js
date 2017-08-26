@@ -47,7 +47,7 @@ function iterate_on_signed_message_chunks(buffer, callback) {
     var securityHeader = new AsymmetricAlgorithmSecurityHeader({
         securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
         senderCertificate: senderCertificate,
-        receiverCertificateThumbprint: null // null == no encryption ...receiverCertificateThumbprint
+        receiverCertificateThumbprint: null // null === no encryption ...receiverCertificateThumbprint
     });
 
     var msgChunkManager = new SecureMessageChunkManager("OPN", options, securityHeader, sequenceNumberGenerator);

@@ -41,7 +41,7 @@ engines:
 
 ratings:
   paths:
-   - lib/**
+   - packages/**
 
 #   - bin/**
 #   - test/**

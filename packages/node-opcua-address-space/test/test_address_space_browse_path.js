@@ -1,13 +1,10 @@
 "use strict";
 var should = require("should");
-var assert = require("better-assert");
-var util = require("util");
 
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 var add_eventGeneratorObject = require("../test_helpers/add_event_generator_object").add_eventGeneratorObject;
 
-var AddressSpace = require("..").AddressSpace;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 

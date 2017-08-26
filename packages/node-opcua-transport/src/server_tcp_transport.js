@@ -171,7 +171,7 @@ ServerTCP_transport.prototype._on_HEL_message = function (data, callback) {
 
         // OPCUA Spec 1.03 part 6 - page 41
         // The Server shall always accept versions greater than what it supports.
-        if (helloMessage.protocolVersion != self.protocolVersion) {
+        if (helloMessage.protocolVersion !== self.protocolVersion) {
             console.log("warning ! client sent helloMessage.protocolVersion = 0x"+helloMessage.protocolVersion.toString(16)," whereas server protocolVersion is 0x"+self.protocolVersion.toString(16));
         }
         if (helloMessage.protocolVersion === 0xDEADBEEF || helloMessage.protocolVersion < self.protocolVersion) {

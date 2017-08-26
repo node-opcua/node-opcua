@@ -11,7 +11,6 @@ var add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
 var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 var EnumValueType  = require("node-opcua-data-model").EnumValueType;
 
-var _ = require("underscore");
 
 function coerceEnumValues(enumValues) {
 

@@ -13,20 +13,12 @@ var _ = require("underscore");
 var Variant = require("node-opcua-variant").Variant;
 var DataType = require("node-opcua-variant").DataType;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var LocalizedText = require("node-opcua-data-model").LocalizedText;
-var NodeClass = require("node-opcua-data-model").NodeClass;
-
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 var NodeId = require("node-opcua-nodeid").NodeId;
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 var AddressSpace = require("../address_space").AddressSpace;
-var UAVariable = require("../ua_variable").UAVariable;
-var UAObject = require("../ua_object").UAObject;
-var UAObjectType = require("../ua_object_type").UAObjectType;
-
 var UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
 
 var conditions =require("./condition");
@@ -242,7 +234,7 @@ UAAcknowledgeableConditionBase.prototype._acknowledge_branch = function (eventId
     }
 
     var statusCode = _setAckedState(branch,true,eventId,comment);
-    if (statusCode != StatusCodes.Good) {
+    if (statusCode !== StatusCodes.Good) {
         return statusCode;
     }
 
@@ -290,7 +282,7 @@ function _acknowledge_method(inputArguments,context,callback) {
  */
 UAAcknowledgeableConditionBase.prototype._confirm_branch = function _confirm_branch(eventId,comment,branch,message) {
 
-    assert(typeof(message) == "string");
+    assert(typeof(message) === "string");
     assert(comment instanceof LocalizedText);
 
     var conditionNode = this;
@@ -429,7 +421,7 @@ UAAcknowledgeableConditionBase.instantiate = function (addressSpace,conditionTyp
 
 UAAcknowledgeableConditionBase.install_method_handle_on_type = function _install_condition_refresh_handle(addressSpace) {
     var acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
-    assert(acknowledgeableConditionType != null);
+    assert(acknowledgeableConditionType !== null);
     acknowledgeableConditionType.acknowledge.bindMethod(_acknowledge_method);
     acknowledgeableConditionType.confirm.bindMethod(_confirm_method);
 

@@ -63,7 +63,7 @@ module.exports = function (test) {
                 var v = a[1] || "null";
 
                 var str = "";
-                if (v.dataType == DataType.NodeId) {
+                if (v.dataType === DataType.NodeId) {
                     var node = test.server.engine.addressSpace.findNode(v.value);
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }

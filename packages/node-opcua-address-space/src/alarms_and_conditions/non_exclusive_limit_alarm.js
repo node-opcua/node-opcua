@@ -72,7 +72,7 @@ UANonExclusiveLimitAlarm.prototype._signalNewCondition = function (states, isAct
         return;
     }
     function _install(name) {
-        if (states[name] != "unset") {
+        if (states[name] !== "unset") {
             alarm[name + "State"].setValue(states[name]);
         }
     }
@@ -103,10 +103,10 @@ UANonExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function (value)
     var count = 0;
 
     function ___p(stateName, func_value) {
-        if (states[stateName] != "unset") {
+        if (states[stateName] !== "unset") {
             var value = func_value();
             isActive = isActive || value;
-            if (states[stateName] != value) {
+            if (states[stateName] !== value) {
                 states[stateName] = value;
                 count += 1;
             }

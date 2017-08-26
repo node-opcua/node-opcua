@@ -9,15 +9,11 @@ var _ = require("underscore");
 var util = require("util");
 
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var Argument = require("node-opcua-service-call").Argument;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
 var Variant = require("node-opcua-variant").Variant;
 var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
@@ -89,7 +85,7 @@ function _getEffectiveDisplayName(node) {
         // todo happen
     });
 
-    return humanReadableString
+    return humanReadableString;
 }
 function _getHumanReadableString(node) {
 

@@ -4,20 +4,22 @@ var fs = require("fs");
 var treeify = require("treeify");
 var _ = require("underscore");
 var colors = require("colors");
-var util = require("util");
 var Table = require("easy-table");
 var async = require("async");
 var assert = require("better-assert");
-var opcua = require("../");
-var VariableIds = opcua.VariableIds;
 
-//xx ar UserNameIdentityToken = opcua.session_service.UserNameIdentityToken;
+var opcua = require("./node-opcua");
+var VariableIds = opcua.VariableIds;
+var BrowseDirection = opcua.BrowseDirection;
+
+
+//xx var UserNameIdentityToken = opcua.session_service.UserNameIdentityToken;
 //xx var SecurityPolicy = opcua.SecurityPolicy;
 
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 var argv = require("yargs")
     .wrap(132)
-    //.usage('Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl')
+    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 
     .demand("endpoint")
     .string("endpoint")
@@ -47,13 +49,13 @@ var argv = require("yargs")
     .string("history")
     .describe("history","make an historical read")
 
-    .alias('e', 'endpoint')
-    .alias('s', 'securityMode')
-    .alias('P', 'securityPolicy')
-    .alias("u", 'userName')
-    .alias("p", 'password')
-    .alias("n", 'node')
-    .alias("t", 'timeout')
+    .alias("e", "endpoint")
+    .alias("s", "securityMode")
+    .alias("P", "securityPolicy")
+    .alias("u", "userName")
+    .alias("p", "password")
+    .alias("n", "node")
+    .alias("t", "timeout")
 
     .alias("d", "debug")
     .alias("h", "history")
@@ -100,8 +102,8 @@ var AttributeIds = opcua.AttributeIds;
 var DataType = opcua.DataType;
 
 var NodeCrawler = opcua.NodeCrawler;
-var doCrawling = argv.crawl ? true : false;
-var doHistory = argv.history ? true : false;
+var doCrawling = !!argv.crawl;
+var doHistory = !!argv.history;
 
 var serverCertificate = null;
 
@@ -119,7 +121,7 @@ function getBrowseName(session,nodeId,callback) {
             }
         }
         callback(err,"<??>");
-    })
+    });
 }
 
 function w(str,l) {
@@ -156,7 +158,7 @@ function __dumpEvent(session,fields,eventFields,_callback) {
                 console.log(w("",20),w(fields[index],15).yellow,
                     w(variant.dataType.key,10).toString().cyan,variant.value);
                 callback();
-            })
+            });
         }
     },_callback);
 }
@@ -305,7 +307,7 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
                 return callback(null,found);
             }
             return callback(err);
-        })
+        });
     });
 
 }
@@ -338,7 +340,7 @@ function getAllEventTypes(session,callback)
             referenceTypeId: opcua.resolveNodeId("HasSubtype"),
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
-            nodeClassMask: opcua.browse_service.NodeClassMask.ObjectType, // Objects
+            nodeClassMask: opcua.NodeClassMask.ObjectType, // Objects
             resultMask: 63
         };
 
@@ -415,15 +417,15 @@ async.series([
             var table = new Table();
             if (!err) {
                 endpoints.forEach(function (endpoint, i) {
-                    table.cell('endpoint', endpoint.endpointUrl + "");
-                    table.cell('Application URI', endpoint.server.applicationUri);
-                    table.cell('Product URI', endpoint.server.productUri);
-                    table.cell('Application Name', endpoint.server.applicationName.text);
-                    table.cell('Security Mode', endpoint.securityMode.toString());
-                    table.cell('securityPolicyUri', endpoint.securityPolicyUri);
-                    table.cell('Type', endpoint.server.applicationType.key);
-                    table.cell('certificate', "..." /*endpoint.serverCertificate*/);
-                    table.cell('discoveryUrls',endpoint.server.discoveryUrls.join(" - "));
+                    table.cell("endpoint", endpoint.endpointUrl + "");
+                    table.cell("Application URI", endpoint.server.applicationUri);
+                    table.cell("Product URI", endpoint.server.productUri);
+                    table.cell("Application Name", endpoint.server.applicationName.text);
+                    table.cell("Security Mode", endpoint.securityMode.toString());
+                    table.cell("securityPolicyUri", endpoint.securityPolicyUri);
+                    table.cell("Type", endpoint.server.applicationType.key);
+                    table.cell("certificate", "..." /*endpoint.serverCertificate*/);
+                    table.cell("discoveryUrls",endpoint.server.discoveryUrls.join(" - "));
 
                     serverCertificate = endpoint.serverCertificate;
 
@@ -435,14 +437,14 @@ async.series([
                 console.log(table.toString());
 
                 endpoints.forEach(function (endpoint, i) {
-                    console.log('Identify Token for : Security Mode=', endpoint.securityMode.toString(),' Policy=', endpoint.securityPolicyUri);
+                    console.log("Identify Token for : Security Mode=", endpoint.securityMode.toString()," Policy=", endpoint.securityPolicyUri);
                     var table2 = new Table();
                     endpoint.userIdentityTokens.forEach(function (token) {
-                        table2.cell('policyId', token.policyId);
-                        table2.cell('tokenType', token.tokenType.toString());
-                        table2.cell('issuedTokenType', token.issuedTokenType);
-                        table2.cell('issuerEndpointUrl', token.issuerEndpointUrl);
-                        table2.cell('securityPolicyUri', token.securityPolicyUri);
+                        table2.cell("policyId", token.policyId);
+                        table2.cell("tokenType", token.tokenType.toString());
+                        table2.cell("issuedTokenType", token.issuedTokenType);
+                        table2.cell("issuerEndpointUrl", token.issuerEndpointUrl);
+                        table2.cell("securityPolicyUri", token.securityPolicyUri);
                         table2.newRow();
                     });
                     console.log(table2.toString());
@@ -461,7 +463,7 @@ async.series([
     // reconnect using the correct end point URL now
     function (callback) {
 
-        var hexDump = opcua.utils.hexDump;
+        var hexDump = opcua.hexDump;
         console.log("Server Certificate :".cyan);
         console.log(hexDump(serverCertificate).yellow);
 
@@ -555,8 +557,9 @@ async.series([
     //------------------------------------------
     function (callback) {
 
+        var t1,t2;
         function print_stat() {
-            var t2 = Date.now();
+            t2 = Date.now();
             var util = require("util");
             var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
             console.log(str.yellow.bold);
@@ -567,7 +570,6 @@ async.series([
             var crawler = new NodeCrawler(the_session);
 
             var t = Date.now();
-            var t1;
             client.on("send_request", function () {
                 t1 = Date.now();
             });
@@ -652,14 +654,11 @@ async.series([
     // ------------------ check if server supports Query Services
     function (callback){
 
-        return callback();
-
-        var queryFirstRequest = {
-        };
+        var queryFirstRequest = {};
 
         the_session.queryFirst(queryFirstRequest,function(err,queryFirstResult) {
             if (err) {
-                console.log("QueryFirst is not supported by Server")
+                console.log("QueryFirst is not supported by Server");
             }
             callback();
         });
@@ -764,7 +763,7 @@ async.series([
             },
             {
                 samplingInterval: 250,
-                //xx filter:  { parameterTypeId: 'ns=0;i=0',  encodingMask: 0 },
+                //xx filter:  { parameterTypeId: "ns=0;i=0",  encodingMask: 0 },
                 queueSize: 10000,
                 discardOldest: true
             }
@@ -890,7 +889,7 @@ async.series([
                 console.log("  -------------------------------------------------------------------- ".red.bgWhite);
                 var socket = client._secureChannel._transport._socket;
                 socket.end();
-                socket.emit('error', new Error('ECONNRESET'));
+                socket.emit("error", new Error("ECONNRESET"));
             }, timeout/2.0);
 
         }else {
@@ -937,7 +936,7 @@ process.on("error",function(err){
     console.log(" UNTRAPPED ERROR",err.message);
 });
 var user_interruption_count = 0;
-process.on('SIGINT', function () {
+process.on("SIGINT", function () {
 
     console.log(" user interuption ...");
 

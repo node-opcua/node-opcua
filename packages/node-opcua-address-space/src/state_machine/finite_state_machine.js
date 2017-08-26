@@ -182,7 +182,7 @@ UAStateMachine.prototype.__defineGetter__("initialState", function() {
 
 UAStateMachine.prototype._coerceNode = function(node) {
 
-    if (node == null) {
+    if (node === null) {
         return null;
     }
     var self = this;

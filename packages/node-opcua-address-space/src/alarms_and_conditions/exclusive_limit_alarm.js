@@ -45,7 +45,7 @@ UAExclusiveLimitAlarm.prototype._signalNewCondition = function(stateName, isActi
     if (stateName) {
         alarm.limitState.setState(stateName);
     } else {
-        assert(stateName == null);
+        assert(stateName === null);
         alarm.limitState.setState(stateName);
     }
     UALimitAlarm.prototype._signalNewCondition.call(this,stateName,isActive,value);

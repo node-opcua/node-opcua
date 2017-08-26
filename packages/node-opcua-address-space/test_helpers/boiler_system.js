@@ -3,8 +3,6 @@
 
 var _ = require("underscore");
 var assert = require("better-assert");
-var should = require("should");
-
 
 //xx var StatusCodes = require("node-opcua-status-code").StatusCode;
 //xx var Variant = require("node-opcua-variant").Variant;
@@ -441,13 +439,13 @@ exports.makeBoiler = function makeBoiler(addressSpace, options) {
 
     // when state is "Halted" , the Halt method is not executable
     boilerStateMachine.setState(haltedState);
-    boilerStateMachine.currentStateNode.browseName.toString().should.eql("Halted");
+    assert(boilerStateMachine.currentStateNode.browseName.toString() === "Halted");
 
-    boilerStateMachine.halt.getExecutableFlag(context).should.eql(false);
+    assert(!boilerStateMachine.halt.getExecutableFlag(context));
 
     // when state is "Reset" , the Halt method is  executable
     boilerStateMachine.setState(readyState);
-    boilerStateMachine.halt.getExecutableFlag(context).should.eql(true);
+    assert(boilerStateMachine.halt.getExecutableFlag(context));
 
     return boiler1;
 };

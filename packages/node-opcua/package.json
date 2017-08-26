@@ -8,6 +8,7 @@
   "dependencies": {
     "node-opcua-address-space": "*",
     "node-opcua-address-space-loader": "*",
+    "node-opcua-address-space-for-conformance-testing":"*",
     "node-opcua-client": "*",
     "node-opcua-client-crawler": "*",
     "node-opcua-common": "*",
@@ -15,6 +16,7 @@
     "node-opcua-data-access": "*",
     "node-opcua-data-model": "*",
     "node-opcua-data-value": "*",
+    "node-opcua-debug":"*",
     "node-opcua-enum": "*",
     "node-opcua-factory": "*",
     "node-opcua-hostname": "*",
@@ -42,6 +44,7 @@
     "node-opcua-service-write": "*",
     "node-opcua-status-code": "*",
     "node-opcua-transport": "*",
+    "node-opcua-vendor-diagnostic":"*",
     "node-opcua-utils": "*",
     "node-opcua-variant": "*"
 

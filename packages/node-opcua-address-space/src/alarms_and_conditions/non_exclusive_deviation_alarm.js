@@ -11,8 +11,6 @@ var DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarmHe
 
 var UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
 var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
 /**
  * @class UANonExclusiveDeviationAlarm
  * @extends UANonExclusiveLimitAlarm

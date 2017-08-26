@@ -157,7 +157,7 @@ ClientSession.prototype._callMethodCondition = function(methodName,conditionId,e
     conditionId = coerceNodeId(conditionId);
     assert(conditionId instanceof NodeId);
     assert(eventId instanceof Buffer);
-    assert(typeof(comment) == "string" || comment instanceof LocalizedText);
+    assert(typeof(comment) === "string" || comment instanceof LocalizedText);
 
     comment = LocalizedText.coerce(comment);
 

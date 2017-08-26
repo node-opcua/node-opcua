@@ -36,13 +36,13 @@ PacketAssembler.prototype._read_packet_info = function (data) {
     return this.readMessageFunc(data);
 };
 
-PacketAssembler.prototype._build_data =function(data) {
-    if(data && this._stack.length == 0 ){
+PacketAssembler.prototype._build_data = function (data) {
+    if (data && this._stack.length === 0) {
         return data;
     }
-    if (!data && this._stack.length ==1) {
+    if (!data && this._stack.length === 1) {
         data = this._stack[0];
-        this._stack.length =0; // empty stack array
+        this._stack.length = 0; // empty stack array
         return data;
     }
     this._stack.push(data);

@@ -27,8 +27,6 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 var OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
 
-//xx var constructFilename = require("node-opcua-utils").constructFilename;
-
 var ClientSecureChannelLayer = require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
 var defaultConnectionStrategy = {

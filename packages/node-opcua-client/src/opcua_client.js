@@ -804,7 +804,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                                 debugLog(" Creating a new session .... Done".bgWhite.cyan);
                                 if (!err) {
                                     new_session = _new_session;
-                                    assert(session == _new_session);
+                                    assert(session === _new_session);
                                 }
                                 callback(err);
                             });

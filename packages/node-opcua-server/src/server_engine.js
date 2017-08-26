@@ -68,7 +68,6 @@ var ServerState = require("node-opcua-common").ServerState;
 var ServerStatus  = require("node-opcua-common").ServerStatus;
 var ServerDiagnosticsSummary  = require("node-opcua-common").ServerDiagnosticsSummary;
 
-//xx var constructFilename = require("node-opcua-utils").constructFilename;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 var endpoints_service = require("node-opcua-service-endpoints");
 var ApplicationDescription = endpoints_service.ApplicationDescription;
@@ -1433,7 +1432,7 @@ ServerEngine.prototype.transferSubscription = function (session,subscriptionId,s
         return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
     }
     // // now check that new session has sufficient right
-    // if (session.authenticationToken.toString() != subscription.authenticationToken.toString()) {
+    // if (session.authenticationToken.toString() !== subscription.authenticationToken.toString()) {
     //     console.log("ServerEngine#transferSubscription => BadUserAccessDenied");
     //     return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
     // }
@@ -1538,7 +1537,7 @@ ServerEngine.prototype.refreshValues = function (nodesToRefresh, callback) {
 
         objs[key] = obj;
     }
-    if (Object.keys(objs).length == 0) {
+    if (Object.keys(objs).length === 0) {
         // nothing to do
         return callback(null,[]);
     }

@@ -1,3 +1,4 @@
+"use strict";
 var child_process = require("child_process");
 
 
@@ -17,7 +18,7 @@ function exec(cmd,callback) {
     });
 }
 
-exec("node bin/generate_opcua_classes.js --clear ",function() {
-    exec( "node bin/crypto_create_CA.js demo --silent",function() {
-    });
+//xx exec("node bin/generate_opcua_classes.js --clear ",function() {
+//xx });
+exec( "node bin/crypto_create_CA.js demo --silent",function() {
 });

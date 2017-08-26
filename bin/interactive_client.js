@@ -1,16 +1,16 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 
-var readline = require('readline');
-var treeify = require('treeify');
-require('colors');
-var sprintf = require('sprintf');
+var readline = require("readline");
+var treeify = require("treeify");
+require("colors");
+var sprintf = require("sprintf");
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
 
-var opcua = require("..");
+var opcua = require("./node-opcua");
 var UAProxyManager = opcua.UAProxyManager;
 
 
@@ -36,15 +36,10 @@ var dumpPacket        = false;
 var dumpMessageChunk  = false;
 var endpoints_history = [];
 
-function add_endpoint_to_history(endpoint) {
-    if (endpoints_history.indexOf(endpoint) >= 0) {
-        return;
-    }
-    endpoints_history.push(endpoint);
-    save_endpoint_history();
-}
-
 var endpoints_history_file = path.join(__dirname, ".history_endpoints");
+
+var curNode = null;
+var curNodeCompletion = [];
 
 function save_endpoint_history(callback) {
     if (endpoints_history.length > 0) {
@@ -54,6 +49,17 @@ function save_endpoint_history(callback) {
         callback();
     }
 }
+function add_endpoint_to_history(endpoint) {
+    if (endpoints_history.indexOf(endpoint) >= 0) {
+        return;
+    }
+    endpoints_history.push(endpoint);
+    save_endpoint_history();
+}
+
+var lines = [];
+
+
 
 if (fs.existsSync(endpoints_history_file)) {
     lines = fs.readFileSync(endpoints_history_file, "ascii");
@@ -61,6 +67,53 @@ if (fs.existsSync(endpoints_history_file)) {
 }
 
 var history_file = path.join(__dirname, ".history");
+
+
+function completer(line,callback) {
+
+    var completions, hits;
+
+    if ( (line.trim() === "" ) && curNode) {
+        // console.log(" completions ",completions);
+        var c = [".."].concat(curNodeCompletion);
+        if (curNodeCompletion.length === 1) {
+            c = curNodeCompletion;
+        }
+        return callback(null, [ c, line]);
+    }
+
+    if ("open".match(new RegExp("^" + line.trim()))) {
+        completions = ["open localhost:port"];
+        return callback(null, [ completions, line]);
+
+    } else {
+        if (the_session === null) {
+            if (client._secureChannel) {
+                completions = "createSession cs getEndpoints gep quit".split(" ");
+            } else {
+                completions = "open quit".split(" ");
+            }
+        } else {
+            completions = "browse read readall crawl closeSession disconnect quit getEndpoints".split(" ");
+        }
+    }
+    assert(completions.length >= 0);
+    hits = completions.filter(function (c) {
+        return c.indexOf(line) === 0;
+    });
+    return callback(null,[hits.length ? hits : completions, line]);
+}
+
+
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    completer: completer
+});
+
+var the_prompt = ">".cyan;
+rl.setPrompt(the_prompt);
+rl.prompt();
 
 function save_history(callback) {
     var history_uniq = _.uniq(rl.history);
@@ -108,24 +161,24 @@ function toDate(str) {
         return date;
     }
     // check if provided date looks like "3 hours ago" | "1 day ago" etc...
-    var r = /([0-9]*)(day|days|d|hours|hour|h|minutes|minutes|m)\s?((ago)?)/
+    var r = /([0-9]*)(day|days|d|hours|hour|h|minutes|minutes|m)\s?((ago)?)/;
     var m = str.match(r);
     if (m) {
-        var t = parseInt(m[1]);
+        var tvalue = parseInt(m[1]);
         switch(m[2][0]) {
             case "d":
-                t *= 24*3600;
+                tvalue *= 24*3600;
                 break;
             case "h":
-                t *= 3600;
+                tvalue *= 3600;
                 break;
             case "m":
-                t *= 60;
+                tvalue *= 60;
                 break;
             default:
                 throw new Error(" invalidate date");
         }
-        return  new Date(now - t*1000);
+        return  new Date(now - tvalue*1000);
     } else {
         return new Date(str);
     }
@@ -144,15 +197,9 @@ var rootFolder   = null;
 
 var nodePath = [];
 var nodePathName = [];
-var curNode = null;
-var curNodeCompletion = [];
 var lowerFirstLetter = opcua.utils.lowerFirstLetter;
 
-function setRootNode(node) {
-    nodePath = [];
-    nodePathName = [];
-    setCurrentNode(node);
-}
+
 function setCurrentNode(node) {
 
     curNode = node;
@@ -161,17 +208,21 @@ function setCurrentNode(node) {
     nodePath.push(node);
     curNodeCompletion = node.$components.map(function(c) {
         if (!c.browseName) {
-            return '???'
+            return "???";
         }
         return lowerFirstLetter(c.browseName.name.toString());
     });
     the_prompt = nodePathName.join(".").yellow+">";
     rl.setPrompt(the_prompt);
 }
-
+function setRootNode(node) {
+    nodePath = [];
+    nodePathName = [];
+    setCurrentNode(node);
+}
 function moveToChild(browseName) {
 
-    if (browseName == "..") {
+    if (browseName === "..") {
         nodePathName.pop();
         curNode = nodePath.splice(-1,1)[0];
         the_prompt = nodePathName.join(".").yellow+">";
@@ -205,47 +256,6 @@ function get_root_folder(callback) {
     }
 }
 
-
-function completer(line,callback) {
-
-    var completions, hits;
-
-    if ( (line.trim() === "" ) && curNode) {
-        // console.log(" completions ",completions);
-        var c = [".."].concat(curNodeCompletion);
-        if (curNodeCompletion.length === 1) {
-            c = curNodeCompletion;
-        }
-        return callback(null, [ c, line]);
-    }
-
-    if ("open".match(new RegExp("^" + line.trim()))) {
-        completions = ["open localhost:port"];
-        return callback(null, [ completions, line]);
-
-    } else {
-        if (the_session === null) {
-            if (client._secureChannel) {
-                completions = 'createSession cs getEndpoints gep quit'.split(' ');
-            } else {
-                completions = "open quit".split(" ");
-            }
-        } else {
-            completions = 'browse read readall crawl closeSession disconnect quit getEndpoints'.split(' ');
-        }
-    }
-    assert(completions.length >= 0);
-    hits = completions.filter(function (c) {
-        return c.indexOf(line) === 0;
-    });
-    return callback(null,[hits.length ? hits : completions, line]);
-}
-
-var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    completer: completer
-});
 
 client.on("send_chunk", function (message_chunk) {
     if (dumpMessageChunk) {
@@ -286,7 +296,6 @@ function colorize(value) {
 
 if (rl.history) {
 
-    var lines = [];
     if (fs.existsSync(history_file)) {
         lines = fs.readFileSync(history_file, "ascii");
         lines = lines.split(/\r\n|\n/);
@@ -307,30 +316,12 @@ if (rl.history) {
     }
 }
 
-process.on('uncaughtException', function (e) {
+process.on("uncaughtException", function (e) {
     util.puts(e.stack.red);
     rl.prompt();
 });
 
-var the_prompt = ">".cyan;
-rl.setPrompt(the_prompt);
 
-rl.prompt();
-
-rl.on('line', function (line) {
-
-    try {
-        process_line(line);
-        rl.prompt();
-    }
-    catch (err) {
-        log("------------------------------------------------".red);
-        log(err.message.bgRed.yellow.bold);
-        log(err.stack);
-        log("------------------------------------------------".red);
-        rl.resume();
-    }
-});
 
 
 function apply_command(cmd,func,callback) {
@@ -482,11 +473,11 @@ function process_line(line) {
         return;
     }
     switch (cmd) {
-        case 'debug':
+        case "debug":
             var flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
             set_debug(flag);
             break;
-        case 'open':
+        case "open":
             var endpoint_url = args[1];
             if (!endpoint_url.match(/^opc.tcp:\/\//)) {
                 endpoint_url = "opc.tcp://" + endpoint_url;
@@ -517,7 +508,7 @@ function process_line(line) {
             });
             break;
 
-        case 'fs':
+        case "fs":
         case "FindServers":
             apply_command(cmd,function(callback){
                 client.findServers({}, function (err, servers) {
@@ -529,8 +520,8 @@ function process_line(line) {
                 });
             });
             break;
-        case 'gep':
-        case 'getEndpoints':
+        case "gep":
+        case "getEndpoints":
             apply_command(cmd,function(callback){
                 client.getEndpointsRequest(function (err, endpoints) {
                     if (err) {
@@ -543,16 +534,16 @@ function process_line(line) {
             });
             break;
 
-        case 'createSession':
-        case 'cs':
+        case "createSession":
+        case "cs":
             apply_command(cmd,open_session);
             break;
 
-        case 'closeSession':
+        case "closeSession":
             close_session(function() { });
             break;
 
-        case 'disconnect':
+        case "disconnect":
             if (the_session) {
                 close_session(function (callback) {
                     client.disconnect(function () {
@@ -567,8 +558,8 @@ function process_line(line) {
             }
             break;
 
-        case 'b':
-        case 'browse':
+        case "b":
+        case "browse":
             apply_on_valid_session(cmd, function (the_session,callback) {
 
                 nodes = [args[1]];
@@ -596,7 +587,7 @@ function process_line(line) {
 
             break;
 
-        case 'rootFolder':
+        case "rootFolder":
 
             apply_on_valid_session(cmd, function (the_session,callback) {
 
@@ -604,8 +595,8 @@ function process_line(line) {
             });
             break;
 
-        case 'hr':
-        case 'readHistoryValue':
+        case "hr":
+        case "readHistoryValue":
             apply_on_valid_session(cmd, function (the_session,callback ) {
 
                 // example:
@@ -637,8 +628,8 @@ function process_line(line) {
 
             });
             break;
-        case 'r':
-        case 'read':
+        case "r":
+        case "read":
             apply_on_valid_session(cmd, function (the_session,callback ) {
 
                 nodes = [args[1]];
@@ -660,8 +651,8 @@ function process_line(line) {
                 });
             });
             break;
-        case 'ra':
-        case 'readall':
+        case "ra":
+        case "readall":
             apply_on_valid_session(cmd, function (the_session, callback) {
                 nodes = [args[1]];
 
@@ -676,7 +667,7 @@ function process_line(line) {
             });
             break;
 
-        case 'tb':
+        case "tb":
             apply_on_valid_session(cmd, function (the_session, callback) {
 
                 var path = args[1];
@@ -691,7 +682,7 @@ function process_line(line) {
                 });
             });
             break;
-        case 'crawl':
+        case "crawl":
         {
             apply_on_valid_session(cmd, function (the_session, callback) {
 
@@ -739,11 +730,26 @@ function process_line(line) {
             break;
         default:
             if (cmd.trim().length>0) {
-                log('Say what? I might have heard `' + cmd.trim() + '`');
+                log("Say what? I might have heard `" + cmd.trim() + "`");
             }
             break;
     }
 }
+
+rl.on("line", function (line) {
+
+    try {
+        process_line(line);
+        rl.prompt();
+    }
+    catch (err) {
+        log("------------------------------------------------".red);
+        log(err.message.bgRed.yellow.bold);
+        log(err.stack);
+        log("------------------------------------------------".red);
+        rl.resume();
+    }
+});
 
 
 

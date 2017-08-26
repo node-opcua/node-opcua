@@ -1,10 +1,14 @@
 /* eslint no-process-exit: 0 */
-var argv = require('yargs')
-    .usage('Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block')
+var argv = require("yargs")
+    .usage("Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block")
     .argv;
 var net = require("net");
+
+
+
+var opcua = require("./node-opcua");
+
 var hexDump = require("../lib/misc/utils").hexDump;
-var opcua = require("../lib/nodeopcua");
 var MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
 var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
@@ -91,7 +95,7 @@ TrafficAnalyser.prototype.add = function (data) {
 };
 
 
-require('net').createServer(function (socket) {
+require("net").createServer(function (socket) {
 
     console.log("connected");
     var ta_client = new TrafficAnalyser(1);
@@ -101,7 +105,7 @@ require('net').createServer(function (socket) {
     var proxy_client = new net.Socket();
     proxy_client.connect(remote_port, hostname);
 
-    proxy_client.on('data', function (data) {
+    proxy_client.on("data", function (data) {
         console.log(" server -> client : packet length " + data.length);
         ta_server.add(data);
         try {
@@ -111,18 +115,18 @@ require('net').createServer(function (socket) {
         }
     });
 
-    socket.on('data', function (data) {
+    socket.on("data", function (data) {
         console.log(" client -> server : packet length " + data.length);
         ta_client.add(data);
         proxy_client.write(data);
     });
-    socket.on('close', function () {
-        console.log('server disconnected (CLOSE)');
+    socket.on("close", function () {
+        console.log("server disconnected (CLOSE)");
         proxy_client.end();
     });
 
-    socket.on('end', function () {
-        console.log('server disconnected (END)');
+    socket.on("end", function () {
+        console.log("server disconnected (END)");
     });
 
 }).listen(my_port);

@@ -219,14 +219,14 @@ UALimitAlarm.prototype._signalNewCondition = function (stateName, isActive, valu
         alarm.raiseNewCondition(newConditionInfo);
     } else {
 
-        if (alarm.currentBranch().getAckedState() == false) {
+        if (alarm.currentBranch().getAckedState() === false) {
             // prior state need acknowledgement
             // note : TODO : timestamp of branch and new state of current branch must be identical
 
             // we need to create a new branch so the previous state
             // could be acknowledge
             var newBranch = alarm.createBranch();
-            assert(newBranch.getBranchId() != NodeId.NullNodeId);
+            assert(newBranch.getBranchId() !== NodeId.NullNodeId);
             // also raised a new Event for the new branch as branchId has changed
             alarm.raiseNewBranchState(newBranch);
         }
@@ -288,7 +288,7 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
     var alarmNode = UAAlarmConditionBase.instantiate(addressSpace, limitAlarmTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UALimitAlarm.prototype);
 
-    assert(alarmNode.conditionOfNode() != null);
+    assert(alarmNode.conditionOfNode() !== null);
 
     var inputNode = addressSpace._coerceNode(options.inputNode);
     assert(inputNode, "Expecting a valid input node");

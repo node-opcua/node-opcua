@@ -1,25 +1,24 @@
 "use strict";
+var opcua = require("./node-opcua");
+var _ = require("underscore");
 
 Error.stackTraceLimit = Infinity;
+
 var assert = require("better-assert");
-var argv = require('yargs')
+var argv = require("yargs")
     .wrap(132)
     .string("alternateHostname")
     .describe("alternateHostname")
-    .alias('a','alternateHostname')
+    .alias("a","alternateHostname")
     .string("port")
     .describe("port")
-    .alias('p','port')
+    .alias("p","port")
     .argv;
 
-var opcua = require("..");
-var _ = require("underscore");
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
 var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
 
-var address_space_for_conformance_testing = opcua.address_space_for_conformance_testing;
 var makeApplicationUrn = opcua.makeApplicationUrn;
 var standard_nodeset_file = opcua.standard_nodeset_file;
 var get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
@@ -164,8 +163,8 @@ server.on("post_initialize", function () {
         browseName:"MyView"
     });
 
-    var createBoilerType = require("../test/helpers/boiler_system").createBoilerType;
-    var makeBoiler = require("../test/helpers/boiler_system").makeBoiler;
+    var createBoilerType = opcua.createBoilerType;
+    var makeBoiler = opcua.makeBoiler;
 
     createBoilerType(addressSpace);
     makeBoiler(addressSpace,{
@@ -246,7 +245,7 @@ server.on("response", function (response) {
 
 function indent(str,nb) {
     var spacer = "                                             ".slice(0,nb);
-    return str.split("\n").map(function(s) { return spacer + s }).join("\n");
+    return str.split("\n").map(function(s) { return spacer + s; }).join("\n");
 }
 server.on("request", function (request,channel) {
     console.log(t(request.requestHeader.timeStamp),request.requestHeader.requestHandle,
@@ -266,7 +265,7 @@ server.on("request", function (request,channel) {
     }
 });
 
-process.on('SIGINT', function() {
+process.on("SIGINT", function() {
     // only work on linux apparently
     console.log(" Received server interruption from user ".red.bold);
     console.log(" shutting down ...".red.bold);

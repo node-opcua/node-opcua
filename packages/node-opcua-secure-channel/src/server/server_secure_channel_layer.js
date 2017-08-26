@@ -758,7 +758,7 @@ function _handle_OpenSecureChannelRequest(message, callback) {
 
         if (self.clientNonce.length !== self.serverNonce.length) {
 
-            console.log("warning client Nonce length doesn't match server nonce length".red,self.clientNonce.length ," !=",self.serverNonce.length);
+            console.log("warning client Nonce length doesn't match server nonce length".red,self.clientNonce.length ," !== ",self.serverNonce.length);
             // what can we do
             // - just ignore it ?
             // - or adapt serverNonce length to clientNonce Length ?

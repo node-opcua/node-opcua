@@ -3,7 +3,6 @@
 
 var should = require("should");
 
-var _ = require("underscore");
 var assert = require("better-assert");
 
 var UAObjectType = require("..").UAObjectType;
@@ -47,7 +46,7 @@ describe("testing add new ObjectType ", function () {
             modellingRule: "Mandatory",
             browseName: "TemperatureSensor"
         });
-        assert(machineTypeNode.temperatureSensor);
+        should.exist(machineTypeNode.temperatureSensor);
         machineTypeTemperatureSensorNode.modellingRule.should.eql("Mandatory");
 
         // MachineType.HeaderSwitch
@@ -59,7 +58,7 @@ describe("testing add new ObjectType ", function () {
             value: {dataType: DataType.Boolean, value: false}
         });
 
-        assert(machineTypeNode.heaterSwitch);
+        should.exist(machineTypeNode.heaterSwitch);
         //xx console.log(machineTypeNode.heaterSwitch.nodeId.toString());
         //xx console.log(machineTypeNode.heaterSwitch.nodeId.toString());
 

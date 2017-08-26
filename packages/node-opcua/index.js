@@ -1,6 +1,6 @@
 
 
-
+global.isLastCharLower = 0;
 // ---------------------------------------------------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------------------------------------------------
@@ -24,8 +24,8 @@ module.exports.Variant           = require("node-opcua-variant").Variant;
 module.exports.VariantArrayType  = require("node-opcua-variant").VariantArrayType;
 module.exports.buildVariantArray = require("node-opcua-variant").buildVariantArray;
 
-module.exports.DataValue         =  require("node-opcua-data-value").DataValue;
-module.exports.sameDataValue      =  require("node-opcua-data-value").sameDataValue;
+module.exports.DataValue           = require("node-opcua-data-value").DataValue;
+module.exports.sameDataValue       = require("node-opcua-data-value").sameDataValue;
 
 module.exports.NumericRange        = require("node-opcua-numeric-range").NumericRange;
 
@@ -35,6 +35,7 @@ module.exports.coerceLocalizedText = require("node-opcua-data-model").coerceLoca
 module.exports.QualifiedName       = require("node-opcua-data-model").QualifiedName;
 module.exports.coerceQualifyName   = require("node-opcua-data-model").coerceQualifyName;
 module.exports.NodeClass           = require("node-opcua-data-model").NodeClass;
+module.exports.NodeClassMask       = require("node-opcua-data-model").NodeClassMask;
 module.exports.AttributeIds        = require("node-opcua-data-model").AttributeIds;
 module.exports.AttributeNameById   = require("node-opcua-data-model").AttributeNameById;
 module.exports.BrowseDirection     = require("node-opcua-data-model").BrowseDirection;
@@ -158,25 +159,35 @@ module.exports.constructEventFilter = require("node-opcua-service-filter").const
 
 module.exports.perform_findServersRequest = require("node-opcua-client").perform_findServersRequest;
 
+
+
+var address_space_for_conformance_testing  = require("node-opcua-address-space-for-conformance-testing");
+module.exports.build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
+
+module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;
+
+module.exports.construct_demo_alarm_in_address_space = require("node-opcua-address-space/test_helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
+
+module.exports.createBoilerType = require("node-opcua-address-space/test_helpers/boiler_system").createBoilerType;
+module.exports.makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
+
+module.exports.crypto_utils = require("node-opcua-crypto").crypto_utils;
+
+module.exports.hexDump = require("node-opcua-debug").hexDump;
 if (false) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // to fix !
 // ---------------------------------------------------------------------------------------------------------------------
-    process.env.NODE_PATH = __dirname + ";" + process.env.NODE_PATH;
-    require("module").Module._initPaths();
+    //xx process.env.NODE_PATH = __dirname + ";" + process.env.NODE_PATH;
+    //xx require("module").Module._initPaths();
 
-    module.exports.encode_decode = require("$node-opcua/misc/encode_decode");
-    module.exports.factories = require("node-opcua-factory");
+    //xx module.exports.encode_decode = require("$node-opcua/misc/encode_decode");
+    //xx module.exports.factories = require("node-opcua-factory");
 
-    var address_space_for_conformance_testing = require("$node-opcua/simulation/address_space_for_conformance_testing");
-    module.exports.build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
-    module.exports.install_optional_cpu_and_memory_usage_node = require("$node-opcua/server/vendor_diagnostic_nodes").install_optional_cpu_and_memory_usage_node;
+    //xx module.exports.UAProxyManager = require("$node-opcua/client/proxy").UAProxyManager;
+    //xx module.exports.callConditionRefresh = require("$node-opcua/client/alarms_and_conditions/client_tools").callConditionRefresh;
 
-    module.exports.UAProxyManager = require("$node-opcua/client/proxy").UAProxyManager;
-    module.exports.callConditionRefresh = require("$node-opcua/client/alarms_and_conditions/client_tools").callConditionRefresh;
-
-    module.exports.analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-    module.exports.construct_demo_alarm_in_address_space = require("$node-opcua/test-helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
-    module.exports.readMessageHeader = require("$node-opcua/misc/message_header").readMessageHeader;
+    //xx module.exports.analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
+    //xx  module.exports.readMessageHeader = require("$node-opcua/misc/message_header").readMessageHeader;
 }

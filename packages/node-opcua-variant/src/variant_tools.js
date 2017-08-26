@@ -229,7 +229,7 @@ function __check_same_array(arr1,arr2) {
     if (arr1.length !== arr2.length) {
         return false;
     }
-    if (arr1.length == 0 && 0 == arr2.length) {
+    if (arr1.length === 0 && 0 === arr2.length) {
         return true;
     }
     if (!oldNodeVersion  && arr1.buffer) {

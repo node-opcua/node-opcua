@@ -177,7 +177,7 @@ var DiagnosticInfo_Schema = {
         }
         // read inner status code
         if (check_flag(encoding_mask, DiagnosticInfo_EncodingByte.InnerDiagnosticInfo)) {
-            var DiagnosticInfo = require("$node-opcua/_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
+            var DiagnosticInfo = require("../_generated_/_auto_generated_DiagnosticInfo").DiagnosticInfo;
 
             diagnosticInfo.innerDiagnosticInfo = new DiagnosticInfo({});
 

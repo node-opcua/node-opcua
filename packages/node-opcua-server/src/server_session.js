@@ -508,7 +508,7 @@ ServerSession.prototype.close = function (deleteSubscriptions,reason) {
     // ---------------  delete associated subscriptions ---------------------
 
 
-    if (!deleteSubscriptions && self.currentSubscriptionCount !=0 ) {
+    if (!deleteSubscriptions && self.currentSubscriptionCount !== 0 ) {
 
         // I don't know what to do yet if deleteSubscriptions is false
         console.log("TO DO : Closing session without deleting subscription not yet implemented");

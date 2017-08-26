@@ -2,7 +2,7 @@ var _ = require("underscore");
 
 function __isEqual(a,b) {
    if (!a && !b) { return true; }
-   return a.toString() == b.toString();
+   return a.toString() === b.toString();
 }
 function _is_equal(arr1, arr2) {
 

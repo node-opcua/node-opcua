@@ -9,8 +9,6 @@ var opcua = require("node-opcua");
 
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
-//xx var constructFilename = require("node-opcua-utils").constructFilename;
-
 
 function sendPublishRequest(session, callback) {
     var publishRequest = new opcua.subscription_service.PublishRequest({});

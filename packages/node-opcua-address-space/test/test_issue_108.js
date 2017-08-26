@@ -2,15 +2,11 @@
 /* global describe,it,before*/
 
 var should = require("should");
-var _ = require("underscore");
 var assert = require("better-assert");
-var path = require("path");
 
 
-var UAObjectType = require("..").UAObjectType;
 var AddressSpace = require("..").AddressSpace;
 
-var DataType = require("node-opcua-variant").DataType;
 var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
