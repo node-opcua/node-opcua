@@ -1,0 +1,17 @@
+{
+  "name": "node-opcua-binary-stream",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/binaryStream.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "dependencies": {
+    "node-opcua-buffer-utils": "*"
+  },
+  "devDependencies": {
+    "node-opcua-benchmarker": "*"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT"
+}
