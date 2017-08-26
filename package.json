@@ -10,12 +10,12 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "preinstall": "lerna bootstrap",
+    "preinstall": "./node_modules/.bin/lerna bootstrap",
     "postinstall": "node postinstall.js",
     "pretest": "node bin/crypto_create_CA.js demo --dev --silent",
     "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
     "test": "cd packages && node run_all_mocha_tests.js",
-    "test:withlerna": "lerna run test",
+    "test:withlerna": "./node_modules/.bin/lerna run test",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js"
   },
