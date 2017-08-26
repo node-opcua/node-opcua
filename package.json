@@ -10,10 +10,7 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "postinstall": [
-      "./node_modules/.bin/lerna bootstrap",
-      "node postinstall.js"
-    ],
+    "postinstall": "./node_modules/.bin/lerna bootstrap && node postinstall.js",
     "pretest": "node bin/crypto_create_CA.js demo --dev --silent",
     "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
     "test": "cd packages && node run_all_mocha_tests.js",
