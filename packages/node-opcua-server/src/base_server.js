@@ -166,7 +166,7 @@ OPCUABaseServer.prototype.shutdown = function (done) {
     var self = this;
 
     var tasks = [];
-    this.endpoints.forEach(function (endPoint) {
+    self.endpoints.forEach(function (endPoint) {
         tasks.push(function (callback) {
             endPoint.shutdown(callback);
             if (endPoint._on_new_channel) {

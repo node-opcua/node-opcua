@@ -19,9 +19,9 @@ var perform_operation_on_client_session = require("../../test_helpers/perform_op
 var address_space_for_conformance_testing  = require("node-opcua-address-space-for-conformance-testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
-describeWithLeakDetector("NodeCrawler after write",function(){
+describe("NodeCrawler after write",function(){
 
     var namespaceIndex = 411;
     var port = 2555;

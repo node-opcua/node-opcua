@@ -14,7 +14,6 @@ var ClientSession = opcua.ClientSession;
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var securityMode   = opcua.MessageSecurityMode.NONE;
 var securityPolicy = opcua.SecurityPolicy.None;

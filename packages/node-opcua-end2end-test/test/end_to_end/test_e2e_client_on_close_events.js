@@ -7,31 +7,22 @@ var sinon = require("sinon");
 var opcua = require("node-opcua");
 
 var OPCUAClient = opcua.OPCUAClient;
+var OPCUAServer = opcua.OPCUAServer;
 var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describe("testing Client-Server - Event", function () {
 
+    this.timeout(Math.max(600000, this._timeout));
 
-describe("testing Client-Server -Event", function () {
-
-    before(function() {
-        resourceLeakDetector.start();
-    });
-    after(function() {
-        resourceLeakDetector.stop();
-    });
-
-
-    this.timeout(Math.max(600000,this._timeout));
-
-    var port = 2222;
+    var port = 2225;
     var server;
     var endpointUrl;
 
     function start_server(done) {
-        server = new opcua.OPCUAServer({
+        server = new OPCUAServer({
             port: port,
             nodeset_filename: empty_nodeset_filename,
             maxAllowedSessionNumber: 10
@@ -55,8 +46,7 @@ describe("testing Client-Server -Event", function () {
     }
 
 
-
-    it("should raise a close event once on normal disconnection", function (done) {
+    it("TSC-1 should raise a close event once on normal disconnection", function (done) {
 
         var close_counter = 0;
 
@@ -97,15 +87,14 @@ describe("testing Client-Server -Event", function () {
 
 
     });
-
-    it("Client (not reconnecting) should raise a close event with an error when server initiates disconnection", function (done) {
+    it("TSC-2 client (not reconnecting) should raise a close event with an error when server initiates disconnection", function (done) {
 
         // note : client is not trying to reconnect
-        var options ={
+        var options = {
             connectionStrategy: {
-                maxRetry:    0,  // <= no retry
-                initialDelay:10,
-                maxDelay:    20,
+                maxRetry: 0,  // <= no retry
+                initialDelay: 10,
+                maxDelay: 20,
                 randomisationFactor: 0
             }
         };
@@ -129,30 +118,36 @@ describe("testing Client-Server -Event", function () {
                 _client_received_close_event.callCount.should.eql(0);
 
                 debugLog(" --> Stopping server");
-                end_server(function() {
+                end_server(function () {
                     callback();
                 });
             },
 
             // wait a little bit , to relax client
-            function (callback) { setTimeout(callback,100); },
+            function (callback) {
+                setTimeout(callback, 100);
+            },
 
             function (callback) {
                 _client_received_close_event.callCount.should.eql(1);
                 _client_received_close_event.getCall(0).args[0].message.should.match(/disconnected by third party/);
                 callback();
+            },
+            function (callback) {
+                client.disconnect(callback);
             }
 
         ], done);
     });
-    it("Client (reconnecting)  should raise a close event with an error when server initiates disconnection (after reconnecting has failed)", function (done) {
+
+    it("TSC-3 client (reconnecting)  should raise a close event with an error when server initiates disconnection (after reconnecting has failed)", function (done) {
 
         // note : client will  try to reconnect and eventually fail ..s
-        var options ={
+        var options = {
             connectionStrategy: {
-                maxRetry:    1,  // <= RETRY
-                initialDelay:10,
-                maxDelay:    20,
+                maxRetry: 1,  // <= RETRY
+                initialDelay: 10,
+                maxDelay: 20,
                 randomisationFactor: 0
             }
         };
@@ -175,12 +170,14 @@ describe("testing Client-Server -Event", function () {
 
                 _client_received_close_event.callCount.should.eql(0);
 
-                client.on("close", function(err){
+                client.once("close", function (err) {
+                    should.exist(err);
                     callback();
                 });
-                
+
                 debugLog(" --> Stopping server");
-                end_server(function() { });
+                end_server(function () {
+                });
             },
 
 
@@ -188,6 +185,10 @@ describe("testing Client-Server -Event", function () {
                 _client_received_close_event.callCount.should.eql(1);
                 _client_received_close_event.getCall(0).args[0].message.should.match(/CONNREFUSED/);
                 callback();
+            },
+
+            function (callback) {
+                client.disconnect(callback);
             }
 
         ], done);

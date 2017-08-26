@@ -22,8 +22,7 @@ var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 var port = 4000;
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Testing ChannelSecurityToken lifetime", function () {
 
     this.timeout(Math.max(100000,this._timeout));
@@ -31,12 +30,6 @@ describe("Testing ChannelSecurityToken lifetime", function () {
     var server, client;
     var endpointUrl;
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
     beforeEach(function (done) {
 
         port += 1;
@@ -77,7 +70,9 @@ describe("Testing ChannelSecurityToken lifetime", function () {
         });
         client._secureChannel.once("lifetime_75", function () {
             debugLog(" received lifetime_75");
-            done();
+            client.disconnect(function() {
+                done();
+            });
         });
     });
 
@@ -88,7 +83,9 @@ describe("Testing ChannelSecurityToken lifetime", function () {
         });
         client._secureChannel.on("security_token_renewed", function () {
             debugLog(" received security_token_renewed");
-            done();
+            client.disconnect(function() {
+                done();
+            });
         });
     });
 

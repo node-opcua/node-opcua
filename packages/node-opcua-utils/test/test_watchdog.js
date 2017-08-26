@@ -7,7 +7,6 @@ var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 var should = require("should");
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var WatchDog = require("../src/watchdog").WatchDog;
 
@@ -21,15 +20,10 @@ MyObject.prototype.watchdogReset = function () {
 };
 
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 // http://sinonjs.org/docs/#clock
 describe("watch dog", function () {
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     this.timeout(10000);
     var watchDog = null;
@@ -179,10 +173,5 @@ describe("watch dog", function () {
         this.clock.tick(20000);
 
     });
-
-});
-
-describe("Watch Dog", function () {
-
 
 });

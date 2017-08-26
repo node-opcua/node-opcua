@@ -139,6 +139,8 @@ OPCUAClientBase.prototype.getPrivateKey = OPCUASecureObject.prototype.getPrivate
 OPCUAClientBase.prototype.getCertificate = OPCUASecureObject.prototype.getCertificate;
 OPCUAClientBase.prototype.getCertificateChain = OPCUASecureObject.prototype.getCertificateChain;
 
+var ObjectRegistry = require("node-opcua-utils/src/objectRegistry").ObjectRegistry;
+OPCUAClientBase.registry  = new ObjectRegistry();
 
 /**
  * is true when the client has already requested the server end points.
@@ -154,13 +156,19 @@ OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
     var self = this;
     if (self._secureChannel) {
-        debugLog(" DESTROYING SECURE CHANNEL ");
+
+        if (doDebug) {
+            debugLog(" DESTROYING SECURE CHANNEL ",self._secureChannel.isTransactionInProgress());
+        }
 
         // keep accumulated statistics
         self._byteWritten += self._secureChannel.bytesWritten;
         self._byteRead    += self._secureChannel.bytesRead;
         self._transactionsPerformed += self._secureChannel.transactionsPerformed;
         self._timedOutRequestCount += self._secureChannel.timedOutRequestCount;
+
+
+        self._secureChannel.dispose();
 
         self._secureChannel.removeAllListeners();
         self._secureChannel = null;
@@ -493,7 +501,7 @@ function _install_secure_channel_event_handlers(self,secureChannel) {
                                     //xx callback(err);
                                 });
                             }
-                        })
+                        });
                     }
                 }
             });
@@ -572,6 +580,8 @@ OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
 
     // make sure callback will only be call once regardless of outcome, and will be also deferred.
     var callback_od = once(delayed.deferred(callback)); callback = null;
+
+    OPCUAClientBase.registry.register(self);
 
     self._internal_create_secure_channel(function(err,secureChannel) {
         callback_od(err);
@@ -819,6 +829,8 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
     }
 
     assert(self._sessions.length === 0, " attempt to disconnect a client with live sessions ");
+
+    OPCUAClientBase.registry.unregister(self);
 
     if (self._secureChannel) {
 

@@ -1,9 +1,7 @@
-
 "use strict";
 /* global describe,it,before*/
 
 var should = require("should");
-var _ = require("underscore");
 
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
@@ -12,26 +10,26 @@ var DataType = require("node-opcua-variant").DataType;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 var NumericRange = require("node-opcua-numeric-range").NumericRange;
 
-describe("Testing bug found in #337",function() {
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+
+describe("Testing bug found in #337", function () {
 
     var addressSpace = null;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                done(err);
-            });
-        });
-        after(function () {
-            if (addressSpace) {
-                addressSpace.dispose();
-            }
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            done(err);
         });
     });
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
+    });
 
-    it("should handle Matrix ",function() {
+    it("should handle Matrix ", function () {
 
-        var n =  addressSpace.addVariable({
+        var n = addressSpace.addVariable({
             organizedBy: addressSpace.rootFolder.objects,
             nodeId: "ns=1;s=Position",
             browseName: "position",
@@ -39,7 +37,7 @@ describe("Testing bug found in #337",function() {
             valueRank: 2,
             arrayDimensions: [3, 3],
             value: {
-                get: function(){
+                get: function () {
                     return new Variant({
                         dataType: DataType.Double,
                         arrayType: VariantArrayType.Matrix,
@@ -50,10 +48,10 @@ describe("Testing bug found in #337",function() {
             }
         });
 
-        var dataValue = n.readValue(null,new NumericRange());
+        var dataValue = n.readValue(null, new NumericRange());
         dataValue.isValid().should.eql(true);
         dataValue.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValue.value.dimensions.should.eql([3,3]);
+        dataValue.value.dimensions.should.eql([3, 3]);
 
     });
 

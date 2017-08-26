@@ -15,29 +15,29 @@ var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
 require("../src/address_space_add_enumeration_type");
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+
 describe("AddressSpace : add event type ", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace =__addressSpace__;
-                var eventType = addressSpace.addEventType({
-                    browseName: "MyCustomEvent",
-                    //isAbstract:false,
-                    subtypeOf: "BaseEventType" // should be implicit
-                });
-                done(err);
+    before(function (done) {
+        get_mini_address_space(function (err, __addressSpace__) {
+            addressSpace = __addressSpace__;
+            var eventType = addressSpace.addEventType({
+                browseName: "MyCustomEvent",
+                //isAbstract:false,
+                subtypeOf: "BaseEventType" // should be implicit
             });
-        });
-
-        after(function () {
-            addressSpace.dispose();
-            addressSpace = null;
+            done(err);
         });
     });
 
-    it("#generateEventId should generate event id sequentially",function() {
+    after(function () {
+        addressSpace.dispose();
+        addressSpace = null;
+    });
+
+    it("#generateEventId should generate event id sequentially", function () {
 
         var id1 = addressSpace.generateEventId();
         var id2 = addressSpace.generateEventId();
@@ -95,7 +95,7 @@ describe("AddressSpace : add event type ", function () {
         eventType.isAbstract.should.eql(true);
     });
 
-    it("should be possible to add a non-abstract event type",function(){
+    it("should be possible to add a non-abstract event type", function () {
 
         var eventType = addressSpace.addEventType({
             browseName: "MyConcreteCustomEvent",
@@ -106,7 +106,7 @@ describe("AddressSpace : add event type ", function () {
     });
 
 
-    it("should select node in a EventType using a SelectClause on BaseEventType",function() {
+    it("should select node in a EventType using a SelectClause on BaseEventType", function () {
 
         var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
         var checkSelectClause = require("../src/check_event_clause").checkSelectClause;
@@ -118,19 +118,18 @@ describe("AddressSpace : add event type ", function () {
         var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
         eventFilter.selectClauses.length.should.eql(3);
 
-        var statusCode = checkSelectClause(baseEventType,eventFilter.selectClauses[0]);
+        var statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[0]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(baseEventType,eventFilter.selectClauses[1]);
+        statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[1]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(baseEventType,eventFilter.selectClauses[2]);
+        statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[2]);
         statusCode.should.eql(StatusCodes.Good);
-
 
 
     });
-    it("should select node in a EventType using a SelectClause  n AuditEventType",function() {
+    it("should select node in a EventType using a SelectClause  n AuditEventType", function () {
         var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
         var checkSelectClause = require("../src/check_event_clause").checkSelectClause;
 
@@ -141,13 +140,13 @@ describe("AddressSpace : add event type ", function () {
         var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
         eventFilter.selectClauses.length.should.eql(3);
 
-        var statusCode = checkSelectClause(auditEventType,eventFilter.selectClauses[0]);
+        var statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[0]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(auditEventType,eventFilter.selectClauses[1]);
+        statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[1]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(auditEventType,eventFilter.selectClauses[2]);
+        statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[2]);
         statusCode.should.eql(StatusCodes.Good);
 
     });
@@ -167,9 +166,9 @@ describe("AddressSpace : add event type ", function () {
         bench.add("test", function () {
             var condition = addressSpace.instantiateCondition(eventType, {
                 browseName: "MyCondition",
-                sourceName:  { dataType: "String",   value: "HelloWorld"},
+                sourceName: {dataType: "String", value: "HelloWorld"},
                 conditionSource: null,
-                receiveTime: { dataType: "DateTime", value: new Date(1789, 6, 14)}
+                receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
             });
         })
 
@@ -193,15 +192,15 @@ describe("AddressSpace : add event type ", function () {
         var auditEventType = addressSpace.findObjectType("AuditEventType");
 
         var data = {
-            sourceNode: { dataType: "NodeId", value:  resolveNodeId("Server") },
-            status:     { dataType: "Null"},
-            serverId:     { dataType: "Null"},
-            clientAuditEntryId:     { dataType: "Null"},
-            clientUserId:        { dataType: "Null"},
-            actionTimeStamp:     { dataType: "Null"}
-            };
+            sourceNode: {dataType: "NodeId", value: resolveNodeId("Server")},
+            status: {dataType: "Null"},
+            serverId: {dataType: "Null"},
+            clientAuditEntryId: {dataType: "Null"},
+            clientUserId: {dataType: "Null"},
+            actionTimeStamp: {dataType: "Null"}
+        };
 
-        var data = addressSpace.constructEventData(auditEventType,data);
+        var data = addressSpace.constructEventData(auditEventType, data);
 
         var expected_fields = [
             "$eventDataSource",
@@ -231,7 +230,7 @@ describe("AddressSpace : add event type ", function () {
         var eventType = addressSpace.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
 
-        addressSpace.addVariable( {
+        addressSpace.addVariable({
             propertyOf: eventType,
             browseName: "MyCustomEventProperty",
             dataType: "Double",
@@ -274,6 +273,6 @@ describe("AddressSpace : add event type ", function () {
         event.sourceName.value.should.eql("HelloWorld");
         event.receiveTime.value.should.eql(new Date(1789, 6, 14));
 
-    });
 
+    });
 });

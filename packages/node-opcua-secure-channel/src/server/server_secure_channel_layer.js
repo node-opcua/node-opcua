@@ -145,6 +145,7 @@ function ServerSecureChannelLayer(options) {
 
 util.inherits(ServerSecureChannelLayer, EventEmitter);
 
+ServerSecureChannelLayer.registry = new (require("node-opcua-utils/src/objectRegistry").ObjectRegistry)();
 /**
  * the endpoint associated with this secure channel
  * @property endpoints
@@ -325,7 +326,6 @@ ServerSecureChannelLayer.prototype.init = function (socket, callback) {
 
     var self = this;
 
-
     self.transport = new ServerTCP_transport();
     self.transport.timeout = self.timeout;
 
@@ -340,6 +340,9 @@ ServerSecureChannelLayer.prototype.init = function (socket, callback) {
             });
             debugLog("ServerSecureChannelLayer : Transport layer has been initialized ");
             debugLog("... now waiting for OpenSecureChannelRequest...");
+
+            ServerSecureChannelLayer.registry.register(self);
+
             _wait_for_open_secure_channel_request.call(self, callback, self.timeout);
         }
     });
@@ -375,9 +378,12 @@ function _cancel_wait_for_open_secure_channel_request_timeout() {
     var self = this;
 
     assert(self);
-    // suspend timeout handler
-    clearTimeout(self.timeoutId);
-    self.timeoutId = null;
+
+    _stop_open_channel_watch_dog.call(self);
+    //xx assert(self.timeoutId);
+    //xx // suspend timeout handler
+    //xx clearTimeout(self.timeoutId);
+    //xx self.timeoutId = null;
 }
 
 function _install_wait_for_open_secure_channel_request_timeout(callback, timeout) {
@@ -801,12 +807,14 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     // for convenience
     self.clientCertificate = message.securityHeader ? message.securityHeader.senderCertificate : null;
 
+    var description;
+
     // If the SecurityMode is not None then the Server shall verify that a SenderCertificate and a
     // ReceiverCertificateThumbprint were specified in the SecurityHeader.
     if (self.securityMode.value !== MessageSecurityMode.NONE.value) {
 
         if (!_check_receiverCertificateThumbprint.call(self, self.clientSecurityHeader)) {
-            var description = "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
+            description = "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
             console.log(description.cyan);
             response.responseHeader.serviceResult = StatusCodes.BadCertificateInvalid;
         }
@@ -826,8 +834,6 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     }
 
     self.send_response("OPN", response, message, function (/*err*/) {
-
-        // console.log(err);
         if (response.responseHeader.serviceResult !== StatusCodes.Good) {
             self.close();
         }
@@ -845,6 +851,9 @@ ServerSecureChannelLayer.prototype._abort = function () {
     if (self._abort_has_been_called) {
         return;
     }
+
+    ServerSecureChannelLayer.registry.unregister(self);
+
     self._abort_has_been_called = true;
 
     self._cleanup_pending_timers();
@@ -871,8 +880,8 @@ ServerSecureChannelLayer.prototype._abort = function () {
  */
 ServerSecureChannelLayer.prototype.close = function (callback) {
 
-    debugLog("ServerSecureChannelLayer#close");
     var self = this;
+    debugLog("ServerSecureChannelLayer#close");
     // close socket
     self.transport.disconnect(function () {
         self._abort();
@@ -991,7 +1000,7 @@ function _check_receiverCertificateThumbprint(clientSecurityHeader) {
     if (clientSecurityHeader.receiverCertificateThumbprint) {
         // check if the receiverCertificateThumbprint is my certificate thumbprint
         var serverCertificateChain  = self.getCertificateChain();
-        var serverCertificate = split_der(serverCertificateChain)[0];
+        //xx var serverCertificate = split_der(serverCertificateChain)[0];
         var myCertificateThumbPrint = crypto_utils.makeSHA1Thumbprint(serverCertificateChain);
         //xx console.log("xxxx     my certificate thumbprint",myCertificateThumbPrint.toString("hex") );
         //xx console.log("xxxx receiverCertificateThumbprint",securityHeader.receiverCertificateThumbprint.toString("hex") );

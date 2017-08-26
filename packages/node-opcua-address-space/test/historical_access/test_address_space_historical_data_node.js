@@ -18,32 +18,31 @@ var historizing_service = require("node-opcua-service-history");
 require("date-utils");
 
 // make sure extra error checking is made on object constructions
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Testing Historical Data Node", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true, function () {
 
-        before(function (done) {
+    before(function (done) {
 
-            addressSpace = new AddressSpace();
-            var xml_files = [
-                constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
-            ];
-            fs.existsSync(xml_files[0]).should.be.eql(true,"file "+ xml_files[0] + " must exist");
-            generate_address_space(addressSpace, xml_files, function (err) {
-                done(err);
-            });
-
+        addressSpace = new AddressSpace();
+        var xml_files = [
+            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
+        ];
+        fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
+        generate_address_space(addressSpace, xml_files, function (err) {
+            done(err);
         });
-        after(function () {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-        });
+
+    });
+    after(function () {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
     });
 
-    it("should create a 'HA Configuration' node",function(){
+    it("should create a 'HA Configuration' node", function () {
 
         var node = addressSpace.addVariable({
             browseName: "MyVar",
@@ -54,13 +53,14 @@ describe("Testing Historical Data Node", function () {
         node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
     });
 
-    function date_add(date,options) {
+    function date_add(date, options) {
         var tmp = new Date(date);
 
         tmp.add(options);
         return tmp;
     }
-    it("should keep values in memory to provide historical reads",function(done) {
+
+    it("should keep values in memory to provide historical reads", function (done) {
 
         var node = addressSpace.addVariable({
             browseName: "MyVar",
@@ -73,21 +73,21 @@ describe("Testing Historical Data Node", function () {
         // let's injects some values into the history
         var today = new Date();
 
-        node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 0}));
-        node.setValueFromSource({dataType:"Double",value: 1}, StatusCodes.Good,date_add(today,{seconds: 1}));
-        node.setValueFromSource({dataType:"Double",value: 2}, StatusCodes.Good,date_add(today,{seconds: 2}));
-        node.setValueFromSource({dataType:"Double",value: 3}, StatusCodes.Good,date_add(today,{seconds: 3}));
-        node.setValueFromSource({dataType:"Double",value: 4}, StatusCodes.Good,date_add(today,{seconds: 4}));
-        node.setValueFromSource({dataType:"Double",value: 5}, StatusCodes.Good,date_add(today,{seconds: 5}));
-        node.setValueFromSource({dataType:"Double",value: 6}, StatusCodes.Good,date_add(today,{seconds: 6}));
+        node.setValueFromSource({dataType: "Double", value: 0}, StatusCodes.Good, date_add(today, {seconds: 0}));
+        node.setValueFromSource({dataType: "Double", value: 1}, StatusCodes.Good, date_add(today, {seconds: 1}));
+        node.setValueFromSource({dataType: "Double", value: 2}, StatusCodes.Good, date_add(today, {seconds: 2}));
+        node.setValueFromSource({dataType: "Double", value: 3}, StatusCodes.Good, date_add(today, {seconds: 3}));
+        node.setValueFromSource({dataType: "Double", value: 4}, StatusCodes.Good, date_add(today, {seconds: 4}));
+        node.setValueFromSource({dataType: "Double", value: 5}, StatusCodes.Good, date_add(today, {seconds: 5}));
+        node.setValueFromSource({dataType: "Double", value: 6}, StatusCodes.Good, date_add(today, {seconds: 6}));
 
         node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(today);
 
 
         var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
             isReadModified: false,
-            startTime: date_add(today,{seconds: -10}),
-            endTime:   date_add(today,{seconds: 10}),
+            startTime: date_add(today, {seconds: -10}),
+            endTime: date_add(today, {seconds: 10}),
             numValuesPerNode: 1000,
             returnBounds: true
         });
@@ -100,7 +100,7 @@ describe("Testing Historical Data Node", function () {
 
             should.not.exist(historyReadResult.continuationPoint);
             historyReadResult.statusCode.should.eql(StatusCodes.Good);
-            var dataValues =historyReadResult.historyData.dataValues;
+            var dataValues = historyReadResult.historyData.dataValues;
             //xx console.log(dataValues);
             dataValues.length.should.eql(7);
             dataValues[0].value.value.should.eql(0);
@@ -116,14 +116,14 @@ describe("Testing Historical Data Node", function () {
     });
 
 
-    it("should keep values up to options.maxOnlineValues to provide historical reads",function(done) {
+    it("should keep values up to options.maxOnlineValues to provide historical reads", function (done) {
 
         var node = addressSpace.addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
-        addressSpace.installHistoricalDataNode(node,{
+        addressSpace.installHistoricalDataNode(node, {
             maxOnlineValues: 3 // Only very few values !!!!
         });
         node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
@@ -133,8 +133,8 @@ describe("Testing Historical Data Node", function () {
 
         var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
             isReadModified: false,
-            startTime: date_add(today,{seconds: -10}),
-            endTime:   date_add(today,{seconds: 10}),
+            startTime: date_add(today, {seconds: -10}),
+            endTime: date_add(today, {seconds: 10}),
             numValuesPerNode: 1000,
             returnBounds: true
         });
@@ -144,52 +144,61 @@ describe("Testing Historical Data Node", function () {
 
         async.series([
 
-            function(callback) {
-                node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 0}));
+            function (callback) {
+                node.setValueFromSource({
+                    dataType: "Double",
+                    value: 0
+                }, StatusCodes.Good, date_add(today, {seconds: 0}));
 
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 0}));
+                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, {seconds: 0}));
                 callback();
             },
-            function(callback) {
+            function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(1);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today,{seconds: 0}));
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
                     callback();
                 });
             },
 
-            function(callback) {
-                node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 1}));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 0}));
+            function (callback) {
+                node.setValueFromSource({
+                    dataType: "Double",
+                    value: 0
+                }, StatusCodes.Good, date_add(today, {seconds: 1}));
+                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, {seconds: 0}));
                 callback();
             },
-            function(callback) {
+            function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(2);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today,{seconds: 0}));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today,{seconds: 1}));
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
+                    dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 1}));
                     callback();
                 });
             },
 
 
-            function(callback) {
-                node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 2}));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 0}));
+            function (callback) {
+                node.setValueFromSource({
+                    dataType: "Double",
+                    value: 0
+                }, StatusCodes.Good, date_add(today, {seconds: 2}));
+                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, {seconds: 0}));
                 callback();
             },
-            function(callback) {
+            function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today,{seconds: 0}));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today,{seconds: 1}));
-                    dataValues[2].sourceTimestamp.should.eql(date_add(today,{seconds: 2}));
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
+                    dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 1}));
+                    dataValues[2].sourceTimestamp.should.eql(date_add(today, {seconds: 2}));
                     callback();
                 });
             },
@@ -197,43 +206,48 @@ describe("Testing Historical Data Node", function () {
 
             // the queue is full, the next insertion will cause the queue to be trimmed
 
-            function(callback) {
-                node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 3}));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 1}));
+            function (callback) {
+                node.setValueFromSource({
+                    dataType: "Double",
+                    value: 0
+                }, StatusCodes.Good, date_add(today, {seconds: 3}));
+                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, {seconds: 1}));
                 callback();
             },
-            function(callback) {
+            function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today,{seconds: 1}));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today,{seconds: 2}));
-                    dataValues[2].sourceTimestamp.should.eql(date_add(today,{seconds: 3}));
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 1}));
+                    dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 2}));
+                    dataValues[2].sourceTimestamp.should.eql(date_add(today, {seconds: 3}));
                     callback();
                 });
             },
 
             // the queue is (still)  full, the next insertion will cause the queue to be trimmed, again
 
-            function(callback) {
-                node.setValueFromSource({dataType:"Double",value: 0}, StatusCodes.Good,date_add(today,{seconds: 4}));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today,{seconds: 2}));
+            function (callback) {
+                node.setValueFromSource({
+                    dataType: "Double",
+                    value: 0
+                }, StatusCodes.Good, date_add(today, {seconds: 4}));
+                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, {seconds: 2}));
                 callback();
             },
-            function(callback) {
+            function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
                     var dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today,{seconds: 2}));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today,{seconds: 3}));
-                    dataValues[2].sourceTimestamp.should.eql(date_add(today,{seconds: 4}));
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 2}));
+                    dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 3}));
+                    dataValues[2].sourceTimestamp.should.eql(date_add(today, {seconds: 4}));
                     callback();
                 });
             },
-        ],done);
+        ], done);
 
     });
-
 });

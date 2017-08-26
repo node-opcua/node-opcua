@@ -27,7 +27,6 @@ var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var NodeId = require("node-opcua-nodeid").NodeId;
 var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var encode_decode = require("node-opcua-basic-types");
 
@@ -86,7 +85,8 @@ function simulate_client_adding_publish_request(publishEngine,callback) {
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
-describe("Subscriptions and MonitoredItems", function () {
+var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000,this._timeout));
 
@@ -99,7 +99,6 @@ describe("Subscriptions and MonitoredItems", function () {
     var test = this;
 
     before(function (done) {
-        resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
@@ -199,7 +198,6 @@ describe("Subscriptions and MonitoredItems", function () {
     after(function () {
         engine.shutdown();
         engine = null;
-        resourceLeakDetector.stop();
     });
 
     beforeEach(function () {
@@ -1165,7 +1163,6 @@ describe("monitoredItem advanced", function () {
     var engine;
     var publishEngine;
     before(function (done) {
-        resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
 
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
@@ -1194,7 +1191,6 @@ describe("monitoredItem advanced", function () {
     after(function () {
         engine.shutdown();
         engine = null;
-        resourceLeakDetector.stop();
     });
 
 

@@ -12,28 +12,27 @@ var SubscriptionDiagnostics = require("../_generated_/_auto_generated_Subscripti
 
 var eoan = require("../src/extension_object_array_node");
 
-describe("Extension Object Array Node (or Complex Variable)",function() {
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describe("Extension Object Array Node (or Complex Variable)", function () {
 
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace =__addressSpace__;
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, __addressSpace__) {
+            addressSpace = __addressSpace__;
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
 
-    it("should create a Variable that expose an array of ExtensionObject of a specific type",function(done) {
+    it("should create a Variable that expose an array of ExtensionObject of a specific type", function (done) {
 
         // given a address space
         // give a DataType
@@ -41,11 +40,11 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         var rootFolder = addressSpace.findNode("RootFolder");
 
 
-        var arr = eoan.createExtObjArrayNode(rootFolder,{
-            browseName:          "SubscriptionDiagnosticArrayForTest1",
+        var arr = eoan.createExtObjArrayNode(rootFolder, {
+            browseName: "SubscriptionDiagnosticArrayForTest1",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
-            variableType:        "SubscriptionDiagnosticsType",
-            indexPropertyName:   "subscriptionId"
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId"
         });
 
 
@@ -53,14 +52,14 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         var expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
         arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString());
 
-        var dv  = arr.readValue();
+        var dv = arr.readValue();
         should(dv.value.value).eql([]);
         dv.value.value.should.be.instanceOf(Array);
         dv.value.value.length.should.eql(0);
 
         var counter = 10;
         // now add a new object
-        var options  = {
+        var options = {
             subscriptionId: counter
         };
 
@@ -68,7 +67,7 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         arr.readValue().value.value.length.should.eql(0, "expecting no element in array");
 
 
-        var elVar = eoan.addElement(options,arr);
+        var elVar = eoan.addElement(options, arr);
 
 
         arr.readValue().value.value.length.should.eql(1, "expecting a new element in array");
@@ -90,20 +89,20 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
 
     });
 
-    it("should be possible to add more than one element in the Extension Object variable node",function() {
+    it("should be possible to add more than one element in the Extension Object variable node", function () {
 
         var rootFolder = addressSpace.findNode("RootFolder");
 
-        var arr = eoan.createExtObjArrayNode(rootFolder,{
-            browseName:          "SubscriptionDiagnosticArrayForTest2",
+        var arr = eoan.createExtObjArrayNode(rootFolder, {
+            browseName: "SubscriptionDiagnosticArrayForTest2",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
-            variableType:        "SubscriptionDiagnosticsType",
-            indexPropertyName:   "subscriptionId"
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId"
         });
 
-        var elVar1 = eoan.addElement({subscriptionId: 1000},arr);
-        var elVar2 = eoan.addElement({subscriptionId: 1001},arr);
-        var elVar3 = eoan.addElement({subscriptionId: 1002},arr);
+        var elVar1 = eoan.addElement({subscriptionId: 1000}, arr);
+        var elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
+        var elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
 
         elVar1.browseName.toString().should.eql("1000");
         elVar2.browseName.toString().should.eql("1001");
@@ -112,25 +111,25 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
         arr.readValue().value.value.length.should.eql(3, "expecting 3 elements in array");
 
     });
-    it("should be possible to remove some element in the Extension Object variable node",function() {
+    it("should be possible to remove some element in the Extension Object variable node", function () {
 
         var rootFolder = addressSpace.findNode("RootFolder");
 
-        var arr = eoan.createExtObjArrayNode(rootFolder,{
-            browseName:          "SubscriptionDiagnosticArrayForTest3",
+        var arr = eoan.createExtObjArrayNode(rootFolder, {
+            browseName: "SubscriptionDiagnosticArrayForTest3",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
-            variableType:        "SubscriptionDiagnosticsType",
-            indexPropertyName:   "subscriptionId"
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId"
         });
 
-        var elVar1 = eoan.addElement({subscriptionId: 1000},arr);
-        var elVar2 = eoan.addElement({subscriptionId: 1001},arr);
-        var elVar3 = eoan.addElement({subscriptionId: 1002},arr);
-        var elVar4 = eoan.addElement({subscriptionId: 1003},arr);
+        var elVar1 = eoan.addElement({subscriptionId: 1000}, arr);
+        var elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
+        var elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
+        var elVar4 = eoan.addElement({subscriptionId: 1003}, arr);
         arr.readValue().value.value.length.should.eql(4, "expecting 4 elements in array");
 
 
-        eoan.removeElement(arr,elVar1);
+        eoan.removeElement(arr, elVar1);
         arr.readValue().value.value.length.should.eql(3, "expecting 3 elements in array");
 
         arr.readValue().value.value[0].subscriptionId.should.eql(1001);
@@ -139,7 +138,7 @@ describe("Extension Object Array Node (or Complex Variable)",function() {
 
         should.exist(arr.getComponentByName("1002"));
 
-        eoan.removeElement(arr,1); // at pos 1
+        eoan.removeElement(arr, 1); // at pos 1
 
         arr.readValue().value.value[0].subscriptionId.should.eql(1001);
         arr.readValue().value.value[1].subscriptionId.should.eql(1003);

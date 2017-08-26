@@ -17,16 +17,9 @@ var Variant = require("node-opcua-variant").Variant;
 var sinon = require("sinon");
 var should = require("should");
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Server Side MonitoredItem", function () {
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
@@ -741,12 +734,6 @@ var DeadbandType = subscription_service.DeadbandType;
 
 describe("MonitoredItem with DataChangeFilter", function () {
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     var dataValue1 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 48}});
     var dataValue2 = new DataValue({statusCode: StatusCodes.Good, value: {dataType:"UInt16", value: 49}}); // +1 =>

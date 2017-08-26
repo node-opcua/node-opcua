@@ -1,4 +1,4 @@
-
+"use strict";
 
 var should = require("should");
 var assert = require("better-assert");
@@ -12,38 +12,37 @@ var OPCUAClient = opcua.OPCUAClient;
 
 var port = 2000;
 
-var empty_nodeset_filename =opcua.empty_nodeset_filename;
+var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
 
 
-    this.timeout(Math.max(300000,this._timeout));
+    this.timeout(Math.max(300000, this._timeout));
 
-    // Given a server with only one allowed Session
-
-    var server = new OPCUAServer({
-        port: port,
-        nodeset_filename: empty_nodeset_filename,
-        maxAllowedSessionNumber: 1
-    });
-
-    var client1 = new OPCUAClient();
-    var client2 = new OPCUAClient();
+    var server, client1, client2;
 
     var endpointUrl;
     before(function (done) {
+        opcua.OPCUAClientBase.registry.count().should.eql(0);
+        server = new OPCUAServer({
+            port: port,
+            nodeset_filename: empty_nodeset_filename,
+            maxAllowedSessionNumber: 1
+        });
 
-        resourceLeakDetector.start();
+        client1 = new OPCUAClient();
+        client2 = new OPCUAClient();
 
         server.start(function () {
-
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done();
         });
 
     });
+
+    // Given a server with only one allowed Session
 
     after(function (done) {
 
@@ -60,9 +59,7 @@ describe("testing the server ability to deny client session request (server with
             function (callback) {
                 OPCUAServer.registry.count().should.eql(0);
                 callback();
-                resourceLeakDetector.stop();
             }
-
         ], done);
     });
 
@@ -78,8 +75,6 @@ describe("testing the server ability to deny client session request (server with
             function (callback) {
                 client1.createSession(callback);
             },
-
-
             function (callback) {
                 client2.connect(endpointUrl, callback);
             },
@@ -102,6 +97,9 @@ describe("testing the server ability to deny client session request (server with
             // it should be possible to connect client 2
             function (callback) {
                 client2.createSession(callback);
+            },
+            function (callback) {
+                client2.disconnect(callback);
             }
         ], done);
 

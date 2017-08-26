@@ -1,5 +1,7 @@
 "use strict";
 var path = require("path");
+var _ = require("underscore");
+
 var debug_flags = {};
 
 function w(str,l) {

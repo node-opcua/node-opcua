@@ -12,6 +12,9 @@ var perform_operation_on_client_session = require("../../test_helpers/perform_op
 
 var AttributeIds = opcua.AttributeIds;
 var StatusCodes = opcua.StatusCodes;
+var OPCUAClient = opcua.OPCUAClient;
+
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("testing extension object with client residing on a different process than the server process", function () {
 
@@ -41,7 +44,7 @@ describe("testing extension object with client residing on a different process t
 
     it("should read the MyStructureDataType definition", function (done) {
 
-        var client = new opcua.OPCUAClient();
+        var client = new OPCUAClient();
         var endpointUrl = "opc.tcp://127.0.0.1:23232";
 
         var nodeId = "ns=2;i=6001";

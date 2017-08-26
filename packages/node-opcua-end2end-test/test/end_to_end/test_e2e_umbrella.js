@@ -11,7 +11,6 @@ var StatusCodes = opcua.StatusCodes;
 var port = 2002;
 
 var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
@@ -21,6 +20,7 @@ var start_simple_server = require("../../test_helpers/external_server_fixture").
 var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing Client - Umbrella ", function () {
 
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
@@ -81,7 +81,6 @@ describe("testing Client - Umbrella ", function () {
     before(function (done) {
 
         console.log(" ..... starting server ".grey);
-        resourceLeakDetector.start();
         if (process.env.TESTENDPOINT === "EXTERNAL") {
             start_external_server(done);
         } else if (process.env.TESTENDPOINT) {
@@ -180,11 +179,9 @@ describe("testing Client - Umbrella ", function () {
 
     after(function (done) {
         if (test.data) {
-            stop_simple_server(data, done);
+            stop_simple_server(test.data, done);
         } else if (test.server) {
-
             test.server.shutdown(function () {
-                resourceLeakDetector.stop();
                 done();
             });
         } else {

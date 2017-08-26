@@ -13,24 +13,23 @@ var UADataType = address_space.UADataType;
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 var context = SessionContext.defaultContext;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing UADataype -  Attribute", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
-                addressSpace = data;
-                addressSpace.should.be.instanceOf(address_space.AddressSpace);
-                done(err);
-            });
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
+            addressSpace = data;
+            addressSpace.should.be.instanceOf(address_space.AddressSpace);
+            done(err);
         });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
 
@@ -57,7 +56,8 @@ describe("testing UADataype -  Attribute", function () {
     describe("UADataType#isSupertypeOf", function () {
 
 
-        var number_dt, double_dt, float_dt, integer_dt, int16_dt, uint32_dt, duration_dt, uinteger_dt, uint64_dt, int64_dt;
+        var number_dt, double_dt, float_dt, integer_dt, int16_dt, uint32_dt, duration_dt, uinteger_dt, uint64_dt,
+          int64_dt;
         before(function () {
             // see table 120 OPCUA Spec part 5
             // BaseDataType   (i=24)

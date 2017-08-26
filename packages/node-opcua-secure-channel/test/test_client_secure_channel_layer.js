@@ -11,28 +11,10 @@ var fake_AcknowledgeMessage = require("./mock/mock_transport").fake_AcknowledgeM
 
 var packTcpMessage = require("node-opcua-transport/src/tools").packTcpMessage;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing ClientSecureChannelLayer ", function () {
 
-    it("should create a ClientSecureChannelLayer", function (done) {
-
-        var mock = new MockTransport([
-
-            //
-            packTcpMessage("ACK", fake_AcknowledgeMessage),
-
-            require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_sc_2 // OpenChannelResponse
-
-        ], done);
-
-
-        var secureChannel = new ClientSecureChannelLayer();
-
-        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
-            done(err);
-        });
-    });
-
-    it("should close a ClientSecureChannelLayer", function (done) {
+    it("should create and close a ClientSecureChannelLayer", function (done) {
 
         var mock = new MockTransport([
 
@@ -70,7 +52,6 @@ describe("testing ClientSecureChannelLayer ", function () {
             });
         });
     });
-
 
     it("should use token provided by server in messages", function (done) {
 
@@ -128,7 +109,8 @@ describe("testing ClientSecureChannelLayer ", function () {
         var message = new GetEndpointsRequest();
 
         secureChannel.performMessageTransaction(message, function (err/*, response*/) {
-            err.message.should.equal("Client not connected");
+            // err.message.should.equal("Client not connected");
+            err.message.should.equal("ClientSecureChannelLayer => Socket is closed !");
             done();
         });
 

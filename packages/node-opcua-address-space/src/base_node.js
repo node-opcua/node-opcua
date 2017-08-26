@@ -799,7 +799,7 @@ var displayWarningReferencePointingToItsef = true;
 
 function _is_massively_used_reference(referenceType) {
     var name = referenceType.browseName.toString();
-    return name == "HasTypeDefinition" || name == "HasModellingRule";
+    return name === "HasTypeDefinition" || name === "HasModellingRule";
 
 }
 function _propagate_ref(self, addressSpace, reference) {

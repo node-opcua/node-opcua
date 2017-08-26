@@ -12,18 +12,11 @@ var crypto_utils = require("node-opcua-crypto").crypto_utils;
 var it_with_crypto = (crypto_utils.isFullySupported()) ? it : xit;
 
 var default_port = 1234;
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
-    before(function (done) {
-        resourceLeakDetector.start();
-        done();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     var server_endpoint;
     beforeEach(function () {
@@ -68,15 +61,6 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
 describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
 
-    before(function (done) {
-        resourceLeakDetector.start();
-        done();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
-
-
     var server_endpoint;
     beforeEach(function () {
         server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
@@ -107,14 +91,6 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
 });
 
 describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", function () {
-
-    before(function (done) {
-        resourceLeakDetector.start();
-        done();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     var server_endpoint;
     beforeEach(function () {
@@ -149,14 +125,6 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
 
 
 describe("OPCUAServerEndpoint#getEndpointDescription", function () {
-
-    before(function (done) {
-        resourceLeakDetector.start();
-        done();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     var server_endpoint;
     beforeEach(function () {

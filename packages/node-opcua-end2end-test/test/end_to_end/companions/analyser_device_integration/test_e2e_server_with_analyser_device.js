@@ -3,6 +3,8 @@ var should = require("should");
 var async = require("async");
 
 var opcua = require("node-opcua");
+var OPCUAClient = opcua.OPCUAClient;
+
 var makeResultMask = opcua.makeResultMask;
 
 var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
@@ -49,9 +51,9 @@ var perform_operation_on_client_session = require("../../../../test_helpers/perf
 var standard_nodeset_file = opcua.standard_nodeset_file;
 var constructNodesetFilename = opcua.constructNodesetFilename;
 
-var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
-describeWithLeakDetector("ADI - Testing a server that exposes Analyser Devices", function () {
+describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     var server, client, endpointUrl;
 
@@ -82,7 +84,7 @@ describeWithLeakDetector("ADI - Testing a server that exposes Analyser Devices",
     });
 
     beforeEach(function (done) {
-        client = new opcua.OPCUAClient();
+        client = new OPCUAClient();
         done();
     });
 

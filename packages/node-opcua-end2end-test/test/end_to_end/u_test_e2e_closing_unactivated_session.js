@@ -49,8 +49,13 @@ module.exports = function (test) {
                         callback();
                     });
 
+                },
+                function(callback) {
+                    client1.disconnect(function (err) {
+                        callback(err);
+                    });
                 }
-            ],done)
+            ],done);
         });
     });
 

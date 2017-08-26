@@ -11,7 +11,8 @@ var securityPolicy = opcua.SecurityPolicy.None;
 
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-// bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
+// bug : server reported to many datavalue changed when client monitored a UAVariable constructed with variation 1");
+
 
 module.exports = function (test) {
 
@@ -37,7 +38,7 @@ module.exports = function (test) {
             client = null;
         });
 
-        it("Client#Subscription : PublishRequest.requestHeader.timeoutHint shall not be lesser that time between 2 keepalive response", function (done) {
+        it("#141-A Client#Subscription : PublishRequest.requestHeader.timeoutHint shall not be lesser that time between 2 keepalive responses", function (done) {
 
             var timeout = 25000;
 
@@ -90,19 +91,17 @@ module.exports = function (test) {
 
         });
 
-        it("ZZ2 client should raise an event to observer when a request has timed out ( timeoutHint exhausted without response)", function (done) {
+        it("#141-B client should raise an event to observer when a request has timed out ( timeoutHint exhausted without response)", function (done) {
 
-            var temperature = 20;
             var node = server.engine.addressSpace.addVariable({
 
                 browseName: "MySlowVariable",
                 dataType: "Int32",
                 value: {
                     refreshFunc: function (callback) {
-                        var value = new opcua.Variant({dataType: opcua.DataType.Double, value: temperature});
-                        var sourceTimestamp = new Date();
+                        should(callback).be.instanceOf(Function);
 
-                        // intentionaly not calling callback();
+                        // intentionally not calling callback();
 
                         //xx var longTime = 1000;
                         //setTimeout(function () {
@@ -123,6 +122,7 @@ module.exports = function (test) {
                     timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither
                 });
 
+                // let specify a very short timeout hint ...
                 request.requestHeader.timeoutHint = 10;
 
                 var callback_received = false;
@@ -130,6 +130,7 @@ module.exports = function (test) {
 
                 session.performMessageTransaction(request, function (err) {
                     //
+                    console.log(" received performMessageTransaction callback", request.constructor.name.toString());
                     should.exist(err);
                     callback_received = true;
                     if (callback_received && event_received) {
@@ -138,7 +139,7 @@ module.exports = function (test) {
                 });
 
                 client.on("timed_out_request", function (request) {
-                    console.log(" received timed_out_request", request.toString());
+                    console.log(" received timed_out_request", request.constructor.name.toString());
                     client.timedOutRequestCount.should.eql(1);
                     event_received = true;
                     if (callback_received && event_received) {

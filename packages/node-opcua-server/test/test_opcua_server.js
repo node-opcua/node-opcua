@@ -4,7 +4,6 @@ var fs = require("fs");
 
 var OPCUAServer = require("../src/opcua_server").OPCUAServer;
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var NodeId = require("node-opcua-nodeid").NodeId;
 
@@ -12,15 +11,9 @@ var mini_nodeset_filename =require("../src/server_engine").mini_nodeset_filename
 fs.existsSync(mini_nodeset_filename).should.eql(true);
 
 
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("OPCUAServer", function () {
 
-    before(function () {
-        resourceLeakDetector.start();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     var server;
 

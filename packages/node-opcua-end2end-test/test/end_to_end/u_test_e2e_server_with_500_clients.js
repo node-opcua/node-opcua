@@ -1,7 +1,6 @@
 "use strict";
 /*global describe, it, require*/
 
-var assert = require("better-assert");
 var async = require("async");
 var should = require("should");
 
@@ -57,7 +56,7 @@ module.exports = function (test) {
         client1.on("receive_response",function(res) {
             if(doDebug) { console.log(data.index," << ",res.constructor.name,res.responseHeader.serviceResult.toString()); }
         });
-        client1.on("start_reconnection", function (err) {
+        client1.on("start_reconnection", function () {
             if(doDebug) { console.log("start_reconnection".bgWhite.yellow,data.index); }
         });
         client1.on("backoff", function (number, delay) {
@@ -144,8 +143,11 @@ module.exports = function (test) {
             first_client.connect(endpointUrl, done);
 
         });
+        after(function(done){
+            first_client.disconnect(done);
+        });
 
-        it("should accept many clients", function (done) {
+        it("AZAZ-A should accept many clients", function (done) {
 
             //xx test.server.maxConnectionsPerEndpoint.should.eql(MAXCONNECTIONS);
             test.server.maxAllowedSessionNumber = MAXCONNECTIONS;
@@ -161,9 +163,8 @@ module.exports = function (test) {
             q.drain = function () {
                 //xx console.log("done");
                 done();
-            }
+            };
         });
 
     });
-
-}
+};

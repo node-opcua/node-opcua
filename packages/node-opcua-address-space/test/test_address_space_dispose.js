@@ -1,5 +1,4 @@
 "use strict";
-var assert = require("better-assert");
 var path = require("path");
 var should = require("should");
 
@@ -32,7 +31,6 @@ function callGarbageCollector(){
 
 describe("Testing AddressSpace memory Leaks",function(){
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector();
 
     var xml_file = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
     require("fs").existsSync(xml_file).should.be.eql(true,"cannot find mini node set");

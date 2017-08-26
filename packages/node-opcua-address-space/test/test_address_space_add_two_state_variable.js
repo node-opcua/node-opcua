@@ -11,36 +11,35 @@ var generate_address_space = require("node-opcua-address-space-loader").generate
 var sinon = require("sinon");
 var AddressSpace = require("..").AddressSpace;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing add TwoStateVariable ", function () {
 
-    this.timeout(Math.max(this._timeout,10000));
+    this.timeout(Math.max(this._timeout, 10000));
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            addressSpace = new AddressSpace();
-            var xml_file = require("node-opcua-nodesets").standard_nodeset_file;
-            require("fs").existsSync(xml_file).should.be.eql(true);
+    before(function (done) {
+        addressSpace = new AddressSpace();
+        var xml_file = require("node-opcua-nodesets").standard_nodeset_file;
+        require("fs").existsSync(xml_file).should.be.eql(true);
 
-            generate_address_space(addressSpace, xml_file, function (err) {
-                done(err);
-            });
-        });
-        after(function (done) {
-            addressSpace.dispose();
-            addressSpace = null;
-            done();
-        });
-        beforeEach(function() {
-            this.clock = sinon.useFakeTimers();
-        });
-        afterEach(function() {
-            this.clock.restore();
+        generate_address_space(addressSpace, xml_file, function (err) {
+            done(err);
         });
     });
+    after(function (done) {
+        addressSpace.dispose();
+        addressSpace = null;
+        done();
+    });
+    beforeEach(function () {
+        this.clock = sinon.useFakeTimers();
+    });
+    afterEach(function () {
+        this.clock.restore();
+    });
 
-    it("should had a TwoStateVariableType",function() {
+    it("should had a TwoStateVariableType", function () {
 
         var node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable1"
@@ -63,7 +62,7 @@ describe("testing add TwoStateVariable ", function () {
 
     });
 
-    it("TwoStateVariableType should had an uncertain value after creation",function() {
+    it("TwoStateVariableType should had an uncertain value after creation", function () {
 
         var node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable1"
@@ -79,11 +78,11 @@ describe("testing add TwoStateVariable ", function () {
 
     });
 
-    it("should had a TwoStateVariableType with trueState and falseState as String",function() {
+    it("should had a TwoStateVariableType with trueState and falseState as String", function () {
         var node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable1",
             trueState: "Enabled",
-            falseState:"Disabled"
+            falseState: "Disabled"
         });
 
         node.browseName.toString().should.eql("TwoStateVariable1");
@@ -100,11 +99,11 @@ describe("testing add TwoStateVariable ", function () {
         node.readValue().value.value.text.should.eql("Disabled");
     });
 
-    it("should had a TwoStateVariableType with transitionTime",function() {
+    it("should had a TwoStateVariableType with transitionTime", function () {
 
         var node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
-            optionals:["TransitionTime"]
+            optionals: ["TransitionTime"]
         });
         should.exist(node.transitionTime);
 
@@ -118,19 +117,19 @@ describe("testing add TwoStateVariable ", function () {
 
         this.clock.tick(100);
         node.setValue(false);
-        node.transitionTime.readValue().value.value.getTime().should.eql(200,"again");
+        node.transitionTime.readValue().value.value.getTime().should.eql(200, "again");
 
     });
 
-    it("SubState => IsFalseSubStateOf",function() {
+    it("SubState => IsFalseSubStateOf", function () {
 
         var mainState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableMain",
-            optionals:["TransitionTime","EffectiveDisplayName"]
+            optionals: ["TransitionTime", "EffectiveDisplayName"]
         });
         var subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",
-            optionals:["TransitionTime"],
+            optionals: ["TransitionTime"],
             isFalseSubStateOf: mainState
         });
 
@@ -146,17 +145,19 @@ describe("testing add TwoStateVariable ", function () {
 
     });
 
-    it("SubState => IsTrueSubStateOf",function() {
+    it("SubState => IsTrueSubStateOf", function () {
 
-        function f(n) { return n.browseName.toString(); }
+        function f(n) {
+            return n.browseName.toString();
+        }
 
         var mainState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableMain",
-            optionals:["TransitionTime","EffectiveDisplayName"]
+            optionals: ["TransitionTime", "EffectiveDisplayName"]
         });
         var subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",
-            optionals:["TransitionTime"],
+            optionals: ["TransitionTime"],
             isTrueSubStateOf: mainState
         });
 
@@ -173,17 +174,17 @@ describe("testing add TwoStateVariable ", function () {
     });
 
 
-    it("should had a TwoStateVariableType with effectiveTransitionTime",function() {
+    it("should had a TwoStateVariableType with effectiveTransitionTime", function () {
 
         var mainState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
-            optionals: ["EffectiveTransitionTime","TransitionTime", "EffectiveDisplayName"]
+            optionals: ["EffectiveTransitionTime", "TransitionTime", "EffectiveDisplayName"]
         });
         should.exist(mainState.effectiveTransitionTime);
 
         var subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",
-            optionals:["TransitionTime"],
+            optionals: ["TransitionTime"],
             isTrueSubStateOf: mainState,
             trueState: "PowerON",
             falseState: "PowerOFF"

@@ -22,7 +22,6 @@ var readRawMessageHeader =  require("./message_builder_base").readRawMessageHead
 var buffer_utils = require("node-opcua-buffer-utils");
 var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-var utils = require("node-opcua-utils");
 
 var debug = require("node-opcua-debug");
 var debugLog = debug.make_debugLog(__filename);
@@ -210,6 +209,7 @@ function _start_timeout_timer() {
     var self = this;
     assert(!self._timerId, "timer already started");
     self._timerId = setTimeout(function () {
+        self._timerId =null;
         _fulfill_pending_promises.call(self, new Error("Timeout in waiting for data on socket ( timeout was = " + self.timeout + " ms )"));
     }, self.timeout);
 
@@ -243,7 +243,7 @@ TCP_transport.prototype.on_socket_ended = function(err) {
     self.emit("close", err || null);
 };
 
-function _on_socket_ended_message(err) {
+TCP_transport.prototype._on_socket_ended_message =  function(err) {
 
     var self = this;
     if (self.__disconnecting__) {
@@ -263,7 +263,7 @@ function _on_socket_ended_message(err) {
     debugLog(" bytesRead    = ", self.bytesRead);
     debugLog(" bytesWritten = ", self.bytesWritten);
     _fulfill_pending_promises.call(self, new Error("Connection aborted - ended by server : " + (err ? err.message : "")));
-}
+};
 
 var counter = 0;
 /**
@@ -319,7 +319,7 @@ TCP_transport.prototype._install_socket = function (socket) {
         if (doDebug) {
             debugLog(" SOCKET END : ".red, err ? err.message.yellow : "null", self._socket.name, self.name);
         }
-        _on_socket_ended_message.call(self, err);
+        self._on_socket_ended_message(err);
 
     }).on("error", function (err) {
         // istanbul ignore next
@@ -407,4 +407,8 @@ TCP_transport.prototype.disconnect = function (callback) {
 
 };
 
+TCP_transport.prototype.isValid = function() {
+    var self = this;
+    return self._socket && !self._socket.destroyed && !self.__disconnecting__;
+};
 exports.TCP_transport = TCP_transport;

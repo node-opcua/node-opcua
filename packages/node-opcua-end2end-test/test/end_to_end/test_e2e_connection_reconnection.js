@@ -1,5 +1,5 @@
 "use strict";
-/* global require, process, __filename, it, describe, before, beforeEach, after, afterEach */
+/* global require, process, __filename, it, before, beforeEach, after, afterEach */
 var should = require("should");
 var async = require("async");
 var _ = require("underscore");
@@ -47,59 +47,70 @@ var custom_connectivity_strategy = {
 var infinite_connectivity_strategy = {
     maxRetry: 1000000,
     initialDelay: 10,
-    maxDelay:    200,
+    maxDelay: 200,
     randomisationFactor: 0
 };
 
 
-var step_count =0;
+var step_count = 0;
+
 function f(func) {
 
     return function (callback) {
-        if (doDebug) {     console.log("FUNC=>  ".bgWhite.cyan," " , step_count, func.name.yellow.bold); }
+        if (doDebug) {
+            console.log("FUNC=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold);
+        }
         func(function (err) {
-            if (doDebug) { console.log("END =>  ".bgWhite.cyan," " , step_count, func.name.yellow.bold," => ", err ? err.name.red : "OK".green); }
+            if (doDebug) {
+                console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
+            }
             step_count++;
-            callback(err);
+            setImmediate(function() {
+                callback(err);
+            });
         });
     };
 }
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing basic Client-Server communication", function () {
 
     var server, client, temperatureVariableId, endpointUrl;
 
 
-    this.timeout(Math.max(20000,this._timeout));
+    this.timeout(Math.max(20000, this._timeout));
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true, function () {
 
-        before(function (done) {
-            server = build_server_with_temperature_device({port: port}, function (err) {
-                endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-                temperatureVariableId = server.temperatureVariableId;
-                done(err);
-            });
-        });
-
-        beforeEach(function (done) {
-
-            // use fail fast connectionStrategy
-            var options = {connectionStrategy: fail_fast_connectivity_strategy};
-            client = new OPCUAClient(options);
-            done();
-        });
-
-        afterEach(function (done) {
-            done();
-        });
-
-        after(function (done) {
-            server.shutdown(function (err) {
-                done(err);
-            });
+    before(function (done) {
+        server = build_server_with_temperature_device({port: port}, function (err) {
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            temperatureVariableId = server.temperatureVariableId;
+            done(err);
         });
     });
+
+    beforeEach(function (done) {
+
+        // use fail fast connectionStrategy
+        var options = {connectionStrategy: fail_fast_connectivity_strategy};
+        client = new OPCUAClient(options);
+        done();
+    });
+
+    afterEach(function (done) {
+        client.disconnect(function(err) {
+            client = null;
+            done(err);
+        });
+    });
+
+    after(function (done) {
+        should.not.exist(client,"client still running");
+        server.shutdown(function (err) {
+            done(err);
+        });
+    });
+
 
     it("T1 - a client should connect to a server and disconnect ", function (done) {
 
@@ -404,7 +415,6 @@ describe("testing basic Client-Server communication", function () {
             });
         });
 
-
         it("T8-11 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty", function (done) {
 
             var request = new opcua.read_service.ReadRequest({
@@ -420,6 +430,7 @@ describe("testing basic Client-Server communication", function () {
             });
 
         });
+
         it("T8-12 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid", function (done) {
 
             var request = new opcua.read_service.ReadRequest({
@@ -555,14 +566,14 @@ describe("testing basic Client-Server communication", function () {
 
             // write a single value
             g_session.writeSingleNode(
-                temperatureVariableId.nodeId,
-                {dataType: DataType.Double, value: 37.5},
-                function (err, statusCode/*,diagnosticInfo*/) {
-                    if (!err) {
-                        statusCode.should.eql(StatusCodes.Good);
-                    }
-                    done(err);
-                });
+              temperatureVariableId.nodeId,
+              {dataType: DataType.Double, value: 37.5},
+              function (err, statusCode/*,diagnosticInfo*/) {
+                  if (!err) {
+                      statusCode.should.eql(StatusCodes.Good);
+                  }
+                  done(err);
+              });
         });
 
         it("T9-1 - Server should expose a 'Server' object in the 'Objects' folder", function (done) {
@@ -628,8 +639,8 @@ describe("testing basic Client-Server communication", function () {
             });
 
         });
-    });
 
+    });
 });
 
 describe("testing ability for client to reconnect when server close connection", function () {
@@ -712,26 +723,28 @@ describe("testing ability for client to reconnect when server close connection",
         wait_for(600, done);
     }
 
-
     var client = null;
     var client_has_received_close_event;
     var client_has_received_start_reconnection_event;
 
-    var backoff_counter =  0;
+    var backoff_counter = 0;
     var requestedSessionTimeout = 10000;
 
-    beforeEach(function() {
+    beforeEach(function () {
         requestedSessionTimeout = 10000;
     });
-
-    function create_client_and_create_a_connection_to_server(connectivity_strategy, done) {
+    afterEach(function(){
+        should.not.exist(client,"client must have been disposed");
+    });
+    function create_client_and_create_a_connection_to_server(connectionStrategy, done) {
 
         done.should.be.instanceOf(Function);
 
+        should.not.exist(client,"expecting no client");
         var options = {
             keepSessionAlive: true,
             requestedSessionTimeout: requestedSessionTimeout,
-            connectionStrategy: connectivity_strategy
+            connectionStrategy: connectionStrategy
         };
         client = new OPCUAClient(options);
 
@@ -749,21 +762,28 @@ describe("testing ability for client to reconnect when server close connection",
             debugLog("starting reconnection");
         });
         client.on("backoff", function (/*number,delay*/) {
-            backoff_counter +=1;
+            backoff_counter += 1;
         });
-        client.connect(endpointUrl, function(err) {
+        client.connect(endpointUrl, function (err) {
             done(err);
         });
     }
 
+    function disconnect_client(done) {
+        client.disconnect(done);
+        client = null;
+    }
+
     function reset_backoff_counter(done) {
-        backoff_counter=0;
+        backoff_counter = 0;
         done();
     }
+
     function assert_NO_backoff_event_since_last_reset(done) {
         backoff_counter.should.eql(0);
         done();
     }
+
     function assert_has_received_some_backoff_event_since_last_reset(done) {
         backoff_counter.should.be.greaterThan(0);
         done();
@@ -772,7 +792,9 @@ describe("testing ability for client to reconnect when server close connection",
     function verify_that_client_fails_to_connect(connectivity_strategy, done) {
 
         create_client_and_create_a_connection_to_server(connectivity_strategy, function (err) {
-            done(err ? null : new Error("Expecting an error here"));
+            disconnect_client(function() {
+                done(err ? null : new Error("Expecting an error here"));
+            });
         });
     }
 
@@ -811,10 +833,11 @@ describe("testing ability for client to reconnect when server close connection",
                 done(err);
             }
             done();
-        },10);
+        }, 10);
     }
 
     function verify_that_client_is_NOT_trying_to_reconnect(done) {
+        if (!client) { return done();}
         setImmediate(function () {
             try {
                 client.isReconnecting.should.eql(false, "verify_that_client_is_NOT_trying_to_reconnect");
@@ -841,10 +864,6 @@ describe("testing ability for client to reconnect when server close connection",
         done();
     }
 
-    function disconnect_client(done) {
-        client.disconnect(done);
-    }
-
 
     it("TR1 - should be possible to reconnect client after the server closed the connection", function (done) {
 
@@ -865,7 +884,6 @@ describe("testing ability for client to reconnect when server close connection",
         //   - disconnect client
         //   - disconnect server
         //---------------------------------------------------------------
-
 
         function reuse_same_client_to_reconnect_to_server(done) {
             client.connect(endpointUrl, done);
@@ -958,7 +976,10 @@ describe("testing ability for client to reconnect when server close connection",
 
 
             // reset client reconnection event counter
-            function(callback) {client_has_received_start_reconnection_event = 0; callback(); },
+            function (callback) {
+                client_has_received_start_reconnection_event = 0;
+                callback();
+            },
 
             // Shutdown the server again
             f(shutdown_server),
@@ -974,7 +995,6 @@ describe("testing ability for client to reconnect when server close connection",
             f(verify_that_client_is_connected),
             f(verify_that_client_is_NOT_trying_to_reconnect),
             f(verify_that_client_has_received_a_single_start_reconnection_event),
-
 
 
             f(disconnect_client),
@@ -1006,7 +1026,6 @@ describe("testing ability for client to reconnect when server close connection",
 
 
     });
-
 
     var the_session = null;
 
@@ -1053,16 +1072,16 @@ describe("testing ability for client to reconnect when server close connection",
     function monitor_monotonous_counter(callback) {
 
         var monitoredItem = subscription.monitor(
-            {
-                // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
-                nodeId: counterNode.nodeId,
-                attributeId: opcua.AttributeIds.Value
-            },
-            {
-                samplingInterval: 0, // 0 : event base => whenever value changes
-                discardOldest: true,
-                queueSize: 1000
-            });
+          {
+              // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
+              nodeId: counterNode.nodeId,
+              attributeId: opcua.AttributeIds.Value
+          },
+          {
+              samplingInterval: 0, // 0 : event base => whenever value changes
+              discardOldest: true,
+              queueSize: 1000
+          });
 
 
         // subscription.on("item_added",function(monitoredItem){
@@ -1077,7 +1096,8 @@ describe("testing ability for client to reconnect when server close connection",
         });
     }
 
-    var previous_value_count =0;
+    var previous_value_count = 0;
+
     function reset_continuous(callback) {
         //xx console.log(" resetting value to check");
         values_to_check = [];
@@ -1092,7 +1112,7 @@ describe("testing ability for client to reconnect when server close connection",
             //xx console.log(values_to_check.join(" "));
         }
 
-        values_to_check.length.should.be.greaterThan(previous_value_count+1," expecting new values");
+        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values");
         if (values_to_check.length > 0) {
             values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
         }
@@ -1171,7 +1191,6 @@ describe("testing ability for client to reconnect when server close connection",
         ], callback);
         // in this case, the server drops all Subscriptions due to max lifetime count exhausted.
     }
-
 
     it("TR4 - verify that server can suspend socket connection - useful for testing purposes", function (done) {
 
@@ -1290,12 +1309,10 @@ describe("testing ability for client to reconnect when server close connection",
 
     xit("TR7 -  a client with some active monitored items should be able to reconnect seamlessly after a very long connection break exceeding session life time", function (done) {
         // to do
-        async.series([
-
-        ],done);
+        async.series([], done);
     });
 
-    it("TR8 -  disconnecting during connect", function(done) {
+    it("TR8 -  disconnecting during connect", function (done) {
 
 
         // Given a client that has a infinite connection retry strategy,
@@ -1325,13 +1342,13 @@ describe("testing ability for client to reconnect when server close connection",
             client_has_received_close_event += 1;
         });
 
-        client.on("start_reconnection", function() {
+        client.on("start_reconnection", function () {
             client_has_received_start_reconnection_event += 1;
         });
 
-        var backoff_event_counter =0;
+        var backoff_event_counter = 0;
         client.on("backoff", function () {
-            backoff_event_counter+=1;
+            backoff_event_counter += 1;
         });
 
         endpointUrl = "opc.tcp://somewhere-far-away.in.an.other.__galaxy__.com:4242";
@@ -1342,7 +1359,7 @@ describe("testing ability for client to reconnect when server close connection",
         // passed to the client#connect method not to be called.
         var connect_done = false;
         var connect_err = null;
-        client.connect(endpointUrl, function(err) {
+        client.connect(endpointUrl, function (err) {
 
             connect_err = err;
             //xx console.log("client.connect(err) err = ",err);
@@ -1354,16 +1371,22 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
 
             // Wait until backoff is raised several times
-            function(callback) {
-                client.once("backoff", function(/*number,delay*/) { callback(); });
+            function (callback) {
+                client.once("backoff", function (/*number,delay*/) {
+                    callback();
+                });
             },
-            function(callback) {
-                client.once("backoff", function(/*number,delay*/) { callback(); });
+            function (callback) {
+                client.once("backoff", function (/*number,delay*/) {
+                    callback();
+                });
             },
-            function(callback) {
-                client.once("backoff", function(/*number,delay*/) { callback(); });
+            function (callback) {
+                client.once("backoff", function (/*number,delay*/) {
+                    callback();
+                });
             },
-            function(callback) {
+            function (callback) {
 
                 backoff_event_counter.should.be.greaterThan(2);
                 // client should be still trying to connect
@@ -1372,7 +1395,7 @@ describe("testing ability for client to reconnect when server close connection",
                 //  When client#disconnect is called
                 client_has_received_close_event.should.eql(0);
 
-                client.disconnect(function(err) {
+                client.disconnect(function (err) {
 
                     client_has_received_close_event.should.eql(1);
                     // connect callback should have been called...
@@ -1384,17 +1407,17 @@ describe("testing ability for client to reconnect when server close connection",
                 });
             },
             f(wait_a_little_while),
-            function(callback) {
+            function (callback) {
                 client_has_received_close_event.should.eql(1);
                 // backoff must be terminated now
                 count_ref.should.eql(backoff_event_counter);
                 callback(null);
             }
-         ],done);
+        ], done);
 
     });
 
-    it("TR9 -  disconnecting during reconnect", function(done) {
+    it("TR9 -  disconnecting during reconnect", function (done) {
         // Given a client that has a infinite connection retry strategy,
         //   And the client has a lived connection with a server
         //   And that the connection has dropped ( backoff stragety taking place)
@@ -1413,25 +1436,26 @@ describe("testing ability for client to reconnect when server close connection",
             f(wait_a_little_while),
             f(shutdown_server),
             f(reset_backoff_counter),
-            f(wait_for.bind(null,2000)),
+            f(wait_for.bind(null, 2000)),
             f(verify_that_client_is_trying_to_reconnect),
             f(verify_that_client_has_NOT_received_a_close_event),
             f(verify_that_client_has_received_a_single_start_reconnection_event),
             f(assert_has_received_some_backoff_event_since_last_reset),
 
-            f(wait_for.bind(null,2000)),
+            f(wait_for.bind(null, 2000)),
             f(disconnect_client),
 
             f(reset_backoff_counter),
-            f(wait_for.bind(null,5000)),
+            f(wait_for.bind(null, 5000)),
 
             f(assert_NO_backoff_event_since_last_reset),
             f(verify_that_client_is_NOT_trying_to_reconnect)
 
-        ],done);
+        ], done);
 
     });
-    it("TR10 -  a client should notify that the reconnection attempt is taking place with an event", function(done) {
+
+    it("TR10 -  a client should notify that the reconnection attempt is taking place with an event", function (done) {
         // Given a client and a server with an established connection
         // When the connection link dropped
         // Then the client shall raise an event to indicate that the reconnection process is now taking place.
@@ -1446,16 +1470,16 @@ describe("testing ability for client to reconnect when server close connection",
             f(verify_that_client_has_received_a_single_start_reconnection_event),
 
             f(reset_backoff_counter),
-            f(wait_for.bind(null,2000)),
+            f(wait_for.bind(null, 2000)),
             f(assert_has_received_some_backoff_event_since_last_reset),
 
             f(reset_backoff_counter),
-            f(wait_for.bind(null,2000)),
+            f(wait_for.bind(null, 2000)),
             f(assert_has_received_some_backoff_event_since_last_reset),
 
             f(disconnect_client)
 
-        ],done);
+        ], done);
     });
 
     it("TR11 -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down", function (done) {
@@ -1496,7 +1520,6 @@ describe("testing ability for client to reconnect when server close connection",
 
     });
 
-
     it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
 
         requestedSessionTimeout = 1000;
@@ -1519,7 +1542,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(ensure_continuous),
 
             // now drop connection  for 3 times requestedSessionTimeout seconds
-            f(simulate_connection_break.bind(null, 3*requestedSessionTimeout, "EPIPE")),
+            f(simulate_connection_break.bind(null, 3 * requestedSessionTimeout, "EPIPE")),
             // make sure that we have received all notifications
             // (thanks to republish )
 
@@ -1541,5 +1564,4 @@ describe("testing ability for client to reconnect when server close connection",
         });
 
     });
-
 });

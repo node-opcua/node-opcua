@@ -1,4 +1,4 @@
-
+"use strict";
 var should = require("should");
 var sinon = require("sinon");
 
@@ -8,9 +8,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var SubscriptionState = require("../src/subscription").SubscriptionState;
 var PublishRequest = subscription_service.PublishRequest;
 
-
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 
 describe("ServerEngine Subscriptions service", function () {
 
@@ -19,7 +17,6 @@ describe("ServerEngine Subscriptions service", function () {
 
     beforeEach(function (done) {
 
-        resourceLeakDetector.start();
 
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
@@ -34,8 +31,6 @@ describe("ServerEngine Subscriptions service", function () {
         should.exist(engine);
         engine.shutdown();
         engine = null;
-
-        resourceLeakDetector.stop();
     });
 
     it("should return an error when trying to delete an non-existing subscription", function () {
@@ -172,7 +167,6 @@ describe("ServerEngine Subscriptions service", function () {
 
 
     });
-
 
     it("DDD delete a subscription with 2 outstanding PublishRequest",function() {
 
@@ -354,6 +348,7 @@ describe("ServerEngine Subscriptions service", function () {
         });
 
     });
+
     it("AZQ should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
 
         // given a subscription with monitored Item
@@ -416,6 +411,7 @@ describe("ServerEngine Subscriptions service", function () {
             done();
         });
     });
+
     it("AZW should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
 
         // given a subscription with monitored Item

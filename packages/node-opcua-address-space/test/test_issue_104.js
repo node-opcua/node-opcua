@@ -9,45 +9,43 @@ var generateAddressSpace = require("node-opcua-address-space-loader").generate_a
 var nodeId = require("node-opcua-nodeid");
 var path = require("path");
 
-var nodesetFilename = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
+var nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 var DataType = require("node-opcua-variant").DataType;
 
 
 var assertHasMatchingReference = require("../test_helpers/assertHasMatchingReference");
 
-
-describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104",function() {
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", function () {
 
     var addressSpace = null;
     var rootFolder;
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            addressSpace = new AddressSpace();
-            generateAddressSpace(addressSpace, nodesetFilename, function (err) {
-                rootFolder = addressSpace.findNode("RootFolder");
-                done(err);
-            });
-        });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
+    before(function (done) {
+        addressSpace = new AddressSpace();
+        generateAddressSpace(addressSpace, nodesetFilename, function (err) {
+            rootFolder = addressSpace.findNode("RootFolder");
+            done(err);
         });
     });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
+    });
 
-    it("should not happen that node IDs are use twice",function() {
+    it("should not happen that node IDs are use twice", function () {
         // Create a variable with an auto-generated node ID
         var var1 = addressSpace.addVariable({
             browseName: "var1",
             dataType: "Double",
-            value: { dataType: DataType.Double , value: 0 },
+            value: {dataType: DataType.Double, value: 0},
             organizedBy: rootFolder
         });
 
-        assertHasMatchingReference(var1,{ referenceType: "OrganizedBy", nodeId: rootFolder.nodeId});
+        assertHasMatchingReference(var1, {referenceType: "OrganizedBy", nodeId: rootFolder.nodeId});
 
         assert(var1.nodeId.identifierType === nodeId.NodeIdType.NUMERIC);
 
@@ -56,7 +54,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
             nodeId: new nodeId.NodeId(var1.nodeId.identifierType, var1.nodeId.value + 1, var1.nodeId.namespace),
             browseName: "var2",
             dataType: "Double",
-            value: {dataType: DataType.Double , value: 0 },
+            value: {dataType: DataType.Double, value: 0},
             organizedBy: rootFolder
         });
 
@@ -68,7 +66,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
             nodeId: new nodeId.NodeId(var1.nodeId.identifierType, var1.nodeId.value + 2, var1.nodeId.namespace),
             browseName: "var3",
             dataType: "Double",
-            value: {dataType: DataType.Double , value: 0 },
+            value: {dataType: DataType.Double, value: 0},
             organizedBy: rootFolder
         });
 
@@ -81,7 +79,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         var var4 = addressSpace.addVariable({
             browseName: "var4",
             dataType: "Double",
-            value: {dataType: DataType.Double , value: 0 },
+            value: {dataType: DataType.Double, value: 0},
             organizedBy: rootFolder
         });
 

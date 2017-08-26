@@ -2,13 +2,11 @@
 var should = require("should");
 var server_engine = require("../src/server_engine");
 
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Testing the server  engine - View related ", function () {
 
     var engine;
     beforeEach(function (done) {
-        resourceLeakDetector.start();
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
             var FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
@@ -20,7 +18,6 @@ describe("Testing the server  engine - View related ", function () {
         should.exist(engine);
         engine.shutdown();
         engine = null;
-        resourceLeakDetector.stop();
     });
 
     it("should create a view in the address space", function () {

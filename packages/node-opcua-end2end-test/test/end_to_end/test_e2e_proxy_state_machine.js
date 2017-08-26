@@ -10,7 +10,8 @@ var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
 var opcua = require("node-opcua");
 
-describe("testing client Proxy", function () {
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describe("testing client Proxy State Machine", function () {
 
     this.timeout(Math.max(200000, this._timeout));
 

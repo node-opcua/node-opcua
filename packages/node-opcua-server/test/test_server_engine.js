@@ -39,7 +39,6 @@ var HistoryReadResult = historizing_service.HistoryReadResult;
 var HistoryData = historizing_service.HistoryData;
 
 var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
 var assert_arrays_are_equal = require("node-opcua-test-helpers").assert_arrays_are_equal;
 
@@ -53,7 +52,9 @@ var context = SessionContext.defaultContext;
 function resolveExpandedNodeId(nodeId) {
     return makeExpandedNodeId(resolveNodeId(nodeId));
 }
-describe("testing ServerEngine", function () {
+
+var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+describeWithLeakDetector("testing ServerEngine", function () {
 
     var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
@@ -65,7 +66,6 @@ describe("testing ServerEngine", function () {
     };
     before(function (done) {
 
-        resourceLeakDetector.start();
         engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
@@ -148,68 +148,63 @@ describe("testing ServerEngine", function () {
     after(function () {
         engine.shutdown();
         engine = null;
-        resourceLeakDetector.stop();
     });
 
-    describe("findReferenceType findReferenceTypeFromInverseName", function () {
 
-        it("should provide a way to access a referenceType from its inverse name", function () {
-            var addressSpace = engine.addressSpace;
-            var n1 = addressSpace.findReferenceType("Organizes").nodeId;
-            should.not.exist(addressSpace.findReferenceType("OrganizedBy"));
+    it("findReferenceType findReferenceTypeFromInverseName - should provide a way to access a referenceType from its inverse name", function () {
+        var addressSpace = engine.addressSpace;
+        var n1 = addressSpace.findReferenceType("Organizes").nodeId;
+        should.not.exist(addressSpace.findReferenceType("OrganizedBy"));
 
-            var n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
-            should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
+        var n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
+        should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
 
-            n1.should.equal(n2);
+        n1.should.equal(n2);
 
-        });
+    });
 
-        it("should normalize a {referenceType/isForward} combination", function () {
-            var addressSpace = engine.addressSpace;
+    it("findReferenceType findReferenceTypeFromInverseName - should normalize a {referenceType/isForward} combination", function () {
+        var addressSpace = engine.addressSpace;
 
-            addressSpace.normalizeReferenceType(
-              {referenceType: "OrganizedBy", isForward: true}).should.eql(
-              new Reference({referenceType: "Organizes", isForward: false})
-            );
+        addressSpace.normalizeReferenceType(
+          {referenceType: "OrganizedBy", isForward: true}).should.eql(
+          new Reference({referenceType: "Organizes", isForward: false})
+        );
 
-            addressSpace.normalizeReferenceType(
-              {referenceType: "OrganizedBy", isForward: false}).should.eql(
-              new Reference({referenceType: "Organizes", isForward: true})
-            );
-            addressSpace.normalizeReferenceType(
-              {referenceType: "Organizes", isForward: false}).should.eql(
-              new Reference({referenceType: "Organizes", isForward: false})
-            );
-            addressSpace.normalizeReferenceType(
-              {referenceType: "Organizes", isForward: true}).should.eql(
-              new Reference({referenceType: "Organizes", isForward: true})
-            );
-        });
+        addressSpace.normalizeReferenceType(
+          {referenceType: "OrganizedBy", isForward: false}).should.eql(
+          new Reference({referenceType: "Organizes", isForward: true})
+        );
+        addressSpace.normalizeReferenceType(
+          {referenceType: "Organizes", isForward: false}).should.eql(
+          new Reference({referenceType: "Organizes", isForward: false})
+        );
+        addressSpace.normalizeReferenceType(
+          {referenceType: "Organizes", isForward: true}).should.eql(
+          new Reference({referenceType: "Organizes", isForward: true})
+        );
+    });
 
-        it("should provide a easy way to get the inverse name of a Reference Type", function () {
-            var addressSpace = engine.addressSpace;
+    it("findReferenceType findReferenceTypeFromInverseName - should provide a easy way to get the inverse name of a Reference Type", function () {
+        var addressSpace = engine.addressSpace;
 
-            addressSpace.inverseReferenceType("Organizes").should.eql("OrganizedBy");
-            addressSpace.inverseReferenceType("ChildOf").should.eql("HasChild");
-            addressSpace.inverseReferenceType("AggregatedBy").should.eql("Aggregates");
-            addressSpace.inverseReferenceType("PropertyOf").should.eql("HasProperty");
-            addressSpace.inverseReferenceType("ComponentOf").should.eql("HasComponent");
-            addressSpace.inverseReferenceType("HistoricalConfigurationOf").should.eql("HasHistoricalConfiguration");
-            addressSpace.inverseReferenceType("HasSupertype").should.eql("HasSubtype");
-            addressSpace.inverseReferenceType("EventSourceOf").should.eql("HasEventSource");
+        addressSpace.inverseReferenceType("Organizes").should.eql("OrganizedBy");
+        addressSpace.inverseReferenceType("ChildOf").should.eql("HasChild");
+        addressSpace.inverseReferenceType("AggregatedBy").should.eql("Aggregates");
+        addressSpace.inverseReferenceType("PropertyOf").should.eql("HasProperty");
+        addressSpace.inverseReferenceType("ComponentOf").should.eql("HasComponent");
+        addressSpace.inverseReferenceType("HistoricalConfigurationOf").should.eql("HasHistoricalConfiguration");
+        addressSpace.inverseReferenceType("HasSupertype").should.eql("HasSubtype");
+        addressSpace.inverseReferenceType("EventSourceOf").should.eql("HasEventSource");
 
-            addressSpace.inverseReferenceType("OrganizedBy").should.eql("Organizes");
-            addressSpace.inverseReferenceType("HasChild").should.eql("ChildOf");
-            addressSpace.inverseReferenceType("Aggregates").should.eql("AggregatedBy");
-            addressSpace.inverseReferenceType("HasProperty").should.eql("PropertyOf");
-            addressSpace.inverseReferenceType("HasComponent").should.eql("ComponentOf");
-            addressSpace.inverseReferenceType("HasHistoricalConfiguration").should.eql("HistoricalConfigurationOf");
-            addressSpace.inverseReferenceType("HasSubtype").should.eql("HasSupertype");
-            addressSpace.inverseReferenceType("HasEventSource").should.eql("EventSourceOf");
-        });
-
-
+        addressSpace.inverseReferenceType("OrganizedBy").should.eql("Organizes");
+        addressSpace.inverseReferenceType("HasChild").should.eql("ChildOf");
+        addressSpace.inverseReferenceType("Aggregates").should.eql("AggregatedBy");
+        addressSpace.inverseReferenceType("HasProperty").should.eql("PropertyOf");
+        addressSpace.inverseReferenceType("HasComponent").should.eql("ComponentOf");
+        addressSpace.inverseReferenceType("HasHistoricalConfiguration").should.eql("HistoricalConfigurationOf");
+        addressSpace.inverseReferenceType("HasSubtype").should.eql("HasSupertype");
+        addressSpace.inverseReferenceType("HasEventSource").should.eql("EventSourceOf");
     });
 
     it("should have a rootFolder ", function () {
@@ -888,6 +883,7 @@ describe("testing ServerEngine", function () {
             readResult.value.dataType.should.eql(DataType.UInt32);
             readResult.value.value.should.equal(0);
         });
+
         it("should handle a readSingleNode - EventNotifier", function () {
 
             var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.EventNotifier);
@@ -2101,13 +2097,6 @@ describe("testing ServerEngine", function () {
 
 describe("ServerEngine advanced", function () {
 
-    before(function (done) {
-        resourceLeakDetector.start();
-        done();
-    });
-    after(function () {
-        resourceLeakDetector.stop();
-    });
 
     it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function (done) {
 
@@ -2163,7 +2152,6 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
         test = this;
 
-        resourceLeakDetector.start();
         engine = new ServerEngine({buildInfo: defaultBuildInfo});
 
         engine.initialize({nodeset_filename: server_engine.standard_nodeset_file}, function () {
@@ -2174,8 +2162,6 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
     after(function () {
         engine.shutdown();
         engine = null;
-        resourceLeakDetector.stop();
-
     });
     beforeEach(function () {
         test.clock = sinon.useFakeTimers(Date.now());
@@ -2223,6 +2209,5 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
         done();
     });
-
 
 });

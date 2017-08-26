@@ -25,34 +25,33 @@ var browse_service = require("node-opcua-service-browse");
 var context = require("..").SessionContext.defaultContext;
 var BaseNode = require("..").BaseNode;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing ReferenceType", function () {
     var addressSpace;
     var rootFolder;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
 
-                if (err) {
-                    return done(err);
-                }
+            if (err) {
+                return done(err);
+            }
 
-                addressSpace = data;
-                addressSpace.should.be.instanceOf(AddressSpace);
+            addressSpace = data;
+            addressSpace.should.be.instanceOf(AddressSpace);
 
-                rootFolder = addressSpace.rootFolder;
-                rootFolder.browseName.toString().should.equal("Root");
+            rootFolder = addressSpace.rootFolder;
+            rootFolder.browseName.toString().should.equal("Root");
 
-                done();
-            });
-        });
-        after(function (done) {
-           if (addressSpace) {
-               addressSpace.dispose();
-               addressSpace = null;
-           }
-            rootFolder = null;
             done();
         });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        rootFolder = null;
+        done();
     });
 
     it("should find 'HierarchicalReferences'", function () {
@@ -130,7 +129,9 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names =references.map(function(ref){ return addressSpace.findNode(ref.nodeId).browseName.toString(); });
+        var names = references.map(function (ref) {
+            return addressSpace.findNode(ref.nodeId).browseName.toString();
+        });
         var expectedNames = ["FolderType", "Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
@@ -158,7 +159,9 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names =references.map(function(ref){ return addressSpace.findNode(ref.nodeId).browseName.toString(); });
+        var names = references.map(function (ref) {
+            return addressSpace.findNode(ref.nodeId).browseName.toString();
+        });
         var expectedNames = ["Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
@@ -234,7 +237,6 @@ describe("testing ReferenceType", function () {
         serverStatus.parent.nodeId.should.equal(server.nodeId);
         done();
     });
-
 
 
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", function (done) {
@@ -358,19 +360,23 @@ describe("testing ReferenceType", function () {
     /**
      *
      */
-    it("ReferenceType#getAllSubtypes should extract all possible referenceType ",function() {
+    it("ReferenceType#getAllSubtypes should extract all possible referenceType ", function () {
 
 
         var hr = addressSpace.findReferenceType("HierarchicalReferences");
         var derivedTypes = hr.getAllSubtypes();
 
-        var s = derivedTypes.map(function(r){ return r.browseName.toString(); }).join(" ");
+        var s = derivedTypes.map(function (r) {
+            return r.browseName.toString();
+        }).join(" ");
         s.should.eql("HierarchicalReferences HasChild Aggregates HasProperty HasComponent HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier");
         //xx console.log(s);
 
         var aggregates = addressSpace.findReferenceType("Aggregates");
         derivedTypes = aggregates.getAllSubtypes();
-        s = derivedTypes.map(function(r){ return r.browseName.toString(); }).join(" ");
+        s = derivedTypes.map(function (r) {
+            return r.browseName.toString();
+        }).join(" ");
         s.should.eql("Aggregates HasProperty HasComponent HasOrderedComponent HasHistoricalConfiguration");
         //xx console.log(s);
 
@@ -378,11 +384,12 @@ describe("testing ReferenceType", function () {
 
 
     function _is_valid_BrowseDirection(browseDirection) {
-        return  browseDirection === BrowseDirection.Forward ||
-            browseDirection === BrowseDirection.Inverse ||
-            browseDirection === BrowseDirection.Both
-            ;
+        return browseDirection === BrowseDirection.Forward ||
+          browseDirection === BrowseDirection.Inverse ||
+          browseDirection === BrowseDirection.Both
+          ;
     }
+
     /**
      * find all references that have the provided referenceType or are subType of this referenceType
      * @method findReferencesEx
@@ -390,8 +397,7 @@ describe("testing ReferenceType", function () {
      * @param  [browseDirection=BrowseDirection.Forward] {BrowseDirection}
      * @return {Array<ReferenceDescription>}
      */
-    BaseNode.prototype.findReferencesEx_deprecated = function (strReference, browseDirection)
-    {
+    BaseNode.prototype.findReferencesEx_deprecated = function (strReference, browseDirection) {
 
         browseDirection = browseDirection || BrowseDirection.Forward;
         assert(_is_valid_BrowseDirection(browseDirection));
@@ -416,11 +422,11 @@ describe("testing ReferenceType", function () {
         return browseResults;
     };
 
-    it("BaseNode#findReferencesEx should be fast ",function(done) {
+    it("BaseNode#findReferencesEx should be fast ", function (done) {
 
         var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
-        this.timeout(Math.max(this._timeout,100000));
+        this.timeout(Math.max(this._timeout, 100000));
 
         var bench = new Benchmarker();
 
@@ -430,34 +436,34 @@ describe("testing ReferenceType", function () {
         bench.add("findReferencesEx slow", function () {
 
 
-                var a = server.findReferencesEx_deprecated("HasChild",BrowseDirection.Forward);
-                var a = server.findReferencesEx_deprecated("HasChild",BrowseDirection.Inverse);
+            var a = server.findReferencesEx_deprecated("HasChild", BrowseDirection.Forward);
+            var a = server.findReferencesEx_deprecated("HasChild", BrowseDirection.Inverse);
 
-            })
-            .add("findReferencesEx fast", function () {
+        })
+        .add("findReferencesEx fast", function () {
 
-                var a = server.findReferencesEx("HasChild",BrowseDirection.Forward);
-                var a = server.findReferencesEx("HasChild",BrowseDirection.Inverse);
+            var a = server.findReferencesEx("HasChild", BrowseDirection.Forward);
+            var a = server.findReferencesEx("HasChild", BrowseDirection.Inverse);
 
-            })
-            .on("cycle", function (message) {
-                console.log(message);
-            })
-            .on("complete", function () {
+        })
+        .on("cycle", function (message) {
+            console.log(message);
+        })
+        .on("complete", function () {
 
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                this.fastest.name.should.eql("findReferencesEx fast");
+            console.log(' Fastest is ' + this.fastest.name);
+            console.log(' Speed Up : x', this.speedUp);
+            this.fastest.name.should.eql("findReferencesEx fast");
 
-                //xx this.speedUp.should.be.greaterThan(5); // at least 5 time faster
+            //xx this.speedUp.should.be.greaterThan(5); // at least 5 time faster
 
-                done();
-            })
-            .run({
-                max_time:  0.2, // Sec
-                min_count: 300
-            });
+            done();
+        })
+        .run({
+            max_time: 0.2, // Sec
+            min_count: 300
         });
+    });
 
 });
 
@@ -485,34 +491,32 @@ describe(" improving performance of isSupertypeOf", function () {
     var referenceTypes = [];
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
-        before(function (done) {
-            get_mini_address_space(function (err, data) {
+    before(function (done) {
+        get_mini_address_space(function (err, data) {
 
-                if (err) {
-                    return done(err);
-                }
-
-                addressSpace = data;
-
-                referenceTypes = referenceTypeNames.map(function (referenceTypeName) {
-                    return addressSpace.findReferenceType(referenceTypeName);
-                });
-                referenceTypes = referenceTypes.filter(function (e) {
-                    return e !== undefined;
-                });
-
-                assert(referenceTypes[0].nodeClass === NodeClass.ReferenceType);
-                done();
-            });
-        });
-        after(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
+            if (err) {
+                return done(err);
             }
+
+            addressSpace = data;
+
+            referenceTypes = referenceTypeNames.map(function (referenceTypeName) {
+                return addressSpace.findReferenceType(referenceTypeName);
+            });
+            referenceTypes = referenceTypes.filter(function (e) {
+                return e !== undefined;
+            });
+
+            assert(referenceTypes[0].nodeClass === NodeClass.ReferenceType);
             done();
         });
+    });
+    after(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
 
@@ -536,52 +540,54 @@ describe(" improving performance of isSupertypeOf", function () {
 
     it("should ensure that optimized version of isSupertypeOf is really faster that brute force version", function (done) {
 
-        this.timeout(Math.max(this._timeout,100000));
+        this.timeout(Math.max(this._timeout, 100000));
 
         var bench = new Benchmarker();
 
         //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
         bench.add("isSupertypeOf slow", function () {
 
-                referenceTypes.forEach(function (referenceType) {
-                    referenceTypes.map(function (refType) {
-                        return referenceType._slow_isSupertypeOf(refType);
-                    });
+            referenceTypes.forEach(function (referenceType) {
+                referenceTypes.map(function (refType) {
+                    return referenceType._slow_isSupertypeOf(refType);
                 });
-
-            })
-            .add("isSupertypeOf fast", function () {
-
-                referenceTypes.forEach(function (referenceType) {
-                    referenceTypes.map(function (refType) {
-                        return referenceType.isSupertypeOf(refType);
-                    });
-
-                });
-            })
-            .on("cycle", function (message) {
-                console.log(message);
-            })
-            .on("complete", function () {
-
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                this.fastest.name.should.eql("isSupertypeOf fast");
-
-                this.speedUp.should.be.greaterThan(3); // at least 3 time faster
-
-                done();
-            })
-            .run({
-                max_time:  0.2, // Sec
-                min_count: 300,
             });
+
+        })
+        .add("isSupertypeOf fast", function () {
+
+            referenceTypes.forEach(function (referenceType) {
+                referenceTypes.map(function (refType) {
+                    return referenceType.isSupertypeOf(refType);
+                });
+
+            });
+        })
+        .on("cycle", function (message) {
+            console.log(message);
+        })
+        .on("complete", function () {
+
+            console.log(' Fastest is ' + this.fastest.name);
+            console.log(' Speed Up : x', this.speedUp);
+            this.fastest.name.should.eql("isSupertypeOf fast");
+
+            this.speedUp.should.be.greaterThan(3); // at least 3 time faster
+
+            done();
+        })
+        .run({
+            max_time: 0.2, // Sec
+            min_count: 300,
+        });
     });
 
-    it("ZZ should ensure that fast version isSupertypeOf shall update its cache when new References are added ",function() {
+    it("ZZ should ensure that fast version isSupertypeOf shall update its cache when new References are added ", function () {
 
         function allSubTypes(n) {
-            return n.getAllSubtypes().map(function(c){ return c.browseName.toString()}).join(",");
+            return n.getAllSubtypes().map(function (c) {
+                return c.browseName.toString()
+            }).join(",");
         }
 
         var nhr = addressSpace.findReferenceType("NonHierarchicalReferences");

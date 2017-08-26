@@ -1,5 +1,5 @@
 // =====================================================================================================================
-// the objective of this test is to check the ability to create a extension object from it's node
+// the purpose of this test is to check the ability to create a extension object from it's node
 // id out of the address_space
 //
 // For instance if ServerStatus
@@ -18,52 +18,48 @@ var fs = require("fs");
 var AddressSpace = require("..").AddressSpace;
 
 // make sure all namespace 0 data type are properly loaded
-var Engine = require("node-opcua/server/server_engine");
-
 var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
 
 var DataType = require("node-opcua-variant").DataType;
 var Variant = require("node-opcua-variant").Variant;
 
-
-var UADataType = require("../src/ua_data_type").UADataType;
-var UAVariableType = require("../src/ua_variable_type").UAVariableType;
-var UAObject = require("../src/ua_object").UAObject;
-var context = require("node-opcua-address-space").SessionContext.defaultContext;
+var address_space = require("..");
+var UADataType = address_space.UADataType;
+var UAVariableType = address_space.UAVariableType;
+var UAObject = address_space.UAObject;
+var context = address_space.SessionContext.defaultContext;
 
 function debugLog() {
 }
 
 
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("testing address space namespace loading", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true, function () {
-        before(function (done) {
+    before(function (done) {
 
-            addressSpace = new AddressSpace();
-            var xml_files = [
-                path.join(__dirname, "../../../","nodesets/Opc.Ua.NodeSet2.xml"),
-                path.join(__dirname, "../../../","modeling/my_data_type.xml")
-            ];
-            fs.existsSync(xml_files[0]).should.be.eql(true);
-            fs.existsSync(xml_files[1]).should.be.eql(true);
+        addressSpace = new AddressSpace();
+        var xml_files = [
+            path.join(__dirname, "../../../", "nodesets/Opc.Ua.NodeSet2.xml"),
+            path.join(__dirname, "../../../", "modeling/my_data_type.xml")
+        ];
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
 
-            addressSpace.registerNamespace("ServerNamespaceURI");
-            addressSpace.getNamespaceArray().length.should.eql(2);
+        addressSpace.registerNamespace("ServerNamespaceURI");
+        addressSpace.getNamespaceArray().length.should.eql(2);
 
-            generate_address_space(addressSpace, xml_files, function (err) {
-                done(err);
-            });
+        generate_address_space(addressSpace, xml_files, function (err) {
+            done(err);
         });
-        after(function (done) {
-            addressSpace.dispose();
-            addressSpace = null;
-            done();
-        });
+    });
+    after(function (done) {
+        addressSpace.dispose();
+        addressSpace = null;
+        done();
     });
 
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {

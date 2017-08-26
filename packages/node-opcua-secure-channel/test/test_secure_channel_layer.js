@@ -5,7 +5,7 @@ var should = require("should");
 var ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
 var ServerSecureChannelLayer = require("../src/server/server_secure_channel_layer").ServerSecureChannelLayer;
 
-
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Testing ClientSecureChannel 1", function () {
 
     this.timeout(Math.max(this._timeout, 100000));
@@ -144,7 +144,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
     this.timeout(Math.max(this._timeout, 100000));
 
-    it("connectionStrategy: should retry many times and fail eventually ",function(done) {
+    it("WW2-a connectionStrategy: should retry many times and fail eventually ",function(done) {
 
         var options = {
             connectionStrategy: {
@@ -159,12 +159,12 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         var endpoint  = "opc.tcp://localhost:1234/UA/Sample";
         var nbRetry =0;
         secureChannel.on("backoff",function(number,delay){
-            console.log(number + ' ' + delay + 'ms');
+            console.log(number + " " + delay + "ms");
             nbRetry = number+1;
         });
         secureChannel.create(endpoint,function(err){
-            nbRetry.should.equal(options.connectionStrategy.maxRetry )
-            should(err).not.be.eql(null, "expecting an error here");
+            nbRetry.should.equal(options.connectionStrategy.maxRetry );
+            should.exist(err, "expecting an error here");
             done();
         });
 
@@ -172,7 +172,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     });
 
     // waiting for https://github.com/MathieuTurcotte/node-backoff/issues/15 to be fixed
-    it("WW2 should be possible to interrupt the retry process  ",function(done) {
+    it("WW2-b should be possible to interrupt the retry process  ",function(done) {
 
         var options = {
             connectionStrategy: {
@@ -189,9 +189,9 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         var nbRetry =0;
 
         secureChannel.on("backoff",function(number,delay){
-            console.log(number + ' ' + delay + 'ms');
+            console.log(number + " " + delay + "ms");
             nbRetry = number+1;
-            if (number == 2) {
+            if (number === 2) {
                 console.log("Let's abort the connection now");
                 secureChannel.abortConnection(function() {});
             }
@@ -200,13 +200,16 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             nbRetry.should.not.equal(options.connectionStrategy.maxRetry);
             nbRetry.should.be.greaterThan(2);
             nbRetry.should.be.lessThan(4);
-            should(err).not.be.eql(null, "expecting an error here");
-            done();
+            should.exist(err,"expecting an error here");
+            console.log("secureChannel.create failed with message ",err.message);
+            secureChannel.close(function() {
+                setTimeout(done,100);
+            });
         });
     });
 
     var test = this;
-    it("WW2- a secureChannel that starts before the server is up and running should eventually connect without error",function(done) {
+    it("WW2-c secureChannel that starts before the server is up and running should eventually connect without error",function(done) {
 
 
         var options = {
@@ -224,7 +227,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         var nbRetry =0;
 
         secureChannel.on("backoff",function(number,delay){
-            console.log(number + ' ' + delay + 'ms');
+            console.log(number + " " + delay + "ms");
             nbRetry = number+1;
         });
 
@@ -232,16 +235,23 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         secureChannel.create(endpoint,function(err){
             should(err).be.eql(null, "expecting NO error here");
             setTimeout(function() {
-                stopServer(test,done);
-            },1000)
+                stopServer(test,function() {
+
+                    secureChannel.close(function() {
+                        done();
+                    });
+                });
+            },1000);
         });
 
         setTimeout(function(){
             // start the server with a delay
             startServer(test,function(){
-                console.log("Server finally started !")
+                console.log("Server finally started !");
             });
         },5000);
+
+
 
     });
 

@@ -10,6 +10,9 @@ var getFixture = require("node-opcua-test-fixtures").getFixture;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 
+
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+
 describe("testing NodeSet XML file loading", function () {
 
 
@@ -17,29 +20,27 @@ describe("testing NodeSet XML file loading", function () {
 
     var addressSpace;
 
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true, function () {
 
-        beforeEach(function () {
+    beforeEach(function () {
 
-            addressSpace = new AddressSpace();
-            Object.keys(addressSpace._aliases).length.should.equal(0);
-            Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
-            Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
-            Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
-            Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
-        });
-        afterEach(function (done) {
-            if (addressSpace) {
-                addressSpace.dispose();
-                addressSpace = null;
-            }
-            done();
-        });
+        addressSpace = new AddressSpace();
+        Object.keys(addressSpace._aliases).length.should.equal(0);
+        Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
+        Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
+        Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
+        Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
+    });
+    afterEach(function (done) {
+        if (addressSpace) {
+            addressSpace.dispose();
+            addressSpace = null;
+        }
+        done();
     });
 
     it("should load a nodeset xml file", function (done) {
 
-        var xml_file = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        var xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -164,7 +165,7 @@ describe("testing NodeSet XML file loading", function () {
 
         var Variant = require("node-opcua-variant").Variant;
 
-        var xml_file1 = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        var xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
         var xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
 
         var xml_files = [

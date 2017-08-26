@@ -24,8 +24,8 @@ var maxConnectionsPerEndpoint = 100;
 var maxAllowedSessionNumber   =  50;
 
 var build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var resourceLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").resourceLeakDetector;
 
+var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
 describe("Functional test : one server with many concurrent clients", function () {
 
     var server, temperatureVariableId, endpointUrl;
@@ -35,7 +35,6 @@ describe("Functional test : one server with many concurrent clients", function (
     var serverCertificateChain = null;
     before(function (done) {
 
-        resourceLeakDetector.start();
         server = build_server_with_temperature_device({
             port: port,
             maxAllowedSessionNumber:  maxAllowedSessionNumber,
@@ -59,7 +58,6 @@ describe("Functional test : one server with many concurrent clients", function (
 
     after(function (done) {
         server.shutdown(function () {
-            resourceLeakDetector.stop();
             done();
         });
     });
