@@ -24,7 +24,7 @@ function collect_files(test_folder) {
                 //xx }
                 test_files.push(f);
             } else {
-                console.log("skipping file ",f);
+                //xx console.log("skipping file ",f);
             }
         }
     });
@@ -32,7 +32,7 @@ function collect_files(test_folder) {
 
 fs.readdirSync(".").forEach(function (file) {
 
-    console.log(file);
+    //xx console.log(file);
     var test_folder = path.join(".", file, "test");
     if (fs.existsSync(test_folder)) {
         collect_files(test_folder);
