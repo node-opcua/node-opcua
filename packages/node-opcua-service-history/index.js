@@ -18,5 +18,6 @@ module.exports ={
 
     ModificationInfo: require("./_generated_/_auto_generated_ModificationInfo").ModificationInfo,
 
+    ReadEventDetails: require("./_generated_/_auto_generated_ReadEventDetails").ReadEventDetails,
 
 };

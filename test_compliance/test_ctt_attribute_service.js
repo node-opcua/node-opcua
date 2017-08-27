@@ -1,5 +1,5 @@
 "use strict";
-var path = "../";
+var path = "../bin/node-opcua";
 require(path+"test_compliance/helpers");
 
 var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;

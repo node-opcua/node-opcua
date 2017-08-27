@@ -205,7 +205,6 @@ module.exports = {
      */
     TransferSubscriptionsResponse: require("./_generated_/_auto_generated_TransferSubscriptionsResponse").TransferSubscriptionsResponse,
 
-    ReadEventDetails: require("./_generated_/_auto_generated_ReadEventDetails").ReadEventDetails,
 
 
     check_deadband: require("./src/deadband_checker").check_deadband,

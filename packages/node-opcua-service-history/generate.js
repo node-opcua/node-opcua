@@ -21,4 +21,4 @@ generator.registerObject("HistoryUpdateResponse");
 generator.registerObject("ReadRawModifiedDetails");
 generator.registerObject("ReadProcessedDetails");
 generator.registerObject("ReadAtTimeDetails");
-//xx generator.registerObject("ReadEventDetails");
+generator.registerObject("ReadEventDetails");

@@ -1,4 +1,3 @@
-require("node-opcua-service-history");
 require("node-opcua-service-filter");
 // <   BaseType="ua:">
 var ReadEventDetails_Schema = {

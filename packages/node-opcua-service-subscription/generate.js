@@ -4,6 +4,7 @@ var registerObject = generator.registerObject;
 require("node-opcua-service-secure-channel");
 require("node-opcua-service-read");
 require("node-opcua-service-filter");
+require("node-opcua-service-history");
 require("node-opcua-service-translate-browse-path");
 
 // subscription service
@@ -58,7 +59,6 @@ registerObject("ContentFilterResult");
 registerObject("EventFilterResult");
 
 
-registerObject("ReadEventDetails");
 
 //
 registerObject("AggregateFilter");

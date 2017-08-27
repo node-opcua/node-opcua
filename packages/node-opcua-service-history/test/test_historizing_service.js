@@ -3,10 +3,10 @@ var read_service = require("node-opcua-service-read");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 
 var hs = require("..");
+var ReadEventDetails = hs.ReadEventDetails;
 
 var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
 
-var ReadEventDetails = require("node-opcua-service-subscription").ReadEventDetails;
 
 describe("Historizing Service", function () {
 

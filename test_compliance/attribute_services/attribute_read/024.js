@@ -1,22 +1,10 @@
 var path = "../../../";
 var opcua = require(path);
-var makeNodeId = opcua.makeNodeId;
-var DataValue = opcua.DataValue;
-var DataType = opcua.DataType;
 var AttributeIds = opcua.AttributeIds;
 var NumericRange = opcua.NumericRange;
-var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
 
 var should = require("should");
-
-var ns = 411;
-
-
-
-
-var inspect = require('eyes').inspector(); // {styles: {all: 'magenta'}});
-var async = require("async");
 
 // 1. Read the raw array value.
 // 2. Read the array value specifying the IndexRange.
@@ -110,13 +98,12 @@ function test_24_on_node(session,nodeId,callback) {
 
 exports.register_test = function (options) {
 
-
     describe_on_session("\n    24 : Read: Arrays, read one node of each data type specifying an IndexRange retrieving 2nd element only.",options,function(){
 
         nodeIdSettings.arraysStatic.forEach(function (nodeId) {
             it("should read one node on a " + nodeId.toString(),function(done){
                 test_24_on_node(options.session,nodeId,done);
-            })
+            });
         });
 
     });
