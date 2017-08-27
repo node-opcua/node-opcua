@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo no test",
+    "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
 
   },

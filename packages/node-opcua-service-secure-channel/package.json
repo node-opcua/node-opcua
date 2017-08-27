@@ -5,6 +5,7 @@
   "main": "./index.js",
   "scripts": {
     "test": "mocha test",
+    "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
 
   },
@@ -15,7 +16,6 @@
     "node-opcua-binary-stream": "*",
     "node-opcua-factory": "*",
     "node-opcua-basic-types": "*",
-    "node-opcua-secure-channel":"*",
     "node-opcua-data-model": "*"
   },
   "devDependencies": {
