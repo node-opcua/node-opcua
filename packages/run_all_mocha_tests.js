@@ -62,6 +62,9 @@ test_files.filter(function (file) {
     mocha.addFile(file);
 });
 
+mocha.timeout(200000);
+mocha.bail(true);
+
 // Run the tests.
 mocha.run(function (failures) {
     process.on("exit", function () {
