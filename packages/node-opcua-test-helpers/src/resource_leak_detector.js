@@ -17,6 +17,9 @@ function get_stack() {
     return stack.slice(2, 7).join("\n");
 }
 
+const monitor_intervals = false;
+
+
 function ResourceLeakDetector() {
     var self = this;
 
@@ -131,92 +134,95 @@ ResourceLeakDetector.prototype.start = function (info) {
 
     self.verify_registry_counts(self, info);
 
-    global.setTimeout = function (func, delay) {
+    if (monitor_intervals) {
+        global.setTimeout = function (func, delay) {
 
-        assert(arguments.length === 2, "current limitation:  setTimeout must be called with 2 arguments");
-        // detect invalid delays
-        assert(delay !== undefined);
-        assert(_.isFinite(delay));
-        if (delay < 0) {
-            console.log("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
-            throw new Error("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
-        }
+            assert(arguments.length === 2, "current limitation:  setTimeout must be called with 2 arguments");
+            // detect invalid delays
+            assert(delay !== undefined);
+            assert(_.isFinite(delay));
+            if (delay < 0) {
+                console.log("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
+                throw new Error("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
+            }
 
-        // increase number of pending timers
-        self.setTimeoutCallPendingCount += 1;
+            // increase number of pending timers
+            self.setTimeoutCallPendingCount += 1;
 
-        // increase overall timeout counter;
-        self.setTimeoutCallCount += 1;
+            // increase overall timeout counter;
+            self.setTimeoutCallCount += 1;
 
-        var key = self.setTimeoutCallCount;
+            var key = self.setTimeoutCallCount;
 
-        var timeoutId = self.setTimeout_old(function () {
+            var timeoutId = self.setTimeout_old(function () {
 
-            if (self.timeout_map[key].isCleared) {
-                // throw new Error("Invalid timeoutId, timer has already been cleared - " + key);
-                console.log("WARNING : setTimeout:  Invalid timeoutId, timer has already been cleared - " + key);
+                if (self.timeout_map[key].isCleared) {
+                    // throw new Error("Invalid timeoutId, timer has already been cleared - " + key);
+                    console.log("WARNING : setTimeout:  Invalid timeoutId, timer has already been cleared - " + key);
+                    return;
+                }
+                if (self.timeout_map[key].hasBeenHonored) {
+                    throw new Error("setTimeout:  "+ key + " time out has already been honored");
+                }
+                self.honoredTimeoutFuncCallCount += 1;
+                self.setTimeoutCallPendingCount -= 1;
+
+                self.timeout_map[key].hasBeenHonored = true;
+                self.timeout_map[key].disposed = true;
+                func();
+
+            }, delay);
+
+            self.timeout_map[key] = {
+                timeoutId: timeoutId,
+                disposed: false,
+                stack: get_stack() // stack when created
+            };
+            return key + 100000;
+        };
+
+        global.clearTimeout = function (timeoutId) {
+            // workaround for a bug in 'backoff' module, which call clearTimeout with -1 ( invalid ide)
+            if (timeoutId === -1) {
+                console.log("warning clearTimeout is called with illegal timeoutId === 1, this call will be ignored ( backoff module bug?)");
                 return;
             }
-            if (self.timeout_map[key].hasBeenHonored) {
-                throw new Error("setTimeout:  "+ key + " time out has already been honored");
+
+            if (timeoutId>=0 && timeoutId< 100000) {
+                throw new Error("clearTimeout has been called instead of clearInterval");
             }
-            self.honoredTimeoutFuncCallCount += 1;
+            timeoutId -= 100000;
+
+            if (!self.timeout_map[timeoutId]) {
+                console.log("timeoutId" + timeoutId, " has already been discarded or doesn't exist");
+                console.log("self.timeout_map", self.timeout_map);
+                throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " this may happen if clearTimeout is called inside the setTimeout function");
+            }
+            if (self.timeout_map[timeoutId].isCleared) {
+                throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " time out has already been cleared");
+            }
+            if (self.timeout_map[timeoutId].hasBeenHonored) {
+                throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " time out has already been honored");
+            }
+
+            self.timeout_map[timeoutId].isCleared = true;
+            self.timeout_map[timeoutId].disposed = true;
+
             self.setTimeoutCallPendingCount -= 1;
 
-            self.timeout_map[key].hasBeenHonored = true;
-            self.timeout_map[key].disposed = true;
-            func();
+            // increase overall timeout counter;
+            self.clearTimeoutCallCount += 1;
 
-        }, delay);
+            //xx console.log(" xxx                          xxxxxxxxx = >clearTimeout".yellow, timeoutId, self.setTimeoutCallPendingCount);
+            //xx console.log(new Error().stack);
 
-        self.timeout_map[key] = {
-            timeoutId: timeoutId,
-            disposed: false,
-            stack: get_stack() // stack when created
+            var ret = self.timeout_map[timeoutId];
+            //xx self.timeout_map[timeoutId] = null;
+            //xx delete self.timeout_map[timeoutId];
+            return self.clearTimeout_old(ret.timeoutId);
         };
-        return key + 100000;
-    };
 
-    global.clearTimeout = function (timeoutId) {
-        // workaround for a bug in 'backoff' module, which call clearTimeout with -1 ( invalid ide)
-        if (timeoutId === -1) {
-            console.log("warning clearTimeout is called with illegal timeoutId === 1, this call will be ignored ( backoff module bug?)");
-            return;
-        }
-
-        if (timeoutId>=0 && timeoutId< 100000) {
-            throw new Error("clearTimeout has been called instead of clearInterval");
-        }
-        timeoutId -= 100000;
-
-        if (!self.timeout_map[timeoutId]) {
-            console.log("timeoutId" + timeoutId, " has already been discarded or doesn't exist");
-            console.log("self.timeout_map", self.timeout_map);
-            throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " this may happen if clearTimeout is called inside the setTimeout function");
-        }
-        if (self.timeout_map[timeoutId].isCleared) {
-            throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " time out has already been cleared");
-        }
-        if (self.timeout_map[timeoutId].hasBeenHonored) {
-            throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " time out has already been honored");
-        }
-
-        self.timeout_map[timeoutId].isCleared = true;
-        self.timeout_map[timeoutId].disposed = true;
-
-        self.setTimeoutCallPendingCount -= 1;
-
-        // increase overall timeout counter;
-        self.clearTimeoutCallCount += 1;
-
-        //xx console.log(" xxx                          xxxxxxxxx = >clearTimeout".yellow, timeoutId, self.setTimeoutCallPendingCount);
-        //xx console.log(new Error().stack);
-
-        var ret = self.timeout_map[timeoutId];
-        //xx self.timeout_map[timeoutId] = null;
-        //xx delete self.timeout_map[timeoutId];
-        return self.clearTimeout_old(ret.timeoutId);
-    };
+    }
 
     global.setInterval = function (func, delay) {
         assert(arguments.length === 2);
