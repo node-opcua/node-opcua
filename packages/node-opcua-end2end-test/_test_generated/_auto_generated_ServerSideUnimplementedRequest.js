@@ -1,4 +1,4 @@
-// --------- This code has been automatically generated !!! 2017-08-18T21:37:36.940Z
+// --------- This code has been automatically generated !!! 2017-08-28T20:52:52.937Z
 "use strict";
 /**
  * @module opcua.address_space.types
