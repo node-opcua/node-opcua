@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "pretest": "node test_helpers/create_certificates.js demo --dev",
+    "pretest": "node test_helpers/create_certificates.js demo --dev -s",
     "test": "mocha --recursive test"
   },
   "dependencies": {
