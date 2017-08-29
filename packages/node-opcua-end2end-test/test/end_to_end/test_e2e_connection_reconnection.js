@@ -1112,7 +1112,7 @@ describe("testing ability for client to reconnect when server close connection",
             //xx console.log(values_to_check.join(" "));
         }
 
-        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values");
+        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values : values_to_check = " + values_to_check + " != " + (previous_value_count+1));
         if (values_to_check.length > 0) {
             values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
         }
