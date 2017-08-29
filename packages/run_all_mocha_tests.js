@@ -30,10 +30,9 @@ function collect_files(test_folder) {
     });
 }
 
-fs.readdirSync(".").forEach(function (file) {
+fs.readdirSync(__dirname).forEach(function (file) {
 
-    //xx console.log(file);
-    var test_folder = path.join(".", file, "test");
+    var test_folder = path.join(__dirname, file, "test");
     if (fs.existsSync(test_folder)) {
         collect_files(test_folder);
     }
