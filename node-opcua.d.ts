@@ -370,7 +370,7 @@ export declare class OPCUAServer {
     on(event: string, eventhandler: () => void): void;
 }
 
-export declare class ClientMonitoredItem {
+export declare class ClientMonitoredItem extends EventTarget {
     terminate(callback: Function): void;
     on(event: string, eventhandler: (v:Variant) => void): void;
 }
