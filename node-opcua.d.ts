@@ -412,6 +412,7 @@ export interface ClientSubscriptionOptions {
 export declare class ClientSubscription {
     constructor(session: ClientSession, options: ClientSubscriptionOptions);
     monitor(itemToMonitor: NodeAttributeId, requestedParameters: ItemToMonitorRequestedParameters, timestampsToReturn: number, done?: Function): ClientMonitoredItem;
+    on(eventName: string, callback: Function): EventListener;
 }
 
 export declare enum AttributeIds {
