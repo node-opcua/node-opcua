@@ -134,12 +134,22 @@ ConditionSnapshot.prototype.getConfirmedState = function()
     return self._get_twoStateVariable("confirmedState");
 };
 
-ConditionSnapshot.prototype.setConfirmedState = function(confirmedState) {
+ConditionSnapshot.prototype.setConfirmedStateIfExists = function(confirmedState) {
     confirmedState = !!confirmedState;
     var self = this;
-    assert(self.condition.confirmedState,"Must have a confirmed state.  Add ConfirmedState to the optionals");
+    if (!self.condition.confirmedState) {
+        // no condition node has been defined (this is valid)
+        // confirm state cannot be set
+        return;
+    }
     // todo deal with Error code BadConditionBranchAlreadyConfirmed
     self._set_twoStateVariable("confirmedState",confirmedState);
+};
+
+ConditionSnapshot.prototype.setConfirmedState = function(confirmedState) {
+    var self = this;
+    assert(self.condition.confirmedState,"Must have a confirmed state.  Add ConfirmedState to the optionals");
+    self.setConfirmedStateIfExists(confirmedState);
 };
 
 /**
