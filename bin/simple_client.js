@@ -93,7 +93,7 @@ var endpointUrl = argv.endpoint;
 
 if (!endpointUrl) {
     require("yargs").showHelp();
-    return;
+    process.exit(0);
 }
 var the_session = null;
 var the_subscription = null;
@@ -830,7 +830,9 @@ async.series([
 
             "Value"
         ];
-        var eventFilter = opcua.constructEventFilter(fields);
+
+
+        var eventFilter = opcua.constructEventFilter(fields,[opcua.resolveNodeId("ConditionType")]);
 
         var event_monitoringItem = the_subscription.monitor(
             {

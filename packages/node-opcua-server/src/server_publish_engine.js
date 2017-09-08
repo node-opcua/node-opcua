@@ -503,7 +503,7 @@ ServerSidePublishEngine.prototype.on_close_subscription = function(subscription)
     delete self._subscriptions[subscription.id];
 
     if (self.subscriptionCount === 0) {
-        while(self._feed_closed_subscription()) {};
+        while(self._feed_closed_subscription()) {}
 
         self.cancelPendingPublishRequest();
     }

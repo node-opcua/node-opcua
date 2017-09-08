@@ -19,7 +19,7 @@ var read_service = require("node-opcua-service-read");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 var NodeId = require("node-opcua-nodeid").NodeId;
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
-var AttributeIds = require("node-opcua-data-model").AttributeIds
+var AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 var DataType = require("node-opcua-variant").DataType;
 var DataValue =  require("node-opcua-data-value").DataValue;

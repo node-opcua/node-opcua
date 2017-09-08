@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 /*
  * write a file to the console, preserving the Ansi color decoration
  */

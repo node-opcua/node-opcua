@@ -99,10 +99,10 @@ describe("AddressSpace : add event type ", function () {
 
         var eventType = addressSpace.addEventType({
             browseName: "MyConcreteCustomEvent",
-            isAbstract: true
+            isAbstract: false
         });
         eventType.browseName.toString().should.eql("MyConcreteCustomEvent");
-        eventType.isAbstract.should.eql(true);
+        eventType.isAbstract.should.eql(false);
     });
 
 
