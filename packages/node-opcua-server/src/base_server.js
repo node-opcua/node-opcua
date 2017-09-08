@@ -22,7 +22,11 @@ function constructFilename(p) {
     var filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
     if(!fs.existsSync(filename)) {
-        throw new Error("Cannot find filename " + filename + " ( __dirname = " + __dirname);
+        // try one level up
+        filename = path.join(__dirname, p);
+        if(!fs.existsSync(filename)) {
+            throw new Error("Cannot find filename " + filename + " ( __dirname = " + __dirname);
+        }
     }
     return filename;
 }
