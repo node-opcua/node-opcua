@@ -9,6 +9,7 @@ var assert = require("better-assert");
 var SimpleAttributeOperand = require("../_generated_/_auto_generated_SimpleAttributeOperand").SimpleAttributeOperand;
 var EventFilter = require("../_generated_/_auto_generated_EventFilter").EventFilter;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
+var DataType = require("node-opcua-variant").DataType;
 
 
 // xx var NumericRange = require("node-opcua-numeric-range").NumericRange;
@@ -20,8 +21,9 @@ var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
 
 var Variant = require("node-opcua-variant").Variant;
-
-
+var NodeId = require("node-opcua-nodeid").NodeId;
+var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+var sameNodeId = require("node-opcua-nodeid").sameNodeId;
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
@@ -29,6 +31,10 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  * helper to construct event filters:
  * construct a simple event filter
  * @method constructEventFilter
+ *
+ * @param   arrayOfNames   {Array<string>}
+ * @param   conditionTypes {Array<NodeId>}
+ * @return  {EventFilter}
  *
  * @example
  *
@@ -41,10 +47,13 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  *     constructEventFilter(["SourceName" ,"EnabledState.EffectiveDisplayName" ]);
  *
  */
-function constructEventFilter(arrayOfNames) {
+function constructEventFilter(arrayOfNames,conditionTypes) {
 
     if (!_.isArray(arrayOfNames)) {
-        return constructEventFilter([arrayOfNames]);
+        return constructEventFilter([arrayOfNames],conditionTypes);
+    }
+    if (conditionTypes && !_.isArray(conditionTypes)) {
+        return constructEventFilter(arrayOfNames,[conditionTypes]);
     }
 
     // replace "string" element in the form A.B.C into [ "A","B","C"]
@@ -88,6 +97,19 @@ function constructEventFilter(arrayOfNames) {
             indexRange: null //  NumericRange
         });
     });
+
+    if (conditionTypes) {
+        var extraSelectClauses = conditionTypes.map(function(nodeId) {
+            return new SimpleAttributeOperand({
+                typeId: nodeId, // conditionType for instance
+                browsePath: null,
+                attributeId: AttributeIds.NodeId,
+                indexRange: null //  NumericRange
+            });
+        });
+        selectClauses =[].concat(selectClauses,extraSelectClauses)
+    }
+
 
     var filter = new EventFilter({
 
@@ -174,6 +196,32 @@ function extractEventField(eventData, selectClause) {
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
 
+    if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
+        if (selectClause.typeId.toString() !== "ns=0;i=2782") {
+            // not ConditionType
+            throw new Error("this case is not handled yet");
+        }
+        const conditionTypeNodeId = resolveNodeId("ConditionType");
+        assert(sameNodeId(selectClause.typeId,conditionTypeNodeId));
+
+        const eventSource  = eventData.$eventDataSource;
+        const eventSourceTypeDefinition = eventSource.typeDefinitionObj;
+        if (!eventSourceTypeDefinition) {
+            // eventSource is a EventType class
+            return new Variant()
+        }
+        const addressSpace = eventSource.addressSpace;
+        const conditionType = addressSpace.findObjectType(conditionTypeNodeId);
+
+        if (!eventSourceTypeDefinition.isSupertypeOf(conditionType)) {
+            return new Variant();
+        }
+        //xx assert(eventSource instanceof UAConditionBase);
+        // Yeh : our EventType is a Condition Type !
+        return new Variant({dataType: DataType.NodeId, value: eventSource.nodeId});
+    }
+
+
     var handle = eventData.resolveSelectClause(selectClause);
 
     if (handle !== null) {
@@ -182,6 +230,8 @@ function extractEventField(eventData, selectClause) {
         return value;
 
     } else {
+
+        ///xx console.log(" Cannot find selectClause ",selectClause.toString());
         // Part 4 - 7.17.3
         // A null value is returned in the corresponding event field in the Publish response if the selected
         // field is not part of the Event or an error was returned in the selectClauseResults of the EventFilterResult.

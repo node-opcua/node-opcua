@@ -9,7 +9,7 @@ var _ = require("underscore");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
 var UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
 var NodeId = require("node-opcua-nodeid").NodeId;
@@ -28,19 +28,20 @@ function UAExclusiveLimitAlarm() {
      * @type  UAStateMachine
      */
 }
+
 util.inherits(UAExclusiveLimitAlarm, UALimitAlarm);
 
-var validState = [ "HighHigh","High","Low","LowLow",null];
+var validState = ["HighHigh", "High", "Low", "LowLow", null];
 
 
-UAExclusiveLimitAlarm.prototype._signalNewCondition = function(stateName, isActive, value) {
+UAExclusiveLimitAlarm.prototype._signalNewCondition = function (stateName, isActive, value) {
 
     var alarm = this;
 
-    assert(validState.indexOf(stateName)>=0,"must have a valid state : " + stateName);
+    assert(validState.indexOf(stateName) >= 0, "must have a valid state : " + stateName);
 
-    var oldState   = alarm.limitState.getCurrentState();
-    var oldActive  = alarm.activeState.getValue();
+    var oldState = alarm.limitState.getCurrentState();
+    var oldActive = alarm.activeState.getValue();
 
     if (stateName) {
         alarm.limitState.setState(stateName);
@@ -48,10 +49,10 @@ UAExclusiveLimitAlarm.prototype._signalNewCondition = function(stateName, isActi
         assert(stateName === null);
         alarm.limitState.setState(stateName);
     }
-    UALimitAlarm.prototype._signalNewCondition.call(this,stateName,isActive,value);
+    UALimitAlarm.prototype._signalNewCondition.call(this, stateName, isActive, value);
 };
 
-UAExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function(value) {
+UAExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function (value) {
 
     assert(_.isFinite(value));
 
@@ -61,28 +62,27 @@ UAExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function(value) {
 
     var state = null;
 
-    var oldState =alarm.limitState.getCurrentState();
+    var oldState = alarm.limitState.getCurrentState();
 
     if (alarm.highHighLimit && alarm.getHighHighLimit() < value) {
         state = "HighHigh";
-        isActive= true;
+        isActive = true;
     } else if (alarm.highLimit && alarm.getHighLimit() < value) {
         state = "High";
-        isActive= true;
+        isActive = true;
     } else if (alarm.lowLowLimit && alarm.getLowLowLimit() > value) {
         state = "LowLow";
-        isActive= true;
+        isActive = true;
     } else if (alarm.lowLimit && alarm.getLowLimit() > value) {
         state = "Low";
-        isActive= true;
+        isActive = true;
     }
 
-    if (state!=oldState) {
-        alarm._signalNewCondition(state,isActive,value);
+    if (state != oldState) {
+        alarm._signalNewCondition(state, isActive, value);
     }
 
 };
-
 
 
 exports.UAExclusiveLimitAlarm = UAExclusiveLimitAlarm;

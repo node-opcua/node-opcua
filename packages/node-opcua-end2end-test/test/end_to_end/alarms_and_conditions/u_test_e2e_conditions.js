@@ -17,6 +17,8 @@ var DataType = opcua.DataType;
 var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 var NodeId = opcua.NodeId;
 
+var conditionTypeId = opcua.resolveNodeId("ConditionType");
+
 var perform_operation_on_subscription = require("../../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
@@ -72,6 +74,10 @@ module.exports = function (test) {
             console.log("--------------------");
         }
 
+        function extract_node_id_value_for_condition_type_field(result) {
+           // this is the last one in result
+            return result[result.length-1];
+        }
         function extract_value_for_field(fieldName, result) {
             should.exist(result);
             var index = fields.indexOf(fieldName);
@@ -114,7 +120,7 @@ module.exports = function (test) {
             "ActiveState",
             "ActiveState.Id"
         ];
-        var eventFilter = constructEventFilter(fields);
+        var eventFilter = constructEventFilter(fields,conditionTypeId);
 
         function given_and_install_event_monitored_item(subscription, callback) {
             var test = this;
@@ -477,6 +483,8 @@ module.exports = function (test) {
 
                         extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
 
+                        extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
+
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
                     }
@@ -741,6 +749,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(true);
                         extract_value_for_field("Retain", dataValues).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         //
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
@@ -788,6 +797,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Unconfirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(false);
                         extract_value_for_field("Retain", dataValues).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
@@ -826,6 +836,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Unconfirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(false);
                         extract_value_for_field("Retain", dataValues).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         //
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
@@ -864,6 +875,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(true);
                         extract_value_for_field("Retain", dataValues).value.should.eql(false);
+                        extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
@@ -894,6 +906,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues).value.should.eql(true);
                         extract_value_for_field("Retain", dataValues).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
 
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
@@ -928,6 +941,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues7).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues7).value.should.eql(true);
                         extract_value_for_field("Retain", dataValues7).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues7).value.toString().should.eql(alarmNode.nodeId.toString());
 
 
                         var dataValues8 = test.spy_monitored_item1_changes.getCall(1).args[0];
@@ -947,6 +961,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues8).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues8).value.should.eql(true);
                         extract_value_for_field("Retain", dataValues8).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues8).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
@@ -980,6 +995,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValues9).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValues9).value.should.eql(true);
                         extract_value_for_field("Retain", dataValues9).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValues9).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
@@ -1028,6 +1044,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValuesB).value.text.should.eql("Unconfirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(false);
                         extract_value_for_field("Retain", dataValuesB).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValuesB).value.toString().should.eql(alarmNode.nodeId.toString());
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
@@ -1065,6 +1082,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValuesA).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValuesA).value.should.eql(true);
                         extract_value_for_field("Retain", dataValuesA).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValuesA).value.toString().should.eql(alarmNode.nodeId.toString());
 
 
                         // -----------------------------  Event on main branch !
@@ -1079,6 +1097,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState", dataValuesB).value.text.should.eql("Confirmed");
                         extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(true);
                         extract_value_for_field("Retain", dataValuesB).value.should.eql(true);
+                        extract_node_id_value_for_condition_type_field(dataValuesB).value.toString().should.eql(alarmNode.nodeId.toString());
 
 
                         alarmNode.getBranchCount().should.eql(2, " Expecting two extra branches apart from current branch");

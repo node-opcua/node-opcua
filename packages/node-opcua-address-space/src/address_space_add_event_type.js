@@ -21,6 +21,7 @@ var doDebug = false;
 var BaseNode = require("./base_node").BaseNode;
 var UAVariable = require("./ua_variable").UAVariable;
 var UAMethod = require("./ua_method").UAMethod;
+var UAObjectType = require("./ua_object_type").UAObjectType;
 
 var constructBrowsePathFromQualifiedName = require("node-opcua-service-translate-browse-path").constructBrowsePathFromQualifiedName;
 
@@ -52,10 +53,19 @@ EventData.prototype.resolveSelectClause = function(selectClause) {
     assert(selectClause instanceof SimpleAttributeOperand);
     var addressSpace = self.$eventDataSource.addressSpace;
 
+    if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
+        assert("Cannot use resolveSelectClause on this selectClause as it has no browsePath");
+    }
     // navigate to the innerNode specified by the browsePath [ QualifiedName]
     var browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
+
+    //xx console.log(self.$eventDataSource.browseName.toString());
+    //xx console.log("xxxxxxxxxxxxx browse Pathx", browsePath.toString());
+
     var browsePathResult = addressSpace.browsePath(browsePath);
+
     //xx console.log(" br",self.$eventDataSource.nodeId.toString(),selectClause.browsePath.toString(),browsePathResult.targets[0] ? browsePathResult.targets[0].targetId.toString() : "!!!NOT FOUNF!!!".cyan)
+
     if (browsePathResult.statusCode !== StatusCodes.Good) {
         return null;
     }
@@ -242,7 +252,6 @@ exports.install = function (AddressSpace) {
      */
     AddressSpace.prototype.constructEventData = function (eventTypeId, data) {
 
-        var UAObjectType = require("./ua_object_type").UAObjectType;
 
         var addressSpace = this;
 
@@ -334,6 +343,21 @@ exports.install = function (AddressSpace) {
 
         }
 
+        // verify that all elements of data are valid
+        function verify_data_is_valid(data){
+            Object.keys(data).map(function(k) {
+                if(k === "$eventDataSource") {
+                    return;
+                }
+                if (!visitedProperties.hasOwnProperty(k)) {
+                    throw new Error(" cannot find property '" + k + "' in [ "
+                      + Object.keys(visitedProperties).join(", ") + "] when filling " +
+                      eventTypeNode.browseName.toString() );
+                }
+            });
+        }
+
+
         function populate_data(self, eventData) {
 
             if (baseObjectType.nodeId === self.nodeId) {
@@ -398,20 +422,8 @@ exports.install = function (AddressSpace) {
         // verify standard properties...
         populate_data(eventTypeNode, eventData);
 
-        // verify that all elements of data are valid
-        function verify_data_is_valid(){
-            Object.keys(data).map(function(k) {
-                if(k === "$eventDataSource") {
-                    return;
-                }
-                if (!visitedProperties.hasOwnProperty(k)) {
-                    throw new Error(" cannot find property '" + k + "' in [ "
-                        + Object.keys(visitedProperties).join(", ") + "] when filling " +
-                        eventTypeNode.browseName.toString() );
-                }
-            });
-        }
-        verify_data_is_valid();
+
+        verify_data_is_valid(data);
 
         return eventData;
     };

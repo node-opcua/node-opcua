@@ -53,9 +53,16 @@ UANonExclusiveLimitAlarm.prototype._calculateConditionInfo = function (states, i
         });
 
     } else {
+        // build-up state string
+        var state_str = Object.keys(states).map(function(s) {
+            return  states[s] === true ? s : null;
+        }).filter(function(a) { return !!a;}).join(";"); //
+
+        state_str = JSON.stringify(states);
+
         return new ConditionInfo({
             severity: 150,
-            message: "Condition value is " + value + " and state is " + states,
+            message: "Condition value is " + value + " and state is " + state_str,
             quality: StatusCodes.Good,
             retain: true
         });

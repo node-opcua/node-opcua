@@ -122,6 +122,7 @@ ConditionSnapshot.prototype._constructEventData = function() {
             eventData.setValue(key,node,self._map[key]);
         }
     });
+
     return eventData;
 
     // self.condition.getAggregates().forEach(function(child){
@@ -858,7 +859,7 @@ UAConditionBase.prototype.raiseConditionEvent = function (branch) {
     var self = this;
     self._assert_valid();
 
-    // In fact he event is raised by the object of which we are the condition
+    // In fact the event is raised by the object of which we are the condition
     var conditionOfNode = self.conditionOfNode();
 
     if (conditionOfNode) {
@@ -1696,8 +1697,15 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
      *    to specify all individual ConditionClassType NodeIds. The OfType operator cannot be applied.
      *    BaseConditionClassType is used as class whenever a Condition cannot be assigned to a
      *    more concrete class.
+     *
+     *                         BaseConditionClassType
+     *                                   |
+     *                      +---------------------------+----------------------------+
+     *                     |                           |                             |
+     *            ProcessConditionClassType  MaintenanceConditionClassType  SystemConditionClassType
+     *
      */
-    var baseConditionClassType = addressSpace.findObjectType("BaseConditionClassType");
+    var baseConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
     //assert(baseConditionClassType,"Expecting BaseConditionClassType to be in addressSpace");
     var conditionClassId = baseConditionClassType  ? baseConditionClassType.nodeId : NodeId.NullNodeId;
     var conditionClassName = baseConditionClassType ? baseConditionClassType.displayName[0] : "";
