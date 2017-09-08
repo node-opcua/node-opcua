@@ -64,7 +64,7 @@ describe("testing Client-Server with UserName/Password identity token", function
 
         server = build_server_with_temperature_device(options, function (err) {
 
-            const permissionType1 = {
+            var permissionType1 = {
                 CurrentRead: ["*", "!guest"], // accept all, except guest
                 CurrentWrite: ["!*", "admin"]  // deny all except admint
             };

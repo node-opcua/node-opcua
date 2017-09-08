@@ -1273,7 +1273,7 @@ function _makeReferenceDescription(addressSpace, reference, resultMask) {
     }
     var referenceDescription = new ReferenceDescription(data);
     return referenceDescription;
-};
+}
 
 function _constructReferenceDescription(addressSpace, references, resultMask) {
     //x assert(addressSpace instanceof AddressSpace);
@@ -1757,7 +1757,7 @@ BaseNode.prototype.toString = function (options) {
     var str = [];
     var self = this;
 
-    if (!! options ) {
+    if (options ) {
         assert(_.isObject(options.cycleDetector));
     }
     options = options||{};

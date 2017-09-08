@@ -1,5 +1,4 @@
-
-var _ = require("underscore");
+"use strict";
 var build_client_server_session = require("$node-opcua/test-helpers/build_client_server_session").build_client_server_session;
 var VariableIds = require("node-opcua-constants").VariableIds;
 
@@ -88,12 +87,12 @@ describe("testing basic Client Server dealing with subscription at low level", f
             if (!err) {
                 response.should.be.instanceof(subscription_service.PublishResponse);
 
-                assert(response.hasOwnProperty("subscriptionId"));          // IntegerId
-                assert(response.hasOwnProperty("availableSequenceNumbers"));// Array,Counter,
-                assert(response.hasOwnProperty("moreNotifications"));       // Boolean
-                assert(response.hasOwnProperty("notificationMessage"));
-                assert(response.hasOwnProperty("results"));
-                assert(response.hasOwnProperty("diagnosticInfos"));
+                response.should.have.ownProperty("subscriptionId");          // IntegerId
+                response.should.have.ownProperty("availableSequenceNumbers");// Array,Counter,
+                response.should.have.ownProperty("moreNotifications");       // Boolean
+                response.should.have.ownProperty("notificationMessage");
+                response.should.have.ownProperty("results");
+                response.should.have.ownProperty("diagnosticInfos");
             }
             done(err);
         });
@@ -127,7 +126,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
         });
         g_session.deleteSubscriptions(request, function (err, response) {
             if (!err) {
-                assert(response instanceof subscription_service.DeleteSubscriptionsResponse);
+                response.should.be.instanceOf(subscription_service.DeleteSubscriptionsResponse);
             }
             done(err);
         });

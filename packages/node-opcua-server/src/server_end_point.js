@@ -138,7 +138,6 @@ OPCUAServerEndPoint.prototype._setup_server = function () {
     });
 };
 
-var moment = require("moment");
 function dumpChannelInfo(channels) {
 
     function dumpChannel(channel) {
@@ -152,8 +151,7 @@ function dumpChannelInfo(channels) {
         console.log("        bytesWritten  = ", channel.bytesWritten);
         console.log("        bytesRead     = ", channel.bytesRead);
 
-        console.log("   lastTransactionTime= ", channel.transport.lastTransactionTime,
-            moment(channel.transport.lastTransactionTime).fromNow());
+        console.log("   lastTransactionTime= ", channel.transport.lastTransactionTime);
 
         var socket = channel.transport._socket;
         if (!socket) {

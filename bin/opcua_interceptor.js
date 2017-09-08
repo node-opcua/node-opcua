@@ -1,4 +1,5 @@
 /* eslint no-process-exit: 0 */
+"use strict";
 var argv = require("yargs")
     .usage("Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block")
     .argv;

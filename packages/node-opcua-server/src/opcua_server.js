@@ -1022,7 +1022,7 @@ function sameIdentityToken(token1, token2) {
 
 
     if (token1 instanceof UserNameIdentityToken) {
-        if (!token2 instanceof UserNameIdentityToken) {
+        if (!(token2 instanceof UserNameIdentityToken)) {
             return false;
         }
         if (token1.userName !== token2.userName) {
@@ -1033,7 +1033,7 @@ function sameIdentityToken(token1, token2) {
         }
     } else if (token1 instanceof AnonymousIdentityToken) {
 
-        if (!token2 instanceof AnonymousIdentityToken) {
+        if (!(token2 instanceof AnonymousIdentityToken)) {
             return false;
         }
         if (token1.policyId !== token2.policyId) {

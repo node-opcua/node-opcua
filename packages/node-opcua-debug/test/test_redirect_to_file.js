@@ -8,21 +8,6 @@ var getTempFilename = require("../").getTempFilename;
 
 describe("testing redirectToFile", function () {
 
-    var old_console_log;
-    beforeEach(function () {
-        return;
-        old_console_log = console.log;
-        console.log = function () {
-        };
-    });
-    afterEach(function () {
-        return;
-        console.log = old_console_log;
-    });
-
-    
-
-
     it("should redirectToFile with a sync function", function () {
 
         redirectToFile("redirectToFile_without_callback.log", function () {

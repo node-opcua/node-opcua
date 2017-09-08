@@ -1,6 +1,6 @@
 "use strict";
 
-var _ = require("underscore");
+const _ = require("underscore");
 const assert = require("better-assert");
 const fs = require("fs");
 const util = require("util");

@@ -447,7 +447,6 @@ server.on("request", function (request, channel) {
         case "xxCreateMonitoredItemsRequest":
         case "xxModifyMonitoredItemsRequest":
         case "xxRepublishRequest":
-        case "xxWriteRequest":
             console.log(request.toString());
             break;
         case "xxReadRequest":
