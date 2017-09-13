@@ -69,7 +69,7 @@
     "yuidoc-bootstrap-theme": "*",
     "yuidocjs": "*"
   },
-  "typings": "./node-opcua.d.ts",
+  "typings": "./packages/node-opcua/node-opcua.d.ts",
   "dependencies": {
     "@types/node": "^8.0.28",
     "async": "2.5.0",

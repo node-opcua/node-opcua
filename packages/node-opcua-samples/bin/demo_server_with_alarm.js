@@ -1,7 +1,7 @@
 "use strict";
  /*global require,setInterval,console */
 var path = require("path");
-var opcua = require("./node-opcua");
+var opcua = require("node-opcua");
 function constructFilename(filename) {
     return path.join(__dirname,"../",filename);
 }

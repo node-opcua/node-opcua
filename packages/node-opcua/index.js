@@ -132,7 +132,7 @@ module.exports.makeEUInformation              = require("node-opcua-data-access"
 
 
 // version
-module.exports.version                = require("../../package.json").version;
+module.exports.version                = require("./package.json").version;
 
 module.exports.constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 module.exports.standard_nodeset_file  = require("node-opcua-nodesets").standard_nodeset_file;

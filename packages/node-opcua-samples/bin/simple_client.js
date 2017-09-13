@@ -7,8 +7,7 @@ var colors = require("colors");
 var Table = require("easy-table");
 var async = require("async");
 var assert = require("node-opcua-assert");
-
-var opcua = require("./node-opcua");
+var opcua = require("node-opcua");
 var VariableIds = opcua.VariableIds;
 var BrowseDirection = opcua.BrowseDirection;
 
