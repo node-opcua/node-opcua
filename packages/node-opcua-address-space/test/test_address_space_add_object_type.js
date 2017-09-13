@@ -3,7 +3,7 @@
 
 var should = require("should");
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var UAObjectType = require("..").UAObjectType;
 var UAMethod = require("..").UAMethod;
@@ -12,7 +12,7 @@ var DataType = require("node-opcua-variant").DataType;
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", function () {
 
     var addressSpace;

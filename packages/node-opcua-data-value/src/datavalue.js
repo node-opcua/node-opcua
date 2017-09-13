@@ -1,6 +1,6 @@
 "use strict";
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ =require("underscore");
 
 
@@ -11,8 +11,6 @@ var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 
 var TimestampsToReturn = require("../schemas/TimestampsToReturn_enum").TimestampsToReturn;
-
-//xx var AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 
 var registerSpecialVariantEncoder = require("node-opcua-factory").registerSpecialVariantEncoder;
@@ -127,7 +125,6 @@ function _clone_with_array_replacement(dataValue, result) {
         }
     });
 }
-//xx var NumericRange = require("node-opcua-numeric-range").NumericRange;
 
 function canRange(dataValue) {
     return dataValue.value && (( dataValue.value.arrayType !== VariantArrayType.Scalar ) ||

@@ -5,7 +5,7 @@
  */
 
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var EventEmitter = require("events").EventEmitter;
@@ -17,7 +17,7 @@ var read_service = require("node-opcua-service-read");
 var DataValue =  require("node-opcua-data-value").DataValue;
 var Variant = require("node-opcua-variant").Variant;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
-//xx var NumericRange = require("node-opcua-numeric-range").NumericRange;
+
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var BaseNode = require("node-opcua-address-space").BaseNode;
 
@@ -132,8 +132,8 @@ function MonitoredItem(options) {
 
 util.inherits(MonitoredItem, EventEmitter);
 
-
-MonitoredItem.registry = new (require("node-opcua-utils/src/objectRegistry").ObjectRegistry)();
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+MonitoredItem.registry = new ObjectRegistry();
 
 MonitoredItem.minimumSamplingInterval = minimumSamplingInterval;
 MonitoredItem.defaultSamplingInterval = defaultSamplingInterval;

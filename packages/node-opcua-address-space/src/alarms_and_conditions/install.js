@@ -161,9 +161,5 @@ exports.install = function (AddressSpace) {
         return UAOffNormalAlarm.instantiate(this, "OffNormalAlarmType", options, data);
     };
 
-//xx    require("../alarms_and_conditions/acknowledgeable_condition").install(AddressSpace);
-//xx    require("../alarms_and_conditions/alarm_condition").install(AddressSpace);
-//xx    require("../alarms_and_conditions/limit_alarm").install(AddressSpace);
-
 
 };

@@ -10,10 +10,6 @@
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT",
   "dependencies": {
-    "node-opcua-factory":"*",
-    "node-opcua-generator":"*",
-    "node-opcua-binary-stream": "*",
-    "node-opcua-debug": "*"
   },
   "devDependencies": {
   }

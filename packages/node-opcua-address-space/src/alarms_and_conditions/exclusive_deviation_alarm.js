@@ -4,7 +4,7 @@
  */
 
 var util = require("util");
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarmHelper;

@@ -11,14 +11,14 @@
 "use strict";
 
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var path = require("path");
 var fs = require("fs");
 
 var AddressSpace = require("..").AddressSpace;
 
 // make sure all namespace 0 data type are properly loaded
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 
 var DataType = require("node-opcua-variant").DataType;
 var Variant = require("node-opcua-variant").Variant;
@@ -33,7 +33,7 @@ function debugLog() {
 }
 
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace loading", function () {
 
     this.timeout(Math.max(300000, this._timeout));
