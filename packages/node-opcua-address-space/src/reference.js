@@ -1,5 +1,5 @@
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var utils = require("node-opcua-utils");
 

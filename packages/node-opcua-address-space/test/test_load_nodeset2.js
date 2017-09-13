@@ -1,6 +1,6 @@
 "use strict";
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
 var DataType = require("node-opcua-variant").DataType;
 var should = require("should");
@@ -11,7 +11,7 @@ var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFi
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing NodeSet XML file loading", function () {
 

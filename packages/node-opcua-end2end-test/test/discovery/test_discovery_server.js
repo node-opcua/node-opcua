@@ -3,7 +3,7 @@
 var opcua = require("node-opcua");
 var should = require("should");
 var async = require("async");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 
 var OPCUAServer = opcua.OPCUAServer;
@@ -14,7 +14,7 @@ var OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscovery
 var perform_findServersRequest = opcua.perform_findServersRequest;
 
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
 // add the tcp/ip endpoint with no security

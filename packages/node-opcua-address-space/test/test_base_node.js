@@ -11,7 +11,7 @@ var get_mini_address_space = require("../test_helpers/get_mini_address_space").g
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 var sinon = require("sinon");
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Testing UAObject", function () {
 

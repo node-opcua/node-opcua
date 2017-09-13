@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 var UAVariable = require("../ua_variable").UAVariable;
 var SessionContext = require("../session_context").SessionContext;
 

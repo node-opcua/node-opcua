@@ -3,7 +3,7 @@
  * @module opcua.miscellaneous
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;

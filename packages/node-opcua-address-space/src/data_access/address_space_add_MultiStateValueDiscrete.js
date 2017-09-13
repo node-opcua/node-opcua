@@ -1,5 +1,5 @@
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var DataType = require("node-opcua-variant").DataType;

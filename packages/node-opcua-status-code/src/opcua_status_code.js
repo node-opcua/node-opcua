@@ -5,7 +5,7 @@
 
 var util = require("util");
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var StatusCodes = require("node-opcua-constants").StatusCodes;
 

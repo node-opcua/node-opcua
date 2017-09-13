@@ -5,7 +5,7 @@
 
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 

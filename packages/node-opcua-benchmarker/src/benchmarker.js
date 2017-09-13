@@ -3,7 +3,7 @@ var util = require("util");
 var EventEmitter = require("events").EventEmitter;
 var async = require("async");
 var _ = require("underscore");
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 
 var Benchmarker = function () {
     this._suite = {};

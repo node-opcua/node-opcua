@@ -7,17 +7,19 @@
     "test": "echo no test",
     "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
-
   },
   "dependencies": {
-    "node-opcua-data-model":"*",
-    "node-opcua-nodeid": "*",
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-data-model": "*",
     "node-opcua-factory": "*",
-    "node-opcua-basic-types":"*",
-    "node-opcua-service-secure-channel":"*"
+    "node-opcua-nodeid": "*",
+    "node-opcua-service-secure-channel": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "*",
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

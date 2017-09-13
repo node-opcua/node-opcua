@@ -4,7 +4,7 @@
  */
 
 var Enum = require("node-opcua-enum");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 /**
@@ -99,7 +99,6 @@ exports.toURI = function (value) {
 exports.SecurityPolicy = SecurityPolicy;
 
 
-//var crypto_utils = require("node-opcua-crypto").crypto_utils;
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
 
 

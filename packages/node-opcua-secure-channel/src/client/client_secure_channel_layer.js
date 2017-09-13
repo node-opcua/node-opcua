@@ -7,7 +7,7 @@ var crypto = require("crypto");
 var _ = require("underscore");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 require("colors");
 
 

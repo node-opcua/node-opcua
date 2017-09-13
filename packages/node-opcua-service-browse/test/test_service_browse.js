@@ -22,7 +22,7 @@ describe("Testing Browse Service",function() {
 
 describe("Browse Service", function () {
 
-    var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+    var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
     it("should construct a BrowseDescription", function () {
 

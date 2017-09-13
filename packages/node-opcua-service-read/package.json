@@ -9,21 +9,19 @@
   },
   "main": "index.js",
   "dependencies": {
-
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-data-model": "*",
+    "node-opcua-data-value": "*",
     "node-opcua-factory": "*",
-    "node-opcua-basic-types":"*",
-    "node-opcua-nodeid":"*",
-    "node-opcua-data-model":"*",
-    "node-opcua-data-value":"*",
-    "node-opcua-numeric-range":"*",
-    "node-opcua-service-secure-channel":"*",
-    "node-opcua-status-code":"*"
+    "node-opcua-nodeid": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-service-secure-channel": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-debug": "*",
-    "node-opcua-buffer-utils": "*",
-    "node-opcua-secure-channel": "*",
-    "node-opcua-binary-stream":"*",
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "*",
+    "node-opcua-packet-analyzer": "*",
+    "should": "^13.0.1"
   }
 }

@@ -3,13 +3,14 @@
 
 var should = require("should");
 var path = require("path");
-var existsSync = require("fs").existsSync;
+var fs = require("fs");
+var existsSync = fs.existsSync;
 
-var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
 
 
 var AddressSpace = require("node-opcua-address-space").AddressSpace;
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("node-opcua-address-space").generate_address_space;
 
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 var Variant = require("node-opcua-variant").Variant;
@@ -20,7 +21,6 @@ var nodeset = require("node-opcua-address-space").nodeset;
 var createExtensionObjectDefinition = require("../src/convert_nodeset_to_types").createExtensionObjectDefinition;
 
 
-// var getFixture = require("node-opcua-test-fixtures").getFixture;
 function getFixture(file) {
     file = path.join(__dirname,"../test_fixtures",file);
     existsSync(file).should.be.eql(true);

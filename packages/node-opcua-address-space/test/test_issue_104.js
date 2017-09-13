@@ -2,10 +2,10 @@
 /* global describe,it,before*/
 
 var should = require("should");
+var assert = require("node-opcua-assert");
 
 var AddressSpace = require("..").AddressSpace;
-var assert = require("better-assert");
-var generateAddressSpace = require("node-opcua-address-space-loader").generate_address_space;
+var generateAddressSpace = require("..").generate_address_space;
 var nodeId = require("node-opcua-nodeid");
 var path = require("path");
 
@@ -15,7 +15,7 @@ var DataType = require("node-opcua-variant").DataType;
 
 var assertHasMatchingReference = require("../test_helpers/assertHasMatchingReference");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", function () {
 
     var addressSpace = null;

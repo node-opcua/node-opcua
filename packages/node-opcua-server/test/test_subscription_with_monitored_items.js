@@ -85,7 +85,7 @@ function simulate_client_adding_publish_request(publishEngine,callback) {
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
-var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
 describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000,this._timeout));

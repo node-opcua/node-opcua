@@ -1,10 +1,9 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 var createFastUninitializedBuffer = require("node-opcua-buffer-utils").createFastUninitializedBuffer;
 
-//xx var s = require("lib/datamodel/structures");
 
 var TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
 var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;

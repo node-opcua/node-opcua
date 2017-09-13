@@ -1,6 +1,6 @@
 "use strict"
 var crypto = require("crypto");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 function makeApplicationUrn(hostname, suffix) {
 
     // beware : Openssl doesn't support urn with length greater than 64 !!

@@ -8,6 +8,9 @@
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "node-opcua-assert": "*"
+  },
   "devDependencies": {
     "node-opcua-benchmarker": "*"
   }

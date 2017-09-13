@@ -1,4 +1,4 @@
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 var fs = require("fs");
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
 

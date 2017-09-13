@@ -2,7 +2,7 @@
 /**
  * @module opcua.datamodel
  */
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var QualifiedName = require("node-opcua-data-model").QualifiedName;
 var LocalizedText = require("node-opcua-data-model").LocalizedText;

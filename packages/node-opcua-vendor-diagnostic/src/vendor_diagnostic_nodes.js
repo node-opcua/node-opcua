@@ -1,7 +1,7 @@
 "use strict";
 
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var ServerEngine = require("node-opcua-server").ServerEngine;
 var Variant = require("node-opcua-variant").Variant;

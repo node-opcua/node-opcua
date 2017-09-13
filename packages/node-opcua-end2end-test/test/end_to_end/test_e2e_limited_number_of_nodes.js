@@ -1,7 +1,7 @@
 
 
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var _ = require("underscore");
 
@@ -19,7 +19,7 @@ var port = 2000;
 
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function () {
 

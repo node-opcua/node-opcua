@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 function readMessageHeader(stream) {
 

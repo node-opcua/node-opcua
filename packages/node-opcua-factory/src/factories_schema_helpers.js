@@ -6,7 +6,7 @@
 
 
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
 var TypeSchema = require("./factories_builtin_types").TypeSchema;

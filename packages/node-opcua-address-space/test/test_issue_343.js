@@ -1,11 +1,11 @@
 "use strict";
 /* global describe,it,before*/
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
-var generateAddressSpace = require("node-opcua-address-space-loader").generate_address_space;
+var generateAddressSpace = require("..").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
 var createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic string nodeid assignment", function () {
 
 

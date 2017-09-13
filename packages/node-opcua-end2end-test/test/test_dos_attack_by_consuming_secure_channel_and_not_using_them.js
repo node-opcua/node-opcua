@@ -28,7 +28,7 @@ var fail_fast_connectionStrategy = {
     maxRetry: 0  // << NO RETRY !!
 };
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Server resilience to DOS attacks", function () {
 

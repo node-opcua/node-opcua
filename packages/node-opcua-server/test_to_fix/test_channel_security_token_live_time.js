@@ -22,7 +22,7 @@ var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 var port = 4000;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ChannelSecurityToken lifetime", function () {
 
     this.timeout(Math.max(100000,this._timeout));

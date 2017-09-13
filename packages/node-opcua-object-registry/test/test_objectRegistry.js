@@ -1,6 +1,6 @@
 
 
-var ObjectRegistry = require("../src/objectRegistry").ObjectRegistry;
+var ObjectRegistry = require("..").ObjectRegistry;
 var should = require("should");
 require("colors");
 
@@ -36,7 +36,5 @@ describe("testing ObjectRegistry",function() {
         registry.count().should.eql(0);
 
         console.log(registry.toString());
-
-
-    })
+    });
 });

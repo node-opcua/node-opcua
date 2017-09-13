@@ -4,7 +4,7 @@
  * @module opcua.server
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var util = require("util");
 var fs = require("fs");
@@ -297,7 +297,8 @@ function OPCUAServer(options) {
 }
 util.inherits(OPCUAServer, OPCUABaseServer);
 
-OPCUAServer.registry = new (require("node-opcua-utils/src/objectRegistry").ObjectRegistry)();
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+OPCUAServer.registry = new ObjectRegistry();
 
 
 /**

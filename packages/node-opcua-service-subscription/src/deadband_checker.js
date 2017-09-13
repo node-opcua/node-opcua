@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var DeadbandType = require("../schemas/DeadbandType_enum").DeadbandType;

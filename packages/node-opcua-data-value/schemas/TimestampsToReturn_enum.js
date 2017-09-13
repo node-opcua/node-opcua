@@ -1,6 +1,6 @@
 "use strict";
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var factories = require("node-opcua-factory");
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 var TimestampsToReturn;

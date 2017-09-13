@@ -1,7 +1,7 @@
 "use strict";
 
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var _ = require("underscore");
 
@@ -25,7 +25,7 @@ var maxAllowedSessionNumber   =  50;
 
 var build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Functional test : one server with many concurrent clients", function () {
 
     var server, temperatureVariableId, endpointUrl;

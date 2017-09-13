@@ -3,7 +3,7 @@
 /**
  * @module opcua.address_space.types
  */
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var _ = require("underscore");
 var schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
@@ -15,7 +15,7 @@ var ec = require("node-opcua-basic-types");
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 var generate_new_id = require("node-opcua-factory").generate_new_id;
 var _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
-var schema = require("node-opcua-variant/schemas/Variant_schema").Variant_Schema;
+var schema = require("../../schemas/Variant_schema").Variant_Schema;
 var BaseUAObject = require("node-opcua-factory/src/factories_baseobject").BaseUAObject;
 
 //## Define special behavior for Enumeration
@@ -163,5 +163,3 @@ Variant.possibleFields = function () {
 
 
 exports.Variant = Variant;
-//xx var register_class_definition = require("node-opcua-factory_factories").register_class_definition;
-//xx register_class_definition("Variant",Variant);

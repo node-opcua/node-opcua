@@ -15,7 +15,7 @@ var SessionContext = require("..").SessionContext;
 var context = SessionContext.defaultContext;
 
 var create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing UAObjectType", function () {
 

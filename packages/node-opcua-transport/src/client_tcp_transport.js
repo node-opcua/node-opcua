@@ -5,7 +5,7 @@
 
 
 // system requires
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var net = require("net");
 var _ = require("underscore");

@@ -7,23 +7,21 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-constants": "*",
+    "node-opcua-debug": "*",
     "node-opcua-factory": "*",
-    "node-opcua-utils":"*",
-    "node-opcua-debug":"*",
-    "node-opcua-constants":"*",
-    "node-opcua-basic-types":"*"
+    "node-opcua-nodeid": "*",
+    "node-opcua-utils": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-benchmarker":"*",
-    "node-opcua-binary-stream":"*",
-    "node-opcua-nodeid":"*",
-    "node-opcua-enum": "*",
-    "node-opcua-test-helpers": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-extension-object": "*",
+    "node-opcua-packet-analyzer": "*",
     "node-opcua-status-code": "*",
-    "node-opcua-extension-object":"*",
-    "node-opcua-packet-analyzer":"*",
-    "node-opcua-test-fixtures":"*",
-    "node-opcua-variant" :"*"
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

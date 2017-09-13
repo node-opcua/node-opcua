@@ -1,0 +1,19 @@
+{
+  "name": "node-opcua-leak-detector",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo no test"
+  },
+  "author": "etienne.rossignon@gadz.org",
+  "license": "MIT",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "node-opcua-assert": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-object-registry": "*",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {}
+}

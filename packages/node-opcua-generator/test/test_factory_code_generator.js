@@ -2,7 +2,7 @@
 var should = require("should");
 var path = require("path");
 
-var encode_decode_round_trip_test = require("../test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 describe("Code Generator", function () {

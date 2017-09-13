@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var should = require("should");
 

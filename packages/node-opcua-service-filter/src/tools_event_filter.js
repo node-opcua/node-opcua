@@ -4,7 +4,7 @@
  */
 
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var SimpleAttributeOperand = require("../_generated_/_auto_generated_SimpleAttributeOperand").SimpleAttributeOperand;
 var EventFilter = require("../_generated_/_auto_generated_EventFilter").EventFilter;
@@ -12,7 +12,6 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 
 
-// xx var NumericRange = require("node-opcua-numeric-range").NumericRange;
 
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var _ = require("underscore");

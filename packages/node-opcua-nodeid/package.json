@@ -7,12 +7,14 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "node-opcua-assert": "*",
+    "node-opcua-constants": "*",
     "node-opcua-enum": "*",
     "node-opcua-guid": "*",
-    "node-opcua-constants": "*"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-binary-stream": "*",
-    "node-opcua-benchmarker":"*"
+    "node-opcua-benchmarker": "*",
+    "should": "^13.0.1"
   }
 }

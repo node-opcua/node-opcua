@@ -6,11 +6,11 @@ var generator = require("../src/generator");
 
 var factories = require("node-opcua-factory");
 
-var compare_obj_by_encoding = require("../test_helpers/compare_obj_by_encoding").compare_obj_by_encoding;
+var compare_obj_by_encoding = require("node-opcua-packet-analyzer/test_helpers/compare_obj_by_encoding").compare_obj_by_encoding;
 
 var ec = require("node-opcua-basic-types");
 
-var encode_decode_round_trip_test = require("../test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 var ShapeType = factories.registerEnumeration({
@@ -105,7 +105,6 @@ describe("Factories: testing object factory", function () {
 
     it("should handle StatusCode ", function () {
 
-        var StatusCode = require("node-opcua-status-code").StatusCode;
         var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
         exports.MyStruct2_Schema = {

@@ -4,7 +4,7 @@
  * @class AddressSpace
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var NodeClass = require("node-opcua-data-model").NodeClass;
 var Argument = require("node-opcua-service-call").Argument;

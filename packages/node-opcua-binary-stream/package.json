@@ -7,10 +7,13 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "colors": "^1.1.2",
+    "node-opcua-assert": "*",
     "node-opcua-buffer-utils": "*"
   },
   "devDependencies": {
-    "node-opcua-benchmarker": "*"
+    "node-opcua-benchmarker": "*",
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

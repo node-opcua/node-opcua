@@ -8,7 +8,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var SubscriptionState = require("../src/subscription").SubscriptionState;
 var PublishRequest = subscription_service.PublishRequest;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("ServerEngine Subscriptions service", function () {
 

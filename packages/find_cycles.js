@@ -51,15 +51,17 @@ fs.readdir(__dirname,{},function(err,files) {
                 var package_ = JSON.parse(fs.readFileSync(package_file));
                 ///console.log(package_);
                 if (package_.dependencies) {
-                    Object.keys(package_.dependencies).map(d => dependencies.push("  " +q(file)+" -> "+q(d)));
-
+                    Object.keys(package_.dependencies).map(d => dependencies.push("  " +q(file)+" -> "+q(d) + ";"));
+                }
+                if (package_.devDependencies) {
+                    Object.keys(package_.devDependencies).map(d => dependencies.push("  " +q(file)+" -> "+q(d) + " [color=red,penwidth=3] ;" ));
                 }
             }
             callback();
         });
 
     },function done(err) {
-        dependencies = dependencies.map(function(a){ return a.replace(/node-opcua-/g,""); });
+        dependencies = dependencies.filter(a=>!a.match(/^node-opcua/)).map(function(a){ return a.replace(/node-opcua-/g,""); });
         dependencies = dependencies.sort();
 
         var content = "digraph G {\n";

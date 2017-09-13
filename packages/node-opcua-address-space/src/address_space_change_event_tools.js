@@ -8,7 +8,7 @@
 var NodeClass = require("node-opcua-data-model").NodeClass;
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var Enum = require("node-opcua-enum");

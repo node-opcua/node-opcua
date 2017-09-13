@@ -1,5 +1,5 @@
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var address_space = require("../address_space");
 var DataType = require("node-opcua-variant").DataType;

@@ -16,7 +16,7 @@ var sinon = require("sinon");
 
 var create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UAVariableType", function () {
 
     var addressSpace;

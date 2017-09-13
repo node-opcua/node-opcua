@@ -46,7 +46,7 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 
 var add_mock_monitored_item = require("./helper").add_mock_monitored_item;
 
-var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
 describeWithLeakDetector("Subscriptions", function () {
 
     beforeEach(function () {

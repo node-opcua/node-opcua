@@ -12,7 +12,7 @@ var SubscriptionDiagnostics = require("../_generated_/_auto_generated_Subscripti
 
 var eoan = require("../src/extension_object_array_node");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Extension Object Array Node (or Complex Variable)", function () {
 
 

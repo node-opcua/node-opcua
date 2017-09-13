@@ -17,7 +17,7 @@ var UAMethod = address_space.UAMethod;
 var SessionContext = address_space.SessionContext;
 var context = SessionContext.defaultContext;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 

@@ -1,9 +1,9 @@
 "use strict";
 var path = require("path");
 var should = require("should");
-
+var fs = require("fs");
 var AddressSpace = require("..").AddressSpace;
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 
 var async = require("async");
 
@@ -33,7 +33,7 @@ describe("Testing AddressSpace memory Leaks",function(){
 
 
     var xml_file = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
-    require("fs").existsSync(xml_file).should.be.eql(true,"cannot find mini node set");
+    fs.existsSync(xml_file).should.be.eql(true,"cannot find mini node set");
 
     it("It should dispose an address_space",function(done) {
 

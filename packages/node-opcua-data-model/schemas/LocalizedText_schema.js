@@ -2,7 +2,7 @@
 
 var factories = require("node-opcua-factory");
 var ec = require("node-opcua-basic-types");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 function getLocalizeText_EncodingByte(localizedText) {
     var encoding_mask = 0;

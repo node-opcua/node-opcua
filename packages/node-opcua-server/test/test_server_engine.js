@@ -3,7 +3,7 @@
 "use strict";
 var should = require("should");
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 
 var server_engine = require("../src/server_engine");
@@ -53,7 +53,7 @@ function resolveExpandedNodeId(nodeId) {
     return makeExpandedNodeId(resolveNodeId(nodeId));
 }
 
-var describeWithLeakDetector = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
 describeWithLeakDetector("testing ServerEngine", function () {
 
     var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
@@ -290,7 +290,6 @@ describeWithLeakDetector("testing ServerEngine", function () {
         newFolder.typeDefinition.should.eql(FolderTypeId);
         newFolder.nodeClass.should.eql(NodeClass.Object);
 
-//xx        console.log(require("util").inspect(newFolder));
         newFolder.findReferences("Organizes", false)[0].nodeId.should.eql(objects.nodeId);
 
     });

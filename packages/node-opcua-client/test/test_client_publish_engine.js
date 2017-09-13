@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var should = require("should");
 var _ = require("underscore");
 var sinon = require("sinon");

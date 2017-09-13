@@ -13,7 +13,7 @@ var it_with_crypto = (crypto_utils.isFullySupported()) ? it : xit;
 
 var default_port = 1234;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 

@@ -4,7 +4,7 @@
  * @module opcua.address_space
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 
 var BaseNode = require("./base_node").BaseNode;
@@ -16,7 +16,6 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 var SessionContext = require("./session_context").SessionContext;
 
-//xx var coerceQualifyName = require("node-opcua-data-model").coerceQualifyName;
 var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 var ReferenceTypeCounter=0;

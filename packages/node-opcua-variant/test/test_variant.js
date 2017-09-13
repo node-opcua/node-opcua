@@ -1,6 +1,6 @@
 "use strict";
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 
@@ -12,7 +12,7 @@ var ec = require("node-opcua-basic-types");
 var QualifiedName = require("node-opcua-data-model").QualifiedName;
 var LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 var redirectToFile = require("node-opcua-debug").redirectToFile;
 

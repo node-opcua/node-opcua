@@ -27,9 +27,6 @@ module.exports = {
     SignatureData: require("./_generated_/_auto_generated_SignatureData").SignatureData,
     MessageSecurityMode: require("./schemas/MessageSecurityMode_enum").MessageSecurityMode,
 
-    //xx SecurityPolicy: require("../src/security_policy").SecurityPolicy,
-    //xx AcknowledgeMessage: require("node-opcua-transport/_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage,
-
 };
 
 

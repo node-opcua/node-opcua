@@ -2,12 +2,13 @@
 /* global describe,it,before*/
 
 var should = require("should");
+var fs = require("fs");
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
 var AddressSpace = require("../..").AddressSpace;
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("../..").generate_address_space;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : Conditions ", function () {
 
     var test = this;
@@ -22,7 +23,7 @@ describe("AddressSpace : Conditions ", function () {
         addressSpace = new AddressSpace();
 
         var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
 

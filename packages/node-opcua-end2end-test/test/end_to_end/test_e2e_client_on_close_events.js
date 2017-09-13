@@ -12,7 +12,7 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server - Event", function () {
 
     this.timeout(Math.max(600000, this._timeout));

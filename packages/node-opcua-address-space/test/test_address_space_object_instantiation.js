@@ -10,22 +10,23 @@ var get_mini_address_space = require("../test_helpers/get_mini_address_space").g
 var browse_service = require("node-opcua-service-browse");
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("testing add new ObjectType ", function () {
 
     var addressSpace;
-    require("node-opcua-test-helpers/src/resource_leak_detector").installResourceLeakDetector(true,function() {
 
-        before(function (done) {
-            get_mini_address_space(function (err,__addressSpace__) {
-                addressSpace = __addressSpace__;
-                done(err);
-            });
-        });
-        after(function () {
-            addressSpace.dispose();
-            addressSpace = null;
+    before(function (done) {
+        get_mini_address_space(function (err,__addressSpace__) {
+            addressSpace = __addressSpace__;
+            done(err);
         });
     });
+    after(function () {
+        addressSpace.dispose();
+        addressSpace = null;
+    });
+
     it("should instantiate a objectType that uses custom HasChild Property",function() {
 
         // ------------ Add a new aggregate

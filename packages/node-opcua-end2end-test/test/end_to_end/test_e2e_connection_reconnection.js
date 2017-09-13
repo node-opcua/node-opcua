@@ -72,7 +72,7 @@ function f(func) {
     };
 }
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client-Server communication", function () {
 
     var server, client, temperatureVariableId, endpointUrl;

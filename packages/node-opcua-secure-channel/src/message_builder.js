@@ -5,7 +5,7 @@
 
 
 var util = require("util");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var MessageBuilderBase = require("node-opcua-transport/src/message_builder_base").MessageBuilderBase;

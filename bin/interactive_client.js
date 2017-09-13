@@ -17,7 +17,7 @@ var UAProxyManager = opcua.UAProxyManager;
 
 var utils = opcua.utils;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 console.log(" Version ", opcua.version);
 

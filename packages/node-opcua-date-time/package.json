@@ -6,8 +6,14 @@
   "scripts": {
     "test": "mocha test"
   },
+  "dependencies": {
+    "node-opcua-assert": "*",
+    "underscore": "1.8.3"
+  },
   "devDependencies": {
+    "bignumber.js": "^4.0.4",
     "node-opcua-binary-stream": "*",
-    "node-opcua-benchmarker":"*"
+    "node-opcua-benchmarker": "*",
+    "should": "^13.0.1"
   }
 }

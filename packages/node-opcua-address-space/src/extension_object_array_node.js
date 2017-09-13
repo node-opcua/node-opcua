@@ -2,7 +2,7 @@
 /* global describe,it,before*/
 
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var _ = require("underscore");
 
@@ -20,13 +20,8 @@ var BaseNode = require("./base_node").BaseNode;
 var UADataType = require("./ua_data_type").UADataType;
 var UAObject = require("./ua_object").UAObject;
 var UAVariable = require("./ua_variable").UAVariable;
-//xx var NodeId = require("node-opcua-nodeid").NodeId;
-//xx var Method = require("./ua_method").Method;
-//xx var UAVariableType = require("./ua_variable_type").UAVariableType;
-var AddressSpace = require("./address_space").AddressSpace;
 
-// to do : fix this,
-//xx var makeStructure = require("./convert_nodeset_to_types").makeStructure;
+var AddressSpace = require("./address_space").AddressSpace;
 
 var hasConstructor = require("node-opcua-factory").hasConstructor;
 var getConstructor = require("node-opcua-factory").getConstructor;

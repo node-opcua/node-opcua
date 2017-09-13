@@ -7,14 +7,12 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "node-opcua-assert": "*",
     "node-opcua-basic-types": "*",
     "node-opcua-factory": "*",
     "node-opcua-nodeid":"*"
   },
   "devDependencies": {
-    "node-opcua-binary-stream": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-generator": "*"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

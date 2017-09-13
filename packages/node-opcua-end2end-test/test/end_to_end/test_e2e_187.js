@@ -1,6 +1,6 @@
 "use strict";
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var _ = require("underscore");
 
@@ -20,7 +20,7 @@ var doDebug = false;
 
 var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing monitoring Executable flags on methods", function () {
 

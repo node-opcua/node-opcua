@@ -1,12 +1,12 @@
 "use strict";
 Error.stackTraceLimit = Infinity;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 require("colors");
 
-var ObjectRegistry = require("node-opcua-utils/src/objectRegistry").ObjectRegistry;
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ObjectRegistry.doDebug = true;
 var trace = false;
 

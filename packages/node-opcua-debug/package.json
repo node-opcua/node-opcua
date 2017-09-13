@@ -6,7 +6,13 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "node-opcua-buffer-utils": "*"
+    "hexy": "^0.2.10",
+    "node-opcua-assert": "*",
+    "node-opcua-buffer-utils": "*",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "should": "^13.0.1"
   },
   "main": "index.js"
 }

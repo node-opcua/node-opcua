@@ -1,7 +1,7 @@
 "use strict";
 
 var Enum = require("node-opcua-enum");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var makeNodeId = exports.makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var NodeIdType = exports.NodeIdType = require("node-opcua-nodeid").NodeIdType;
@@ -190,8 +190,6 @@ var _decodeNodeId = function (encoding_byte, stream) {
             if (encoding_byte !== EnumNodeIdEncoding.Guid.value) {
                 /*jslint bitwise: true */
                 console.log(" encoding_byte = " + encoding_byte.toString(16), encoding_byte, encoding_byte & 0x3F);
-                //xx var exit = require("exit");
-                //xx exit(1);
                 throw new Error(" encoding_byte = " + encoding_byte.toString(16));
             }
             namespace = stream.readUInt16();

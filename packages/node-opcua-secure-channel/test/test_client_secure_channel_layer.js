@@ -11,7 +11,7 @@ var fake_AcknowledgeMessage = require("./mock/mock_transport").fake_AcknowledgeM
 
 var packTcpMessage = require("node-opcua-transport/src/tools").packTcpMessage;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ClientSecureChannelLayer ", function () {
 
     it("should create and close a ClientSecureChannelLayer", function (done) {
@@ -76,7 +76,7 @@ describe("testing ClientSecureChannelLayer ", function () {
         ], done);
 
 
-        var secureChannel = new ClientSecureChannelLayer();
+        var secureChannel = new ClientSecureChannelLayer({});
 
         // before connection the securityToken shall not exist
         should(secureChannel.securityToken).equal(undefined);
@@ -102,7 +102,7 @@ describe("testing ClientSecureChannelLayer ", function () {
 
     it("should callback with an error if performMessageTransaction is called before connection", function (done) {
 
-        var secureChannel = new ClientSecureChannelLayer();
+        var secureChannel = new ClientSecureChannelLayer({});
 
         var endpoints_service = require("node-opcua-service-endpoints");
         var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;

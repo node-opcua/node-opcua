@@ -2,12 +2,12 @@
 var path = require("path");
 var fs = require("fs");
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
 
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 132", function () {
 
 

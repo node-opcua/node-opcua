@@ -1,6 +1,6 @@
 
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var NodeId = require("node-opcua-nodeid").NodeId;
 

@@ -1,13 +1,13 @@
 "use strict";
 var should = require("should");
 
-var NumericRange = require("../").NumericRange;
+var NumericRange = require("..").NumericRange;
 
 var factories = require("node-opcua-factory");
 var generator = require("node-opcua-generator");
 
-var encode_decode_round_trip_test = require("node-opcua-generator").encode_decode_round_trip_test;
-var json_encode_decode_round_trip_test = require("node-opcua-generator").json_encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var json_encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").json_encode_decode_round_trip_test;
 
 var path = require("path");
 var temporary_folder = path.join(__dirname,"..","_test_generated");

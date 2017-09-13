@@ -3,7 +3,7 @@
 /**
  * @module opcua.address_space
  */
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var _ = require("underscore");
 

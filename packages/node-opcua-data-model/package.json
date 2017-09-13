@@ -6,19 +6,22 @@
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
-
   },
   "main": "index.js",
   "dependencies": {
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-binary-stream": "*",
+    "node-opcua-enum": "*",
     "node-opcua-factory": "*",
-    "node-opcua-basic-types":"*",
-    "node-opcua-nodeid":"*",
-    "node-opcua-utils":"*",
-    "node-opcua-status-code":"*",
-    "node-opcua-enum":"*"
+    "node-opcua-nodeid": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-utils": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-binary-stream":"*",
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "*",
+    "node-opcua-packet-analyzer": "*",
+    "should": "^13.0.1"
   }
 }

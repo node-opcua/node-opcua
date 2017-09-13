@@ -18,7 +18,7 @@ var SessionContext = require("node-opcua-address-space").SessionContext;
 var translate_service = require("node-opcua-service-translate-browse-path");
 
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine - addMethod", function () {
 
     before(function (done) {

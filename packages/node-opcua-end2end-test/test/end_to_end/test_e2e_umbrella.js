@@ -20,7 +20,7 @@ var start_simple_server = require("../../test_helpers/external_server_fixture").
 var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client - Umbrella ", function () {
 
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack

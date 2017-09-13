@@ -2,15 +2,15 @@
 /* global describe,it,before*/
 
 var should = require("should");
-var assert = require("better-assert");
-
+var assert = require("node-opcua-assert");
+var fs = require("fs");
 
 var AddressSpace = require("..").AddressSpace;
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing add new DataType ", function () {
 
@@ -22,7 +22,7 @@ describe("testing add new DataType ", function () {
         addressSpace = new AddressSpace();
 
         var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
 
@@ -110,11 +110,11 @@ describe("testing add new DataType ", function () {
         ];
 
 
-        require("fs").existsSync(xml_files[0]).should.be.eql(true);
-        require("fs").existsSync(xml_files[1]).should.be.eql(true);
-        require("fs").existsSync(xml_files[2]).should.be.eql(true);
-        require("fs").existsSync(xml_files[3]).should.be.eql(true);
-        require("fs").existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
+        fs.existsSync(xml_files[2]).should.be.eql(true);
+        fs.existsSync(xml_files[3]).should.be.eql(true);
+        fs.existsSync(xml_files[0]).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_files, function (err) {
 

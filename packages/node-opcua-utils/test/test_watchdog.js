@@ -20,7 +20,7 @@ MyObject.prototype.watchdogReset = function () {
 };
 
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+//xx var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 // http://sinonjs.org/docs/#clock
 describe("watch dog", function () {
 

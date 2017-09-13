@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var UAObjectType = require("./ua_object_type").UAObjectType;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;

@@ -32,7 +32,7 @@ var temporary_folder = path.join(__dirname, "..", "_test_generated");
 exports.ServerSideUnimplementedRequest_Schema = ServerSideUnimplementedRequest_Schema;
 var ServerSideUnimplementedRequest = generator.registerObject(ServerSideUnimplementedRequest_Schema, temporary_folder);
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Server resilience to unsupported request", function () {
     var server, client;

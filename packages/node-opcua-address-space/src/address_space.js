@@ -11,7 +11,7 @@ var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 var sameNodeId =require("node-opcua-nodeid").sameNodeId;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var Dequeue = require("dequeue");
 
@@ -71,7 +71,7 @@ function AddressSpace() {
     AddressSpace.registry.register(this);
 }
 
-var ObjectRegistry = require("node-opcua-utils/src/objectRegistry").ObjectRegistry;
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 AddressSpace.registry  = new ObjectRegistry();
 
 

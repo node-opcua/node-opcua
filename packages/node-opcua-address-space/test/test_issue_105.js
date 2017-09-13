@@ -7,7 +7,7 @@ var createTemperatureSensorType = require("./fixture_temperature_sensor_type").c
 
 var assertHasMatchingReference = require("../test_helpers/assertHasMatchingReference");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105", function () {
 

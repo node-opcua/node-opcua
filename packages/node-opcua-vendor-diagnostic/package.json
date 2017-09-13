@@ -7,6 +7,8 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "humanize": "0.0.9",
+    "node-opcua-assert": "*",
     "node-opcua-server": "*",
     "node-opcua-variant": "*",
     "node-opcua-constants":"*",

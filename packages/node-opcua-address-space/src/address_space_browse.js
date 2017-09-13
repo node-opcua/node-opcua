@@ -5,7 +5,7 @@
  * @class AddressSpace
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;

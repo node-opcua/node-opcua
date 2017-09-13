@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var Variant = require("node-opcua-variant").Variant;
 var DataType = require("node-opcua-variant").DataType;

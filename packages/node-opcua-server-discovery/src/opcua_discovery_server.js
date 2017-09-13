@@ -1,7 +1,7 @@
 "use strict";
 var util = require("util");
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var OPCUABaseServer = require("node-opcua-server").OPCUABaseServer;
 var OPCUAServerEndPoint = require("node-opcua-server").OPCUAServerEndPoint;
@@ -16,7 +16,7 @@ var endpoints_service = require("node-opcua-service-endpoints");
 var ApplicationType = endpoints_service.ApplicationType;
 
 var get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
-//xx var constructFilename = require("node-opcua-utils").constructFilename;
+
 function constructFilename(p) {
     var path = require("path");
     var fs = require("fs");

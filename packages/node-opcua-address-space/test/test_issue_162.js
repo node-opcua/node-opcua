@@ -4,16 +4,15 @@
 var should = require("should");
 
 var AddressSpace = require("..").AddressSpace;
-var _ = require("underscore");
+var fs = require("fs");
 
-
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
 var DataType = require("node-opcua-variant").DataType;
 var Variant = require("node-opcua-variant").Variant;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 162 : demonstrate how to modify an instantiate object variable", function () {
 
     this.timeout(Math.max(300000, this._timeout));
@@ -24,7 +23,7 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
         addressSpace = new AddressSpace();
 
         var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
             done(err);

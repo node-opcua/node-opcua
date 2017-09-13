@@ -1,7 +1,7 @@
 /**
  * @module opcua.miscellaneous
  */
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 var hexDump = require("node-opcua-debug").hexDump;

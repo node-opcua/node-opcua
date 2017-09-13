@@ -9,9 +9,9 @@ var redirectToFile = require("node-opcua-debug").redirectToFile;
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var encode_decode_round_trip_test = require("../test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-var compare_obj_by_encoding = require("../test_helpers/compare_obj_by_encoding").compare_obj_by_encoding;
+var compare_obj_by_encoding = require("node-opcua-packet-analyzer/test_helpers/compare_obj_by_encoding").compare_obj_by_encoding;
 
 var Person_Schema = {
     id: factories.next_available_id(),

@@ -3,7 +3,7 @@
  * @module opcua.miscellaneous
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 
 var buffer_utils = require("node-opcua-buffer-utils");

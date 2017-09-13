@@ -12,7 +12,7 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing a simple server from Server side", function () {
 
     it("should have at least one endpoint", function () {

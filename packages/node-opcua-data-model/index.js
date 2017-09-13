@@ -11,7 +11,6 @@ module.exports = {
 
 
     DiagnosticInfo: require("./src/diagnostic_info").DiagnosticInfo,
-//    coerceQualifyName: require("./src/diagnostic_info").
 
     NodeClass: require("./src/nodeclass").NodeClass,
 

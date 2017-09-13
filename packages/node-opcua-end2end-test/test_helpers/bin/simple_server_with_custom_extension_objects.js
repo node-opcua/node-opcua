@@ -14,7 +14,6 @@ var path = require("path");
 var fs = require("fs");
 var opcua = require("node-opcua");
 
-//xx var constructFilename = require("node-opcua-utils").constructFilename;
 var rootFolder = path.join(__dirname,"../");
 function constructFilename(pathname) {
     return path.join(__dirname,"../../",pathname);

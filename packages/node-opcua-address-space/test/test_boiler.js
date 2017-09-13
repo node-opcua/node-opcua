@@ -2,7 +2,7 @@
 /* global describe,it,before*/
 
 var async = require("async");
-var generateAddressSpace = require("node-opcua-address-space-loader").generate_address_space;
+var generateAddressSpace = require("..").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
 
 var UAStateMachine = require("..").UAStateMachine;
@@ -15,7 +15,7 @@ var makeBoiler = require("../test_helpers/boiler_system").makeBoiler;
 var doDebug = false;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Boiler System", function () {
 
     function getBrowseName(x) {

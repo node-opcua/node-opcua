@@ -1,7 +1,7 @@
 "use strict";
 
 var should = require("should");
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
@@ -15,7 +15,7 @@ var DataTypeIds = require("node-opcua-constants").DataTypeIds;
 var DataType = require("node-opcua-variant").DataType;
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing address space", function () {
 

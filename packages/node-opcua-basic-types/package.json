@@ -3,19 +3,21 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
-    "node-opcua-guid": "*",
-    "node-opcua-buffer-utils": "*",
+    "node-opcua-assert": "*",
     "node-opcua-binary-stream": "*",
+    "node-opcua-buffer-utils": "*",
     "node-opcua-date-time": "*",
     "node-opcua-enum": "*",
+    "node-opcua-guid": "*",
     "node-opcua-nodeid": "*",
+    "node-opcua-status-code": "*",
     "node-opcua-utils": "*",
-    "node-opcua-status-code": "*"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "should": "^13.0.1",
     "node-opcua-debug": "*"
   },
   "author": "etienne.rossignon@gadz.org",

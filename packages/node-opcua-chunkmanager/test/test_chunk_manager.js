@@ -3,7 +3,7 @@ var should = require("should");
 var ChunkManager = require("..").ChunkManager;
 
 var util = require("util");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var hexDump = require("node-opcua-debug").hexDump;

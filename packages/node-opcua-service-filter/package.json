@@ -9,21 +9,23 @@
     "generate": "node ./generate"
   },
   "dependencies": {
-    "node-opcua-extension-object": "*",
-    "node-opcua-nodeid": "*",
+    "node-opcua-assert": "*",
     "node-opcua-basic-types": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-variant": "*",
     "node-opcua-constants": "*",
     "node-opcua-data-model": "*",
-    "node-opcua-status-code": "*",
-    "node-opcua-numeric-range": "*",
     "node-opcua-debug": "*",
-    "node-opcua-service-translate-browse-path":"*",
-    "node-opcua-service-secure-channel":"*"
+    "node-opcua-factory": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-numeric-range": "*",
+    "node-opcua-service-translate-browse-path": "*",
+    "node-opcua-status-code": "*",
+    "node-opcua-variant": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "*",
+    "node-opcua-service-secure-channel": "*",
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

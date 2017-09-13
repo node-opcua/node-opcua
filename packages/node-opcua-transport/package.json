@@ -7,23 +7,27 @@
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
-
   },
   "dependencies": {
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
     "node-opcua-binary-stream": "*",
     "node-opcua-buffer-utils": "*",
+    "node-opcua-chunkmanager": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-nodeid": "*",
+    "node-opcua-packet-assembler": "*",
+    "node-opcua-status-code": "*",
     "node-opcua-utils": "*",
-    "node-opcua-chunkmanager":"*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-status-code": "*"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-nodeid": "*",
-    "node-opcua-factory": "*",
+    "colors": "^1.1.2",
     "node-opcua-debug": "*",
-    "node-opcua-packet-assembler": "*",
-    "node-opcua-test-helpers": "*",
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "*",
+    "should": "^13.0.1",
+    "sinon": "^3.2.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"
