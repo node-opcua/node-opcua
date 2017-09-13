@@ -48,11 +48,11 @@
     "node-opcua-status-code": "*",
     "node-opcua-utils": "*",
     "node-opcua-variant": "*",
+    "node-opcua-pki": "0.0.17",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
     "node-opcua-data-access": "*",
-    "node-opcua-pki": "0.0.17",
     "node-opcua-test-helpers": "*",
     "node-opcua-leak-detector": "*",
     "node-opcua-transport": "*",

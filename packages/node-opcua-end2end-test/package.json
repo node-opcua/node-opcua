@@ -6,7 +6,9 @@
     "pretest": "node test_helpers/create_certificates.js demo --dev -s",
     "test": "mocha --recursive test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "node-opcua-pki": "0.0.17"
+  },
   "devDependencies": {
     "async": "^2.5.0",
     "colors": "^1.1.2",
@@ -23,7 +25,6 @@
     "node-opcua-crypto": "0.0.11",
     "node-opcua-debug": "*",
     "node-opcua-generator": "*",
-    "node-opcua-pki": "0.0.17",
     "node-opcua-server": "*",
     "node-opcua-server-discovery": "*",
     "node-opcua-service-browse": "*",
