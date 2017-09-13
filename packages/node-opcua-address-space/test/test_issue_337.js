@@ -10,7 +10,7 @@ var DataType = require("node-opcua-variant").DataType;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 var NumericRange = require("node-opcua-numeric-range").NumericRange;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Testing bug found in #337", function () {
 

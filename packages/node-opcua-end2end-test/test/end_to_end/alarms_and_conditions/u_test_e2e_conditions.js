@@ -1,7 +1,7 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var should = require("should");
 var sinon = require("sinon");

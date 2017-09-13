@@ -4,7 +4,7 @@ var empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_
 
 var OPCUAServer = require("..").OPCUAServer;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing 2 servers on same port ", function () {
 
     var server1;

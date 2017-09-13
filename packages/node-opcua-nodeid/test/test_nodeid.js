@@ -7,7 +7,7 @@ var NodeId = require("..").NodeId;
 var sameNodeId = require("..").sameNodeId;
 
 var should = require("should");
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("testing NodeIds", function () {
@@ -279,20 +279,11 @@ describe("#sameNodeId", function () {
             })
 
             .run({max_time: 0.1});
-    })
-});
-
-
-/* TODO restore this test*/
-xdescribe("Type coercion at construction time", function () {
-
-    it("should coerce a nodeId at construction ", function () {
-        var bs = require("node-opcua-service-read");
-        var readValue = new bs.ReadValueId({nodeId: "i=2255", attributeId: 13});
-        readValue.nodeId.should.eql(makeNodeId(2255));
     });
-
 });
+
+
+
 
 
 describe("testing resolveNodeId", function () {

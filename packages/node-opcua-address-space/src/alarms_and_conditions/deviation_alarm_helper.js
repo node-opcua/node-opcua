@@ -4,7 +4,7 @@
  */
 
 
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 

@@ -4,7 +4,7 @@
  */
 
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
 
@@ -145,7 +145,8 @@ function ServerSecureChannelLayer(options) {
 
 util.inherits(ServerSecureChannelLayer, EventEmitter);
 
-ServerSecureChannelLayer.registry = new (require("node-opcua-utils/src/objectRegistry").ObjectRegistry)();
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+ServerSecureChannelLayer.registry = new ObjectRegistry();
 /**
  * the endpoint associated with this secure channel
  * @property endpoints

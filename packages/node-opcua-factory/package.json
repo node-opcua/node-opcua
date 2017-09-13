@@ -7,21 +7,19 @@
     "test": "echo no test"
   },
   "dependencies": {
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
     "node-opcua-binary-stream": "*",
+    "node-opcua-debug": "*",
+    "node-opcua-enum": "*",
+    "node-opcua-guid": "*",
     "node-opcua-nodeid": "*",
     "node-opcua-status-code": "*",
-    "node-opcua-guid": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-enum": "*",
-    "node-opcua-constants": "*",
     "node-opcua-utils": "*",
-    "node-opcua-debug": "*"
-
-
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-debug": "*",
-    "node-opcua-test-helpers": "*"
+    "node-opcua-debug": "*"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

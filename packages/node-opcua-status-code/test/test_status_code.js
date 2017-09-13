@@ -1,6 +1,6 @@
 
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var StatusCodes = require("..").StatusCodes;
 var StatusCode = require("..").StatusCode;

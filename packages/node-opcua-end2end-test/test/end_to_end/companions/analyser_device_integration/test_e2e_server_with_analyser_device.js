@@ -51,7 +51,7 @@ var perform_operation_on_client_session = require("../../../../test_helpers/perf
 var standard_nodeset_file = opcua.standard_nodeset_file;
 var constructNodesetFilename = opcua.constructNodesetFilename;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("ADI - Testing a server that exposes Analyser Devices", function () {
 

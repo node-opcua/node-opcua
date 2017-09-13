@@ -17,7 +17,7 @@ var DataType = opcua.DataType;
 
 var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy", function () {
 
     this.timeout(Math.max(600000,this._timeout));

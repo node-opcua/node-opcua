@@ -10,7 +10,7 @@ var standardUnits = require("node-opcua-data-access").standardUnits;
 var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 
 var AddressSpace = require("../../").AddressSpace;
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("../..").generate_address_space;
 
 
 describe("DataAccess", function () {
@@ -121,7 +121,7 @@ describe("DataAccess", function () {
     });
 
     it("should encode and decode a string containing fancy characters", function (done) {
-        var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+        var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
         var engineeringUnits = standardUnits.degree_celsius;
         encode_decode_round_trip_test(engineeringUnits, function (buffer, id) {
             buffer.length.should.equal(82);

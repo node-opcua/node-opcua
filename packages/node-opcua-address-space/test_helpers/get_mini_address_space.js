@@ -1,11 +1,10 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var path = require("path");
 var address_space = require("..");
 
 var AddressSpace = address_space.AddressSpace;
-
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = address_space.generate_address_space;
 
 
 var nodeset_filename = path.join(__dirname,"test_fixtures/mini.Node.Set2.xml");

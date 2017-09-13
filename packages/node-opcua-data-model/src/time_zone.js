@@ -3,5 +3,5 @@
  * @module opcua.datamodel
  */
 
-exports.TimeZone = require("_generated_/_tuto").TimeZone;
+exports.TimeZone = require("./_generated_/_tuto").TimeZone;
 

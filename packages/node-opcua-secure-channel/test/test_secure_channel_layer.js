@@ -5,7 +5,7 @@ var should = require("should");
 var ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
 var ServerSecureChannelLayer = require("../src/server/server_secure_channel_layer").ServerSecureChannelLayer;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ClientSecureChannel 1", function () {
 
     this.timeout(Math.max(this._timeout, 100000));

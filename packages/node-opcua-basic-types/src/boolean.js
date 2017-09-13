@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var isValidBoolean = exports.isValidBoolean = function (value) {
     return typeof value === "boolean";

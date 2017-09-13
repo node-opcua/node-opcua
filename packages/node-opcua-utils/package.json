@@ -7,10 +7,12 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "node-opcua-debug": "*"
+    "node-opcua-assert": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-test-helpers": "*"
+    "should": "^13.0.1",
+    "sinon": "^3.2.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

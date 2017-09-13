@@ -8,7 +8,7 @@ function include_test(filename, options) {
     var test = require("./" + filename);
     test.register_test(options);
 }
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("COMPLIANCE TESTING", function () {
 

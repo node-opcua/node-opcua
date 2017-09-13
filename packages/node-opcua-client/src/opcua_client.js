@@ -6,7 +6,7 @@
 
 var util = require("util");
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var crypto = require("crypto");
 var async = require("async");
 

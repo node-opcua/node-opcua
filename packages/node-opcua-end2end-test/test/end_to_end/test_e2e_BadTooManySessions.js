@@ -1,7 +1,7 @@
 "use strict";
 
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var _ = require("underscore");
 
@@ -14,7 +14,7 @@ var port = 2000;
 
 var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
 

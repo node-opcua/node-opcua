@@ -1,7 +1,7 @@
 "use strict";
 
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var AttributeIds = {
     NodeId: 1,

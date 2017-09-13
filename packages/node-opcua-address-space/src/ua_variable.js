@@ -3,7 +3,7 @@
  * @module opcua.address_space
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var _ = require("underscore");
 
@@ -863,7 +863,6 @@ function turn_sync_to_async(f, numberOfArgs) {
     }
 }
 
-//xx var MonitoredItem = require("$node-opcua/server/monitored_item").MonitoredItem;
 var _default_minimumSamplingInterval = 1000;
 
 

@@ -3,15 +3,16 @@
 
 var should = require("should");
 var _ = require("underscore");
+var fs = require("fs");
 var path = require("path");
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 
 var sinon = require("sinon");
 var AddressSpace = require("..").AddressSpace;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add TwoStateVariable ", function () {
 
     this.timeout(Math.max(this._timeout, 10000));
@@ -21,7 +22,7 @@ describe("testing add TwoStateVariable ", function () {
     before(function (done) {
         addressSpace = new AddressSpace();
         var xml_file = require("node-opcua-nodesets").standard_nodeset_file;
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
             done(err);

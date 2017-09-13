@@ -5,7 +5,7 @@
 
 
 var Enum = require("node-opcua-enum");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var registerBasicType = require("node-opcua-factory").registerBasicType;
 var utils = require("node-opcua-utils");

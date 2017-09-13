@@ -9,10 +9,7 @@
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT",
   "dependencies": {
-    "node-opcua-binary-stream": "*",
-    "node-opcua-utils": "*",
-    "node-opcua-debug": "*"
+    "underscore": "^1.8.3"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

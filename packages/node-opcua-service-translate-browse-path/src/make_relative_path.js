@@ -5,7 +5,7 @@
  * BNF for RelativePath
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;

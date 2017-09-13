@@ -3,20 +3,19 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
     "node-opcua-address-space": "*",
-    "node-opcua-address-space-loader": "*",
-    "node-opcua-address-space-for-conformance-testing":"*",
+    "node-opcua-address-space-for-conformance-testing": "*",
     "node-opcua-client": "*",
     "node-opcua-client-crawler": "*",
     "node-opcua-common": "*",
     "node-opcua-constants": "*",
+    "node-opcua-crypto": "0.0.11",
     "node-opcua-data-access": "*",
     "node-opcua-data-model": "*",
     "node-opcua-data-value": "*",
-    "node-opcua-debug":"*",
+    "node-opcua-debug": "*",
     "node-opcua-enum": "*",
     "node-opcua-factory": "*",
     "node-opcua-hostname": "*",
@@ -35,8 +34,8 @@
     "node-opcua-service-node-management": "*",
     "node-opcua-service-query": "*",
     "node-opcua-service-read": "*",
-    "node-opcua-service-register-server": "*",
     "node-opcua-service-register-node": "*",
+    "node-opcua-service-register-server": "*",
     "node-opcua-service-secure-channel": "*",
     "node-opcua-service-session": "*",
     "node-opcua-service-subscription": "*",
@@ -44,9 +43,11 @@
     "node-opcua-service-write": "*",
     "node-opcua-status-code": "*",
     "node-opcua-transport": "*",
-    "node-opcua-vendor-diagnostic":"*",
     "node-opcua-utils": "*",
-    "node-opcua-variant": "*"
-
+    "node-opcua-variant": "*",
+    "node-opcua-vendor-diagnostic": "*"
+  },
+  "devDependencies": {
+    "should": "^13.0.1"
   }
 }

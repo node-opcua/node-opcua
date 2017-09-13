@@ -7,8 +7,13 @@
     "test": "mocha test"
   },
   "dependencies": {
+    "node-opcua-assert": "*",
     "node-opcua-constants": "*",
-    "node-opcua-binary-stream": "*"
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "node-opcua-binary-stream": "*",
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

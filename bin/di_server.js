@@ -4,7 +4,7 @@ var _ = require("underscore");
 
 Error.stackTraceLimit = Infinity;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var argv = require("yargs")
     .wrap(132)
     .string("alternateHostname")

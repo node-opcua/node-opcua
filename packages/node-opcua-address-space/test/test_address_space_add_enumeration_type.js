@@ -12,7 +12,7 @@ var BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 require("../src/address_space_add_enumeration_type");
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : testing add enumeration type", function () {
 
     var addressSpace;

@@ -2,7 +2,7 @@
 var should = require("should");
 var server_engine = require("../src/server_engine");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing the server  engine - View related ", function () {
 
     var engine;

@@ -9,7 +9,7 @@ var fs = require("fs");
 var path = require("path");
 var async = require("async");
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var once = require("once");
 var delayed = require("delayed");
 
@@ -137,7 +137,7 @@ OPCUAClientBase.prototype.getPrivateKey = OPCUASecureObject.prototype.getPrivate
 OPCUAClientBase.prototype.getCertificate = OPCUASecureObject.prototype.getCertificate;
 OPCUAClientBase.prototype.getCertificateChain = OPCUASecureObject.prototype.getCertificateChain;
 
-var ObjectRegistry = require("node-opcua-utils/src/objectRegistry").ObjectRegistry;
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 OPCUAClientBase.registry  = new ObjectRegistry();
 
 /**

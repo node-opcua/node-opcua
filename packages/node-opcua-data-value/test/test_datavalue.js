@@ -8,7 +8,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 require("should");
 
-var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("DataValue", function () {
 

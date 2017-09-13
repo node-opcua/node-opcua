@@ -13,6 +13,8 @@ var DataValue = require("node-opcua-data-value").DataValue;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var NodeClass = require("node-opcua-data-model").NodeClass;
+var NodeId = require("node-opcua-nodeid").NodeId;
+var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 var nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
@@ -20,9 +22,10 @@ var nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.
 var address_space = require("..");
 var UAVariable = address_space.UAVariable;
 var SessionContext = address_space.SessionContext;
+var generate_address_space = address_space.generate_address_space;
 var context = SessionContext.defaultContext;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Variables ", function () {
 
     it("ZZ1- a variable should return attributes with  the expected data type ", function () {
@@ -88,9 +91,6 @@ describe("testing Variables ", function () {
 
 });
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 describe("Address Space : add Variable :  testing various variations for specifying dataType", function () {
 

@@ -2,7 +2,7 @@
 var OPCUAClient = require("..").OPCUAClient;
 var ClientSecureChannelLayer =  require("..").ClientSecureChannelLayer;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("OPCUA Client",function() {
 

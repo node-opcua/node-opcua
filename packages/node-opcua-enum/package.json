@@ -6,7 +6,13 @@
     "test": "mocha test"
   },
   "main": "src/enum.js",
+  "dependencies": {
+    "node-opcua-assert": "*"
+  },
   "devDependencies": {
-    "node-opcua-benchmarker": "*"
+    "enum": "^2.4.0",
+    "node-opcua-benchmarker": "*",
+    "should": "^13.0.1",
+    "underscore": "^1.8.3"
   }
 }

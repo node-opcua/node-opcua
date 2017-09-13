@@ -5,7 +5,7 @@
  */
 
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var UAVariable = require("../ua_variable").UAVariable;
 var Variant = require("node-opcua-variant").Variant;

@@ -8,12 +8,12 @@ var LocalizedText = require("node-opcua-data-model").LocalizedText;
 var UAStateMachine = require("../..").UAStateMachine;
 
 var AddressSpace = require("../..").AddressSpace;
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("../..").generate_address_space;
 
 var doDebug = false;
 
 // make sure extra error checking is made on object constructions
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Finite State Machine", function () {
 
     var addressSpace;

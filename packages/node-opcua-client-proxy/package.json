@@ -7,17 +7,18 @@
   },
   "main": "index.js",
   "dependencies": {
+    "async": "^2.5.0",
+    "node-opcua-assert": "*",
     "node-opcua-client": "*",
     "node-opcua-constants": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-status-code": "*",
     "node-opcua-data-model": "*",
-    "node-opcua-variant": "*",
-    "node-opcua-utils": "*",
+    "node-opcua-nodeid": "*",
     "node-opcua-service-call": "*",
     "node-opcua-service-read": "*",
-    "node-opcua-service-browse": "*"
+    "node-opcua-status-code": "*",
+    "node-opcua-utils": "*",
+    "node-opcua-variant": "*",
+    "underscore": "^1.8.3"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

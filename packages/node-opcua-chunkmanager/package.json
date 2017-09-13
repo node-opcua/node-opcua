@@ -3,17 +3,18 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
-
   "scripts": {
     "test": "exit 0 "
   },
   "dependencies": {
-    "node-opcua-buffer-utils": "*",
+    "node-opcua-assert": "*",
     "node-opcua-binary-stream": "*",
-    "node-opcua-date-time": "*"
+    "node-opcua-buffer-utils": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-debug": "*"
+    "node-opcua-debug": "*",
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

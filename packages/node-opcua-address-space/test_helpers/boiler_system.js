@@ -2,13 +2,7 @@
 // see ftp://ftp.nist.gov/pub/mel/michalos/Software/OPC%20UA%20Companion/InformationModel.pdf
 
 var _ = require("underscore");
-var assert = require("better-assert");
-
-//xx var StatusCodes = require("node-opcua-status-code").StatusCode;
-//xx var Variant = require("node-opcua-variant").Variant;
-//xx var DataType = require("node-opcua-variant").DataType;
-//xx var DataValue =require("node-opcua-data-value").DataValue;
-//xx var standardUnits = require("node-opcua-data-access").standardUnits;
+var assert = require("node-opcua-assert");
 
 var UAMethod = require("..").UAMethod;
 var UAObject = require("..").UAObject;

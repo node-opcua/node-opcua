@@ -10,16 +10,15 @@
   },
   "main": "index.js",
   "dependencies": {
-    "node-opcua-extension-object": "*",
+    "node-opcua-crypto": "0.0.11",
+    "node-opcua-assert": "*",
     "node-opcua-nodeid": "*",
-    "node-opcua-constants": "*",
-    "node-opcua-binary-stream": "*",
     "node-opcua-factory": "*",
     "node-opcua-basic-types": "*",
-    "node-opcua-secure-channel":"*",
     "node-opcua-data-model": "*",
     "node-opcua-service-endpoints": "*",
-    "node-opcua-service-secure-channel":"*"
+    "node-opcua-service-secure-channel":"*",
+    "underscore": "1.8.3"
   },
   "devDependencies": {
     "node-opcua-generator": "*"

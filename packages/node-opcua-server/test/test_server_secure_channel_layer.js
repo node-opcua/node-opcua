@@ -4,7 +4,7 @@ var should = require("should");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var DirectTransport = require("node-opcua-transport/test_helpers/fake_socket").DirectTransport;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
 
     it("KK1 should create a ServerSecureChannelLayer", function () {

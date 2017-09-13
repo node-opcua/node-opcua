@@ -14,7 +14,7 @@ var VariableIds = require("node-opcua-constants").VariableIds;
 
 var ec = require("node-opcua-basic-types");
 var crypto = require("crypto");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
 var _ = require("underscore");

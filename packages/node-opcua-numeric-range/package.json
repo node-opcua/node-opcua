@@ -9,14 +9,18 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "node-opcua-status-code":"*",
-    "node-opcua-basic-types":"*",
-    "node-opcua-factory":"*",
+    "node-opcua-assert": "*",
+    "underscore": "^1.8.3",
+    "node-opcua-status-code": "*",
+    "node-opcua-basic-types": "*",
+    "node-opcua-factory": "*",
     "node-opcua-enum": "*"
   },
   "devDependencies": {
-    "node-opcua-test-helpers":"*",
+    "node-opcua-generator": "*",
     "node-opcua-nodeid": "*",
-    "node-opcua-generator": "*"
+    "node-opcua-packet-analyzer": "*",
+    "node-opcua-test-helpers": "*",
+    "should": "^13.0.1"
   }
 }

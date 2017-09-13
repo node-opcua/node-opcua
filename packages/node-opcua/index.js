@@ -97,7 +97,7 @@ module.exports.ServerEngine       = require("node-opcua-server").ServerEngine;
 module.exports.MonitoredItem      = require("node-opcua-server").MonitoredItem;
 module.exports.ServerSession      = require("node-opcua-server").ServerSession;
 
-module.exports.generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+module.exports.generate_address_space = require("node-opcua-address-space").generate_address_space;
 
 module.exports.AddressSpace       = require("node-opcua-address-space").AddressSpace;
 module.exports.SessionContext     = require("node-opcua-address-space").SessionContext;
@@ -174,20 +174,3 @@ module.exports.makeBoiler = require("node-opcua-address-space/test_helpers/boile
 module.exports.crypto_utils = require("node-opcua-crypto").crypto_utils;
 
 module.exports.hexDump = require("node-opcua-debug").hexDump;
-if (false) {
-
-// ---------------------------------------------------------------------------------------------------------------------
-// to fix !
-// ---------------------------------------------------------------------------------------------------------------------
-    //xx process.env.NODE_PATH = __dirname + ";" + process.env.NODE_PATH;
-    //xx require("module").Module._initPaths();
-
-    //xx module.exports.encode_decode = require("$node-opcua/misc/encode_decode");
-    //xx module.exports.factories = require("node-opcua-factory");
-
-    //xx module.exports.UAProxyManager = require("$node-opcua/client/proxy").UAProxyManager;
-    //xx module.exports.callConditionRefresh = require("$node-opcua/client/alarms_and_conditions/client_tools").callConditionRefresh;
-
-    //xx module.exports.analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-    //xx  module.exports.readMessageHeader = require("$node-opcua/misc/message_header").readMessageHeader;
-}

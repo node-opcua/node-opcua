@@ -7,20 +7,17 @@
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
-
   },
   "dependencies": {
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
     "node-opcua-factory": "*",
     "node-opcua-nodeid": "*",
-    "node-opcua-status-code": "*",
-    "node-opcua-data-model":"*",
-    "node-opcua-variant":"*",
-    "node-opcua-data-value":"*",
-    "node-opcua-constants": "*",
-    "node-opcua-basic-types": "*"
+    "node-opcua-data-model": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "node-opcua-generator": "*",
-    "node-opcua-service-write": "*"
+    "should": "^13.0.1"
   }
 }

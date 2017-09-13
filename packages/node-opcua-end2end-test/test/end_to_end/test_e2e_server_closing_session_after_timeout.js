@@ -9,7 +9,7 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 var port = 2000;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server dropping session after timeout if no activity has been recorded", function () {
 
 

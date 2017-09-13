@@ -10,7 +10,7 @@ var subscription_service = require("node-opcua-service-subscription");
 var NotificationMessage = subscription_service.NotificationMessage;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 

@@ -10,8 +10,8 @@ var factories = require("node-opcua-factory");
 
 var assert_arrays_are_equal = require("node-opcua-test-helpers/src/typedarray_helpers").assert_arrays_are_equal;
 
-var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
-var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
+var packet_analyzer = require("..").packet_analyzer;
+var analyze_object_binary_encoding = require("..").analyze_object_binary_encoding;
 
 function dump_block_in_debug_mode(buffer, id, options) {
     if (process.env.DEBUG) {

@@ -5,7 +5,7 @@
  */
 
 var async = require("async");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var EventEmitter = require("events").EventEmitter;
 
@@ -15,7 +15,6 @@ var utils = require("node-opcua-utils");
 var display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
 var ServiceFault= require("node-opcua-service-secure-channel").ServiceFault;
 
-//xx var constructFilename = require("node-opcua-utils").constructFilename;
 function constructFilename(p) {
     var path = require("path");
     var fs = require("fs");

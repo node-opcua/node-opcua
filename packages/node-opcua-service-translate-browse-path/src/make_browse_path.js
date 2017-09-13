@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 
 var BrowsePath = require("../_generated_/_auto_generated_BrowsePath").BrowsePath;

@@ -16,7 +16,7 @@ if (!crypto_utils.isFullySupported()) {
     return;
 }
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server with restricted securityModes - Given a server with a single end point SIGNANDENCRYPT/Basic128Rsa15", function () {
 
     var server, client, temperatureVariableId, endpointUrl, serverCertificate;

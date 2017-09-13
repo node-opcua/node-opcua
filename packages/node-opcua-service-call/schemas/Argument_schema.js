@@ -27,7 +27,7 @@
  */
 
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var factories = require("node-opcua-factory");
 var NodeId = require("node-opcua-nodeid").NodeId;

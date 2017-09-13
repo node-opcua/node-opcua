@@ -2,8 +2,8 @@
 var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 var should = require("should");
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+var DataType = require("..").DataType;
+var Variant = require("..").Variant;
 
 var Variant1 = require("./data_factory_code_generator/_auto_generated_Variant_Gen1").Variant;
 var Variant2 = require("./data_factory_code_generator/_auto_generated_Variant_Gen2").Variant;

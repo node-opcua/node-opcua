@@ -6,7 +6,7 @@
 
 
 var _ = require("underscore");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
@@ -53,7 +53,7 @@ require("node-opcua-common");
 var address_space = require("node-opcua-address-space");
 var AddressSpace = address_space.AddressSpace;
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("node-opcua-address-space").generate_address_space;
 
 var ServerSession = require("./server_session").ServerSession;
 
@@ -761,8 +761,6 @@ var UAVariable = require("node-opcua-address-space").UAVariable;
 
 
 require("node-opcua-address-space");
-
-//xx var Argument = require("node-opcua/datamodel/argument_list").Argument;
 
 ServerEngine.prototype.__findObject = function (nodeId) {
     // coerce nodeToBrowse to NodeId

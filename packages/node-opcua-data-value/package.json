@@ -10,18 +10,22 @@
 
   },
   "dependencies": {
+    "node-opcua-assert": "*",
     "node-opcua-variant": "*",
     "node-opcua-utils": "*",
     "node-opcua-status-code": "*",
     "node-opcua-nodeid": "*",
     "node-opcua-basic-types": "*",
     "node-opcua-factory":"*",
-    "node-opcua-date-time":"*"
+    "node-opcua-date-time":"*",
+    "node-opcua-binary-stream":"*",
+    "underscore": "1.8.3"
+
   },
   "devDependencies": {
-    "node-opcua-generator": "*",
-    "node-opcua-binary-stream": "*",
     "node-opcua-numeric-range":"*",
-    "node-opcua-benchmarker":"*"
+    "node-opcua-generator": "*",
+    "node-opcua-packet-analyzer": "*",
+    "should": "^13.0.1"
   }
 }

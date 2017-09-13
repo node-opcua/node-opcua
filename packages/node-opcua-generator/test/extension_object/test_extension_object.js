@@ -2,18 +2,18 @@
 var should = require("should");
 
 var factories = require("node-opcua-factory");
-var generator = require("node-opcua-generator");
+var generator = require("../..");
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 
-var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
 
 
 var path = require("path");
-var temporary_folder = path.join(__dirname,"..","_test_generated");
+var temporary_folder = path.join(__dirname,"../..","_test_generated");
 
-var ExtensionObject = require("..").ExtensionObject;
+var ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 
 describe("ExtensionObject", function () {
 

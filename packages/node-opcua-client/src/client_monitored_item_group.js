@@ -10,7 +10,7 @@ var EventEmitter = require("events").EventEmitter;
 var subscription_service = require("node-opcua-service-subscription");
 var read_service = require("node-opcua-service-read");
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 
 var ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;

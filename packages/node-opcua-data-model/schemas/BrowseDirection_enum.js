@@ -2,7 +2,7 @@
 
 var factories = require("node-opcua-factory");
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var EnumBrowseDirection_Schema = {
     name: "BrowseDirection",

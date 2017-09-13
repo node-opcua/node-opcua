@@ -17,7 +17,7 @@ var Variant = require("node-opcua-variant").Variant;
 var sinon = require("sinon");
 var should = require("should");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Server Side MonitoredItem", function () {
 
 

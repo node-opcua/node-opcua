@@ -1,5 +1,5 @@
 var should = require("should");
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var path = require("path");
 
@@ -9,7 +9,6 @@ var findBuiltInType = require("node-opcua-factory").findBuiltInType;
 
 var generator = require("node-opcua-generator");
 
-var path = require("path");
 var tmpfolder  = path.join(__dirname,"../_test_generated");
 var ObjWithAccessLevel = generator.registerObject(path.join(__dirname,"fixture_schemas")+"|ObjWithAccessLevel", tmpfolder);
 
@@ -82,7 +81,7 @@ describe("Testing AccessLevelFlag", function () {
         var o = new ObjWithAccessLevel({});
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
 
-        var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+        var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
         encode_decode_round_trip_test(o);
 
 

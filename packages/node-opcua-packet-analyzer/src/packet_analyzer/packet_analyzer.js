@@ -2,7 +2,7 @@
 /**
  * @module opcua.miscellaneous
  */
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var _ = require("underscore");
 
@@ -15,7 +15,6 @@ var buffer_ellipsis = require("node-opcua-utils").buffer_ellipsis;
 
 var ec = require("node-opcua-basic-types");
 
-//Xx var factories = require("node-opcua-factory_factories");
 
 var spaces = "                                                                                                                                                                             ";
 function f(n, width) {

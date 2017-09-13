@@ -2,7 +2,7 @@
 
 var getRandomInt = require("./utils").getRandomInt;
 var _ = require("underscore");
-var assert=require("assert");
+
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 var isValidGuid = require("node-opcua-guid").isValidGuid;

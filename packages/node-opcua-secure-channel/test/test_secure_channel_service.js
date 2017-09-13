@@ -149,7 +149,7 @@ describe("SecureMessageChunkManager", function () {
 
     });
     it("should test CloseSecureChannelResponse", function () {
-        var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+        var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
         var response = new CloseSecureChannelResponse({});
         encode_decode_round_trip_test(response);
 

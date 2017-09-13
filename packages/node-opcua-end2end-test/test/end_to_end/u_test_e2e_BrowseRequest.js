@@ -1,7 +1,7 @@
 
 
 var should = require("should");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var async = require("async");
 var util = require("util");
 var _ = require("underscore");

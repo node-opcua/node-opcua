@@ -1,6 +1,14 @@
 .git*
 .idea/
 .travis.yml
+appveyor.yml
+circle.yml
+.codeclimate.yml
+.eslintignore
+brfy.bat
+lerna-debug.log
+.jshintrc
+.release.json
 .coveralls.yml
 code_gen/
 CTT/
@@ -24,8 +32,6 @@ coverage
 output2.bin
 specs/
 node_modules/
-tmp/
-coverage
 *.swp
 *#
 tmptmp/
@@ -45,5 +51,4 @@ tttt
 package
 test_compliance
 certificates/
-appveyor.yml
 dist/

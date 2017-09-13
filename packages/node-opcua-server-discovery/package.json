@@ -8,16 +8,16 @@
   },
   "main": "index.js",
   "dependencies": {
-    "node-opcua-server": "*",
-    "node-opcua-status-code": "*",
-    "node-opcua-service-register-server": "*",
-    "node-opcua-service-endpoints": "*",
+    "node-opcua-assert": "*",
+    "node-opcua-common": "*",
     "node-opcua-hostname": "*",
-    "node-opcua-utils":"*",
-    "node-opcua-debug":"*",
-    "node-opcua-common":"*"
-
+    "node-opcua-server": "*",
+    "node-opcua-service-endpoints": "*",
+    "node-opcua-service-register-server": "*",
+    "node-opcua-status-code": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "node-opcua-pki": "0.0.17"
   }
 }

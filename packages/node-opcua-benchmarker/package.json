@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "description": "",
   "main": "src/benchmarker.js",
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
+    "node-opcua-assert": "*",
+    "async": "^2.5.0",
+    "underscore": "^1.8.3"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"
 }

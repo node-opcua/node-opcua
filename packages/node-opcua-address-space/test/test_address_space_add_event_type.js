@@ -11,11 +11,12 @@ var get_mini_address_space = require("../test_helpers/get_mini_address_space").g
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+var Variant = require("node-opcua-variant").Variant;
 
 
 require("../src/address_space_add_enumeration_type");
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("AddressSpace : add event type ", function () {
 
@@ -265,8 +266,6 @@ describe("AddressSpace : add event type ", function () {
         event.should.have.property("message");
         event.should.have.property("severity");
 
-        //  var UAVariable = require("node-opcua-address-space").UAVariable;
-        var Variant = require("node-opcua-variant").Variant;
         event.eventId.should.be.instanceof(Variant);
 
         event.eventId.dataType.should.eql(DataType.ByteString);

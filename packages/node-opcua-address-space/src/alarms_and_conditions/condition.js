@@ -7,7 +7,7 @@
 require("set-prototype-of");
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var UAVariable = require("../ua_variable").UAVariable;
@@ -1370,8 +1370,6 @@ function _condition_refresh2_method(inputArguments, context, callback) {
 
 UAConditionBase.install_condition_refresh_handle = function _install_condition_refresh_handle(addressSpace) {
 
-    //xx 21/08/17 var OPCUAServer = require("node-opcua-server").OPCUAServer;
-    //xx 21/08/17 assert(OPCUAServer !== null);
 
     //
     // install CondititionRefresh

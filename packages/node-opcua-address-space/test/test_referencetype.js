@@ -22,7 +22,7 @@ var get_mini_address_space = require("../test_helpers/get_mini_address_space").g
 var context = require("..").SessionContext.defaultContext;
 var BaseNode = require("..").BaseNode;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ReferenceType", function () {
     var addressSpace;
     var rootFolder;

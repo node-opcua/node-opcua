@@ -11,7 +11,7 @@ var subscription_service = require("node-opcua-service-subscription");
 var read_service = require("node-opcua-service-read");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var TimestampsToReturn = read_service.TimestampsToReturn;
 
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
@@ -135,10 +135,6 @@ ClientMonitoredItemBase.prototype._after_create = function (monitoredItemResult)
         self.emit("initialized");
 
     } else {
-
-        //xx console.log(" monitoredItemResult statusCode = ".red, monitoredItemResult.statusCode.toString());
-        //xx require("$node-opcua/misc/utils").dump(response);
-        //xx require("$node-opcua/misc/utils").dump(createMonitorItemsRequest);
 
         /**
          * Notify the observers that the monitored item has failed to initialized.

@@ -14,7 +14,7 @@ var AttributeIds = opcua.AttributeIds;
 var StatusCodes = opcua.StatusCodes;
 var OPCUAClient = opcua.OPCUAClient;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing extension object with client residing on a different process than the server process", function () {
 

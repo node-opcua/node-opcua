@@ -8,7 +8,7 @@ var perform_operation_on_client_session = require("../../test_helpers/perform_op
 
 var redirectToFile = require("node-opcua-debug").redirectToFile;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Testing Server and Client diagnostic facilities", function () {
 

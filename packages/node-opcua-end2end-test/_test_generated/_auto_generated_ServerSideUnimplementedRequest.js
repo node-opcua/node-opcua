@@ -1,9 +1,9 @@
-// --------- This code has been automatically generated !!! 2017-08-28T20:52:52.937Z
+// --------- This code has been automatically generated !!! 2017-09-13T20:01:47.585Z
 "use strict";
 /**
  * @module opcua.address_space.types
  */
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var util = require("util");
 var _  = require("underscore");
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;

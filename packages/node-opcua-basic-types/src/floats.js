@@ -1,8 +1,5 @@
 "use strict";
-
 var _ = require("underscore");
-var assert=require("assert");
-
 
 var minFloat = -3.40 * Math.pow(10, 38);
 var maxFloat = 3.40 * Math.pow(10, 38);

@@ -3,7 +3,7 @@
  */
 
 var crypto = require("crypto");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 

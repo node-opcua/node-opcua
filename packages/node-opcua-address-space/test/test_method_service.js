@@ -2,7 +2,7 @@
 /* global: describe it before after beforeEach afterEach require*/
 require("should");
 var path = require("path");
-
+var fs = require("fs");
 
 var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
@@ -13,14 +13,14 @@ var AddressSpace = require("..").AddressSpace;
 var UAObject = require("..").UAObject;
 var UAMethod = require("..").UAMethod;
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 
 var call_service = require("node-opcua-service-call");
 var hexDump = require("node-opcua-debug").hexDump;
 
 var build_retrieveInputArgumentsDefinition = require("../src/argument_list").build_retrieveInputArgumentsDefinition;
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("CallRequest on custom method", function () {
 
@@ -28,7 +28,7 @@ describe("CallRequest on custom method", function () {
     before(function (done) {
         addressSpace = new AddressSpace();
         var xml_file = path.join(__dirname, "../test_helpers/test_fixtures/fixuture_nodeset_objects_with_some_methods.xml");
-        require("fs").existsSync(xml_file).should.be.eql(true);
+        fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
             done(err);

@@ -2,7 +2,7 @@
 
 var fs = require("fs");
 var path = require("path");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var normalize_require_file = require("node-opcua-utils").normalize_require_file;
 
@@ -18,8 +18,6 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 require("node-opcua-factory/src/factories_basic_type");
 
-//xx var registerEnumeration = require("node-opcua-factory/src/factories_enumerations").registerEnumeration;
-//xx exports.registerEnumeration = registerEnumeration;
 
 var produce_code = require("./factory_code_generator").produce_code;
 

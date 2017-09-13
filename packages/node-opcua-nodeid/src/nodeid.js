@@ -5,7 +5,7 @@
  */
 
 var Enum = require("node-opcua-enum");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var isValidGuid = require("node-opcua-guid").isValidGuid;
 var emptyGuid = require("node-opcua-guid").emptyGuid;
 var _ = require("underscore");

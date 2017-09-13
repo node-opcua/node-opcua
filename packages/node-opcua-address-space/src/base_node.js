@@ -36,7 +36,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 exports.BrowseDirection = BrowseDirection;
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var dumpIf = require("node-opcua-debug").dumpIf;
 var ReferenceType = null;// will be defined after baseNode is defined

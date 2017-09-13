@@ -6,6 +6,16 @@
   "scripts": {
     "test": "mocha test"
   },
+  "dependencies": {
+    "bomstrip": "^0.1.4",
+    "ltx": "^2.7.1",
+    "node-opcua-assert": "*",
+    "underscore": "^1.8.3"
+  },
   "author": "etienne.rossignon@gadz.org",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "node-opcua-nodesets": "*",
+    "should": "^13.0.1"
+  }
 }

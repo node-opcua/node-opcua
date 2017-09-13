@@ -5,14 +5,14 @@ var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 var ec = require("node-opcua-basic-types");
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 
-var generator = require("node-opcua-generator");
+var generator = require("../..");
 var factories = require("node-opcua-factory");
 
-var packet_analyzer = require("..").packet_analyzer;
+var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
 
 
 var path = require("path");
-var temporary_folder = path.join(__dirname,"..","_test_generated");
+var temporary_folder = path.join(__dirname,"../..","_test_generated");
 
 var Person2_Schema = {
     id: factories.next_available_id(),

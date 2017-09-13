@@ -7,19 +7,17 @@
   },
   "main": "index.js",
   "dependencies": {
-    "node-opcua-extension-object": "*",
+    "node-opcua-assert": "*",
     "node-opcua-nodeid": "*",
-    "node-opcua-constants": "*",
-    "node-opcua-binary-stream": "*",
     "node-opcua-factory": "*",
     "node-opcua-address-space": "*",
-    "node-opcua-address-space-loader": "*",
-    "node-opcua-variant": "*",
-    "node-opcua-basic-types": "*",
     "node-opcua-data-model": "*",
-    "node-opcua-utils":"*"
+    "node-opcua-utils": "*",
+    "underscore": "1.8.3"
   },
   "devDependencies": {
-    "node-opcua-generator": "*"
+    "node-opcua-packet-analyzer": "*",
+    "node-opcua-variant": "*",
+    "should": "^13.0.1"
   }
 }

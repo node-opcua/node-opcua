@@ -398,7 +398,7 @@ if (!crypto_utils.isFullySupported()) {
     return;
 }
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ZZA- testing Secure Client-Server communication", function () {
 
     this.timeout(Math.max(this._timeout, 20001));

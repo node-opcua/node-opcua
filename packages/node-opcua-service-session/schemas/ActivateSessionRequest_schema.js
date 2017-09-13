@@ -1,7 +1,7 @@
 "use strict";
 
 require("node-opcua-extension-object");
-require("node-opcua-secure-channel/src/services");
+require("node-opcua-service-secure-channel");
 
 var ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 

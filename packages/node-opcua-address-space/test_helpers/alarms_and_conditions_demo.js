@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 function construct_demo_alarm_in_address_space(test,addressSpace) {
 

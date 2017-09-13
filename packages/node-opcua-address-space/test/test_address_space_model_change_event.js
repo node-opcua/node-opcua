@@ -5,7 +5,7 @@ var should = require("should");
 var sinon = require("sinon");
 
 
-var generate_address_space = require("node-opcua-address-space-loader").generate_address_space;
+var generate_address_space = require("..").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
 var standard_nodeset_file = require("node-opcua-nodesets").standard_nodeset_file;
 

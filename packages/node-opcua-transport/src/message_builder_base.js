@@ -3,7 +3,7 @@
  * @module opcua.miscellaneous
  */
 var util = require("util");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var EventEmitter = require("events").EventEmitter;
 

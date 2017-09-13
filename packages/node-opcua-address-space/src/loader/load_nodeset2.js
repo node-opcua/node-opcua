@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 var async = require("async");
 var fs = require("fs");
@@ -18,7 +18,7 @@ var EnumValueType  = require("node-opcua-data-model").EnumValueType;
 
 var ec = require("node-opcua-basic-types");
 
-var AddressSpace = require("node-opcua-address-space").AddressSpace;
+var AddressSpace = require("../address_space").AddressSpace;
 
 /**
  * @method make_back_references

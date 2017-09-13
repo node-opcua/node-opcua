@@ -9,15 +9,18 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "colors": "^1.1.2",
+    "node-opcua-assert": "*",
+    "node-opcua-basic-types": "*",
     "node-opcua-binary-stream": "*",
-    "node-opcua-enum": "*",
-    "node-opcua-utils": "*",
-    "node-opcua-nodeid": "*",
     "node-opcua-debug": "*",
-    "node-opcua-basic-types": "*"
+    "node-opcua-enum": "*",
+    "node-opcua-factory": "*",
+    "node-opcua-utils": "*",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-factory": "*",
-    "node-opcua-generator": "*"
+    "node-opcua-test-helpers": "*",
+    "should": "^13.0.1"
   }
 }
