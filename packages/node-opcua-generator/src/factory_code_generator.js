@@ -4,7 +4,7 @@
  * @module opcua.miscellaneous
  */
 
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
@@ -228,7 +228,7 @@ function produce_code(schema_file, schema_name, source_file) {
     write("/**");
     write(" * @module opcua.address_space.types");
     write(" */");
-    write("var assert = require(\"better-assert\");");
+    write("var assert = require(\"node-opcua-assert\");");
     write("var util = require(\"util\");");
     write("var _  = require(\"underscore\");");
     write("var makeNodeId = require(\"node-opcua-nodeid\").makeNodeId;");

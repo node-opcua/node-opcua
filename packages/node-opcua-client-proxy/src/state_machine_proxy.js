@@ -2,7 +2,7 @@
 
 
 var async = require("async");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 /**

@@ -32,7 +32,7 @@ if (!crypto_utils.isFullySupported()) {
     return;
 }
 
-var describe = require("node-opcua-test-helpers/src/resource_leak_detector").describeWithLeakDetector;
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
 
     var server, client, endpointUrl;

@@ -3,7 +3,7 @@ var async = require("async");
 var _ = require("underscore");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 
 var AttributeIds        = require("node-opcua-data-model").AttributeIds;
@@ -27,7 +27,7 @@ var lowerFirstLetter    = require("node-opcua-utils").lowerFirstLetter;
 var VariableIds = require("node-opcua-constants").VariableIds;
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-//xx var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+
 //
 // some server do not expose the ReferenceType Node in their address space
 // ReferenceType are defined by the OPCUA standard and can be prepopulated in the crawler.

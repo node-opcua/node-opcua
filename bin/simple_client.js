@@ -6,7 +6,7 @@ var _ = require("underscore");
 var colors = require("colors");
 var Table = require("easy-table");
 var async = require("async");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var opcua = require("./node-opcua");
 var VariableIds = opcua.VariableIds;

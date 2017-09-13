@@ -15,7 +15,7 @@ var MonitoringMode = subscription_service.MonitoringMode;
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var Enum = require("node-opcua-enum");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
@@ -275,7 +275,8 @@ function Subscription(options) {
 
 util.inherits(Subscription, EventEmitter);
 
-Subscription.registry = new (require("node-opcua-utils/src/objectRegistry").ObjectRegistry)();
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+Subscription.registry = new ObjectRegistry();
 
 Subscription.prototype.getSessionId = function () {
     var self = this;

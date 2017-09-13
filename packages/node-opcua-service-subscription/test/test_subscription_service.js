@@ -1,5 +1,5 @@
 "use strict";
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
@@ -18,7 +18,7 @@ var makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
 var redirectToFile = require("node-opcua-debug").redirectToFile;
 
 describe("testing subscription objects", function () {
-    var encode_decode_round_trip_test = require("node-opcua-generator/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+    var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
 
     it("should encode and decode a CreateSubscriptionRequest", function (done) {
         var request = new subscription_service.CreateSubscriptionRequest({

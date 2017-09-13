@@ -4,7 +4,7 @@
  */
 
 var factories = require("node-opcua-factory");
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var QualifiedName = require("../_generated_/_auto_generated_QualifiedName").QualifiedName;

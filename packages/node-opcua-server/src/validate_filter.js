@@ -1,4 +1,4 @@
-var assert = require("better-assert");
+var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
 var subscription_service = require("node-opcua-service-subscription");
