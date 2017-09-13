@@ -7,9 +7,9 @@ var net = require("net");
 
 
 
-var opcua = require("./node-opcua");
+var opcua = require("node-opcua");
 
-var hexDump = require("../lib/misc/utils").hexDump;
+var hexDump = require("node-opcua-utils").hexDump;
 var MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
 var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 

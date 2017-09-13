@@ -8,12 +8,12 @@ extract_devdep="var a=JSON.parse(fs.readFileSync('package.json','ascii'));consol
 r1="s/.*(require\(\"([^/]*)(\/.*)?\"\)).*/\2/g"
 
 # extract all requires packages used in production from source file
-prod_require=`egrep -s -e "require\(\"[^\.].*\)" -R src _generated_ index.js schemas | sed -E "$r1" | sort | uniq  | grep -Ev $e`
+prod_require=`egrep -s -e "require\(\"[^\.].*\)" -R src _generated_ index.js schemas bin | sed -E "$r1" | sort | uniq  | grep -Ev $e`
 # extract all require packages declared in production from dependencies in package.json
 prod_json=$(node -e "$extract_dep")
 
 # extract all node-opcua related requires in production code
-prod_require_l=`egrep -s -e "require\(\"node-opcua.*\)" -R src _generated_ index.js schemas | sed -E "$r1" | sort | uniq  | grep -Ev $e`
+prod_require_l=`egrep -s -e "require\(\"node-opcua.*\)" -R src _generated_ index.js schemas bin | sed -E "$r1" | sort | uniq  | grep -Ev $e`
 
 dev_require=`egrep -s -e "require\(\"[^\.].*\)" -R test _test_generated test_helpers  generate.js | sed -E "$r1" | sort | uniq  | grep -Ev $e`
 dev_json=$(node -e "$extract_devdep")

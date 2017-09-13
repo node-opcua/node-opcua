@@ -1,3 +1,3 @@
-module.exports = require("../packages/node-opcua");
+module.exports = require("..");
 ////xx module.exports = require("../dist/node-opcua");
 

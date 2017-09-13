@@ -1,5 +1,5 @@
 "use strict";
-var opcua = require("./node-opcua");
+var opcua = require("node-opcua");
 var _ = require("underscore");
 
 Error.stackTraceLimit = Infinity;

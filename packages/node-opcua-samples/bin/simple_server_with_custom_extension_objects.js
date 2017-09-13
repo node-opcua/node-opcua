@@ -2,7 +2,7 @@
 "use strict";
 var _ = require("underscore");
 var path = require("path");
-var opcua = require("./node-opcua");
+var opcua = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 

@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+
+  },
+  "typings": "./node-opcua.d.ts",
   "dependencies": {
+    "node-opcua-assert": "*",
     "node-opcua-address-space": "*",
     "node-opcua-address-space-for-conformance-testing": "*",
     "node-opcua-client": "*",
