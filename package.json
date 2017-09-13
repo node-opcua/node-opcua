@@ -74,7 +74,7 @@
     "@types/node": "^8.0.28",
     "async": "2.5.0",
     "backoff": "2.5.0",
-    "node-opcua-assert": "*",
+    "better-assert": "*",
     "bomstrip": "0.1.4",
     "byline": "5.0.0",
     "colors": "1.1.2",
