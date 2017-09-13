@@ -13,7 +13,6 @@ coverage
 *~
 tmptmp/
 demo/
-_generated_
 code_gen/*.csv
 code_gen/*.xsd
 code_gen/*.wsdl
@@ -28,6 +27,7 @@ Vagrantfile
 .vagrant
 .c9
 output2.bin
+_generated_
 _test_generated_
 pending_*
 schemas/[0-9]*
@@ -51,11 +51,6 @@ code_gen/1.03
 code_gen/old
 out
 bin/crypto_create_CA_config.js
-pki/untrusted
 _source_ignored_
-pki/untrusted/02511dd0a2d0aa96b79961392b5cbc2d6651341d.pem
-pki/untrusted/1e05f856a4c782db9299177a64f6668b725784c9.pem
-pki/untrusted/4545daa397cb3fdf92b4fb0fba84d89e51a68214.pem
-pki/untrusted/70f078a20281a991c18dbe34face921d0c28e014.pem
-pki/untrusted/b1bd5f2bfe75f629dacbf1ac042bad9385ce50fa.pem
+pki
 test_fixtures/
