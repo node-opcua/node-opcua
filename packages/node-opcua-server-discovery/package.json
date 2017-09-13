@@ -15,9 +15,9 @@
     "node-opcua-service-endpoints": "*",
     "node-opcua-service-register-server": "*",
     "node-opcua-status-code": "*",
+    "node-opcua-pki": "0.0.17",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-pki": "0.0.17"
   }
 }

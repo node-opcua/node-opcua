@@ -38,12 +38,12 @@
     "node-opcua-status-code": "*",
     "node-opcua-utils": "*",
     "node-opcua-variant": "*",
+    "node-opcua-pki": "0.0.17",
     "once": "^1.4.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
     "dequeue": "^1.0.5",
-    "node-opcua-pki": "0.0.17",
     "node-opcua-leak-detector": "*",
     "should": "^13.0.1",
     "sinon": "^3.2.1"
