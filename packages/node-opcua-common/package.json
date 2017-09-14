@@ -1,26 +1,25 @@
 {
   "name": "node-opcua-common",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "scripts": {
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
-
   },
   "main": "index.js",
   "dependencies": {
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-basic-types": "0.1.0-0",
     "node-opcua-crypto": "0.0.11",
-    "node-opcua-assert": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-data-model": "*",
-    "node-opcua-service-endpoints": "*",
-    "node-opcua-service-secure-channel":"*",
+    "node-opcua-data-model": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-service-endpoints": "0.1.0-0",
+    "node-opcua-service-secure-channel": "0.1.0-0",
     "underscore": "1.8.3"
   },
   "devDependencies": {
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "0.1.0-0"
   }
 }

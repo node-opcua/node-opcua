@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-object-registry",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,8 @@
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT",
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-debug": "*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-debug": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {

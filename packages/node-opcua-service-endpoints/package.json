@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-service-endpoints",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,16 +9,16 @@
     "generate": "node ./generate"
   },
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-data-model": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-service-secure-channel": "*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-basic-types": "0.1.0-0",
+    "node-opcua-data-model": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-service-secure-channel": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-generator": "*",
+    "node-opcua-generator": "0.1.0-0",
     "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",

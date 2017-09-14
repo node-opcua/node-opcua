@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-transport",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,23 +9,23 @@
     "generate": "node ./generate"
   },
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-binary-stream": "*",
-    "node-opcua-buffer-utils": "*",
-    "node-opcua-chunkmanager": "*",
-    "node-opcua-debug": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-packet-assembler": "*",
-    "node-opcua-status-code": "*",
-    "node-opcua-utils": "*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-basic-types": "0.1.0-0",
+    "node-opcua-binary-stream": "0.1.0-0",
+    "node-opcua-buffer-utils": "0.1.0-0",
+    "node-opcua-chunkmanager": "0.1.0-0",
+    "node-opcua-debug": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-packet-assembler": "0.1.0-0",
+    "node-opcua-status-code": "0.1.0-0",
+    "node-opcua-utils": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
     "colors": "^1.1.2",
-    "node-opcua-debug": "*",
-    "node-opcua-generator": "*",
+    "node-opcua-debug": "0.1.0-0",
+    "node-opcua-generator": "0.1.0-0",
     "should": "^13.0.1",
     "sinon": "^3.2.1"
   },

@@ -1,31 +1,29 @@
 {
   "name": "node-opcua-data-value",
   "main": "./index.js",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "scripts": {
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('_generated_');\"",
     "generate": "node ./generate"
-
   },
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-variant": "*",
-    "node-opcua-utils": "*",
-    "node-opcua-status-code": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-factory":"*",
-    "node-opcua-date-time":"*",
-    "node-opcua-binary-stream":"*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-basic-types": "0.1.0-0",
+    "node-opcua-binary-stream": "0.1.0-0",
+    "node-opcua-date-time": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-status-code": "0.1.0-0",
+    "node-opcua-utils": "0.1.0-0",
+    "node-opcua-variant": "0.1.0-0",
     "underscore": "1.8.3"
-
   },
   "devDependencies": {
-    "node-opcua-numeric-range":"*",
-    "node-opcua-generator": "*",
-    "node-opcua-packet-analyzer": "*",
+    "node-opcua-generator": "0.1.0-0",
+    "node-opcua-numeric-range": "0.1.0-0",
+    "node-opcua-packet-analyzer": "0.1.0-0",
     "should": "^13.0.1"
   }
 }

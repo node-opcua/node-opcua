@@ -1,23 +1,23 @@
 {
   "name": "node-opcua-convert-nodeset-to-javascript",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "scripts": {
     "test": "mocha test"
   },
   "main": "index.js",
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-address-space": "*",
-    "node-opcua-data-model": "*",
-    "node-opcua-utils": "*",
+    "node-opcua-address-space": "0.1.0-0",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-data-model": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-utils": "0.1.0-0",
     "underscore": "1.8.3"
   },
   "devDependencies": {
-    "node-opcua-packet-analyzer": "*",
-    "node-opcua-variant": "*",
+    "node-opcua-packet-analyzer": "0.1.0-0",
+    "node-opcua-variant": "0.1.0-0",
     "should": "^13.0.1"
   }
 }

@@ -1,24 +1,24 @@
 {
   "name": "node-opcua-basic-types",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-binary-stream": "*",
-    "node-opcua-buffer-utils": "*",
-    "node-opcua-date-time": "*",
-    "node-opcua-enum": "*",
-    "node-opcua-guid": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-status-code": "*",
-    "node-opcua-utils": "*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-binary-stream": "0.1.0-0",
+    "node-opcua-buffer-utils": "0.1.0-0",
+    "node-opcua-date-time": "0.1.0-0",
+    "node-opcua-enum": "0.1.0-0",
+    "node-opcua-guid": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-status-code": "0.1.0-0",
+    "node-opcua-utils": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "should": "^13.0.1",
-    "node-opcua-debug": "*"
+    "node-opcua-debug": "0.1.0-0",
+    "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

@@ -1,13 +1,13 @@
 {
   "name": "node-opcua-guid",
   "main": "./src/guid.js",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "scripts": {
     "test": "mocha test"
   },
   "dependencies": {
-    "node-opcua-assert": "*"
+    "node-opcua-assert": "0.1.0-0"
   },
   "devDependencies": {
     "should": "^13.0.1"
