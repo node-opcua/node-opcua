@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-end2end-test",
-  "version": "0.1.0-1",
+  "version": "0.1.0-2",
   "description": "",
   "scripts": {
     "pretest": "node test_helpers/create_certificates.js demo --dev -s",
@@ -13,7 +13,7 @@
     "async": "^2.5.0",
     "colors": "^1.1.2",
     "delayed": "^1.0.1",
-    "node-opcua": "0.1.0-1",
+    "node-opcua": "^0.1.0-2",
     "node-opcua-address-space": "0.1.0-0",
     "node-opcua-address-space-for-conformance-testing": "0.1.0-0",
     "node-opcua-assert": "0.1.0-0",
@@ -26,8 +26,8 @@
     "node-opcua-generator": "0.1.0-0",
     "node-opcua-leak-detector": "0.1.0-0",
     "node-opcua-nodeid": "0.1.0-0",
-    "node-opcua-server": "0.1.0-1",
-    "node-opcua-server-discovery": "0.1.0-1",
+    "node-opcua-server": "^0.1.0-2",
+    "node-opcua-server-discovery": "^0.1.0-2",
     "node-opcua-service-browse": "0.1.0-0",
     "node-opcua-service-filter": "0.1.0-0",
     "node-opcua-service-secure-channel": "0.1.0-0",
