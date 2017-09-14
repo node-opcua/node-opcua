@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-buffer-utils",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "src/buffer_utils.js",
   "scripts": {
@@ -9,9 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "node-opcua-assert": "*"
+    "node-opcua-assert": "0.1.0-0"
   },
   "devDependencies": {
-    "node-opcua-benchmarker": "*"
+    "node-opcua-benchmarker": "0.1.0-0"
   }
 }

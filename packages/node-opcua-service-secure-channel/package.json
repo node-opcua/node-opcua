@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-service-secure-channel",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "./index.js",
   "scripts": {
@@ -9,21 +9,21 @@
     "generate": "node ./generate"
   },
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-data-model": "*",
-    "node-opcua-extension-object": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-nodeid": "*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-basic-types": "0.1.0-0",
+    "node-opcua-data-model": "0.1.0-0",
+    "node-opcua-extension-object": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-binary-stream": "*",
-    "node-opcua-buffer-utils": "*",
-    "node-opcua-debug": "*",
-    "node-opcua-generator": "*",
-    "node-opcua-packet-analyzer": "*",
-    "node-opcua-status-code": "*",
+    "node-opcua-binary-stream": "0.1.0-0",
+    "node-opcua-buffer-utils": "0.1.0-0",
+    "node-opcua-debug": "0.1.0-0",
+    "node-opcua-generator": "0.1.0-0",
+    "node-opcua-packet-analyzer": "0.1.0-0",
+    "node-opcua-status-code": "0.1.0-0",
     "should": "^13.0.1"
   },
   "author": "etienne.rossignon@gadz.org",

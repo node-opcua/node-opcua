@@ -1,15 +1,15 @@
 {
   "name": "node-opcua-schemas",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo no test"
   },
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-factory": "*"
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT"

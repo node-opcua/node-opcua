@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-service-query",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "scripts": {
     "test": "mocha test",
@@ -9,20 +9,20 @@
   },
   "main": "index.js",
   "dependencies": {
-    "node-opcua-assert": "*",
-    "node-opcua-basic-types": "*",
-    "node-opcua-data-model": "*",
-    "node-opcua-factory": "*",
-    "node-opcua-nodeid": "*",
-    "node-opcua-numeric-range": "*",
-    "node-opcua-service-browse": "*",
-    "node-opcua-service-filter": "*",
-    "node-opcua-service-secure-channel": "*",
-    "node-opcua-service-subscription": "*",
-    "node-opcua-service-translate-browse-path": "*",
+    "node-opcua-assert": "0.1.0-0",
+    "node-opcua-basic-types": "0.1.0-0",
+    "node-opcua-data-model": "0.1.0-0",
+    "node-opcua-factory": "0.1.0-0",
+    "node-opcua-nodeid": "0.1.0-0",
+    "node-opcua-numeric-range": "0.1.0-0",
+    "node-opcua-service-browse": "0.1.0-0",
+    "node-opcua-service-filter": "0.1.0-0",
+    "node-opcua-service-secure-channel": "0.1.0-0",
+    "node-opcua-service-subscription": "0.1.0-0",
+    "node-opcua-service-translate-browse-path": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "node-opcua-generator": "*"
+    "node-opcua-generator": "0.1.0-0"
   }
 }

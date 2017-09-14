@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-xml2json",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "main": "src/xml2json.js",
   "scripts": {
@@ -9,13 +9,13 @@
   "dependencies": {
     "bomstrip": "^0.1.4",
     "ltx": "^2.7.1",
-    "node-opcua-assert": "*",
+    "node-opcua-assert": "0.1.0-0",
     "underscore": "^1.8.3"
   },
   "author": "etienne.rossignon@gadz.org",
   "license": "MIT",
   "devDependencies": {
-    "node-opcua-nodesets": "*",
+    "node-opcua-nodesets": "0.1.0-0",
     "should": "^13.0.1"
   }
 }

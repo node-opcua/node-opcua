@@ -1,17 +1,17 @@
 {
   "name": "node-opcua-enum",
-  "version": "0.1.0",
+  "version": "0.1.0-0",
   "description": "",
   "scripts": {
     "test": "mocha test"
   },
   "main": "src/enum.js",
   "dependencies": {
-    "node-opcua-assert": "*"
+    "node-opcua-assert": "0.1.0-0"
   },
   "devDependencies": {
     "enum": "^2.4.0",
-    "node-opcua-benchmarker": "*",
+    "node-opcua-benchmarker": "0.1.0-0",
     "should": "^13.0.1",
     "underscore": "^1.8.3"
   }
