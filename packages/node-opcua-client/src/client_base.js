@@ -56,13 +56,9 @@ function OPCUAClientBase(options) {
 
     EventEmitter.call(this);
 
-    // var default_certificate_file = constructFilename("certificates/client_selfsigned_cert_1024.pem");
-    var default_certificate_file = path.join(__dirname,"../certificates/client_selfsigned_cert_1024.pem");
-    options.certificateFile = options.certificateFile || default_certificate_file;
+    options.certificateFile = options.certificateFile || path.join(__dirname,"../certificates/client_selfsigned_cert_1024.pem");
 
-    //xx var default_private_key_file = constructFilename("certificates/client_key_1024.pem");
-    var default_private_key_file = path.join(__dirname,"../certificates/PKI/own/private/private_key.pem");
-    options.privateKeyFile = options.privateKeyFile || default_private_key_file;
+    options.privateKeyFile = options.privateKeyFile || path.join(__dirname,"../certificates/PKI/own/private/private_key.pem");
 
     // istanbul ignore next
     if(!fs.existsSync(options.certificateFile)) {
