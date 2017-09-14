@@ -1,40 +1,53 @@
 {
-  "name": "node-opcua-service-subscription",
-  "version": "0.1.0-0",
-  "description": "",
-  "main": "./index.js",
-  "scripts": {
-    "test": "mocha test",
-    "clean": "node -e \"require('rimraf').sync('_generated_');\"",
-    "generate": "node ./generate"
-  },
-  "dependencies": {
-    "node-opcua-assert": "0.1.0-0",
-    "node-opcua-basic-types": "0.1.0-0",
-    "node-opcua-data-value": "0.1.0-0",
-    "node-opcua-extension-object": "0.1.0-0",
-    "node-opcua-factory": "0.1.0-0",
-    "node-opcua-nodeid": "0.1.0-0",
-    "node-opcua-service-filter": "0.1.0-0",
-    "node-opcua-service-read": "0.1.0-0",
-    "node-opcua-service-secure-channel": "0.1.0-0",
-    "node-opcua-variant": "0.1.0-0",
-    "underscore": "^1.8.3"
-  },
-  "devDependencies": {
-    "node-opcua-buffer-utils": "0.1.0-0",
-    "node-opcua-data-model": "0.1.0-0",
-    "node-opcua-debug": "0.1.0-0",
-    "node-opcua-generator": "0.1.0-0",
-    "node-opcua-numeric-range": "0.1.0-0",
-    "node-opcua-packet-analyzer": "0.1.0-0",
-    "node-opcua-secure-channel": "0.1.0-0",
-    "node-opcua-service-history": "0.1.0-0",
-    "node-opcua-service-translate-browse-path": "0.1.0-0",
-    "node-opcua-status-code": "0.1.0-0",
-    "node-opcua-variant": "0.1.0-0",
-    "should": "^13.0.1"
-  },
-  "author": "etienne.rossignon@gadz.org",
-  "license": "MIT"
+ "name": "node-opcua-service-subscription",
+ "version": "0.1.0-0",
+ "description": "pure nodejs OPCUA SDK - module -service-subscription",
+ "main": "./index.js",
+ "scripts": {
+  "test": "mocha test",
+  "clean": "node -e \"require('rimraf').sync('_generated_');\"",
+  "generate": "node ./generate"
+ },
+ "dependencies": {
+  "node-opcua-assert": "0.1.0-0",
+  "node-opcua-basic-types": "0.1.0-0",
+  "node-opcua-data-value": "0.1.0-0",
+  "node-opcua-extension-object": "0.1.0-0",
+  "node-opcua-factory": "0.1.0-0",
+  "node-opcua-nodeid": "0.1.0-0",
+  "node-opcua-service-filter": "0.1.0-0",
+  "node-opcua-service-read": "0.1.0-0",
+  "node-opcua-service-secure-channel": "0.1.0-0",
+  "node-opcua-variant": "0.1.0-0",
+  "underscore": "^1.8.3"
+ },
+ "devDependencies": {
+  "node-opcua-buffer-utils": "0.1.0-0",
+  "node-opcua-data-model": "0.1.0-0",
+  "node-opcua-debug": "0.1.0-0",
+  "node-opcua-generator": "0.1.0-0",
+  "node-opcua-numeric-range": "0.1.0-0",
+  "node-opcua-packet-analyzer": "0.1.0-0",
+  "node-opcua-secure-channel": "0.1.0-0",
+  "node-opcua-service-history": "0.1.0-0",
+  "node-opcua-service-translate-browse-path": "0.1.0-0",
+  "node-opcua-status-code": "0.1.0-0",
+  "node-opcua-variant": "0.1.0-0",
+  "should": "^13.0.1"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
 }

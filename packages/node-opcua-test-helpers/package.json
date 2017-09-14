@@ -1,14 +1,27 @@
 {
-  "name": "node-opcua-test-helpers",
-  "version": "0.1.0-0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo no test"
-  },
-  "author": "etienne.rossignon@gadz.org",
-  "license": "MIT",
-  "dependencies": {
-    "underscore": "^1.8.3"
-  }
+ "name": "node-opcua-test-helpers",
+ "version": "0.1.0-0",
+ "description": "pure nodejs OPCUA SDK - module -test-helpers",
+ "main": "index.js",
+ "scripts": {
+  "test": "echo no test"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "dependencies": {
+  "underscore": "^1.8.3"
+ },
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
 }

@@ -1,17 +1,30 @@
 {
-  "name": "node-opcua-extension-object",
-  "version": "0.1.0-0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha test"
-  },
-  "dependencies": {
-    "node-opcua-assert": "0.1.0-0",
-    "node-opcua-basic-types": "0.1.0-0",
-    "node-opcua-factory": "0.1.0-0",
-    "node-opcua-nodeid": "0.1.0-0"
-  },
-  "author": "etienne.rossignon@gadz.org",
-  "license": "MIT"
+ "name": "node-opcua-extension-object",
+ "version": "0.1.0-0",
+ "description": "pure nodejs OPCUA SDK - module -extension-object",
+ "main": "index.js",
+ "scripts": {
+  "test": "mocha test"
+ },
+ "dependencies": {
+  "node-opcua-assert": "0.1.0-0",
+  "node-opcua-basic-types": "0.1.0-0",
+  "node-opcua-factory": "0.1.0-0",
+  "node-opcua-nodeid": "0.1.0-0"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
 }
