@@ -131,8 +131,8 @@ var OPCUAServerEndPoint = require("./server_end_point").OPCUAServerEndPoint;
 
 var OPCUABaseServer = require("./base_server").OPCUABaseServer;
 
-var async = require("async");
 var OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
+var exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
 
 
 
@@ -693,7 +693,6 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         if (!clientCertificate || clientCertificate.length === 0) {
             return true;// can't check
         }
-        var exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
         var e = exploreCertificate(clientCertificate);
         var applicationUriFromCert = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
         return applicationUriFromCert === applicationUri;
@@ -2566,7 +2565,10 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
     var self = this;
     assert(self.serverType, " must have a valid server Type");
 
-    var client = new OPCUAClientBase();
+    var client = new OPCUAClientBase({
+        certificateFile: self.certificateFile,
+        privateKeyFile:  self.privateKeyFile
+    });
 
     var discoveryServerCertificateChain = null;
 

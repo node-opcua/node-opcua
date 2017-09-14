@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 /*
  * write a file to the console, preserving the Ansi color decoration
