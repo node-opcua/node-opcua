@@ -1,15 +1,15 @@
 {
  "name": "node-opcua-schemas",
- "version": "0.1.0-0",
+ "version": "0.1.0-3",
  "description": "pure nodejs OPCUA SDK - module -schemas",
  "main": "index.js",
  "scripts": {
   "test": "echo no test"
  },
  "dependencies": {
-  "node-opcua-assert": "0.1.0-0",
-  "node-opcua-factory": "0.1.0-0",
-  "node-opcua-nodeid": "0.1.0-0"
+  "node-opcua-assert": "^0.1.0-3",
+  "node-opcua-factory": "^0.1.0-3",
+  "node-opcua-nodeid": "^0.1.0-3"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
