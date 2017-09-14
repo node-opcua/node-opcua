@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-register-node",
- "version": "0.1.0-3",
+ "version": "0.1.0-4",
  "description": "pure nodejs OPCUA SDK - module -service-register-node",
  "scripts": {
   "test": "mocha test",
@@ -9,15 +9,15 @@
  },
  "main": "index.js",
  "dependencies": {
-  "node-opcua-assert": "^0.1.0-3",
-  "node-opcua-basic-types": "^0.1.0-3",
-  "node-opcua-factory": "^0.1.0-3",
-  "node-opcua-nodeid": "^0.1.0-3",
-  "node-opcua-service-secure-channel": "^0.1.0-3",
+  "node-opcua-assert": "^0.1.0-4",
+  "node-opcua-basic-types": "^0.1.0-4",
+  "node-opcua-factory": "^0.1.0-4",
+  "node-opcua-nodeid": "^0.1.0-4",
+  "node-opcua-service-secure-channel": "^0.1.0-4",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.1.0-3"
+  "node-opcua-generator": "^0.1.0-4"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

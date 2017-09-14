@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-transport",
- "version": "0.1.0-3",
+ "version": "0.1.0-4",
  "description": "pure nodejs OPCUA SDK - module -transport",
  "main": "index.js",
  "scripts": {
@@ -9,23 +9,23 @@
   "generate": "node ./generate"
  },
  "dependencies": {
-  "node-opcua-assert": "^0.1.0-3",
-  "node-opcua-basic-types": "^0.1.0-3",
-  "node-opcua-binary-stream": "^0.1.0-3",
-  "node-opcua-buffer-utils": "^0.1.0-3",
-  "node-opcua-chunkmanager": "^0.1.0-3",
-  "node-opcua-debug": "^0.1.0-3",
-  "node-opcua-factory": "^0.1.0-3",
-  "node-opcua-nodeid": "^0.1.0-3",
-  "node-opcua-packet-assembler": "^0.1.0-3",
-  "node-opcua-status-code": "^0.1.0-3",
-  "node-opcua-utils": "^0.1.0-3",
+  "node-opcua-assert": "^0.1.0-4",
+  "node-opcua-basic-types": "^0.1.0-4",
+  "node-opcua-binary-stream": "^0.1.0-4",
+  "node-opcua-buffer-utils": "^0.1.0-4",
+  "node-opcua-chunkmanager": "^0.1.0-4",
+  "node-opcua-debug": "^0.1.0-4",
+  "node-opcua-factory": "^0.1.0-4",
+  "node-opcua-nodeid": "^0.1.0-4",
+  "node-opcua-packet-assembler": "^0.1.0-4",
+  "node-opcua-status-code": "^0.1.0-4",
+  "node-opcua-utils": "^0.1.0-4",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
   "colors": "^1.1.2",
-  "node-opcua-debug": "^0.1.0-3",
-  "node-opcua-generator": "^0.1.0-3",
+  "node-opcua-debug": "^0.1.0-4",
+  "node-opcua-generator": "^0.1.0-4",
   "should": "^13.0.1",
   "sinon": "^3.2.1"
  },
