@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-server",
-  "version": "0.1.0-0",
+  "version": "0.1.0-1",
   "description": "",
   "scripts": {
     "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
@@ -15,7 +15,7 @@
     "node-opcua-address-space": "0.1.0-0",
     "node-opcua-assert": "0.1.0-0",
     "node-opcua-basic-types": "0.1.0-0",
-    "node-opcua-client": "0.1.0-0",
+    "node-opcua-client": "0.1.0-1",
     "node-opcua-common": "0.1.0-0",
     "node-opcua-constants": "0.1.0-0",
     "node-opcua-crypto": "0.0.11",

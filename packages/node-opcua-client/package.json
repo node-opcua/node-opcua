@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-client",
-  "version": "0.1.0-0",
+  "version": "0.1.0-1",
   "description": "",
   "scripts": {
     "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_1024.pem",
