@@ -88,13 +88,8 @@ function OPCUABaseServer(options) {
     self.endpoints = [];
     self.options = options;
 
-    var default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
-    options.certificateFile = options.certificateFile || default_certificate_file;
-
-    // C:\projects\NodeOPCUA\node-opcua-new-layout\packages\node-opcua-server\certificates\PKI\own\private\private_key.pem
-
-    var default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
-    options.privateKeyFile = options.privateKeyFile || default_private_key_file;
+    options.certificateFile = options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
+    options.privateKeyFile = options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
 
     OPCUASecureObject.call(this, options);
 
