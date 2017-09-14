@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-server-discovery",
-  "version": "0.1.0-1",
+  "version": "0.1.0-2",
   "description": "",
   "scripts": {
     "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
@@ -12,7 +12,7 @@
     "node-opcua-common": "0.1.0-0",
     "node-opcua-hostname": "0.1.0-0",
     "node-opcua-pki": "0.0.17",
-    "node-opcua-server": "0.1.0-1",
+    "node-opcua-server": "^0.1.0-2",
     "node-opcua-service-endpoints": "0.1.0-0",
     "node-opcua-service-register-server": "0.1.0-0",
     "node-opcua-status-code": "0.1.0-0",
