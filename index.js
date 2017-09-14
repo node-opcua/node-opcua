@@ -1,1 +1,1 @@
-module.exports = require("./package/node-opcua");
+module.exports = require("./packages/node-opcua");
