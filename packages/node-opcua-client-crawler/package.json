@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-client-crawler",
- "version": "0.1.0-1",
+ "version": "0.1.0-3",
  "description": "pure nodejs OPCUA SDK - module -client-crawler",
  "scripts": {
   "test": "mocha test"
@@ -8,15 +8,15 @@
  "main": "index.js",
  "dependencies": {
   "async": "^2.5.0",
-  "node-opcua-assert": "0.1.0-0",
-  "node-opcua-client": "0.1.0-1",
-  "node-opcua-constants": "0.1.0-0",
-  "node-opcua-data-model": "0.1.0-0",
-  "node-opcua-debug": "0.1.0-0",
-  "node-opcua-nodeid": "0.1.0-0",
-  "node-opcua-service-browse": "0.1.0-0",
-  "node-opcua-status-code": "0.1.0-0",
-  "node-opcua-utils": "0.1.0-0",
+  "node-opcua-assert": "^0.1.0-3",
+  "node-opcua-client": "^0.1.0-3",
+  "node-opcua-constants": "^0.1.0-3",
+  "node-opcua-data-model": "^0.1.0-3",
+  "node-opcua-debug": "^0.1.0-3",
+  "node-opcua-nodeid": "^0.1.0-3",
+  "node-opcua-service-browse": "^0.1.0-3",
+  "node-opcua-status-code": "^0.1.0-3",
+  "node-opcua-utils": "^0.1.0-3",
   "underscore": "^1.8.3"
  },
  "author": "Etienne Rossignon",
