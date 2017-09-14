@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
  /*global require,setInterval,console */
 var path = require("path");
