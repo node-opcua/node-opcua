@@ -304,7 +304,7 @@ var makeNodeId = function makeNodeId(value, namespace) {
         } else {
             identifierType = NodeIdType.STRING;
             // detect accidental string of form "ns=x;x";
-            assert(value.indexOf(";") === -1, " makeNodeId(string) ? did you mean using coerceNodeId instead? ");
+            assert(value.indexOf("ns=") === -1, " makeNodeId(string) ? did you mean using coerceNodeId instead? ");
         }
     } else if (value instanceof Buffer) {
         identifierType = NodeIdType.BYTESTRING;

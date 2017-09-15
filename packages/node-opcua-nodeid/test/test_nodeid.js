@@ -340,6 +340,25 @@ describe("testing NodeId.displayText", function () {
 
 });
 
+describe("issue#372 coercing & making nodeid string containing semi-column", function () {
+
+    it("should coerce a nodeid string containing a semi-column", function () {
+
+        var nodeId = coerceNodeId("ns=0;s=my;nodeid;with;semicolum");
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.value.should.be.eql("my;nodeid;with;semicolum");
+
+    });
+
+    it("should make a nodeid as a string containing semi-column",function() {
+
+        var nodeId = makeNodeId("my;nodeid;with;semicolum");
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.value.should.be.eql("my;nodeid;with;semicolum");
+
+    });
+
+});
 
 
 
