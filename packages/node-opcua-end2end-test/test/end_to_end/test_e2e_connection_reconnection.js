@@ -720,9 +720,8 @@ describe("testing ability for client to reconnect when server close connection",
     }
 
     function wait_a_little_while(done) {
-        wait_for(600, done);
+        wait_for(800, done);
     }
-
     var client = null;
     var client_has_received_close_event;
     var client_has_received_start_reconnection_event;
@@ -1069,9 +1068,10 @@ describe("testing ability for client to reconnect when server close connection",
 
     var values_to_check = [];
 
+    var monitoredItem = null;
     function monitor_monotonous_counter(callback) {
 
-        var monitoredItem = subscription.monitor(
+        monitoredItem = subscription.monitor(
           {
               // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
               nodeId: counterNode.nodeId,
@@ -1094,6 +1094,10 @@ describe("testing ability for client to reconnect when server close connection",
             //xx console.log(" client ", " received value change ", dataValue.value.toString());
             values_to_check.push(dataValue.value.value);
         });
+    }
+
+    function wait_until_next_notification(done) {
+        monitoredItem.once("changed",function() { setImmediate(done); });
     }
 
     var previous_value_count = 0;
@@ -1157,6 +1161,7 @@ describe("testing ability for client to reconnect when server close connection",
         //xx assert(subscriptionKeys.length === 1);
         return session.publishEngine._subscriptions[subscriptionKeys[0]];
     }
+
 
     function wait_until_server_subscription_has_timed_out(callback) {
 
@@ -1228,13 +1233,13 @@ describe("testing ability for client to reconnect when server close connection",
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             // now drop connection  for 1.5 seconds
@@ -1242,10 +1247,10 @@ describe("testing ability for client to reconnect when server close connection",
             // make sure that we have received all notifications
             // (thanks to republish )
 
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
