@@ -2,12 +2,16 @@
 // Project: https://github.com/node-opcua/node-opcua
 // Definitions by: Etienne Rossignon
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+
+import {StatusCode, StatusCodes } from "./StatusCode"
+export {StatusCode, StatusCodes } from "./StatusCode"
+
 export interface ErrorCallback {
     (err?: Error): void;
 }
 
 export interface ResponseCallback<T> {
-    (err?: Error| null, response?: T): void;
+    (err?: Error | null, response?: T): void;
 }
 export declare enum MessageSecurityMode {
     INVALID,        // The MessageSecurityMode is invalid
@@ -29,18 +33,18 @@ export declare enum SecurityPolicy {
 export interface OPCUAClientOptions {
 
     defaultSecureTokenLiveTime?: number, //default secure token lifetime in ms
-    serverCertificate?: any , // =null] {Certificate} the server certificate.
+    serverCertificate?: any, // =null] {Certificate} the server certificate.
     connectionStrategy?: {
         maxRetry?: number,
         initialDelay?: number,
         maxDelay?: number,
         randomisationFactor?: number
     },
-// {MessageSecurityMode} the default security mode.
+    // {MessageSecurityMode} the default security mode.
     securityMode?: any, //  MessageSecurityMode, // [ =  MessageSecurityMode.None]
-    securityPolicy?: number|string, // : SecurityPolicy,//  =SecurityPolicy.NONE] {SecurityPolicy} the security mode.
+    securityPolicy?: number | string, // : SecurityPolicy,//  =SecurityPolicy.NONE] {SecurityPolicy} the security mode.
     requestedSessionTimeout?: number, //= 60000]            {Number} the requested session time out in CreateSession
-    applicationName?: string ,// ="NodeOPCUA-Client"]        {string} the client application name
+    applicationName?: string,// ="NodeOPCUA-Client"]        {string} the client application name
     endpoint_must_exist?: boolean, // true] {Boolean} set to false if the client should accept server endpoint mismatch
     keepSessionAlive?: boolean,//=false]{Boolean}
     certificateFile?: string, // "certificates/client_selfsigned_cert_1024.pem"] {String} client certificate pem file.
@@ -62,7 +66,7 @@ export declare class OPCUAClientBase {
     /**
      *
      */
-    serverCertificate: Uint8Array| null;
+    serverCertificate: Uint8Array | null;
 
     /**
      *
@@ -71,12 +75,12 @@ export declare class OPCUAClientBase {
      * @param callback
      */
     connect(endpointUrl: string,
-            callback: ErrorCallback): void;
+        callback: ErrorCallback): void;
 
     disconnect(callback: ErrorCallback): void;
 
     performMessageTransaction(request: any,
-                              callback: ResponseCallback<any>): void;
+        callback: ResponseCallback<any>): void;
 
     on(event: string, eventhandler: Function): void;
 }
@@ -126,15 +130,15 @@ export interface BrowseResult {
     references: Array<ReferenceDescription>
 }
 
-type CoercibleToBrowseDescription = string | BrowseDescription ;
+type CoercibleToBrowseDescription = string | BrowseDescription;
 
 export declare interface ClientSession {
 
-    browse(nodeToBrowse:CoercibleToBrowseDescription,
-           callback: ResponseCallback<BrowseResponse>):void;
+    browse(nodeToBrowse: CoercibleToBrowseDescription,
+        callback: ResponseCallback<BrowseResponse>): void;
 
     browse(nodeToBrowse: Array<CoercibleToBrowseDescription>,
-           callback: ResponseCallback<Array<BrowseResponse> >):void;
+        callback: ResponseCallback<Array<BrowseResponse>>): void;
 
     writeSingleNode(path: string, value: Variant, callback: Function): void;
 
@@ -156,39 +160,39 @@ export declare class OPCUAClient extends OPCUAClientBase {
     constructor(options: OPCUAClientOptions);
 
     createSession(userIdentityInfo: UserIdentityInfo,
-                  callback: ResponseCallback<ClientSession>): void;
+        callback: ResponseCallback<ClientSession>): void;
 
     createSession(callback: ResponseCallback<ClientSession>): void;
 
     closeSession(session: ClientSession,
-                 deleteSubscriptions: boolean,
-                 callback: (err: Error|null) => void): void;
+        deleteSubscriptions: boolean,
+        callback: (err: Error | null) => void): void;
 
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-declare type ValidUserFunc = (username:string,password:string) => boolean;
-declare type ValidUserAsyncFunc = (username:string,password:string,callback:Function)=>void;
+declare type ValidUserFunc = (username: string, password: string) => boolean;
+declare type ValidUserAsyncFunc = (username: string, password: string, callback: Function) => void;
 
 export interface OPCUAServerOptions {
-   defaultSecureTokenLifetime? : number, // the default secure token life time in ms.
-   timeout? :number,                     // (default:10000)    the HEL/ACK transaction timeout in ms. Use a large value
-                                         // ( i.e 15000 ms) for slow connections or embedded devices.
-   port?: number,                        //  (default:26543)            the TCP port to listen to.
-   maxAllowedSessionNumber?:number,      //(deafult:10) the maximum number of concurrent sessions allowed.
+    defaultSecureTokenLifetime?: number, // the default secure token life time in ms.
+    timeout?: number,                     // (default:10000)    the HEL/ACK transaction timeout in ms. Use a large value
+    // ( i.e 15000 ms) for slow connections or embedded devices.
+    port?: number,                        //  (default:26543)            the TCP port to listen to.
+    maxAllowedSessionNumber?: number,      //(deafult:10) the maximum number of concurrent sessions allowed.
 
-    nodeset_filename?: Array<string>|string, // the nodeset.xml file(s) to load
+    nodeset_filename?: Array<string> | string, // the nodeset.xml file(s) to load
     serverInfo?: {                       //  the information used in the end point description
         applicationUri?: string,         //  (default "urn:NodeOPCUA-Server")
         productUri?: string,             // = "NodeOPCUA-Server"]{String}
-        applicationName?: LocalizedText|string, // "applicationName"}]{LocalizedText}
+        applicationName?: LocalizedText | string, // "applicationName"}]{LocalizedText}
         gatewayServerUri?: string,
         discoveryProfileUri?: string
         discoveryUrls?: Array<string>
     },
-    securityPolicies?:  Array<SecurityPolicy>,      // SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
-    securityModes?:     Array<MessageSecurityMode>, // MessageSecurityMode.NONE,MessageSecurityMode.SIGN,MessageSecurityMode.SIGNANDENCRYPT]]
-    allowAnonymous?:    boolean,             // [default = true] tells if the server default endpoints should allow anonymous connection.
+    securityPolicies?: Array<SecurityPolicy>,      // SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
+    securityModes?: Array<MessageSecurityMode>, // MessageSecurityMode.NONE,MessageSecurityMode.SIGN,MessageSecurityMode.SIGNANDENCRYPT]]
+    allowAnonymous?: boolean,             // [default = true] tells if the server default endpoints should allow anonymous connection.
     userManager?: {                          // an object that implements user authentication methods
         isValidUser?: ValidUserFunc,          // synchronous function to check the credentials - can be overruled by isValidUserAsync
         isValidUserAsync?: ValidUserAsyncFunc // asynchronous function to check if the credentials - overrules isValidUser
@@ -217,19 +221,42 @@ export declare class BrowseName {
 }
 
 export declare enum DataType {
-    Boolean,
-    Uint16,
-    Uint32,
-    Int16,
-    Int32,
-    Float,
-    Double
-    // to be continued ...
+    Null = 0,
+    Boolean = 1,
+    SByte = 2, // signed Byte = Int8
+    Byte = 3, // unsigned Byte = UInt8
+    Int16 = 4,
+    UInt16 = 5,
+    Int32 = 6,
+    UInt32 = 7,
+    Int64 = 8,
+    UInt64 = 9,
+    Float = 10,
+    Double = 11,
+    String = 12,
+    DateTime = 13,
+    Guid = 14,
+    ByteString = 15,
+    XmlElement = 16,
+    NodeId = 17,
+    ExpandedNodeId = 18,
+    StatusCode = 19,
+    QualifiedName = 20,
+    LocalizedText = 21,
+    ExtensionObject = 22,
+    DataValue = 23,
+    Variant = 24,
+    DiagnosticInfo = 25
 }
 
+export declare enum VariantArrayType {
+    Scalar = 0x00,
+    Array = 0x01,
+    Matrix = 0x02
+}
 export declare interface AddReferenceOpts {
-    referenceType: string|NodeId;
-    nodeId:  NodeId|string;
+    referenceType: string | NodeId;
+    nodeId: NodeId | string;
 }
 export declare class UAReference {
 
@@ -237,7 +264,7 @@ export declare class UAReference {
 
 export declare class BaseNode {
 
-    browseName : BrowseName;
+    browseName: BrowseName;
     addReference(options: AddReferenceOpts): UAReference;
 
 }
@@ -251,32 +278,30 @@ export declare class UAAnalogItem extends UAVariable {
 
 }
 
-declare interface StatusCode {
-    Good:any,
-    BadWaitingForInitialData:any
-    // to be continued
-}
 export interface VariantOpts {
-    dataType: DataType;
-    value: any;
+    dataType?: DataType;
+    value?: any;
+    arrayType?: VariantArrayType;
+    dimensions?: number[];
 }
 
-export declare class Variant implements VariantOpts {
+export declare class Variant {
     constructor(options: VariantOpts)
     dataType: DataType;
     value: any;
-
+    arrayType: VariantArrayType;
+    dimensions: number[];
 }
 declare interface DataValueOpts {
-    value: Variant;
-    sourceTimestamp: Date;
-    serverTimestamp: Date;
-    sourcePicosecond: number;
-    serverPicosecond: number;
-    statusCode: StatusCode;
+    value?: Variant;
+    sourceTimestamp?: Date;
+    serverTimestamp?: Date;
+    sourcePicosecond?: number;
+    serverPicosecond?: number;
+    statusCode?: StatusCode;
 }
 
-export declare class DataValue implements DataValueOpts {
+export declare class DataValue {
     constructor(options: DataValueOpts);
     value: Variant;
     sourceTimestamp: Date;
@@ -288,16 +313,16 @@ export declare class DataValue implements DataValueOpts {
 
 export interface _AddNodeOpts {
     browseName: string;
-    organizedBy?: NodeId|BaseNode;
-    nodeId?: string|NodeId;
+    organizedBy?: NodeId | BaseNode;
+    nodeId?: string | NodeId;
 }
 
 export interface AddVariableOpts extends _AddNodeOpts {
-    dataType: string|DataType;
+    dataType: string | DataType;
     value: {
-        get?: ()=>Variant,
-        timestamp_get?: ()=>DataValue,
-        refreshFunc?: (err:null|Error,dataValue?: DataValue)=>void;
+        get?: () => Variant,
+        timestamp_get?: () => DataValue,
+        refreshFunc?: (err: null | Error, dataValue?: DataValue) => void;
     }
 }
 export enum EUEngineeringUnit {
@@ -306,7 +331,7 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
-export interface AddAnalogDataItemOpts extends _AddNodeOpts{
+export interface AddAnalogDataItemOpts extends _AddNodeOpts {
     definition: string; // exemple  "(tempA -25) + tempB",
     valuePrecision: number; // 0.5,
     engineeringUnitsRange: {
@@ -321,18 +346,18 @@ export interface AddAnalogDataItemOpts extends _AddNodeOpts{
 }
 export declare class AddressSpace {
 
-    find(node: NodeId|string): BaseNode;
+    find(node: NodeId | string): BaseNode;
 
     addVariable(options: AddVariableOpts): UAVariable;
 
     addAnalogDataItem(options: AddAnalogDataItemOpts): UAAnalogItem;
 
-    addView(options: _AddNodeOpts):   UAView;
+    addView(options: _AddNodeOpts): UAView;
 
 }
 
 //xx declare type BuildInfo;
-export declare class ServerEngine{
+export declare class ServerEngine {
     addressSpace: AddressSpace;
 }
 export declare class OPCUAServer {
@@ -360,7 +385,7 @@ export declare class OPCUAServer {
 
     engine: ServerEngine;
 
-    setServerState(serverState:ServerState):void;
+    setServerState(serverState: ServerState): void;
 
     start(callback: (error: Error) => void): void;
 
@@ -372,7 +397,7 @@ export declare class OPCUAServer {
 
 export declare class ClientMonitoredItem {
     terminate(callback: Function): void;
-    on(event: string, eventhandler: (v:Variant) => void): void;
+    on(event: string, eventhandler: (v: Variant) => void): void;
 }
 
 export interface TimestampsToReturn {
