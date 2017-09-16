@@ -7,6 +7,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
 [![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
 [![Build status](https://ci.appveyor.com/api/projects/status/8sgtm3n15aii98oc/branch/master?svg=true)](https://ci.appveyor.com/project/erossignon/node-opcua/branch/master)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnode-opcua%2Fnode-opcua.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnode-opcua%2Fnode-opcua?ref=badge_shield)
 
 [![Dependency Status](https://gemnasium.com/node-opcua/node-opcua.png)](https://gemnasium.com/node-opcua/node-opcua)
 [![Coverage Status](https://coveralls.io/repos/node-opcua/node-opcua/badge.png)](https://coveralls.io/r/node-opcua/node-opcua)
@@ -204,3 +205,7 @@ Feedback
   
   * if you have a particular wish or found a issue, let us known and [create an issue](https://github.com/node-opcua/node-opcua/issues?state=open)
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnode-opcua%2Fnode-opcua.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnode-opcua%2Fnode-opcua?ref=badge_large)
