@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-query",
- "version": "0.1.0-4",
+ "version": "0.1.0-5",
  "description": "pure nodejs OPCUA SDK - module -service-query",
  "scripts": {
   "test": "mocha test",
@@ -10,20 +10,20 @@
  "main": "index.js",
  "dependencies": {
   "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-basic-types": "^0.1.0-4",
-  "node-opcua-data-model": "^0.1.0-4",
-  "node-opcua-factory": "^0.1.0-4",
-  "node-opcua-nodeid": "^0.1.0-4",
-  "node-opcua-numeric-range": "^0.1.0-4",
-  "node-opcua-service-browse": "^0.1.0-4",
-  "node-opcua-service-filter": "^0.1.0-4",
-  "node-opcua-service-secure-channel": "^0.1.0-4",
-  "node-opcua-service-subscription": "^0.1.0-4",
-  "node-opcua-service-translate-browse-path": "^0.1.0-4",
+  "node-opcua-basic-types": "^0.1.0-5",
+  "node-opcua-data-model": "^0.1.0-5",
+  "node-opcua-factory": "^0.1.0-5",
+  "node-opcua-nodeid": "^0.1.0-5",
+  "node-opcua-numeric-range": "^0.1.0-5",
+  "node-opcua-service-browse": "^0.1.0-5",
+  "node-opcua-service-filter": "^0.1.0-5",
+  "node-opcua-service-secure-channel": "^0.1.0-5",
+  "node-opcua-service-subscription": "^0.1.0-5",
+  "node-opcua-service-translate-browse-path": "^0.1.0-5",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.1.0-4"
+  "node-opcua-generator": "^0.1.0-5"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
