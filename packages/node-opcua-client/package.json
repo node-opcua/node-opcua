@@ -3,6 +3,7 @@
  "version": "0.1.0-5",
  "description": "pure nodejs OPCUA SDK - module -client",
  "scripts": {
+  "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_1024.pem",
   "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_1024.pem",
   "clean": "node -e \"require('rimraf').sync('certificates');\"",
   "test": "mocha test"
