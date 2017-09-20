@@ -25,7 +25,9 @@ module.exports = {
     // alarms & conditions
     ConditionInfo: require("./src/alarms_and_conditions/condition").ConditionInfo,
     ConditionSnapshot: require("./src/alarms_and_conditions/condition").ConditionSnapshot,
-
+    UADiscreteAlarm: require("./src/alarms_and_conditions/discrete_alarm").UADiscreteAlarm,
+    UANonExclusiveLimitAlarm: require("./src/alarms_and_conditions/non_exclusive_limit_alarm").UANonExclusiveLimitAlarm,
+    
 
     checkSelectClauses: require("./src/check_event_clause").checkSelectClauses,
     checkSelectClause: require("./src/check_event_clause").checkSelectClause,

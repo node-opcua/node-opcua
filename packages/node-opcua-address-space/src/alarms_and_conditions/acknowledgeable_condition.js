@@ -296,7 +296,7 @@ UAAcknowledgeableConditionBase.prototype._confirm_branch = function _confirm_bra
     assert(comment instanceof LocalizedText);
 
     var conditionNode = this;
-    var eventId = branch.getEventId();
+    //xx var eventId = branch.getEventId();
     assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
     branch.setConfirmedState(true);
     branch.setRetain(false);

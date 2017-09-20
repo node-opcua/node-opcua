@@ -416,7 +416,12 @@ function _unShelveTimeFunc(shelvingState) {
 
 /**
  * @method getInputNodeNode
- * @return {BaseNode}
+ * @return {BaseNode} return the node in the address space pointed by the inputNode value
+ * 
+ * Note: please note the difference between alarm.inputNode
+ *    *  alarm.inputNode is a UAVariable property of the alarm object holding the nodeid of the input node in its value.
+ *    *  getInputNodeNode() is the UAVariable that contains the value that affects the state of the alarm and 
+ *       whose node id is stored in alarm.inputNode
  */
 UAAlarmConditionBase.prototype.getInputNodeNode = function () {
     var nodeId = this.inputNode.readValue().value.value;
@@ -435,6 +440,62 @@ UAAlarmConditionBase.prototype.getInputNodeValue = function () {
     }
     assert(node instanceof UAVariable);
     return node.readValue().value.value;
+};
+
+UAAlarmConditionBase.prototype.updateState = function () {
+    var alarm = this;
+    var dataValue = alarm.getInputNodeNode().readValue();
+    alarm._onInputDataValueChange(dataValue);
+};
+
+UAAlarmConditionBase.prototype._onInputDataValueChange = function(newValue) {
+    //xx console.log("class=",this.constructor.name,this.browseName.toString());
+    //xx throw new Error("_onInputDataValueChange must be overridden");
+};
+/**
+ * install mechanism that listen to input node datavalue changes so that alarm status
+ * can be automatically updated appropriatly.
+ * @protected  
+ */
+UAAlarmConditionBase.prototype._installInputNodeMonitoring = function(inputNode) {
+    var alarm = this;
+    /**
+     *
+     *
+     * The InputNode Property provides the NodeId of the Variable the Value of which is used as
+     * primary input in the calculation of the Alarm state. If this Variable is not in the AddressSpace,
+     * a Null NodeId shall be provided. In some systems, an Alarm may be calculated based on
+     * multiple Variables Values; it is up to the system to determine which Variable’s NodeId is used.
+     * @property inputNode
+     * @type     UAVariable
+     * dataType is DataType.NodeId
+     */
+    assert(alarm.inputNode instanceof UAVariable);
+  
+
+    var addressSpace = this.addressSpace;
+    assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
+    
+    if (inputNode === NodeId.NullNodeId) {
+    
+        alarm.inputNode.setValueFromSource({dataType: DataType.NodeId, value: NodeId.NullNodeId});
+    
+    } else {
+
+        alarm.inputNode.setValueFromSource({ dataType: "NodeId", value: inputNode.nodeId });
+
+        var _node = addressSpace._coerceNode(inputNode);
+        if (!_node) {
+            console.log(" cannot find nodeId ",inputNode);
+        }
+        assert(_node, "Expecting a valid input node");
+        alarm.inputNode.setValueFromSource({dataType: DataType.NodeId, value: _node.nodeId});
+        alarm.getInputNodeNode().on("value_changed", function (newDataValue, oldDataValue) {
+            alarm._onInputDataValueChange(newDataValue);
+        });
+    }
+
+
 };
 
 exports.UAAlarmConditionBase = UAAlarmConditionBase;
@@ -576,16 +637,9 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
 
     // ---------- install inputNode
     assert(options.inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
-    if (options.inputNode === NodeId.NullNodeId) {
-        alarmNode.inputNode.setValueFromSource({dataType: DataType.NodeId, value: options.inputNode});
-    } else {
-        var inputNode = addressSpace._coerceNode(options.inputNode);
-        assert(inputNode, "Expecting a valid input node");
-        alarmNode.inputNode.setValueFromSource({dataType: DataType.NodeId, value: inputNode.nodeId});
-    }
+    alarmNode._installInputNodeMonitoring(options.inputNode);
 
     assert(alarmNode instanceof UAAcknowledgeableConditionBase);
     assert(alarmNode instanceof UAAlarmConditionBase);
     return alarmNode;
 };
-

@@ -14,7 +14,7 @@ var DataType = require("node-opcua-variant").DataType;
 var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
 var UAVariable = require("../ua_variable").UAVariable;
 var ConditionInfo = require("./condition").ConditionInfo;
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var NodeId = require("node-opcua-nodeid").NodeId;
 
 
@@ -70,7 +70,7 @@ UALimitAlarm.prototype.getLowLowLimit = function () {
  */
 UALimitAlarm.prototype.setHighHighLimit = function (value) {
     assert(this.highHighLimit, "LimitAlarm instance must expose the optional HighHighLimit property");
-    this.highHighLimit.setValueFromSource({dataType: this._dataType, value: value});
+    this.highHighLimit.setValueFromSource({ dataType: this._dataType, value: value });
 
 };
 
@@ -80,7 +80,7 @@ UALimitAlarm.prototype.setHighHighLimit = function (value) {
  */
 UALimitAlarm.prototype.setHighLimit = function (value) {
     assert(this.highLimit, "LimitAlarm instance must expose the optional HighLimit property");
-    this.highLimit.setValueFromSource({dataType: this._dataType, value: value});
+    this.highLimit.setValueFromSource({ dataType: this._dataType, value: value });
 };
 
 /**
@@ -89,7 +89,7 @@ UALimitAlarm.prototype.setHighLimit = function (value) {
  */
 UALimitAlarm.prototype.setLowLimit = function (value) {
     assert(this.lowLimit, "LimitAlarm instance must expose the optional LowLimit property");
-    this.lowLimit.setValueFromSource({dataType: this._dataType, value: value});
+    this.lowLimit.setValueFromSource({ dataType: this._dataType, value: value });
 
 };
 
@@ -99,43 +99,7 @@ UALimitAlarm.prototype.setLowLimit = function (value) {
  */
 UALimitAlarm.prototype.setLowLowLimit = function (value) {
     assert(this.lowLowLimit, "LimitAlarm instance must expose the optional LowLowLimit property");
-    this.lowLowLimit.setValueFromSource({dataType: this._dataType, value: value});
-};
-
-UALimitAlarm.prototype._onInputDataValueChange = function (dataValue) {
-
-    assert(dataValue instanceof DataValue);
-    var alarm = this;
-
-    if (dataValue.statusCode !== StatusCodes.Good) {
-        // what shall we do ?
-        return;
-    }
-    if (dataValue.value.dataType === DataType.Null) {
-        // what shall we do ?
-        return;
-    }
-    assert(_.isFinite(dataValue.value.value));
-    var value = dataValue.value;
-
-    assert(false, "must be overridden");
-};
-
-UALimitAlarm.prototype.getCurrentConditionInfo = function () {
-
-    var alarm = this;
-
-    var oldSeverity = alarm.currentBranch().getSeverity();
-    var oldQuality = alarm.currentBranch().getQuality();
-    var oldMessage = alarm.currentBranch().getMessage();
-
-    var oldConditionInfo = new ConditionInfo({
-        severity: oldSeverity,
-        quality: oldQuality,
-        message: oldMessage
-    });
-
-    return oldConditionInfo;
+    this.lowLowLimit.setValueFromSource({ dataType: this._dataType, value: value });
 };
 
 UALimitAlarm.prototype._onInputDataValueChange = function (dataValue) {
@@ -155,6 +119,38 @@ UALimitAlarm.prototype._onInputDataValueChange = function (dataValue) {
     var value = dataValue.value.value;
     alarm._setStateBasedOnInputValue(value);
 };
+
+
+UALimitAlarm.prototype._watchLimits = function() {
+
+    var alarm = this;
+    /// ----------------------------------------------------------------------
+    /// Installing Limits monitored
+    function _updateState() { alarm.updateState(); }
+    if (alarm.highHighLimit) {alarm.highHighLimit.on("value_changed",_updateState);}
+    if (alarm.highLimit)     {alarm.highLimit.on("value_changed",_updateState);}
+    if (alarm.lowLimit)      {alarm.lowLimit.on("value_changed",_updateState);}
+    if (alarm.lowLowLimit)   {alarm.lowLowLimit.on("value_changed",_updateState);}
+};
+
+
+UALimitAlarm.prototype.getCurrentConditionInfo = function () {
+
+    var alarm = this;
+
+    var oldSeverity = alarm.currentBranch().getSeverity();
+    var oldQuality = alarm.currentBranch().getQuality();
+    var oldMessage = alarm.currentBranch().getMessage();
+
+    var oldConditionInfo = new ConditionInfo({
+        severity: oldSeverity,
+        quality: oldQuality,
+        message: oldMessage
+    });
+
+    return oldConditionInfo;
+};
+
 
 
 /***
@@ -223,8 +219,7 @@ UALimitAlarm.prototype._signalNewCondition = function (stateName, isActive, valu
             // prior state need acknowledgement
             // note : TODO : timestamp of branch and new state of current branch must be identical
 
-            // we need to create a new branch so the previous state
-            // could be acknowledge
+            // we need to create a new branch so the previous state could be acknowledged
             var newBranch = alarm.createBranch();
             assert(newBranch.getBranchId() !== NodeId.NullNodeId);
             // also raised a new Event for the new branch as branchId has changed
@@ -256,7 +251,7 @@ exports.UALimitAlarm = UALimitAlarm;
  * @return {UALimitAlarm}
  */
 UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
-
+    /* eslint max-instructions: 40000 */
     // must provide a inputNode
     //xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
     assert(options.hasOwnProperty("inputNode"), "UALimitAlarm.instantiate: options must provide the inputNode");
@@ -324,24 +319,21 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
         alarmNode.setLowLowLimit(options.lowLowLimit);
     }
 
-    /**
-     *
-     *
+    /*
      * The InputNode Property provides the NodeId of the Variable the Value of which is used as
      * primary input in the calculation of the Alarm state. If this Variable is not in the AddressSpace,
      * a Null NodeId shall be provided. In some systems, an Alarm may be calculated based on
      * multiple Variables Values; it is up to the system to determine which Variable’s NodeId is used.
-     * @property inputNode
-     * @type     UAVariable
-     * dataType is DataType.NodeId
      */
-    assert(inputNode instanceof UAVariable);
-    alarmNode.inputNode.setValueFromSource({dataType: "NodeId", value: inputNode.nodeId});
+    assert(alarmNode.inputNode instanceof UAVariable);
+    alarmNode.inputNode.setValueFromSource({ dataType: "NodeId", value: inputNode.nodeId });
+
 
     // install inputNode monitoring for change
-    inputNode.on("value_changed", function (newDataValue, oldDataValue) {
-        alarmNode._onInputDataValueChange(newDataValue);
-    });
+    alarmNode._installInputNodeMonitoring(options.inputNode);
+
+    alarmNode._watchLimits();
+
     return alarmNode;
 };
 

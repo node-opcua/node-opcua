@@ -48,10 +48,10 @@ util.inherits(UAOffNormalAlarm, UADiscreteAlarm);
  * @method getNormalStateNode
  * @returns {BaseNode}
  */
-UAOffNormalAlarm.prototype.getNormalStateNode = function() {
+UAOffNormalAlarm.prototype.getNormalStateNode = function () {
     var nodeId = this.normalState.readValue().value.value;
     var node = this.addressSpace.findNode(nodeId);
-    assert(node,"getNormalStateNode ");
+    assert(node, "getNormalStateNode ");
     return node;
 };
 
@@ -59,7 +59,7 @@ UAOffNormalAlarm.prototype.getNormalStateNode = function() {
  * @method getNormalStateValue
  * @returns {Any}
  */
-UAOffNormalAlarm.prototype.getNormalStateValue = function(){
+UAOffNormalAlarm.prototype.getNormalStateValue = function () {
     var normalStateNode = this.getNormalStateNode();
     return normalStateNode.readValue().value.value;
 };
@@ -68,19 +68,21 @@ UAOffNormalAlarm.prototype.getNormalStateValue = function(){
  * @method setNormalStateValue
  * @param value
  */
-UAOffNormalAlarm.prototype.setNormalStateValue = function(value){
+UAOffNormalAlarm.prototype.setNormalStateValue = function (value) {
     var normalStateNode = this.getNormalStateNode();
     throw new Error("Not Implemented yet");
 };
 var utils = require("node-opcua-utils");
 
-UAOffNormalAlarm.prototype._updateAlarmState = function (normalStateValue,inputValue) {
+UAOffNormalAlarm.prototype._updateAlarmState = function (normalStateValue, inputValue) {
     if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
         this.activeState.setValue(false);
     }
     var activate = (normalStateValue !== inputValue);
     this.activeState.setValue(activate);
 };
+
+
 
 UAOffNormalAlarm.prototype._onInputDataValueChange = function (dataValue) {
 
@@ -92,9 +94,9 @@ UAOffNormalAlarm.prototype._onInputDataValueChange = function (dataValue) {
         // what shall we do ?
         return;
     }
-    var inputValue =dataValue.value.value;
+    var inputValue = dataValue.value.value;
     var normalStateValue = this.getNormalStateValue();
-    this._updateAlarmState(normalStateValue,inputValue);
+    this._updateAlarmState(normalStateValue, inputValue);
 
 };
 UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) {
@@ -107,9 +109,9 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
         // what shall we do ?
         return;
     }
-    var normalStateValue=dataValue.value.value;
+    var normalStateValue = dataValue.value.value;
     var inputValue = this.getInputNodeValue();
-    this._updateAlarmState(normalStateValue,inputValue);
+    this._updateAlarmState(normalStateValue, inputValue);
 };
 
 
@@ -120,7 +122,7 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
  * @param options
  * @param data
  */
-UAOffNormalAlarm.instantiate = function(addressSpace, limitAlarmTypeId, options, data) {
+UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
 
 
     var offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");
@@ -129,7 +131,7 @@ UAOffNormalAlarm.instantiate = function(addressSpace, limitAlarmTypeId, options,
         throw new Error("cannot find offNormalAlarmType");
     }
 
-    assert(options.hasOwnProperty("inputNode"),   "must provide inputNode");          // must provide a inputNode
+    assert(options.hasOwnProperty("inputNode"), "must provide inputNode");          // must provide a inputNode
     assert(options.hasOwnProperty("normalState"), "must provide a normalState Node"); // must provide a inputNode
     options.optionals = options.optionals || [];
 
@@ -143,12 +145,10 @@ UAOffNormalAlarm.instantiate = function(addressSpace, limitAlarmTypeId, options,
     var normalState = addressSpace._coerceNode(options.normalState);
     assert(normalState, "Expecting a valid normalState node");
 
-    alarmNode.normalState.setValueFromSource({dataType: DataType.NodeId, value: normalState.nodeId});
+    alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalState.nodeId });
 
-    // install inputNode monitoring for change
-    inputNode.on("value_changed", function (newDataValue, oldDataValue) {
-        alarmNode._onInputDataValueChange(newDataValue);
-    });
+    // install inputNode Node monitoring for change
+    alarmNode._installInputNodeMonitoring(options.inputNode);
 
     alarmNode.normalState.on("value_changed", function (newDataValue, oldDataValue) {
         // to do

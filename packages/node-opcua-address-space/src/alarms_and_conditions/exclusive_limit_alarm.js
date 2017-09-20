@@ -123,8 +123,7 @@ UAExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data)
     // start with a inactive state
     alarm.activeState.setValue(false);
 
-    var currentValue = alarm.getInputNodeNode().readValue();
-    alarm._onInputDataValueChange(currentValue);
+    alarm.updateState();
 
     return alarm;
 };

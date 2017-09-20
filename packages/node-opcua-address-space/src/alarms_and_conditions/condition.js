@@ -619,7 +619,7 @@ UAConditionBase.prototype.post_initialize = function () {
     assert(!self._branch0);
     self._branch0 = new ConditionSnapshot(self, NodeId.NullNodeId);
 
-    // the condition OPCUA object alway reflect the default branch states
+    // the condition OPCUA object alway reflects the default branch states
     // so we set a mechanism that automatically keeps self in sync
     // with the default branch.
     self._branch0.on("value_changed", function (node, variant) {

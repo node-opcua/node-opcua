@@ -94,7 +94,7 @@ UANonExclusiveLimitAlarm.prototype._signalNewCondition = function (states, isAct
 
 UANonExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function (value) {
 
-    assert(_.isFinite(value));
+    assert(_.isFinite(value),"expecting a valid value here");
 
     var alarm = this;
 
@@ -223,9 +223,7 @@ UANonExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, da
 
     alarm.activeState.setValue(false);
 
-    var currentValue = alarm.getInputNodeNode().readValue();
-
-    alarm._onInputDataValueChange(currentValue);
+    alarm.updateState();
 
     return alarm;
 };

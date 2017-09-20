@@ -38,7 +38,7 @@ UANonExclusiveDeviationAlarm.prototype._install_setpoint= DeviationAlarmHelper._
 
 UANonExclusiveDeviationAlarm.prototype._setStateBasedOnInputValue = function(value) {
     var setpointValue = this.getSetpointValue();
-    assert(_.isFinite(setpointValue));
+    assert(_.isFinite(setpointValue),"expecting a valid setpoint value");
     // call base class implementation
     UANonExclusiveLimitAlarm.prototype._setStateBasedOnInputValue.call(this,value-setpointValue);
 };
