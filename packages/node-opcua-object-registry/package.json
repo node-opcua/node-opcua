@@ -15,7 +15,7 @@
  },
  "devDependencies": {
   "colors": "^1.1.2",
-  "should": "^13.0.1"
+  "should": "13.1.0"
  },
  "repository": {
   "type": "git",

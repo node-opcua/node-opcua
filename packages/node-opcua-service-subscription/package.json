@@ -33,7 +33,7 @@
   "node-opcua-service-translate-browse-path": "^0.1.0-5",
   "node-opcua-status-code": "^0.1.0-4",
   "node-opcua-variant": "^0.1.0-5",
-  "should": "^13.0.1"
+  "should": "13.1.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

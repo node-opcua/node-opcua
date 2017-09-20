@@ -14,7 +14,7 @@
   "bignumber.js": "^4.0.4",
   "node-opcua-benchmarker": "^0.1.0-4",
   "node-opcua-binary-stream": "^0.1.0-4",
-  "should": "^13.0.1"
+  "should": "13.1.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

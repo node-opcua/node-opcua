@@ -46,7 +46,7 @@
  "devDependencies": {
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^0.1.0-4",
-  "should": "^13.0.1",
+  "should": "13.1.0",
   "sinon": "^3.2.1"
  },
  "eslintConfig": {

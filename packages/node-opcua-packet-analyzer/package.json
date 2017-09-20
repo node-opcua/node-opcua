@@ -21,7 +21,7 @@
  },
  "devDependencies": {
   "node-opcua-test-helpers": "^0.1.0-4",
-  "should": "^13.0.1"
+  "should": "13.1.0"
  },
  "repository": {
   "type": "git",

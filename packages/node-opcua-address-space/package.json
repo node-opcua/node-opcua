@@ -49,7 +49,7 @@
   "node-opcua-nodesets": "^0.1.0-4",
   "node-opcua-packet-analyzer": "^0.1.0-5",
   "node-opcua-test-fixtures": "^0.1.0-4",
-  "should": "^13.0.1",
+  "should": "13.1.0",
   "sinon": "^3.2.1"
  },
  "author": "Etienne Rossignon",

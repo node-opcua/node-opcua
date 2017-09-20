@@ -24,7 +24,7 @@
   "node-opcua-generator": "^0.1.0-5",
   "node-opcua-numeric-range": "^0.1.0-5",
   "node-opcua-packet-analyzer": "^0.1.0-5",
-  "should": "^13.0.1"
+  "should": "13.1.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

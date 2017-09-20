@@ -50,7 +50,7 @@
   "node-opcua-vendor-diagnostic": "^0.1.0-6"
  },
  "devDependencies": {
-  "should": "^13.0.1"
+  "should": "13.1.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
