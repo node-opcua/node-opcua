@@ -13,11 +13,10 @@ var VariableIds = opcua.VariableIds;
 var BrowseDirection = opcua.BrowseDirection;
 
 
-//xx var UserNameIdentityToken = opcua.session_service.UserNameIdentityToken;
-//xx var SecurityPolicy = opcua.SecurityPolicy;
-
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-var argv = require("yargs")
+var yargs = require("yargs/yargs");
+
+var argv = yargs(process.argv)
     .wrap(132)
     //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 

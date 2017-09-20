@@ -15,33 +15,31 @@ function constructFilename(filename) {
 
 var yargs = require("yargs/yargs");
 
-var argv = yargs()
+var argv = yargs(process.argv)
     .wrap(132)
 
     .string("alternateHostname")
     .describe("alternateHostname")
-    .alias("a", "alternateHostname")
 
     .number("port")
-    .describe("port")
-    .alias("p", "port")
-    .defaults("port",26543)
+    .default("port",26543)
 
     .number("maxAllowedSessionNumber")
-    .describe("maxAllowedSessionNumber")
-    .alias("m", "maxAllowedSessionNumber")
-    .defaults("maxAllowedSessionNumber",500)
+    .describe("the maximum number of concurrent client session that the server will accept")
+    .default("maxAllowedSessionNumber",500)
 
     .number("maxAllowedSubscriptionNumber")
     .describe("maxAllowedSubscriptionNumber")
 
     .boolean("silent")
-    .describe("slient","no trace")
+    .default("silent",false)
+    .describe("silent","no trace")
 
-    .help("help")
-    .alias("h","help")
+    .alias("a", "alternateHostname")
+    .alias("p", "port")
+    .alias("m", "maxAllowedSessionNumber")
+    .help(true)
     .argv;
-
 
 var OPCUAServer = opcua.OPCUAServer;
 var Variant = opcua.Variant;
@@ -354,6 +352,7 @@ function dumpObject(obj) {
 
 
 console.log("  server PID          :".yellow, process.pid);
+console.log("  silent              :".yellow, argv.silent);
 
 server.start(function (err) {
     if (err) {
