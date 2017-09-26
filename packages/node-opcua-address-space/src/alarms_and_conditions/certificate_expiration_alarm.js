@@ -2,6 +2,9 @@
 /**
  * @module opcua.address_space.AlarmsAndConditions
  */
+var util = require("util");
+var UASystemOffNormalAlarm = require("./off_normal_alarm").UAOffNormalAlarm;
+var DataType = require("node-opcua-variant").DataType;
 
 /**
  * @class UACertificateExpirationAlarm

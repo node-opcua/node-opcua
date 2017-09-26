@@ -331,7 +331,6 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
 
     // install inputNode monitoring for change
     alarmNode._installInputNodeMonitoring(options.inputNode);
-
     alarmNode._watchLimits();
 
     return alarmNode;

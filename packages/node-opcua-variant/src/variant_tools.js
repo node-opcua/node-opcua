@@ -20,7 +20,7 @@ function isEnumerationItem(value) {
 
 
 function coerceVariantType(dataType, value) {
-
+    /* eslint max-statements: ["error",1000], complexity: ["error",1000]*/
 
     if (isEnumerationItem(value)) {
         // OPCUA Specification 1.0.3 5.8.2 encoding rules for various dataType:

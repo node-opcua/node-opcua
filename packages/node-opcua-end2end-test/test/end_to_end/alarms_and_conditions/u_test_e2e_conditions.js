@@ -1006,10 +1006,19 @@ module.exports = function (test) {
                     // 9. Prior state acknowledged, Confirm required.
                     function (callback) {
 
+                        alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
+                  
                         debugLog("9. Prior state acknowledged, Confirm required.");
                         var conditionId = alarmNode.nodeId;
                         var eventId = branch1_EventId;
                         debugLog("EventId = ", eventId);
+                        
+                        // console.log(" EventID ", eventId.toString("hex"));
+                        // console.log(alarmNode.getBranches().map(function(branch){ 
+                        //     return branch.getBranchId().toString() + " " + branch.getEventId().toString("hex")
+                        // }).join(" "));
+
+
                         session.acknowledgeCondition(conditionId, eventId, "Branch#1 Some comment", function (err, result) {
                             should.not.exist(err);
                             result.should.eql(StatusCodes.Good);

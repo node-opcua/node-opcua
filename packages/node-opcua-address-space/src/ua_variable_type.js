@@ -253,13 +253,13 @@ CloneHelper.prototype.registerClonedObject = function(objInType,clonedObj) {
     //   | AcknowledgableConditionType |
     //   \-----------------------------/
     //              ^        |
-    //              |        +---------------------|- (EnableState)   (shadow element)
+    //              |        +---------------------|- (EnabledState)   (shadow element)
     //              |
     //   /-----------------------------\
     //   |        AlarmConditionType   |
     //   \-----------------------------/
     //              |
-    //              +-------------------------------|- EnableState    <
+    //              +-------------------------------|- EnabledState    <
     //
     // find also child object with the same browse name that are
     // overridden in the SuperType

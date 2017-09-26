@@ -447,6 +447,11 @@ module.exports = function (test) {
 
             // preliminary state
             branch.setActiveState(false);
+            
+            // sanity check
+            branch.getActiveState().should.eql(false);
+            condition.activeState.readValue().value.value.text.should.eql("Inactive");
+
 
             branch.setAckedState(true);
             branch.getAckedState().should.eql(true);

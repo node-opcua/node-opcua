@@ -21,6 +21,8 @@ var BaseNode = require("../base_node").BaseNode;
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var NodeClass = require("node-opcua-data-model").NodeClass;
 var TimeZone = require("node-opcua-data-model").TimeZone;
+var UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
+var UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
 
 
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
@@ -49,8 +51,8 @@ function _visit(self, node, prefix) {
             var name = aggregate.browseName.toString();
             name = utils.lowerFirstLetter(name);
 
-            var key = prefix +name;
-            if (doDebug || true) {
+            var key = prefix + name;
+            if (doDebug) {
                 debugLog("addingkey =", key)
             }
             self._map[key] = aggregate.readValue().value;
@@ -59,15 +61,69 @@ function _visit(self, node, prefix) {
         }
     });
 }
-function _record_condition_state(self, condition) {
+function _installOnChangeEventHandlers(self, node, prefix) {
+    
+    var aggregates = node.getAggregates();
 
+    aggregates.forEach(function (aggregate) {
+
+        if (aggregate instanceof UAVariable) {
+
+            var name = aggregate.browseName.toString();
+            name = utils.lowerFirstLetter(name);
+
+            var key = prefix + name;
+            if (doDebug) {
+                debugLog("addingkey =", key)
+            }
+            
+            aggregate.on("value_changed",function(newDataValue,oldDataValue){
+                self._map[key] = newDataValue.value;
+                self._node_index[key] = aggregate;
+            });
+
+            _installOnChangeEventHandlers(self, aggregate, prefix + name + ".");
+        }
+    });
+}
+function _ensure_condition_values_correctness(self, node, prefix,error) {
+    
+        var displayError = !!error;
+        error = error || [];
+
+        var aggregates = node.getAggregates();
+    
+        aggregates.forEach(function (aggregate) {
+    
+            if (aggregate instanceof UAVariable) {
+    
+                var name = aggregate.browseName.toString();
+                name = utils.lowerFirstLetter(name);
+    
+                var key = prefix + name;
+
+                var snapshot_value  = self._map[key].toString() ;
+                var condition_value = aggregate.readValue().value.toString() ;
+            
+                if (snapshot_value !==  condition_value ) {
+                    error.push(" Condition Branch0 is not in sync with node values for " 
+                    + key + "\n v1= " + snapshot_value + "\n v2= "+condition_value);
+                }
+
+                self._node_index[key] = aggregate;
+                _ensure_condition_values_correctness(self, aggregate, prefix + name + ".",error);
+            }
+        });
+        if (displayError && error.length ) {
+            throw new Error(error.join("\n"));
+        }
+    }
+function _record_condition_state(self, condition) {
     self._map = {};
     self._node_index = {};
     assert(condition instanceof UAConditionBase);
     _visit(self, condition, "");
-
 }
-
 /**
  * @class ConditionSnapshot
  * @extends EventEmitter
@@ -86,40 +142,52 @@ function ConditionSnapshot(condition, branchId) {
         // a nodeId/Variant map
         _record_condition_state(self, condition);
 
-        self._set_var("branchId", DataType.NodeId,branchId);
+        if (branchId === NodeId.NullNodeId) {
+            _installOnChangeEventHandlers(self,condition,"");            
+        }
+
+        self._set_var("branchId", DataType.NodeId, branchId);
 
     }
 }
 util.inherits(ConditionSnapshot, EventEmitter);
 
-/**
- *
- * @return {ConditionSnapshot}
- */
-ConditionSnapshot.prototype.clone = function () {
-    var self = this;
-    var clone = new ConditionSnapshot();
-    clone.branchId = self.branchId;
-    clone.condition = self.condition;
-    //xx clone.eventData = new EventData(clone.condition);
-    clone._map = _.clone(self._map);
-    return clone;
-};
+// /**
+//  *
+//  * @return {ConditionSnapshot}
+//  */
+// ConditionSnapshot.prototype.clone = function () {
+//     var self = this;
+//     var clone = new ConditionSnapshot();
+//     clone.branchId = self.branchId;
+//     clone.condition = self.condition;
+//     //xx clone.eventData = new EventData(clone.condition);
+//     clone._map = _.clone(self._map);
+//     return clone;
+// };
 
-var disabledVar = new Variant({ dataType: "StatusCode", value: StatusCodes.BadConditionDisabled});
+var disabledVar = new Variant({
+    dataType: "StatusCode",
+    value: StatusCodes.BadConditionDisabled
+});
 
-ConditionSnapshot.prototype._constructEventData = function() {
+ConditionSnapshot.prototype._constructEventData = function () {
     var self = this;
     var addressSpace = self.condition.addressSpace;
 
-    var isDisabled = !self.condition.enabledState.getValue() ;
+    if (self.branchId === NodeId.NullNodeId) {
+        _ensure_condition_values_correctness(self,self.condition,"");        
+    }
+ 
+
+    var isDisabled = !self.condition.getEnabledState();
     var eventData = new EventData(self.condition);
-    Object.keys(self._map).forEach(function(key){
+    Object.keys(self._map).forEach(function (key) {
         var node = self._node_index[key];
-        if(isDisabled && !_varTable.hasOwnProperty(key)){
-            eventData.setValue(key,node,disabledVar);
+        if (isDisabled && !_varTable.hasOwnProperty(key)) {
+            eventData.setValue(key, node, disabledVar);
         } else {
-            eventData.setValue(key,node,self._map[key]);
+            eventData.setValue(key, node, self._map[key]);
         }
     });
 
@@ -152,9 +220,9 @@ ConditionSnapshot.prototype.resolveSelectClause = function (selectClause) {
 ConditionSnapshot.prototype.readValue = function (nodeId, selectClause) {
     var self = this;
 
-    var isDisabled = !self.condition.enabledState.getValue();
+    var isDisabled = !self.condition.getEnabledState();
     if (isDisabled) {
-         return disabledVar;
+        return disabledVar;
     }
 
     var key = nodeId.toString();
@@ -172,19 +240,31 @@ function normalizeName(str) {
     return str.split(".").map(utils.lowerFirstLetter).join(".");
 }
 ConditionSnapshot.normalizeName = normalizeName;
-var _varTable= {
-        "eventId": 1,
-        "eventType": 1,
-        "SourceNode": 1,
-        "sourceName": 1,
-        "time": 1,
-        "enabledState": 1
-    };
+
+
+// list of Condition variables that should not be published as BadConditionDisabled when the condition
+// is in a disabled state.
+var _varTable = {
+    "branchId":1,
+    "eventId": 1,
+    "eventType": 1,
+    "sourceNode": 1,
+    "sourceName": 1,
+    "time": 1,
+    "enabledState": 1,
+    "enabledState.id": 1,
+    "enabledState.effectiveDisplayName":1,
+    "enabledState.transitionTime":1,
+    "conditionClassId":1,
+    "conditionClassName":1,
+    "conditionName":1,
+
+};
 ConditionSnapshot.prototype._get_var = function (varName, dataType) {
 
     var self = this;
 
-    if (!self.condition.enabledState.getValue() && !_varTable.hasOwnProperty(varName)) {
+    if (!self.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
         return disabledVar;
     }
 
@@ -193,24 +273,29 @@ ConditionSnapshot.prototype._get_var = function (varName, dataType) {
     return variant.value;
 };
 
-
 ConditionSnapshot.prototype._set_var = function (varName, dataType, value) {
 
     var self = this;
 
     var key = normalizeName(varName);
-     // istanbul ignore next
+    // istanbul ignore next
     if (!self._map.hasOwnProperty(key)) {
-        if (true || doDebug) {
+        if (doDebug) {
             debugLog(" cannot find node ".white.bold.bgRed + varName.cyan);
             debugLog("  map=", Object.keys(self._map).join(" "));
         }
 
     }
-    self._map[key] = new Variant({dataType: dataType, value: value});
+    self._map[key] = new Variant({
+        dataType: dataType,
+        value: value
+    });
 
     if (self._map[key + ".sourceTimestamp"]) {
-        self._map[key + ".sourceTimestamp"] = new Variant({dataType: DataType.DateTime, value: new Date()});
+        self._map[key + ".sourceTimestamp"] = new Variant({
+            dataType: DataType.DateTime,
+            value: new Date()
+        });
     }
 
     var variant = self._map[key];
@@ -255,7 +340,6 @@ ConditionSnapshot.prototype.setRetain = function (retainFlag) {
     return self._set_var("retain", DataType.Boolean, retainFlag);
 };
 
-
 /**
  *
  */
@@ -263,10 +347,35 @@ ConditionSnapshot.prototype.renewEventId = function () {
     var self = this;
     var addressSpace = self.condition.addressSpace;
     // create a new event  Id for this new condition
-    var eventId = addressSpace.generateEventId();
-    return self._set_var("eventId", DataType.ByteString, eventId.value);
+    var eventId = addressSpace.generateEventId();    
+    var ret = self._set_var("eventId", DataType.ByteString, eventId.value);
+    
+    //xx var branch = self; console.log("MMMMMMMMrenewEventId branch  " +  branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
+    
+    return ret;
 };
 
+/**
+ * @return {Boolean}
+ */
+ConditionSnapshot.prototype.getEnabledState = function () {
+    var self = this;
+    return self._get_twoStateVariable("enabledState");
+};
+/**
+ * @param {Boolean}
+ */
+ConditionSnapshot.prototype.setEnabledState = function (value) {
+    var self = this;
+    return self._set_twoStateVariable("enabledState",value);
+};
+/**
+ * @return {String}
+ */
+ConditionSnapshot.prototype.getEnabledStateAsString = function () {
+    var self = this;
+    return self._get_var("enabledState", DataType.LocalizedText).text;
+};
 
 /**
  * @return {LocalizedText}
@@ -546,6 +655,71 @@ ConditionSnapshot.prototype.getMessage = function () {
     return this._get_var("message", DataType.LocalizedText);
 };
 
+
+
+ConditionSnapshot.prototype.isCurrentBranch = function(){
+    return this._get_var("branchId") === NodeId.NullNodeId;
+};
+
+/**
+ * @class ConditionSnapshot
+ * @param varName
+ * @param value
+ * @private
+ */
+ConditionSnapshot.prototype._set_twoStateVariable = function(varName,value) {
+
+    value = !!value;
+    var self = this;
+
+    var hrKey = ConditionSnapshot.normalizeName(varName);
+    var idKey = ConditionSnapshot.normalizeName(varName)+".id";
+
+    var variant = new Variant({ dataType: DataType.Boolean , value: value});
+    self._map[idKey] = variant;
+
+    // also change varName with human readable text
+    var twoStateNode = self._node_index[hrKey];
+    if (!twoStateNode) {
+        throw new Error("Cannot find twoState Varaible with name "+varName);
+    }
+    if (!(twoStateNode instanceof UATwoStateVariable)) {
+        throw new Error("Cannot find twoState Varaible with name "+varName+" "+twoStateNode);
+    }
+  
+
+    var txt = value ? twoStateNode._trueState : twoStateNode._falseState;
+
+    var hrValue = new Variant({
+        dataType: DataType.LocalizedText,
+        value:  coerceLocalizedText(txt)
+    });
+    self._map[hrKey] = hrValue;
+
+    var node = self._node_index[idKey];
+
+    // also change ConditionNode if we are on currentBranch
+    if (self.isCurrentBranch()) {
+        assert(twoStateNode instanceof UATwoStateVariable);
+        twoStateNode.setValue(value);
+        //xx console.log("Is current branch", twoStateNode.toString(),variant.toString());
+        //xx console.log("  = ",twoStateNode.getValue());
+    }
+    self.emit("value_changed",node,variant);
+
+};
+
+ConditionSnapshot.prototype._get_twoStateVariable = function(varName) {
+    var self = this;
+    var key = ConditionSnapshot.normalizeName(varName)+".id";
+    var variant = self._map[key];
+
+    // istanbul ignore next
+    if (!variant) {
+        throw new Error("Cannot find TwoStateVariable with name " + varName);
+    }
+    return variant.value;
+};
 exports.ConditionSnapshot = ConditionSnapshot;
 
 
@@ -566,7 +740,7 @@ util.inherits(BaseEventType, UAObject);
  */
 BaseEventType.prototype.setSourceName = function (name) {
 
-    assert(typeof(name) === "string");
+    assert(typeof (name) === "string");
     var self = this;
     self.sourceName.setValueFromSource(new Variant({
         dataType: DataType.String,
@@ -622,6 +796,10 @@ UAConditionBase.prototype.post_initialize = function () {
     // the condition OPCUA object alway reflects the default branch states
     // so we set a mechanism that automatically keeps self in sync
     // with the default branch.
+
+    // the implication of this convention is that interacting with the condition variable
+    // shall be made by using branch0, any value change made 
+    // using the standard setValueFromSource mechanism will not be work properly.
     self._branch0.on("value_changed", function (node, variant) {
         assert(node instanceof UAVariable);
         node.setValueFromSource(variant);
@@ -636,7 +814,14 @@ UAConditionBase.prototype.getBranchCount = function () {
     var self = this;
     return Object.keys(self._branches).length;
 };
-
+UAConditionBase.prototype.getBranches = function () {
+    var self = this;
+    return Object.keys(self._branches).map(function(x) { return self._branches[x];});
+};
+UAConditionBase.prototype.getBranchIds = function () {
+    var self = this;
+    return self.getBranches().map(function(b) { return b.getBranchId();});
+};
 var ec = require("node-opcua-basic-types");
 var randomGuid = ec.randomGuid;
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
@@ -665,6 +850,7 @@ UAConditionBase.prototype.deleteBranch = function (branch) {
     var key = branch.getBranchId().toString();
     assert(self._branches.hasOwnProperty(key));
     delete self._branches[key];
+    self.emit("branch_deleted",key);
 };
 
 
@@ -678,7 +864,7 @@ function prepare_date(sourceTimestamp) {
     return sourceTimestamp;
 }
 
-function _update_sourceTimestamp(dataValue/*, indexRange*/) {
+function _update_sourceTimestamp(dataValue /*, indexRange*/ ) {
 
     var self = this;
     //xx console.log("_update_sourceTimestamp = "+self.nodeId.toString().cyan+ " " + self.browseName.toString(), self.sourceTimestamp.nodeId.toString().cyan + " " + dataValue.sourceTimestamp);
@@ -716,30 +902,47 @@ function _install_condition_variable_type(node) {
  */
 UAConditionBase.prototype.getEnabledState = function () {
     var conditionNode = this;
-    return !!conditionNode.enabledState.id.readValue().value.value;
+    return conditionNode.enabledState.getValue();
+};
+/**
+ * @method getEnabledStateAsString
+ * @return {String}
+ */
+UAConditionBase.prototype.getEnabledStateAsString = function () {
+    var conditionNode = this;
+    return conditionNode.enabledState.getValueAsString();
 };
 
 /**
  * @method _setEnabledState
- * @param requestedEnableState {Boolean}
+ * @param requestedEnabledState {Boolean}
  * @returns {StatusCode} StatusCodes.Good if successfull or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
  * @private
- */
-UAConditionBase.prototype._setEnabledState = function (requestedEnableState) {
-
-    assert(_.isBoolean(requestedEnableState));
+ */ 
+UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
 
     var conditionNode = this;
+
+    
+    assert(_.isBoolean(requestedEnabledState));
+
+   
     var enabledState = conditionNode.getEnabledState();
-    if (enabledState && requestedEnableState) {
+    if (enabledState && requestedEnabledState) {
         return StatusCodes.BadConditionAlreadyEnabled;
     }
-    if (!enabledState && !requestedEnableState) {
+    if (!enabledState && !requestedEnabledState) {
         return StatusCodes.BadConditionAlreadyDisabled;
     }
-    conditionNode.enabledState.setValue(requestedEnableState);
 
-    if (!requestedEnableState) {
+    conditionNode._branch0.setEnabledState(requestedEnabledState);
+    //conditionNode.enabledState.setValue(requestedEnabledState);
+
+    //xx assert(conditionNode.enabledState.id.readValue().value.value === requestedEnabledState,"sanity check 1");
+    //xx assert(conditionNode.currentBranch().getEnabledState() === requestedEnabledState,"sanity check 2");
+
+
+    if (!requestedEnabledState) {
         // as per Spec 1.0.3 part 9:
         //* When the Condition instance enters the Disabled state, the Retain Property of this
         // Condition shall be set to FALSE by the Server to indicate to the Client that the
@@ -835,15 +1038,15 @@ var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
  * @method conditionOfNode
  * @return {UAObject}
  */
-UAConditionBase.prototype.conditionOfNode = function() {
-    var refs = this.findReferencesExAsObject("HasCondition",BrowseDirection.Inverse);
-    if(refs.length === 0) {
+UAConditionBase.prototype.conditionOfNode = function () {
+    var refs = this.findReferencesExAsObject("HasCondition", BrowseDirection.Inverse);
+    if (refs.length === 0) {
         return null;
     }
-    assert(refs.length !== 0,"UAConditionBase must be the condition of some node");
-    assert(refs.length === 1,"expecting only one ConditionOf");
+    assert(refs.length !== 0, "UAConditionBase must be the condition of some node");
+    assert(refs.length === 1, "expecting only one ConditionOf");
     var node = refs[0];
-    assert(node instanceof UAObject || node instanceof UAVariable,"node for which we are the condition shall be an UAObject or UAVariable");
+    assert(node instanceof UAObject || node instanceof UAVariable, "node for which we are the condition shall be an UAObject or UAVariable");
     return node;
 };
 
@@ -855,6 +1058,8 @@ UAConditionBase.prototype.conditionOfNode = function() {
  */
 UAConditionBase.prototype.raiseConditionEvent = function (branch) {
 
+    //xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +  branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
+    
     assert(branch instanceof ConditionSnapshot);
     var self = this;
     self._assert_valid();
@@ -870,13 +1075,14 @@ UAConditionBase.prototype.raiseConditionEvent = function (branch) {
         } else {
             assert(conditionOfNode instanceof UAVariable);
             // in this case
-            var eventOfs =conditionOfNode.getEventSourceOfs();
+            var eventOfs = conditionOfNode.getEventSourceOfs();
             assert(eventOfs.length === 1);
-            var node  = eventOfs[0];
+            var node = eventOfs[0];
             assert(node instanceof UAObject);
             node._bubble_up_event(eventData);
         }
     }
+    //xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +  branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
 };
 
 /**
@@ -888,27 +1094,27 @@ UAConditionBase.prototype.raiseConditionEvent = function (branch) {
  * @param options.retain   {Boolean} retain flag
  * @constructor
  */
-function ConditionInfo(options){
+function ConditionInfo(options) {
     this.severity = null;
-    this.quality  = null;
-    this.message  = null;
-    this.retain   = null;
+    this.quality = null;
+    this.message = null;
+    this.retain = null;
 
     if (options.hasOwnProperty("message") && options.message !== null) {
         options.message = LocalizedText.coerce(options.message);
         assert(options.message instanceof LocalizedText);
-        this.message  = options.message;
+        this.message = options.message;
     }
-    if (options.hasOwnProperty("quality")  && options.quality !== null) {
-        this.quality  = options.quality;
+    if (options.hasOwnProperty("quality") && options.quality !== null) {
+        this.quality = options.quality;
     }
-    if (options.hasOwnProperty("severity")  && options.severity !== null) {
+    if (options.hasOwnProperty("severity") && options.severity !== null) {
         assert(_.isNumber(options.severity));
-        this.severity  = options.severity;
+        this.severity = options.severity;
     }
-    if (options.hasOwnProperty("retain")  && options.retain !== null) {
+    if (options.hasOwnProperty("retain") && options.retain !== null) {
         assert(_.isBoolean(options.retain));
-        this.retain  = options.retain;
+        this.retain = options.retain;
     }
 
 }
@@ -917,11 +1123,10 @@ function ConditionInfo(options){
  * @param otherConditionInfo {ConditionInfo}
  * @return {Boolean}
  */
-ConditionInfo.prototype.isDifferentFrom = function(otherConditionInfo)
-{
-    return this.severity !== otherConditionInfo.severity  ||
-        this.quality  !== otherConditionInfo.quality ||
-        this.message  !== otherConditionInfo.message  ;
+ConditionInfo.prototype.isDifferentFrom = function (otherConditionInfo) {
+    return this.severity !== otherConditionInfo.severity ||
+        this.quality !== otherConditionInfo.quality ||
+        this.message !== otherConditionInfo.message;
 
 };
 exports.ConditionInfo = ConditionInfo;
@@ -956,7 +1161,10 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
     // set the received Time
     branch.setTime(new Date());
     branch.setReceiveTime(new Date());
-    branch.setLocalTime(new TimeZone({offset: 0, daylightSavingInOffset: false}));
+    branch.setLocalTime(new TimeZone({
+        offset: 0,
+        daylightSavingInOffset: false
+    }));
 
     if (conditionInfo.hasOwnProperty("message") && conditionInfo.message) {
         branch.setMessage(conditionInfo.message);
@@ -974,7 +1182,7 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
         branch.setRetain(!!conditionInfo.retain);
     }
 
-    branch.renewEventId();
+    branch.renewEventId()
     self.raiseConditionEvent(branch);
 };
 
@@ -984,7 +1192,7 @@ UAConditionBase.prototype.raiseNewBranchState = function (branch) {
     self.raiseConditionEvent(branch);
 
     if (branch.getBranchId() !== NodeId.NullNodeId && !branch.getRetain()) {
-        console.log(" Deleting not longer needed branch ", branch.getBranchId().toString());
+        //xx console.log(" Deleting not longer needed branch ", branch.getBranchId().toString());
         // branch can be deleted
         self.deleteBranch(branch);
     }
@@ -1006,11 +1214,11 @@ function sameBuffer(b1, b2) {
     if (b1.length !== b2.length) {
         return false;
     }
-/*
-    var bb1 = (Buffer.from(b1)).toString("hex");
-    var bb2 = (Buffer.from(b2)).toString("hex");
-    return bb1 === bb2;
-*/
+    /*
+        var bb1 = (Buffer.from(b1)).toString("hex");
+        var bb2 = (Buffer.from(b2)).toString("hex");
+        return bb1 === bb2;
+    */
     var n = b1.length;
     for (var i = 0; i < n; i++) {
         if (b1[i] !== b2[i]) {
@@ -1018,19 +1226,19 @@ function sameBuffer(b1, b2) {
         }
     }
     return true;
-}
+}   
 UAConditionBase.prototype._findBranchForEventId = function (eventId) {
     var conditionNode = this;
     if (sameBuffer(conditionNode.eventId.readValue().value.value, eventId)) {
         return conditionNode.currentBranch();
     }
-    var e = _.filter(conditionNode._branches,function(branch,key){
-        return sameBuffer(branch.getEventId(),eventId);
+    var e = _.filter(conditionNode._branches, function (branch, key) {
+        return sameBuffer(branch.getEventId(), eventId);
     });
-    if (e.length === 1 ) {
+    if (e.length === 1) {
         return e[0];
     }
-    assert(e.length === 0,"cannot have 2 branches with same eventId");
+    assert(e.length === 0, "cannot have 2 branches with same eventId");
     return null; // not found
 };
 
@@ -1054,30 +1262,54 @@ UAConditionBase.prototype._raiseAuditConditionCommentEvent = function (sourceNam
     var now = new Date();
 
     //xx if (true || server.isAuditing) {
-        // ----------------------------------------------------------------------------------------------------------------
-        server.raiseEvent("AuditConditionCommentEventType", {
-            // AuditEventType
-            /* part 5 -  6.4.3 AuditEventType */
-            actionTimeStamp:    {dataType: "DateTime", value: now},
-            status:             {dataType: "Boolean", value: true},
+    // ----------------------------------------------------------------------------------------------------------------
+    server.raiseEvent("AuditConditionCommentEventType", {
+        // AuditEventType
+        /* part 5 -  6.4.3 AuditEventType */
+        actionTimeStamp: {
+            dataType: "DateTime",
+            value: now
+        },
+        status: {
+            dataType: "Boolean",
+            value: true
+        },
 
-            serverId:           {dataType: "String", value: ""},
+        serverId: {
+            dataType: "String",
+            value: ""
+        },
 
-            // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-            clientAuditEntryId: {dataType: "String", value: ""},
+        // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
+        clientAuditEntryId: {
+            dataType: "String",
+            value: ""
+        },
 
-            // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-            // obtained from the UserIdentityToken passed in the ActivateSession call.
-            clientUserId:       {dataType: "String", value: "" },
-            sourceName:         {dataType: "String", value: sourceName},
+        // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
+        // obtained from the UserIdentityToken passed in the ActivateSession call.
+        clientUserId: {
+            dataType: "String",
+            value: ""
+        },
+        sourceName: {
+            dataType: "String",
+            value: sourceName
+        },
 
-            // AuditUpdateMethodEventType
-            methodId: {},
-            inputArguments: {},
-            // AuditConditionCommentEventType
-            eventId: { dataType: DataType.ByteString, value: eventId },
-            comment: { dataType: DataType.LocalizedText, value: comment }
-        });
+        // AuditUpdateMethodEventType
+        methodId: {},
+        inputArguments: {},
+        // AuditConditionCommentEventType
+        eventId: {
+            dataType: DataType.ByteString,
+            value: eventId
+        },
+        comment: {
+            dataType: DataType.LocalizedText,
+            value: comment
+        }
+    });
     //xx }
 };
 
@@ -1115,12 +1347,16 @@ UAConditionBase.with_condition_method = function (inputArguments, context, callb
 
     //xx console.log(inputArguments.map(function(a){return a.toString()}));
     if (!(conditionNode instanceof UAConditionBase)) {
-        callback(null, {statusCode: StatusCodes.BadNodeIdInvalid});
+        callback(null, {
+            statusCode: StatusCodes.BadNodeIdInvalid
+        });
         return;
     }
 
     if (!conditionNode.getEnabledState()) {
-        callback(null, {statusCode: StatusCodes.BadConditionDisabled});
+        callback(null, {
+            statusCode: StatusCodes.BadConditionDisabled
+        });
         return;
     }
 
@@ -1139,7 +1375,9 @@ UAConditionBase.with_condition_method = function (inputArguments, context, callb
 
     var branch = conditionNode._findBranchForEventId(eventId);
     if (!branch) {
-        callback(null, {statusCode: StatusCodes.BadEventIdUnknown});
+        callback(null, {
+            statusCode: StatusCodes.BadEventIdUnknown
+        });
         return;
     }
     assert(branch instanceof ConditionSnapshot);
@@ -1149,7 +1387,9 @@ UAConditionBase.with_condition_method = function (inputArguments, context, callb
     // record also who did the call
     branch.setClientUserId(context.userIdentity || "<unknown client user id>");
 
-    callback(null, {statusCode: statusCode});
+    callback(null, {
+        statusCode: statusCode
+    });
 
 };
 
@@ -1177,7 +1417,7 @@ BaseNode.prototype._conditionRefresh = function (_cache) {
     var conditions = this.findReferencesAsObject("HasCondition", true);
     var i;
 
-    for ( i = 0; i < conditions.length; i++) {
+    for (i = 0; i < conditions.length; i++) {
         var condition = conditions[i];
         if (condition instanceof UAConditionBase) {
             condition._resend_conditionEvents();
@@ -1185,7 +1425,7 @@ BaseNode.prototype._conditionRefresh = function (_cache) {
     }
     var arr = [].concat(notifiers, eventSources);
 
-    for ( i = 0; i < arr.length; i++) {
+    for (i = 0; i < arr.length; i++) {
         var notifier = arr[i];
         var key = notifier.nodeId.toString();
         if (!_cache[key]) {
@@ -1258,7 +1498,7 @@ function _add_comment_method(inputArguments, context, callback) {
     UAConditionBase.with_condition_method(inputArguments, context, callback, function (eventId, comment, branch, conditionNode) {
 
         assert(inputArguments instanceof Array);
-        assert(eventId instanceof Buffer|| eventId === null);
+        assert(eventId instanceof Buffer || eventId === null);
         assert(branch instanceof ConditionSnapshot);
         branch.setComment(comment);
 
@@ -1277,7 +1517,7 @@ function _add_comment_method(inputArguments, context, callback) {
          * @param  branch    {ConditionSnapshot}
          * raised when the  branch has been added a comment
          */
-        conditionNode.emit("addComment",eventId,comment,branch);
+        conditionNode.emit("addComment", eventId, comment, branch);
 
 
         return StatusCodes.Good;
@@ -1291,10 +1531,14 @@ function _enable_method(inputArguments, context, callback) {
     assert(conditionNode);
 
     if (!(conditionNode instanceof UAConditionBase)) {
-        return callback(null, {statusCode: StatusCodes.BadNodeIdInvalid});
+        return callback(null, {
+            statusCode: StatusCodes.BadNodeIdInvalid
+        });
     }
     var statusCode = conditionNode._setEnabledState(true);
-    return callback(null, {statusCode: statusCode});
+    return callback(null, {
+        statusCode: statusCode
+    });
 
 }
 
@@ -1306,10 +1550,14 @@ function _disable_method(inputArguments, context, callback) {
     assert(conditionNode);
 
     if (!(conditionNode instanceof UAConditionBase)) {
-        return callback(null, {statusCode: StatusCodes.BadNodeIdInvalid});
+        return callback(null, {
+            statusCode: StatusCodes.BadNodeIdInvalid
+        });
     }
     var statusCode = conditionNode._setEnabledState(false);
-    return callback(null, {statusCode: statusCode});
+    return callback(null, {
+        statusCode: statusCode
+    });
 }
 
 
@@ -1343,7 +1591,9 @@ function _condition_refresh_method(inputArguments, context, callback) {
     }
 
     statusCode = _perform_condition_refresh(addressSpace, inputArguments, context);
-    return callback(null, {statusCode: statusCode});
+    return callback(null, {
+        statusCode: statusCode
+    });
 }
 
 function _condition_refresh2_method(inputArguments, context, callback) {
@@ -1353,7 +1603,6 @@ function _condition_refresh2_method(inputArguments, context, callback) {
     assert(inputArguments.length === 2);
 
     var addressSpace = context.object.addressSpace;
-    assert(context.server instanceof OPCUAServer);
 
     // istanbul ignore next
     if (doDebug) {
@@ -1364,7 +1613,9 @@ function _condition_refresh2_method(inputArguments, context, callback) {
     var monitoredItemId = inputArguments[1].value;
 
     var statusCode = _perform_condition_refresh(addressSpace, inputArguments, context);
-    return callback(null, {statusCode: statusCode});
+    return callback(null, {
+        statusCode: statusCode
+    });
 }
 
 
@@ -1459,8 +1710,8 @@ function _getCompositeKey(node, key) {
 
  * @return node        {UAConditionBase}
  */
-UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, data) {
-
+UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, data) {
+    /* eslint max-statements: ["error", 100] */
 
     var conditionType = addressSpace.findEventType(conditionTypeId);
 
@@ -1505,12 +1756,16 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
     }
     if (options.conditionOf) {
         assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
-        options.conditionOf = addressSpace._coerceNode( options.conditionOf);
+        options.conditionOf = addressSpace._coerceNode(options.conditionOf);
 
         // HasCondition References can be used in the Type definition of an Object or a Variable.
         assert(options.conditionOf instanceof UAObject || options.conditionOf instanceof UAVariable);
 
-        conditionNode.addReference({referenceType: "HasCondition", isForward: false, nodeId: options.conditionOf});
+        conditionNode.addReference({
+            referenceType: "HasCondition",
+            isForward: false,
+            nodeId: options.conditionOf
+        });
         assert(conditionNode.conditionOfNode().nodeId === options.conditionOf.nodeId);
     }
 
@@ -1522,7 +1777,10 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
      * dataType is DataType.NodeId
      */
     // the constant property of this condition
-    conditionNode.eventType.setValueFromSource({dataType: DataType.NodeId, value: conditionType.nodeId});
+    conditionNode.eventType.setValueFromSource({
+        dataType: DataType.NodeId,
+        value: conditionType.nodeId
+    });
 
     data = data || {};
     // install initial branch ID (null NodeId);
@@ -1532,7 +1790,10 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
      *
      * dataType is DataType.NodeId
      */
-    conditionNode.branchId.setValueFromSource({dataType: DataType.NodeId, value: NodeId.NullNodeId});
+    conditionNode.branchId.setValueFromSource({
+        dataType: DataType.NodeId,
+        value: NodeId.NullNodeId
+    });
 
     // install 'Comment' condition variable
     /**
@@ -1579,7 +1840,7 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
             propertyOf: conditionNode.enabledState
         });
     }
-    AddressSpace._install_TwoStateVariable_machinery(conditionNode.enabledState,{
+    AddressSpace._install_TwoStateVariable_machinery(conditionNode.enabledState, {
         trueState: "Enabled",
         falseState: "Disabled"
     });
@@ -1658,7 +1919,10 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
 
         var conditionSourceNode = addressSpace.findNode(options.conditionSource.nodeId);
 
-        conditionNode.sourceNode.setValueFromSource({dataType: DataType.NodeId, value: conditionSourceNode.nodeId});
+        conditionNode.sourceNode.setValueFromSource({
+            dataType: DataType.NodeId,
+            value: conditionSourceNode.nodeId
+        });
 
         // conditionSourceNode node must be registered as a EventSource of an other node.
         // As per spec OPCUA 1.03 part 9 page 54:
@@ -1679,7 +1943,10 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
 
     }
 
-    conditionNode.eventType.setValueFromSource({dataType: DataType.NodeId, value: conditionType.nodeId});
+    conditionNode.eventType.setValueFromSource({
+        dataType: DataType.NodeId,
+        value: conditionType.nodeId
+    });
     // as per spec:
 
     /**
@@ -1705,7 +1972,7 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
      */
     var baseConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
     //assert(baseConditionClassType,"Expecting BaseConditionClassType to be in addressSpace");
-    var conditionClassId = baseConditionClassType  ? baseConditionClassType.nodeId : NodeId.NullNodeId;
+    var conditionClassId = baseConditionClassType ? baseConditionClassType.nodeId : NodeId.NullNodeId;
     var conditionClassName = baseConditionClassType ? baseConditionClassType.displayName[0] : "";
     if (options.conditionClass) {
         if (_.isString(options.conditionClass)) {
@@ -1715,11 +1982,14 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
         if (!conditionClassNode) {
             throw new Error("cannot find condition class " + options.conditionClass.toString());
         }
-        conditionClassId =conditionClassNode.nodeId;
+        conditionClassId = conditionClassNode.nodeId;
         conditionClassName = conditionClassNode.displayName[0];
 
     }
-    conditionNode.conditionClassId.setValueFromSource({dataType: DataType.NodeId, value: conditionClassId});
+    conditionNode.conditionClassId.setValueFromSource({
+        dataType: DataType.NodeId,
+        value: conditionClassId
+    });
 
     // as per spec:
     //  ConditionClassName provides the display name of the ConditionClassType.
@@ -1744,7 +2014,10 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
      */
     var conditionName = options.conditionName || "Unset Condition Name";
     assert(_.isString(conditionName));
-    conditionNode.conditionName.setValueFromSource({dataType: DataType.String, value: conditionName});
+    conditionNode.conditionName.setValueFromSource({
+        dataType: DataType.String,
+        value: conditionName
+    });
 
 
     // set SourceNode and SourceName based on HasCondition node
@@ -1762,7 +2035,10 @@ UAConditionBase.instantiate = function (addressSpace,conditionTypeId, options, d
     branch0.setComment("Initialized");
     branch0.setQuality(StatusCodes.Good);
     branch0.setSeverity(0);
-    branch0.setLocalTime(new TimeZone({offset: 0, daylightSavingInOffset: false}));
+    branch0.setLocalTime(new TimeZone({
+        offset: 0,
+        daylightSavingInOffset: false
+    }));
     branch0.setMessage(" ");
 
     branch0.setReceiveTime(minDate);

@@ -274,4 +274,17 @@ describe("AddressSpace : add event type ", function () {
 
 
     });
+
+    describe("test AddressSpace#generateEventId" ,function() {
+        
+            it("it should generate different eventId each time",function() {
+                
+                var eventType1 = addressSpace.generateEventId().value;
+                var eventType2 = addressSpace.generateEventId().value;
+
+                eventType1.toString("hex").should.not.eql(eventType2.toString("hex"));
+                console.log( eventType1.toString("hex"), eventType2.toString("hex"));
+            });
+        });
 });
+

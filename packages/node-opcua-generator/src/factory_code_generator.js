@@ -369,7 +369,6 @@ function produce_code(schema_file, schema_name, source_file) {
         write("    " + baseclass + ".call(this,options);");
     }
 
-    var documentation;
     for (i = 0; i < n; i++) {
 
         field = schema.fields[i];

@@ -184,6 +184,9 @@ ClientSession.prototype._callMethodCondition = function(methodName,conditionId,e
             }));
 
             session.call(methodToCalls, function (err, results) {
+                if (err) {
+                    return callback(err);
+                } 
                 callback(err, results[0]);
             });
         }

@@ -12,6 +12,10 @@ var DataType = require("node-opcua-variant").DataType;
 
 var AddressSpace = require("../..").AddressSpace;
 var UAMethod = require("../..").UAMethod;
+var StatusCodes = require("node-opcua-status-code").StatusCodes;
+var NodeId = require("node-opcua-nodeid").NodeId;
+
+var UAAcknowledgeableConditionBase = require("../..").UAAcknowledgeableConditionBase;
 
 module.exports = function (test) {
 
@@ -31,6 +35,9 @@ module.exports = function (test) {
                 conditionSource: source,
                 browseName: "AcknowledgeableCondition1"
             });
+
+            //xx condition.should.be.instanceOf(UAAcknowledgeableConditionBase);
+
             condition.browseName.toString().should.eql("AcknowledgeableCondition1");
 
         });
@@ -78,14 +85,18 @@ module.exports = function (test) {
 
         it("should instantiate AlarmConditionType with ConfirmedState and ShelvedState", function (done) {
 
-            var condition = addressSpace.instantiateCondition("AlarmConditionType", {
+            var condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 browseName: "AlarmConditionType",
                 conditionSource: source,
+                inputNode: NodeId.NullNodeId,
                 optionals: ["SuppressedState", "ShelvingState", "ConfirmedState" ,"Confirm"]
             }, {
                 "enabledState.id": {dataType: DataType.Boolean, value: true}
             });
+
+            condition.should.be.instanceOf(UAAcknowledgeableConditionBase);
+
             should.exist(condition.confirmedState);
             should.exist(condition.confirm);
 
@@ -112,8 +123,14 @@ module.exports = function (test) {
             condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
 
 
-            condition._setEnabledState(false);
-            //xx condition._setAckedState(false).should.eql(StatusCodes.BadConditionDisabled);
+            // lets disable the alarm now
+            var statusCode = condition._setEnabledState(false);
+            statusCode.should.eql(StatusCodes.Good);
+
+
+            condition.currentBranch().setAckedState(false).should.eql(StatusCodes.Good,"it should still be possible to modify current status");
+            
+            // howevber 
             //xx condition._setConfirmedState(false).should.eql(StatusCodes.BadConditionDisabled);
 
             done();

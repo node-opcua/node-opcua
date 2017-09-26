@@ -33,63 +33,6 @@ function _getValueAsBoolean(node) {
 
 var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
-ConditionSnapshot.prototype.isCurrentBranch = function(){
-    return this._get_var("branchId") === NodeId.NullNodeId;
-};
-/**
- * @class ConditionSnapshot
- * @param varName
- * @param value
- * @private
- */
-ConditionSnapshot.prototype._set_twoStateVariable = function(varName,value) {
-
-    value = !!value;
-    var self = this;
-
-    var hrKey = ConditionSnapshot.normalizeName(varName);
-    var idKey = ConditionSnapshot.normalizeName(varName)+".id";
-
-    var variant = new Variant({ dataType: DataType.Boolean , value: value});
-    self._map[idKey] = variant;
-
-    // also change varName with human readable text
-    var twoStateNode = self._node_index[hrKey];
-    assert(twoStateNode);
-    assert(twoStateNode instanceof UATwoStateVariable);
-
-    var txt = value ? twoStateNode._trueState : twoStateNode._falseState;
-
-    var hrValue = new Variant({
-        dataType: DataType.LocalizedText,
-        value:  coerceLocalizedText(txt)
-    });
-    self._map[hrKey] = hrValue;
-
-    var node = self._node_index[idKey];
-
-    // also change ConditionNode if we are on currentBranch
-    if (self.isCurrentBranch()) {
-        assert(twoStateNode instanceof UATwoStateVariable);
-        twoStateNode.setValue(value);
-        //xx console.log("Is current branch", twoStateNode.toString(),variant.toString());
-        //xx console.log("  = ",twoStateNode.getValue());
-    }
-    self.emit("value_changed",node,variant);
-
-};
-
-ConditionSnapshot.prototype._get_twoStateVariable = function(varName) {
-    var self = this;
-    var key = ConditionSnapshot.normalizeName(varName)+".id";
-    var variant = self._map[key];
-
-    // istanbul ignore next
-    if (!variant) {
-        throw new Error("Cannot find TwoStateVariable with name " + varName);
-    }
-    return variant.value;
-};
 
 var _setAckedState = function(self, requestedAckedState,eventId,comment) {
 
@@ -119,12 +62,7 @@ ConditionSnapshot.prototype.getAckedState = function()
 ConditionSnapshot.prototype.setAckedState = function(ackedState) {
     ackedState = !!ackedState;
     var self = this;
-    //xx var oldAckedState = self.getAckedState();
-    _setAckedState(self, ackedState);
-    //xx if (!oldAckedState && ackedState) {
-    //xx     // need to set unconfirmed
-    //xx     self.setConfirmedState(false);
-    //xx }
+    return _setAckedState(self, ackedState);
 };
 
 ConditionSnapshot.prototype.getConfirmedState = function()
@@ -143,13 +81,13 @@ ConditionSnapshot.prototype.setConfirmedStateIfExists = function(confirmedState)
         return;
     }
     // todo deal with Error code BadConditionBranchAlreadyConfirmed
-    self._set_twoStateVariable("confirmedState",confirmedState);
+    return self._set_twoStateVariable("confirmedState",confirmedState);
 };
 
 ConditionSnapshot.prototype.setConfirmedState = function(confirmedState) {
     var self = this;
     assert(self.condition.confirmedState,"Must have a confirmed state.  Add ConfirmedState to the optionals");
-    self.setConfirmedStateIfExists(confirmedState);
+    return self.setConfirmedStateIfExists(confirmedState);
 };
 
 /**

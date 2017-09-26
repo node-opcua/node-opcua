@@ -216,7 +216,7 @@ UATwoStateVariable.prototype.initialize = function(options) {
     // for which state or sub-state should be used. It is up to the Server and will depend on the
     // semantics of the StateMachineType
     //
-    // EffectiveDisplayName will be constructed by added the EnableState
+    // EffectiveDisplayName will be constructed by adding the EnableSdtate
     // and the State of the addTrue state
     if (node.effectiveDisplayName) {
         node.id.on("value_changed",function() {

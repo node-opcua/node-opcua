@@ -23,7 +23,7 @@ module.exports = function (test) {
         }
 
         it("should instantiate a ExclusiveLimitAlarm", function () {
-            /* eslint max-statements: 100000 */    
+            /* eslint max-statements: ["error", 60] */    
             var alarm = addressSpace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
                 browseName: "MyExclusiveAlarm",
                 conditionSource: source,
@@ -248,6 +248,29 @@ module.exports = function (test) {
 
             spyOnEvent.callCount.should.eql(2);
 
+        });
+        
+        describe("Testing alarms with enabledState false",function() {
+
+            it("should not raise alarm if the alarm is not enabled",function() {
+
+                setVariableValue(0);
+                
+                var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+                    browseName: "MyNonExclusiveAlarm3",
+                    conditionSource: source,
+                    inputNode: variableWithAlarm,
+                    lowLowLimit: -10.0,
+                    lowLimit: -1.0,
+                    highLimit: 10.0,
+                    highHighLimit: 100.0
+                });
+                
+            
+            });
+            it("it should retain state and fire an event reflecting the actual state when alarms is set back to enabled=true",function(){
+
+            });          
         });
     });
 
