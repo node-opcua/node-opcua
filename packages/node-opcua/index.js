@@ -139,7 +139,7 @@ module.exports.version                = require("./package.json").version;
 
 
 module.exports.nodesets = require("node-opcua-nodesets");
-module.exports.constructNodesetFilename = module.exports.constructNodesetFilename;
+module.exports.constructNodesetFilename = module.exports.nodesets.constructNodesetFilename;
 module.exports.standard_nodeset_file = module.exports.nodesets.standard_nodeset_file;
 module.exports.di_nodeset_filename = module.exports.nodesets.di_nodeset_filename;
 module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filename;
