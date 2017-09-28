@@ -9,6 +9,8 @@ var UADataType = require("./ua_data_type").UADataType;
 var UAObject = require("./ua_object").UAObject;
 var UAObjectType = require("./ua_object_type").UAObjectType;
 var UAMethod = require("./ua_method").UAMethod;
+var UAVariableType = require("./ua_variable_type").UAVariableType;
+
 
 var NodeId = require("node-opcua-nodeid").NodeId;
 
@@ -22,6 +24,7 @@ var _ = require("underscore");
 function _dumpDisplayName(xw, node) {
     xw.startElement("DisplayName").text(node.displayName[0].text).endElement();
 }
+
 function _dumpDescription(xw, node) {
     if (node.description) {
         var desc = node.description.text;
@@ -66,17 +69,21 @@ function _dumpVariantExtensionObjectValue_Body(xw, schema, value) {
             var v = value[field.name];
             if (v !== null && v !== undefined) {
                 //xx console.log("xxxxx field",field," V ".red,v);
-                switch(field.fieldType) {
+                switch (field.fieldType) {
                     case "UInt64":
                     case "Int64":
                         xw.text(v[1].toString());
                         break;
                     case "LocalizedText":
                         xw.startElement("Locale");
-                        if(v.locale) { xw.text(v.locale); }
+                        if (v.locale) {
+                            xw.text(v.locale);
+                        }
                         xw.endElement();
                         xw.startElement("Text");
-                        if(v.text) { xw.text(v.text); }
+                        if (v.text) {
+                            xw.text(v.text);
+                        }
                         xw.endElement();
                         break;
                     default:
@@ -90,7 +97,9 @@ function _dumpVariantExtensionObjectValue_Body(xw, schema, value) {
 
 
 }
+
 var getFactory = require("node-opcua-factory/src/factories_factories").getFactory;
+
 /* encode object as XML */
 function _dumpVariantExtensionObjectValue(xw, schema, value) {
 
@@ -113,10 +122,10 @@ function _dumpVariantExtensionObjectValue(xw, schema, value) {
     }
     xw.endElement();
 }
-function _dumpValue(xw, node) {
+
+function _dumpValue(xw, node, value) {
     var addressSpace = node.addressSpace;
 
-    var value = node._dataValue.value;
     if (!value) {
         return;
     }
@@ -163,7 +172,7 @@ function _dumpValue(xw, node) {
 
 
             xw.startElement("ListOf" + baseDataTypeName);
-            xw.writeAttribute("xmlns","http://opcfoundation.org/UA/2008/02/Types.xsd");
+            xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
 
             value.value.forEach(encodeXml);
 
@@ -194,38 +203,80 @@ function dumpUAVariable(xw, node) {
     var dataTypeName = dataTypeNode.browseName.toString();
     xw.writeAttribute("DataType", dataTypeName);
 
+    _dumpArrayDimensions(xw, node);
+
     _dumpDisplayName(xw, node);
     _dumpDescription(xw, node);
 
     _dumpReferences(xw, node);
 
-    _dumpValue(xw, node);
+    _dumpValue(xw, node, node._dataValue.value);
     xw.endElement();
 
+}
+
+function _dumpArrayDimensions(xw, node) {
+    if (node.arrayDimension) {
+        xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(','));
+    }
 }
 
 UAVariable.prototype.dumpXML = function (xw) {
     dumpUAVariable(xw, this);
 };
 
+function dumpUAVariableType(xw, node) {
+
+    var addressSpace = node.addressSpace;
+    xw.startElement("UAVariableType");
+    xw.writeAttribute("NodeId", node.nodeId.toString());
+    xw.writeAttribute("BrowseName", node.browseName.toString());
+    xw.writeAttribute("SymbolicName", node.symbolicName);
+    if (node.isAbstract) {
+        xw.writeAttribute("IsAbstract", node.isAbstract ? "true" : "false");
+    }
+    if (node.valueRank !== -1) {
+        xw.writeAttribute("ValueRank", node.valueRank);
+    }
+    var dataTypeNode = addressSpace.findNode(node.dataType);
+    if (!dataTypeNode) {
+        throw new Error(" cannot find datatype " + node.dataType);
+    }
+    var dataTypeName = dataTypeNode.browseName.toString();
+    xw.writeAttribute("DataType", dataTypeName);
+    _dumpArrayDimensions(xw, node);
+
+    _dumpDisplayName(xw, node);
+    _dumpDescription(xw, node);
+
+    _dumpReferences(xw, node);
+
+    _dumpValue(xw, node, node.value);
+    xw.endElement();
+
+}
+
+UAVariableType.prototype.dumpXML = function (xw) {
+    dumpUAVariableType(xw, this);
+};
 
 function _dumpUADataTypeDefinition(xw, node) {
 
-    var indexes =  node._getDefinition();
+    var indexes = node._getDefinition();
     if (indexes) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.definitionName);
 
-        _.forEach(indexes.nameIndex,function (defItem,key) {
+        _.forEach(indexes.nameIndex, function (defItem, key) {
 
             xw.startElement("Field");
             console.log(defItem);
             xw.writeAttribute("Name", defItem.name);
 
-            if (defItem.dataType && !defItem.dataType.isEmpty() ) {
+            if (defItem.dataType && !defItem.dataType.isEmpty()) {
                 // there is no dataType on enumeration
                 var dataTypeStr = defItem.dataType.toString();
-                xw.writeAttribute("DataType", dataTypeStr  );
+                xw.writeAttribute("DataType", dataTypeStr);
             }
 
             if (!utils.isNullOrUndefined(defItem.valueRank)) {
@@ -272,6 +323,7 @@ function dumpCommonAttributes(xw, node) {
     _dumpReferences(xw, node);
 
 }
+
 function dumpUAObject(xw, node) {
 
     xw.startElement("UAObject");
@@ -280,6 +332,7 @@ function dumpUAObject(xw, node) {
     xw.endElement();
 
 }
+
 UAObject.prototype.dumpXML = function (xw) {
     dumpUAObject(xw, this);
 };
@@ -303,6 +356,7 @@ function dumpUAMethod(xw, node) {
     dumpCommonAttributes(xw, node);
     xw.endElement();
 }
+
 UAMethod.prototype.dumpXML = function (xw) {
     dumpUAMethod(xw, this);
 };
@@ -314,6 +368,7 @@ function visitUANode(node, options) {
     var addressSpace = node.addressSpace;
     options.elements = options.elements || [];
     options.index_el = options.index_el || {};
+
     // visit references
     function process_reference(reference) {
         // reference.referenceType
@@ -335,8 +390,8 @@ function visitUANode(node, options) {
         }
     }
 
-    _.forEach(node._referenceIdx,process_reference);
-    _.forEach(node._back_referenceIdx,process_reference);
+    _.forEach(node._referenceIdx, process_reference);
+    _.forEach(node._back_referenceIdx, process_reference);
     options.elements.push(node);
     return node;
 }
@@ -405,8 +460,8 @@ function dumpXml(node, options) {
             }
         }
 
-        _.forEach(node._references,inner);
-        _.forEach(node._back_referenceIdx,inner);
+        _.forEach(node._references, inner);
+        _.forEach(node._back_referenceIdx, inner);
 
     }
 
