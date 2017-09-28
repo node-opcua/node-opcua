@@ -80,7 +80,7 @@ module.exports = function (test) {
                     organizedBy: addressSpace.rootFolder.objects
                 });
 
-                condition._setEnabledState(true);
+                condition.setEnabledState(true);
 
                 var dataValue = condition.enabledState.id.readValue();
                 dataValue.value.value.should.eql(true);
@@ -88,19 +88,19 @@ module.exports = function (test) {
 
                 var context = new SessionContext();
 
-                condition._setEnabledState(false);
+                condition.setEnabledState(false);
                 condition.getEnabledState().should.eql(false);
 
-                condition._setEnabledState(true).should.eql(StatusCodes.Good);
+                condition.setEnabledState(true).should.eql(StatusCodes.Good);
                 condition.getEnabledState().should.eql(true);
 
-                condition._setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
+                condition.setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
 
                 condition.enabledState.id.readValue().value.value.should.eql(true);
                 condition.enabledState.readValue().value.value.text.should.eql("Enabled");
 
-                condition._setEnabledState(false).should.eql(StatusCodes.Good);
-                condition._setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
+                condition.setEnabledState(false).should.eql(StatusCodes.Good);
+                condition.setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
                 condition.enabledState.id.readValue().value.value.should.eql(false);
                 condition.enabledState.readValue().value.value.text.should.eql("Disabled");
                 condition.getEnabledState().should.eql(false);
@@ -252,7 +252,7 @@ module.exports = function (test) {
                     conditionSource: source,
                 });
 
-                condition._setEnabledState(true);
+                condition.setEnabledState(true);
                 condition.getEnabledState().should.eql(true);
                 condition.getEnabledStateAsString().should.eql("Enabled");
                 condition.currentBranch().getEnabledState().should.eql(true);
@@ -260,7 +260,7 @@ module.exports = function (test) {
                 
 
                 var spyOnEvent = sinon.spy();
-                source.on("event",spyOnEvent);
+                condition.on("event", spyOnEvent);
 
                 /* event should be raised when enable state is true  */
                 condition.raiseNewCondition({
@@ -278,7 +278,7 @@ module.exports = function (test) {
                 condition.enabledState.readValue().value.value.text.should.eql("Enabled");
 
                 //  When the Condition instance enters the Disabled state, ...
-                var statusCode = condition._setEnabledState(false);
+                var statusCode = condition.setEnabledState(false);
                 statusCode.should.eql(StatusCodes.Good);
                 
                 condition.getEnabledState().should.eql(false);
@@ -321,7 +321,7 @@ module.exports = function (test) {
                 
 
                 // when the condition enter an enable state agin
-                statusCode = condition._setEnabledState(true);
+                statusCode = condition.setEnabledState(true);
 
                 statusCode.should.eql(StatusCodes.Good);
                 
@@ -329,7 +329,7 @@ module.exports = function (test) {
                 // and a event should have been raised with the retained condition s
 
                 // Note : the specs are not clear about wheither an specific event for enable state is required ....
-                spyOnEvent.callCount.should.eql(4,"an event should have been raised to signal Enabled State");
+                spyOnEvent.callCount.should.eql(3, "an event should have been raised to signal Enabled State");
                 spyOnEvent.getCalls()[2].args[0].enabledState.value.text.should.eql("Enabled");
                 spyOnEvent.getCalls()[2].args[0]["enabledState.id"].value.should.eql(true);
                 spyOnEvent.getCalls()[2].args[0]["enabledState.effectiveDisplayName"].value.text.should.eql("Enabled");
@@ -343,18 +343,8 @@ module.exports = function (test) {
                 spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Hello Message");
                 spyOnEvent.getCalls()[2].args[0].comment.value.text.should.eql("Initialized");
 
-                spyOnEvent.getCalls()[3].args[0].enabledState.value.text.should.eql("Enabled");
-                spyOnEvent.getCalls()[3].args[0]["enabledState.id"].value.should.eql(true);
-                spyOnEvent.getCalls()[3].args[0]["enabledState.effectiveDisplayName"].value.text.should.eql("Enabled");
-                spyOnEvent.getCalls()[3].args[0]["enabledState.transitionTime"].value.should.be.instanceof(Date);
-                
-                spyOnEvent.getCalls()[3].args[0].branchId.value.should.eql(NodeId.NullNodeId);
-                
-                spyOnEvent.getCalls()[3].args[0].retain.toString().should.eql("Variant(Scalar<Boolean>, value: true)");
-                spyOnEvent.getCalls()[3].args[0].quality.value.should.eql(StatusCodes.Good);
-                spyOnEvent.getCalls()[3].args[0].message.value.text.should.eql("Hello Message");
-                spyOnEvent.getCalls()[3].args[0].comment.value.text.should.eql("Initialized");
-                
+                condition.removeListener("on", spyOnEvent);
+
             });
             
             it("should be possible to activate the EnabledState.TransitionTime optional property", function (done) {

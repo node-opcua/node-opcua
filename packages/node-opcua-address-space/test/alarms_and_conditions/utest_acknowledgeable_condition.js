@@ -3,14 +3,10 @@
 
 var should = require("should");
 var sinon = require("sinon");
-var _ = require("underscore");
-var path = require("path");
 
-var async = require("async");
 
 var DataType = require("node-opcua-variant").DataType;
 
-var AddressSpace = require("../..").AddressSpace;
 var UAMethod = require("../..").UAMethod;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var NodeId = require("node-opcua-nodeid").NodeId;
@@ -124,13 +120,13 @@ module.exports = function (test) {
 
 
             // lets disable the alarm now
-            var statusCode = condition._setEnabledState(false);
+            var statusCode = condition.setEnabledState(false);
             statusCode.should.eql(StatusCodes.Good);
 
 
             condition.currentBranch().setAckedState(false).should.eql(StatusCodes.Good,"it should still be possible to modify current status");
-            
-            // howevber 
+
+            // however
             //xx condition._setConfirmedState(false).should.eql(StatusCodes.BadConditionDisabled);
 
             done();

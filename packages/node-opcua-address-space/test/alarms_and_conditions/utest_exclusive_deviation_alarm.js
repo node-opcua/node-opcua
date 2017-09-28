@@ -41,6 +41,8 @@ module.exports = function (test) {
                     highHighLimit: 10.0
                 });
 
+                alarm.setEnabledState(true);
+
             });
             it("should provide correct properties",function(){
 
@@ -57,7 +59,7 @@ module.exports = function (test) {
                 alarm.getSetpointValue().should.eql(0);
             });
 
-            it("ExclusiveDeviationAlarm - setpointNode Value is zero", function () {
+            it("ZZJJ ExclusiveDeviationAlarm - setpointNode Value is zero", function () {
 
                 setpointNodeNode.setValueFromSource({dataType: "Double", value: 0});
                 //

@@ -5,6 +5,54 @@ var sinon = require("sinon");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var NodeId = require("node-opcua-nodeid").NodeId;
+var DataType = require("node-opcua-variant").DataType;
+
+const fields = ["eventId", "eventType", "enabledState", "activeState", "ackedState", "lowLowLimit", "comment", "branchId", "quality", "message"];
+
+function dumpEvent(addressSpace, eventFields, eventData) {
+
+    function w(str, l) {
+        return (str + "                               ").substring(0, l);
+    }
+
+    console.log("-----------------------");
+    eventFields.map(function (key) {
+
+        var variant = eventData[key];
+        if (!variant || variant.dataType === DataType.Null) {
+            return;
+        }
+        if (variant.dataType === DataType.ByteString) {
+            console.log(w("", 20), w(key, 15).yellow,
+              w(variant.dataType.key, 10).toString().cyan, variant.value.toString("hex"));
+
+        } else if (variant.dataType === DataType.NodeId) {
+
+            var name = addressSpace.findNode(variant.value);
+            name = name ? name.browseName.toString() : variant.value.toString();
+
+            console.log(w(name, 20), w(key, 15).yellow,
+              w(variant.dataType.key, 10).toString().cyan, name.cyan.bold, "(", w(variant.value, 20), ")");
+
+        } else {
+            console.log(w("", 20), w(key, 15).yellow,
+              w(variant.dataType.key, 10).toString().cyan, variant.value.toString());
+        }
+    });
+}
+
+function dumpSpy(spyOnEvent) {
+    for (var i = 0; i < spyOnEvent.getCalls().length; i++) {
+        console.log("call ", i);
+        console.log("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());
+        console.log("  eventId   ", spyOnEvent.getCalls()[i].args[0].eventId.toString());
+        console.log("  eventType ", spyOnEvent.getCalls()[i].args[0].eventType.toString());
+        console.log("  branchId  ", spyOnEvent.getCalls()[i].args[0].branchId.toString());
+        console.log("  message   ", spyOnEvent.getCalls()[i].args[0].message.toString());
+        console.log("  ack       ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
+    }
+
+}
 
 module.exports = function (test) {
 
@@ -37,7 +85,7 @@ module.exports = function (test) {
 
             var spyOnEvent = sinon.spy();
 
-            source.on("event",spyOnEvent);
+            alarm.on("event", spyOnEvent);
 
             alarm.getLowLowLimit().should.eql(-10);
             alarm.getLowLimit().should.eql(1.0);
@@ -53,18 +101,6 @@ module.exports = function (test) {
 
             spyOnEvent.callCount.should.eql(0);
 
-            function dumpSpy(spyOnEvent) {
-                for (var i=0;i < spyOnEvent.getCalls().length; i++) {
-                    console.log("call ",i);
-                    console.log("  time      ",spyOnEvent.getCalls()[i].args[0].time.toString());
-                    console.log("  eventId   ",spyOnEvent.getCalls()[i].args[0].eventId.toString());
-                    console.log("  eventType ",spyOnEvent.getCalls()[i].args[0].eventType.toString());
-                    console.log("  branchId  ",spyOnEvent.getCalls()[i].args[0].branchId.toString());
-                    console.log("  message   ",spyOnEvent.getCalls()[i].args[0].message.toString());
-                    console.log("  ack       ",spyOnEvent.getCalls()[i].args[0].ackedState.toString());
-                }
-                
-            }
 
             setVariableValue(-100);
             alarm.limitState.getCurrentState().should.eql("LowLow");
@@ -74,7 +110,7 @@ module.exports = function (test) {
             spyOnEvent.callCount.should.eql(1);
             spyOnEvent.getCalls()[0].args[0].message.value.text.should.eql("Condition value is -100 and state is LowLow");
             spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.NullNodeId);
-            
+            var call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
 
             setVariableValue(-9);
             alarm.limitState.getCurrentState().should.eql("Low");
@@ -86,23 +122,33 @@ module.exports = function (test) {
             // Note: We need to chek if in this case we need to create a branch as well
             spyOnEvent.getCalls()[1].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
             spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.NullNodeId);
-            
+            var call1_eventId = spyOnEvent.getCalls()[1].args[0].eventId.toString();
+
+            call1_eventId.should.not.eql(call0_eventId, "Event Id must be different");
+
             setVariableValue(4);
             should(alarm.limitState.getCurrentState()).eql(null); // not alarmed !
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
             alarm.activeState.getValue().should.eql(false);
             spyOnEvent.callCount.should.eql(4);
 
+            var call2_eventId = spyOnEvent.getCalls()[2].args[0].eventId.toString();
+            var call3_eventId = spyOnEvent.getCalls()[3].args[0].eventId.toString();
+
             // The state revert to normal but previous alarms hase not been acknowledged, therefore we receive 2 events
             // one for the new branch created with a snapshoted version of the current state, and an other one
             // with the null branch
             spyOnEvent.getCalls()[3].args[0].message.value.text.should.eql("Back to normal");
             spyOnEvent.getCalls()[3].args[0].branchId.value.should.eql(NodeId.NullNodeId);
-           
+            call3_eventId.should.not.eql(call0_eventId, "Event Id must be different");
+            call3_eventId.should.not.eql(call1_eventId, "Event Id must be different");
+
             // checking the created branch
             spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
             spyOnEvent.getCalls()[2].args[0].branchId.value.should.not.eql(NodeId.NullNodeId);
-        
+            call2_eventId.should.not.eql(call0_eventId, "Event Id must be different");
+            call2_eventId.should.not.eql(call1_eventId, "Event Id must be different");
+
             setVariableValue(11);
             alarm.limitState.getCurrentState().should.eql("High");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
@@ -124,6 +170,8 @@ module.exports = function (test) {
             setVariableValue(11);
             setVariableValue(4);
             setVariableValue(0);
+
+            alarm.removeListener("on", spyOnEvent);
 
         });
 
@@ -197,6 +245,70 @@ module.exports = function (test) {
             setVariableValue(0);
         });
 
+
+        it("AZAZ Alarm should not trigger event if state change but enableState is false", function () {
+
+            setVariableValue(0);
+
+            var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+                browseName: "MyNonExclusiveAlarmDisabledTest",
+                conditionSource: source,
+                inputNode: variableWithAlarm,
+                lowLowLimit: -10.0,
+                lowLimit: -1.0,
+                highLimit: 10.0,
+                highHighLimit: 100.0
+            });
+            alarm.getEnabledState().should.eql(true);
+
+            alarm.getLowLowLimit().should.eql(-10);
+            alarm.getLowLimit().should.eql(-1.0);
+            alarm.getHighLimit().should.eql(10);
+            alarm.getHighHighLimit().should.eql(100);
+
+            var spyOnEvent = sinon.spy();
+            alarm.on("event", spyOnEvent);
+
+            setVariableValue(0);
+            spyOnEvent.callCount.should.eql(0);
+
+            setVariableValue(-100);
+            spyOnEvent.callCount.should.eql(1); // LOW LOW & LOW
+
+            spyOnEvent.getCall(0).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
+            dumpEvent(addressSpace, fields, spyOnEvent.getCall(0).args[0]);
+
+            setVariableValue(0);
+            spyOnEvent.callCount.should.eql(3); // BACK TO NORMAL ??
+
+            // We have 2 events here because a branch has been created
+            spyOnEvent.getCall(1).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
+            spyOnEvent.getCall(2).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
+
+            dumpEvent(addressSpace, fields, spyOnEvent.getCall(1).args[0]);
+            dumpEvent(addressSpace, fields, spyOnEvent.getCall(2).args[0]);
+
+
+            alarm.setEnabledState(false);
+            spyOnEvent.callCount.should.eql(4); // disabled Event must have been received
+            dumpEvent(addressSpace, fields, spyOnEvent.getCall(3).args[0]);
+
+            //should not trigger event if state change but enableState is false
+            setVariableValue(-100);
+            spyOnEvent.callCount.should.eql(4); // no more new EVENT, as alarm is disabled
+
+            alarm.setEnabledState(true);
+            dumpEvent(addressSpace, fields, spyOnEvent.getCall(4).args[0]);
+            spyOnEvent.callCount.should.eql(5); // a new event should be raised because
+            source.removeListener("on", spyOnEvent);
+
+        });
+
+        it("should be possible to temporarily disable the alarm (this should trigger an event with custom severity and retain flag) ", function () {
+            // TO DO
+
+        });
+
         it("should be possible to automatically trigger the new status event when limit values are updated",function() {
             
             setVariableValue(0);
@@ -222,7 +334,7 @@ module.exports = function (test) {
             alarm.highHighState.getValue().should.eql(false);
 
             var spyOnEvent = sinon.spy();
-            source.on("event",spyOnEvent);
+            alarm.on("event", spyOnEvent);
      
 
             // Now revisit limits
@@ -248,6 +360,7 @@ module.exports = function (test) {
 
             spyOnEvent.callCount.should.eql(2);
 
+            alarm.removeListener("on", spyOnEvent);
         });
         
         describe("Testing alarms with enabledState false",function() {

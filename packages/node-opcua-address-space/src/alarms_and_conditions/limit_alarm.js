@@ -206,6 +206,11 @@ UALimitAlarm.prototype._signalNewCondition = function (stateName, isActive, valu
 
     var alarm = this;
 
+    if (!alarm.getEnabledState()) {
+        // disabled alarm shall not generate new condition events
+        return;
+    }
+
     var oldConditionInfo = alarm.getCurrentConditionInfo();
     var newConditionInfo = alarm._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
 

@@ -848,6 +848,7 @@ UAConditionBase.prototype.createBranch = function () {
 UAConditionBase.prototype.deleteBranch = function (branch) {
     var self = this;
     var key = branch.getBranchId().toString();
+    assert(branch.getBranchId() !== NodeId.NullNodeId, "cannot delete branch zero");
     assert(self._branches.hasOwnProperty(key));
     delete self._branches[key];
     self.emit("branch_deleted",key);
@@ -958,7 +959,7 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
 
 
         // a notification must be send
-        conditionNode.raiseConditionEvent(conditionNode.currentBranch());
+        conditionNode.raiseConditionEvent(conditionNode.currentBranch(), true);
 
 
     } else {
@@ -966,7 +967,9 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
         //  evaluated and all of its Properties updated to reflect the current values. If this
         //  evaluation causes the Retain Property to transition to TRUE for any ConditionBranch,
         //  then an Event Notification shall be generated for that ConditionBranch.
+
         // todo evaluate branches
+        // conditionNode.evaluateBranches();
 
         // restore retain flag
         if (conditionNode.hasOwnProperty("_previousRetainFlag")) {
@@ -974,15 +977,27 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
         }
 
         // todo send notification for branches with retain = true
+        var nb_condition_resent = 0;
         if (conditionNode.currentBranch().getRetain()) {
-            conditionNode._resend_conditionEvents();
+            nb_condition_resent += conditionNode._resend_conditionEvents();
         }
 
-        // a notification must be send
-        conditionNode.raiseConditionEvent(conditionNode.currentBranch());
+        if (nb_condition_resent === 0) {
+            // a notification must be send
+            conditionNode.raiseConditionEvent(conditionNode.currentBranch(), true);
+        }
 
     }
     return StatusCodes.Good;
+};
+
+/**
+ *
+ * @param requestedEnabledState
+ * @private
+ */
+UAConditionBase.prototype.setEnabledState = function (requestedEnabledState) {
+    return this._setEnabledState(requestedEnabledState);
 };
 
 /**
@@ -1056,7 +1071,11 @@ UAConditionBase.prototype.conditionOfNode = function () {
  * (see also UAObject#raiseEvent to raise a transient event)
  * @param branch {ConditionSnapshot}
  */
-UAConditionBase.prototype.raiseConditionEvent = function (branch) {
+UAConditionBase.prototype.raiseConditionEvent = function (branch, renewEventId) {
+    assert(arguments.length === 2, "expecting 2 arguments");
+    if (renewEventId) {
+        branch.renewEventId();
+    }
 
     //xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +  branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
 
@@ -1069,6 +1088,9 @@ UAConditionBase.prototype.raiseConditionEvent = function (branch) {
 
     if (conditionOfNode) {
         var eventData = branch._constructEventData();
+
+        self.emit("event", eventData);
+
         if (conditionOfNode instanceof UAObject) {
             //xx assert(conditionOfNode.eventNotifier === 0x01);
             conditionOfNode._bubble_up_event(eventData);
@@ -1182,14 +1204,12 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
         branch.setRetain(!!conditionInfo.retain);
     }
 
-    branch.renewEventId()
-    self.raiseConditionEvent(branch);
+    self.raiseConditionEvent(branch, true);
 };
 
 UAConditionBase.prototype.raiseNewBranchState = function (branch) {
     var self = this;
-    branch.renewEventId();
-    self.raiseConditionEvent(branch);
+    self.raiseConditionEvent(branch, true);
 
     if (branch.getBranchId() !== NodeId.NullNodeId && !branch.getRetain()) {
         //xx console.log(" Deleting not longer needed branch ", branch.getBranchId().toString());
@@ -1399,11 +1419,11 @@ UAConditionBase.prototype._resend_conditionEvents = function () {
     var self = this;
     var currentBranch = self.currentBranch();
     if (currentBranch.getRetain()) {
-
         debugLog(" resending condition event for " + self.browseName.toString());
-
-        self.raiseConditionEvent(currentBranch);
+        self.raiseConditionEvent(currentBranch, false);
+        return 1;
     }
+    return 0;
 };
 
 BaseNode.prototype._conditionRefresh = function (_cache) {
@@ -1507,7 +1527,7 @@ function _add_comment_method(inputArguments, context, callback) {
         conditionNode._raiseAuditConditionCommentEvent(sourceName, eventId, comment);
 
         // raise new event
-        conditionNode.raiseConditionEvent(branch);
+        conditionNode.raiseConditionEvent(branch, true);
 
 
         /**
@@ -1609,8 +1629,8 @@ function _condition_refresh2_method(inputArguments, context, callback) {
         debugLog(" ConditionType.conditionRefresh2 !".cyan.bgWhite);
     }
 
-    var subscriptionId = inputArguments[0].value;
-    var monitoredItemId = inputArguments[1].value;
+    //xx var subscriptionId = inputArguments[0].value;
+    //xx var monitoredItemId = inputArguments[1].value;
 
     var statusCode = _perform_condition_refresh(addressSpace, inputArguments, context);
     return callback(null, {
@@ -1859,7 +1879,7 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
         var variant = new Variant(data[key]);
 
         // check that Variant DataType is compatible with the UAVariable dataType
-        var nodeDataType = addressSpace.findNode(varNode.dataType).browseName;
+        //xx var nodeDataType = addressSpace.findNode(varNode.dataType).browseName;
 
         /* istanbul ignore next */
         if (!varNode._validate_DataType(variant.dataType)) {
