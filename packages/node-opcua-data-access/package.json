@@ -1,7 +1,7 @@
 {
  "name": "node-opcua-data-access",
  "main": "./index.js",
- "version": "0.1.0-5",
+ "version": "0.1.0-7",
  "description": "pure nodejs OPCUA SDK - module -data-access",
  "scripts": {
   "test": "mocha test",
@@ -10,14 +10,14 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-basic-types": "^0.1.0-5",
-  "node-opcua-data-model": "^0.1.0-5",
-  "node-opcua-factory": "^0.1.0-5",
-  "node-opcua-nodeid": "^0.1.0-5",
+  "node-opcua-basic-types": "^0.1.0-7",
+  "node-opcua-data-model": "^0.1.0-7",
+  "node-opcua-factory": "^0.1.0-7",
+  "node-opcua-nodeid": "^0.1.0-7",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.1.0-5",
+  "node-opcua-generator": "^0.1.0-7",
   "should": "13.1.0"
  },
  "author": "Etienne Rossignon",

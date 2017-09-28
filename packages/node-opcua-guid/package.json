@@ -1,7 +1,7 @@
 {
  "name": "node-opcua-guid",
  "main": "./src/guid.js",
- "version": "0.1.0-4",
+ "version": "0.1.0-7",
  "description": "pure nodejs OPCUA SDK - module -guid",
  "scripts": {
   "test": "mocha test"

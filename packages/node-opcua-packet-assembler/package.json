@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-packet-assembler",
- "version": "0.1.0-4",
+ "version": "0.1.0-7",
  "description": "pure nodejs OPCUA SDK - module -packet-assembler",
  "main": "src/packet_assembler.js",
  "scripts": {

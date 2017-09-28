@@ -1,7 +1,7 @@
 {
  "name": "node-opcua-nodesets",
  "main": "index.js",
- "version": "0.1.0-4",
+ "version": "0.1.0-7",
  "description": "pure nodejs OPCUA SDK - module -nodesets",
  "scripts": {
   "test": "echo no test"
