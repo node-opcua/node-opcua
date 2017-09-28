@@ -1,6 +1,6 @@
 "use strict";
 /* global describe,it,before*/
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 var generateAddressSpace = require("..").generate_address_space;
 var AddressSpace = require("..").AddressSpace;
 var createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
@@ -9,7 +9,7 @@ var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic string nodeid assignment", function () {
 
 
-    var nodesetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+    var nodesetFilename = nodesets.standard_nodeset_file;
 
 
     var addressSpace = null;

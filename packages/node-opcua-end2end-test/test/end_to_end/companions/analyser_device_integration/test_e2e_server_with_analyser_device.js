@@ -48,9 +48,6 @@ function create_analyser_device(addressSpace) {
 var build_server_with_temperature_device = require("../../../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 var perform_operation_on_client_session = require("../../../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var standard_nodeset_file = opcua.standard_nodeset_file;
-var constructNodesetFilename = opcua.constructNodesetFilename;
-
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("ADI - Testing a server that exposes Analyser Devices", function () {
@@ -62,9 +59,9 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     var server_options = {
         port: 2000,
         nodeset_filename: [
-            standard_nodeset_file,
-            constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml"),
-            constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml")
+            opcua.nodesets.standard_nodeset_file,
+            opcua.nodesets.di_nodeset_filename,
+            opcua.nodesets.adi_nodeset_filename,
         ]
     };
 

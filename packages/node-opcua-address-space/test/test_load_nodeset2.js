@@ -7,7 +7,7 @@ var should = require("should");
 var path = require("path");
 var fs = require("fs");
 var getFixture = require("node-opcua-test-fixtures").getFixture;
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 
 
@@ -60,7 +60,8 @@ describe("testing NodeSet XML file loading", function () {
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
         this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+        var xml_file = nodesets.standard_nodeset_file;
+
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
@@ -78,8 +79,8 @@ describe("testing NodeSet XML file loading", function () {
     it("should load the DI nodeset ", function (done) {
 
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
-            constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml")
+            nodesets.standard_nodeset_file,
+            nodesets.di_nodeset_filename
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         fs.existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
@@ -103,7 +104,7 @@ describe("testing NodeSet XML file loading", function () {
         var xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
+            nodesets.standard_nodeset_file,
             xml_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true);
@@ -138,7 +139,7 @@ describe("testing NodeSet XML file loading", function () {
         var xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
+            nodesets.standard_nodeset_file,
             xml_file
         ];
 
@@ -199,7 +200,7 @@ describe("testing NodeSet XML file loading", function () {
     it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", function (done) {
 
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
+            nodesets.standard_nodeset_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
 

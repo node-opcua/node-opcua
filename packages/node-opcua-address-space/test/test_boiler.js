@@ -13,7 +13,7 @@ var makeBoiler = require("../test_helpers/boiler_system").makeBoiler;
 
 
 var doDebug = false;
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Boiler System", function () {
@@ -23,7 +23,7 @@ describe("Testing Boiler System", function () {
     }
 
 
-    var nodesetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+    var nodesetFilename = nodesets.standard_nodeset_file;
 
     var addressSpace = null;
     before(function (done) {

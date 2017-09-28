@@ -7,7 +7,7 @@ var fs= require("fs");
 
 var standardUnits = require("node-opcua-data-access").standardUnits;
 
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 
 var AddressSpace = require("../../").AddressSpace;
 var generate_address_space = require("../..").generate_address_space;
@@ -24,7 +24,7 @@ describe("DataAccess", function () {
 
         var xmlFiles = [
             path.join(__dirname, "../../test_helpers/test_fixtures/mini.Node.Set2.xml"),
-            constructNodesetFilename("Opc.Ua.NodeSet2.Part8.xml")
+            nodesets.part8_nodeset_filename
         ];
         fs.existsSync(xmlFiles[0]).should.eql(true);
         fs.existsSync(xmlFiles[1]).should.eql(true);

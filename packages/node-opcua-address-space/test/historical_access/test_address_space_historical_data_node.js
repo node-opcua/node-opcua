@@ -12,7 +12,7 @@ var context = SessionContext.defaultContext;
 
 var generate_address_space = require("../..").generate_address_space;
 
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 
 var historizing_service = require("node-opcua-service-history");
 require("date-utils");
@@ -27,7 +27,7 @@ describe("Testing Historical Data Node", function () {
 
         addressSpace = new AddressSpace();
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
+            nodesets.standard_nodeset_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         generate_address_space(addressSpace, xml_files, function (err) {

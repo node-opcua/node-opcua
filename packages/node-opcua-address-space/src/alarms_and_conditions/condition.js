@@ -62,7 +62,7 @@ function _visit(self, node, prefix) {
     });
 }
 function _installOnChangeEventHandlers(self, node, prefix) {
-    
+
     var aggregates = node.getAggregates();
 
     aggregates.forEach(function (aggregate) {
@@ -76,7 +76,7 @@ function _installOnChangeEventHandlers(self, node, prefix) {
             if (doDebug) {
                 debugLog("addingkey =", key)
             }
-            
+
             aggregate.on("value_changed",function(newDataValue,oldDataValue){
                 self._map[key] = newDataValue.value;
                 self._node_index[key] = aggregate;
@@ -87,26 +87,26 @@ function _installOnChangeEventHandlers(self, node, prefix) {
     });
 }
 function _ensure_condition_values_correctness(self, node, prefix,error) {
-    
+
         var displayError = !!error;
         error = error || [];
 
         var aggregates = node.getAggregates();
-    
+
         aggregates.forEach(function (aggregate) {
-    
+
             if (aggregate instanceof UAVariable) {
-    
+
                 var name = aggregate.browseName.toString();
                 name = utils.lowerFirstLetter(name);
-    
+
                 var key = prefix + name;
 
                 var snapshot_value  = self._map[key].toString() ;
                 var condition_value = aggregate.readValue().value.toString() ;
-            
+
                 if (snapshot_value !==  condition_value ) {
-                    error.push(" Condition Branch0 is not in sync with node values for " 
+                    error.push(" Condition Branch0 is not in sync with node values for "
                     + key + "\n v1= " + snapshot_value + "\n v2= "+condition_value);
                 }
 
@@ -143,7 +143,7 @@ function ConditionSnapshot(condition, branchId) {
         _record_condition_state(self, condition);
 
         if (branchId === NodeId.NullNodeId) {
-            _installOnChangeEventHandlers(self,condition,"");            
+            _installOnChangeEventHandlers(self, condition, "");
         }
 
         self._set_var("branchId", DataType.NodeId, branchId);
@@ -176,9 +176,9 @@ ConditionSnapshot.prototype._constructEventData = function () {
     var addressSpace = self.condition.addressSpace;
 
     if (self.branchId === NodeId.NullNodeId) {
-        _ensure_condition_values_correctness(self,self.condition,"");        
+        _ensure_condition_values_correctness(self, self.condition, "");
     }
- 
+
 
     var isDisabled = !self.condition.getEnabledState();
     var eventData = new EventData(self.condition);
@@ -347,11 +347,11 @@ ConditionSnapshot.prototype.renewEventId = function () {
     var self = this;
     var addressSpace = self.condition.addressSpace;
     // create a new event  Id for this new condition
-    var eventId = addressSpace.generateEventId();    
+    var eventId = addressSpace.generateEventId();
     var ret = self._set_var("eventId", DataType.ByteString, eventId.value);
-    
+
     //xx var branch = self; console.log("MMMMMMMMrenewEventId branch  " +  branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
-    
+
     return ret;
 };
 
@@ -686,7 +686,7 @@ ConditionSnapshot.prototype._set_twoStateVariable = function(varName,value) {
     if (!(twoStateNode instanceof UATwoStateVariable)) {
         throw new Error("Cannot find twoState Varaible with name "+varName+" "+twoStateNode);
     }
-  
+
 
     var txt = value ? twoStateNode._trueState : twoStateNode._falseState;
 
@@ -798,7 +798,7 @@ UAConditionBase.prototype.post_initialize = function () {
     // with the default branch.
 
     // the implication of this convention is that interacting with the condition variable
-    // shall be made by using branch0, any value change made 
+    // shall be made by using branch0, any value change made
     // using the standard setValueFromSource mechanism will not be work properly.
     self._branch0.on("value_changed", function (node, variant) {
         assert(node instanceof UAVariable);
@@ -916,17 +916,17 @@ UAConditionBase.prototype.getEnabledStateAsString = function () {
 /**
  * @method _setEnabledState
  * @param requestedEnabledState {Boolean}
- * @returns {StatusCode} StatusCodes.Good if successfull or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
+ * @returns {StatusCode} StatusCodes.Good if successful or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
  * @private
- */ 
+ */
 UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
 
     var conditionNode = this;
 
-    
+
     assert(_.isBoolean(requestedEnabledState));
 
-   
+
     var enabledState = conditionNode.getEnabledState();
     if (enabledState && requestedEnabledState) {
         return StatusCodes.BadConditionAlreadyEnabled;
@@ -1059,7 +1059,7 @@ UAConditionBase.prototype.conditionOfNode = function () {
 UAConditionBase.prototype.raiseConditionEvent = function (branch) {
 
     //xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +  branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
-    
+
     assert(branch instanceof ConditionSnapshot);
     var self = this;
     self._assert_valid();
@@ -1226,7 +1226,7 @@ function sameBuffer(b1, b2) {
         }
     }
     return true;
-}   
+}
 UAConditionBase.prototype._findBranchForEventId = function (eventId) {
     var conditionNode = this;
     if (sameBuffer(conditionNode.eventId.readValue().value.value, eventId)) {

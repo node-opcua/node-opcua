@@ -137,11 +137,14 @@ module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPC
 // version
 module.exports.version                = require("./package.json").version;
 
-module.exports.constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
-module.exports.standard_nodeset_file = require("node-opcua-nodesets").standard_nodeset_file;
-module.exports.di_nodeset_filename = require("node-opcua-nodesets").di_nodeset_filename;
-module.exports.adi_nodeset_filename = require("node-opcua-nodesets").adi_nodeset_filename;
-module.exports.part8_nodeset_filename = require("node-opcua-nodesets").part8_nodeset_filename;
+
+module.exports.nodesets = require("node-opcua-nodesets");
+module.exports.constructNodesetFilename = module.exports.constructNodesetFilename;
+module.exports.standard_nodeset_file = module.exports.nodesets.standard_nodeset_file;
+module.exports.di_nodeset_filename = module.exports.nodesets.di_nodeset_filename;
+module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filename;
+module.exports.part8_nodeset_filename = module.exports.nodesets.part8_nodeset_filename;
+
 // an incomplete but sufficient nodeset file used during testing
 module.exports.mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
 module.exports.empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;

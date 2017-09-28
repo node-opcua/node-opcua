@@ -3,7 +3,7 @@
 
 var should = require("should");
 var fs = require("fs");
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 
 var AddressSpace = require("../..").AddressSpace;
 var generate_address_space = require("../..").generate_address_space;
@@ -22,7 +22,8 @@ describe("AddressSpace : Conditions ", function () {
 
         addressSpace = new AddressSpace();
 
-        var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+        var xml_file = nodesets.standard_nodeset_file;
+
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {

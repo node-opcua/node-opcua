@@ -8,7 +8,7 @@ var fs = require("fs");
 var AddressSpace = require("..").AddressSpace;
 
 var generate_address_space = require("..").generate_address_space;
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
@@ -21,7 +21,7 @@ describe("testing add new DataType ", function () {
     before(function (done) {
         addressSpace = new AddressSpace();
 
-        var xml_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+        var xml_file = nodesets.standard_nodeset_file;
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
@@ -103,10 +103,10 @@ describe("testing add new DataType ", function () {
         var addressSpace = new AddressSpace();
 
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"), // 0
-            constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml"), // 1
-            constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml"), // 2
-            constructNodesetFilename("FTNIR.NodeSet2.xml"), // 3
+            nodesets.standard_nodeset_file,
+            nodesets.di_nodeset_filename,
+            nodesets.adi_nodeset_filename,
+            nodesets.ftnir_nodeset_filename,
         ];
 
 

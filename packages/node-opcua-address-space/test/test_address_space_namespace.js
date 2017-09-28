@@ -4,7 +4,7 @@ var should = require("should");
 var path = require("path");
 var AddressSpace = require("..").AddressSpace;
 var getFixture = require("node-opcua-test-fixtures").getFixture;
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
+var nodesets = require("node-opcua-nodesets");
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace", function () {
 
@@ -117,8 +117,8 @@ describe("testing  address space namespace loading", function () {
 
         var addressSpace = new AddressSpace();
         var xml_files = [
-            constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
-            constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml")
+            nodesets.standard_nodeset_file,
+            nodesets.di_nodeset_filename
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);

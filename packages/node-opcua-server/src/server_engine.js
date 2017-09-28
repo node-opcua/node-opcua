@@ -68,24 +68,17 @@ var ServerState = require("node-opcua-common").ServerState;
 var ServerStatus  = require("node-opcua-common").ServerStatus;
 var ServerDiagnosticsSummary  = require("node-opcua-common").ServerDiagnosticsSummary;
 
-var constructNodesetFilename = require("node-opcua-nodesets").constructNodesetFilename;
 var endpoints_service = require("node-opcua-service-endpoints");
 var ApplicationDescription = endpoints_service.ApplicationDescription;
 
-var standard_nodeset_file = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
-exports.standard_nodeset_file = standard_nodeset_file;
-
+var nodesets = require("node-opcua-nodesets");
+exports.standard_nodeset_file = nodesets.standard_nodeset_file;
+exports.part8_nodeset_filename = nodesets.part8_nodeset_filename;
+exports.di_nodeset_filename = nodesets.di_nodeset_filename;
+exports.adi_nodeset_filename = nodesets.adi_nodeset_filename;
 var mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
 exports.mini_nodeset_filename = mini_nodeset_filename;
 
-var part8_nodeset_filename = constructNodesetFilename("Opc.Ua.NodeSet2.Part8.xml");
-exports.part8_nodeset_filename = part8_nodeset_filename;
-
-var di_nodeset_filename = constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml");
-exports.di_nodeset_filename = di_nodeset_filename;
-
-var adi_nodeset_filename = constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml");
-exports.adi_nodeset_filename = adi_nodeset_filename;
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
@@ -403,7 +396,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
     options = options || {};
     assert(_.isFunction(callback));
 
-    options.nodeset_filename = options.nodeset_filename || standard_nodeset_file;
+    options.nodeset_filename = options.nodeset_filename || nodesets.standard_nodeset_file;
 
     var startTime = new Date();
 

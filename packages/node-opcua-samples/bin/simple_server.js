@@ -50,8 +50,6 @@ var makeApplicationUrn = opcua.makeApplicationUrn;
 
 var install_optional_cpu_and_memory_usage_node = opcua.install_optional_cpu_and_memory_usage_node;
 
-var standard_nodeset_file = opcua.standard_nodeset_file;
-
 
 var port = argv.port;
 var maxAllowedSessionNumber   = argv.maxAllowedSessionNumber;
@@ -90,8 +88,8 @@ var server_options = {
     maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
 
     nodeset_filename: [
-        standard_nodeset_file,
-        opcua.constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml")
+        opcua.nodesets.standard_nodeset_file,
+        opcua.nodesets.di_nodeset_filename
     ],
 
     serverInfo: {
