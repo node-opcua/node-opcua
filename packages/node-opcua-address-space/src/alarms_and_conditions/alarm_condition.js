@@ -16,6 +16,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var util = require("util");
 
 var conditions = require("./condition");
+var ConditionInfo = require("./condition").ConditionInfo;
 var ConditionSnapshot = conditions.ConditionSnapshot;
 var AddressSpace = require("../address_space").AddressSpace;
 var NodeId = require("node-opcua-nodeid").NodeId;
@@ -519,12 +520,141 @@ UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode
             dataType: DataType.NodeId,
             value: _node.nodeId
         });
-        alarm.getInputNodeNode().on("value_changed", function (newDataValue, oldDataValue) {
+        alarm.getInputNodeNode().on("value_changed", function (newDataValue /*, oldDataValue */) {
+            if (!alarm.getEnabledState()) {
+                // disabled alarms shall ignored input node value change event
+                // (alarm shall be reevaluated when EnabledState goes back to true)
+                return;
+            }
             alarm._onInputDataValueChange(newDataValue);
         });
     }
 
 
+};
+
+UAAlarmConditionBase.prototype.getCurrentConditionInfo = function () {
+
+    var alarm = this;
+
+    var oldSeverity = alarm.currentBranch().getSeverity();
+    var oldQuality = alarm.currentBranch().getQuality();
+    var oldMessage = alarm.currentBranch().getMessage();
+    var oldRetain = alarm.currentBranch().getRetain();
+
+    var oldConditionInfo = new ConditionInfo({
+        severity: oldSeverity,
+        quality: oldQuality,
+        message: oldMessage,
+        retain: oldRetain
+    });
+
+    return oldConditionInfo;
+};
+
+
+/***
+ * @method  _calculateConditionInfo
+ * @param stateData {Object}   the new calculated state of the alarm
+ * @param isActive  {Boolean}
+ * @param value     {Number}   the new value of the limit alarm
+ * @param oldCondition  {ConditionInfo} given for information purpose
+ * @param oldCondition.severity
+ * @param oldCondition.quality
+ * @param oldCondition.message
+ * @param oldCondition.retain
+ * @return {ConditionInfo} the new condition info
+ *
+ * this method need to be overridden by the instantiate to allow custom message and severity
+ * to be set based on specific context of the alarm.
+ *
+ * @example
+ *
+ *
+ *    var myAlarm = addressSpace.instantiateExclusiveLimitAlarm({...});
+ *    myAlarm._calculateConditionInfo = function(stateName,value,oldCondition) {
+ *       var percent = Math.ceil(value * 100);
+ *       return new ConditionInfo({
+ *            message: "Tank is almost " + percent + "% full",
+ *            severity: 100,
+ *            quality: StatusCodes.Good
+ *      });
+ *    };
+ *
+ */
+UAAlarmConditionBase.prototype._calculateConditionInfo = function (stateData, isActive, value, oldCondition) {
+
+    if (!stateData) {
+        return new ConditionInfo({
+            severity: 0,
+            message: "Back to normal",
+            quality: StatusCodes.Good,
+            retain: true
+        });
+    } else {
+        return new ConditionInfo({
+            severity: 150,
+            message: "Condition value is " + value + " and state is " + stateData,
+            quality: StatusCodes.Good,
+            retain: true
+        });
+
+    }
+};
+
+UAAlarmConditionBase.prototype._signalInitialCondition = function () {
+    var alarm = this;
+    alarm.currentBranch().setActiveState(false);
+    alarm.currentBranch().setAckedState(true);
+};
+UAAlarmConditionBase.prototype._signalNewCondition = function (stateName, isActive, value) {
+
+    var alarm = this;
+    //xx if(stateName === null) {
+    //xx     alarm.currentBranch().setActiveState(false);
+    //xx     alarm.currentBranch().setAckedState(true);
+    //xx     return;
+    //xx }
+    // disabled alarm shall not generate new condition events
+    assert(alarm.getEnabledState() === true);
+    //xx assert(isActive !== alarm.activeState.getValue());
+
+    var oldConditionInfo = alarm.getCurrentConditionInfo();
+    var newConditionInfo = alarm._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
+
+    // detect potential internal bugs due to misused of _signalNewCondition
+    if (_.isEqual(oldConditionInfo, newConditionInfo)) {
+        console.log(oldConditionInfo);
+        throw new Error("condition values have not change, shall we really raise an event ? alarm " + alarm.browseName.toString());
+    }
+    assert(!_.isEqual(oldConditionInfo, newConditionInfo), "condition values have not change, shall we really raise an event ?");
+
+    if (isActive) {
+        alarm.currentBranch().setActiveState(true);
+        alarm.currentBranch().setAckedState(false);
+        alarm.raiseNewCondition(newConditionInfo);
+    } else {
+
+        if (alarm.currentBranch().getAckedState() === false) {
+            // prior state need acknowledgement
+            // note : TODO : timestamp of branch and new state of current branch must be identical
+
+            if (alarm.currentBranch().getRetain()) {
+
+                // we need to create a new branch so the previous state could be acknowledged
+                var newBranch = alarm.createBranch();
+                assert(newBranch.getBranchId() !== NodeId.NullNodeId);
+                // also raised a new Event for the new branch as branchId has changed
+                alarm.raiseNewBranchState(newBranch);
+
+            }
+        }
+
+        alarm.currentBranch().setActiveState(false);
+        alarm.currentBranch().setAckedState(true);
+
+        alarm.raiseNewCondition(newConditionInfo);
+    }
 };
 
 exports.UAAlarmConditionBase = UAAlarmConditionBase;

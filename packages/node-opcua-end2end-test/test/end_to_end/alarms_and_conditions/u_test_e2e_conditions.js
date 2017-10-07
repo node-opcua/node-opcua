@@ -75,9 +75,10 @@ module.exports = function (test) {
         }
 
         function extract_node_id_value_for_condition_type_field(result) {
-           // this is the last one in result
-            return result[result.length-1];
+            // this is the last one in result
+            return result[result.length - 1];
         }
+
         function extract_value_for_field(fieldName, result) {
             should.exist(result);
             var index = fields.indexOf(fieldName);
@@ -120,7 +121,7 @@ module.exports = function (test) {
             "ActiveState",
             "ActiveState.Id"
         ];
-        var eventFilter = constructEventFilter(fields,conditionTypeId);
+        var eventFilter = constructEventFilter(fields, conditionTypeId);
 
         function given_and_install_event_monitored_item(subscription, callback) {
             var test = this;
@@ -221,7 +222,8 @@ module.exports = function (test) {
                         // raised we we will call ConditionRefresh
                         test.monitoredItem1.once("changed", function () {
                             callback();
-                        });                        // now client send a condition refresh
+                        });
+                        // now client send a condition refresh
 
                         // let's call condition refresh
                         callConditionRefresh(subscription, function (err) {
@@ -235,19 +237,19 @@ module.exports = function (test) {
 
                     function then_we_should_check_that_event_is_raised_after_client_calling_ConditionRefresh(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(3);
-
                         var values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
                         // dump_field_values(fields,values);
 
-                        values = test.spy_monitored_item1_changes.getCall(1).args[0];
-                        values[7].value.toString().should.eql("ns=0;i=9341"); //ExclusiveLimitAlarmType
-                        //xx dump_field_values(fields,values);
+                        //xxx values = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        //xxx values[7].value.toString().should.eql("ns=0;i=9341"); //ExclusiveLimitAlarmType
+                        //xxx //xx dump_field_values(fields,values);
 
-                        values = test.spy_monitored_item1_changes.getCall(2).args[0];
+                        values = test.spy_monitored_item1_changes.getCall(1).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2788"); // RefreshEndEventType
                         // dump_field_values(fields,values);
+
+                        test.spy_monitored_item1_changes.callCount.should.eql(2);
 
                         test.spy_monitored_item1_changes.reset();
                         callback();
@@ -440,7 +442,7 @@ module.exports = function (test) {
             });
         });
 
-        it("KKL1 should raise an (OPUCA) event when commenting a Condition ", function (done) {
+        it("should raise an (OPCUA) event when commenting a Condition ", function (done) {
 
             var levelNode = test.tankLevel;
             var alarmNode = test.tankLevelCondition;
@@ -457,10 +459,22 @@ module.exports = function (test) {
 
                     given_and_install_event_monitored_item.bind(test, subscription),
 
+                    function when_a_notification_event_is_raised_by_the_condition(callback) {
+                        levelNode.setValueFromSource({dataType: "Double", value: 1000});
+                        callback();
+                    },
+
+                    wait_a_little_bit_to_let_events_to_be_processed,
+
+                    function then_we_should_verify_than_the_event_received_is_correct(callback) {
+                        test.spy_monitored_item1_changes.callCount.should.eql(1, "one event should have been raised");
+                        callback();
+                    },
                     function when_we_set_a_comment(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(0, "no event should have been raised");
+                        // The EventId is identifying a particular Event Notification where a state was reported for a Condition.
                         var eventId = alarmNode.eventId.readValue().value.value;
+
                         var alarmNodeId = alarmNode.nodeId;
                         session.addCommentCondition(alarmNodeId, eventId, "SomeComment!!!", function (err) {
                             callback(err);
@@ -470,18 +484,42 @@ module.exports = function (test) {
 
                     function we_should_verify_that_an_event_has_been_raised(callback) {
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(2, "an event should have been raised");
+                        var dataValues;
+                        // we are expecting 2 events here :
+                        // * a new event for the main branch because spec says:
+                        //     Comment, severity and quality are important elements of Conditions and any change to them
+                        //     will cause Event Notifications.
+                        // * a AuditConditionCommentEventType
+                        test.spy_monitored_item1_changes.callCount.should.eql(3, "Two events should have been raised");
 
-                        var dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        // lets extract the eventId on which the comment was added
+                        // we can find in on firt event notificiation
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
+                        var eventId = extract_value_for_field("EventId", dataValues).value;
+                        eventId.should.be.instanceOf(Buffer);
 
+
+                        // let verify the AuditConditionCommentEventType data
+                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        //xx dump_field_values(fields,dataValues);
+                        var eventType = extract_value_for_field("EventType", dataValues).value.toString();
+                        eventType.should.eql("ns=0;i=2829");// AuditConditionCommentEventType
                         var eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
                         should(eventId_Step0).be.instanceOf(Buffer);
+                        eventId_Step0.toString("hex").should.eql(eventId.toString("hex"));
+
+                        // let verify the event raised by the condition, due to the comment update
+                        dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
+                        //xx dump_field_values(fields,dataValues);
+                        //xx The EventId field shall contain the id of the event for which the comment was added.
                         extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
                         extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
-
                         extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
+                        var eventId_New = extract_value_for_field("EventId", dataValues).value;
+                        eventId_New.toString("hex").should.not.eql(eventId.toString("hex"));
+
 
                         extract_node_id_value_for_condition_type_field(dataValues).value.toString().should.eql(alarmNode.nodeId.toString());
 
@@ -493,7 +531,7 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("KKL2 should raise an (INTERNAL) event when commenting a Condition ", function (done) {
+        it("should raise an (INTERNAL) event when client is commenting", function (done) {
 
             var levelNode = test.tankLevel;
             var alarmNode = test.tankLevelCondition;
@@ -514,9 +552,15 @@ module.exports = function (test) {
 
                         callback();
                     },
+                    function given_that_the_condition_has_raised_an_event(callback) {
 
+                        levelNode.setValueFromSource({dataType: "Double", value: 1000});
+                        callback();
+                    },
                     function when_we_set_a_comment(callback) {
                         var eventId = alarmNode.eventId.readValue().value.value;
+                        should.exist(eventId, "alarm must have raised an event");
+
                         var alarmNodeId = alarmNode.nodeId;
                         session.addCommentCondition(alarmNodeId, eventId, the_new_comment, function (err) {
 
@@ -525,6 +569,7 @@ module.exports = function (test) {
 
                     },
                     wait_a_little_bit_to_let_events_to_be_processed,
+
                     function then_we_should_verify_that_the_internal_addComment_event_has_been_raised(callback) {
 
                         addCommentSpy.callCount.should.eql(1);
@@ -534,6 +579,12 @@ module.exports = function (test) {
 
 
                         addCommentSpy.getCall(0).args[1].text.should.eql(the_new_comment);
+
+                        callback();
+                    },
+                    function (callback) {
+                        // in this case, we should not received a AuditConditionCommentEventType
+                        // because comment was not added through the AddComment method !
 
                         callback();
                     },
@@ -1007,12 +1058,12 @@ module.exports = function (test) {
                     function (callback) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
-                  
+
                         debugLog("9. Prior state acknowledged, Confirm required.");
                         var conditionId = alarmNode.nodeId;
                         var eventId = branch1_EventId;
                         debugLog("EventId = ", eventId);
-                        
+
                         // console.log(" EventID ", eventId.toString("hex"));
                         // console.log(alarmNode.getBranches().map(function(branch){ 
                         //     return branch.getBranchId().toString() + " " + branch.getEventId().toString("hex")

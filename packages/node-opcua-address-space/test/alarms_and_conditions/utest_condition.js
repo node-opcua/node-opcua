@@ -80,6 +80,9 @@ module.exports = function (test) {
                     organizedBy: addressSpace.rootFolder.objects
                 });
 
+                condition.evaluateConditionsAfterEnabled = function () {
+                };
+
                 condition.setEnabledState(true);
 
                 var dataValue = condition.enabledState.id.readValue();
@@ -251,6 +254,9 @@ module.exports = function (test) {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: source,
                 });
+
+                condition.evaluateConditionsAfterEnabled = function () {
+                };
 
                 condition.setEnabledState(true);
                 condition.getEnabledState().should.eql(true);

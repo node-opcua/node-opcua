@@ -914,6 +914,11 @@ UAConditionBase.prototype.getEnabledStateAsString = function () {
     return conditionNode.enabledState.getValueAsString();
 };
 
+UAConditionBase.prototype.evaluateConditionsAfterEnabled = function () {
+    assert(this.getEnabledState() === true);
+    throw new Error("Unimplemented , please override")
+};
+
 /**
  * @method _setEnabledState
  * @param requestedEnabledState {Boolean}
@@ -967,6 +972,8 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
         //  evaluated and all of its Properties updated to reflect the current values. If this
         //  evaluation causes the Retain Property to transition to TRUE for any ConditionBranch,
         //  then an Event Notification shall be generated for that ConditionBranch.
+
+        conditionNode.evaluateConditionsAfterEnabled();
 
         // todo evaluate branches
         // conditionNode.evaluateBranches();

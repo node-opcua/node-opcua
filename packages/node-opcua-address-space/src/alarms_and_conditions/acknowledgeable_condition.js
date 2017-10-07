@@ -264,6 +264,10 @@ UAAcknowledgeableConditionBase.prototype._confirm_branch = function _confirm_bra
  */
 UAAcknowledgeableConditionBase.prototype.autoConfirmBranch = function(branch,comment) {
     assert(branch instanceof ConditionSnapshot);
+    if (!this.confirmedState) {
+        // no confirmedState => ignoring
+        return;
+    }
     assert(!branch.getConfirmedState(),"already confirmed ?");
     var conditionNode = this;
     var eventId = branch.getEventId();

@@ -74,12 +74,28 @@ UAOffNormalAlarm.prototype.setNormalStateValue = function (value) {
 };
 var utils = require("node-opcua-utils");
 
+function isEqual(value1, value2) {
+    return value1 === value2;
+}
 UAOffNormalAlarm.prototype._updateAlarmState = function (normalStateValue, inputValue) {
+
+    var alarm = this;
+
     if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
         this.activeState.setValue(false);
+        return;
     }
-    var activate = (normalStateValue !== inputValue);
-    this.activeState.setValue(activate);
+    var isActive = !isEqual(normalStateValue, inputValue);
+
+    if (isActive === alarm.activeState.getValue()) {
+        // no change => ignore !
+        return;
+    }
+
+    var stateName = isActive ? "Active" : "Inactive";
+    // also raise the event
+    alarm._signalNewCondition(stateName, isActive, "");
+
 };
 
 
@@ -120,7 +136,12 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
  * @param addressSpace
  * @param limitAlarmTypeId
  * @param options
+ * @param options.inputNode   {NodeId|UAVariable} the input node
+ * @param options.normalState {NodeId|UAVariable} the normalStateNode node
  * @param data
+ *
+ * When the value of inputNode doesn't match the normalState node value, then the alarm is raised.
+ *
  */
 UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
 
@@ -151,9 +172,10 @@ UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options
     alarmNode._installInputNodeMonitoring(options.inputNode);
 
     alarmNode.normalState.on("value_changed", function (newDataValue, oldDataValue) {
-        // to do
-        // we must remove listener on current normalState and replace normalState with the new one and
-        // set listener again
+        // The node that contains the normalState value has changed.
+        //   we must remove the listener on current normalState and replace
+        //   normalState with the new one and set listener again
+        //   to do:
     });
 
     // install normalState monitoring for change

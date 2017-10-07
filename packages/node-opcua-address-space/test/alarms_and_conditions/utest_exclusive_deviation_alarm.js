@@ -59,7 +59,7 @@ module.exports = function (test) {
                 alarm.getSetpointValue().should.eql(0);
             });
 
-            it("ZZJJ ExclusiveDeviationAlarm - setpointNode Value is zero", function () {
+            it("ExclusiveDeviationAlarm - setpointNode Value is zero", function () {
 
                 setpointNodeNode.setValueFromSource({dataType: "Double", value: 0});
                 //

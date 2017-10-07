@@ -38,6 +38,7 @@ UAExclusiveLimitAlarm.prototype._signalNewCondition = function (stateName, isAct
 
     var alarm = this;
 
+    assert(stateName === null || typeof isActive === "boolean");
     assert(validState.indexOf(stateName) >= 0, "must have a valid state : " + stateName);
 
     var oldState = alarm.limitState.getCurrentState();

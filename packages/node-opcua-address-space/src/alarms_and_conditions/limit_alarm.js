@@ -106,6 +106,11 @@ UALimitAlarm.prototype._onInputDataValueChange = function (dataValue) {
 
     assert(dataValue instanceof DataValue);
     var alarm = this;
+
+    if (dataValue.statusCode === StatusCodes.BadWaitingForInitialData) {
+        // we are not ready yet to use the input node value
+        return;
+    }
     if (dataValue.statusCode !== StatusCodes.Good) {
         // what shall we do ?
         alarm._signalNewCondition(null);
@@ -134,109 +139,9 @@ UALimitAlarm.prototype._watchLimits = function() {
 };
 
 
-UALimitAlarm.prototype.getCurrentConditionInfo = function () {
-
-    var alarm = this;
-
-    var oldSeverity = alarm.currentBranch().getSeverity();
-    var oldQuality = alarm.currentBranch().getQuality();
-    var oldMessage = alarm.currentBranch().getMessage();
-
-    var oldConditionInfo = new ConditionInfo({
-        severity: oldSeverity,
-        quality: oldQuality,
-        message: oldMessage
-    });
-
-    return oldConditionInfo;
-};
 
 
 
-/***
- * @method  _calculateConditionInfo
- * @param stateData {Object}   the new calculated state of the alarm
- * @param isActive  {Boolean}
- * @param value     {Number}   the new value of the limit alarm
- * @param oldCondition  {ConditionInfo} given for information purpose
- * @param oldCondition.severity
- * @param oldCondition.quality
- * @param oldCondition.message
- * @param oldCondition.retain
- * @return {ConditionInfo} the new condition info
- *
- * this method need to be overridden by the instantiate to allow custom message and severity
- * to be set based on specific context of the alarm.
- *
- * @example
- *
- *
- *    var myAlarm = addressSpace.instantiateExclusiveLimitAlarm({...});
- *    myAlarm._calculateConditionInfo = function(stateName,value,oldCondition) {
- *       var percent = Math.ceil(value * 100);
- *       return new ConditionInfo({
- *            message: "Tank is almost " + percent + "% full",
- *            severity: 100,
- *            quality: StatusCodes.Good
- *      });
- *    };
- *
- */
-UALimitAlarm.prototype._calculateConditionInfo = function (stateData, isActive, value, oldCondition) {
-
-    if (!stateData) {
-        return new ConditionInfo({
-            severity: 0,
-            message: "Back to normal",
-            quality: StatusCodes.Good,
-            retain: true
-        });
-    } else {
-        return new ConditionInfo({
-            severity: 150,
-            message: "Condition value is " + value + " and state is " + stateData,
-            quality: StatusCodes.Good,
-            retain: true
-        });
-
-    }
-};
-
-UALimitAlarm.prototype._signalNewCondition = function (stateName, isActive, value) {
-
-    var alarm = this;
-
-    if (!alarm.getEnabledState()) {
-        // disabled alarm shall not generate new condition events
-        return;
-    }
-
-    var oldConditionInfo = alarm.getCurrentConditionInfo();
-    var newConditionInfo = alarm._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
-
-    if (isActive) {
-        alarm.currentBranch().setActiveState(true);
-        alarm.currentBranch().setAckedState(false);
-        alarm.raiseNewCondition(newConditionInfo);
-    } else {
-
-        if (alarm.currentBranch().getAckedState() === false) {
-            // prior state need acknowledgement
-            // note : TODO : timestamp of branch and new state of current branch must be identical
-
-            // we need to create a new branch so the previous state could be acknowledged
-            var newBranch = alarm.createBranch();
-            assert(newBranch.getBranchId() !== NodeId.NullNodeId);
-            // also raised a new Event for the new branch as branchId has changed
-            alarm.raiseNewBranchState(newBranch);
-        }
-
-        alarm.currentBranch().setActiveState(false);
-        alarm.currentBranch().setAckedState(true);
-
-        alarm.raiseNewCondition(newConditionInfo);
-    }
-};
 
 
 exports.UALimitAlarm = UALimitAlarm;
@@ -341,3 +246,10 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
     return alarmNode;
 };
 
+UALimitAlarm.prototype.evaluateConditionsAfterEnabled = function () {
+    assert(this.getEnabledState() === true);
+    //simulate input value event
+    var alarmNode = this;
+    var dataValue = alarmNode.getInputNodeNode().readValue();
+    alarmNode._onInputDataValueChange(dataValue);
+};

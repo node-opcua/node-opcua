@@ -92,17 +92,19 @@ module.exports = function (test) {
             alarm.getHighLimit().should.eql(10);
             alarm.getHighHighLimit().should.eql(100);
 
-            //
+            // initial state - not active
+            // ---------------------------------------------------------------------------
             should(alarm.limitState.getCurrentState()).eql(null); // not alarmed !
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
             alarm.activeState.getValue().should.eql(false);
-            alarm.currentBranch().getMessage().text.should.eql("Back to normal");
-
-
+            alarm.currentBranch().getMessage().text.should.eql(" "); // initial message is empty
             spyOnEvent.callCount.should.eql(0);
 
 
+            // InputNode goes very low - alarm becomes active - state change to LowLow - 1 event raised
+            // -----------------------------------------------------------------------------------------
             setVariableValue(-100);
+
             alarm.limitState.getCurrentState().should.eql("LowLow");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
@@ -112,22 +114,26 @@ module.exports = function (test) {
             spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.NullNodeId);
             var call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
 
+            // InputNode goes a little bit low - alarm stays active - state changes to low - 1 event raised
+            // ----------------------------------------------------------------------------------------------
             setVariableValue(-9);
             alarm.limitState.getCurrentState().should.eql("Low");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(2);
 
-            // in this case we are reusing existing alarm
-            // Note: We need to chek if in this case we need to create a branch as well
+            // in this case we are reusing an existing alarm
+            // Note: We need to check if in this case we need to create a branch as well
             spyOnEvent.getCalls()[1].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
             spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.NullNodeId);
             var call1_eventId = spyOnEvent.getCalls()[1].args[0].eventId.toString();
 
             call1_eventId.should.not.eql(call0_eventId, "Event Id must be different");
 
+            // InputNode goes inside valid range - alarm becomes inactive - state changes to null - 2 event raised
+            // --------------------------------------------------------------------------------------------------
             setVariableValue(4);
-            should(alarm.limitState.getCurrentState()).eql(null); // not alarmed !
+            should.not.exist(alarm.limitState.getCurrentState()); // not alarmed !
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
             alarm.activeState.getValue().should.eql(false);
             spyOnEvent.callCount.should.eql(4);
@@ -135,8 +141,8 @@ module.exports = function (test) {
             var call2_eventId = spyOnEvent.getCalls()[2].args[0].eventId.toString();
             var call3_eventId = spyOnEvent.getCalls()[3].args[0].eventId.toString();
 
-            // The state revert to normal but previous alarms hase not been acknowledged, therefore we receive 2 events
-            // one for the new branch created with a snapshoted version of the current state, and an other one
+            // The state reverts to normal but previous alarms has not been acknowledged, therefore we receive 2 events
+            // one for the new branch created with a snapshot version of the current state, and an other one
             // with the null branch
             spyOnEvent.getCalls()[3].args[0].message.value.text.should.eql("Back to normal");
             spyOnEvent.getCalls()[3].args[0].branchId.value.should.eql(NodeId.NullNodeId);
@@ -149,6 +155,8 @@ module.exports = function (test) {
             call2_eventId.should.not.eql(call0_eventId, "Event Id must be different");
             call2_eventId.should.not.eql(call1_eventId, "Event Id must be different");
 
+            // InputNode goes too high  - alarm becomes active - state changes to High - 1 event raised
+            // --------------------------------------------------------------------------------------------------
             setVariableValue(11);
             alarm.limitState.getCurrentState().should.eql("High");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
@@ -157,6 +165,8 @@ module.exports = function (test) {
             spyOnEvent.getCalls()[4].args[0].message.value.text.should.eql("Condition value is 11 and state is High");
             spyOnEvent.getCalls()[4].args[0].branchId.value.should.eql(NodeId.NullNodeId);
 
+            // InputNode goes very very high  - alarm stays active - state changes to HighHigh - 1 event raised
+            // --------------------------------------------------------------------------------------------------
             setVariableValue(200);
             alarm.limitState.getCurrentState().should.eql("HighHigh");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
@@ -246,7 +256,7 @@ module.exports = function (test) {
         });
 
 
-        it("AZAZ Alarm should not trigger event if state change but enableState is false", function () {
+        it("ZZZAlarm should not trigger event if state change but enableState is false", function () {
 
             setVariableValue(0);
 
@@ -299,9 +309,23 @@ module.exports = function (test) {
 
             alarm.setEnabledState(true);
             dumpEvent(addressSpace, fields, spyOnEvent.getCall(4).args[0]);
-            spyOnEvent.callCount.should.eql(5); // a new event should be raised because
-            source.removeListener("on", spyOnEvent);
 
+            spyOnEvent.callCount.should.eql(6);
+            // a new event should be raised because alarm is re-enabled and should be state is LowLow
+            // there should be two events here because the alarm reraised the pending branches ...
+
+            //xx console.log(spyOnEvent.getCall(4).args[0]);
+            spyOnEvent.getCall(4).args[0].message.value.text.should.eql("Condition value is -100 and state is {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}")
+
+            setVariableValue(0);
+            // a new event should be raised because back to normal, a new branch has also be created
+            spyOnEvent.callCount.should.eql(8);
+
+            // the branch
+            spyOnEvent.getCall(6).args[0].message.value.text.should.eql("Condition value is -100 and state is {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}")
+            spyOnEvent.getCall(7).args[0].message.value.text.should.eql("Back to normal");
+
+            source.removeListener("on", spyOnEvent);
         });
 
         it("should be possible to temporarily disable the alarm (this should trigger an event with custom severity and retain flag) ", function () {
@@ -362,7 +386,44 @@ module.exports = function (test) {
 
             alarm.removeListener("on", spyOnEvent);
         });
-        
+
+        it("should not raise an event twice if the value changes without changing the state", function () {
+
+            setVariableValue(0);
+            var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+                browseName: "MyNonExclusiveAlarm3",
+                conditionSource: source,
+                inputNode: variableWithAlarm,
+                lowLowLimit: -10.0,
+                lowLimit: -1.0,
+                highLimit: 10.0,
+                highHighLimit: 100.0
+            });
+
+            var spyOnEvent = sinon.spy();
+            alarm.on("event", spyOnEvent);
+
+            setVariableValue(0);
+            spyOnEvent.callCount.should.eql(0);
+            setVariableValue(1);
+            spyOnEvent.callCount.should.eql(0);
+            setVariableValue(0);
+            spyOnEvent.callCount.should.eql(0);
+
+            setVariableValue(-110);
+            spyOnEvent.callCount.should.eql(1);
+
+            setVariableValue(-120);
+            spyOnEvent.callCount.should.eql(1);
+
+            alarm.removeListener("on", spyOnEvent);
+        });
+
+        xit("it should properly dispose an alarm from the adress space", function () {
+            // we should verify that the event listener are properly removed
+            // when a alarm object os removed from the address space.
+        });
+
         describe("Testing alarms with enabledState false",function() {
 
             it("should not raise alarm if the alarm is not enabled",function() {
