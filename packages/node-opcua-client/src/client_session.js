@@ -988,6 +988,8 @@ ClientSession.prototype.call = function (methodsToCall, callback) {
 
 };
 
+var emptyUint32Array = new Uint32Array(0);
+
 /**
  * @method getMonitoredItems
  * @param subscriptionId {UInt32} the subscription Id to return
@@ -1035,6 +1037,12 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
                     serverHandles: result.outputArguments[0].value, //
                     clientHandles: result.outputArguments[1].value
                 };
+
+                // Note some server might return null array
+                // let make sure we have Uint32Array and not a null pointer
+                data.serverHandles = data.serverHandles || emptyUint32Array;
+                data.clientHandles = data.clientHandles || emptyUint32Array;
+
                 assert(data.serverHandles instanceof Uint32Array);
                 assert(data.clientHandles instanceof Uint32Array);
                 callback(null, data, diagnosticInfo);
