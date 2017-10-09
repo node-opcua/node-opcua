@@ -140,71 +140,63 @@ ClientSession.prototype.browse = function (nodes, callback) {
 
     var self = this;
 
-    try {
+    self.requestedMaxReferencesPerNode = self.requestedMaxReferencesPerNode || 10000;
+    assert(_.isFinite(self.requestedMaxReferencesPerNode));
+    assert(_.isFunction(callback));
 
-        self.requestedMaxReferencesPerNode = self.requestedMaxReferencesPerNode || 10000;
-        assert(_.isFinite(self.requestedMaxReferencesPerNode));
-        assert(_.isFunction(callback));
+    if (!_.isArray(nodes)) {
+        nodes = [nodes];
+    }
 
-        if (!_.isArray(nodes)) {
-            nodes = [nodes];
+    var nodesToBrowse = nodes.map(coerceBrowseDescription);
+
+    var request = new browse_service.BrowseRequest({
+        nodesToBrowse: nodesToBrowse,
+        requestedMaxReferencesPerNode: self.requestedMaxReferencesPerNode
+    });
+
+    self.performMessageTransaction(request, function (err, response) {
+
+        var i, r;
+
+        /* istanbul ignore next */
+        if (err) {
+            return callback(err, null, response);
         }
 
-        var nodesToBrowse = nodes.map(coerceBrowseDescription);
+        assert(response instanceof browse_service.BrowseResponse);
 
-        var request = new browse_service.BrowseRequest({
-            nodesToBrowse: nodesToBrowse,
-            requestedMaxReferencesPerNode: self.requestedMaxReferencesPerNode
-        });
+        if (self.requestedMaxReferencesPerNode > 0) {
 
-        self.performMessageTransaction(request, function (err, response) {
-
-            var i, r;
-
-
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err, null, response);
-            }
-
-            assert(response instanceof browse_service.BrowseResponse);
-
-            if (self.requestedMaxReferencesPerNode > 0) {
-
-                for (i = 0; i < response.results.length; i++) {
-                    r = response.results[i];
-
-                    /* istanbul ignore next */
-                    if (r.references && r.references.length > self.requestedMaxReferencesPerNode) {
-                        console.log("warning".yellow + " BrowseResponse : server didn't take into account our requestedMaxReferencesPerNode ");
-                        console.log("        self.requestedMaxReferencesPerNode= " + self.requestedMaxReferencesPerNode);
-                        console.log("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
-                        console.log("        continuationPoint ", r.continuationPoint);
-                    }
-                }
-            }
-            for (i = 0; i < response.results.length; i++) {
-                r = response.results[i];
-                r.references = r.references || [];
-            }
-            // detect unsupported case :
-            // todo implement proper support for r.continuationPoint
             for (i = 0; i < response.results.length; i++) {
                 r = response.results[i];
 
-                if (r.continuationPoint !== null) {
-                    console.log(" warning:".yellow, " BrowseResponse : server didn't send all references and has provided a continuationPoint. Unfortunately we do not support this yet");
-                    console.log("           self.requestedMaxReferencesPerNode = ", self.requestedMaxReferencesPerNode);
-                    console.log("           continuationPoint ", r.continuationPoint);
+                /* istanbul ignore next */
+                if (r.references && r.references.length > self.requestedMaxReferencesPerNode) {
+                    console.log("warning".yellow + " BrowseResponse : server didn't take into account our requestedMaxReferencesPerNode ");
+                    console.log("        self.requestedMaxReferencesPerNode= " + self.requestedMaxReferencesPerNode);
+                    console.log("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
+                    console.log("        continuationPoint ", r.continuationPoint);
                 }
             }
-            callback(null, response.results, response.diagnosticInfos);
-        });
-    }
-    catch (err) {
-        /* istanbul ignore next */
-        callback(err);
-    }
+        }
+        for (i = 0; i < response.results.length; i++) {
+            r = response.results[i];
+            r.references = r.references || [];
+        }
+        // detect unsupported case :
+        // todo implement proper support for r.continuationPoint
+        for (i = 0; i < response.results.length; i++) {
+            r = response.results[i];
+
+            if (r.continuationPoint !== null) {
+                console.log(" warning:".yellow, " BrowseResponse : server didn't send all references and has provided a continuationPoint. Unfortunately we do not support this yet");
+                console.log("           self.requestedMaxReferencesPerNode = ", self.requestedMaxReferencesPerNode);
+                console.log("           continuationPoint ", r.continuationPoint);
+            }
+        }
+        callback(null, response.results, response.diagnosticInfos);
+    });
 };
 
 

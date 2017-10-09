@@ -7,6 +7,7 @@ module.exports.resolveNodeId    = require("node-opcua-nodeid").resolveNodeId;
 module.exports.makeNodeId       = require("node-opcua-nodeid").makeNodeId;
 module.exports.coerceNodeId     = require("node-opcua-nodeid").coerceNodeId;
 module.exports.sameNodeId       = require("node-opcua-nodeid").sameNodeId;
+module.exports.NodeIdType = require("node-opcua-nodeid").NodeIdType;
 
 module.exports.ExpandedNodeId           = require("node-opcua-nodeid/src/expanded_nodeid").ExpandedNodeId;
 module.exports.makeExpandedNodeId       = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;

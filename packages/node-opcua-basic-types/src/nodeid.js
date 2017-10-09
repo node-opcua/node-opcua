@@ -5,8 +5,9 @@ var assert = require("node-opcua-assert");
 
 var makeNodeId = exports.makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var NodeIdType = exports.NodeIdType = require("node-opcua-nodeid").NodeIdType;
-var ExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").ExpandedNodeId;
+var NodeId = require("node-opcua-nodeid").NodeId;
 
+var ExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").ExpandedNodeId;
 var set_flag = require("node-opcua-utils").set_flag;
 var check_flag = require("node-opcua-utils").check_flag;
 
@@ -163,28 +164,34 @@ exports.encodeExpandedNodeId = function (expandedNodeId, stream) {
 
 var _decodeNodeId = function (encoding_byte, stream) {
 
-    var value, namespace;
+    var value, namespace, nodeIdType;
     /*jslint bitwise: true */
     encoding_byte &= 0x3F;
+
     switch (encoding_byte) {
         case EnumNodeIdEncoding.TwoBytes.value:
             value = stream.readUInt8();
+            nodeIdType = NodeIdType.NUMERIC;
             break;
         case EnumNodeIdEncoding.FourBytes.value:
             namespace = stream.readUInt8();
             value = stream.readUInt16();
+            nodeIdType = NodeIdType.NUMERIC;
             break;
         case EnumNodeIdEncoding.Numeric.value:
             namespace = stream.readUInt16();
             value = stream.readUInt32(stream);
+            nodeIdType = NodeIdType.NUMERIC;
             break;
         case EnumNodeIdEncoding.String.value:
             namespace = stream.readUInt16();
             value = decodeString(stream);
+            nodeIdType = NodeIdType.STRING;
             break;
         case EnumNodeIdEncoding.ByteString.value:
             namespace = stream.readUInt16();
             value = decodeByteString(stream);
+            nodeIdType = NodeIdType.BYTESTRING;
             break;
         default:
             if (encoding_byte !== EnumNodeIdEncoding.Guid.value) {
@@ -194,10 +201,11 @@ var _decodeNodeId = function (encoding_byte, stream) {
             }
             namespace = stream.readUInt16();
             value = decodeGuid(stream);
+            nodeIdType = NodeIdType.GUID;
             assert(isValidGuid(value));
             break;
     }
-    return makeNodeId(value, namespace);
+    return new NodeId(nodeIdType, value, namespace);
 };
 
 exports.decodeNodeId = function (stream) {

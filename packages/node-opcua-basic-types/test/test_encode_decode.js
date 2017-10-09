@@ -11,6 +11,8 @@ var guid = require("node-opcua-guid");
 
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var NodeIdType = require("node-opcua-nodeid").NodeIdType;
+var NodeId = require("node-opcua-nodeid").NodeId;
+
 var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 var ExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").ExpandedNodeId;
 
@@ -340,6 +342,19 @@ describe("testing built-in type encoding", function () {
             ec.encodeNodeId,
             ec.decodeNodeId,
             16 + 2 + 1
+        );
+
+
+    });
+    it("should encode and decode a String NodeId that looks like a GUID (issue#377)", function () {
+
+        var nodeId = new NodeId(NodeIdType.STRING, "72962B91-FA75-4AE6-8D28-B404DC7DAF63", 2500);
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        test_encode_decode(
+          nodeId,
+          ec.encodeNodeId,
+          ec.decodeNodeId,
+          43
         );
 
 
