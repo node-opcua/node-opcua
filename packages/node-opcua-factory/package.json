@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-factory",
- "version": "0.1.0-7",
+ "version": "0.1.0-8",
  "description": "pure nodejs OPCUA SDK - module -factory",
  "main": "index.js",
  "scripts": {
@@ -8,7 +8,7 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-basic-types": "^0.1.0-7",
+  "node-opcua-basic-types": "^0.1.0-8",
   "node-opcua-binary-stream": "^0.1.0-7",
   "node-opcua-debug": "^0.1.0-7",
   "node-opcua-enum": "^0.1.0-7",
