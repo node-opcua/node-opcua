@@ -11,14 +11,16 @@ var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
 var DataType = require("node-opcua-variant").DataType;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var Argument  = require("node-opcua-service-call").Argument;
+var Argument = require("node-opcua-service-call").Argument;
 
 var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-var EnumValueType  = require("node-opcua-data-model").EnumValueType;
+var EnumValueType = require("node-opcua-data-model").EnumValueType;
 
 var ec = require("node-opcua-basic-types");
 
 var AddressSpace = require("../address_space").AddressSpace;
+
+var EUInformation = require("node-opcua-data-access").EUInformation;
 
 /**
  * @method make_back_references
@@ -44,6 +46,7 @@ function stringToUInt32Array(str) {
 }
 
 var makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+
 function convertAccessLevel(accessLevel) {
 
     accessLevel = parseInt(accessLevel || 1); // CurrentRead if not specified
@@ -51,6 +54,7 @@ function convertAccessLevel(accessLevel) {
     return makeAccessLevel(accessLevel);
 
 }
+
 /**
  * @module opcua.address_space
  * @method generate_address_space
@@ -77,6 +81,9 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
     function _translateNamespaceIndex(innerIndex) {
         var namespaceIndex = namespace_uri_translation[innerIndex];
+        if (namespaceIndex === undefined) {
+            throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
+        }
         return namespaceIndex;
     }
 
@@ -137,7 +144,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
     var state_Alias = {
         finish: function () {
-            add_alias(this.attrs.Alias, _translateNodeId(this.text) );
+            add_alias(this.attrs.Alias, _translateNodeId(this.text));
         }
     };
 
@@ -264,7 +271,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
         },
         finish: function () {
-            addressSpace.addReferenceType(this.obj,false);
+            addressSpace.addReferenceType(this.obj, false);
         },
         parser: {
             "DisplayName": {
@@ -347,22 +354,22 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             },
             parser: {
                 "Value": {
-                    finish: function() {
-                         this.parent.enumValueType.value = parseInt(this.text);
+                    finish: function () {
+                        this.parent.enumValueType.value = parseInt(this.text);
                     }
                 },
-                "DisplayName":     _.extend(_.clone(localizedText_parser.LocalizedText),{
-                    finish: function() {
+                "DisplayName": _.extend(_.clone(localizedText_parser.LocalizedText), {
+                    finish: function () {
                         this.parent.enumValueType.displayName = _.clone(this.localizedText);
                     }
                 }),
-                "Description":     _.extend(_.clone(localizedText_parser.LocalizedText),{
-                    finish: function() {
+                "Description": _.extend(_.clone(localizedText_parser.LocalizedText), {
+                    finish: function () {
                         this.parent.enumValueType.description = _.clone(this.localizedText);
                     }
                 })
             },
-            finish: function() {
+            finish: function () {
                 this.enumValueType = new EnumValueType(this.enumValueType);
             }
         }
@@ -396,17 +403,18 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 "ArrayDimensions": {
 
                     finish: function () {
-                      //xx  this.parent.argument.arrayDimensions =[];
+                        //xx  this.parent.argument.arrayDimensions =[];
                     }
                 },
                 "Description": {
-                    init: function() {
+                    init: function () {
                         this._text = "";
-                        this.locale = null; this.text = null;
+                        this.locale = null;
+                        this.text = null;
                     },
                     parser: {
                         "Locale": {
-                            init: function() {
+                            init: function () {
                                 this.text = "";
                             },
                             finish: function () {
@@ -420,7 +428,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                             }
                         }
                     },
-                    finish: function() {
+                    finish: function () {
                         this.parent.argument.description = coerceLocalizedText(this._text);
                     }
                 }
@@ -431,85 +439,128 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
+    var EUInformation_parser = {
+        "EUInformation": {
+            init: function () {
+                this.euInformation = {};
+            },
+            parser: {
+                "NamespaceUri": {
+                    finish: function () {
+                        this.parent.euInformation.namespaceUri = this.text;
+                    }
+                },
+                "UnitId": {
+                    finish: function () {
+                        this.parent.euInformation.unitId = parseInt(this.text);
+                    }
+                },
+                "DisplayName": _.extend(_.clone(localizedText_parser.LocalizedText), {
+                    finish: function () {
+                        this.parent.euInformation.displayName = _.clone(this.localizedText);
+                    }
+                }),
+                "Description": _.extend(_.clone(localizedText_parser.LocalizedText), {
+                    finish: function () {
+                        this.parent.euInformation.description = _.clone(this.localizedText);
+                    }
+                })
+            },
+            finish: function () {
+                this.euInformation = new EUInformation(this.euInformation);
+            }
+        }
+    };
+
+    var _extensionObject_inner_parser = {
+        "TypeId": {
+            parser: {
+                "Identifier": {
+                    finish: function () {
+
+                        var typeId = this.text.trim();
+                        this.parent.parent.typeId = resolveNodeId(typeId);
+
+                        switch (typeId) {
+                            case "i=297":  // Argument
+                                break;
+                            case "i=7616": // EnumValueType
+                                break;
+                            case "i=888":  // EUInformation
+                                break;
+                            default:
+                                console.warn("xxxx::: unsupported typeId in ExtensionObject " + typeId);
+                                break;
+                        }
+                    }
+                }
+            }
+        },
+        "Body": {
+            parser: {
+                "Argument": argument_parser.Argument,
+                "EnumValueType": enumValueType_parser.EnumValueType,
+                "EUInformation": EUInformation_parser.EUInformation
+            },
+            finish: function () {
+                var self = this.parent;
+                switch (self.typeId.toString()) {
+                    case "ns=0;i=7616": // EnumValueType
+                        self.extensionObject = self.parser.Body.parser.EnumValueType.enumValueType;
+                        assert(_.isObject(self.extensionObject));
+                        break;
+                    case "ns=0;i=297": // Arguments
+                        self.extensionObject = self.parser.Body.parser.Argument.argument;
+                        assert(_.isObject(self.extensionObject));
+                        break;
+                    case "i=888":
+                    case "ns=0;i=888": // EUInformation
+                        self.extensionObject = self.parser.Body.parser.EUInformation.euInformation;
+                        assert(_.isObject(self.extensionObject));
+                        break;
+                    default:
+                        console.log("Xxxxxx unsupported typeId in ExtensionObject " + self.typeId);
+                        break;
+                }
+            }
+        }
+    };
+
     var extensionObject_parser = {
         "ExtensionObject": {
             init: function () {
                 this.typeId = {};
                 this.extensionObject = null;
             },
-            parser: {
-                "TypeId": {
-                    parser: {
-                        "Identifier": {
-                            finish: function () {
-
-                                var typeId = this.text.trim();
-                                this.parent.parent.typeId = resolveNodeId(typeId);
-
-                                switch (typeId) {
-                                    case "i=297":  //Argument
-                                        break;
-                                    case "i=7616": //EnumValueType
-                                        break;
-                                    default:
-                                        console.warn("xxxx unsupported typeId in ExtensionObject " +  typeId);
-                                        break;
-
-                                }
-                            }
-                        }
-                    }
-                },
-                "Body": {
-                    parser: {
-                        "Argument": argument_parser.Argument,
-                        "EnumValueType": enumValueType_parser.EnumValueType
-                    },
-                    finish: function () {
-                        var self = this.parent;
-                        switch (self.typeId.toString()) {
-                            case "ns=0;i=7616": // EnumValueType
-                                self.extensionObject = self.parser.Body.parser.EnumValueType.enumValueType;
-                                assert(_.isObject(self.extensionObject));
-                                break;
-                            case "ns=0;i=297": // Arguments
-                                self.extensionObject = self.parser.Body.parser.Argument.argument;
-                                assert(_.isObject(self.extensionObject));
-                                break;
-                            default:
-                                //xx console.log("xxxxx unsupported typeId in ExtensionObject " +  self.typeId);
-                                break;
-                        }
-                    }
-                }
-            }
+            parser: _extensionObject_inner_parser
         }
     };
 
-    function BasicType_parser(dataType,parseFunc) {
-       var parser = {};
-       parser[dataType] = {
-           init: function () {
-               this.value = 0;
-           },
-           finish: function() {
+    function BasicType_parser(dataType, parseFunc) {
+        var parser = {};
+        parser[dataType] = {
+            init: function () {
+                this.value = 0;
+            },
+            finish: function () {
                 this.value = parseFunc(this.text);
             }
-       };
-       return parser;
+        };
+        return parser;
     }
-    function ListOf(dataType,parseFunc) {
+
+    function ListOf(dataType, parseFunc) {
         return {
             init: function () {
                 this.listData = [];
             },
 
-            parser: BasicType_parser(dataType,parseFunc),
+            parser: BasicType_parser(dataType, parseFunc),
 
             finish: function () {
                 this.parent.parent.obj.value = {
-                    dataType:   DataType[dataType],
-                    arrayType:  VariantArrayType.Array,
+                    dataType: DataType[dataType],
+                    arrayType: VariantArrayType.Array,
                     value: this.listData
                 };
             },
@@ -519,7 +570,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         };
     }
 
-    var state_Variant =     {
+    var state_Variant = {
         parser: {
             "String": {
                 finish: function () {
@@ -543,7 +594,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 },
                 finish: function () {
                     var base64text = this.text;
-                    var byteString = Buffer.from(base64text,"base64");
+                    var byteString = Buffer.from(base64text, "base64");
                     this.parent.parent.obj.value = {
                         dataType: DataType.ByteString,
                         arrayType: VariantArrayType.Scalar,
@@ -568,15 +619,14 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     this.listData.push(this.parser.LocalizedText.localizedText);
                 }
             },
-            "ListOfDouble": ListOf("Double",parseFloat),
-            "ListOfFloat":  ListOf("Float", parseFloat),
-            "ListOfInt32":  ListOf("Int32", parseInt),
-            "ListOfInt16":  ListOf("Int16", parseInt),
-            "ListOfInt8":   ListOf("Int8",  parseInt),
-            "ListOfUint32":  ListOf("Uint32", parseInt),
-            "ListOfUint16":  ListOf("Uint16", parseInt),
-            "ListOfUint8":   ListOf("Uint8",  parseInt),
-
+            "ListOfDouble": ListOf("Double", parseFloat),
+            "ListOfFloat": ListOf("Float", parseFloat),
+            "ListOfInt32": ListOf("Int32", parseInt),
+            "ListOfInt16": ListOf("Int16", parseInt),
+            "ListOfInt8": ListOf("Int8", parseInt),
+            "ListOfUint32": ListOf("Uint32", parseInt),
+            "ListOfUint16": ListOf("Uint16", parseInt),
+            "ListOfUint8": ListOf("Uint8", parseInt),
             "ListOfExtensionObject": {
                 init: function () {
                     this.listData = [];
@@ -597,6 +647,19 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     }
                 }
 
+            },
+            "ExtensionObject": {
+                init: function () {
+                    this.typeId = {};
+                    this.extensionObject = null;
+                },
+                parser: _extensionObject_inner_parser,
+                finish: function () {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.ExtensionObject,
+                        value: this.extensionObject
+                    };
+                }
             }
         }
     };
@@ -743,7 +806,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     addressSpace.suspendBackReference = true;
 
     async.mapSeries(xmlFiles, function (xmlFile, callback) {
-        if( !fs.existsSync(xmlFile)) {
+        if (!fs.existsSync(xmlFile)) {
             throw new Error("generate_address_space : cannot file nodeset2 xml file at " + xmlFile);
         }
         _reset_namespace_translation();
@@ -755,4 +818,5 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     });
 
 }
+
 exports.generate_address_space = generate_address_space;
