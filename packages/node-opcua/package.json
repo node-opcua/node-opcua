@@ -1,13 +1,13 @@
 {
  "name": "node-opcua",
- "version": "0.1.0-8",
+ "version": "0.1.0-9",
  "description": "pure nodejs OPCUA SDK - module ",
  "main": "index.js",
  "scripts": {},
  "typings": "./node-opcua.d.ts",
  "dependencies": {
-  "node-opcua-address-space": "^0.1.0-8",
-  "node-opcua-address-space-for-conformance-testing": "^0.1.0-8",
+  "node-opcua-address-space": "^0.1.0-9",
+  "node-opcua-address-space-for-conformance-testing": "^0.1.0-9",
   "node-opcua-assert": "^0.1.0-4",
   "node-opcua-client": "^0.1.0-8",
   "node-opcua-client-crawler": "^0.1.0-8",
@@ -26,8 +26,8 @@
   "node-opcua-numeric-range": "^0.1.0-8",
   "node-opcua-packet-analyzer": "^0.1.0-8",
   "node-opcua-secure-channel": "^0.1.0-8",
-  "node-opcua-server": "^0.1.0-8",
-  "node-opcua-server-discovery": "^0.1.0-8",
+  "node-opcua-server": "^0.1.0-9",
+  "node-opcua-server-discovery": "^0.1.0-9",
   "node-opcua-service-browse": "^0.1.0-8",
   "node-opcua-service-call": "^0.1.0-8",
   "node-opcua-service-endpoints": "^0.1.0-8",
@@ -47,7 +47,7 @@
   "node-opcua-transport": "^0.1.0-8",
   "node-opcua-utils": "^0.1.0-7",
   "node-opcua-variant": "^0.1.0-8",
-  "node-opcua-vendor-diagnostic": "^0.1.0-8"
+  "node-opcua-vendor-diagnostic": "^0.1.0-9"
  },
  "devDependencies": {
   "should": "13.1.0"

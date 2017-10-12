@@ -1,11 +1,11 @@
 {
  "name": "node-opcua-address-space-for-conformance-testing",
- "version": "0.1.0-8",
+ "version": "0.1.0-9",
  "description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
  "main": "index.js",
  "scripts": {},
  "dependencies": {
-  "node-opcua-address-space": "^0.1.0-8",
+  "node-opcua-address-space": "^0.1.0-9",
   "node-opcua-assert": "^0.1.0-4",
   "node-opcua-basic-types": "^0.1.0-8",
   "node-opcua-data-access": "^0.1.0-8",
