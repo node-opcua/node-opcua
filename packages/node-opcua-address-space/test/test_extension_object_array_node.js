@@ -8,7 +8,7 @@ var Variant = require("node-opcua-variant").Variant;
 
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var SubscriptionDiagnostics = require("../_generated_/_auto_generated_SubscriptionDiagnostics").SubscriptionDiagnostics;
+var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
 var eoan = require("../src/extension_object_array_node");
 

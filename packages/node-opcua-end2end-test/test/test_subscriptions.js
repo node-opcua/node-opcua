@@ -1,16 +1,21 @@
 "use strict";
-var build_client_server_session = require("$node-opcua/test-helpers/build_client_server_session").build_client_server_session;
-var VariableIds = require("node-opcua-constants").VariableIds;
+var should = require("should");
 
-var subscription_service = require("node-opcua-service-subscription");
+var build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
 
+var VariableIds = require("node-opcua").VariableIds;
+var subscription_service = require("node-opcua").subscription_service;
+var read_service = require("node-opcua").read_service;
+var makeNodeId = require("node-opcua").makeNodeId;
+
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {
     var g_session;
     var client_server;
 
     before(function (done) {
 
-        client_server = build_client_server_session(function (err) {
+        client_server = build_client_server_session({}, function (err) {
             if (!err) {
                 g_session = client_server.g_session;
 
@@ -55,7 +60,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
             itemsToCreate: [
                 {
                     itemToMonitor: {
-                        nodeId: ec.makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
+                        nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
                     },
                     monitoringMode: subscription_service.MonitoringMode.Sampling,
                     requestedParameters: {

@@ -348,7 +348,9 @@ function registerDataTypeEnum(addressSpace, dataTypeName,bForce) {
 
 function registerDataType(addressSpace, dataTypeName,schema_folder, bForce) {
 
-    assert(fs.existsSync(schema_folder),"schema_folder must exist");
+    if (!fs.existsSync(schema_folder)) {
+        throw new Error("schema_folder must exist : " + dataTypeName + " " + schema_folder);
+    }
     var dataType = addressSpace.findDataType(dataTypeName + "DataType");
     if (!dataType) {
         dataType = addressSpace.findDataType(dataTypeName);
@@ -375,7 +377,7 @@ function registerDataType(addressSpace, dataTypeName,schema_folder, bForce) {
 
 
 /**
- * creates the requested data structure and javascript objects for the OPCU objects
+ * creates the requested data structure and javascript objects for the OPCUA objects
  * @method createExtensionObjectDefinition
  * @param addressSpace {AddressSpace}
  */
@@ -383,10 +385,9 @@ var createExtensionObjectDefinition = function (addressSpace) {
 
     assert(addressSpace instanceof AddressSpace);
     var force = true;
-   // nodeset.ApplicationDescription = nodeset.ApplicationDescription || registerDataType(addressSpace, "ApplicationDescription",force);
+    // nodeset.ApplicationDescription = nodeset.ApplicationDescription || registerDataType(addressSpace, "ApplicationDescription",force);
     nodeset.ServerState = nodeset.ServerState || registerDataTypeEnum(addressSpace, "ServerState", force);
-
-    //xx nodeset.ServerStatus = nodeset.ServerStatus || registerDataType(addressSpace, "ServerStatus", force);
+    nodeset.ServerStatus = nodeset.ServerStatus || registerDataType(addressSpace, "ServerStatus", force);
     //xx nodeset.ServiceCounter = nodeset.ServiceCounter || registerDataType(addressSpace, "ServiceCounter", force);
     //xx nodeset.SessionDiagnostics = nodeset.SessionDiagnostics || registerDataType(addressSpace, "SessionDiagnostics",force);
     //xx nodeset.ServerDiagnosticsSummary = nodeset.ServerDiagnosticsSummary || registerDataType(addressSpace, "ServerDiagnosticsSummary",force);
@@ -409,7 +410,7 @@ var createExtensionObjectDefinition = function (addressSpace) {
      *                                       include the DST correction and DST may or may not have
      *                                       been in effect.
      */
-    nodeset.TimeZoneDataType = nodeset.TimeZoneDataType || registerDataType(addressSpace, "TimeZoneDataType", force);
+    //xx nodeset.TimeZoneDataType = nodeset.TimeZoneDataType || registerDataType(addressSpace, "TimeZoneDataType", force);
 };
 
 exports.createExtensionObjectDefinition = createExtensionObjectDefinition;

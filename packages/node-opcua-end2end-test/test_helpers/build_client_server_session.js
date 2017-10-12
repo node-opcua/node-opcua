@@ -1,4 +1,4 @@
-
+var should = require("should");
 var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
@@ -90,7 +90,7 @@ function build_client_server_session(options,done) {
 
                     // let's perform some more verification
                     assert(server.engine.currentSessionCount === 0);
-                    //xx assert(server.engine.currentSubscriptionCount === 0);
+                    assert(server.engine.currentSubscriptionCount === 0);
                     //xx assert(server.engine.cumulatedSessionCount>=1);
                     done();
                 });

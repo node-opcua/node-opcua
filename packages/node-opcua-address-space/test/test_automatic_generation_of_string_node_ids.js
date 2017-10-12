@@ -1,9 +1,7 @@
 "use strict";
 /* global describe,it,before*/
-
 var should = require("should");
 
-var _ = require("underscore");
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 describe("Automatic Generation of  string nodeId", function () {
@@ -64,7 +62,7 @@ describe("Automatic Generation of  string nodeId", function () {
 
     it("should generate string NodeIds on components and properties when instantiating an object type that have a string nodeId (node-opcua specific)", function (done) {
 
-        var createCameraType = require("./fixture_camera_type").createCameraType;
+        var createCameraType = require("../test/fixture_camera_type").createCameraType;
         var cameraType = createCameraType(addressSpace);
 
         var camera1 = cameraType.instantiate({

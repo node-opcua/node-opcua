@@ -2,19 +2,18 @@
 
 
 var should = require("should");
-
-
 var os = require("os");
-var _ = require("underscore");
-
-var opcua = require("../index");
-
+var path = require("path");
+var fs = require("fs");
+var opcua = require("node-opcua");
 var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
 
-var getFixture = require("node-opcua-test-fixtures").getFixture;
-
-
+function getFixture(file) {
+    file = path.join(__dirname, "../../node-opcua-address-space/test_helpers/test_fixtures", file);
+    fs.existsSync(file).should.be.eql(true);
+    return file;
+}
 var empty_nodeset_filename = getFixture("fixture_empty_nodeset2.xml");
 
 

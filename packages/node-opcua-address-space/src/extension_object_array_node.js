@@ -1,19 +1,13 @@
 "use strict";
 /* global describe,it,before*/
-
-
 var assert = require("node-opcua-assert");
-
 var _ = require("underscore");
-
-
 
 var Variant = require("node-opcua-variant").Variant;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+var DataType = require("node-opcua-variant").DataType;
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
-
-var DataType = require("node-opcua-variant").DataType;
 
 
 var BaseNode = require("./base_node").BaseNode;
@@ -25,6 +19,7 @@ var AddressSpace = require("./address_space").AddressSpace;
 
 var hasConstructor = require("node-opcua-factory").hasConstructor;
 var getConstructor = require("node-opcua-factory").getConstructor;
+
 function makeStructure(dataType,bForce) {
 
     bForce = !!bForce;
@@ -35,21 +30,19 @@ function makeStructure(dataType,bForce) {
     assert(addressSpace.constructor.name === "AddressSpace");
     assert(addressSpace instanceof AddressSpace);
 
-
     // istanbul ignore next
     if (!dataType.binaryEncodingNodeId) {
         throw new Error("DataType with name " + dataType.browseName.toString() + " has no binaryEncoding node\nplease check your nodeset file");
     }
 
     // if binaryEncodingNodeId is in the standard factory => no need to overwrite
-
     if (!bForce && (hasConstructor(dataType.binaryEncodingNodeId) ||   dataType.binaryEncodingNodeId.namespace === 0)) {
         //xx console.log("Skipping standard constructor".bgYellow ," for dataType" ,dataType.browseName.toString());
         return getConstructor(dataType.binaryEncodingNodeId);
     }
     // etc ..... please fix me
     var namespaceUri = addressSpace.getNamespaceUri(dataType.nodeId.namespace);
-    console.log("XXXXXXXXXXXXXX=>","#makeStructure FIX ME !!!!!!! ".red);
+    console.log("XXXXXXXXXXXXXX=>", "#makeStructure FIX ME !!!!!!! ".red, namespaceUri);
 }
 /*
  * define a complex Variable containing a array of extension objects

@@ -14,6 +14,7 @@ var should = require("should");
 var assert = require("node-opcua-assert");
 var path = require("path");
 var fs = require("fs");
+var EUInformation = require("node-opcua-data-access").EUInformation;
 
 var AddressSpace = require("..").AddressSpace;
 
@@ -32,6 +33,7 @@ var context = address_space.SessionContext.defaultContext;
 function debugLog() {
 }
 
+var nodesets = require("node-opcua-nodesets");
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace loading", function () {
@@ -43,7 +45,7 @@ describe("testing address space namespace loading", function () {
 
         addressSpace = new AddressSpace();
         var xml_files = [
-            path.join(__dirname, "../../../", "nodesets/Opc.Ua.NodeSet2.xml"),
+            nodesets.standard_nodeset_file,
             path.join(__dirname, "../../../", "modeling/my_data_type.xml")
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true);
@@ -107,11 +109,12 @@ describe("testing address space namespace loading", function () {
 //          - UserIdentityToken
 //            - AnonymousIdentityToken
 
-    it("ZZ should create a arbitrary structure from a second name space", function (done) {
+    it("should create a arbitrary structure from a second name space", function (done) {
 
-        var r = require("$node-opcua/data_access/EUInformation");
+
         var ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         ns.should.eql(2);
+
         var myStructureDataType = addressSpace.findDataType("MyStructureDataType", ns);
         myStructureDataType.should.be.instanceOf(UADataType);
 
@@ -119,13 +122,13 @@ describe("testing address space namespace loading", function () {
         // create an extension object
         //------------------------------------------------------------------------------
         var op = addressSpace.constructExtensionObject(myStructureDataType);
+
         op.constructor.name.should.eql("MyStructure");
 
         op.should.have.property("lowValue");
         op.lowValue.should.eql(0);
 
         //xx debugLog("op.lowValue",op.lowValue.toString());
-
 
         //------------------------------------------------------------------------------
         // create a variable
@@ -163,7 +166,7 @@ describe("testing address space namespace loading", function () {
         });
     });
 
-    it("AA explore the DataType through OPCUA", function () {
+    it("should explore the DataType through OPCUA", function () {
 
         var ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         ns.should.eql(2);
@@ -289,7 +292,7 @@ describe("testing address space namespace loading", function () {
         ], done);
     });
 
-    it("xxx should instantiate SessionDiagnostics in a linear time", function () {
+    it("should instantiate SessionDiagnostics in a linear time", function () {
 
         var utils = require("node-opcua-utils");
         var sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType");

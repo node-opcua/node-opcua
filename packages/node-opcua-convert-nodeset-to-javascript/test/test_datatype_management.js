@@ -16,9 +16,9 @@ var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeEx
 var Variant = require("node-opcua-variant").Variant;
 var DataType = require("node-opcua-variant").DataType;
 
-var nodeset = require("node-opcua-address-space").nodeset;
+var nodeset = require("..").nodeset;
 
-var createExtensionObjectDefinition = require("../src/convert_nodeset_to_types").createExtensionObjectDefinition;
+var createExtensionObjectDefinition = require("..").createExtensionObjectDefinition;
 
 
 function getFixture(file) {
