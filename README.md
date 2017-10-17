@@ -29,29 +29,43 @@ Because nodeJs is a great framework to design asynchronous application.
 Getting started
 ================
 
-installing node-opcua
----------------------
+installing node-opcua as a node package
+---------------------------------------
 
     $ npm install node-opcua
 
 
-running the demo server
------------------------
+installing node-opcua samples as a node package
+-----------------------------------------------
+
+   $ npm install node-opcua-samples
+   $ ./node_modules/.bin/simple_server
+   or
+   $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
+
+
+installing node-opcua from source
+---------------------------------
+
+
+running the demo server from source
+-----------------------------------
 
     $ git clone https://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
     $ npm install
-    $ node bin/simple_server
+    $ node packages/node-opcua-samples/bin/simple_server
     
-running the demo client
------------------------
+running the demo client from source
+------------------------------------
 
     $ git clone https://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
     $ npm install
-    $ node bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
+    $ node packages/node-opcua-samples/bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
         
-        
+
+
 Tutorials
 ---------
 
@@ -193,7 +207,7 @@ This are the item we would like to achieve in the next version of the API.
 
   * improved documentation 
   * Compliance testing and certification (CTT) 
-  * HA Support : supporting the historizing service
+  * HA Support : improved support of historizing service
   * more tutorials
 
 
