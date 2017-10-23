@@ -94,8 +94,16 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
 
     var server_endpoint;
     beforeEach(function () {
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
-        server_endpoint.addStandardEndpointDescriptions({securityModes: [MessageSecurityMode.SIGNANDENCRYPT]});
+        server_endpoint = new OPCUAServerEndPoint({
+            port: default_port,
+            serverInfo: {},
+            certificateChain: null,
+            privateKey: ""
+        });
+        server_endpoint.addStandardEndpointDescriptions({
+            securityModes: [MessageSecurityMode.SIGNANDENCRYPT],
+            disableDiscovery: true
+        });
     });
     afterEach(function () {
         server_endpoint = null;
