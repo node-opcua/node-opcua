@@ -710,6 +710,11 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
         var endpoints = server._get_endpoints();
 
+        // ignore restricted endpoints
+        endpoints = endpoints.filter(function (endpoint) {
+            return !endpoint.restricted;
+        });
+
         var endpoints_matching_security_mode = endpoints.filter(function (e) {
             return e.securityMode === channel.securityMode;
         });
