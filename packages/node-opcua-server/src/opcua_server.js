@@ -192,6 +192,7 @@ var default_build_info = {
  * @param [options.serverInfo.discoveryUrls = []]{Array<String>}
  * @param [options.securityPolicies= [SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
  * @param [options.securityModes= [MessageSecurityMode.NONE,MessageSecurityMode.SIGN,MessageSecurityMode.SIGNANDENCRYPT]]
+ * @param [options.disableDiscovery = false] true if Discovery Service on unsecure channel shall be disabled
  * @param [options.allowAnonymous = true] tells if the server default endpoints should allow anonymous connection.
  * @param [options.userManager = null ] a object that implements user authentication methods
  * @param [options.userManager.isValidUser ] synchronous function to check the credentials - can be overruled by isValidUserAsync
@@ -263,7 +264,8 @@ function OPCUAServer(options) {
     endPoint.addStandardEndpointDescriptions({
         securityPolicies: options.securityPolicies,
         securityModes: options.securityModes,
-        allowAnonymous: options.allowAnonymous,
+        allowAnonymous: !!options.allowAnonymous,
+        disableDiscovery: !!options.disableDiscovery,
         resourcePath: options.resourcePath || "",
         hostname: options.alternateHostname
     });

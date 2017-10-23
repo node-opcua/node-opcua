@@ -516,7 +516,8 @@ var defaultSecurityModes = [
 var defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
     SecurityPolicy.Basic256,
-    SecurityPolicy.Basic256Rsa15
+    SecurityPolicy.Basic256Rsa15,
+    SecurityPolicy.Basic256Sha256
 ];
 
 OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (options) {
@@ -531,7 +532,9 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
     if (options.securityModes.indexOf(MessageSecurityMode.NONE) >= 0) {
         self.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None, options);
     } else {
-        self.addRestrictedEndpointDescription(options);
+        if (!options.disableDiscovery) {
+            self.addRestrictedEndpointDescription(options);
+        }
     }
 
     if (crypto_utils.isFullySupported()) {

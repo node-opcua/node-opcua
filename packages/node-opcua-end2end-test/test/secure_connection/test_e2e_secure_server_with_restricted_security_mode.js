@@ -17,7 +17,8 @@ if (!crypto_utils.isFullySupported()) {
 }
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing server with restricted securityModes - Given a server with a single end point SIGNANDENCRYPT/Basic128Rsa15", function () {
+
+describe("testing server with restricted securityModes - Given a server with a single end point SIGNANDENCRYPT/Basic128Rsa15 (and no discovery service on secure channel)", function () {
 
     var server, client, temperatureVariableId, endpointUrl, serverCertificate;
 
@@ -30,7 +31,10 @@ describe("testing server with restricted securityModes - Given a server with a s
         var options = {
             port: port,
             securityPolicies: [SecurityPolicy.Basic128Rsa15],
-            securityModes: [MessageSecurityMode.SIGNANDENCRYPT]
+            securityModes: [MessageSecurityMode.SIGNANDENCRYPT],
+
+            // in our case we also want to disable getEndpoint Service on unsecure connection:
+            disableDiscovery: true
         };
 
         server = build_server_with_temperature_device(options, function (err) {
@@ -78,6 +82,17 @@ describe("testing server with restricted securityModes - Given a server with a s
         client = new OPCUAClient({
             securityMode: MessageSecurityMode.SIGN,
             securityPolicy: SecurityPolicy.Basic256,
+            serverCertificate: serverCertificate
+        });
+        client.connect(endpointUrl, function (err) {
+            should(err).not.be.eql(null);
+            client.disconnect(done);
+        });
+    });
+    it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256Sha256 ", function (done) {
+        client = new OPCUAClient({
+            securityMode: MessageSecurityMode.SIGN,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate
         });
         client.connect(endpointUrl, function (err) {
