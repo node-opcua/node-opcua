@@ -704,6 +704,31 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         return rejectConnection(StatusCodes.BadCertificateUriInvalid);
     }
 
+    function validate_security_endpoint(channel) {
+
+        var endpoints = server._get_endpoints();
+
+        var endpoints_matching_security_mode = endpoints.filter(function (e) {
+            return e.securityMode === channel.securityMode;
+        });
+        if (endpoints_matching_security_mode.length === 0) {
+            return StatusCodes.BadSecurityModeRejected;
+        }
+        var endpoints_matching_security_policy = endpoints_matching_security_mode.filter(function (e) {
+            return e.securityPolicyUri === channel.securityHeader.securityPolicyUri;
+        });
+
+        if (endpoints_matching_security_policy.length === 0) {
+            return StatusCodes.BadSecurityPolicyRejected;
+        }
+        return StatusCodes.Good;
+    }
+
+    var errStatus = validate_security_endpoint(channel);
+    if (errStatus !== StatusCodes.Good) {
+        return rejectConnection(errStatus);
+    }
+
     // see Release 1.02  27  OPC Unified Architecture, Part 4
     var session = server.createSession({
         sessionTimeout: revisedSessionTimeout,

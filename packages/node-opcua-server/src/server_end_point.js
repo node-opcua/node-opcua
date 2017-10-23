@@ -58,8 +58,8 @@ function OPCUAServerEndPoint(options) {
 
     var self = this;
 
-    assert(!options.hasOwnProperty("certificate"),"expecting a certificateChain instead");
-    assert(options.hasOwnProperty("certificateChain"),"expecting a certificateChain");
+    assert(!options.hasOwnProperty("certificate"), "expecting a certificateChain instead");
+    assert(options.hasOwnProperty("certificateChain"), "expecting a certificateChain");
     assert(options.hasOwnProperty("privateKey"));
     assert(typeof(options.privateKey) === "string");
 
@@ -98,6 +98,7 @@ function OPCUAServerEndPoint(options) {
     assert(_.isObject(this.serverInfo));
 
 }
+
 util.inherits(OPCUAServerEndPoint, EventEmitter);
 
 OPCUAServerEndPoint.prototype._dump_statistics = function () {
@@ -143,8 +144,8 @@ function dumpChannelInfo(channels) {
     function dumpChannel(channel) {
 
         console.log("------------------------------------------------------");
-        console.log("      secureChannelId = ",channel.secureChannelId);
-        console.log("             timeout  = ",  channel.timeout );
+        console.log("      secureChannelId = ", channel.secureChannelId);
+        console.log("             timeout  = ", channel.timeout);
         console.log("        remoteAddress = ", channel.remoteAddress);
         console.log("        remotePort    = ", channel.remotePort);
         console.log("");
@@ -155,14 +156,15 @@ function dumpChannelInfo(channels) {
 
         var socket = channel.transport._socket;
         if (!socket) {
-            console.log(" SOOKET IS CLOSED");
+            console.log(" SOCKET IS CLOSED");
         } else {
         }
         //xx channel._dump_transaction_statistics();
-
     }
-    _.forEach(channels,dumpChannel);
+
+    _.forEach(channels, dumpChannel);
 }
+
 /**
  * @async
  * @param self
@@ -337,8 +339,9 @@ function _makeEndpointDescription(options) {
     assert(_.isObject(options.securityPolicy));
     assert(_.isObject(options.server));
     assert(options.hostname && (typeof options.hostname === "string"));
+    assert(_.isBoolean(options.restricted));
 
-    options.securityLevel = ( options.securityLevel === undefined) ? 3 : options.securityLevel;
+    options.securityLevel = (options.securityLevel === undefined) ? 3 : options.securityLevel;
     assert(_.isFinite(options.securityLevel), "expecting a valid securityLevel");
 
     var securityPolicyUri = toURI(options.securityPolicy);
@@ -364,6 +367,14 @@ function _makeEndpointDescription(options) {
             issuedTokenType: null,
             issuerEndpointUrl: null,
             securityPolicyUri: SecurityPolicy.Basic128Rsa15.value
+        });
+
+        userIdentityTokens.push({
+            policyId: "username_basic256Sha256",
+            tokenType: UserIdentityTokenType.USERNAME,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: SecurityPolicy.Basic256Sha256.value
         });
 
     } else {
@@ -405,6 +416,8 @@ function _makeEndpointDescription(options) {
         securityLevel: options.securityLevel
     });
 
+    endpoint.restricted = options.restricted;
+
     return endpoint;
 
 }
@@ -441,12 +454,13 @@ OPCUAServerEndPoint.prototype.getEndpointDescription = function (securityMode, s
     return arr.length === 0 ? null : arr[0];
 };
 
+
 OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, securityPolicy, options) {
 
     var self = this;
 
     options = options || {};
-    options.allowAnonymous = ( options.allowAnonymous === undefined ) ? true : options.allowAnonymous;
+    options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
 
     assert(_.isObject(securityMode));
     assert(_.isObject(securityPolicy));
@@ -473,19 +487,37 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
 
     options.hostname = options.hostname || get_fully_qualified_domain_name();
 
-    self._endpoints.push(_makeEndpointDescription(
-        {
-            port: port,
-            server: self.serverInfo,
-            serverCertificateChain: self.getCertificateChain(),
-            securityMode: securityMode,
-            securityPolicy: securityPolicy,
-            allowAnonymous: options.allowAnonymous,
-            resourcePath: options.resourcePath,
-            hostname: options.hostname
-        }));
+    self._endpoints.push(_makeEndpointDescription({
+        port: port,
+        server: self.serverInfo,
+        serverCertificateChain: self.getCertificateChain(),
+        securityMode: securityMode,
+        securityPolicy: securityPolicy,
+        allowAnonymous: options.allowAnonymous,
+        resourcePath: options.resourcePath,
+        hostname: options.hostname,
+        restricted: !!options.restricted
+    }));
 
 };
+
+OPCUAServerEndPoint.prototype.addRestrictedEndpointDescription = function (options) {
+    var self = this;
+    options = _.clone(options);
+    options.restricted = true;
+    return self.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None, options);
+};
+
+var defaultSecurityModes = [
+    MessageSecurityMode.NONE,
+    MessageSecurityMode.SIGN,
+    MessageSecurityMode.SIGNANDENCRYPT
+];
+var defaultSecurityPolicies = [
+    SecurityPolicy.Basic128Rsa15,
+    SecurityPolicy.Basic256,
+    SecurityPolicy.Basic256Rsa15
+];
 
 OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (options) {
 
@@ -493,11 +525,13 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
 
     options = options || {};
 
-    options.securityModes = options.securityModes || [MessageSecurityMode.NONE, MessageSecurityMode.SIGN, MessageSecurityMode.SIGNANDENCRYPT];
-    options.securityPolicies = options.securityPolicies || [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256];
+    options.securityModes = options.securityModes || defaultSecurityModes;
+    options.securityPolicies = options.securityPolicies || defaultSecurityPolicies;
 
     if (options.securityModes.indexOf(MessageSecurityMode.NONE) >= 0) {
         self.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None, options);
+    } else {
+        self.addRestrictedEndpointDescription(options);
     }
 
     if (crypto_utils.isFullySupported()) {
@@ -555,7 +589,7 @@ OPCUAServerEndPoint.prototype._registerChannel = function (channel) {
         self.emit("newChannel", channel);
 
         channel.on("abort", function () {
-           self._unregisterChannel(channel);
+            self._unregisterChannel(channel);
         });
 
     } else {
@@ -708,33 +742,33 @@ OPCUAServerEndPoint.prototype.start = function (callback) {
 OPCUAServerEndPoint.prototype.__defineGetter__("bytesWritten", function () {
     var chnls = _.values(this._channels);
     return this.bytesWrittenInOldChannels + chnls.reduce(
-            function (accumulated, channel) {
-                return accumulated + channel.bytesWritten;
-            }, 0);
+      function (accumulated, channel) {
+          return accumulated + channel.bytesWritten;
+      }, 0);
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("bytesRead", function () {
     var chnls = _.values(this._channels);
     return this.bytesReadInOldChannels + chnls.reduce(
-            function (accumulated, channel) {
-                return accumulated + channel.bytesRead;
-            }, 0);
+      function (accumulated, channel) {
+          return accumulated + channel.bytesRead;
+      }, 0);
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("transactionsCount", function () {
     var chnls = _.values(this._channels);
     return this.transactionsCountOldChannels + chnls.reduce(
-            function (accumulated, channel) {
-                return accumulated + channel.transactionsCount;
-            }, 0);
+      function (accumulated, channel) {
+          return accumulated + channel.transactionsCount;
+      }, 0);
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("securityTokenCount", function () {
     var chnls = _.values(this._channels);
     return this.securityTokenCountOldChannels + chnls.reduce(
-            function (accumulated, channel) {
-                return accumulated + channel.securityTokenCount;
-            }, 0);
+      function (accumulated, channel) {
+          return accumulated + channel.securityTokenCount;
+      }, 0);
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("activeChannelCount", function () {

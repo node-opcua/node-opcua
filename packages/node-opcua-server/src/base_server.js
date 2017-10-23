@@ -307,8 +307,11 @@ OPCUABaseServer.prototype._on_GetEndpointsRequest = function (message, channel) 
 
     response.endpoints = server._get_endpoints();
 
-    // apply filters
+    response.endpoints = response.endpoints.filter(function (endpoint) {
+        return !endpoint.restricted;
+    });
 
+    // apply filters
     if (request.profileUris && request.profileUris.length > 0) {
         response.endpoints = response.endpoints.filter(function (endpoint) {
             return request.profileUris.indexOf(endpoint.transportProfileUri) >= 0;
