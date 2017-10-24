@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-server-discovery",
- "version": "0.1.0-9",
+ "version": "0.1.0-10",
  "description": "pure nodejs OPCUA SDK - module -server-discovery",
  "scripts": {
   "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
@@ -9,12 +9,12 @@
  "main": "index.js",
  "dependencies": {
   "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-common": "^0.1.0-8",
+  "node-opcua-common": "^0.1.0-10",
   "node-opcua-hostname": "^0.1.0-4",
-   "node-opcua-pki": "0.0.18",
-  "node-opcua-server": "^0.1.0-9",
-  "node-opcua-service-endpoints": "^0.1.0-8",
-  "node-opcua-service-register-server": "^0.1.0-8",
+  "node-opcua-pki": "0.0.18",
+  "node-opcua-server": "^0.1.0-10",
+  "node-opcua-service-endpoints": "^0.1.0-10",
+  "node-opcua-service-register-server": "^0.1.0-10",
   "node-opcua-status-code": "^0.1.0-7",
   "underscore": "^1.8.3"
  },

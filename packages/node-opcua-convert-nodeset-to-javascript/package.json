@@ -1,23 +1,23 @@
 {
  "name": "node-opcua-convert-nodeset-to-javascript",
- "version": "0.1.0-9",
+ "version": "0.1.0-10",
  "description": "pure nodejs OPCUA SDK - module -convert-nodeset-to-javascript",
  "scripts": {
   "test": "mocha test"
  },
  "main": "index.js",
  "dependencies": {
-  "node-opcua-address-space": "^0.1.0-9",
+  "node-opcua-address-space": "^0.1.0-10",
   "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-data-model": "^0.1.0-8",
-  "node-opcua-factory": "^0.1.0-8",
+  "node-opcua-data-model": "^0.1.0-10",
+  "node-opcua-factory": "^0.1.0-10",
   "node-opcua-nodeid": "^0.1.0-7",
-  "node-opcua-utils": "^0.1.0-7",
-   "underscore": "^1.8.3"
+  "node-opcua-utils": "^0.1.0-10",
+  "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-packet-analyzer": "^0.1.0-8",
-  "node-opcua-variant": "^0.1.0-8",
+  "node-opcua-packet-analyzer": "^0.1.0-10",
+  "node-opcua-variant": "^0.1.0-10",
   "should": "13.1.0"
  },
  "author": "Etienne Rossignon",

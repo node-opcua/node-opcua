@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-data-model",
- "version": "0.1.0-8",
+ "version": "0.1.0-10",
  "description": "pure nodejs OPCUA SDK - module -data-model",
  "scripts": {
   "test": "mocha test",
@@ -10,18 +10,18 @@
  "main": "index.js",
  "dependencies": {
   "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-basic-types": "^0.1.0-8",
+  "node-opcua-basic-types": "^0.1.0-10",
   "node-opcua-binary-stream": "^0.1.0-7",
   "node-opcua-enum": "^0.1.0-7",
-  "node-opcua-factory": "^0.1.0-8",
+  "node-opcua-factory": "^0.1.0-10",
   "node-opcua-nodeid": "^0.1.0-7",
   "node-opcua-status-code": "^0.1.0-7",
-  "node-opcua-utils": "^0.1.0-7",
+  "node-opcua-utils": "^0.1.0-10",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.1.0-8",
-  "node-opcua-packet-analyzer": "^0.1.0-8",
+  "node-opcua-generator": "^0.1.0-10",
+  "node-opcua-packet-analyzer": "^0.1.0-10",
   "should": "13.1.0"
  },
  "author": "Etienne Rossignon",

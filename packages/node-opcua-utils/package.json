@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-utils",
- "version": "0.1.0-7",
+ "version": "0.1.0-10",
  "description": "pure nodejs OPCUA SDK - module -utils",
  "main": "index.js",
  "scripts": {
