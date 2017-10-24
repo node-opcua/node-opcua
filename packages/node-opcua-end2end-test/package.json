@@ -7,7 +7,7 @@
   "test": "mocha --recursive test"
  },
  "dependencies": {
-  "node-opcua-pki": "0.0.17"
+  "node-opcua-pki": "0.0.18"
  },
  "devDependencies": {
   "async": "^2.5.0",
@@ -34,7 +34,7 @@
   "should": "13.1.0",
   "sinon": "^3.2.1",
   "underscore": "^1.8.3",
-  "yargs": "^8.0.2"
+  "yargs": "^10.0.3"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
