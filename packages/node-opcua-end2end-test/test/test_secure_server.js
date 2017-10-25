@@ -47,7 +47,8 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             ],
             securityModes: [
                 MessageSecurityMode.SIGNANDENCRYPT
-            ]
+            ],
+            disableDiscovery: false
         });
 
         endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
@@ -82,9 +83,12 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             // create session
             function (callback) {
 
+                client._server_endpoints.length.should.eql(1);
+
                 // server has given us only its valid endpoint that the client will check before
                 // establishing a session. Let's inject a fake unsecure endpoint so we can
                 // skip the internal client test for invalid endpoint and get to the server
+
 
                 var unsecure_endpoint = new opcua.EndpointDescription(client._server_endpoints[0]);
                 unsecure_endpoint.securityMode = MessageSecurityMode.NONE;
