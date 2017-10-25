@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-client",
- "version": "0.1.0-11",
+ "version": "0.1.0-12",
  "description": "pure nodejs OPCUA SDK - module -client",
  "scripts": {
   "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_1024.pem",
@@ -23,7 +23,7 @@
   "node-opcua-hostname": "^0.1.0-4",
   "node-opcua-nodeid": "^0.1.0-7",
   "node-opcua-object-registry": "^0.1.0-11",
-   "node-opcua-pki": "0.0.21",
+  "node-opcua-pki": "0.0.21",
   "node-opcua-secure-channel": "^0.1.0-11",
   "node-opcua-service-browse": "^0.1.0-11",
   "node-opcua-service-call": "^0.1.0-11",
