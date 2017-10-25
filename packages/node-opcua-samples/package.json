@@ -10,7 +10,9 @@
  },
  "scripts": {
   "postinstall": "node bin/create_certificates.js demo --dev -s",
-  "test": "echo no test"
+  "test": "echo no test",
+  "clean": "node -e \"require('rimraf').sync('certificates');\""
+
  },
  "dependencies": {
   "async": "^2.5.0",

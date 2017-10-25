@@ -4,6 +4,7 @@
  "description": "pure nodejs OPCUA SDK - module -end2end-test",
  "scripts": {
   "pretest": "node test_helpers/create_certificates.js demo --dev -s",
+  "clean": "node -e \"require('rimraf').sync('certificates');\"",
   "test": "mocha --recursive test"
  },
  "dependencies": {
