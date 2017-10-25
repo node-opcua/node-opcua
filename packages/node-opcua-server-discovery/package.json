@@ -11,7 +11,7 @@
   "node-opcua-assert": "^0.1.0-4",
   "node-opcua-common": "^0.1.0-10",
   "node-opcua-hostname": "^0.1.0-4",
-  "node-opcua-pki": "0.0.19",
+  "node-opcua-pki": "0.0.20",
   "node-opcua-server": "^0.1.0-10",
   "node-opcua-service-endpoints": "^0.1.0-10",
   "node-opcua-service-register-server": "^0.1.0-10",
