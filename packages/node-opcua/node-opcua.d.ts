@@ -86,7 +86,26 @@ export declare class OPCUAClientBase {
 }
 
 export interface BrowseResponse {
-
+    references: {
+        referenceTypeId: string,
+        isForward: boolean,
+        nodeId: any,
+        browseName: {
+            namespaceIndex: number,
+            name: string
+        },
+        displayName: {
+            text: string,
+            local: string
+        },
+        nodeClass: string | { key: string, value: any },
+        typeDefinition: string
+    }[];
+    statusCode: {
+        value: number,
+        description: string,
+        name: string
+    }
 }
 
 export interface NodeId {
@@ -135,7 +154,7 @@ type CoercibleToBrowseDescription = string | BrowseDescription;
 export declare interface ClientSession {
 
     browse(nodeToBrowse: CoercibleToBrowseDescription,
-        callback: ResponseCallback<BrowseResponse>): void;
+        callback: ResponseCallback<Array<BrowseResponse>>): void;
 
     browse(nodeToBrowse: Array<CoercibleToBrowseDescription>,
         callback: ResponseCallback<Array<BrowseResponse>>): void;
