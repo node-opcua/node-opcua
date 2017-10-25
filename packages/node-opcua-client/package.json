@@ -23,7 +23,7 @@
   "node-opcua-hostname": "^0.1.0-4",
   "node-opcua-nodeid": "^0.1.0-7",
   "node-opcua-object-registry": "^0.1.0-10",
-  "node-opcua-pki": "0.0.18",
+   "node-opcua-pki": "0.0.19",
   "node-opcua-secure-channel": "^0.1.0-10",
   "node-opcua-service-browse": "^0.1.0-10",
   "node-opcua-service-call": "^0.1.0-10",
