@@ -6,12 +6,15 @@ module.exports = {
     SubscriptionDiagnostics: require("./_generated_/_auto_generated_SubscriptionDiagnostics").SubscriptionDiagnostics,
 
     ApplicationInstanceCertificate:require("./_generated_/_auto_generated_ApplicationInstanceCertificate").ApplicationInstanceCertificate,
+
+    ServerState: require("./schemas/ServerState_enum").ServerState,
+
     RedundantServer:require("./_generated_/_auto_generated_RedundantServer").RedundantServer,
+
     SamplingIntervalDiagnostics: require("./_generated_/_auto_generated_SamplingIntervalDiagnostics").SamplingIntervalDiagnostics,
     SemanticChangeStructure: require("./_generated_/_auto_generated_SemanticChangeStructure").SemanticChangeStructure,
     ServerDiagnosticsSummary: require("./_generated_/_auto_generated_ServerDiagnosticsSummary").ServerDiagnosticsSummary,
 
-    ServerState: require("./schemas/ServerState_enum").ServerState,
     ServerStatus: require("./_generated_/_auto_generated_ServerStatus").ServerStatus,
 
     ServiceCounter: require("./_generated_/_auto_generated_ServiceCounter").ServiceCounter,

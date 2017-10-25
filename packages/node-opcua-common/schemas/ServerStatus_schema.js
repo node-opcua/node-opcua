@@ -1,10 +1,9 @@
 // --------- This code has been automatically generated !!! 2017-06-18T21:43:12.630Z
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 require("./ServerState_enum");
 require("node-opcua-data-model");
 
 var ServerStatus_Schema = {
-    id:  coerceNodeId("ns=0;i=864"),
+    id: "ns=0;i=864",
     name: "ServerStatus",
     fields: [
        {

@@ -23,15 +23,10 @@ function constructNodesetFilename (filename) {
 path.join(__dirname, "nodesets/Opc.Ua.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.Di.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.Adi.NodeSet2.xml");
-path.join(__dirname, "nodesets/Opc.Ua.NodeSet2.Part8.xml");
-path.join(__dirname, "nodesets/FTNIR.NodeSet2.xml");
 //------------------------------------------------------------- }}
 module.exports = {
-
     constructNodesetFilename:constructNodesetFilename,
     standard_nodeset_file: constructNodesetFilename("Opc.Ua.NodeSet2.xml"),
     di_nodeset_filename: constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml"),
-    adi_nodeset_filename: constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml"),
-    part8_nodeset_filename: constructNodesetFilename("Opc.Ua.NodeSet2.Part8.xml"),
-    ftnir_nodeset_filename: constructNodesetFilename("FTNIR.NodeSet2.xml")
+    adi_nodeset_filename: constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml")
 };

@@ -23,11 +23,9 @@ describe("DataAccess", function () {
         data.addressSpace = addressSpace;
 
         var xmlFiles = [
-            path.join(__dirname, "../../test_helpers/test_fixtures/mini.Node.Set2.xml"),
-            nodesets.part8_nodeset_filename
+            nodesets.standard_nodeset_file
         ];
         fs.existsSync(xmlFiles[0]).should.eql(true);
-        fs.existsSync(xmlFiles[1]).should.eql(true);
         generate_address_space(addressSpace,xmlFiles,done);
 
     });

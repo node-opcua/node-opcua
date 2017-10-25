@@ -104,9 +104,9 @@ describe("testing add new DataType ", function () {
 
         var xml_files = [
             nodesets.standard_nodeset_file,
-            nodesets.di_nodeset_filename,
-            nodesets.adi_nodeset_filename,
-            nodesets.ftnir_nodeset_filename,
+            nodesets.constructNodesetFilename("1.02/Opc.Ua.Di.NodeSet2.xml"),
+            nodesets.constructNodesetFilename("1.02/Opc.Ua.Adi.NodeSet2.xml"),
+            nodesets.constructNodesetFilename("1.02/FTNIR.NodeSet2.xml")
         ];
 
 

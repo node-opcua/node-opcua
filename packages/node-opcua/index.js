@@ -144,7 +144,6 @@ module.exports.constructNodesetFilename = module.exports.nodesets.constructNodes
 module.exports.standard_nodeset_file = module.exports.nodesets.standard_nodeset_file;
 module.exports.di_nodeset_filename = module.exports.nodesets.di_nodeset_filename;
 module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filename;
-module.exports.part8_nodeset_filename = module.exports.nodesets.part8_nodeset_filename;
 
 // an incomplete but sufficient nodeset file used during testing
 module.exports.mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;

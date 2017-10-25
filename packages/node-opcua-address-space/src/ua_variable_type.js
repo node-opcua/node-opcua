@@ -223,6 +223,14 @@ function _get_parent_as_VariableOrObjectType(originalObject) {
     if (parent.length > 1) {
         console.warn(" object ", originalObject.browseName.toString(), " has more than one parent !");
         console.warn(originalObject.toString());
+        console.warn(" parents : ");
+        for (var i = 0; i < parent.length; i++) {
+            console.log("     ",
+              parent[i].toString(),
+              addressSpace.findNode(parent[i].nodeId).browseName.toString()
+            );
+        }
+        return null;
     }
 
     assert(parent.length ===0 || parent.length === 1);

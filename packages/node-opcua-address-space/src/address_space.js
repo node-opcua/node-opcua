@@ -30,6 +30,8 @@ var UAMethod = require("./ua_method").UAMethod;
 var UADataType = require("./ua_data_type").UADataType;
 var Reference = require("./reference").Reference;
 
+var BrowseResult = require("node-opcua-service-browse").BrowseResult;
+
 var View = require("./view").View;
 
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
@@ -163,7 +165,13 @@ function _registerVariableType(self, node) {
 function _registerReferenceType(self, node) {
 
     assert(node.browseName instanceof QualifiedName);
+    if (!node.inverseName) {
+        // Inverse name is not required anymore in 1.0.4
+        //xx console.log("Warning : node has no inverse Name ", node.nodeId.toString(), node.browseName.toString());
+        node.inverseName = {text: node.browseName.name};
+    }
     var key = node.browseName.toString();
+
     assert(node.inverseName.text);
     assert(!self._referenceTypeMap[key], " Node already declared");
     assert(!self._referenceTypeMapInv[node.inverseName], " Node already declared");
@@ -1598,6 +1606,70 @@ AddressSpace.prototype.shutdown = function() {
         task.call(self);
     });
     self._shutdownTask = [];
+};
+
+var StatusCodes = require("node-opcua-status-code").StatusCodes;
+/**
+ *
+ * @method browseSingleNode
+ * @param nodeId {NodeId|String} : the nodeid of the element to browse
+ * @param browseDescription
+ * @param browseDescription.browseDirection {BrowseDirection} :
+ * @param browseDescription.referenceTypeId {String|NodeId}
+ * @param [session] {ServerSession}
+ * @return {BrowseResult}
+ */
+AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, session) {
+    var addressSpace = this;
+    // create default browseDescription
+    browseDescription = browseDescription || {};
+    browseDescription.browseDirection = browseDescription.browseDirection || BrowseDirection.Forward;
+
+    assert(browseDescription.browseDirection);
+
+    //xx console.log(util.inspect(browseDescription,{colors:true,depth:5}));
+    browseDescription = browseDescription || {};
+
+    if (typeof nodeId === "string") {
+        var node = addressSpace.findNode(addressSpace.resolveNodeId(nodeId));
+        if (node) {
+            nodeId = node.nodeId;
+        }
+    }
+
+    var browseResult = {
+        statusCode: StatusCodes.Good,
+        continuationPoint: null,
+        references: null
+    };
+    if (browseDescription.browseDirection === BrowseDirection.Invalid) {
+        browseResult.statusCode = StatusCodes.BadBrowseDirectionInvalid;
+        return new BrowseResult(browseResult);
+    }
+
+    // check if referenceTypeId is correct
+    if (browseDescription.referenceTypeId instanceof NodeId) {
+        if (browseDescription.referenceTypeId.value === 0) {
+            browseDescription.referenceTypeId = null;
+        } else {
+            var rf = addressSpace.findNode(browseDescription.referenceTypeId);
+            if (!rf || !(rf instanceof ReferenceType)) {
+                browseResult.statusCode = StatusCodes.BadReferenceTypeIdInvalid;
+                return new BrowseResult(browseResult);
+            }
+        }
+    }
+
+    var obj = addressSpace.findNode(nodeId);
+    if (!obj) {
+        // Object Not Found
+        browseResult.statusCode = StatusCodes.BadNodeIdUnknown;
+        //xx console.log("xxxxxx browsing ",nodeId.toString() , " not found" );
+    } else {
+        browseResult.statusCode = StatusCodes.Good;
+        browseResult.references = obj.browseNode(browseDescription, session);
+    }
+    return new BrowseResult(browseResult);
 };
 
 exports.AddressSpace = AddressSpace;

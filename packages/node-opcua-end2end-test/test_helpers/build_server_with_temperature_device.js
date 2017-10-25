@@ -84,15 +84,14 @@ var userManager = {
 function build_server_with_temperature_device(options, done) {
 
     assert(_.isFunction(done, "expecting a callback function"));
-    assert(typeof opcua.part8_nodeset_filename === "string");
+    assert(typeof opcua.nodesets.standard_nodeset_file === "string");
 
     //xx console.log("xxx building server with temperature device");
 
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename ||
         [
-            opcua.mini_nodeset_filename,
-            opcua.part8_nodeset_filename
+            opcua.nodesets.standard_nodeset_file
         ];
 
     options.userManager = userManager;

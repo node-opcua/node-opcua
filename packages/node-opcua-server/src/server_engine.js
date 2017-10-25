@@ -73,7 +73,6 @@ var ApplicationDescription = endpoints_service.ApplicationDescription;
 
 var nodesets = require("node-opcua-nodesets");
 exports.standard_nodeset_file = nodesets.standard_nodeset_file;
-exports.part8_nodeset_filename = nodesets.part8_nodeset_filename;
 exports.di_nodeset_filename = nodesets.di_nodeset_filename;
 exports.adi_nodeset_filename = nodesets.adi_nodeset_filename;
 var mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
@@ -778,60 +777,10 @@ ServerEngine.prototype.__findObject = function (nodeId) {
  * @return {BrowseResult}
  */
 ServerEngine.prototype.browseSingleNode = function (nodeId, browseDescription, session) {
-
-    // create default browseDescription
-    browseDescription = browseDescription || {};
-    browseDescription.browseDirection = browseDescription.browseDirection || BrowseDirection.Forward;
-
-
     var self = this;
     assert(self.addressSpace instanceof AddressSpace); // initialize not called
-    assert(browseDescription.browseDirection);
-
-    //xx console.log(util.inspect(browseDescription,{colors:true,depth:5}));
-    browseDescription = browseDescription || {};
-
-    if (typeof nodeId === "string") {
-        var node = self.addressSpace.findNode(self.addressSpace.resolveNodeId(nodeId));
-        if (node) {
-            nodeId = node.nodeId;
-        }
-    }
-
-
-    var browseResult = {
-        statusCode: StatusCodes.Good,
-        continuationPoint: null,
-        references: null
-    };
-    if (browseDescription.browseDirection === BrowseDirection.Invalid) {
-        browseResult.statusCode = StatusCodes.BadBrowseDirectionInvalid;
-        return new BrowseResult(browseResult);
-    }
-
-    // check if referenceTypeId is correct
-    if (browseDescription.referenceTypeId instanceof NodeId) {
-        if (browseDescription.referenceTypeId.value === 0) {
-            browseDescription.referenceTypeId = null;
-        } else {
-            var rf = self.addressSpace.findNode(browseDescription.referenceTypeId);
-            if (!rf || !(rf instanceof ReferenceType)) {
-                browseResult.statusCode = StatusCodes.BadReferenceTypeIdInvalid;
-                return new BrowseResult(browseResult);
-            }
-        }
-    }
-
-    var obj = self.__findObject(nodeId);
-    if (!obj) {
-        // Object Not Found
-        browseResult.statusCode = StatusCodes.BadNodeIdUnknown;
-        //xx console.log("xxxxxx browsing ",nodeId.toString() , " not found" );
-    } else {
-        browseResult.statusCode = StatusCodes.Good;
-        browseResult.references = obj.browseNode(browseDescription, session);
-    }
-    return new BrowseResult(browseResult);
+    var addressSpace = self.addressSpace;
+    return addressSpace.browseSingleNode(nodeId, browseDescription, session);
 };
 
 /**

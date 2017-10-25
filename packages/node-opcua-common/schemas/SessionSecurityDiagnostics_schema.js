@@ -1,8 +1,7 @@
 require("node-opcua-service-secure-channel");
 
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 var SessionSecurityDiagnostics_Schema = {
-    id:  coerceNodeId('ns=0;i=870'),
+    id: "ns=0;i=870",
     name: "SessionSecurityDiagnostics",
     fields: [
        {

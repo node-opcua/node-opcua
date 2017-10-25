@@ -1,8 +1,4 @@
-
 "use strict";
-
-var factories = require("node-opcua-factory");
-
 var BuildInfo_Schema = {
     name:"BuildInfo",
     documentation:'Server build Info',

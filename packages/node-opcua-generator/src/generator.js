@@ -23,10 +23,7 @@ var produce_code = require("./factory_code_generator").produce_code;
 
 var get_class_javascript_filename = require("./factory_code_generator").get_class_javascript_filename;
 
-
-
 exports.verbose = false;
-
 
 function get_caller_source_filename() {
     // let's find source code where schema file is described
@@ -69,14 +66,8 @@ function registerObject(schema, optional_folder) {
         schema = hint_schema[1];
 
         schema_name = schema + "_Schema";
-
-        if(true) {
-            schema_file =path.join(folder_hint,schema + "_schema.js");
-            local_schema_file = schema_file; // path.join(__dirname,"../..",schema_file);
-        } else {
-            schema_file = path.normalize(path.join(__dirname, folder_hint, schema + "_schema.js"));
-            local_schema_file = normalize_require_file(__dirname, schema_file);
-        }
+        schema_file = path.join(folder_hint, schema + "_schema.js");
+        local_schema_file = schema_file;
 
         schema = require(local_schema_file)[schema_name];
 
@@ -117,7 +108,7 @@ function registerObject(schema, optional_folder) {
         if (exports.verbose) {
             console.log(" generating ", schema.name, " in ", generated_source);
         }
-        code = produce_code(schema_file, schema_name, generated_source);
+        var code = produce_code(schema_file, schema_name, generated_source);
     }
     schema.generate_source = generated_source;
 

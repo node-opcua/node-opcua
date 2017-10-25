@@ -17,6 +17,7 @@ var getFactory = require("./factories_factories").getFactory;
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 exports.doDebug = !!process.env.DEBUG_CLASS;
 
+var display_trace_from_this_projet_only = require("node-opcua-utils").display_trace_from_this_projet_only;
 
 
 /**
@@ -140,7 +141,7 @@ function check_options_correctness_against_schema(obj, schema, options) {
         console.log("expected schema", schema.name);
         console.log("schema", schema);
         console.log("possible_fields", possible_fields);
-        require("node-opcua-utils").display_trace_from_this_projet_only();
+        display_trace_from_this_projet_only();
         console.log("invalid_options_fields= ", invalid_options_fields);
     }
     if (invalid_options_fields.length !== 0) {
@@ -214,7 +215,7 @@ exports.resolve_schema_field_types = resolve_schema_field_types;
 
 
 /**
- * @method initialize_value
+ * @method initialize_field
  * @param field
  * @param value
  * @return {*}

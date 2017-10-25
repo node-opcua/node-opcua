@@ -15,8 +15,12 @@ LineFile.prototype.write = function () {
     this.__line.push(str);
 };
 
+LineFile.prototype.toString = function () {
+    return this.__line.join("\n");
+};
+
 LineFile.prototype.save = function (filename) {
-    fs.writeFileSync(filename, this.__line.join("\n"), "ascii");
+    fs.writeFileSync(filename, this.toString(), "ascii");
 };
 
 

@@ -1,6 +1,5 @@
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 var ServerDiagnosticsSummary_Schema = {
-    id:  coerceNodeId("ns=0;i=861"),
+    id: "ns=0;i=861",
     name: "ServerDiagnosticsSummary",
     fields: [
        {

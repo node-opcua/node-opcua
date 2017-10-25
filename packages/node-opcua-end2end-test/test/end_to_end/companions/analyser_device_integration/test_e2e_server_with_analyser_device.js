@@ -61,7 +61,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         nodeset_filename: [
             opcua.nodesets.standard_nodeset_file,
             opcua.nodesets.di_nodeset_filename,
-            opcua.nodesets.adi_nodeset_filename,
+            opcua.nodesets.adi_nodeset_filename
         ]
     };
 
@@ -81,7 +81,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient();
+        client = new OPCUAClient({});
         done();
     });
 
@@ -132,17 +132,17 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         objectType.getComponents().forEach(function (c) {
             console.log(f(c));
         });
-        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + objectType.browseName.toString());
+        //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + objectType.browseName.toString());
         var baseType = objectType.subtypeOfObj;
         baseType.getComponents().forEach(function (c) {
             console.log(f(c));
         });
-        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
+        //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
         baseType = baseType.subtypeOfObj;
         baseType.getComponents().forEach(function (c) {
             console.log(f(c));
         });
-        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
+        //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
 
     }
 
@@ -157,14 +157,13 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
             browseName: "__Channel1"
         });
 
-        should.not.exist(channel1.parameterSet);
-        should.not.exist(channel1.getComponentByName("ParameterSet"), "optional ParameterSet shall not be instantiate ");
+
+        should.exist(channel1.parameterSet, "Parameter set is mandatory since 1.1");
 
         dumpObjectType(analyserChannelType);
 
         var channel2 = analyserChannelType.instantiate({
             browseName: "__Channel2",
-            optionals: ["ParameterSet"]
         });
 
         channel2.parameterSet.browseName.toString().should.eql("2:ParameterSet");

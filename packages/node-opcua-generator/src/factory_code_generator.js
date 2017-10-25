@@ -15,6 +15,7 @@ var schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
 var extract_all_fields = schema_helpers.extract_all_fields;
 var resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
 var check_schema_correctness = schema_helpers.check_schema_correctness;
+var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
 var objectNodeIds = require("node-opcua-constants").ObjectIds;
 var ec = require("node-opcua-basic-types");
@@ -193,6 +194,12 @@ function produce_code(schema_file, schema_name, source_file) {
     }
     if (!encoding_BinaryId) {
         throw new Error("" + name + " has no _Encoding_DefaultBinary id\nplease add a Id field in the structure definition");
+    }
+    if (typeof encoding_XmlId === "string") {
+        encoding_XmlId = coerceNodeId(encoding_XmlId);
+    }
+    if (typeof encoding_BinaryId === "string") {
+        encoding_BinaryId = coerceNodeId(encoding_BinaryId);
     }
 
 

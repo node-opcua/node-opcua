@@ -239,7 +239,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session,callback) {
                 session.serverEndpoints = response.serverEndpoints;
 
             } else {
-                err = new Error("??? " + response.responseHeader.serviceResult);
+                err = new Error("Error " + response.responseHeader.serviceResult.name + " " + response.responseHeader.serviceResult.description);
             }
         }
         if (err) {

@@ -1,14 +1,9 @@
 "use strict";
-
-
-var factories = require("node-opcua-factory");
-
 // OPC Unified Architecture, Part 4 page 106
 var ApplicationInstanceCertificate_Schema = {
     // ApplicationInstanceCertificate with signature created by a Certificate Authority
     name: "ApplicationInstanceCertificate",
-    id: factories.next_available_id(),
-
+    id: -1,
     fields: [
         // An identifier for the version of the Certificate encoding.
         { name: "version", fieldType: "String" },
