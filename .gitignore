@@ -4,6 +4,7 @@ package-lock.json
 .vscode/
 .project
 .settings/
+openssl/
 specs/
 node_modules/
 tmp/
