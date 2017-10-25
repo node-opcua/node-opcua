@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-debug",
- "version": "0.1.0-10",
+ "version": "0.1.0-11",
  "description": "pure nodejs OPCUA SDK - module -debug",
  "scripts": {
   "test": "mocha test"

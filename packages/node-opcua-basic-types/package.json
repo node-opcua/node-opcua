@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-basic-types",
- "version": "0.1.0-10",
+ "version": "0.1.0-11",
  "description": "pure nodejs OPCUA SDK - module -basic-types",
  "main": "index.js",
  "scripts": {},
@@ -13,11 +13,11 @@
   "node-opcua-guid": "^0.1.0-7",
   "node-opcua-nodeid": "^0.1.0-7",
   "node-opcua-status-code": "^0.1.0-7",
-  "node-opcua-utils": "^0.1.0-10",
+  "node-opcua-utils": "^0.1.0-11",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-debug": "^0.1.0-10",
+  "node-opcua-debug": "^0.1.0-11",
   "should": "13.1.0"
  },
  "author": "Etienne Rossignon",
