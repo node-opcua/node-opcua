@@ -195,10 +195,17 @@ function extractEventField(eventData, selectClause) {
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
 
+    selectClause.browsePath = selectClause.browsePath || [];
+
     if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
+
+        // "ns=0;i=2782" => ConditionType
+        // "ns=0;i=2041" => BaseEventType
         if (selectClause.typeId.toString() !== "ns=0;i=2782") {
             // not ConditionType
-            throw new Error("this case is not handled yet");
+            console.warn("this case is not handled yet : selectClause.typeId = " + selectClause.typeId.toString());
+            const eventSource = eventData.$eventDataSource;
+            return new Variant({dataType: DataType.NodeId, value: eventSource.nodeId});
         }
         const conditionTypeNodeId = resolveNodeId("ConditionType");
         assert(sameNodeId(selectClause.typeId,conditionTypeNodeId));
@@ -207,7 +214,7 @@ function extractEventField(eventData, selectClause) {
         const eventSourceTypeDefinition = eventSource.typeDefinitionObj;
         if (!eventSourceTypeDefinition) {
             // eventSource is a EventType class
-            return new Variant()
+            return new Variant();
         }
         const addressSpace = eventSource.addressSpace;
         const conditionType = addressSpace.findObjectType(conditionTypeNodeId);
