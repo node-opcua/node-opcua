@@ -406,6 +406,8 @@ async.series([
     },
 
     function (callback) {
+
+
         client.getEndpointsRequest(function (err, endpoints) {
 
             if (argv.debug) {

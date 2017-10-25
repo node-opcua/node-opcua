@@ -4,7 +4,9 @@ var path = require("path");
 var fs = require("fs");
 function getTempFilename(tmpfile) {
     tmpfile = tmpfile || "";
-    var temporaryFolder = path.join(__dirname,'../../../../tmp/');
+
+    var this_dirname = __dirname;
+    var temporaryFolder = path.join(this_dirname, '../../../../tmp/');
     if (!fs.existsSync(temporaryFolder)) {
         fs.mkdirSync(temporaryFolder);
     }
