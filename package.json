@@ -95,7 +95,7 @@
     "ltx": "^2.7.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.11",
-    "node-opcua-pki": "0.0.20",
+    "node-opcua-pki": "0.0.21",
     "once": "^1.4.0",
     "progress": "2.0.0",
     "q": "^1.5.1",

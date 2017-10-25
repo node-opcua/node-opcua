@@ -8,7 +8,7 @@
   "test": "mocha --recursive test"
  },
  "dependencies": {
-  "node-opcua-pki": "0.0.20"
+  "node-opcua-pki": "0.0.21"
  },
  "devDependencies": {
   "async": "^2.5.0",
