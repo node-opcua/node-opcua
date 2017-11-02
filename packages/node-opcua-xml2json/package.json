@@ -16,7 +16,7 @@
  "license": "MIT",
  "devDependencies": {
   "node-opcua-nodesets": "^0.1.0-11",
-  "should": "13.1.0"
+   "should": "13.1.3"
  },
  "repository": {
   "type": "git",
