@@ -215,6 +215,10 @@ MandatoryChildOrRequestedOptionalFilter.prototype.filterFor = function(childinst
  */
 function _get_parent_as_VariableOrObjectType(originalObject) {
 
+    if (originalObject.nodeClass === NodeClass.Method) {
+        return null;
+    }
+
     var addressSpace = originalObject.addressSpace;
 
     var parent = originalObject.findReferencesEx("HasChild",BrowseDirection.Inverse);
