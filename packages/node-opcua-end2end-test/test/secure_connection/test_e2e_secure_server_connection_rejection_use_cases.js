@@ -22,10 +22,6 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
 
 
-if (!crypto_utils.isFullySupported()) {
-    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
-    return;
-}
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
 

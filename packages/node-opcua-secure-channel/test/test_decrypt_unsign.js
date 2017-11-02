@@ -83,9 +83,8 @@ var privateKey = inlineText(
          */
     });
 
-var _describe = crypto_utils.isFullySupported ? describe : xdescribe;
 
-_describe("testing message decryption", function () {
+describe("testing message decryption", function () {
 
     it("should decrypt an OPN packet and verify that the signature is correct", function () {
 

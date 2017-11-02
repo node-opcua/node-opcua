@@ -1084,6 +1084,7 @@ function isValidSecurityPolicy(securityPolicy) {
         case SecurityPolicy.None.value:
         case SecurityPolicy.Basic128Rsa15.value:
         case SecurityPolicy.Basic256.value:
+        case SecurityPolicy.Basic256Sha256.value:
             return StatusCodes.Good;
         default:
             return StatusCodes.BadSecurityPolicyRejected;

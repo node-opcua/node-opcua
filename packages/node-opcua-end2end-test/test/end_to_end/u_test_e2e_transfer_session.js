@@ -35,8 +35,8 @@ function createSubscription(session, callback) {
 
 
 module.exports = function (test) {
-    describe("testing session  transfer to different channel", function () {
 
+    describe("testing session  transfer to different channel", function () {
 
         it("RQC1 - It should be possible to close a session that has not be activated yet", function (done) {
             var client1;
@@ -69,7 +69,7 @@ module.exports = function (test) {
                     // however client shall not record session yet
                     client1._sessions.length.should.eql(0);
 
-                    client1.closeSession(session1,/* deleteSubscriptions =*/true,function (err) {
+                    client1.closeSession(session1, /* deleteSubscriptions =*/true, function (err) {
                         client1._sessions.length.should.eql(0);
                         // Failure , close session expected to return BadSessionNotActivated
                         err.message.match(/BadSessionNotActivated/);
@@ -84,7 +84,7 @@ module.exports = function (test) {
                 function (callback) {
                     client1.disconnect(callback);
                 }
-            ],done);
+            ], done);
 
         });
 
@@ -108,13 +108,13 @@ module.exports = function (test) {
                     });
                 },
 
-                function(callback) {
-                    session1.close(function() {
+                function (callback) {
+                    session1.close(function () {
                         callback();
                     });
                 },
-                function(callback) {
-                    session1.close(function(err) {
+                function (callback) {
+                    session1.close(function (err) {
                         err.message.should.match(/SessionIdInvalid/);
                         callback();
                     });
@@ -182,7 +182,7 @@ module.exports = function (test) {
 
                 // first call to close session should be OK
                 function (callback) {
-                    client1.closeSession(session1,/* deleteSubscriptions =*/true, function (err) {
+                    client1.closeSession(session1, /* deleteSubscriptions =*/true, function (err) {
                         callback(err);
                     });
                 },
@@ -355,7 +355,7 @@ module.exports = function (test) {
                             return callback(err);
                         }
                         session1 = session;
-                        test.server.getChannels().length.should.equal(initialChannelCount+1);
+                        test.server.getChannels().length.should.equal(initialChannelCount + 1);
                         callback();
                     });
                 },
@@ -368,7 +368,7 @@ module.exports = function (test) {
                 // activate the session created with client1 using client2 !!
                 // this should be detected by server and server shall return an error
                 function (callback) {
-                    test.server.getChannels().length.should.equal(initialChannelCount+2);
+                    test.server.getChannels().length.should.equal(initialChannelCount + 2);
                     //xx console.log(" ID1 =", client1._secureChannel.channelId);
                     //xx console.log(" ID2 =", client2._secureChannel.channelId);
 
@@ -406,188 +406,180 @@ module.exports = function (test) {
         });
 
 
-
         function m(file) {
             //var p = constructFilename(file);
-            var p = path.join(__dirname,"../..",file);
+            var p = path.join(__dirname, "../..", file);
             if (!fs.existsSync(p)) {
                 console.error(" cannot find ", p);
             }
             return p;
         }
 
-        var crypto_utils = require("node-opcua-crypto").crypto_utils;
-        if (!crypto_utils.isFullySupported()) {
-            console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
-        } else {
-            // OpcUA 1.02 part 3 $5.6.3.1 ActiveSession Set page 29
-            // Subsequent calls to  ActivateSession  may be associated with different  SecureChannels.  If this is the
-            // case then  the  Server  shall verify that the  Certificate  the  Client  used to create the new
-            // SecureChannel  is the same as the  Certificate  used to create the original  SecureChannel.
-            it("RQ2 -server should raise an error if a existing session is reactivated from a channel that have different certificate than the original channel", function (done) {
+        // OpcUA 1.02 part 3 $5.6.3.1 ActiveSession Set page 29
+        // Subsequent calls to  ActivateSession  may be associated with different  SecureChannels.  If this is the
+        // case then  the  Server  shall verify that the  Certificate  the  Client  used to create the new
+        // SecureChannel  is the same as the  Certificate  used to create the original  SecureChannel.
+        it("RQ2 -server should raise an error if a existing session is reactivated from a channel that have different certificate than the original channel", function (done) {
 
-                var serverCertificate = test.server.getCertificateChain();
+            var serverCertificate = test.server.getCertificateChain();
 
-                var client1, client2;
-                var session1;
-                async.series([
+            var client1, client2;
+            var session1;
+            async.series([
 
-                    // create a first channel (client1)
-                    function (callback) {
-                        //xx console.log(" creating initial channel with some certificate");
-                        var certificateFile1 = m("certificates/client_cert_1024.pem");
-                        var privateKeyFile1 = m("certificates/client_key_1024.pem");
-                        client1 = new OPCUAClient({
-                            certificateFile: certificateFile1,
-                            privateKeyFile: privateKeyFile1,
-                            securityMode: opcua.MessageSecurityMode.SIGN,
-                            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
-                            serverCertificate: serverCertificate
-                        });
-                        client1.connect(test.endpointUrl, callback);
-                    },
-                    // create a session using client1
-                    function (callback) {
-                        //xx console.log(" create session");
-                        client1._createSession(function (err, session) {
-                            if (err) {
-                                return callback(err);
-                            }
-                            session1 = session;
-                            callback();
-                        });
-                    },
-                    // activate the session as expected on same channel used to create it
-                    function (callback) {
-                        //xx console.log(" activate session");
-                        client1._activateSession(session1, function (err) {
-                            callback(err);
-                        });
-                    },
-
-                    // create a second channel (client2)
-                    // with a different certificate ....
-                    function (callback) {
-
-                        // creating second channel with different credential
-                        //xx console.log(" creating second channel with different certificate");
-                        var certificateFile2 = m("certificates/client_cert_2048.pem");
-                        var privateKeyFile2 = m("certificates/client_key_2048.pem");
-                        client2 = new OPCUAClient({
-                            certificateFile: certificateFile2,
-                            privateKeyFile: privateKeyFile2,
-                            securityMode: opcua.MessageSecurityMode.SIGN,
-                            securityPolicy: opcua.SecurityPolicy.Basic256,
-                            serverCertificate: serverCertificate
-                        });
-                        client2.connect(test.endpointUrl, callback);
-
-                    },
-                    function (callback) {
-                        // reactivate session on second channel
-                        // Reactivate should fail because certificate is not the same as the original one
-                        client2.reactivateSession(session1, function (err) {
-                            if (err) {
-                                err.message.should.match(/BadNoValidCertificates/);
-                                callback();
-                            } else {
-                                callback(new Error("expecting reactivateSession to fail"));
-                            }
-                        });
-                    },
-                    // terminate
-                    function (callback) {
-                        client2.disconnect(callback);
-                    },
-                    function (callback) {
-                        session1.close(callback);
-                    },
-                    function (callback) {
-                        client1.disconnect(callback);
-                    },
-
-                    function (callback) {
-                        test.server.engine.currentSessionCount.should.eql(0);
+                // create a first channel (client1)
+                function (callback) {
+                    //xx console.log(" creating initial channel with some certificate");
+                    var certificateFile1 = m("certificates/client_cert_1024.pem");
+                    var privateKeyFile1 = m("certificates/client_key_1024.pem");
+                    client1 = new OPCUAClient({
+                        certificateFile: certificateFile1,
+                        privateKeyFile: privateKeyFile1,
+                        securityMode: opcua.MessageSecurityMode.SIGN,
+                        securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+                        serverCertificate: serverCertificate
+                    });
+                    client1.connect(test.endpointUrl, callback);
+                },
+                // create a session using client1
+                function (callback) {
+                    //xx console.log(" create session");
+                    client1._createSession(function (err, session) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        session1 = session;
                         callback();
-                    }
+                    });
+                },
+                // activate the session as expected on same channel used to create it
+                function (callback) {
+                    //xx console.log(" activate session");
+                    client1._activateSession(session1, function (err) {
+                        callback(err);
+                    });
+                },
 
-                ], done);
+                // create a second channel (client2)
+                // with a different certificate ....
+                function (callback) {
 
-            });
+                    // creating second channel with different credential
+                    //xx console.log(" creating second channel with different certificate");
+                    var certificateFile2 = m("certificates/client_cert_2048.pem");
+                    var privateKeyFile2 = m("certificates/client_key_2048.pem");
+                    client2 = new OPCUAClient({
+                        certificateFile: certificateFile2,
+                        privateKeyFile: privateKeyFile2,
+                        securityMode: opcua.MessageSecurityMode.SIGN,
+                        securityPolicy: opcua.SecurityPolicy.Basic256,
+                        serverCertificate: serverCertificate
+                    });
+                    client2.connect(test.endpointUrl, callback);
 
-            // In addition,the Server shall verify that the  Client  supplied a  UserIdentityToken  that is   identical to the token
-            // currently associated with the  Session.
-            it("RQ3 - server should raise an error if a session is reactivated with different user identity tokens", function (done) {
-                var client1, client2;
-                var session1;
-
-                var user1 = {
-                    userName: "user1", password: "password1"
-                };
-                var user2 = new opcua.UserNameIdentityToken({
-                    userName: "user1", password: "password1"
-                });
-                //xx console.log(" user1 ", user1.toString());
-
-                async.series([
-
-                    // given a established session with a subscription and some publish request
-
-                    function (callback) {
-                        client1 = new OPCUAClient();
-                        client1.connect(test.endpointUrl, callback);
-                    },
-                    // create a session using client1
-                    function (callback) {
-
-                        client1.createSession(user1, function (err, session) {
-                            if (err) {
-                                return callback(err);
-                            }
-                            session1 = session;
+                },
+                function (callback) {
+                    // reactivate session on second channel
+                    // Reactivate should fail because certificate is not the same as the original one
+                    client2.reactivateSession(session1, function (err) {
+                        if (err) {
+                            err.message.should.match(/BadNoValidCertificates/);
                             callback();
-                        });
-                    },
-                    // when the session is transferred to a different channel
-                    // create a second channel (client2)
-                    function (callback) {
-                        client2 = new OPCUAClient();
-                        client2.connect(test.endpointUrl, callback);
-                    },
-                    function (callback) {
-                        // reactivate session on second channel
-                        // alter session1.userIdentityInfo
-                        session1.userIdentityInfo = user2;
-                        session1.userIdentityInfo.userName.should.eql("user1");
+                        } else {
+                            callback(new Error("expecting reactivateSession to fail"));
+                        }
+                    });
+                },
+                // terminate
+                function (callback) {
+                    client2.disconnect(callback);
+                },
+                function (callback) {
+                    session1.close(callback);
+                },
+                function (callback) {
+                    client1.disconnect(callback);
+                },
 
-                        client2.reactivateSession(session1, function (err) {
-                            err.message.should.match(/BadIdentityChangeNotSupported/);
-                            _.contains(client1._sessions, session1).should.eql(true);// should have failed
-                            callback();
-                        });
-                    },
-                    // terminate
-                    function (callback) {
-                        client2.disconnect(callback);
-                    },
-                    function (callback) {
-                        client1.disconnect(callback);
-                    },
-                    function (callback) {
-                        test.server.engine.currentSessionCount.should.eql(0);
-                        callback();
-                    }
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
+                }
 
-                ], done);
-
-            });
-        }
-        // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel.
-        xit("RQ4 - server should reject request send via old channel when session has been transferred to new channel", function (done) {
-            async.series([], done);
+            ], done);
 
         });
 
+        // In addition,the Server shall verify that the  Client  supplied a  UserIdentityToken  that is   identical to the token
+        // currently associated with the  Session.
+        it("RQ3 - server should raise an error if a session is reactivated with different user identity tokens", function (done) {
+            var client1, client2;
+            var session1;
+
+            var user1 = {
+                userName: "user1", password: "password1"
+            };
+            var user2 = new opcua.UserNameIdentityToken({
+                userName: "user1", password: "password1"
+            });
+            //xx console.log(" user1 ", user1.toString());
+
+            async.series([
+
+                // given a established session with a subscription and some publish request
+
+                function (callback) {
+                    client1 = new OPCUAClient();
+                    client1.connect(test.endpointUrl, callback);
+                },
+                // create a session using client1
+                function (callback) {
+
+                    client1.createSession(user1, function (err, session) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        session1 = session;
+                        callback();
+                    });
+                },
+                // when the session is transferred to a different channel
+                // create a second channel (client2)
+                function (callback) {
+                    client2 = new OPCUAClient();
+                    client2.connect(test.endpointUrl, callback);
+                },
+                function (callback) {
+                    // reactivate session on second channel
+                    // alter session1.userIdentityInfo
+                    session1.userIdentityInfo = user2;
+                    session1.userIdentityInfo.userName.should.eql("user1");
+
+                    client2.reactivateSession(session1, function (err) {
+                        err.message.should.match(/BadIdentityChangeNotSupported/);
+                        _.contains(client1._sessions, session1).should.eql(true);// should have failed
+                        callback();
+                    });
+                },
+                // terminate
+                function (callback) {
+                    client2.disconnect(callback);
+                },
+                function (callback) {
+                    client1.disconnect(callback);
+                },
+                function (callback) {
+                    test.server.engine.currentSessionCount.should.eql(0);
+                    callback();
+                }
+
+            ], done);
+
+        });
+        // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel.
+        xit("RQ4 - server should reject request send via old channel when session has been transferred to new channel", function (done) {
+            async.series([], done);
+        });
 
         // unprocessed pending Requests such as PublishRequest shall be be denied by the server
         // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel

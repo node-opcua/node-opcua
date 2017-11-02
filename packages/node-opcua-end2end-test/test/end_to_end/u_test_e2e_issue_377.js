@@ -11,7 +11,7 @@ var redirectToFile = require("node-opcua-debug").redirectToFile;
 module.exports = function (test) {
 
 
-    describe("Testing a server that expose a node whose string nodeId looks like a guid", function () {
+    describe("Testing a server that exposes a node whose string nodeId looks like a guid", function () {
 
         before(function (done) {
             var server = test.server;

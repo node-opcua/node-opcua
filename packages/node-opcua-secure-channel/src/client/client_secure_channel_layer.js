@@ -168,13 +168,12 @@ function ClientSecureChannelLayer(options) {
 
     var self = this;
 
+
     self._lastRequestId = 0;
 
     self.parent = options.parent;
 
     self.clientNonce = null; // will be created when needed
-
-    self._request_queue = [];
 
     self.protocolVersion = 0;
 
@@ -336,7 +335,7 @@ function _cancel_pending_transactions(err) {
     /* jshint validthis: true */
     var self = this;
 
-    debugLog("_cancel_pending_transactions  ", Object.keys(self._request_data), self._transport.name);
+    debugLog("_cancel_pending_transactions  ", Object.keys(self._request_data), self._transport ? self._transport.name : "no transport");
 
     assert(err === null || _.isObject(err), "expecting valid error");
     Object.keys(self._request_data).forEach(function (key) {
@@ -369,6 +368,8 @@ function _on_transport_closed(error) {
     self.emit("close", error);
 
     _cancel_pending_transactions.call(this, error);
+
+    self._transport = null;
 
 }
 
@@ -469,6 +470,9 @@ function _open_secure_channel_request(is_initial, callback) {
 
     self.clientNonce = _build_client_nonce.call(self);
 
+    self._isOpened = false;
+
+
     // OpenSecureChannel
     var msg = new OpenSecureChannelRequest({
         clientProtocolVersion: self.protocolVersion,
@@ -532,6 +536,8 @@ function _open_secure_channel_request(is_initial, callback) {
             self.messageBuilder.pushNewToken(self.securityToken, derivedServerKeys);
 
             _install_security_token_watchdog.call(self);
+
+            self._isOpened = true;
 
         }
         callback(error);
@@ -621,9 +627,6 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
 
     if (self.securityMode !== MessageSecurityMode.NONE) {
 
-        if (!crypto_utils.isFullySupported()) {
-            return callback(new Error("ClientSecureChannelLayer#create : this version of node doesn't fully support crypto"));
-        }
 
         if (!self.serverCertificate) {
             return callback(new Error("ClientSecureChannelLayer#create : expecting a  server certificate when securityMode is not NONE"));
@@ -904,7 +907,10 @@ ClientSecureChannelLayer.prototype.isValid = function() {
     var self = this;
     return self._transport && self._transport.isValid();
 };
-
+ClientSecureChannelLayer.prototype.isOpened = function () {
+    var self = this;
+    return self.isValid() && self._isOpened;
+};
 var defaultTransactionTimeout = 60 * 1000; // 1 minute
 /**
  * internal version of _performMessageTransaction.
@@ -932,7 +938,6 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     assert(_.isFunction(callback));
     var self = this;
 
-
     if (!self.isValid()) {
         return callback(new Error("ClientSecureChannelLayer => Socket is closed !"));
     }
@@ -947,6 +952,15 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     var hasTimedOut = false;
 
     function modified_callback(err, response) {
+
+        /* istanbul ignore next */
+        if (doDebug) {
+            debugLog("------------------- client receiving response".cyan, err);
+            if (response) {
+                debugLog(response.toString());
+            }
+        }
+
 
         if (!local_callback) {
             return; // already processed by time  out
@@ -1144,9 +1158,6 @@ ClientSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
         return null;
     }
 
-    assert(crypto_utils.isFullySupported(),
-        "crypto is not fully supported, therefore we cannot create a secure channel for client");
-
     self._construct_security_header();
     this.messageChunker.securityHeader = self.securityHeader;
 
@@ -1277,9 +1288,6 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
     }
 
     self._performMessageTransaction("CLO", request, function () {
-        // empty message queue
-        self._request_queue = [];
-
         ///xx self._transport.disconnect(function() {
         callback();
         //xxx });

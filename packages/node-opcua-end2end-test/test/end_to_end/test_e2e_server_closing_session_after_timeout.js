@@ -130,7 +130,8 @@ describe("testing server dropping session after timeout if no activity has been 
 
                 server.currentSessionCount.should.eql(0);
                 l_session.read(readRequest.nodesToRead, function (err, results) {
-                    should.exist(results);
+                    should.exist(err, "read should end up with an error ");
+                    should.exist(results, "results should exists");
                     err.message.should.match(/BadSessionIdInvalid/);
                     callback(null);
                 });

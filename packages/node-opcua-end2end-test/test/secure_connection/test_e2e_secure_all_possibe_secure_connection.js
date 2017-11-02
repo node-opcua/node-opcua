@@ -103,7 +103,7 @@ function start_server1(options, callback) {
  */
 function get_server_channel_security_token_change_count(server) {
     var sessions = _.values(server.engine._sessions);
-    sessions.length.should.eql(1, "Expecting only one session on server at address " + server.endpointUri);
+    sessions.length.should.eql(1, "Expecting only one session on server at address " + server);
     var count = server.endpoints.reduce(function (accumulated, endpoint) {
         return accumulated + endpoint.securityTokenCount;
     }, 0);
@@ -186,9 +186,9 @@ function keep_monitoring_some_variable(session, duration, done) {
     var the_error = null;
     subscription.on("started", function () {
 
-        //xx console.log(" starting monitoring for ",duration," ms");
+        //xx console.log("xxx    starting monitoring for ",duration," ms");
         setTimeout(function () {
-            //xx console.log(" terminating subscription  ");
+            //xx console.log("xxx    terminating subscription  ");
             subscription.terminate();
         }, duration);
     });
@@ -344,33 +344,42 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 
 function perform_collection_of_test_with_client_configuration(message, options) {
 
-    it("should succeed with Basic128Rsa15 with Sign           " + message, function (done) {
+    it("should succeed with Basic128Rsa15  with Sign           " + message, function (done) {
         common_test("Basic128Rsa15", "SIGN", options, done);
     });
 
-    it("should succeed with Basic128Rsa15 with Sign           " + message, function (done) {
+    it("should succeed with Basic128Rsa15  with Sign           " + message, function (done) {
         common_test("Basic128Rsa15", "SIGN", options, done);
     });
 
-    it("should succeed with Basic128Rsa15 with SignAndEncrypt " + message, function (done) {
+    it("should succeed with Basic128Rsa15  with SignAndEncrypt " + message, function (done) {
         common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
     });
 
-    it("should succeed with Basic256      with Sign           " + message, function (done) {
+    it("should succeed with Basic256       with Sign           " + message, function (done) {
         common_test("Basic256", "SIGN", options, done);
     });
 
-    it("should succeed with Basic256      with SignAndEncrypt " + message, function (done) {
+    it("should succeed with Basic256       with SignAndEncrypt " + message, function (done) {
         common_test("Basic256", "SIGNANDENCRYPT", options, done);
     });
 
-    it("should fail    with Basic256Rsa15 with Sign           " + message, function (done) {
+    it("should fail    with Basic256Rsa15  with Sign           " + message, function (done) {
         check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
     });
 
-    it("should fail    with Basic256Rsa15 with SignAndEncrypt " + message, function (done) {
+    it("should fail    with Basic256Rsa15  with SignAndEncrypt " + message, function (done) {
         check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
     });
+
+    it("should succeed with Basic256Sha256 with Sign           " + message, function (done) {
+        common_test("Basic256Sha256", "SIGN", options, done);
+    });
+
+    it("should succeed with Basic256Sha256 with SignAndEncrypt " + message, function (done) {
+        common_test("Basic256Sha256", "SIGNANDENCRYPT", options, done);
+    });
+
 }
 
 function perform_collection_of_test_with_various_client_configuration(prefix) {
@@ -379,8 +388,8 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
     var client_certificate256_pem_file = path.join(certificate_store, "client_cert_2048.pem");
     var client_certificate256_privatekey_file = path.join(certificate_store, "client_key_2048.pem");
-    fs.existsSync(client_certificate256_pem_file).should.eql(true);
-    fs.existsSync(client_certificate256_privatekey_file).should.eql(true);
+    fs.existsSync(client_certificate256_pem_file).should.eql(true, client_certificate256_pem_file + " must exist");
+    fs.existsSync(client_certificate256_privatekey_file).should.eql(true, client_certificate256_privatekey_file + " must exist");
 
     var options = {
         certificateFile: client_certificate256_pem_file,
@@ -393,10 +402,6 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
-if (!crypto_utils.isFullySupported()) {
-    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
-    return;
-}
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ZZA- testing Secure Client-Server communication", function () {
@@ -465,6 +470,25 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            serverCertificate: serverCertificate
+        };
+        client = new OPCUAClient(options);
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            inner_done();
+        }, done);
+
+    });
+    it("QQQ3b a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function (done) {
+
+        should.exist(serverCertificate);
+
+        var options = {
+
+            certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
+            privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
+
+            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityPolicy: opcua.SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate
         };
         client = new OPCUAClient(options);
@@ -613,7 +637,8 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
             // Server must have disconneced
             should.exist(err);
-            err.message.should.match(/disconnected by third party/);
+            err.message.toLowerCase().should.match(/disconnected by third party/);
+            //xxerr.message.toLowerCase().should.match(/invalid channel/);
             done();
 
         });
@@ -626,7 +651,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             //xx console.log("security_token_renewed");
         });
 
- //xx       common_test_expected_server_initiated_disconnection(opcua.SecurityPolicy.Basic128Rsa15, opcua.MessageSecurityMode.SIGN, done);
+        // common_test_expected_server_initiated_disconnection(opcua.SecurityPolicy.Basic128Rsa15, opcua.MessageSecurityMode.SIGN, done);
     });
 
 });

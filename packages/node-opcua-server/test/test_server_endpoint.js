@@ -9,7 +9,7 @@ var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 var EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
-var it_with_crypto = (crypto_utils.isFullySupported()) ? it : xit;
+var it_with_crypto = it;
 
 var default_port = 1234;
 

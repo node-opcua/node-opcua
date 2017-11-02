@@ -229,9 +229,9 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
     }
 
     // Each SecureChannel exists until it is explicitly closed or until the last token has expired and the overlap
-    // period has elapsed. A Server application should limit the number of SecureChannels. 
-    // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest 
-    // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.         
+    // period has elapsed. A Server application should limit the number of SecureChannels.
+    // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
+    // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
     _prevent_DOS_Attack(self, establish_connection);
 
     function establish_connection() {
@@ -466,11 +466,6 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
     assert(_.isObject(securityPolicy));
 
     if (securityPolicy !== SecurityPolicy.None) {
-        // istanbul ignore next
-        if (!crypto_utils.isFullySupported()) {
-            console.log(" Warning ! your node-js version doesn't not support crypto");
-            console.log(" securityPolicy ", securityPolicy.toString(), "cannot be defined");
-        }
     }
     if (securityMode === MessageSecurityMode.NONE && securityPolicy !== SecurityPolicy.None) {
         throw new Error(" invalid security ");
@@ -498,7 +493,6 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
         hostname: options.hostname,
         restricted: !!options.restricted
     }));
-
 };
 
 OPCUAServerEndPoint.prototype.addRestrictedEndpointDescription = function (options) {
@@ -516,7 +510,7 @@ var defaultSecurityModes = [
 var defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
     SecurityPolicy.Basic256,
-    SecurityPolicy.Basic256Rsa15,
+//xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
     SecurityPolicy.Basic256Sha256
 ];
 
@@ -537,7 +531,6 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
         }
     }
 
-    if (crypto_utils.isFullySupported()) {
 
         for (var i = 0; i < options.securityModes.length; i++) {
             var securityMode = options.securityModes[i];
@@ -553,7 +546,6 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
                 self.addEndpointDescription(securityMode, securityPolicy, options);
             }
         }
-    }
 };
 
 /**

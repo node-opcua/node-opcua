@@ -27,10 +27,6 @@ var userManagerAsync = {
 
 
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
-if (!crypto_utils.isFullySupported()) {
-    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
-    return;
-}
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {

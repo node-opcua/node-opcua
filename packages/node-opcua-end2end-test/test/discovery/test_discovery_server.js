@@ -18,10 +18,6 @@ var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
 // add the tcp/ip endpoint with no security
-if (!crypto_utils.isFullySupported()) {
-    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
-    return;
-}
 
 describe("Discovery server", function () {
 

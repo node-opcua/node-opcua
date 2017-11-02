@@ -136,11 +136,6 @@ MessageBuilder.prototype._decrypt_OPN = function (binaryStream) {
         debugLog(hexDump(this.securityHeader.senderCertificate));
     }
 
-    /* istanbul ignore next */
-    if (!crypto_utils.isFullySupported()) {
-        this._report_error("YOUR NODE CONFIGURATION DOES NOT ALLOW SIGN and ENCRYPT YET - ");
-        return false;
-    }
 
     if (!this.cryptoFactory) {
         this._report_error(" Security Policy " + this.securityPolicy.key + " is not implemented yet");

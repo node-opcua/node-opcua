@@ -162,6 +162,19 @@ function RSAPKCS1V15SHA1_Sign(buffer, privateKey) {
     return crypto_utils.makeMessageChunkSignature(buffer, params);
 }
 
+function RSAPKCS1V15SHA256_Sign(buffer, privateKey) {
+
+    if (privateKey instanceof Buffer) {
+        privateKey = crypto_utils.toPem(privateKey, "RSA PRIVATE KEY");
+    }
+    var params = {
+        signatureLength: crypto_utils.rsa_length(privateKey),
+        algorithm: "RSA-SHA256",
+        privateKey: privateKey
+    };
+    return crypto_utils.makeMessageChunkSignature(buffer, params);
+}
+
 var RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
 
 function RSAPKCS1V15_Encrypt(buffer, publicKey) {
@@ -176,21 +189,6 @@ function RSAOAEP_Encrypt(buffer, publicKey) {
 }
 
 
-function HMAC_SHA1_Sign(buffer) {
-
-}
-function HMAC_SHA1_Verify(buffer) {
-
-}
-
-function AES_128_CBC_Encrypt() {
-}
-function AES_128_CBC_Decrypt() {
-}
-function AES_256_CBC_Encrypt() {
-}
-function AES_256_CBC_Decrypt() {
-}
 
 function compute_derived_keys(serverNonce, clientNonce) {
 
@@ -209,7 +207,8 @@ function compute_derived_keys(serverNonce, clientNonce) {
             encryptingKeyLength: self.derivedEncryptionKeyLength,
             encryptingBlockSize: self.encryptingBlockSize,
             signatureLength: self.signatureLength,
-            algorithm: self.symmetricEncryptionAlgorithm
+            algorithm: self.symmetricEncryptionAlgorithm,
+            sha1or256: self.sha1or256
         };
         derivedKeys.derivedClientKeys = crypto_utils.computeDerivedKeys(serverNonce, clientNonce, options);
         derivedKeys.derivedServerKeys = crypto_utils.computeDerivedKeys(clientNonce, serverNonce, options);
@@ -232,14 +231,6 @@ var _Basic128Rsa15 = {
     minimumAsymmetricKeyLength: 128,
     maximumAsymmetricKeyLength: 512,
 
-    /* symmetric signature algorithm */
-    symmetricSign: HMAC_SHA1_Sign,
-    symmetricVerify: HMAC_SHA1_Verify,
-
-    /* symmetric encryption algorithm */
-    symmetricEncrypt: AES_128_CBC_Encrypt,
-    symmetricDecrypt: AES_128_CBC_Decrypt,
-
     /* asymmetric signature algorithm */
     asymmetricVerifyChunk: asymmetricVerifyChunk,
     asymmetricSign: RSAPKCS1V15SHA1_Sign,
@@ -254,6 +245,8 @@ var _Basic128Rsa15 = {
     blockPaddingSize: 11,
 
     symmetricEncryptionAlgorithm: "aes-128-cbc",
+
+    sha1or256: "SHA1",
     compute_derived_keys: compute_derived_keys
 
 };
@@ -269,14 +262,6 @@ var _Basic256 = {
     minimumAsymmetricKeyLength: 128,
     maximumAsymmetricKeyLength: 512,
 
-    /* symmetric signature algorithm */
-    symmetricSign: HMAC_SHA1_Sign,
-    symmetricVerify: HMAC_SHA1_Verify,
-
-    /* symmetric encryption algorithm */
-    symmetricEncrypt: AES_256_CBC_Encrypt,
-    symmetricDecrypt: AES_256_CBC_Decrypt,
-
     asymmetricVerifyChunk: asymmetricVerifyChunk,
     asymmetricSign: RSAPKCS1OAEPSHA1_Sign,
     asymmetricVerify: RSAPKCS1OAEPSHA1_Verify,
@@ -291,19 +276,54 @@ var _Basic256 = {
 
     // "aes-256-cbc"
     symmetricEncryptionAlgorithm: "aes-256-cbc",
+    sha1or256: "SHA1",
     compute_derived_keys: compute_derived_keys
 };
 
+
+var _Basic256Sha256 = {
+    securityPolicy: SecurityPolicy.Basic256Sha256,
+
+    symmetricKeyLength: 32,
+    derivedEncryptionKeyLength: 32,
+    derivedSignatureKeyLength: 32,
+    encryptingBlockSize: 16,
+    signatureLength: 32,
+
+    minimumAsymmetricKeyLength: 2048,
+    maximumAsymmetricKeyLength: 4096,
+
+    asymmetricVerifyChunk: asymmetricVerifyChunk,
+    asymmetricSign: RSAPKCS1V15SHA256_Sign,
+    asymmetricVerify: RSAPKCS1OAEPSHA256_Verify,
+    asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha256",
+
+    /* asymmetric encryption algorithm */
+    asymmetricEncrypt: RSAOAEP_Encrypt,
+    asymmetricDecrypt: RSAOAEP_Decrypt,
+    asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-oaep",
+
+    blockPaddingSize: 42,
+
+    // "aes-256-cbc"
+    symmetricEncryptionAlgorithm: "aes-256-cbc",
+    sha1or256: "SHA256",
+    compute_derived_keys: compute_derived_keys
+};
 
 function getCryptoFactory(securityPolicy) {
 
     assert(typeof securityPolicy.key === "string");
 
     switch (securityPolicy.key) {
+        case SecurityPolicy.None.key:
+            return null;
         case SecurityPolicy.Basic128Rsa15.key:
             return _Basic128Rsa15;
         case SecurityPolicy.Basic256.key:
             return _Basic256;
+        case SecurityPolicy.Basic256Sha256.key:
+            return _Basic256Sha256;
         default:
             return null;
     }
