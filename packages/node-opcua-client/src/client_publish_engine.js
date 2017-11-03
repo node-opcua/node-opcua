@@ -76,13 +76,22 @@ ClientSidePublishEngine.prototype.send_publish_request = function () {
     }
     assert(self.subscriptionCount >0);
 
-    setImmediate(function () {
-        if (!self.session) {
-            // session has been terminated
-            return;
-        }
-        self._send_publish_request();
-    });
+    if (self.session && !self.session.isChannelValid()) {
+        setTimeout(function () {
+            if (self.subscriptionCount) {
+                self.send_publish_request();
+            }
+        }, 100);
+    } else {
+        setImmediate(function () {
+            if (!self.session) {
+                // session has been terminated
+                return;
+            }
+            self._send_publish_request();
+        });
+
+    }
 };
 
 

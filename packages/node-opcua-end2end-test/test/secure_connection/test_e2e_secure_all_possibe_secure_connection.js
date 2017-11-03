@@ -638,7 +638,6 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             // Server must have disconneced
             should.exist(err);
             err.message.toLowerCase().should.match(/disconnected by third party/);
-            //xxerr.message.toLowerCase().should.match(/invalid channel/);
             done();
 
         });

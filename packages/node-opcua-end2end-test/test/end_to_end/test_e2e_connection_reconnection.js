@@ -65,7 +65,7 @@ function f(func) {
                 console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
             }
             step_count++;
-            setImmediate(function() {
+            setImmediate(function () {
                 callback(err);
             });
         });
@@ -98,14 +98,14 @@ describe("testing basic Client-Server communication", function () {
     });
 
     afterEach(function (done) {
-        client.disconnect(function(err) {
+        client.disconnect(function (err) {
             client = null;
             done(err);
         });
     });
 
     after(function (done) {
-        should.not.exist(client,"client still running");
+        should.not.exist(client, "client still running");
         server.shutdown(function (err) {
             done(err);
         });
@@ -722,6 +722,7 @@ describe("testing ability for client to reconnect when server close connection",
     function wait_a_little_while(done) {
         wait_for(800, done);
     }
+
     var client = null;
     var client_has_received_close_event;
     var client_has_received_start_reconnection_event;
@@ -732,15 +733,20 @@ describe("testing ability for client to reconnect when server close connection",
     beforeEach(function () {
         requestedSessionTimeout = 10000;
     });
-    afterEach(function(){
-        should.not.exist(client,"client must have been disposed");
+    afterEach(function () {
+        should.not.exist(client, "client must have been disposed");
     });
-    function create_client_and_create_a_connection_to_server(connectionStrategy, done) {
+
+    function create_client_and_create_a_connection_to_server(_options, connectionStrategy, done) {
 
         done.should.be.instanceOf(Function);
 
-        should.not.exist(client,"expecting no client");
+        should.not.exist(client, "expecting no client");
         var options = {
+
+            securityMode: _options.securityMode || opcua.MessageSecurityMode.NONE,
+            securityPolicy: _options.securityPolicy || opcua.SecurityPolicy.None,
+
             keepSessionAlive: true,
             requestedSessionTimeout: requestedSessionTimeout,
             connectionStrategy: connectionStrategy
@@ -790,8 +796,8 @@ describe("testing ability for client to reconnect when server close connection",
 
     function verify_that_client_fails_to_connect(connectivity_strategy, done) {
 
-        create_client_and_create_a_connection_to_server(connectivity_strategy, function (err) {
-            disconnect_client(function() {
+        create_client_and_create_a_connection_to_server({}, connectivity_strategy, function (err) {
+            disconnect_client(function () {
                 done(err ? null : new Error("Expecting an error here"));
             });
         });
@@ -836,7 +842,9 @@ describe("testing ability for client to reconnect when server close connection",
     }
 
     function verify_that_client_is_NOT_trying_to_reconnect(done) {
-        if (!client) { return done();}
+        if (!client) {
+            return done();
+        }
         setImmediate(function () {
             try {
                 client.isReconnecting.should.eql(false, "verify_that_client_is_NOT_trying_to_reconnect");
@@ -891,7 +899,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use fail fast connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, fail_fast_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, fail_fast_connectivity_strategy)),
             f(shutdown_server),
             //f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -930,7 +938,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use robust  connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(shutdown_server),
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -957,7 +965,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use robust  connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
 
             f(shutdown_server),
             f(wait_a_little_while),
@@ -1008,7 +1016,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(shutdown_server),
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -1069,6 +1077,7 @@ describe("testing ability for client to reconnect when server close connection",
     var values_to_check = [];
 
     var monitoredItem = null;
+
     function monitor_monotonous_counter(callback) {
 
         monitoredItem = subscription.monitor(
@@ -1097,7 +1106,9 @@ describe("testing ability for client to reconnect when server close connection",
     }
 
     function wait_until_next_notification(done) {
-        monitoredItem.once("changed",function() { setImmediate(done); });
+        monitoredItem.once("changed", function () {
+            setImmediate(done);
+        });
     }
 
     var previous_value_count = 0;
@@ -1116,7 +1127,7 @@ describe("testing ability for client to reconnect when server close connection",
             //xx console.log(values_to_check.join(" "));
         }
 
-        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values : values_to_check = " + values_to_check + " != " + (previous_value_count+1));
+        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
         if (values_to_check.length > 0) {
             values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
         }
@@ -1202,7 +1213,7 @@ describe("testing ability for client to reconnect when server close connection",
 
         async.series([
             f(start_demo_server),
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(disconnect_client),
 
             f(suspend_demo_server),
@@ -1213,7 +1224,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(resume_demo_server),
 
             // verify that client can connect again
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(disconnect_client),
 
             f(shutdown_server)
@@ -1229,7 +1240,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
@@ -1274,7 +1285,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
@@ -1437,7 +1448,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             f(start_demo_server),
 
-            f(create_client_and_create_a_connection_to_server.bind(null, infinite_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, infinite_connectivity_strategy)),
             f(wait_a_little_while),
             f(shutdown_server),
             f(reset_backoff_counter),
@@ -1468,7 +1479,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             f(start_demo_server),
 
-            f(create_client_and_create_a_connection_to_server.bind(null, infinite_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, infinite_connectivity_strategy)),
             f(wait_a_little_while),
             f(shutdown_server),
             f(wait_a_little_while),
@@ -1487,12 +1498,14 @@ describe("testing ability for client to reconnect when server close connection",
         ], done);
     });
 
-    it("TR11 -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down", function (done) {
+
+    function test_1(options, done) {
+
         async.series([
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, options, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
@@ -1522,7 +1535,16 @@ describe("testing ability for client to reconnect when server close connection",
         ], function (err) {
             done(err);
         });
+    }
 
+    it("TR11-a -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function (done) {
+        test_1({securityMode: opcua.MessageSecurityMode.NONE, securityPolicy: opcua.SecurityPolicy.Node}, done);
+    });
+    it("TR11-b -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function (done) {
+        test_1({
+            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityPolicy: opcua.SecurityPolicy.Basic256Sha256
+        }, done);
     });
 
     it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
@@ -1533,7 +1555,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),

@@ -9,6 +9,8 @@ var subscription_service = require("node-opcua-service-subscription");
 var ClientSidePublishEngine = require("../src/client_publish_engine").ClientSidePublishEngine;
 
 var SubscriptionAcknowledgement  = require("node-opcua-service-subscription").SubscriptionAcknowledgement;
+var PublishResponse = require("node-opcua-service-subscription").PublishResponse;
+var Dequeue = require("dequeue");
 
 function makeSubscription(subscriptionId,timeoutHint,callback) {
     return { subscriptionId: subscriptionId, timeoutHint:timeoutHint, onNotificationMessage: callback};
@@ -28,6 +30,9 @@ describe("Testing the client publish engine", function () {
 
         var fake_session = {
             publish: function (request, callback) {
+            },
+            isChannelValid: function () {
+                return true;
             }
         };
         var publish_spy = sinon.spy(fake_session, "publish");
@@ -57,7 +62,6 @@ describe("Testing the client publish engine", function () {
 
     it("a client should keep sending a new publish request to the server after receiving a notification, when a subscription is active", function () {
 
-        var PublishResponse = require("node-opcua-service-subscription").PublishResponse;
         var fake_session = {
             publish: function (request, callback) {
                 assert(request._schema.name === "PublishRequest");
@@ -66,6 +70,9 @@ describe("Testing the client publish engine", function () {
                 setTimeout(function () {var fake_response = new PublishResponse({subscriptionId: 1});
                     callback(null, fake_response);
                 }, 100);
+            },
+            isChannelValid: function () {
+                return true;
             }
         };
         var spy = sinon.spy(fake_session, "publish");
@@ -96,7 +103,6 @@ describe("Testing the client publish engine", function () {
 
     it("a client should stop sending publish request to the server after receiving a notification, when there is no more registered subscription ", function () {
 
-        var PublishResponse = require("node-opcua-service-subscription").PublishResponse;
 
         var fake_session = {
             publish: function (request, callback) {
@@ -107,7 +113,11 @@ describe("Testing the client publish engine", function () {
                     var fake_response = new PublishResponse({subscriptionId: 1});
                     callback(null, fake_response);
                 }, 100);
+            },
+            isChannelValid: function () {
+                return true;
             }
+
         };
         var spy = sinon.spy(fake_session, "publish");
 
@@ -177,7 +187,11 @@ describe("Testing the client publish engine", function () {
                     callback.apply(this, response_maker());
                     count += 1;
                 }
+            },
+            isChannelValid: function () {
+                return true;
             }
+
         };
         var spy = sinon.spy(fake_session, "publish");
 
@@ -208,11 +222,9 @@ describe("Testing the client publish engine", function () {
 
     it("a client publish engine shall adapt the timeoutHint of a publish request to take into account the number of awaiting publish requests ", function () {
 
-        var PublishResponse = require("node-opcua-service-subscription").PublishResponse;
 
         var timerId;
 
-        var Dequeue = require("dequeue");
         var publishQueue = new Dequeue();
 
         function start() {
@@ -231,7 +243,7 @@ describe("Testing the client publish engine", function () {
         }
         function stop() {
             clearInterval(timerId);
-    }
+        }
         var fake_session = {
             publish: function (request, callback) {
                 assert(request._schema.name === "PublishRequest");
@@ -239,7 +251,11 @@ describe("Testing the client publish engine", function () {
                 // after a short delay of 150 milliseconds
                 publishQueue.push(callback);
                 //xx console.log("nbPendingPublishRequests",clientPublishEngine.nbPendingPublishRequests);
+            },
+            isChannelValid: function () {
+                return true;
             }
+
         };
         var spy = sinon.spy(fake_session, "publish");
 
@@ -274,4 +290,80 @@ describe("Testing the client publish engine", function () {
 //xx        console.log(fake_session.publish.getCall(8).args[0].requestHeader.timeoutHint);
     });
 
+    it("#390 should not send publish request if channel is not properly opened", function (done) {
+        var timerId;
+
+        var publishQueue = new Dequeue();
+
+        function start() {
+
+            timerId = setInterval(function () {
+                if (publishQueue.length === 0) {
+                    return;
+                }
+                var callback = publishQueue.shift();
+                var fake_response = new PublishResponse({subscriptionId: 1});
+                //xx console.log(" Time ", Date.now());
+                callback(null, fake_response);
+            }, 1500);
+        }
+
+        function stop() {
+            clearInterval(timerId);
+        }
+
+        var fake_session = {
+            publishCount: 0,
+            _isChannelValid: true,
+            publish: function (request, callback) {
+                this.publishCount++;
+                assert(request._schema.name === "PublishRequest");
+                // let simulate a server sending a PublishResponse for subscription:1
+                // after a short delay of 150 milliseconds
+                publishQueue.push(callback);
+            },
+            isChannelValid: function () {
+                return this._isChannelValid;
+            }
+        };
+
+        var spy = sinon.spy(fake_session, "publish");
+
+        var clientPublishEngine = new ClientSidePublishEngine(fake_session);
+
+        start();
+
+        fake_session._isChannelValid = false;
+
+        // start a first new subscription
+        clientPublishEngine.registerSubscription({
+            subscriptionId: 1,
+            timeoutHint: 20000,
+            onNotificationMessage: function () {
+            }
+        });
+
+        clientPublishEngine.subscriptionCount.should.eql(1);
+
+        this.clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
+        clientPublishEngine.nbPendingPublishRequests.should.eql(0);
+        fake_session.publishCount.should.eql(0);
+
+        this.clock.tick(20000);
+        fake_session.publishCount.should.eql(0);
+
+        fake_session._isChannelValid = true;
+        this.clock.tick(1000); // wait a little bit as PendingRequests are send asynchronously
+        //xx clientPublishEngine.nbPendingPublishRequests.should.eql(0);
+
+        this.clock.tick(20000);
+        fake_session.publishCount.should.eql(19);
+
+        clientPublishEngine.unregisterSubscription(1);
+        clientPublishEngine.subscriptionCount.should.eql(0);
+
+        stop();
+
+        done(); // new Error("implement me for #390 - "));
+    });
 });

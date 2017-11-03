@@ -858,6 +858,12 @@ ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
 
 };
 
+ClientSession.prototype.isChannelValid = function () {
+    var self = this;
+    assert(self._client);
+    return self._client._secureChannel && self._client._secureChannel.isOpened();
+};
+
 ClientSession.prototype.performMessageTransaction = function (request, callback) {
 
     var self = this;
@@ -865,6 +871,11 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
     assert(_.isFunction(callback));
     assert(self._client);
 
+    if (!self.isChannelValid()) {
+        // we need to queue this transaction,as a secure token may be being reprocessed
+        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ".bgWhite.red);
+        return callback(new Error("Invalid Channel "));
+    }
     request.requestHeader.authenticationToken = this.authenticationToken;
 
     self.lastRequestSentTime = Date.now();

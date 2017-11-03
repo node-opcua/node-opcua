@@ -26,7 +26,7 @@ var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSe
 
 var backoff = require("backoff");
 
-var debug =  require("node-opcua-debug");
+var debug = require("node-opcua-debug");
 var debugLog = debug.make_debugLog(__filename);
 var doDebug = debug.checkDebugFlag(__filename);
 
@@ -41,15 +41,15 @@ var secure_channel_service = require("../services");
 var securityPolicy_m = require("../security_policy");
 var SecurityPolicy = securityPolicy_m.SecurityPolicy;
 
-var OpenSecureChannelRequest          = secure_channel_service.OpenSecureChannelRequest;
-var CloseSecureChannelRequest         = secure_channel_service.CloseSecureChannelRequest;
-var OpenSecureChannelResponse         = secure_channel_service.OpenSecureChannelResponse;
+var OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
+var CloseSecureChannelRequest = secure_channel_service.CloseSecureChannelRequest;
+var OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
 var AsymmetricAlgorithmSecurityHeader = secure_channel_service.AsymmetricAlgorithmSecurityHeader;
-var ServiceFault                      = secure_channel_service.ServiceFault;
-var SecurityTokenRequestType          = secure_channel_service.SecurityTokenRequestType;
+var ServiceFault = secure_channel_service.ServiceFault;
+var SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
 
-var do_trace_message    =   process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
-var do_trace_statistics =   process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
+var do_trace_message = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
+var do_trace_statistics = process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
 
 function process_request_callback(request_data, err, response) {
 
@@ -69,7 +69,7 @@ function process_request_callback(request_data, err, response) {
         response = null;
     }
 
-    assert((request_data.msgType === "CLO") || ( (err && !response) || (!err && response)));
+    assert((request_data.msgType === "CLO") || ((err && !response) || (!err && response)));
 
     var the_callback_func = request_data.callback;
     request_data.callback = null;
@@ -90,10 +90,10 @@ function _on_message_received(response, msgType, requestId) {
     var request_data = self._request_data[requestId];
     if (!request_data) {
         console.log("xxxxx  <<<<<< _on_message_received ".cyan.bold, requestId, response._schema.name);
-        throw new Error(" =>  invalid requestId ="+ requestId);
+        throw new Error(" =>  invalid requestId =" + requestId);
     }
 
-    debugLog(" Deleting self._request_data",requestId);
+    debugLog(" Deleting self._request_data", requestId);
     delete self._request_data[requestId];
 
     /* istanbul ignore next */
@@ -102,8 +102,8 @@ function _on_message_received(response, msgType, requestId) {
         var actual = response.responseHeader.requestHandle;
         var moreinfo = "Class = " + response._schema.name;
         console.log((" WARNING SERVER responseHeader.requestHandle is invalid" +
-        ": expecting 0x" + expected.toString(16) +
-        "  but got 0x" + actual.toString(16) + " ").red.bold, moreinfo.yellow);
+          ": expecting 0x" + expected.toString(16) +
+          "  but got 0x" + actual.toString(16) + " ").red.bold, moreinfo.yellow);
     }
 
     request_data.response = response;
@@ -158,7 +158,7 @@ var g_channelId = 0;
 function ClientSecureChannelLayer(options) {
 
 
-    if (global.hasResourceLeakDetector && !global.ResourceLeakDetectorStarted){
+    if (global.hasResourceLeakDetector && !global.ResourceLeakDetectorStarted) {
         throw new Error("ClientSecureChannelLayer not in ResourceLeakDetectorStarted")
     }
     options = options || {};
@@ -202,23 +202,23 @@ function ClientSecureChannelLayer(options) {
     self._request_data = {};
 
     self.messageBuilder
-        .on("message", _on_message_received.bind(this))
-        .on("start_chunk", function () {
-            // record tick2: when the first response chunk is received
-            // request_data._tick2 = get_clock_tick();
-        }).on("error", function (err, requestId) {
-            //
-            debugLog("request id = ", requestId,err);
-            var request_data = self._request_data[requestId];
-            console.log(" message was ");
-            console.log(request_data);
-            if (!request_data) {
-                request_data = self._request_data[requestId + 1];
-                console.log(" message was 2:", request_data ? request_data.request.toString() : "<null>");
-            }
-            // xx console.log(request_data.request.toString());
+    .on("message", _on_message_received.bind(this))
+    .on("start_chunk", function () {
+        // record tick2: when the first response chunk is received
+        // request_data._tick2 = get_clock_tick();
+    }).on("error", function (err, requestId) {
+        //
+        debugLog("request id = ", requestId, err);
+        var request_data = self._request_data[requestId];
+        console.log(" message was ");
+        console.log(request_data);
+        if (!request_data) {
+            request_data = self._request_data[requestId + 1];
+            console.log(" message was 2:", request_data ? request_data.request.toString() : "<null>");
+        }
+        // xx console.log(request_data.request.toString());
 
-        });
+    });
 
     self.__in_normal_close_operation = false;
 
@@ -236,14 +236,15 @@ function ClientSecureChannelLayer(options) {
 
     options.connectionStrategy = options.connectionStrategy || {};
     self.connectionStrategy = {};
-    self.connectionStrategy.maxRetry     = utils.isNullOrUndefined(options.connectionStrategy.maxRetry)   ? 10 : options.connectionStrategy.maxRetry;
-    self.connectionStrategy.initialDelay = options.connectionStrategy.initialDelay || 10    ;
-    self.connectionStrategy.maxDelay     = options.connectionStrategy.maxDelay     || 10000 ;
+    self.connectionStrategy.maxRetry = utils.isNullOrUndefined(options.connectionStrategy.maxRetry) ? 10 : options.connectionStrategy.maxRetry;
+    self.connectionStrategy.initialDelay = options.connectionStrategy.initialDelay || 10;
+    self.connectionStrategy.maxDelay = options.connectionStrategy.maxDelay || 10000;
 
     var r = options.connectionStrategy.randomisationFactor;
-    self.connectionStrategy.randomisationFactor = ( r === undefined ) ? 0 : r;
+    self.connectionStrategy.randomisationFactor = (r === undefined) ? 0 : r;
 
 }
+
 util.inherits(ClientSecureChannelLayer, EventEmitter);
 
 ClientSecureChannelLayer.defaultTransportTimeout = 10 * 1000; // 1 minute
@@ -264,21 +265,22 @@ ClientSecureChannelLayer.prototype.getCertificateChain = function () {
 function _dump_transaction_statistics() {
     /* jshint validthis: true */
     var transaction_stats = this;
-    function w( str) {
-        return ("                  "+str).substr(-12);
+
+    function w(str) {
+        return ("                  " + str).substr(-12);
     }
 
     console.log("--------------------------------------------------------------------->> Stats".green.bold);
     console.log("   request                   : ",
-        transaction_stats.request._schema.name.toString().yellow , " / ",
-        transaction_stats.response._schema.name.toString().yellow , " - ",
-        transaction_stats.response.responseHeader.serviceResult.toString());
-    console.log("   Bytes Read                : ", w(transaction_stats.bytesRead) ,  " bytes");
-    console.log("   Bytes Written             : ", w(transaction_stats.bytesWritten) , " bytes");
-    console.log("   transaction duration      : ", w(transaction_stats.lap_transaction.toFixed(3)),           " milliseconds");
-    console.log("   time to send request      : ", w((transaction_stats.lap_sending_request).toFixed(3)),     " milliseconds");
-    console.log("   time waiting for response : ", w((transaction_stats.lap_waiting_response).toFixed(3)),    " milliseconds");
-    console.log("   time to receive response  : ", w((transaction_stats.lap_receiving_response).toFixed(3)),  " milliseconds");
+      transaction_stats.request._schema.name.toString().yellow, " / ",
+      transaction_stats.response._schema.name.toString().yellow, " - ",
+      transaction_stats.response.responseHeader.serviceResult.toString());
+    console.log("   Bytes Read                : ", w(transaction_stats.bytesRead), " bytes");
+    console.log("   Bytes Written             : ", w(transaction_stats.bytesWritten), " bytes");
+    console.log("   transaction duration      : ", w(transaction_stats.lap_transaction.toFixed(3)), " milliseconds");
+    console.log("   time to send request      : ", w((transaction_stats.lap_sending_request).toFixed(3)), " milliseconds");
+    console.log("   time waiting for response : ", w((transaction_stats.lap_waiting_response).toFixed(3)), " milliseconds");
+    console.log("   time to receive response  : ", w((transaction_stats.lap_receiving_response).toFixed(3)), " milliseconds");
     console.log("   time processing response  : ", w((transaction_stats.lap_processing_response).toFixed(3)), " milliseconds");
 
     console.log("---------------------------------------------------------------------<< Stats".green.bold);
@@ -309,17 +311,17 @@ ClientSecureChannelLayer.prototype._record_transaction_statistics = function (re
     self.last_transaction_stats = {
         request: request_data.request,
         response: request_data.response,
-        bytesWritten:             request_data.bytesWritten_after - request_data.bytesWritten_before,
-        bytesRead:                request_data.bytesRead,
-        lap_sending_request:      request_data._tick1 - request_data._tick0,
-        lap_waiting_response:     request_data._tick2 - request_data._tick1,
-        lap_receiving_response:   request_data._tick3 - request_data._tick2,
-        lap_processing_response:  request_data._tick4 - request_data._tick3,
-        lap_transaction:          request_data._tick4 - request_data._tick0
+        bytesWritten: request_data.bytesWritten_after - request_data.bytesWritten_before,
+        bytesRead: request_data.bytesRead,
+        lap_sending_request: request_data._tick1 - request_data._tick0,
+        lap_waiting_response: request_data._tick2 - request_data._tick1,
+        lap_receiving_response: request_data._tick3 - request_data._tick2,
+        lap_processing_response: request_data._tick4 - request_data._tick3,
+        lap_transaction: request_data._tick4 - request_data._tick0
     };
     self.last_transaction_stats.dump = _dump_transaction_statistics;
 
-    if(do_trace_statistics) {
+    if (do_trace_statistics) {
         self.last_transaction_stats.dump();
     }
 
@@ -340,7 +342,7 @@ function _cancel_pending_transactions(err) {
     assert(err === null || _.isObject(err), "expecting valid error");
     Object.keys(self._request_data).forEach(function (key) {
         var request_data = self._request_data[key];
-        debugLog("xxxx Cancelling pending transaction ", request_data.key,request_data.msgType,request_data.request._schema.name);
+        debugLog("xxxx Cancelling pending transaction ", request_data.key, request_data.msgType, request_data.request._schema.name);
         process_request_callback(request_data, err, null);
     });
 
@@ -378,7 +380,7 @@ function _on_security_token_about_to_expire() {
     /* jshint validthis: true */
     var self = this;
 
-    debugLog(" client: Security Token ", self.securityToken.tokenId," is about to expired, let's raise lifetime_75 event ");
+    debugLog(" client: Security Token ", self.securityToken.tokenId, " is about to expired, let's raise lifetime_75 event ");
 
     /**
      * notify the observer that the secure channel has now reach 75% of its allowed live time and
@@ -470,8 +472,7 @@ function _open_secure_channel_request(is_initial, callback) {
 
     self.clientNonce = _build_client_nonce.call(self);
 
-    self._isOpened = false;
-
+    self._isOpened = !is_initial;
 
     // OpenSecureChannel
     var msg = new OpenSecureChannelRequest({
@@ -572,12 +573,12 @@ function _on_connection(transport, callback, err) {
 
         self._transport.on("close", _on_transport_closed.bind(this));
 
-        self._transport.on("connection_break",function(){
+        self._transport.on("connection_break", function () {
             debugLog("Client => CONNECTION BREAK  <=".red);
-            _on_transport_closed.call(self,new Error("Connection Break"));
+            _on_transport_closed.call(self, new Error("Connection Break"));
         });
 
-        self._transport.on("error",function(){
+        self._transport.on("error", function () {
             debugLog(" ERROR");
         });
 
@@ -646,7 +647,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
             });
             return undefined;
         }
-        assert(typeof self.receiverPublicKey  === "string");
+        assert(typeof self.receiverPublicKey === "string");
     }
 
 
@@ -659,10 +660,10 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
     // -------------------------------------------------------------------------
     // Handle reconnection
     // --------------------------------------------------------------------------
-    var _establish_connection = function (transport,endpoint_url,callback) {
+    var _establish_connection = function (transport, endpoint_url, callback) {
 
 
-        var last_err= null;
+        var last_err = null;
 
         function _connect(_i_callback) {
 
@@ -707,7 +708,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
         }
 
         // No backoff required -> call the _connect function directly
-        if (self.connectionStrategy.maxRetry <=0 ) {
+        if (self.connectionStrategy.maxRetry <= 0) {
             self.__call = 0;
             return _connect(callback);
         }
@@ -730,25 +731,25 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
             }
         }
 
-        self.__call = backoff.call(_connect,_backoff_completion);
+        self.__call = backoff.call(_connect, _backoff_completion);
 
         //xx self.__call._cancelBackoff = self.connectionStrategy.maxRetry <=0 ? true : false;
-        self.__call.failAfter(Math.max(self.connectionStrategy.maxRetry,1));
+        self.__call.failAfter(Math.max(self.connectionStrategy.maxRetry, 1));
 
 
-        self.__call.on("backoff", function(number, delay) {
+        self.__call.on("backoff", function (number, delay) {
 
-            debugLog(" Backoff #".bgWhite.cyan,number,"delay = ",delay,self.__call.maxNumberOfRetry_);
+            debugLog(" Backoff #".bgWhite.cyan, number, "delay = ", delay, self.__call.maxNumberOfRetry_);
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             /**
              * @event backoff
              */
-            self.emit("backoff",number,delay);
+            self.emit("backoff", number, delay);
         });
 
-        self.__call.on("abort", function() {
-            debugLog(" abort #".bgWhite.cyan," after ",self.__call.getNumRetries(), " retries");
+        self.__call.on("abort", function () {
+            debugLog(" abort #".bgWhite.cyan, " after ", self.__call.getNumRetries(), " retries");
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             /**
@@ -756,8 +757,8 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
              */
             self.emit("abort");
 
-            setImmediate(function() {
-                _backoff_completion(null,new Error("Connection abandoned"));
+            setImmediate(function () {
+                _backoff_completion(null, new Error("Connection abandoned"));
             });
 
         });
@@ -767,7 +768,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
 
     };
 
-    _establish_connection(transport,endpoint_url, _on_connection.bind(this, transport, callback));
+    _establish_connection(transport, endpoint_url, _on_connection.bind(this, transport, callback));
 
 };
 
@@ -779,28 +780,26 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
  * @type {Boolean}
  *
  */
-ClientSecureChannelLayer.prototype.__defineGetter__("isConnecting",function() {
+ClientSecureChannelLayer.prototype.__defineGetter__("isConnecting", function () {
     return (!!this.__call);
 });
 
 
-ClientSecureChannelLayer.prototype.dispose = function() {
+ClientSecureChannelLayer.prototype.dispose = function () {
     var self = this;
     _cancel_security_token_watchdog.call(self);
-    //xx console.log("DDDDD = ",self._request_data);
-    //xx console.log("DDDDDD = ",self.__call);
-    if(self.__call) {
+    if (self.__call) {
         self.__call.abort();
     }
 
 };
 
-ClientSecureChannelLayer.prototype.abortConnection = function(callback) {
+ClientSecureChannelLayer.prototype.abortConnection = function (callback) {
     assert(_.isFunction(callback));
     var self = this;
     if (self.__call) {
-        self.__call.once("abort",function() {
-            setTimeout(callback,20);
+        self.__call.once("abort", function () {
+            setTimeout(callback, 20);
         });
         //xx console.log("_cancelBackoff !!!");
         self.__call._cancelBackoff = true;
@@ -852,7 +851,7 @@ ClientSecureChannelLayer.prototype._on_receive_message_chunk = function (message
         var _stream = new BinaryStream(message_chunk);
         var messageHeader = readMessageHeader(_stream);
         debugLog("CLIENT RECEIVED " + (JSON.stringify(messageHeader) + "").yellow);
-        debugLog("\n"+hexDump(message_chunk).blue);
+        debugLog("\n" + hexDump(message_chunk).blue);
         debugLog(messageHeaderToString(message_chunk));
     }
     self.messageBuilder.feed(message_chunk);
@@ -903,7 +902,7 @@ ClientSecureChannelLayer.prototype.performMessageTransaction = function (request
     this._performMessageTransaction("MSG", requestMessage, callback);
 };
 
-ClientSecureChannelLayer.prototype.isValid = function() {
+ClientSecureChannelLayer.prototype.isValid = function () {
     var self = this;
     return self._transport && self._transport.isValid();
 };
@@ -987,7 +986,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
             local_callback.apply(this, arguments);
         }
         catch (err) {
-            console.log("ERROR !!! , please check here !!!! callback may be called twice !! ",err);
+            console.log("ERROR !!! , please check here !!!! callback may be called twice !! ", err);
             callback(err);
         }
         finally {
@@ -997,10 +996,10 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
 
     timerId = setTimeout(function () {
         timerId = null;
-        console.log(" Timeout .... waiting for response for ", requestMessage.constructor.name,requestMessage.requestHeader.toString());
+        console.log(" Timeout .... waiting for response for ", requestMessage.constructor.name, requestMessage.requestHeader.toString());
 
         hasTimedOut = true;
-        modified_callback(new Error("Transaction has timed out"),null);
+        modified_callback(new Error("Transaction has timed out"), null);
 
         self._timedout_request_count += 1;
         /**
@@ -1035,9 +1034,9 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
     assert(_.isFunction(transaction_data.callback));
 
     if (!self._transport) {
-        setTimeout(function(){
+        setTimeout(function () {
             transaction_data.callback(new Error("Client not connected"));
-        },1000);
+        }, 1000);
         return;
     }
     assert(self._transport, " must have a valid transport");
@@ -1061,7 +1060,7 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
         callback: transaction_data.callback,
 
         bytesWritten_before: self.bytesWritten,
-        bytesWritten_after : 0,
+        bytesWritten_after: 0,
 
         //record tick0 : before request is being sent to server
         _tick0: get_clock_tick(),
@@ -1103,7 +1102,7 @@ ClientSecureChannelLayer.prototype._send_chunk = function (requestId, messageChu
         }
         assert(self._transport);
         self._transport.write(messageChunk);
-        request_data.chunk_count +=1;
+        request_data.chunk_count += 1;
 
     } else {
         // last chunk ....
@@ -1220,9 +1219,9 @@ ClientSecureChannelLayer.prototype._sendSecureOpcUARequest = function (msgType, 
         tokenId: self.securityToken ? self.securityToken.tokenId : 0,
     };
 
-    // use chunk size that has been negociated by the transport layer
+    // use chunk size that has been negotiated by the transport layer
     if (self._transport.parameters && self._transport.parameters.sendBufferSize) {
-            options.chunkSize = self._transport.parameters.sendBufferSize;
+        options.chunkSize = self._transport.parameters.sendBufferSize;
     }
 
     requestMessage.requestHeader.requestHandle = options.requestId;
