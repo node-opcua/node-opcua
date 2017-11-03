@@ -377,11 +377,13 @@ describe("testing ClientTCP_transport", function () {
 
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {
-                if (process.version.toString().match(/^v0.10/)) {
-                    err.message.should.match(/EADDRNOTAVAIL|ECONNREFUSED/);
-                } else {
-                    err.message.should.match(/port(" option)* should be/);
-                }
+                var regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
+                var regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
+                var regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.000
+                var test1 = !!err.message.match(regexp_1);
+                var test2 = !!err.message.match(regexp_2);
+                var test3 = !!err.message.match(regexp_3);
+                (test1 || test2 || test3).should.eql(true, "expecting one of those error message");
                 done();
             } else {
                 done(new Error("Should have raised a connection error"));
