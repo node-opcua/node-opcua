@@ -507,13 +507,13 @@ AddressSpace.prototype.findObjectType = function (objectType,namespace) {
  *
  * @example
  *
- *     var objectType = addressSpace.findDataType("ns=0;i=62");
+ *     var objectType = addressSpace.findVariableType("ns=0;i=62");
  *     objectType.browseName.toString().should.eql("BaseVariableType");
  *
- *     var objectType = addressSpace.findDataType("BaseVariableType");
+ *     var objectType = addressSpace.findVariableType("BaseVariableType");
  *     objectType.browseName.toString().should.eql("BaseVariableType");
  *
- *     var objectType = addressSpace.findDataType(resolveNodeId("ns=0;i=62"));
+ *     var objectType = addressSpace.findVariableType(resolveNodeId("ns=0;i=62"));
  *     objectType.browseName.toString().should.eql("BaseVariableType");
  */
 AddressSpace.prototype.findVariableType = function (variableType,namespace) {
