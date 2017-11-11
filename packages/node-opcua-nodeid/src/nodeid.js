@@ -270,10 +270,10 @@ function coerceNodeId(value, namespace) {
         console.log( "xxxx VALUE = ",value);
 
         var tmp = value;
-        value = tmp.value;
+        value = value || tmp.value;
         namespace = namespace || tmp.namespace;
-        identifierType = tmp.identifierTypes;
-        return new NodeId(value, namespace);
+        identifierType = identifierType || tmp.identifierType;
+        return new NodeId(identifierType, value, namespace);
     }
     return new NodeId(identifierType, value, namespace);
 }
