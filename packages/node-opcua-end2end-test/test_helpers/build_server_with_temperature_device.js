@@ -206,6 +206,43 @@ function build_server_with_temperature_device(options, done) {
 
         });
 
+
+        // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
+        var asyncWriteFullNodeId = "ns=4;s=AsynchronousFullVariable";
+        var asyncWriteFull_dataValue = {
+            statusCode: StatusCodes.BadWaitingForInitialData
+        };
+
+        server.asyncWriteNode = addressSpace.addVariable({
+            componentOf: myDevices,
+            browseName: "AsynchronousFullVariable",
+            nodeId: asyncWriteFullNodeId,
+            dataType: "Double",
+
+            value: {
+                // asynchronous read
+                timestamped_get: function (callback) {
+                    assert(_.isFunction(callback), "callback must be a function");
+                    setTimeout(function () {
+                        callback(null, asyncWriteFull_dataValue);
+                    }, 100);
+                },
+                // asynchronous write
+                // in this case, we are using timestamped_set and not set
+                // as we want to control and deal with the dataValue provided by the client write
+                // This will allow us to handle more specifically timestamps and statusCodes
+                timestamped_set: function (dataValue, callback) {
+                    assert(_.isFunction(callback), "callback must be a function");
+                    //xxx console.log(" DATA VALUE !!!".cyan,dataValue.toString().yellow);
+                    setTimeout(function () {
+                        asyncWriteFull_dataValue = new DataValue(dataValue);
+                        callback();
+                    }, 500);
+                }
+            }
+
+        });
+
     });
 
     server.set_point_temperature = 20.0;

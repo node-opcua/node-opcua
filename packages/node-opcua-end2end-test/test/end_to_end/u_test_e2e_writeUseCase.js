@@ -274,13 +274,11 @@ module.exports = function (test) {
 
         });
 
-        it("VQT should write Value Quality Timestamp", function (done) {
+        it("VQT should write Value Quality Timestamp - on basic variable", function (done) {
 
             var setPointTemperatureId = "ns=4;s=SetPointTemperature";
             // Value, Quality, sourceTimestamp
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
-
-                var asyncNodeId = "ns=4;s=AsynchronousVariable";
 
                 var date = new Date();
                 date.setTime(date.getTime() + 3);
@@ -298,9 +296,8 @@ module.exports = function (test) {
                     })
                 }];
 
-                console.log(" requested source timestamp =", date.getTime());
+                //xx console.log(" requested source timestamp =", date.getTime());
 
-                //xxxx global.ZZZZZ = true;
                 session.write(nodesToWrite, function (err, statusCodes) {
                     if (err) {
                         return done(err);
@@ -317,12 +314,66 @@ module.exports = function (test) {
                         if (err) {
                             return done(err);
                         }
-                        console.log("====", results[0].sourceTimestamp.getTime());
-                        console.log(results[0].toString());
+                        //xx console.log("====", results[0].sourceTimestamp.getTime());
+                        //xx console.log(results[0].toString());
                         results[0].sourceTimestamp.getTime().should.eql(date.getTime());
                         results[0].sourcePicoseconds.should.eql(112);
                         results[0].statusCode.should.eql(opcua.StatusCodes.GoodLocalOverride);
-                        //xxxx  global.ZZZZZ = false;
+                        done();
+                    });
+                });
+            }, done);
+
+        });
+
+        it("VQT should write Value Quality Timestamp - on async variable that support fullblow dataValue write", function (done) {
+
+            var asyncNodeId = "ns=4;s=AsynchronousFullVariable";
+
+            // Value, Quality, sourceTimestamp
+            perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
+
+
+                var date = new Date();
+                date.setTime(date.getTime() + 3);
+
+                var nodesToWrite = [{
+                    nodeId: asyncNodeId,
+                    attributeId: AttributeIds.Value,
+                    value: new opcua.DataValue({
+                        value: {
+                            /* Variant */dataType: DataType.Double, value: -23.0
+                        },
+                        sourceTimestamp: date,
+                        sourcePicoseconds: 112,
+                        statusCode: opcua.StatusCodes.UncertainSensorNotAccurate
+                    })
+                }];
+
+                //xx console.log(" requested source timestamp =", date.getTime());
+
+                session.write(nodesToWrite, function (err, statusCodes) {
+                    if (err) {
+                        return done(err);
+                    }
+                    statusCodes.length.should.equal(nodesToWrite.length);
+                    statusCodes[0].should.eql(opcua.StatusCodes.Good);
+
+                    var nodesToRead = [{
+                        nodeId: asyncNodeId,
+                        attributeId: AttributeIds.Value
+                    }];
+
+                    session.read(nodesToRead, function (err, r, results) {
+
+                        if (err) {
+                            return done(err);
+                        }
+                        //xx console.log(" server    source timestamp =",results[0].sourceTimestamp.getTime());
+                        //xx console.log(results[0].toString());
+                        results[0].sourceTimestamp.getTime().should.eql(date.getTime());
+                        results[0].sourcePicoseconds.should.eql(112);
+                        results[0].statusCode.should.eql(opcua.StatusCodes.UncertainSensorNotAccurate);
                         done();
                     });
                 });
