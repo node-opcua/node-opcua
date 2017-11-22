@@ -140,6 +140,7 @@ export declare interface ClientSession {
     browse(nodeToBrowse: Array<CoercibleToBrowseDescription>,
         callback: ResponseCallback<Array<BrowseResponse>>): void;
 
+    write(nodes: Array<WriteValue>, callback: Function): void;
     writeSingleNode(path: string, value: Variant, callback: Function): void;
 
     read(paths: Array<NodeAttributeId>, max_age: number, callback: Function): void;
@@ -311,6 +312,23 @@ export declare class DataValue {
     statusCode: StatusCode;
 }
 
+export declare class WriteValue {
+    nodeId: NodeId;
+    attributeId: AttributeIds;
+    indexRange: any;
+    value: DataValue;
+}
+
+export declare class DiagnosticInfo {
+    namespaceUri: number;
+    symbolicId: number;
+    locale: number;
+    localizedText: number;
+    additionalInfo: string;
+    innerStatusCode: StatusCode;
+    innerDiagnosticInfo: DiagnosticInfo;
+}
+
 export interface _AddNodeOpts {
     browseName: string;
     organizedBy?: NodeId | BaseNode;
@@ -466,4 +484,3 @@ export declare enum AttributeIds {
 }
 
 export declare function resolveNodeId(id: NodeId | string): NodeId;
-
