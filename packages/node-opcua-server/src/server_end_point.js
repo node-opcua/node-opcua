@@ -9,6 +9,8 @@ var util = require("util");
 var path = require("path");
 var assert = require("node-opcua-assert");
 var async = require("async");
+var http = require("http");
+var ws = require("ws");
 var _ = require("underscore");
 var EventEmitter = require("events").EventEmitter;
 
@@ -27,6 +29,29 @@ var EndpointDescription = require("node-opcua-service-endpoints").EndpointDescri
 
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
 var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+
+
+function WsSocket(ws) {
+  var self = this;
+
+  self._ws = ws;
+  self._ws.on("message", function (data) {
+    self.emit("data", data);
+  });
+}
+
+util.inherits(WsSocket, EventEmitter);
+
+WsSocket.prototype.end = function () {
+};
+
+WsSocket.prototype.destroy = function () {
+};
+
+WsSocket.prototype.write = function (data) {
+  this._ws.send(data);
+};
+
 
 /**
  * OPCUAServerEndPoint a Server EndPoint.
@@ -80,6 +105,8 @@ function OPCUAServerEndPoint(options) {
 
     self.timeout = options.timeout || 30000;
 
+    self.websocket = options.websocket;
+
     self._server = null;
 
     self._setup_server();
@@ -116,7 +143,26 @@ OPCUAServerEndPoint.prototype._setup_server = function () {
     var self = this;
 
     assert(self._server === null);
-    self._server = net.createServer(self._on_client_connection.bind(self));
+
+    if (self.websocket) {
+      self._server = http.createServer((req, res) => {
+        const body = http.STATUS_CODES[426];
+
+        res.writeHead(426, {
+          'Content-Length': body.length,
+          'Content-Type': 'text/plain'
+        });
+        res.end(body);
+      });
+      self._server.allowHalfOpen = false;
+
+      self._ws = new ws.Server({ server: self._server });
+      self._ws.on("connection", function (ws, req) {
+        self._on_client_connection(new WsSocket(ws));
+      });
+    } else {
+      self._server = net.createServer(self._on_client_connection.bind(self));
+    }
 
     //xx console.log(" Server with max connections ", self.maxConnections);
     self._server.maxConnections = self.maxConnections + 1; // plus one extra

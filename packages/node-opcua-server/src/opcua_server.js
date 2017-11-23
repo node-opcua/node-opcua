@@ -252,6 +252,7 @@ function OPCUAServer(options) {
     // add the tcp/ip endpoint with no security
     var endPoint = new OPCUAServerEndPoint({
         port: port,
+        websocket: options.websocket,
         defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
         timeout: options.timeout || 10000,
         certificateChain: self.getCertificateChain(),
