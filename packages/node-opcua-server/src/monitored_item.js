@@ -249,15 +249,15 @@ MonitoredItem.prototype._on_opcua_event = function (eventData) {
     self._enqueue_event(eventFields);
 };
 
-MonitoredItem.prototype._getSession = function () {
+MonitoredItem.prototype._getContext = function () {
     var self = this;
     if (!self.$subscription) {
         return null;
     }
-    if (!self.$subscription.$session) {
+    if (!self.$subscription.$context) {
         return null;
     }
-    return self.$subscription.$session;
+    return self.$subscription.$context;
 };
 
 MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
@@ -271,7 +271,7 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
     MonitoredItem.registry.register(self);
 
-    var context = new SessionContext({session: self._getSession()});
+    var context = new SessionContext(self._getContext());
 
     if (self.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
 

@@ -1635,7 +1635,7 @@ OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
 
     this._apply_on_SessionObject(ReadResponse, message, channel, function (session) {
 
-        var context = new SessionContext({session: session});
+        var context = new SessionContext({session, server});
 
         var response;
 
@@ -1742,7 +1742,7 @@ OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
             }
         }
 
-        var context = new SessionContext({session: session});
+        var context = new SessionContext({session, server});
 
         // ask for a refresh of asynchronous variables
         server.engine.refreshValues(request.nodesToRead, function (err) {
@@ -1802,7 +1802,7 @@ OPCUAServer.prototype._on_WriteRequest = function (message, channel) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
-        var context = new SessionContext({session: session});
+        var context = new SessionContext({session, server});
 
         assert(request.nodesToWrite[0]._schema.name === "WriteValue");
         server.engine.write(context, request.nodesToWrite, function (err, results) {
@@ -1947,7 +1947,7 @@ OPCUAServer.prototype._on_CreateSubscriptionRequest = function (message, channel
 
     this._apply_on_SessionObject(CreateSubscriptionResponse, message, channel, function (session) {
 
-        var context = new SessionContext({session: session});
+        var context = new SessionContext({session, server});
 
         if (session.currentSubscriptionCount >= OPCUAServer.MAX_SUBSCRIPTION) {
             return sendError(StatusCodes.BadTooManySubscriptions);
@@ -1955,7 +1955,7 @@ OPCUAServer.prototype._on_CreateSubscriptionRequest = function (message, channel
 
         var subscription = session.createSubscription(request);
 
-        subscription.$session = session;
+        subscription.$context = context;
 
         subscription.on("monitoredItem", function (monitoredItem) {
             prepareMonitoredItem(context, addressSpace, monitoredItem);
