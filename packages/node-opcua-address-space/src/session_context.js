@@ -1,6 +1,6 @@
 "use strict";
 var assert = require("node-opcua-assert");
-
+var _ = require("underscore");
 
 function getUserName(userIdentityToken) {
     if (userIdentityToken.policyId === "anonymous") {
@@ -37,13 +37,13 @@ SessionContext.prototype.getCurrentUserRole = function () {
     if (username === "anonymous") {
         return "guest";
     }
-    if (!this.session.userManager) {
+    if (!this.server || !this.server.userManager) {
         return "default";
     }
-    if (!_.isFunction(this.session.userManager.getUserRole)) {
+    if (!_.isFunction(this.server.userManager.getUserRole)) {
         return "default";
     }
-    return this.session.userManager.getUserRole(username);
+    return this.server.userManager.getUserRole(username);
 };
 
 /**
