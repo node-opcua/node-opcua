@@ -11,7 +11,7 @@
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-   "bignumber.js": "^4.1.0",
+   "bignumber.js": "^5.0.0",
   "node-opcua-benchmarker": "^0.1.0-4",
   "node-opcua-binary-stream": "^0.1.0-7",
    "should": "13.1.3"
