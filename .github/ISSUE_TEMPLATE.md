@@ -3,12 +3,12 @@ IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION WE MIGHT CLOSE YOUR ISSUE WITHOU
 -->
 
 **I'm submitting a ...**  (check one with "x")
-```
-[ ] bug report => search github for a similar issue or PR before submitting
-[ ] feature request
-[ ] support request => Please do not submit support request here, instead see use
-    [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
-```
+
+
+ - ( ) bug report => search github for a similar issue or PR before submitting
+ - ( ) feature request
+ - ( ) support request => Please do not submit support request here, instead see use 
+       [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
 
 **Current behavior**
 <!-- Describe how the bug manifests. -->
@@ -33,22 +33,34 @@ please provide the *STEPS TO REPRODUCE* and if possible a *MINIMAL DEMO* of the 
 <!-- Operating system, opcua server or client type, package manager,  equipment , vendor info -->
 
 
-  * [ ] I have installed node-opcua from source ( using git clone)
-  * [ ] I have installed node-opcua as a package ( using npm install )
-  * [ ] I am using an application that uses node-opcua 
-        [ ] node-red
-        [ ] other : please specify 
+  * ( ) I have installed node-opcua from source ( using git clone)
+  * ( ) I have installed node-opcua as a package ( using npm install )
+  * ( ) I am using an application that uses node-opcua 
+  
+       - ( ) node-red
+       - ( ) other : please specify 
         
   * Device: _____
   * OS version: _____
-    [ ] Windows : version : _________
-    [ ] Linux   : version : _________
-    [ ] MacOs   : version : _________
-    [ ] Raspbian: version : _________
-    [ ] Other   : specify :
     
+    - ( ) Windows : version : _________
+    - ( ) Linux   : version : _________
+    - ( ) MacOs   : version : _________
+    - ( ) Raspbian: version : _________
+    - ( ) Other   : specify :
+   
+   * Description of the other OPCUA system I am trying to connect to:
+   
+     - Name:_________
+     - Version:_________
+     - Manufacturer/Software vendor:_________
+     - link : https://
+     
     
-* **node-opcua version:** `aaaaf75`
+* **node-opcua version:** ``
 <!-- Check which is the hash of the last commit from node-opcua that you have locally -->
 
-* **Node:** `node --version` =
+* **Node:** 
+   `node --version` =
+
+

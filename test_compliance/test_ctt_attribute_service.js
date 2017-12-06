@@ -1,12 +1,14 @@
-var path = "../";
+"use strict";
+var path = "../bin/node-opcua";
 require(path+"test_compliance/helpers");
 
-var build_server_with_temperature_device = require(path + "test/helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 function include_test(filename, options) {
     var test = require("./" + filename);
     test.register_test(options);
 }
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("COMPLIANCE TESTING", function () {
 

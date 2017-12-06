@@ -1,7 +1,14 @@
+package-lock.json
+.DS_Store
 .idea/
+.vscode/
+.project
+.settings/
+openssl/
 specs/
 node_modules/
 tmp/
+lerna-debug.log
 .coveralls.yml
 coverage
 *.swp
@@ -27,6 +34,7 @@ Vagrantfile
 .c9
 output2.bin
 _generated_
+_test_generated_
 pending_*
 schemas/[0-9]*
 schemas/ServerState_enum.js
@@ -49,4 +57,6 @@ code_gen/1.03
 code_gen/old
 out
 bin/crypto_create_CA_config.js
-pki/untrusted
+_source_ignored_
+pki
+test_fixtures/

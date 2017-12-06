@@ -1,9 +1,10 @@
 # Test against this version of Node.js
 environment:
   matrix:
-  - nodejs_version: "4"
+  # - nodejs_version: "4"
   - nodejs_version: "6"
   - nodejs_version: "8"
+  - nodejs_version: "9"
 
 platform:
   - x64
@@ -15,7 +16,8 @@ matrix:
 
 # fix lineendings in Windows
 init:
-  - git config --global core.autocrlf input
+    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+    - git config --global core.autocrlf input
 
 
 # Install scripts. (runs after repo cloning)

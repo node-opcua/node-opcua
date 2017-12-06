@@ -4,7 +4,7 @@ var opcua = require(path);
 var ApplicationType = opcua.ApplicationType;
 
 var should = require("should");
-var assert = require("assert");
+var assert = require("node-opcua-assert");
 
 function addError( str) {
     console.log("ERROR".red , str.cyan);

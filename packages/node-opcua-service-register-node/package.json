@@ -1,0 +1,37 @@
+{
+ "name": "node-opcua-service-register-node",
+ "version": "0.1.0-13",
+ "description": "pure nodejs OPCUA SDK - module -service-register-node",
+ "scripts": {
+  "test": "mocha test",
+  "clean": "node -e \"require('rimraf').sync('_generated_');\"",
+  "generate": "node ./generate"
+ },
+ "main": "index.js",
+ "dependencies": {
+  "node-opcua-assert": "^0.1.0-13",
+  "node-opcua-basic-types": "^0.1.0-13",
+  "node-opcua-factory": "^0.1.0-13",
+  "node-opcua-nodeid": "^0.1.0-13",
+  "node-opcua-service-secure-channel": "^0.1.0-13",
+  "underscore": "^1.8.3"
+ },
+ "devDependencies": {
+  "node-opcua-generator": "^0.1.0-13"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
+}

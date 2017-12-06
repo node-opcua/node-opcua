@@ -1,5 +1,6 @@
 
-var assert = require("assert");
+var assert = require("node-opcua-assert");
+var StatusCodes = require("node-opcua").StatusCode;
 
 //  Description: Write to a node whose AccessLevel does not contain write capabilities.
 

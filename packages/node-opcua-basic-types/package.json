@@ -1,0 +1,38 @@
+{
+ "name": "node-opcua-basic-types",
+ "version": "0.1.0-13",
+ "description": "pure nodejs OPCUA SDK - module -basic-types",
+ "main": "index.js",
+ "scripts": {},
+ "dependencies": {
+  "node-opcua-assert": "^0.1.0-13",
+  "node-opcua-binary-stream": "^0.1.0-13",
+  "node-opcua-buffer-utils": "^0.1.0-13",
+  "node-opcua-date-time": "^0.1.0-13",
+  "node-opcua-enum": "^0.1.0-13",
+  "node-opcua-guid": "^0.1.0-13",
+  "node-opcua-nodeid": "^0.1.0-13",
+  "node-opcua-status-code": "^0.1.0-13",
+  "node-opcua-utils": "^0.1.0-13",
+  "underscore": "^1.8.3"
+ },
+ "devDependencies": {
+  "node-opcua-debug": "^0.1.0-13",
+  "should": "13.1.3"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
+}

@@ -1,0 +1,46 @@
+{
+ "name": "node-opcua-samples",
+ "version": "0.1.0-13",
+ "description": "pure nodejs OPCUA SDK - module -samples",
+ "bin": {
+  "simple_client": "./bin/simple_client.js",
+  "interactive_client": "./bin/interactive_client.js",
+  "simple_server": "./bin/simple_server.js",
+  "di_server": "./bin/di_server.js"
+ },
+ "scripts": {
+  "postinstall": "node bin/create_certificates.js demo --dev -s",
+  "test": "echo no test",
+  "clean": "node -e \"require('rimraf').sync('certificates');\""
+ },
+ "dependencies": {
+  "async": "^2.6.0",
+  "colors": "^1.1.2",
+  "easy-table": "^1.1.0",
+  "exit": "^0.1.2",
+  "hexy": "^0.2.10",
+  "node-opcua": "^0.1.0-13",
+  "node-opcua-assert": "^0.1.0-13",
+  "node-opcua-pki": "0.0.26",
+  "readline": "^1.3.0",
+  "sprintf": "^0.1.5",
+  "treeify": "^1.0.1",
+  "underscore": "^1.8.3",
+  "yargs": "^10.0.3"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
+}

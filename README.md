@@ -26,57 +26,64 @@ Why NodeJS ?
 Because nodeJs is a great framework to design asynchronous application.
 
 
-Getting started
-================
+## Getting started
 
-installing node-opcua
----------------------
+### installing node-opcua as a node package
 
     $ npm install node-opcua
 
 
-running the demo server
------------------------
+### installing node-opcua samples as a node package
 
-    $ git clone https://github.com/node-opcua/node-opcua.git
-    $ cd node-opcua
-    $ npm install
-    $ node bin/simple_server
+```shell
+    $ npm install node-opcua-samples
+    $ ./node_modules/.bin/simple_server
+```   
+   or
     
-running the demo client
------------------------
+```shell
+    $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
+```
 
-    $ git clone https://github.com/node-opcua/node-opcua.git
-    $ cd node-opcua
-    $ npm install
-    $ node bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
+### installing node-opcua from source
+
+
+#### running the demo server from source
+
+     $ git clone https://github.com/node-opcua/node-opcua.git
+     $ cd node-opcua
+     $ npm install
+     $ node packages/node-opcua-samples/bin/simple_server
+    
+#### running the demo client from source
+
+     $ git clone https://github.com/node-opcua/node-opcua.git
+     $ cd node-opcua
+     $ npm install
+     $ node packages/node-opcua-samples/bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
         
-        
-Tutorials
----------
+
+
+### Tutorials
+
 
  * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  
  * [create a client](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client.md)
    
 
-API Documentation
------------------ 
+### API Documentation
    
  * check out the [API documentation](http://node-opcua.github.io/api_doc/index.html)
                                  
-Contributing
-============
+## Contributing
 
     $ git clone git://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
     $ npm install
     $ npm test
 
-Supporting the project
-======================
-
-
+## Supporting the project
 
 If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fnode-opcua.github.io%2F&title=Node-OPCUA&language=nodejs&tags=github&category=software).
 This will give us full of motivation to carry on and keep working on the roadmap.
@@ -85,6 +92,9 @@ This will give us full of motivation to carry on and keep working on the roadmap
 
 [![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
 
+## Getting commercial support
+
+To get commercial support,  please contact [sterfive](https://www.sterfive.com)
                
 ## Supported Features
 
@@ -186,19 +196,17 @@ This will give us full of motivation to carry on and keep working on the roadmap
 
 
 
-Road-map
-=========
+## Road-map
 
 This are the item we would like to achieve in the next version of the API.
 
   * improved documentation 
   * Compliance testing and certification (CTT) 
-  * HA Support : supporting the historizing service
+  * HA Support : improved support of historizing service
   * more tutorials
 
 
-Feedback
-========
+## Feedback
 
   * if you're using node-opcua in one of your project, please feel free to leave a comment and a quick description in the [wiki](https://github.com/node-opcua/node-opcua/wiki)
   

@@ -1,0 +1,24 @@
+{
+ "name": "node-opcua-constants",
+ "version": "0.1.0-13",
+ "description": "pure nodejs OPCUA SDK - module -constants",
+ "scripts": {
+  "test": ""
+ },
+ "main": "index.js",
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
+}

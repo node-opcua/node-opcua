@@ -1,0 +1,21 @@
+###########################
+# UaModeler Project File  #
+# Generated at 13.12.2015 #
+###########################
+
+PROJECTNAME = my_data_type
+
+TEMPLATESET = ($TEMPLATES)/cpp/v1_4/t7/cpp_server.tt2set
+
+MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
+    my_data_type.ua
+
+VARIABLES+= my_data_type.ua: CreateStringNodeIds=false; DllExportPrefix=my_data_type; NamespaceName=my_data_type; NamespacePrefix=my_data_type; 
+
+COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #c71585\
+    my_data_type.ua: #008000
+
+OUTPUTPATH = ../tmp
+
+GENERATE += my_data_type.ua
+
