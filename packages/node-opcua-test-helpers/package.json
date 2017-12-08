@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-test-helpers",
- "version": "0.1.0-4",
+ "version": "0.1.0-13",
  "description": "pure nodejs OPCUA SDK - module -test-helpers",
  "main": "index.js",
  "scripts": {

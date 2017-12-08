@@ -92,6 +92,9 @@ This will give us full of motivation to carry on and keep working on the roadmap
 
 [![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
 
+## Getting commercial support
+
+To get commercial support,  please contact [sterfive](https://www.sterfive.com)
                
 ## Supported Features
 
