@@ -35,7 +35,7 @@ function stringToQualifiedName(value) {
 
     var split_array = value.split(":");
     var namespaceIndex = 0;
-    if (!isNaN(parseFloat(split_array[0])) && isFinite(split_array[0]) && Number.isInteger(parseFloat(split_array[0]))) {
+    if (!isNaN(parseFloat(split_array[0])) && isFinite(split_array[0]) && Number.isInteger(parseFloat(split_array[0])) && split_array.length > 1) {
         namespaceIndex = parseInt(split_array[0]);
         split_array.shift();
         value = split_array.join(':');
