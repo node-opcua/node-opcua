@@ -23,4 +23,20 @@ describe('test qualified name pull request #406', function () {
         var qn = stringToQualifiedName('He:ll:o');
         qn.should.eql(new QualifiedName({namespaceIndex: 0, name: 'He:ll:o'}));
     });
+    it('should convert a string "1:He:ll:o" name  into a qualified name ', function () {
+        var qn = stringToQualifiedName('1:He:ll:o');
+        qn.should.eql(new QualifiedName({namespaceIndex: 1, name: 'He:ll:o'}));
+    });
+    it('should convert a string "1.5:Hello" name  into a qualified name ', function () {
+        var qn = stringToQualifiedName('1.5:Hello');
+        qn.should.eql(new QualifiedName({namespaceIndex: 0, name: '1.5:Hello'}));
+    });
+    it('should convert a string "1.5:Hel:lo" name  into a qualified name ', function () {
+        var qn = stringToQualifiedName('1.5:Hel:lo');
+        qn.should.eql(new QualifiedName({namespaceIndex: 0, name: '1.5:Hel:lo'}));
+    });
+    it('should convert a string "1.5:He:ll:o" name  into a qualified name ', function () {
+        var qn = stringToQualifiedName('1.5:He:ll:o');
+        qn.should.eql(new QualifiedName({namespaceIndex: 0, name: '1.5:He:ll:o'}));
+    });
 });
