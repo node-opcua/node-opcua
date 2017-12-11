@@ -11,6 +11,10 @@ describe('test qualified name pull request #406', function () {
         var qn = stringToQualifiedName('Hello');
         qn.should.eql(new QualifiedName({namespaceIndex: 0, name: 'Hello'}));
     });
+    it('should convert a string "1" into a qualified name ', function () {
+        var qn = stringToQualifiedName('1');
+        qn.should.eql(new QualifiedName({namespaceIndex: 0, name: '1'}));
+    });
     it('should convert a string "1:Hello" name  into a qualified name ', function () {
         var qn = stringToQualifiedName('1:Hello');
         qn.should.eql(new QualifiedName({namespaceIndex: 1, name: 'Hello'}));
