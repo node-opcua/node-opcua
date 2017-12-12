@@ -25,11 +25,11 @@ var argv = yargs(process.argv)
     .default("port",26543)
 
     .number("maxAllowedSessionNumber")
-    .describe("the maximum number of concurrent client session that the server will accept")
+    .describe("maxAllowedSessionNumber","the maximum number of concurrent client session that the server will accept")
     .default("maxAllowedSessionNumber",500)
 
     .number("maxAllowedSubscriptionNumber")
-    .describe("maxAllowedSubscriptionNumber")
+    .describe("maxAllowedSubscriptionNumber","the maximum number of concurrent subscriptions")
 
     .boolean("silent")
     .default("silent",false)
@@ -38,6 +38,12 @@ var argv = yargs(process.argv)
     .alias("a", "alternateHostname")
     .alias("p", "port")
     .alias("m", "maxAllowedSessionNumber")
+
+    .number("keySize")
+    .describe("keySize","certificate keySize [1024|2048|3072|4096]")
+    .default("keySize",2048)
+    .alias("k","keySize")
+
     .help(true)
     .argv;
 
@@ -70,11 +76,19 @@ var userManager = {
     }
 };
 
-//var server_certificate_file            = constructFilename("certificates/server_cert_2048.pem");
-var server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_2048.pem");
-//var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_1024.pem");
-//var server_certificate_file            = constructFilename("certificates/server_cert_2048_outofdate.pem");
-var server_certificate_privatekey_file   = constructFilename("certificates/server_key_2048.pem");
+
+
+var keySize = argv.keySize;
+
+
+//var server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +".pem");
+var server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
+//var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
+//var server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +"_outofdate.pem");
+var server_certificate_privatekey_file   = constructFilename("certificates/server_key_"+ keySize +".pem");
+
+
+console.log(" server certificate : ", server_certificate_file);
 
 var server_options = {
 

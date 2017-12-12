@@ -169,8 +169,8 @@ MessageBuilder.prototype._decrypt_OPN = function (binaryStream) {
 
     var cert = crypto_utils.exploreCertificate(this.securityHeader.senderCertificate);
     // then verify the signature
-    var signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
-    assert(signatureLength === 128 || signatureLength === 256);
+    var signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
+    assert(signatureLength === 128 || signatureLength === 256 || signatureLength === 384 || signatureLength === 512 );
 
     var chunk = binaryStream._buffer;
 

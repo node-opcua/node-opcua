@@ -140,11 +140,23 @@ var start_server_with_1024bits_certificate = function (callback) {
 
 var start_server_with_2048bits_certificate = function (callback) {
 
-    //var server_certificate256_pem_file = path.join(__dirname, "../fixtures/certs/demo_client_cert256.pem");
-    //var server_certificate256_privatekey_file = path.join(__dirname, "../fixtures/certs/demo_client_key256.pem");
-
     var server_certificate256_pem_file = path.join(certificate_store, "server_cert_2048.pem");
     var server_certificate256_privatekey_file = path.join(certificate_store, "server_key_2048.pem");
+
+    fs.existsSync(server_certificate256_pem_file).should.eql(true);
+    fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
+
+    var options = {
+        certificateFile: server_certificate256_pem_file,
+        privateKeyFile: server_certificate256_privatekey_file
+    };
+    start_server(options, callback);
+};
+
+var start_server_with_4096bits_certificate = function (callback) {
+
+    var server_certificate256_pem_file = path.join(certificate_store, "server_cert_4096.pem");
+    var server_certificate256_privatekey_file = path.join(certificate_store, "server_key_4096.pem");
 
     fs.existsSync(server_certificate256_pem_file).should.eql(true);
     fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
@@ -386,22 +398,28 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
     prefix = prefix || "";
 
-    var client_certificate256_pem_file = path.join(certificate_store, "client_cert_2048.pem");
-    var client_certificate256_privatekey_file = path.join(certificate_store, "client_key_2048.pem");
-    fs.existsSync(client_certificate256_pem_file).should.eql(true, client_certificate256_pem_file + " must exist");
-    fs.existsSync(client_certificate256_privatekey_file).should.eql(true, client_certificate256_privatekey_file + " must exist");
+    function build_options(keySize) {
+        var client_certificate_pem_file = path.join(certificate_store, "client_cert_"+keySize+".pem");
+        var client_certificate_privatekey_file = path.join(certificate_store, "client_key_"+keySize+".pem");
+        fs.existsSync(client_certificate_pem_file).should.eql(true, client_certificate_pem_file + " must exist");
+        fs.existsSync(client_certificate_privatekey_file).should.eql(true, client_certificate_privatekey_file + " must exist");
+        var options = {
+            certificateFile: client_certificate_pem_file,
+            privateKeyFile: client_certificate_privatekey_file
+        };
+        return options;
+    }
+    var options_2048 = build_options(2048);
+    var options_3072 = build_options(3072);
+    var options_4096 = build_options(4096);
 
-    var options = {
-        certificateFile: client_certificate256_pem_file,
-        privateKeyFile: client_certificate256_privatekey_file
-    };
-    perform_collection_of_test_with_client_configuration(prefix + "(2048 bits certificate on client)", options);
+    perform_collection_of_test_with_client_configuration(prefix + "(3072 bits certificate on client)", options_3072);
+    perform_collection_of_test_with_client_configuration(prefix + "(4096 bits certificate on client)", options_4096);
+    perform_collection_of_test_with_client_configuration(prefix + "(2048 bits certificate on client)", options_2048);
     perform_collection_of_test_with_client_configuration(prefix + "(1024 bits certificate on client)", null);
 
 }
 
-
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ZZA- testing Secure Client-Server communication", function () {
@@ -713,6 +731,34 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
     });
 });
+
+describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on server", function () {
+
+    this.timeout(Math.max(this._timeout, 20004));
+
+    var serverHandle;
+
+    before(function (done) {
+        start_server_with_4096bits_certificate(function (err, handle) {
+            serverHandle = handle;
+            done(err);
+        });
+    });
+    after(function (done) {
+        stop_server(serverHandle, function () {
+            done();
+        });
+    });
+
+    perform_collection_of_test_with_various_client_configuration(" (4096 bits certificate on server)");
+
+    it("connection should fail if security mode requested by client is not supported by server", function (done) {
+        var securityMode = "SIGN";
+        var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
+    });
+});
+
 
 describe("ZZE- testing with various client certificates", function () {
 
