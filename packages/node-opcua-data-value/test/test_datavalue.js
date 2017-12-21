@@ -31,7 +31,6 @@ describe("DataValue", function () {
         });
     });
 
-
     it("should create a DataValue with string variant and some date and encode/decode it nicely", function () {
 
         var dataValue = new DataValue({
@@ -152,5 +151,116 @@ describe("DataValue", function () {
         dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
 
     });
+
+    describe("Cloning a DataValue", function () {
+        function SomeExtensionObject(options) {
+            this.a = options.a;
+        }
+
+        function copy_construct(v) {
+            return new DataValue(v);
+        }
+
+        function clone(v) {
+            return v.clone();
+        }
+
+        function install_test(copy_construct_or_clone, copy_construct_or_clone_func) {
+            it("should " + copy_construct_or_clone + " a DataValue with a simple Variant", function () {
+
+                var dv = new DataValue({
+                    value: {
+                        dataType: DataType.UInt32,
+                        value: 36
+                    }
+                });
+                var cloned = copy_construct_or_clone_func(dv);
+
+                cloned.value.dataType.should.eql(dv.value.dataType);
+                cloned.value.value.should.eql(dv.value.value);
+
+            });
+            it("should " + copy_construct_or_clone + " a DataValue with a variant array", function () {
+
+                var dv = new DataValue({
+                    value: {
+                        dataType: DataType.UInt32,
+                        value: [36, 37]
+                    }
+                });
+
+                var cloned = copy_construct_or_clone_func(dv);
+
+                cloned.value.dataType.should.eql(dv.value.dataType);
+                cloned.value.value.should.eql(dv.value.value);
+                cloned.value.value[0].should.eql(36);
+                cloned.value.value[1].should.eql(37);
+
+                dv.value.value[0] = 136;
+                dv.value.value[1] = 137;
+
+                cloned.value.value[0].should.eql(36);
+                cloned.value.value[1].should.eql(37);
+
+            });
+            it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object", function () {
+
+                var extObj = new SomeExtensionObject({a: 36});
+                var dv = new DataValue({
+                    value: {
+                        dataType: DataType.ExtensionObject,
+                        value: extObj
+                    }
+                });
+
+                var cloned = copy_construct_or_clone_func(dv);
+
+                cloned.value.dataType.should.eql(dv.value.dataType);
+                cloned.value.value.a.should.eql(dv.value.value.a);
+
+                extObj.a = 1000;
+
+                cloned.value.value.should.not.equal(dv.value.value);
+                cloned.value.value.a.should.equal(36);
+
+                dv.value.value.a.should.eql(1000);
+
+            });
+            it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object array", function () {
+                var extObj1 = new SomeExtensionObject({a: 36});
+                var extObj2 = new SomeExtensionObject({a: 37});
+                var dv = new DataValue({
+                    value: {
+                        dataType: DataType.ExtensionObject,
+                        arrayType: VariantArrayType.Array,
+                        value: [extObj1, extObj2]
+                    }
+
+                });
+
+                // copy construct;,
+                var cloned = copy_construct_or_clone_func(dv);
+
+                cloned.value.dataType.should.eql(dv.value.dataType);
+                cloned.value.value[0].a.should.eql(36);
+                cloned.value.value[1].a.should.eql(37);
+
+                extObj1.a = 1000;
+                extObj2.a = 1001;
+
+                cloned.value.value[0].a.should.eql(36);
+                cloned.value.value[1].a.should.eql(37);
+
+                dv.value.value[0].a.should.eql(1000);
+                dv.value.value[1].a.should.eql(1001);
+
+            });
+        }
+
+        install_test("copy construct", copy_construct);
+        install_test("clone", clone);
+
+    });
+
 });
 

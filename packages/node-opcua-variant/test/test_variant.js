@@ -188,7 +188,7 @@ describe("Variant", function () {
         var1.value[1].should.eql("World");
 
         encode_decode_round_trip_test(var1, function (stream) {
-            stream.length.should.equal(1 + 4 + ( 4 + 5 + 4 + 5));
+            stream.length.should.equal(1 + 4 + (4 + 5 + 4 + 5));
         });
     });
 
@@ -939,8 +939,8 @@ describe("testing sameVariant Performance", function () {
 
     function largeArray(n) {
         var a = new Int32Array(n);
-        for (var i=0;i<n;i++) {
-            a[i] = Math.random()*10000;
+        for (var i = 0; i < n; i++) {
+            a[i] = Math.random() * 10000;
         }
         return a;
     }
@@ -949,8 +949,8 @@ describe("testing sameVariant Performance", function () {
 
     function build_variants() {
         var a = [
-            new Variant({dataType: DataType.String, arrayType: VariantArrayType.Array, value: null }),
-            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: null }),
+            new Variant({dataType: DataType.String, arrayType: VariantArrayType.Array, value: null}),
+            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: null}),
             new Variant({dataType: DataType.String, value: "Hello"}),
             new Variant({dataType: DataType.String, value: "HelloWorld"}),
             new Variant({dataType: DataType.Double, value: 42.0}),
@@ -962,17 +962,57 @@ describe("testing sameVariant Performance", function () {
             new Variant({dataType: DataType.Int32, value: 43}),
             new Variant({dataType: DataType.UInt32, value: 43}),
             new Variant({dataType: DataType.String, arrayType: VariantArrayType.Array, value: ["Hello", "World"]}),
-            new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([42.0, 43.0])}),
-            new Variant({dataType: DataType.Float, arrayType: VariantArrayType.Array,  value: new Float32Array([42.0, 43.0])}),
-            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array,  value: new Int32Array([42, 43.0])}),
-            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array([42, 43.0])}),
-            new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([43.0, 43.0])}),
-            new Variant({dataType: DataType.Float, arrayType: VariantArrayType.Array, value: new Float32Array([43.0, 43.0])}),
-            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([43, 43.0])}),
-            new Variant({dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array([43, 43.0])}),
-            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([43, 43.0,1,2,3,4,5,6,7,8,9,9,10,11,12,14])}),
-            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([43, 43.0,1,2,3,4,5,6,7,8,9,9,10,11,12,16])}),
-            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: largeArray1 }),
+            new Variant({
+                dataType: DataType.Double,
+                arrayType: VariantArrayType.Array,
+                value: new Float64Array([42.0, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.Float,
+                arrayType: VariantArrayType.Array,
+                value: new Float32Array([42.0, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Array,
+                value: new Int32Array([42, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.UInt32,
+                arrayType: VariantArrayType.Array,
+                value: new Uint32Array([42, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.Double,
+                arrayType: VariantArrayType.Array,
+                value: new Float64Array([43.0, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.Float,
+                arrayType: VariantArrayType.Array,
+                value: new Float32Array([43.0, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Array,
+                value: new Int32Array([43, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.UInt32,
+                arrayType: VariantArrayType.Array,
+                value: new Uint32Array([43, 43.0])
+            }),
+            new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Array,
+                value: new Int32Array([43, 43.0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 11, 12, 14])
+            }),
+            new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Array,
+                value: new Int32Array([43, 43.0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 11, 12, 16])
+            }),
+            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: largeArray1}),
             null,
         ];
 
@@ -986,17 +1026,19 @@ describe("testing sameVariant Performance", function () {
     var variousVariants = build_variants();
     var variousVariants_clone = build_variants();
 
-    function _t(t) { return t ? t.toString() : "<null>" ; }
+    function _t(t) {
+        return t ? t.toString() : "<null>";
+    }
 
-    function test_variant(index,sameVariant) {
+    function test_variant(index, sameVariant) {
 
         var v1 = variousVariants[index];
 
         for (var i = 0; i < variousVariants.length; i++) {
             if (i === index) {
-                sameVariant(v1, variousVariants[i]).should.eql(true,_t(v1) + " === " + _t(variousVariants[i]));
+                sameVariant(v1, variousVariants[i]).should.eql(true, _t(v1) + " === " + _t(variousVariants[i]));
             } else {
-                sameVariant(v1, variousVariants[i]).should.eql(false,"i=" + i+ " " + index + " " +  _t(v1) + " !== " + _t(variousVariants[i]));
+                sameVariant(v1, variousVariants[i]).should.eql(false, "i=" + i + " " + index + " " + _t(v1) + " !== " + _t(variousVariants[i]));
             }
         }
         sameVariant(v1, variousVariants_clone[index]).should.eql(true);
@@ -1004,7 +1046,7 @@ describe("testing sameVariant Performance", function () {
 
     for (var i = 0; i < variousVariants.length; i++) {
         var v1 = variousVariants[i];
-        it("#sameVariant with " + (v1 ? v1.toString() : "null"), test_variant.bind(null, i,sameVariant));
+        it("#sameVariant with " + (v1 ? v1.toString() : "null"), test_variant.bind(null, i, sameVariant));
     }
 
 
@@ -1015,19 +1057,19 @@ describe("testing sameVariant Performance", function () {
             .add('fast sameVariant', function () {
                 for (var i = 0; i < variousVariants.length; i++) {
                     for (var j = 0; j < variousVariants.length; j++) {
-                        sameVariant(variousVariants[i],variousVariants_clone[j]);
+                        sameVariant(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
             })
             .add('slow sameVariant', function () {
                 for (var i = 0; i < variousVariants.length; i++) {
                     for (var j = 0; j < variousVariants.length; j++) {
-                        sameVariantSlow(variousVariants[i],variousVariants_clone[j]);
+                        sameVariantSlow(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
             })
             .on('cycle', function (message) {
-                 console.log(message);
+                console.log(message);
             })
             .on('complete', function () {
 
@@ -1041,4 +1083,107 @@ describe("testing sameVariant Performance", function () {
 
 
     })
+});
+
+describe("testing variant Clone & Copy Construct", function () {
+
+    function SomeExtensionObject(options) {
+        this.a = options.a;
+    }
+
+    function copy_construct(v) {
+        return new Variant(v);
+    }
+
+    function clone(v) {
+        return v.clone();
+    }
+
+    function install_test(copy_construct_or_clone, copy_construct_or_clone_func) {
+        it("should " + copy_construct_or_clone + " a simple variant", function () {
+
+            var v = new Variant({
+                dataType: DataType.UInt32,
+                value: 36
+            });
+
+            var cloned = copy_construct_or_clone_func(v);
+
+            cloned.dataType.should.eql(v.dataType);
+            cloned.value.should.eql(v.value);
+
+        });
+        it("should " + copy_construct_or_clone + " a variant array", function () {
+
+            var v = new Variant({
+                dataType: DataType.UInt32,
+                value: [36, 37]
+            });
+
+            var cloned = copy_construct_or_clone_func(v);
+
+            cloned.dataType.should.eql(v.dataType);
+            cloned.value.should.eql(v.value);
+            cloned.value[0].should.eql(36);
+            cloned.value[1].should.eql(37);
+
+            v.value[0] = 136;
+            v.value[1] = 137;
+
+            cloned.value[0].should.eql(36);
+            cloned.value[1].should.eql(37);
+
+        });
+        it("should " + copy_construct_or_clone + " a variant containing a extension object", function () {
+
+            var extObj = new SomeExtensionObject({a: 36});
+            var v = new Variant({
+                dataType: DataType.ExtensionObject,
+                value: extObj
+            });
+
+            var cloned = copy_construct_or_clone_func(v);
+
+            cloned.dataType.should.eql(v.dataType);
+            cloned.value.a.should.eql(v.value.a);
+
+            extObj.a = 1000;
+
+            cloned.value.should.not.equal(v.value);
+            cloned.value.a.should.equal(36);
+
+            v.value.a.should.eql(1000);
+
+        });
+        it("should " + copy_construct_or_clone + " a variant containing a extension object array", function () {
+            var extObj1 = new SomeExtensionObject({a: 36});
+            var extObj2 = new SomeExtensionObject({a: 37});
+            var v = new Variant({
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: [extObj1, extObj2]
+            });
+
+            // copy construct;,
+            var cloned = copy_construct_or_clone_func(v);
+
+            cloned.dataType.should.eql(v.dataType);
+            cloned.value[0].a.should.eql(36);
+            cloned.value[1].a.should.eql(37);
+
+            extObj1.a = 1000;
+            extObj2.a = 1001;
+
+            cloned.value[0].a.should.eql(36);
+            cloned.value[1].a.should.eql(37);
+
+            v.value[0].a.should.eql(1000);
+            v.value[1].a.should.eql(1001);
+
+        });
+    }
+
+    install_test("copy construct", copy_construct);
+    install_test("clone", clone);
+
 });

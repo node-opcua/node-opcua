@@ -54,11 +54,12 @@ function makeStructure(dataType,bForce) {
 /**
  *
  * @method createExtObjArrayNode
+ *         create a node Variable that contains a array of ExtensionObject of a given type
  * @param parentFolder
  * @param options
  * @param options.browseName
- * @param options.complexVariableType
- * @param options.variableType
+ * @param options.complexVariableType :
+    * @param options.variableType        : the type of Extension objects stored in the array.
  * @param options.indexPropertyName
  * @return {Object|UAVariable}
  */
@@ -110,12 +111,14 @@ exports.createExtObjArrayNode = createExtObjArrayNode;
 function getExtObjArrayNodeValue() {
     return new Variant({
         dataType: DataType.ExtensionObject,
+        arrayType: VariantArrayType.Array,
         value: this.$$extensionObjectArray
     });
 }
 
 /**
- *
+ * @method prepareDataType
+ * @private
  * @param dataType
  */
 function prepareDataType(dataType) {
@@ -138,10 +141,8 @@ exports.prepareDataType = prepareDataType;
  */
 function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyName) {
 
-
     assert(uaArrayVariableNode instanceof UAVariable);
     var addressSpace = uaArrayVariableNode.addressSpace;
-
 
     variableType = addressSpace.findVariableType(variableType);
     assert(!variableType.nodeId.isEmpty());
@@ -151,7 +152,6 @@ function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyNam
 
     var dataType = addressSpace.findDataType(variableType.dataType);
     assert(dataType.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
-
 
     uaArrayVariableNode.$$variableType = variableType;
 
@@ -178,7 +178,7 @@ function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyNam
 
     var options = {
         get: getExtObjArrayNodeValue,
-        set: null, // readonly
+        set: null // readonly
     };
 
     // bind the readonly
@@ -188,6 +188,14 @@ function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyNam
 }
 exports.bindExtObjArrayNode = bindExtObjArrayNode;
 
+/**
+ * @method addElement
+ *         add a new element in a ExtensionObject Array variable
+ *
+ * @param options {Object}   data used to construct the underlying ExtensionObject
+ * @param uaArrayVariableNode {UAVariable}
+ * @returns {*}
+ */
 function addElement(options, uaArrayVariableNode) {
 
     assert(uaArrayVariableNode," must provide an UAVariable containing the array");
@@ -195,36 +203,35 @@ function addElement(options, uaArrayVariableNode) {
     // verify that arr has been created correctly
     assert(!!uaArrayVariableNode.$$variableType && !!uaArrayVariableNode.$$dataType, "did you create the array Node with createExtObjArrayNode ?");
     assert(uaArrayVariableNode.$$dataType instanceof UADataType);
-    assert(uaArrayVariableNode.$$dataType._extensionObjectConstructor instanceof Function)
+    assert(uaArrayVariableNode.$$dataType._extensionObjectConstructor instanceof Function);
 
     var checkValue = uaArrayVariableNode.readValue();
     assert(checkValue.statusCode === StatusCodes.Good);
     assert(checkValue.value.dataType === DataType.ExtensionObject);
 
-
     var addressSpace = uaArrayVariableNode.addressSpace;
 
-    var obj = null;
+    var extensionObject = null;
     if (options instanceof uaArrayVariableNode.$$dataType._extensionObjectConstructor) {
         // extension object has already been created
-        obj = options;
+        extensionObject = options;
     } else {
-        obj = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options);
+        extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options);
     }
 
-    var browseName = uaArrayVariableNode.$$getElementBrowseName(obj);
+    var browseName = uaArrayVariableNode.$$getElementBrowseName(extensionObject);
 
     var elVar = uaArrayVariableNode.$$variableType.instantiate({
         componentOf: uaArrayVariableNode.nodeId,
         browseName: browseName,
-        value: {dataType: DataType.ExtensionObject, value: obj}
+        value: {dataType: DataType.ExtensionObject, value: extensionObject}
     });
     elVar.bindExtensionObject();
+    elVar.$extensionObject = extensionObject;
+    -
 
-    // also add the value inside
-    //xx uaArrayVariableNode._dataValue.value.value = uaArrayVariableNode._dataValue.value.value || [];
-    //xx uaArrayVariableNode._dataValue.value.value.push(obj);
-    uaArrayVariableNode.$$extensionObjectArray.push(obj);
+        // also add the value inside
+        uaArrayVariableNode.$$extensionObjectArray.push(extensionObject);
 
     return elVar;
 }

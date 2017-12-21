@@ -19,7 +19,7 @@ var makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
 var NodeId = require("node-opcua-nodeid").NodeId;
 
 
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var sameDataValue = require("node-opcua-data-value").sameDataValue;
 
 var Variant = require("node-opcua-variant").Variant;
@@ -40,14 +40,11 @@ var coerceClock = require("node-opcua-date-time").coerceClock;
 var findBuiltInType = require("node-opcua-factory").findBuiltInType;
 
 
-
 var BaseNode = require("./base_node").BaseNode;
 var SessionContext = require("./session_context").SessionContext;
 
 
-
-
-var debug =  require("node-opcua-debug");
+var debug = require("node-opcua-debug");
 var debugLog = debug.make_debugLog(__filename);
 var doDebug = debug.checkDebugFlag(__filename);
 
@@ -57,15 +54,14 @@ function isGoodish(statusCode) {
 }
 
 function adjust_accessLevel(accessLevel) {
-
-    accessLevel = utils.isNullOrUndefined(accessLevel) ?  "CurrentRead | CurrentWrite" : accessLevel;
+    accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevel(accessLevel);
     assert(_.isFinite(accessLevel.value));
     return accessLevel;
 }
 
 function adjust_userAccessLevel(accessLevel) {
-    accessLevel = utils.isNullOrUndefined(accessLevel) ?  "CurrentRead | CurrentWrite" : accessLevel;
+    accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevel(accessLevel);
     return accessLevel;
 }
@@ -85,7 +81,7 @@ function is_StatusCode(v) {
             v.constructor.name === "ConstantStatusCode" ||
             v.constructor.name === "StatusCode" ||
             v.constructor.name === "ModifiableStatusCode"
-        ) ;
+        );
 }
 
 function is_Variant_or_StatusCode(v) {
@@ -96,9 +92,8 @@ function is_Variant_or_StatusCode(v) {
 }
 
 
-
-
 var UADataType = require("./ua_data_type").UADataType;
+
 function _dataType_toUADataType(addressSpace, dataType) {
 
     assert(addressSpace);
@@ -145,7 +140,6 @@ function validateDataType(addressSpace, dataTypeNodeId, variantDataType, nodeId)
     assert(variantUADataType instanceof UADataType);
 
     var dest_isSuperTypeOf_variant = variantUADataType.isSupertypeOf(builtInUADataType);
-
 
 
     /* istanbul ignore next */
@@ -273,7 +267,7 @@ function UAVariable(options) {
     self.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel);
 
     /**
-     * The MinimumSamplingInterval Attribute indicates how �current� the Value of the Variable will
+     * The MinimumSamplingInterval Attribute indicates how 'current' the Value of the Variable will
      * be kept.
      * @property minimumSamplingInterval
      * @type {number} [Optional]
@@ -313,6 +307,7 @@ function UAVariable(options) {
 
     self.permission = null;
 }
+
 util.inherits(UAVariable, BaseNode);
 UAVariable.prototype.nodeClass = NodeClass.Variable;
 
@@ -423,13 +418,13 @@ UAVariable.prototype.readValue = function (context, indexRange, dataEncoding) {
 
     /* istanbul ignore next */
     if (dataValue.statusCode === StatusCodes.BadWaitingForInitialData) {
-        debugLog(" Warning:  UAVariable#readValue ".red +  self.browseName.toString().cyan+ " ("+ self.nodeId.toString().yellow + ") exists but dataValue has not been defined");
+        debugLog(" Warning:  UAVariable#readValue ".red + self.browseName.toString().cyan + " (" + self.nodeId.toString().yellow + ") exists but dataValue has not been defined");
     }
     return dataValue;
 };
 
 
-UAVariable.prototype._getEnumValues = function() {
+UAVariable.prototype._getEnumValues = function () {
 
     var self = this;
     // DataType must be one of Enumeration
@@ -442,20 +437,19 @@ UAVariable.prototype._getEnumValues = function() {
 };
 
 
-
-UAVariable.prototype.readEnumValue = function() {
+UAVariable.prototype.readEnumValue = function readEnumValue() {
 
     var self = this;
     var indexes = self._getEnumValues();
     var value = self.readValue().value.value;
-    return { value: value, name: indexes.valueIndex[value].name };
+    return {value: value, name: indexes.valueIndex[value].name};
 };
 
 /***
  * @method writeEnumValue
  * @param value {String|Number}
  */
-UAVariable.prototype.writeEnumValue = function(value) {
+UAVariable.prototype.writeEnumValue = function writeEnumValue(value) {
 
     var self = this;
     var indexes = self._getEnumValues();
@@ -463,22 +457,21 @@ UAVariable.prototype.writeEnumValue = function(value) {
     if (_.isString(value)) {
 
         if (!indexes.nameIndex.hasOwnProperty(value)) {
-            throw new Error("UAVariable#writeEnumValue: cannot find value "+ value);
+            throw new Error("UAVariable#writeEnumValue: cannot find value " + value);
         }
-        var valueIndex  = indexes.nameIndex[value].value;
-        value =valueIndex;
+        var valueIndex = indexes.nameIndex[value].value;
+        value = valueIndex;
     }
-    if(_.isFinite(value)) {
+    if (_.isFinite(value)) {
 
         if (!indexes.valueIndex[value]) {
-            throw new Error("UAVariable#writeEnumValue : value out of range",value);
+            throw new Error("UAVariable#writeEnumValue : value out of range", value);
         }
-        self.setValueFromSource({ dataType: DataType.Int32, value: value});
+        self.setValueFromSource({dataType: DataType.Int32, value: value});
     } else {
         throw new Error("UAVariable#writeEnumValue:  value type mismatch");
     }
 };
-
 
 
 UAVariable.prototype._readDataType = function () {
@@ -607,7 +600,6 @@ UAVariable.prototype.readAttribute = function (context, attributeId, indexRange,
 };
 
 
-
 UAVariable.prototype._validate_DataType = function (variantDataType) {
 
     return validateDataType(this.addressSpace, this.dataType, variantDataType, this.nodeId);
@@ -658,14 +650,23 @@ UAVariable.prototype.setValueFromSource = function (variant, statusCode, sourceT
             throw new Error("Variant must provide a valid dataType" + variant.toString());
         }
     }
-    variant =Variant.coerce(variant);
 
-    var now = coerceClock(sourceTimestamp,0);
+    // if (variant.hasOwnProperty("value")) {
+    //     if (variant.dataType === DataType.UInt32) {
+    //         if (!_.isFinite(variant.value)) {
+    //             throw new Error("Expecting an number");
+    //         }
+    //     }
+    // }
+
+    variant = Variant.coerce(variant);
+
+    var now = coerceClock(sourceTimestamp, 0);
 
     var dataValue = new DataValue({
-        sourceTimestamp:   now.timestamp,
+        sourceTimestamp: now.timestamp,
         sourcePicoseconds: now.picoseconds,
-        serverTimestamp:   now.timestamp,
+        serverTimestamp: now.timestamp,
         serverPicoseconds: now.picoseconds,
         statusCode: statusCode || StatusCodes.Good
     });
@@ -674,10 +675,8 @@ UAVariable.prototype.setValueFromSource = function (variant, statusCode, sourceT
 };
 
 
-
-function _apply_default_timestamps(dataValue)
-{
-    var now =getCurrentClock();
+function _apply_default_timestamps(dataValue) {
+    var now = getCurrentClock();
     assert(dataValue instanceof DataValue);
 
     if (!dataValue.sourceTimestamp) {
@@ -695,7 +694,7 @@ function _apply_default_timestamps(dataValue)
  * @note : this method is overridden in address-space-data-access
  * @returns {StatusCode}
  */
-UAVariable.prototype.isValueInRange = function() {
+UAVariable.prototype.isValueInRange = function () {
 
     return StatusCodes.Good;
 };
@@ -746,7 +745,7 @@ UAVariable.prototype.writeValue = function (context, dataValue, indexRange, call
     // convert Variant( Scalar|ByteString) =>  Variant(Array|ByteArray)
     var variant = dataValue.value;
     if (variant.arrayType === VariantArrayType.Scalar && variant.dataType === DataType.ByteString) {
-        if ((self.dataType.value === 3) && (self.dataType.namespace === 0)) { // Byte
+        if ((self.dataType === DataType.Byte) && (self.dataType.namespace === 0)) { // Byte
             variant.arrayType = VariantArrayType.Array;
             variant.dataType = DataType.Byte;
         }
@@ -754,16 +753,18 @@ UAVariable.prototype.writeValue = function (context, dataValue, indexRange, call
 
     var statusCode = self.isValueInRange(dataValue.value);
     if (statusCode !== StatusCodes.Good) {
-        return callback(null,statusCode);
+        return callback(null, statusCode);
     }
 
-    if(!self._timestamped_set_func) {
-        console.log(" warning "+self.nodeId.toString() +" has no _timestamped_set_func");
-        return callback(null,StatusCodes.BadNotWritable);
+    if (!self._timestamped_set_func) {
+        console.log(" warning " + self.nodeId.toString() + " has no _timestamped_set_func");
+        return callback(null, StatusCodes.BadNotWritable);
     }
 
     assert(self._timestamped_set_func);
+
     self._timestamped_set_func(dataValue, indexRange, function (err, statusCode, correctedDataValue) {
+
 
         if (!err) {
 
@@ -830,8 +831,8 @@ UAVariable.prototype.writeAttribute = function (context, writeValue, callback) {
     //xx _apply_default_timestamps(writeValue.value);
 
     switch (writeValue.attributeId) {
-            case AttributeIds.Value:
-                this.writeValue(context, writeValue.value, writeValue.indexRange, callback);
+        case AttributeIds.Value:
+            this.writeValue(context, writeValue.value, writeValue.indexRange, callback);
             break;
         default:
             BaseNode.prototype.writeAttribute.call(this, context, writeValue, callback);
@@ -903,12 +904,14 @@ function _Variable_bind_with_async_refresh(options) {
     //assert(self._dataValue.statusCode === StatusCodes.BadNodeIdUnknown);
     self._dataValue.statusCode = StatusCodes.UncertainInitialValue;
 
-    if (self.minimumSamplingInterval === 0 ) {
+    // TO DO : REVISIT THIS ASSUMPTION
+    if (false && self.minimumSamplingInterval === 0) {
         // when a getter /timestamped_getter or async_getter is provided
         // samplingInterval cannot be 0, as the item value must be scanned to be updated.
         self.minimumSamplingInterval = _default_minimumSamplingInterval; // MonitoredItem.minimumSamplingInterval;
-        debugLog("adapting minimumSamplingInterval on " + self.browseName.toString() + " to " +  self.minimumSamplingInterval);
+        debugLog("adapting minimumSamplingInterval on " + self.browseName.toString() + " to " + self.minimumSamplingInterval);
     }
+
 
 }
 
@@ -926,7 +929,7 @@ function _Variable_bind_with_timestamped_get(options) {
         callback(null, dataValue);
     }
 
-    if(options.timestamped_get.length === 0) {
+    if (options.timestamped_get.length === 0) {
         // sync version
         self._timestamped_get_func = options.timestamped_get;
 
@@ -939,7 +942,7 @@ function _Variable_bind_with_timestamped_get(options) {
         }
         _Variable_bind_with_async_refresh.call(self, {refreshFunc: async_refresh_func});
 
-    } else if(options.timestamped_get.length === 1) {
+    } else if (options.timestamped_get.length === 1) {
 
         _Variable_bind_with_async_refresh.call(self, {refreshFunc: options.timestamped_get});
 
@@ -956,8 +959,8 @@ function _Variable_bind_with_simple_get(options) {
     var self = this;
     assert(self instanceof UAVariable);
     assert(_.isFunction(options.get), "should specify get function");
-    assert(options.get.length === 0,  "get function should not have arguments");
-    assert(!options.timestamped_get,  "should not specify a timestamped_get function when get is specified");
+    assert(options.get.length === 0, "get function should not have arguments");
+    assert(!options.timestamped_get, "should not specify a timestamped_get function when get is specified");
     assert(!self._timestamped_get_func);
     assert(!self._get_func);
 
@@ -977,9 +980,9 @@ function _Variable_bind_with_simple_get(options) {
             return new DataValue({statusCode: value});
 
         } else {
-            if (!self._dataValue || !isGoodish(self._dataValue.statusCode) || !sameVariant(self._dataValue.value,value) ) {
+            if (!self._dataValue || !isGoodish(self._dataValue.statusCode) || !sameVariant(self._dataValue.value, value)) {
 
-                self.setValueFromSource(value,StatusCodes.Good);
+                self.setValueFromSource(value, StatusCodes.Good);
             } else {
                 //XXXY console.log("YYYYYYYYYYYYYYYYYYYYYYYYYY".red,self.browseName.toString());
             }
@@ -1010,6 +1013,7 @@ function _Variable_bind_with_simple_set(options) {
         });
     };
 }
+
 function _Variable_bind_with_timestamped_set(options) {
 
     /* jshint validthis: true */
@@ -1024,8 +1028,7 @@ function _Variable_bind_with_timestamped_set(options) {
 }
 
 
-
-function bind_setter(self,options) {
+function bind_setter(self, options) {
 
     if (_.isFunction(options.set)) {                                    // variation 1
         _Variable_bind_with_simple_set.call(self, options);
@@ -1044,7 +1047,7 @@ function bind_setter(self,options) {
     }
 }
 
-function bind_getter(self,options) {
+function bind_getter(self, options) {
 
 
     if (_.isFunction(options.get)) {                                   // variation 1
@@ -1058,18 +1061,49 @@ function bind_getter(self,options) {
 
     } else {
 
-
         assert(!options.set, "getter is missing : a getter must be provided if a setter is provided");
         //xx bind_variant.call(self,options);
         self.setValueFromSource(options);
     }
 }
 
+/**
+ * touch the source timestamp of a Variable and cascade up the change
+ * to the parent variable if any.
+ *
+ * @param optionalNow {Object}
+ * @param optionalNow.timestamp    {Date}
+ * @param optionalNow.picoseconds  {Number}
+ */
+UAVariable.prototype.touchValue = function (optionalNow) {
+    var variable = this;
+    var now = optionalNow || getCurrentClock();
+    variable._dataValue.sourceTimestamp = now.timestamp;
+    variable._dataValue.sourcePicoseconds = now.picoseconds;
+    variable._dataValue.serverTimestamp = now.timestamp;
+    variable._dataValue.serverPicoseconds = now.picoseconds;
+
+    variable._dataValue.statusCode = StatusCodes.Good;
+
+    if (variable.minimumSamplingInterval === 0) {
+        //xx console.log("xxx touchValue = ",variable.browseName.toString(),variable._dataValue.value.value);
+        variable.emit("value_changed", variable._dataValue);
+    }
+    if (variable.parent && variable.parent.nodeClass == NodeClass.Variable) {
+        variable.parent.touchValue(now);
+    }
+};
+
+
 UAVariable.prototype._internal_set_dataValue = function (dataValue, indexRange) {
 
+    //xx if(this.nodeId.toString()=== "ns=411;s=Scalar_Static_Int32") {
+    //xx     console.log("xxxx _internal_set_dataValue = ".green,dataValue.toString());
+    //xx  }
     var self = this;
-    assert(dataValue,"expecting a dataValue");
-    assert(dataValue instanceof DataValue,"expecting dataValue to be a DataValue");
+    assert(dataValue, "expecting a dataValue");
+    assert(dataValue instanceof DataValue, "expecting dataValue to be a DataValue");
+    assert(dataValue !== self.__dataValue, "expecting dataValue to be different from previous DataValue instance");
 
     var old_dataValue = self._dataValue;
 
@@ -1090,7 +1124,9 @@ UAVariable.prototype._internal_set_dataValue = function (dataValue, indexRange) 
     //     console.log("xxxx UAVariable emit value_changed ??".bgRed, old_dataValue.value.toString(),dataValue.value.toString());
     // }
     if (!sameDataValue(old_dataValue, dataValue)) {
-        //xx console.log("UAVariable emit value_changed");
+        //xx if(this.nodeId.toString()=== "ns=411;s=Scalar_Static_Int32") {
+        //xx     console.log("UAVariable emit value_changed");
+        //xx }
         self.emit("value_changed", self._dataValue, indexRange);
     }
 };
@@ -1246,10 +1282,10 @@ UAVariable.prototype.bindVariable = function (options, overwrite) {
     }
     options = options || {};
 
-    assert(!_.isFunction(self._timestamped_set_func),"UAVariable already bounded");
-    assert(!_.isFunction(self._timestamped_get_func),"UAVariable already bounded");
-    bind_getter(self,options);
-    bind_setter(self,options);
+    assert(!_.isFunction(self._timestamped_set_func), "UAVariable already bounded");
+    assert(!_.isFunction(self._timestamped_get_func), "UAVariable already bounded");
+    bind_getter(self, options);
+    bind_setter(self, options);
     if (options.historyRead) {
         assert(!_.isFunction(self._historyRead));
         assert(_.isFunction(options.historyRead));
@@ -1294,7 +1330,7 @@ UAVariable.prototype.readValueAsync = function (context, callback) {
 
     var func = null;
     if (!self.isReadable(context)) {
-        func = function(callback) {
+        func = function (callback) {
             var dataValue = new DataValue({statusCode: StatusCodes.BadNotReadable});
             callback(null, dataValue);
         }
@@ -1311,8 +1347,8 @@ UAVariable.prototype.readValueAsync = function (context, callback) {
         // now call all pending callbacks
         var callbacks = self.__waiting_callbacks;
         self.__waiting_callbacks = [];
-        var i=0,n=callbacks.length,callback;
-        for (;i<n;i++) {
+        var i = 0, n = callbacks.length, callback;
+        for (; i < n; i++) {
             callback = callbacks[i];
             callback.call(self, err, dataValue);
         }
@@ -1324,7 +1360,7 @@ UAVariable.prototype.readValueAsync = function (context, callback) {
     catch (err) {
         // istanbul ignore next
         console.log("func readValueAsync has failed ".red);
-        console.log(" stack",err.stack);
+        console.log(" stack", err.stack);
         satisfy_callbacks(err);
     }
 };
@@ -1338,21 +1374,21 @@ UAVariable.prototype.getUserWriteMask = function () {
 };
 
 
-UAVariable.prototype.clone = function (options, optionalfilter,extraInfo) {
+UAVariable.prototype.clone = function (options, optionalfilter, extraInfo) {
 
     var self = this;
     options = options || {};
-    options = _.extend(_.clone(options),{
-        eventNotifier:           self.eventNotifier,
-        symbolicName:            self.symbolicName,
+    options = _.extend(_.clone(options), {
+        eventNotifier: self.eventNotifier,
+        symbolicName: self.symbolicName,
         //xx value:                self.value,
-        dataType:                self.dataType,
-        valueRank:               self.valueRank,
-        arrayDimensions:         self.arrayDimensions,
-        accessLevel:             self.accessLevel,
-        userAccessLevel:         self.userAccessLevel,
+        dataType: self.dataType,
+        valueRank: self.valueRank,
+        arrayDimensions: self.arrayDimensions,
+        accessLevel: self.accessLevel,
+        userAccessLevel: self.userAccessLevel,
         minimumSamplingInterval: self.minimumSamplingInterval,
-        historizing:             self.historizing
+        historizing: self.historizing
     });
     var newVariable = self._clone(UAVariable, options, optionalfilter, extraInfo);
 
@@ -1366,189 +1402,527 @@ UAVariable.prototype.clone = function (options, optionalfilter,extraInfo) {
 };
 
 
-function _bindComponent(variable,addressSpace,prop, name,dataTypeId, valueRank) {
-
-    assert(dataTypeId instanceof NodeId);
-    // install a getter function to retrieve the underlying object
-
-    var isArray = ( valueRank === 1);
-
-    var dataType = addressSpace.findCorrespondingBasicDataType(dataTypeId);
-
-    //DataType.ExtensionObject
-    prop.bindVariable({
-
-        timestamped_get: function () {
-
-            var dv = variable.readValue();
-
-            this._dataValue.statusCode = dv.statusCode;
-
-            this._dataValue.serverTimestamp =   dv.serverTimestamp;
-            this._dataValue.serverPicoseconds = dv.serverPicoseconds;
-
-            this._dataValue.sourceTimestamp = dv.sourceTimestamp;
-            this._dataValue.sourcePicoseconds = dv.sourcePicoseconds;
-
-            if (isArray) {
-
-                //console.log("xxxxxxxxxxxxxxxxxxxxxxx ".yellow,dv.value.value[name]);
-                //console.log("xxxxxxxxxxxxxxxxxxxxxxx ".yellow,dataType.toString());
-                assert( !dv.value.value[name] || _.isArray(dv.value.value[name]));
-                this._dataValue.value = new Variant({
-                    arrayType: VariantArrayType.Array,
-                    value: dv.value.value[name] || [],
-                    dataType: dataType
-
-                });
-
-            } else {
-                this._dataValue.value = new Variant({
-                    arrayType: VariantArrayType.Scalar,
-                    value: dv.value.value[name],
-                    dataType: dataType
-                });
-
-            }
-
-            //xx this._dataValue.value.value = dv.value.value[name];
-            //xx console.log( "there ",this._dataValue.toString());
-            return this._dataValue;
-        },
-
-        set: function(variant) {
-            assert(variant instanceof Variant);
-            var dv = variable.readValue();
-            assert(dv.value.value.hasOwnProperty(name));
-
-            dv.value.value[name] = variant.value;
-            return StatusCodes.Good;
-        }
-
-    }, true);
-
-    prop.setValueFromSource = function(variant,statusCode, sourceTimestamp) {
-        var dv = variable.readValue();
-        if (!statusCode || statusCode === StatusCodes.Good) {
-            assert(dv.value.value.hasOwnProperty(name));
-            dv.value.value[name] = variant.value;
-        }
-    };
-
-    // to do
-    prop.bindExtensionObject();
-
-}
+// function _old_bindExtensionObjectComponent(variable, prop, name, dataTypeId, valueRank) {
+//
+//     assert(dataTypeId instanceof NodeId);
+//     // install a getter function to retrieve the underlying object
+//     var isArray = (valueRank === 1);
+//
+//     var addressSpace = variable.addressSpace;
+//
+//     var dataType = addressSpace.findCorrespondingBasicDataType(dataTypeId);
+//
+//     //DataType.ExtensionObject
+//     prop.bindVariable({
+//
+//         timestamped_get: function () {
+//             //xxxx DELETE ME
+//             if (variable.browseName.name !== "ServerStatus") {
+//                 var a = 1;
+//             }
+//             //xxxx DELETE ME
+//             var dv = variable.readValue();
+//             var extensionObject = dv.value.value;
+//
+//             this._dataValue.statusCode = dv.statusCode;
+//             this._dataValue.serverTimestamp = dv.serverTimestamp;
+//             this._dataValue.serverPicoseconds = dv.serverPicoseconds;
+//             this._dataValue.sourceTimestamp = dv.sourceTimestamp;
+//             this._dataValue.sourcePicoseconds = dv.sourcePicoseconds;
+//
+//             if (isArray) {
+//                 //console.log("xxxxxxxxxxxxxxxxxxxxxxx ".yellow,dv.value.value[name]);
+//                 //console.log("xxxxxxxxxxxxxxxxxxxxxxx ".yellow,dataType.toString());
+//                 assert(!extensionObject[name] || _.isArray(extensionObject[name]));
+//                 this._dataValue.value = new Variant({
+//                     arrayType: VariantArrayType.Array,
+//                     value: extensionObject[name] || [],
+//                     dataType: dataType
+//                 });
+//
+//             } else {
+//                 this._dataValue.value = new Variant({
+//                     arrayType: VariantArrayType.Scalar,
+//                     value: extensionObject[name],
+//                     dataType: dataType
+//                 });
+//             }
+//             //xx this._dataValue.value.value = dv.value.value[name];
+//             //xx console.log( "there ",this._dataValue.toString());
+//             return this._dataValue;
+//         },
+//
+//         set: function (variant) {
+//             assert(variant instanceof Variant);
+//             var dv = variable.readValue();
+//             var extensionObject = dv.value.value;
+//             assert(extensionObject.hasOwnProperty(name));
+//             extensionObject[name] = variant.value;
+//             return StatusCodes.Good;
+//         }
+//
+//     }, true);
+//
+//     prop.setValueFromSource = function (variant, statusCode, sourceTimestamp) {
+//         assert(variant instanceof Variant, "expecting a Variant");
+//         var dv = variable.readValue();
+//         var extensionObject = dv.value.value;
+//         if (!statusCode || statusCode === StatusCodes.Good) {
+//             assert(extensionObject.hasOwnProperty(name));
+//             extensionObject[name] = variant.value;
+//         }
+//     };
+//     // to do
+//     prop.bindExtensionObject();
+// }
 
 var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
-function w(str,n) { return (str+"                                                              ").substr(0,n);}
 
-UAVariable.prototype.bindExtensionObject = function() {
+function w(str, n) {
+    return (str + "                                                              ").substr(0, n);
+}
+
+
+function makeHandler(variable) {
+    var handler = {
+        get: function (target, key, receiver) {
+            //xx console.log(`xxxx get ${key}`);
+            if (target[key] === undefined) {
+                return undefined;
+            }
+            return target[key];
+        },
+        set: function (target, key, value, receiver) {
+            ///xx console.log(" Setting value ", "to", newVal,prop,variable.browseName.toString());
+            target[key] = value;
+            if (variable[key] && variable[key].touchValue) {
+                ///xx     console.log("--------");
+                variable[key].touchValue();
+            }
+            return true; // true means the set operation has succeeded
+        }
+    };
+    return handler;
+}
+
+// function new_bindExtensionObjectComponent(variable, property, name, fieldDataType, valueRank, extensionObject) {
+//     assert(fieldDataType instanceof NodeId);
+//     // install a getter function to retrieve the underlying object
+//     var isArray = (valueRank === 1);
+//     var addressSpace = property.addressSpace;
+//     var dataType = addressSpace.findCorrespondingBasicDataType(fieldDataType);
+//     assert(extensionObject.hasOwnProperty(name));
+//     //xx   prop.bindVariable();
+//
+//     if (dataType.value === DataType.ExtensionObject.value) {
+//         assert(extensionObject[name] instanceof Object);
+//         console.log("installing proxy for ".yellow,name.cyan);
+//         //xx assert(!(extensionObject[name] instanceof Proxy));
+//         extensionObject[name] = new Proxy(extensionObject[name], makeHandler(property) );
+//     }
+//     property.bindVariable({
+//         timestamped_get: function() {
+//             property._dataValue.value.value = extensionObject[name];
+//             return property._dataValue;
+//         },
+//         timestamped_set: function() {
+//             throw new Error("!!!!");
+//         }
+//     },true);
+// }
+//
+// var _bindExtensionObjectComponent = new_bindExtensionObjectComponent;
+
+UAVariable.prototype.getDataTypeNode = function () {
+    var self = this;
+    var addressSpace = self.addressSpace;
+    var dt = addressSpace.findNode(self.dataType);
+    // istanbul ignore next
+    if (!dt) {
+        throw new Error("cannot find dataType " + self.dataType.toString());
+    }
+    return dt;
+};
+
+UAVariable.prototype.__defineGetter__("dataTypeObj", function () {
+    var self = this;
+    return self.getDataTypeNode();
+});
+
+/**
+ * @return {ExtensionObject}
+ */
+UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
 
     var self = this;
     var addressSpace = self.addressSpace;
-
     var structure = addressSpace.findDataType("Structure");
-
-
     if (!structure) {
         // the addressSpace is limited and doesn't provide extension object
         // bindExtensionObject cannot be performed and shall finish here.
-        return;
+        return null;
     }
-    assert(structure && structure.browseName.toString() === "Structure"," expecting DataType Structure to be in AddressSpace");
+    assert(structure && structure.browseName.toString() === "Structure",
+        "expecting DataType Structure to be in AddressSpace");
+
+    var dt = self.getDataTypeNode();
+    if (!dt.isSupertypeOf(structure)) {
+        return null;
+    }
+
+    var Constructor;
+
+    // -------------------- make sure we do not bind a variable twice ....
+    if (self.$extensionObject) {
+        assert(utils.isNullOrUndefined(optionalExtensionObject), "unsupported case");
+        Constructor = addressSpace.getExtensionObjectConstructor(self.dataType);
+        var extensionObject_ = self.readValue().value.value;
+        assert(extensionObject_.constructor.name === Constructor.name);
+        assert(self.$extensionObject.constructor.name === Constructor.name);
+        return self.$extensionObject;
+        // throw new Error("Variable already bounded");
+    }
+    self.$extensionObject = optionalExtensionObject;
+
+    // ------------------------------------------------------------------
+
+    function prepareVariantValue(dataType, value) {
+        if ((dataType === DataType.Int32 || dataType === DataType.UInt32) && value.key) {
+            value = value.value;
+        }
+        return value;
+    }
+
+    function bindProperty(property, name, extensionObject, dataTypeNodeId) {
+
+        var dataType = DataType.get(dataTypeNodeId.value);
+        property.setValueFromSource(new Variant({
+            dataType: dataType,
+            value: prepareVariantValue(dataType, self.$extensionObject[name])
+        }));
+        assert(property.readValue().statusCode === StatusCodes.Good);
+
+        property.bindVariable({
+            timestamped_get: function () {
+                var value = prepareVariantValue(dataType, self.$extensionObject[name]);
+                property._dataValue.statusCode = StatusCodes.Good;
+                ///xx console.log(" Loadadazdazezaeaze ",property.browseName.toString(),name);// ,extensionObject[name]);
+                property._dataValue.value.value = value;
+                var d = new DataValue(property._dataValue);
+                //xx d.value = new Variant(d.value);
+                return d;
+
+                return new DataValue(property._dataValue);
+            },
+            timestamped_set: function () {
+                throw new Error("!!!!");
+            }
+        }, true);
+    }
 
     var components = self.getComponents();
-    var dt = addressSpace.findNode(self.dataType);
 
-    // istanbul ignore next
-    if (!dt)  {
-        throw new Error("cannot find dataType "+ self.dataType.toString());
+    // ------------------------------------------------------
+    // make sure we have a structure
+    // ------------------------------------------------------
+    var s = self.readValue();
+
+    if (s.value && s.value.dataType === DataType.Null) {
+
+        //xx console.log("xxxxx s=".bgRed, s.toString());
+        // create a structure and bind it
+        var extensionObject_ = self.$extensionObject || addressSpace.constructExtensionObject(self.dataType);
+        extensionObject_ = new Proxy(extensionObject_, makeHandler(self));
+        self.$extensionObject = extensionObject_;
+
+        var theValue = new Variant({
+            dataType: DataType.ExtensionObject,
+            value: self.$extensionObject
+        });
+        self.setValueFromSource(theValue, StatusCodes.Good);
+
+        self.bindVariable({
+            timestamped_get: function () {
+                self._dataValue.value.value = self.$extensionObject;
+                var d = new DataValue(self._dataValue);
+                d.value = new Variant(d.value);
+                return d;
+            },
+            timestamped_set: function () {
+                throw new Error("!!!!");
+            }
+        }, true);
+
+    }
+    else {
+        // verify that variant has the correct type
+        assert(s.value.dataType === DataType.ExtensionObject);
+        self.$extensionObject = s.value.value;
+        assert(self.$extensionObject && self.$extensionObject.constructor, "expecting an valid extension object");
+        assert(s.statusCode === StatusCodes.Good);
+
+        var Constructor = addressSpace.getExtensionObjectConstructor(self.dataType);
+        assert(Constructor);
+        assert(self.$extensionObject.constructor.name === Constructor.name);
     }
 
-    if(dt.isSupertypeOf(structure)) {
+    //xx console.log("xxx extensionObject",extensionObject.constructor.name);
 
-        // ------------------------------------------------------
-        // make sure we have a structure
-        // ------------------------------------------------------
-        var s = self.readValue();
+    var property, field, camelCaseName;
+    // ------------------------------------------------------
+    // now bind each member
+    // ------------------------------------------------------
+    for (var fieldIndex = 0; fieldIndex < dt.definition.length; fieldIndex++) {
+        field = dt.definition[fieldIndex];
+        camelCaseName = lowerFirstLetter(field.name);
+        var component = components.filter(function (f) {
+            return f.browseName.name.toString() === field.name;
+        });
+        if (component.length === 1) {
+            /* istanbul ignore next */
+            if (doDebug) {
+                var x = addressSpace.findNode(field.dataType).browseName.toString();
+                var basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
+                console.log("xxx".cyan, " dataType",
+                    w(field.dataType.toString(), 8),
+                    w(field.name, 35),
+                    "valueRank", w(field.valueRank, 3).cyan,
+                    w(x, 25).green,
+                    "basicType = ", w(basicType.toString(), 20).yellow, field.dataType.toString());
+            }
+            property = component[0];
 
-        if (s.value && s.value.dataType === DataType.Null) {
-            //xx console.log("xxxxx s=".bgRed, s.toString());
-            // create a structure and bind it
-            var theValue = new Variant({
-                dataType: DataType.ExtensionObject,
-                value: addressSpace.constructExtensionObject(self.dataType)
+        }
+        else {
+            //Xx console.log("xxxxxxxxxx ADDD",name,self.minimumSamplingInterval);
+            assert(component.length === 0);
+            // create a variable (Note we may use ns=1;s=parentName/0:PropertyName)
+            property = addressSpace.addVariable({
+                browseName: field.name.toString(),
+                dataType: field.dataType,
+                componentOf: self,
+                minimumSamplingInterval: self.minimumSamplingInterval
             });
-
-            self.setValueFromSource(theValue,StatusCodes.Good);
-
-        } else {
-            // verify that variant has the correct type
-            assert(s.value.dataType === DataType.ExtensionObject);
-            assert(s.value.value.constructor.name === addressSpace.constructExtensionObject(self.dataType).constructor.name);
+            assert(property.minimumSamplingInterval === self.minimumSamplingInterval);
         }
 
-        // ------------------------------------------------------
-        // now bind each member
-        // ------------------------------------------------------
-        dt.definition.forEach(function(field) {
+        property._dataValue.statusCode = StatusCodes.Good;
+        property.touchValue();
 
-            var component = components.filter(function(f){
-                return f.browseName.name.toString() === field.name;
+        var dataTypeNodeId = addressSpace.findCorrespondingBasicDataType(field.dataType);
+        assert(self.$extensionObject.hasOwnProperty(camelCaseName));
+
+        if (dataTypeNodeId.value === DataType.ExtensionObject.value) {
+            assert(self.$extensionObject[camelCaseName] instanceof Object);
+            //xx console.log("installing proxy for ".yellow,name.cyan);
+            //xx assert(!(extensionObject[name] instanceof Proxy));
+            self.$extensionObject[camelCaseName] = new Proxy(self.$extensionObject[camelCaseName], makeHandler(property));
+            property._dataValue.value = new Variant({
+                dataType: DataType.ExtensionObject,
+                value: self.$extensionObject[camelCaseName]
             });
-            var name = lowerFirstLetter(field.name.toString());
-
-            if (component.length === 1) {
-
-                if (doDebug) {
-                    var x = addressSpace.findNode(field.dataType).browseName.toString();
-                    var basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
-                    console.log("xxx".cyan," dataType",
-                            w(field.dataType.toString(),8),
-                            w(field.name,35),
-                           "valueRank", w(field.valueRank,3).cyan,
-                           w(x,25).green,
-                           "basicType = ",w(basicType.toString(),20).yellow,field.dataType.toString() );
-                }
-
-                _bindComponent(self,addressSpace,component[0], name, field.dataType,field.valueRank );
-            } else {
-
-                assert(component.length===0);
-                // create a variable
-                // Note we may use ns=1;s=parentName/0:PropertyName
-
-                var newProp = addressSpace.addVariable({
-                    browseName: field.name.toString(),
-                    dataType: field.dataType,
-                    componentOf: self
-                });
-                _bindComponent(self,addressSpace,newProp, name, field.dataType,field.valueRank );
-
-            }
-        });
+            property.bindExtensionObject();
+            property.$extensionObject = self.$extensionObject[camelCaseName];
+            //xx console.log("installing proxy for ".yellow,name.cyan, "done");
+        } else {
+            var dataType = DataType.get(dataTypeNodeId.value);
+            property._dataValue.value = new Variant({
+                dataType: dataType,
+                value: prepareVariantValue(dataType, self.$extensionObject[camelCaseName])
+            });
+        }
+        assert(property.readValue().statusCode === StatusCodes.Good);
+        bindProperty(property, camelCaseName, self.$extensionObject, dataTypeNodeId);
+        //xxx _bindExtensionObjectComponent(self, property, name, field.dataType, field.valueRank, extensionObject);
     }
+    assert(self.$extensionObject instanceof Object);
+//xx    self.$extensionObject = extensionObject;
+    return self.$extensionObject;
 };
 
+function setExtensionObjectValue(node, partialObject) {
 
-UAVariable.prototype.__defineGetter__("dataTypeObj",function() {
+    var extensionObject = node.$extensionObject;
+    if (!extensionObject) {
+        throw new Error("setExtensionObjectValue node has no extension object " + node.browseName.toString());
+    }
+
+    function _update_extension_object(extObject, partialObject) {
+        var keys = Object.keys(partialObject);
+        for (var n in keys) {
+            var prop = keys[n];
+            if (extObject[prop] instanceof Object) {
+                _update_extension_object(extObject[prop], partialObject[prop]);
+            } else {
+                extObject[prop] = partialObject[prop];
+            }
+        }
+    }
+
+    _update_extension_object(extensionObject, partialObject);
+}
+
+// function update_this_extension_object(node, partialObject) {
+//     var extObject = node.readValue().value.value;
+//
+//     function _update_extension_object(extObject, partialObject) {
+//         var keys = Object.keys(partialObject);
+//         for (var n in keys) {
+//             var prop = keys[n];
+//             //xx console.log("prop", prop);
+//             if (extObject[prop] instanceof Object) {
+//                 _update_extension_object(extObject[prop], partialObject[prop]);
+//             } else {
+//                 extObject[prop] = partialObject[prop];
+//             }
+//         }
+//     }
+//
+//     _update_extension_object(extObject, partialObject);
+//     //xx var a =node._dataValue.sourceTimestamp.getTime();
+//     //xx var aa =node._dataValue.sourcePicoseconds;
+//     node.setValueFromSource({
+//         dataType: DataType.ExtensionObject,
+//         value: extObject
+//     });
+//     //xx var b =node._dataValue.sourceTimestamp.getTime();
+//     //xx var bb =node._dataValue.sourcePicoseconds;
+//     //xx console.log(node.browseName.toString(),a,aa,b,bb);
+//     //xx console.log(node.browseName.toString(),node._dataValue.toString());
+// }
+//
+// function update_sub_components(dt, node, partialObject) {
+//     var components = node.getComponents();
+//     for (var fieldIndex in dt.definition) {
+//
+//         var field = dt.definition[fieldIndex];
+//
+//         var component = components.filter(function (f) {
+//             return f.browseName.name.toString() === field.name;
+//         });
+//
+//         var name = lowerFirstLetter(field.name.toString());
+//         if (component.length === 1) {
+//             component = component[0];
+//             if (!partialObject.hasOwnProperty(name)) {
+//                 continue; // ignored
+//                 // throw new Error("Inconsistant extension object");
+//             }
+//             setExtensionObjectValue(component, partialObject[name]);
+//         } else {
+//             throw new Error("Cannot find component with value " + field);
+//         }
+//     }
+// }
+//
+// /* install the value of an extension object value in a top-down manner */
+// function setExtensionObjectValue_bad(node, partialObject) {
+//
+//     var addressSpace = node.addressSpace;
+//     var structure = addressSpace.findDataType("Structure");
+//     var dt = node.getDataTypeNode();
+//
+//     if (dt.isSupertypeOf(structure)) {
+//
+//         // update value
+//         update_this_extension_object(node, partialObject);
+//
+//         // update components
+//         update_sub_components(dt, node, partialObject);
+//         // update value
+//     } else {
+//         node.setValueFromSource({
+//             dataType: DataType.get(dt.nodeId.value),
+//             value: partialObject
+//         }, StatusCodes.Good, new Date());
+//     }
+// }
+
+UAVariable.prototype.updateExtensionObjectPartial = function (partialExtensionObject) {
     var self = this;
-    var addressSpace = self.addressSpace;
-    var d = addressSpace.findNode(self.dataType);
-    return d;
-});
+    setExtensionObjectValue(self, partialExtensionObject);
+    return self.$extensionObject;
+};
 
+UAVariable.prototype.incrementExtensionObjectPartial = function (path) {
+
+    var self = this;
+    if (typeof path === "string") {
+        path = path.split(".");
+    }
+    assert(path instanceof Array);
+    var extensionObject = this.constructExtensionObjectFromComponents();
+    var i;
+    // read partial value
+    var partialData = {};
+    var p = partialData;
+    for (i = 0; i < path.length - 1; i++) {
+        name = path[i];
+        p[name] = {};
+        p = p[name];
+    }
+    name = path[path.length - 1];
+    p[name] = 0;
+
+    var c1 = partialData;
+    var c2 = extensionObject;
+    var name;
+    for (i = 0; i < path.length - 1; i++) {
+        name = path[i];
+        c1 = partialData[name];
+        c2 = extensionObject[name];
+    }
+    name = path[path.length - 1];
+    c1[name] = c2[name];
+    c1[name] += 1;
+
+    //xx console.log(partialData);
+    setExtensionObjectValue(self, partialData);
+};
+
+function constructExtensionObjectFromComponents(node) {
+
+    return node.readValue().value.value;
+    /*
+        var addressSpace = node.addressSpace;
+        var structure = addressSpace.findDataType("Structure");
+        var components = node.getComponents();
+
+        var options = {};
+        var dt = node.getDataTypeNode();
+        if (dt.isSupertypeOf(structure)) {
+            // we browse each properties to
+            for (var fieldIndex in dt.definition) {
+
+                var field = dt.definition[fieldIndex];
+
+                var component = components.filter(function (f) {
+                    return f.browseName.name.toString() === field.name;
+                });
+                var name = lowerFirstLetter(field.name.toString());
+                if (component.length === 1) {
+                    component = component[0];
+                    options[name] = component.readValue().value.value;
+                    //xx       console.log("name ", name, options[name]);
+                } else {
+                    throw new Error("Cannot find component with value " + field);
+                }
+            }
+        }
+        var extensionObject = addressSpace.constructExtensionObject(node.dataType, options);
+        return extensionObject;
+    */
+}
+
+UAVariable.prototype.constructExtensionObjectFromComponents = function () {
+    return constructExtensionObjectFromComponents(this);
+};
 
 UAVariable.prototype.handle_semantic_changed = function () {
-
     var variable = this;
-    variable.semantic_version = variable.semantic_version +1;
+    variable.semantic_version = variable.semantic_version + 1;
     variable.emit("semantic_changed");
-
 };
-
-
 exports.UAVariable = UAVariable;
 
 require("./data_access/ua_variable_data_access");

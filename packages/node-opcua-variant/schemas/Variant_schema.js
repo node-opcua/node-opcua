@@ -349,12 +349,24 @@ var Variant_Schema = {
     construct_hook: function (options) {
 
         if (options.constructor.name === "Variant") {
-            return {
+            var opts = {
                 dataType: options.dataType,
                 arrayType: options.arrayType,
                 value: options.value,
-                dimensions: options.dimensions,
+                dimensions: options.dimensions
             };
+            if (opts.dataType === DataType.ExtensionObject) {
+                if (opts.arrayType === VariantArrayType.Scalar) {
+                    opts.value = new opts.value.constructor(opts.value);
+                } else {
+                    opts.value = opts.value.map(function (e) {
+                        return new e.constructor(e);
+                    })
+                }
+            } else if (opts.arrayType !== VariantArrayType.Scalar) {
+                opts.value = coerceVariantArray(options.dataType, options.value);
+            }
+            return opts;
         }
         assert(options);
         options.dataType = options.dataType || DataType.Null;

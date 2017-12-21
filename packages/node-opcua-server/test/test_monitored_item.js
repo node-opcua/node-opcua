@@ -68,7 +68,7 @@ describe("Server Side MonitoredItem", function () {
 
         // set up a spying samplingFunc
         var spy_samplingEventCall = sinon.spy(function(oldValue,callback){
-            callback(null,new DataValue({}));
+            callback(null, new DataValue({value: {}}));
         });
         monitoredItem.samplingFunc = spy_samplingEventCall;
 

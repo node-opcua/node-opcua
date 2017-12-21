@@ -54,7 +54,7 @@ module.exports = function (test) {
         });
 
 
-        it("a subscription should report monitored item notification for ServerStatus", function (done) {
+        it("KK1 a subscription should report monitored item notification for ServerStatus", function (done) {
 
 
             var client = new OPCUAClient();
@@ -110,7 +110,3 @@ module.exports = function (test) {
 
     });
 };
-
-
-
-

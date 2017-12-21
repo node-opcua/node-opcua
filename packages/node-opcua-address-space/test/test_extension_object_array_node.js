@@ -1,5 +1,5 @@
 /* global describe,it,before*/
-
+"use strict";
 var should = require("should");
 
 var UADataType = require("../src/ua_data_type").UADataType;
@@ -57,33 +57,41 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         dv.value.value.should.be.instanceOf(Array);
         dv.value.value.length.should.eql(0);
 
+        arr.readValue().value.value.length.should.eql(0, "expecting no element in array");
+
         var counter = 10;
         // now add a new object
         var options = {
             subscriptionId: counter
         };
 
-
-        arr.readValue().value.value.length.should.eql(0, "expecting no element in array");
-
-
-        var elVar = eoan.addElement(options, arr);
-
+        var elementNode = eoan.addElement(options, arr);
 
         arr.readValue().value.value.length.should.eql(1, "expecting a new element in array");
-        elVar.browseName.toString().should.eql("10");
-        elVar.subscriptionId.should.be.instanceOf(UAVariable);
-        elVar.readValue().value.value.should.be.instanceOf(SubscriptionDiagnostics);
-        elVar.readValue().value.should.be.instanceOf(Variant);
 
+        elementNode.browseName.toString().should.eql("10");
+        elementNode.subscriptionId.should.be.instanceOf(UAVariable);
+        elementNode.readValue().value.value.should.be.instanceOf(SubscriptionDiagnostics);
+        elementNode.readValue().value.should.be.instanceOf(Variant);
 
         // verify that object is now bond, by modifying a value of a property of  the underlying data structure
         // and checking that the corresponding node has changed.
+
+        // we read a copy of the element at pos [0]
         var obj = arr.readValue().value.value[0];
         obj.maxLifetimeCount = 12345;
 
-        elVar.maxLifetimeCount.readValue().value.value.should.eql(12345);
-        elVar.readValue().value.value.maxLifetimeCount.should.eql(12345);
+        // changing this element should not change the underlying value
+        elementNode.maxLifetimeCount.readValue().value.value.should.eql(0);
+        elementNode.readValue().value.value.maxLifetimeCount.should.eql(0);
+
+        // we change the value itself
+        arr.$$extensionObjectArray[0].maxLifetimeCount = 12345;
+
+        arr.readValue().value.value[0].maxLifetimeCount.should.eql(12345, "element to be reflected in the array");
+
+        elementNode.maxLifetimeCount.readValue().value.value.should.eql(12345);
+        elementNode.readValue().value.value.maxLifetimeCount.should.eql(12345);
 
         done();
 

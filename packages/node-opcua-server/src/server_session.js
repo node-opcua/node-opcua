@@ -10,6 +10,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var ContinuationPointManager = require("./continuation_point_manager").ContinuationPointManager;
 var NodeClass = require("node-opcua-data-model").NodeClass;
 
+var DataValue = require("node-opcua-data-value").DataValue;
 var VariableIds = require("node-opcua-constants").VariableIds;
 
 var ec = require("node-opcua-basic-types");
@@ -23,7 +24,7 @@ var WatchDog = require("node-opcua-utils/src/watchdog").WatchDog;
 
 var theWatchDog = new WatchDog();
 
-var utils= require("node-opcua-utils");
+var utils = require("node-opcua-utils");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
@@ -114,100 +115,157 @@ var eoan = require("node-opcua-address-space");
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var ObjectIds = require("node-opcua-constants").ObjectIds;
 
+Object.defineProperty(ServerSession.prototype, "clientConnectionTime", {
+    get: function () {
+        var self = this;
+        return self.creationDate;
+    }
+});
 
-Object.defineProperty(ServerSession.prototype,"status",{
-    get: function()  {
+Object.defineProperty(ServerSession.prototype, "clientLastContactTime", {
+    get: function () {
+        var self = this;
+        return self._watchDogData.last_seen;
+    }
+});
+
+Object.defineProperty(ServerSession.prototype, "status", {
+    get: function () {
         return this.__status;
     },
-    set: function(value) {
+    set: function (value) {
 
-        if (value === "active" ) {
-            assert(this.__value!== "active");
+        if (value === "active") {
+            assert(this.__value !== "active");
             this._createSessionObjectInAddressSpace();
         }
-
         this.__status = value;
     }
 });
 
-ServerSession.prototype.__defineGetter__("addressSpace",function() { return this.parent.addressSpace; });
+ServerSession.prototype.__defineGetter__("addressSpace", function () {
+    return this.parent.addressSpace;
+});
 
 //xx ServerSession.prototype.__defineGetter__("serverDiagnostics")
 
-var ServiceCounter     = require("node-opcua-common").ServiceCounter;
+var ServiceCounter = require("node-opcua-common").ServiceCounter;
 var SessionDiagnostics = require("node-opcua-common").SessionDiagnostics;
 var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
 var DataType = require("node-opcua-variant").DataType;
 var Variant = require("node-opcua-variant").Variant;
+var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
 
-ServerSession.prototype._createSessionObjectInAddressSpace = function() {
+ServerSession.prototype.incrementTotalRequestCount = function () {
+
+    var self = this;
+    if (self._sessionDiagnostics && self._sessionDiagnostics.totalRequestCount) {
+        self._sessionDiagnostics.totalRequestCount.totalCount += 1;
+    }
+    /*
+    if (self._sessionDiagnostics) {
+        self._sessionDiagnostics.totalRequestCount.totalCount +=1;
+        var now = getCurrentClock();
+        self.sessionDiagnostics.totalRequestCount.totalCount.touchValue(now);
+        self.sessionDiagnostics.totalRequestCount.touchValue(now);
+        self.sessionDiagnostics.touchValue(now);
+    }
+    */
+};
+
+ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
     var self = this;
     if (self.sessionObject) {
-        return ; 
+        return;
     }
-    assert(!self.sessionObject,"ServerSession#_createSessionObjectInAddressSpace already called ?");
+    assert(!self.sessionObject, "ServerSession#_createSessionObjectInAddressSpace already called ?");
 
     self.sessionObject = null;
     if (!self.addressSpace) {
         console.log("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
-        return ; // no addressSpace
+        return; // no addressSpace
     }
     var root = self.addressSpace.findNode(makeNodeId(ObjectIds.RootFolder));
-    assert(root,"expecting a root object");
+    assert(root, "expecting a root object");
 
-    if(!root.objects) {
+    if (!root.objects) {
         console.log("ServerSession#_createSessionObjectInAddressSpace : no object folder");
         return false;
     }
-    if(!root.objects.server) {
+    if (!root.objects.server) {
         console.log("ServerSession#_createSessionObjectInAddressSpace : no server object");
         return false;
     }
 
     // self.addressSpace.findNode(makeNodeId(ObjectIds.Server_ServerDiagnostics));
-    var serverDiagnostics =  root.objects.server.serverDiagnostics;
+    var serverDiagnosticsNode = root.objects.server.serverDiagnostics;
 
-     if (!serverDiagnostics || !serverDiagnostics.sessionsDiagnosticsSummary) {
+    if (!serverDiagnosticsNode || !serverDiagnosticsNode.sessionsDiagnosticsSummary) {
         console.log("ServerSession#_createSessionObjectInAddressSpace : no serverDiagnostics.sessionsDiagnosticsSummary");
         return false;
+    }
+
+    var sessionDiagnosticsDataType = self.addressSpace.findDataType("SessionDiagnosticsDataType");
+
+    var sessionDiagnosticsObjectType = self.addressSpace.findObjectType("SessionDiagnosticsObjectType");
+    var sessionDiagnosticsVariableType = self.addressSpace.findVariableType("SessionDiagnosticsVariableType");
+
+    var references = [];
+    if (sessionDiagnosticsObjectType) {
+        references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: sessionDiagnosticsObjectType});
     }
 
     self.sessionObject = self.addressSpace.createNode({
         nodeId: self.nodeId,
         nodeClass: NodeClass.Object,
         browseName: self.sessionName || "Session:" + self.nodeId.toString(),
-        componentOf: serverDiagnostics.sessionsDiagnosticsSummary
+        componentOf: serverDiagnosticsNode.sessionsDiagnosticsSummary,
+        typeDefinition: sessionDiagnosticsObjectType,
+        references: references
     });
-
-    var sessionDiagnosticsDataType = self.addressSpace.findDataType("SessionDiagnosticsDataType");
-    var sessionDiagnosticsVariableType = self.addressSpace.findVariableType("SessionDiagnosticsVariableType");
 
     if (sessionDiagnosticsDataType && sessionDiagnosticsVariableType) {
 
         // the extension object
-        self._sessionDiagnostics = self.addressSpace.constructExtensionObject(sessionDiagnosticsDataType,{});
-
-        self._sessionDiagnostics.clientConnectionTime = (new Date());
-        self._sessionDiagnostics.clientLastContactTime = (new Date());
+        self._sessionDiagnostics = self.addressSpace.constructExtensionObject(sessionDiagnosticsDataType, {});
 
         if (self.parent.clientDescription) {
             self._sessionDiagnostics.clientDescription = self.parent.clientDescription;
         }
 
-        Object.defineProperty(self._sessionDiagnostics,"currentMonitoredItemsCount",{
-            get: function() {
+        Object.defineProperty(self._sessionDiagnostics, "clientConnectionTime", {
+            get: function () {
+                return self.clientConnectionTime;
+            }
+        });
+        Object.defineProperty(self._sessionDiagnostics, "clientLastContactTime", {
+            get: function () {
+                return self.clientLastContactTime;
+            }
+        });
+
+
+        Object.defineProperty(self._sessionDiagnostics, "actualSessionTimeout", {
+            get: function () {
+                return self.sessionTimeout;
+            }
+        });
+
+        Object.defineProperty(self._sessionDiagnostics, "currentMonitoredItemsCount", {
+            get: function () {
                 return self.currentMonitoredItemsCount;
             }
         });
-        Object.defineProperty(self._sessionDiagnostics,"currentSubscriptionsCount",{
-            get: function() {
+
+        Object.defineProperty(self._sessionDiagnostics, "currentSubscriptionsCount", {
+            get: function () {
                 return self.currentSubscriptionCount;
             }
         });
-        Object.defineProperty(self._sessionDiagnostics,"currentPublishRequestsInQueue",{
-            get: function() {
+        Object.defineProperty(self._sessionDiagnostics, "currentPublishRequestsInQueue", {
+            get: function () {
                 return self.publishEngine ? self.publishEngine.pendingPublishRequestCount : 0;
             }
         });
@@ -218,42 +276,58 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function() {
             }
         });
         */
-        Object.defineProperty(self._sessionDiagnostics,"sessionName",{
-            get: function() {
+        Object.defineProperty(self._sessionDiagnostics, "sessionName", {
+            get: function () {
                 assert(_.isString(self.sessionName));
                 return self.sessionName.toString();
             }
         });
 
-
         self.sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
             browseName: "SessionDiagnostics",
             componentOf: self.sessionObject,
-            value: {
-                get: function () {
-                    return new Variant({dataType: DataType.ExtensionObject, value: self._sessionDiagnostics});
-                }
-            }
+            extensionObject: self._sessionDiagnostics
+            // value: {
+            //     timestamped_get: function () {
+            //         return new DataValue({
+            //             value: new Variant({dataType: DataType.ExtensionObject, value: self._sessionDiagnostics}),
+            //             sourceTimestamp:  new Date(),
+            //             sourcePicoseconds: 0,
+            //             serverTimestamp: new Date()
+            //         });
+            //     }
+            // }
         });
 
+        self._sessionDiagnostics = self.sessionDiagnostics.$extensionObject;
+
+        /*
+        self.sessionDiagnostics.minimumSamplingInterval = 1000;
+        self.sessionDiagnostics.clientLastContactTime.minimumSamplingInterval = 1000;
+        self.sessionDiagnostics.totalRequestCount.minimumSamplingInterval = 1000;
+        self.sessionDiagnostics.totalRequestCount.totalCount.minimumSamplingInterval = 1000;
+        self.sessionDiagnostics.totalRequestCount.errorCount.minimumSamplingInterval = 1000;
+        */
     }
     return self.sessionObject;
 };
 
-ServerSession.prototype._removeSessionObjectFromAddressSpace = function() {
+ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
 
     var self = this;
 
     // todo : dump session statistics in a file or somewhere for deeper diagnostic analysis on closed session
 
-    if(!self.addressSpace) { return ;}
+    if (!self.addressSpace) {
+        return;
+    }
     if (self.sessionDiagnostics) {
         self.addressSpace.deleteNode(self.sessionDiagnostics);
         self._sessionDiagnostics = null;
         self.sessionDiagnostics = null;
 
     }
-    if(self.sessionObject) {
+    if (self.sessionObject) {
         self.addressSpace.deleteNode(self.sessionObject);
         self.sessionObject = null;
     }
@@ -282,25 +356,30 @@ var Subscription = require("./subscription").Subscription;
 // to another Session using the TransferSubscriptions service.
 // After Server start-up the generation of subscriptionIds should start from a random IntegerId or continue from
 // the point before the restart.
-var next_subscriptionId = Math.ceil(Math.random()*1000000);
+var next_subscriptionId = Math.ceil(Math.random() * 1000000);
+
 function _get_next_subscriptionId() {
-    debugLog(" next_subscriptionId = ",next_subscriptionId);
+    debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
 }
 
 
 var eoan = require("node-opcua-address-space");
 
-ServerSession.prototype._getSubscriptionDiagnosticsArray= function() {
+ServerSession.prototype._getSubscriptionDiagnosticsArray = function () {
 
-    var self =this;
+    var self = this;
     if (!self.addressSpace) {
-        console.warn("ServerSession#_exposeSubscriptionDiagnostics : no addressSpace");
+        if (doDebug) {
+            console.warn("ServerSession#_exposeSubscriptionDiagnostics : no addressSpace");
+        }
         return null; // no addressSpace
     }
     var subscriptionDiagnosticsType = self.addressSpace.findVariableType("SubscriptionDiagnosticsType");
     if (!subscriptionDiagnosticsType) {
-        console.warn("ServerSession#_exposeSubscriptionDiagnostics : cannot find SubscriptionDiagnosticsType");
+        if (doDebug) {
+            console.warn("ServerSession#_exposeSubscriptionDiagnostics : cannot find SubscriptionDiagnosticsType");
+        }
     }
 
     // SubscriptionDiagnosticsArray = i=2290
@@ -308,23 +387,23 @@ ServerSession.prototype._getSubscriptionDiagnosticsArray= function() {
 
     return subscriptionDiagnosticsArray;
 };
-ServerSession.prototype._exposeSubscriptionDiagnostics = function(subscription) {
+ServerSession.prototype._exposeSubscriptionDiagnostics = function (subscription) {
 
     var self = this;
-    var subscriptionDiagnosticsArray =self._getSubscriptionDiagnosticsArray();
+    var subscriptionDiagnosticsArray = self._getSubscriptionDiagnosticsArray();
     var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-        eoan.addElement(subscriptionDiagnostics,subscriptionDiagnosticsArray);
+        eoan.addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
     }
 };
 
-ServerSession.prototype._unexposeSubscriptionDiagnostics = function(subscription) {
+ServerSession.prototype._unexposeSubscriptionDiagnostics = function (subscription) {
 
     var self = this;
-    var subscriptionDiagnosticsArray =self._getSubscriptionDiagnosticsArray();
+    var subscriptionDiagnosticsArray = self._getSubscriptionDiagnosticsArray();
     var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-        eoan.removeElement(subscriptionDiagnosticsArray,subscriptionDiagnostics);
+        eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
     }
 };
 /**
@@ -371,12 +450,12 @@ ServerSession.prototype.createSubscription = function (request) {
     // Notify the owner that a new subscription has been created
     // @event new_subscription
     // @param {Subscription} subscription
-+    self.emit("new_subscription", subscription);
+    +self.emit("new_subscription", subscription);
 
     // add subscription diagnostics to SubscriptionDiagnosticsArray
     self._exposeSubscriptionDiagnostics(subscription);
 
-    subscription.once("terminated",function() {
+    subscription.once("terminated", function () {
 
         self._unexposeSubscriptionDiagnostics(subscription);
 
@@ -418,7 +497,7 @@ ServerSession.prototype.__defineGetter__("cumulatedSubscriptionCount", function 
  */
 ServerSession.prototype.__defineGetter__("currentMonitoredItemsCount", function () {
     var self = this;
-    return self.publishEngine ? self.publishEngine.currentMonitoredItemsCount : 0 ;
+    return self.publishEngine ? self.publishEngine.currentMonitoredItemsCount : 0;
 });
 
 
@@ -430,13 +509,13 @@ var SubscriptionState = require("./subscription").SubscriptionState;
  * @return {Subscription}
  */
 ServerSession.prototype.getSubscription = function (subscriptionId) {
-    var subscription =  this.publishEngine.getSubscriptionById(subscriptionId);
-    if (subscription  && subscription.state === SubscriptionState.CLOSED) {
+    var subscription = this.publishEngine.getSubscriptionById(subscriptionId);
+    if (subscription && subscription.state === SubscriptionState.CLOSED) {
         // subscription is CLOSED but has not been notified yet
         // it should be considered as excluded
         return null;
     }
-    assert(!subscription || subscription.state !== SubscriptionState.CLOSED,"CLOSED subscription shall not be managed by publish engine anymore");
+    assert(!subscription || subscription.state !== SubscriptionState.CLOSED, "CLOSED subscription shall not be managed by publish engine anymore");
     return subscription;
 };
 
@@ -495,7 +574,7 @@ ServerSession.prototype._deleteSubscriptions = function () {
  * @param {String} [reason = "CloseSession"] the reason for closing the session (shall be "Timeout", "Terminated" or "CloseSession")
  *
  */
-ServerSession.prototype.close = function (deleteSubscriptions,reason) {
+ServerSession.prototype.close = function (deleteSubscriptions, reason) {
 
     //xx console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxx => ServerSession.close() ");
     var self = this;
@@ -503,12 +582,12 @@ ServerSession.prototype.close = function (deleteSubscriptions,reason) {
     if (self.publishEngine) {
         self.publishEngine.onSessionClose();
     }
-    
+
     theWatchDog.removeSubscriber(self);
     // ---------------  delete associated subscriptions ---------------------
 
 
-    if (!deleteSubscriptions && self.currentSubscriptionCount !== 0 ) {
+    if (!deleteSubscriptions && self.currentSubscriptionCount !== 0) {
 
         // I don't know what to do yet if deleteSubscriptions is false
         console.log("TO DO : Closing session without deleting subscription not yet implemented");
@@ -539,12 +618,12 @@ ServerSession.prototype.close = function (deleteSubscriptions,reason) {
      * @param deleteSubscriptions {Boolean}
      * @param reason {String}
      */
-    self.emit("session_closed", self, deleteSubscriptions,reason);
+    self.emit("session_closed", self, deleteSubscriptions, reason);
 
     self._removeSessionObjectFromAddressSpace();
 
-    assert(!self.sessionDiagnostics,"ServerSession#_removeSessionObjectFromAddressSpace must be called");
-    assert(!self.sessionObject,     "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+    assert(!self.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+    assert(!self.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
 
 
 };
@@ -559,7 +638,6 @@ ServerSession.prototype.watchdogReset = function () {
     // the server session has expired and must be removed from the server
     self.emit("timeout");
 };
-
 
 
 exports.ServerSession = ServerSession;

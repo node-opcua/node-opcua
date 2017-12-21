@@ -14,14 +14,15 @@ var util = require("util");
 var subscription_service = require("node-opcua-service-subscription");
 var read_service = require("node-opcua-service-read");
 
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var Variant = require("node-opcua-variant").Variant;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var BaseNode = require("node-opcua-address-space").BaseNode;
 
-var sameDataValue =  require("node-opcua-data-value").sameDataValue;
+var sameDataValue = require("node-opcua-data-value").sameDataValue;
+var sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
 
 var MonitoringMode = subscription_service.MonitoringMode;
 var MonitoringParameters = subscription_service.MonitoringParameters;
@@ -44,10 +45,10 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 function _adjust_sampling_interval(samplingInterval) {
 
-    if(samplingInterval===0){
+    if (samplingInterval === 0) {
         return samplingInterval;
     }
-    assert(samplingInterval>=0," this case should have been prevented outside");
+    assert(samplingInterval >= 0, " this case should have been prevented outside");
     samplingInterval = samplingInterval || defaultSamplingInterval;
     maximumSamplingInterval = maximumSamplingInterval || defaultSamplingInterval;
     samplingInterval = Math.max(samplingInterval, minimumSamplingInterval);
@@ -89,7 +90,6 @@ function _adjust_queue_size(queueSize) {
  */
 function MonitoredItem(options) {
 
-
     assert(options.hasOwnProperty("monitoredItemId"));
     assert(!options.monitoringMode, "use setMonitoring mode explicitly to activate the monitored item");
 
@@ -105,7 +105,6 @@ function MonitoredItem(options) {
 
     self.queue = [];
     self.overflow = false;
-
 
     self.oldDataValue = new DataValue({statusCode: StatusCodes.BadDataUnavailable}); // unset initially
 
@@ -150,18 +149,17 @@ function _validate_parameters(options) {
     assert(options.queueSize >= 0);
 }
 
-MonitoredItem.prototype.__defineGetter__("node",function () {
-
+MonitoredItem.prototype.__defineGetter__("node", function () {
     return this._node;
 });
 
-MonitoredItem.prototype.__defineSetter__("node",function () {
+MonitoredItem.prototype.__defineSetter__("node", function () {
     throw new Error("Unexpected way to set node");
 });
 
 MonitoredItem.prototype.setNode = function (node) {
     var self = this;
-    assert(!self.node || self.node === node,"node already set");
+    assert(!self.node || self.node === node, "node already set");
     self._node = node;
     self._semantic_version = node.semantic_version;
 };
@@ -174,7 +172,7 @@ MonitoredItem.prototype._stop_sampling = function () {
 
     if (self._on_opcua_event_received_callback) {
         assert(_.isFunction(self._on_opcua_event_received_callback));
-        self.node.removeListener("event",self._on_opcua_event_received_callback);
+        self.node.removeListener("event", self._on_opcua_event_received_callback);
         self._on_opcua_event_received_callback = null;
     }
 
@@ -182,7 +180,7 @@ MonitoredItem.prototype._stop_sampling = function () {
         assert(_.isFunction(self._attribute_changed_callback));
 
         var event_name = BaseNode.makeAttributeEventName(self.itemToMonitor.attributeId);
-        self.node.removeListener(event_name,self._attribute_changed_callback);
+        self.node.removeListener(event_name, self._attribute_changed_callback);
         self._attribute_changed_callback = null;
 
     }
@@ -193,14 +191,14 @@ MonitoredItem.prototype._stop_sampling = function () {
         assert(_.isFunction(self._value_changed_callback));
         assert(!self._samplingId);
 
-        self.node.removeListener("value_changed",self._value_changed_callback);
+        self.node.removeListener("value_changed", self._value_changed_callback);
         self._value_changed_callback = null;
 
     }
     if (self._semantic_changed_callback) {
         assert(_.isFunction(self._semantic_changed_callback));
         assert(!self._samplingId);
-        self.node.removeListener("semantic_changed",self._semantic_changed_callback);
+        self.node.removeListener("semantic_changed", self._semantic_changed_callback);
         self._semantic_changed_callback = null;
 
     }
@@ -216,13 +214,13 @@ MonitoredItem.prototype._stop_sampling = function () {
 
 };
 
-MonitoredItem.prototype._on_value_changed = function(dataValue) {
+MonitoredItem.prototype._on_value_changed = function (dataValue) {
     var self = this;
     assert(dataValue instanceof DataValue);
-    self.recordValue(dataValue, true);
+    self.recordValue(dataValue, false);
 };
 
-MonitoredItem.prototype._on_semantic_changed = function() {
+MonitoredItem.prototype._on_semantic_changed = function () {
     var self = this;
     var dataValue = self.node.readValue();
     self._on_value_changed(dataValue);
@@ -237,13 +235,15 @@ MonitoredItem.prototype._on_opcua_event = function (eventData) {
     assert(!self.filter || self.filter instanceof EventFilter);
 
     var selectClauses = self.filter ? self.filter.selectClauses : [];
-    var eventFields = extractEventFields(selectClauses,eventData);
+    var eventFields = extractEventFields(selectClauses, eventData);
 
     // istanbul ignore next
     if (doDebug) {
         console.log(" RECEIVED INTERNAL EVENT THAT WE ARE MONITORING");
         console.log(self.filter ? self.filter.toString() : "no filter");
-        eventFields.forEach(function(e) { console.log(e.toString()); });
+        eventFields.forEach(function (e) {
+            console.log(e.toString());
+        });
     }
 
     self._enqueue_event(eventFields);
@@ -275,12 +275,13 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
     if (self.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
 
-        if (doDebug){
-            debugLog("xxxxxx monitoring EventNotifier on",self.node.nodeId.toString(),self.node.browseName.toString());
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("xxxxxx monitoring EventNotifier on", self.node.nodeId.toString(), self.node.browseName.toString());
         }
         // we are monitoring OPCUA Event
         self._on_opcua_event_received_callback = self._on_opcua_event.bind(self);
-        self.node.on("event",self._on_opcua_event_received_callback);
+        self.node.on("event", self._on_opcua_event_received_callback);
 
         return;
     }
@@ -297,10 +298,8 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
         if (recordInitialValue) {
             // read initial value
-
-
             var dataValue = self.node.readAttribute(context, self.itemToMonitor.attributeId);
-            self.recordValue(dataValue,true);
+            self.recordValue(dataValue, true);
 
         }
         return;
@@ -313,22 +312,22 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
         self._value_changed_callback = self._on_value_changed.bind(this);
         self._semantic_changed_callback = self._on_semantic_changed.bind(this);
 
-        self.node.on("value_changed",self._value_changed_callback);
-        self.node.on("semantic_changed",self._semantic_changed_callback);
+        self.node.on("value_changed", self._value_changed_callback);
+        self.node.on("semantic_changed", self._semantic_changed_callback);
 
         // initiate first read
         if (recordInitialValue) {
 //xx            setImmediate(function() {
             self.node.readValueAsync(context, function (err, dataValue) {
-                    self.recordValue(dataValue,true);
-                });
+                self.recordValue(dataValue, true);
+            });
 //xx            });
         }
     } else {
 
         self._set_timer();
         if (recordInitialValue) {
-            setImmediate(function() {
+            setImmediate(function () {
                 //xx console.log("Record Initial Value ",self.node.nodeId.toString());
                 // initiate first read (this requires self._samplingId to be set)
                 self._on_sampling_timer();
@@ -354,14 +353,14 @@ MonitoredItem.prototype.setMonitoringMode = function (monitoringMode) {
 
     self.monitoringMode = monitoringMode;
 
-    if (self.monitoringMode === MonitoringMode.Disabled ) {
+    if (self.monitoringMode === MonitoringMode.Disabled) {
 
         self._stop_sampling();
 
         // OPCUA 1.03 part 4 : $5.12.4
         // setting the mode to DISABLED causes all queued Notifications to be deleted
-        self.queue   = [];
-        self.overflow= false;
+        self.queue = [];
+        self.overflow = false;
     } else {
         assert(self.monitoringMode === MonitoringMode.Sampling || self.monitoringMode === MonitoringMode.Reporting);
 
@@ -370,7 +369,7 @@ MonitoredItem.prototype.setMonitoringMode = function (monitoringMode) {
         // SAMPLING or REPORTING) or it is created in the enabled state, the Server shall report the first
         // sample as soon as possible and the time of this sample becomes the starting point for the next
         // sampling interval.
-        var recordInitialValue = ( old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled);
+        var recordInitialValue = (old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled);
 
         self._start_sampling(recordInitialValue);
 
@@ -414,10 +413,10 @@ MonitoredItem.prototype._on_sampling_timer = function () {
 
 
     // istanbul ignore next
-    if(doDebug) {
-        debugLog("MonitoredItem#_on_sampling_timer", self.node ? self.node.nodeId.toString() : "null",self._is_sampling);
+    if (doDebug) {
+        debugLog("MonitoredItem#_on_sampling_timer", self.node ? self.node.nodeId.toString() : "null", " isSampling?=", self._is_sampling);
     }
-    
+
     if (self._samplingId) {
 
         assert(self.monitoringMode === MonitoringMode.Sampling || self.monitoringMode === MonitoringMode.Reporting);
@@ -426,8 +425,7 @@ MonitoredItem.prototype._on_sampling_timer = function () {
             // previous sampling call is not yet completed..
             // there is nothing we can do about it except waiting until next tick.
             // note : see also issue #156 on github
-            return ;
-
+            return;
         }
         //xx console.log("xxxx ON SAMPLING");
         assert(!self._is_sampling, "sampling func shall not be re-entrant !! fix it");
@@ -436,10 +434,10 @@ MonitoredItem.prototype._on_sampling_timer = function () {
 
         self._is_sampling = true;
 
-        self.samplingFunc.call(self,self.oldDataValue,function(err,newDataValue) {
+        self.samplingFunc.call(self, self.oldDataValue, function (err, newDataValue) {
 
-            if (err){
-                console.log(" SAMPLING ERROR =>",err);
+            if (err) {
+                console.log(" SAMPLING ERROR =>", err);
             } else {
                 self._on_value_changed(newDataValue);
             }
@@ -467,8 +465,8 @@ function statusCodeHasChanged(newDataValue, oldDataValue) {
 var check_deadband = require("node-opcua-service-subscription").check_deadband;
 
 
-function valueHasChanged(self,newDataValue, oldDataValue, deadbandType, deadbandValue) {
-    
+function valueHasChanged(self, newDataValue, oldDataValue, deadbandType, deadbandValue) {
+
     assert(newDataValue instanceof DataValue);
     assert(oldDataValue instanceof DataValue);
     switch (deadbandType) {
@@ -476,10 +474,10 @@ function valueHasChanged(self,newDataValue, oldDataValue, deadbandType, deadband
             assert(newDataValue.value instanceof Variant);
             assert(newDataValue.value instanceof Variant);
             // No Deadband calculation should be applied.
-            return check_deadband(oldDataValue.value,newDataValue.value, DeadbandType.None);
+            return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.None);
         case DeadbandType.Absolute:
             // AbsoluteDeadband
-            return check_deadband(oldDataValue.value,newDataValue.value, DeadbandType.Absolute,deadbandValue);
+            return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.Absolute, deadbandValue);
         default:
             // Percent_2    PercentDeadband (This type is specified in Part 8).
             assert(deadbandType === DeadbandType.Percent);
@@ -508,21 +506,23 @@ function valueHasChanged(self,newDataValue, oldDataValue, deadbandType, deadband
                 var rangeVariant = self.node.euRange.readValue().value;
                 var range = rangeVariant.value.high - rangeVariant.value.high;
                 assert(_.isFinite(range));
-                return check_deadband(oldDataValue.value,newDataValue.value, DeadbandType.Percent,deadbandValue,range);
+                return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.Percent, deadbandValue, range);
 
             }
             return true;
     }
 }
-function timestampHasChanged(t1,t2) {
-    if (( t1 || !t2 ) || ( t2 || !t1 ) ) {
+
+function timestampHasChanged(t1, t2) {
+    if ((t1 || !t2) || (t2 || !t1)) {
         return true;
     }
-    if (!t1 || !t2 ) {
+    if (!t1 || !t2) {
         return false;
     }
     return t1.getTime() !== t2.getTime();
 }
+
 function apply_datachange_filter(self, newDataValue, oldDataValue) {
 
     assert(self.filter);
@@ -546,7 +546,7 @@ function apply_datachange_filter(self, newDataValue, oldDataValue) {
             //              filtering value changes.
             //              This is the default setting if no filter is set.
             return statusCodeHasChanged(newDataValue, oldDataValue) ||
-	               valueHasChanged(self,newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
+                valueHasChanged(self, newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
 
         default: // StatusValueTimestamp
             //              Report a notification if either StatusCode, value or the
@@ -557,25 +557,27 @@ function apply_datachange_filter(self, newDataValue, oldDataValue) {
             //              If the DataChangeFilter is not applied to the monitored item, STATUS_VALUE_1
             //              is the default reporting behaviour
             assert(trigger === DataChangeTrigger.StatusValueTimestamp);
-            return timestampHasChanged(newDataValue.sourceTimestamp,oldDataValue.sourceTimestamp) ||
-                   statusCodeHasChanged(newDataValue, oldDataValue) ||
-                   valueHasChanged(self,newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
-     }
-     return false;
+            return timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp) ||
+                statusCodeHasChanged(newDataValue, oldDataValue) ||
+                valueHasChanged(self, newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
+    }
+    return false;
 }
 
 function apply_filter(self, newDataValue) {
 
     if (!self.oldDataValue) {
-        return true;
+        return true; // keep
     }
     if (self.filter instanceof DataChangeFilter) {
         return apply_datachange_filter(self, newDataValue, self.oldDataValue);
-    } else {
-        // if filter not set, by default report changes to Status or Value only
-        return !sameDataValue(newDataValue, self.oldDataValue, TimestampsToReturn.Neither);
     }
     return true; // keep
+    // else {
+    //      // if filter not set, by default report changes to Status or Value only
+    //      return !sameDataValue(newDataValue, self.oldDataValue, TimestampsToReturn.Neither);
+    // }
+    // return true; // keep
 }
 
 
@@ -583,50 +585,58 @@ function apply_filter(self, newDataValue) {
  * @property isSampling
  * @type boolean
  */
-MonitoredItem.prototype.__defineGetter__("isSampling",function() {
+MonitoredItem.prototype.__defineGetter__("isSampling", function () {
     var self = this;
     return !!self._samplingId || _.isFunction(self._value_changed_callback) ||
-           _.isFunction(self._attribute_changed_callback);
+        _.isFunction(self._attribute_changed_callback);
 });
 
 /**
  * @method recordValue
  * @param dataValue {DataValue}     the whole dataValue
+ * @param skipChangeTest {Boolean}
  *
  * Note: recordValue can only be called within timer event
  */
-MonitoredItem.prototype.recordValue = function (dataValue) {
-
+MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest) {
 
     var self = this;
 
-    // istanbul ignore next
-    if (doDebug) {
-        debugLog("MonitoredItem#recordValue", self.node.nodeId.toString(),self.node.browseName.toString());
-    }
-
     assert(dataValue instanceof DataValue);
-    assert(dataValue !== self.oldDataValue);
+    assert(dataValue !== self.oldDataValue, "recordValue expects different dataValue to be provided");
 
     // extract the range that we are interested with
     dataValue = extractRange(dataValue, self.itemToMonitor.indexRange);
 
-    var hasChanged =!sameDataValue(dataValue,self.oldDataValue);
 
-    if (!hasChanged) {
-
-        // may be semantic has changed !
-        var hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
-        if (hasSemanticChanged) {
-           self._enqueue_value(dataValue);
-        }
-        return;
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("MonitoredItem#recordValue", self.node.nodeId.toString(), self.node.browseName.toString(), " has Changed = ", !sameDataValue(dataValue, self.oldDataValue));
     }
 
+    // if semantic has changed, value need to be enqueued regardless of other assumptions
+    var hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
+    if (hasSemanticChanged) {
+        return self._enqueue_value(dataValue);
+    }
+
+    if (!skipChangeTest) {
+        var hasChanged = !sameDataValue(dataValue, self.oldDataValue);
+        if (!hasChanged) {
+            return;
+        }
+    }
     if (!apply_filter(self, dataValue)) {
         return;
     }
 
+    if (self.itemToMonitor.indexRange && !self.itemToMonitor.indexRange.isEmpty()) {
+        // when an indexRange is provided , make sure that no record happens unless
+        // extracted variant in the selected range  has really changed.
+        if (sameVariant(dataValue.value, self.oldDataValue.value)) {
+            return;
+        }
+    }
     // store last value
     self._enqueue_value(dataValue);
 
@@ -636,19 +646,19 @@ MonitoredItem.prototype._setOverflowBit = function (notification) {
 
     if (notification.hasOwnProperty("value")) {
         assert(notification.value.statusCode === StatusCodes.Good);
-        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode,"Overflow | InfoTypeDataValue");
-        assert(_.isEqual(notification.value.statusCode,StatusCodes.GoodWithOverflowBit));
+        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
+        assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
         assert(notification.value.statusCode.hasOverflowBit);
     }
 };
 
 function setSemanticChangeBit(notification) {
     if (notification && notification.hasOwnProperty("value")) {
-        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode,"SemanticChanged");
+        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode, "SemanticChanged");
     }
 }
 
-MonitoredItem.prototype._enqueue_notification = function(notification) {
+MonitoredItem.prototype._enqueue_notification = function (notification) {
 
     var self = this;
 
@@ -690,7 +700,7 @@ MonitoredItem.prototype._enqueue_notification = function(notification) {
             }
         }
     }
-    assert(self.queue.length >=1);
+    assert(self.queue.length >= 1);
 };
 
 
@@ -698,16 +708,47 @@ MonitoredItem.prototype._makeDataChangeNotification = function (dataValue) {
     var self = this;
     var attributeId = self.itemToMonitor.attributeId;
     dataValue = apply_timestamps(dataValue, self.timestampsToReturn, attributeId);
-    return new subscription_service.MonitoredItemNotification({clientHandle: self.clientHandle, value: dataValue });
+    return new subscription_service.MonitoredItemNotification({clientHandle: self.clientHandle, value: dataValue});
 };
 
-MonitoredItem.prototype._enqueue_value = function(dataValue) {
+function isGoodish(statusCode) {
+    return statusCode.value < 0x10000000;
+}
+
+/**
+ *
+ * @param dataValue {DataValue}
+ * @private
+ */
+MonitoredItem.prototype._enqueue_value = function (dataValue) {
+
     var self = this;
+
+    // preconditions:
+
+    assert(dataValue instanceof DataValue);
+    // lets verify that, if status code is good then we have a valid Variant in the dataValue
+    assert(!isGoodish(dataValue.statusCode) || dataValue.value instanceof Variant);
+    //xx assert(isGoodish(dataValue.statusCode) || util.isNullOrUndefined(dataValue.value) );
+
+    // let's check that data Value is really a different object
+    // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications
+    assert(dataValue !== self.oldDataValue, "dataValue cannot be the same object twice!");
+
+    // let's check that data Value is really a different object
+    // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications
+    assert(!self.oldDataValue || !dataValue.value || (dataValue.value !== self.oldDataValue.value), "dataValue cannot be the same object twice!");
+    if (!(!self.oldDataValue || !self.oldDataValue.value
+            || !dataValue.value || !(dataValue.value.value instanceof Object)
+            || (dataValue.value.value !== self.oldDataValue.value.value))) {
+        throw new Error("dataValue.value.value cannot be the same object twice! " + self.node.browseName.toString());
+    }
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("MonitoredItem#_enqueue_value",self.node.nodeId.toString());
+        debugLog("MonitoredItem#_enqueue_value", self.node.nodeId.toString());
     }
+
     self.oldDataValue = dataValue;
     var notification = self._makeDataChangeNotification(dataValue);
     self._enqueue_notification(notification);
@@ -719,7 +760,7 @@ MonitoredItem.prototype._makeEventFieldList = function (eventFields) {
     return new subscription_service.EventFieldList({clientHandle: self.clientHandle, eventFields: eventFields});
 };
 
-MonitoredItem.prototype._enqueue_event = function(eventFields) {
+MonitoredItem.prototype._enqueue_event = function (eventFields) {
     var self = this;
     debugLog(" MonitoredItem#_enqueue_event");
     var notification = self._makeEventFieldList(eventFields);
@@ -727,9 +768,7 @@ MonitoredItem.prototype._enqueue_event = function(eventFields) {
 };
 
 
-
-MonitoredItem.prototype._empty_queue = function()
-{
+MonitoredItem.prototype._empty_queue = function () {
     var self = this;
     // empty queue
     self.queue = [];
@@ -740,7 +779,7 @@ MonitoredItem.prototype._empty_queue = function()
 
 MonitoredItem.prototype.__defineGetter__("hasMonitoredItemNotifications", function () {
     var self = this;
-    return self.queue.length >0;
+    return self.queue.length > 0;
 });
 
 /**
@@ -758,9 +797,9 @@ MonitoredItem.prototype.extractMonitoredItemNotifications = function () {
     self._empty_queue();
 
     // apply semantic changed bit if necessary
-    if (notifications.length >0 && self.node && self._semantic_version < self.node.semantic_version) {
+    if (notifications.length > 0 && self.node && self._semantic_version < self.node.semantic_version) {
 
-        var dataValue = notifications[notifications.length-1];
+        var dataValue = notifications[notifications.length - 1];
         setSemanticChangeBit(dataValue);
         self._semantic_version = self.node.semantic_version;
     }
@@ -769,31 +808,31 @@ MonitoredItem.prototype.extractMonitoredItemNotifications = function () {
 };
 
 
-
 var timers = {};
+
 function appendToTimer(monitoredItem) {
 
     var samplingInterval = monitoredItem.samplingInterval;
     var key = samplingInterval.toString();
-    assert(samplingInterval >0);
+    assert(samplingInterval > 0);
     var _t = timers[key];
     if (!_t) {
 
         _t = {
-            monitoredItems:{},
-            monitoredItemsCount:0,
+            monitoredItems: {},
+            monitoredItemsCount: 0,
             _samplingId: false
         };
 
         _t._samplingId = setInterval(function () {
 
-            _.forEach(_t.monitoredItems,function(m) {
-                setImmediate(function(){
+            _.forEach(_t.monitoredItems, function (m) {
+                setImmediate(function () {
                     m._on_sampling_timer();
                 });
             });
 
-        },samplingInterval);
+        }, samplingInterval);
         timers[key] = _t;
     }
     assert(!_t.monitoredItems[monitoredItem.monitoredItemId]);
@@ -805,18 +844,18 @@ function appendToTimer(monitoredItem) {
 function removeFromTimer(monitoredItem) {
 
     var samplingInterval = monitoredItem.samplingInterval;
-    assert(samplingInterval >0);
+    assert(samplingInterval > 0);
     var key = monitoredItem._samplingId;
     var _t = timers[key];
-    if( !_t) {
-        console.log("cannot find common timer for samplingInterval",key);
+    if (!_t) {
+        console.log("cannot find common timer for samplingInterval", key);
         return;
     }
     assert(_t);
     assert(_t.monitoredItems[monitoredItem.monitoredItemId]);
     delete _t.monitoredItems[monitoredItem.monitoredItemId];
-    _t.monitoredItemsCount --;
-    assert(_t.monitoredItemsCount>=0);
+    _t.monitoredItemsCount--;
+    assert(_t.monitoredItemsCount >= 0);
     if (_t.monitoredItemsCount === 0) {
         clearInterval(_t._samplingId);
         delete timers[key];
@@ -824,7 +863,7 @@ function removeFromTimer(monitoredItem) {
 }
 
 var useCommonTimer = true;
-MonitoredItem.prototype._clear_timer = function() {
+MonitoredItem.prototype._clear_timer = function () {
 
     var self = this;
     if (self._samplingId) {
@@ -856,7 +895,6 @@ MonitoredItem.prototype._set_timer = function () {
 };
 
 
-
 MonitoredItem.prototype._adjust_queue_to_match_new_queue_size = function () {
 
     var self = this;
@@ -870,10 +908,10 @@ MonitoredItem.prototype._adjust_queue_to_match_new_queue_size = function () {
 
         } else {
 
-            var lastElement = self.queue[self.queue.length-1];
+            var lastElement = self.queue[self.queue.length - 1];
             // only keep queueSize first element, discard others
             self.queue.splice(self.queueSize);
-            self.queue[self.queue.length-1] = lastElement;
+            self.queue[self.queue.length - 1] = lastElement;
         }
     }
     if (self.queueSize <= 1) {
@@ -890,7 +928,7 @@ MonitoredItem.prototype._adjust_queue_to_match_new_queue_size = function () {
     assert(self.queue.length <= self.queueSize);
 };
 
-MonitoredItem.prototype._adjust_sampling = function(old_samplingInterval) {
+MonitoredItem.prototype._adjust_sampling = function (old_samplingInterval) {
 
     var self = this;
     if (old_samplingInterval !== self.samplingInterval) {
@@ -900,7 +938,7 @@ MonitoredItem.prototype._adjust_sampling = function(old_samplingInterval) {
     }
 };
 
-var validateFilter  = require("./validate_filter").validateFilter;
+var validateFilter = require("./validate_filter").validateFilter;
 
 MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
 
@@ -908,11 +946,11 @@ MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
 
     var self = this;
 
-    var old_samplingInterval  = self.samplingInterval;
+    var old_samplingInterval = self.samplingInterval;
 
     self.timestampsToReturn = timestampsToReturn || self.timestampsToReturn;
 
-    if (old_samplingInterval !== 0 && options.samplingInterval === 0 ) {
+    if (old_samplingInterval !== 0 && options.samplingInterval === 0) {
         options.samplingInterval = minimumSamplingInterval; // fastest possible
     }
 
@@ -924,10 +962,10 @@ MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
 
 
     if (options.filter) {
-        var statusCodeFilter = validateFilter(options.filter,self.itemToMonitor , self.node);
+        var statusCodeFilter = validateFilter(options.filter, self.itemToMonitor, self.node);
         if (statusCodeFilter !== StatusCodes.Good) {
             return new MonitoredItemModifyResult({
-                statusCode:statusCodeFilter
+                statusCode: statusCodeFilter
             });
         }
     }
@@ -937,10 +975,10 @@ MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
     var filterResult = null; // new subscription_service.DataChangeFilter
 
     return new MonitoredItemModifyResult({
-        statusCode:              StatusCodes.Good,
+        statusCode: StatusCodes.Good,
         revisedSamplingInterval: self.samplingInterval,
-        revisedQueueSize:        self.queueSize,
-        filterResult:            filterResult
+        revisedQueueSize: self.queueSize,
+        filterResult: filterResult
     });
 };
 

@@ -1360,6 +1360,9 @@ OPCUAServer.prototype._apply_on_SessionObject = function (ResponseClass, message
     assert(_.isFunction(message.session.keepAlive));
     message.session.keepAlive();
 
+
+    message.session.incrementTotalRequestCount();
+
     action_to_perform(message.session, message, channel);
 
 };

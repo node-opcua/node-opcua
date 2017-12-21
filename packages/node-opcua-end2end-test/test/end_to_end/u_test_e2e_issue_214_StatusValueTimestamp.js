@@ -11,7 +11,8 @@ var OPCUAClient = opcua.OPCUAClient;
 var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-var debugLog = function() {};
+var debugLog = function () {
+};
 
 module.exports = function (test) {
 
@@ -23,7 +24,7 @@ module.exports = function (test) {
 
             var nodeId = "ns=411;s=Scalar_Static_Double";
             var variable = test.server.engine.addressSpace.findNode(nodeId);
-            var variant = new opcua.Variant({dataType: opcua.DataType.Double,value: 3.14 });
+            var variant = new opcua.Variant({dataType: opcua.DataType.Double, value: 3.14});
 
             var timerId = setInterval(function () {
                 var now = new Date();
@@ -36,7 +37,7 @@ module.exports = function (test) {
                 });
                 dataValue.value = variant;
                 variable._internal_set_dataValue(dataValue, null);
-            },100);
+            }, 100);
 
             var nbChanges = 0;
 
@@ -76,7 +77,7 @@ module.exports = function (test) {
                 };
                 // install monitored item
                 var monitoredItem = the_subscription.monitor(itemToMonitor,
-                  options,
+                    options,
                     opcua.read_service.TimestampsToReturn.Both
                     , function (err) {
                         debugLog(" ERR =", err);
@@ -87,12 +88,12 @@ module.exports = function (test) {
                 });
                 monitoredItem.on("changed", function (dataValue) {
                     debugLog("  value = ", dataValue.value.toString());
-                    nbChanges +=1;
+                    nbChanges += 1;
                 });
                 monitoredItem.on("err", function (err_message) {
                     debugLog(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
                 });
-            }, function(err){
+            }, function (err) {
 
                 nbChanges.should.be.above(5);
                 done(err);

@@ -15,7 +15,7 @@ var encode_decode = require("node-opcua-basic-types");
 var utils = require("node-opcua-utils");
 
 function isEnumerationItem(value) {
-    return (value instanceof Object && (value.value !== undefined) && value.key);
+    return (value instanceof Object && (value.hasOwnProperty("value")) && value.hasOwnProperty("key"));
 }
 
 
@@ -278,6 +278,5 @@ exports.sameVariant = function sameVariant(v1, v2) {
         }
         return __check_same_array(v1.value,v2.value);
     }
-
     return false;
 };

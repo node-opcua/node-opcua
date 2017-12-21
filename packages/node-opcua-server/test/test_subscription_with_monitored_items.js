@@ -847,7 +847,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
-                    samplingInterval: 0,
+                    samplingInterval: 0
                 }
             });
 

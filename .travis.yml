@@ -3,7 +3,7 @@ language: node_js
 node_js:
   # dropping support for node 0.10 - "0.10"
   # dropping support for node 0.12 - "0.12"
-  - "4"
+  # dropping support for node 4
   - "6"
   # dropped - "7"
   - "8"

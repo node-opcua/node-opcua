@@ -134,13 +134,21 @@ module.exports = function (test) {
 
                         the_session.read(nodesToRead, function (err, a, results) {
 
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            //xx console.log("-----------------------------------------------".bgWhite.red,err);
+                            //xx console.log("results = ",results);
+
+                            results.length.should.eql(3);
                             var currentMonitoredItemsCount =  results[0].value.value;
                             var currentSubcriptionsCount   =  results[1].value.value;
 
                             debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
                             debugLog("currentSubcriptionsCount   = ", currentSubcriptionsCount);
 
-                            currentSubcriptionsCount.should.eql(1);
+                            currentSubcriptionsCount.should.eql(1, "expecting one subscription ");
                             currentMonitoredItemsCount.should.eql(2);
 
                             results[2].value.value.constructor.name.should.eql("SessionDiagnostics");

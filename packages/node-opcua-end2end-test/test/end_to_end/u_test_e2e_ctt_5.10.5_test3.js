@@ -66,7 +66,6 @@ module.exports = function (test) {
                   });
 
                 monitoredItem1.once("changed", function (dataValue) {
-
                     subscription.on("raw_notification", subscription_raw_notification_event);
                     spy_publish = sinon.spy(the_session, "publish");
                     callback();
@@ -110,6 +109,7 @@ module.exports = function (test) {
         function write_value_and_wait_for_change(session, callback) {
 
             monitoredItem1.once("changed", function (dataValue) {
+                //xx console.log("write_value_and_wait_for_change ! Changed !!!!".cyan,dataValue.toString().green);
                 dataValue.value.value.should.eql(_the_value);
                 callback();
             });
@@ -141,7 +141,6 @@ module.exports = function (test) {
                 });
             }
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
 
                 async.series([
                     //xx write_value.bind(null,session),

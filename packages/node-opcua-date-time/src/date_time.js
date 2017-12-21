@@ -34,7 +34,7 @@ var B = offset * A;
 var oh = Math.floor(offset / F);
 var ol = offset % F;
 var fl = factor % F;
-var F_div_factor = ( F / factor);
+var F_div_factor = (F / factor);
 
 // Extracted from OpcUA Spec v1.02 : part 6:
 //
@@ -103,8 +103,8 @@ function bn_dateToHundredNanoSecondFrom1601_fast(date) {
     //  value_l = ((t % F + ol        ) * fl           )% F
 
     var value_h = Math.floor(t * A + B);
-    var value_l = ( ( t % F + ol ) * fl ) % F;
-    value_l = ( value_l + F ) % F;
+    var value_l = ((t % F + ol) * fl) % F;
+    value_l = (value_l + F) % F;
     var high_low = [value_h, value_l];
     Object.defineProperty(date, "high_low", {
         get: function () {
@@ -126,7 +126,7 @@ function bn_hundredNanoSecondFrom1601ToDate_fast(high, low) {
     //    h/f =     (h div f)   + (h % f) /f
     //    h/f * F = (h div f)*F + (h % f) * F/f
     //    o = oh * F + ol
-    var value1 = (Math.floor(high / factor) - oh ) * F + Math.floor(( high % factor ) * F_div_factor + low / factor) - ol;
+    var value1 = (Math.floor(high / factor) - oh) * F + Math.floor((high % factor) * F_div_factor + low / factor) - ol;
     var date = new Date(value1);
     // enrich the date
     Object.defineProperty(date, "high_low", {
@@ -144,11 +144,11 @@ var last_now_date = null;
 var last_picoseconds = 0;
 
 function getCurrentClock() {
-    var now =new Date();
-    if (last_now_date  && now.getTime() === last_now_date.getTime()) {
-        last_picoseconds = last_picoseconds+1;
+    var now = new Date();
+    if (last_now_date && now.getTime() === last_now_date.getTime()) {
+        last_picoseconds += 1;
     } else {
-        last_picoseconds = 0;
+        last_picoseconds = 1;
         last_now_date = now;
     }
     return {
@@ -157,7 +157,7 @@ function getCurrentClock() {
     };
 }
 
-function coerceClock(timestamp,picoseconds) {
+function coerceClock(timestamp, picoseconds) {
     if (timestamp) {
         return {
             timestamp: timestamp,

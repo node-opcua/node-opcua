@@ -583,7 +583,7 @@ function initialize_properties_and_components(instance,topMostType,nodeType,opti
  * @param [options.optionals]     {Array<String>} array of browseName of optional component/property to instantiate.
  * @param [options.modellingRule] {String}
  * @param [options.minimumSamplingInterval =0] {Number}
- *
+ * @param [options.extensionObject =null]
  * Note : HasComponent usage scope
  *
  *    Source          |     Destination
@@ -646,13 +646,14 @@ UAVariableType.prototype.instantiate = function (options) {
 
     var instance = addressSpace.addVariable(opts);
 
+    //xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);
 
     initialize_properties_and_components(instance,baseVariableType,self,options.optionals);
 
     // if VariableType is a type of Structure DataType
     // we need to instantiate a dataValue
     // and create a bidirectional binding with the individual properties of this type
-    instance.bindExtensionObject();
+    instance.bindExtensionObject(options.extensionObject);
 
 
     assert(instance.typeDefinition.toString()=== self.nodeId.toString());

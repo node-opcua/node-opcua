@@ -17,7 +17,6 @@ var registerSpecialVariantEncoder = require("node-opcua-factory").registerSpecia
 registerSpecialVariantEncoder(exports.DataValue);
 
 var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
-var coerceClock = require("node-opcua-date-time").coerceClock;
 
 var Variant = require("node-opcua-variant").Variant;
 var sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
@@ -43,11 +42,12 @@ DataValue.prototype.clone = function () {
         serverPicoseconds: self.serverPicoseconds,
         sourcePicoseconds: self.sourcePicoseconds,
         statusCode: self.statusCode,
-        value: {
-            dataType: self.value.dataType,
-            arrayType: self.value.arrayType,
-            value: self.value.value
-        }
+        value: self.value.clone()
+        // value: {
+        //     dataType: self.value.dataType,
+        //     arrayType: self.value.arrayType,
+        //     value: self.value.value
+        // }
     });
 
     return tmp;

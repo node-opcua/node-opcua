@@ -42,7 +42,6 @@ UAObject.prototype.nodeClass = NodeClass.Object;
 UAObject.typeDefinition = resolveNodeId("BaseObjectType");
 
 var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
-var coerceClock = require("node-opcua-date-time").coerceClock;
 
 
 UAObject.prototype.readAttribute = function (context, attributeId) {

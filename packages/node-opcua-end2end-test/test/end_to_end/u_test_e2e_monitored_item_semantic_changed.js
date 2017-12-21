@@ -236,6 +236,9 @@ module.exports = function (test) {
                             subscriptionAcknowledgements: []
                         });
                         session.publish(publish_request, function (err, publish_response) {
+                            if (err) {
+                                return callback(err);
+                            }
                             //xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
                             var monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];

@@ -2153,11 +2153,10 @@ module.exports = function (test) {
                             }]
                         });
 
-                        console.log("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
+                        //xx console.log("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
 
                         session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
-
-                            console.log("ERRR = ", err);
+                            //xx console.log("ERRR = ", err);
                             should.not.exist(err);
                             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                             //xx console.log(response.results[0].toString());
@@ -3326,5 +3325,3 @@ module.exports = function (test) {
         });
     });
 };
-
-

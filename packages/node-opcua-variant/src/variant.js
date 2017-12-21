@@ -27,6 +27,15 @@ function _coerceVariant(variantLike) {
 }
 Variant.coerce = _coerceVariant;
 
+/**
+ * @method clone
+ *   deep clone a variant
+ *
+ * @returns {exports.Variant}
+ */
+Variant.prototype.clone = function () {
+    return new this.constructor(this);
+};
 
 var factory = require("node-opcua-factory");
 factory.registerSpecialVariantEncoder(Variant);
