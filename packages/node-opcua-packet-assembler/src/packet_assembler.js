@@ -60,7 +60,9 @@ PacketAssembler.prototype.feed = function (data) {
 
     if (this.expectedLength === 0 && this.currentLength + data.length >= this.minimumSizeInBytes) {
 
-        // let's build
+        // we are at a start of a block and there is enough data provided to read the length  of the block
+
+        // let's build the whole data block with previous blocks already read.
         if (this._stack.length > 0) {
             data = this._build_data(data);
             this.currentLength = 0;
@@ -73,7 +75,7 @@ PacketAssembler.prototype.feed = function (data) {
         assert(this.currentLength === 0);
         assert(this.expectedLength > 0);
 
-        // we can also validate the messageType ...
+        // we can now emit an event to signal the start of a new packet
         this.emit("newMessage", this.packet_info, data);
 
     }
@@ -90,6 +92,7 @@ PacketAssembler.prototype.feed = function (data) {
 
         messageChunk = this._build_data(data);
 
+        // istanbul ignore next
         if (doDebug) {
             var packet_info = this._read_packet_info(messageChunk);
             assert(this.packet_info.length === packet_info.length);
@@ -103,6 +106,7 @@ PacketAssembler.prototype.feed = function (data) {
 
     } else {
 
+        assert(this.expectedLength > 0);
         // there is more data in this chunk than expected...
         // the chunk need to be split
         var size1 = this.expectedLength - this.currentLength;

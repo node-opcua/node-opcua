@@ -96,13 +96,12 @@ describe("NodeCrawler after write",function(){
                     var nodeId = opcua.coerceNodeId(2294);
                     console.log(nodeId);
 
-                    var nodeToWrite =
-                        {
-                            dataType: DataType.Boolean,
-                            value: true
-                        };
+                    var dataValue = {
+                        dataType: DataType.Boolean,
+                        value: true
+                    };
 
-                    session.writeSingleNode(nodeId, nodeToWrite,function(err, results){
+                    session.writeSingleNode(nodeId, dataValue,function(err, results){
 
                         console.log('res', results);
 

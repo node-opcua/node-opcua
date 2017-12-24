@@ -60,10 +60,12 @@ WatchDog.prototype._visit_subscriber = function () {
 
 function keepAliveFunc() {
     var self = this;
-
     assert(self._watchDog instanceof WatchDog);
     assert(_.isNumber(self._watchDogData.key));
     self._watchDogData.last_seen = new Date();
+    if (self.onClientSeen) {
+        self.onClientSeen(self._watchDogData .last_seen);
+    }
 }
 
 /**
@@ -105,6 +107,10 @@ WatchDog.prototype.addSubscriber = function (subscriber, timeout) {
     };
 
     self._subscriber[key] = subscriber._watchDogData;
+
+    if (subscriber.onClientSeen) {
+        subscriber.onClientSeen(subscriber._watchDogData .last_seen);
+    }
 
     subscriber.keepAlive = keepAliveFunc.bind(subscriber);
 

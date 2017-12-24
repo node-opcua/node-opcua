@@ -740,8 +740,8 @@ MonitoredItem.prototype._enqueue_value = function (dataValue) {
     assert(!self.oldDataValue || !dataValue.value || (dataValue.value !== self.oldDataValue.value), "dataValue cannot be the same object twice!");
     if (!(!self.oldDataValue || !self.oldDataValue.value
             || !dataValue.value || !(dataValue.value.value instanceof Object)
-            || (dataValue.value.value !== self.oldDataValue.value.value))) {
-        throw new Error("dataValue.value.value cannot be the same object twice! " + self.node.browseName.toString());
+            || (dataValue.value.value !== self.oldDataValue.value.value)) && !(dataValue.value.value instanceof Date)) {
+        throw new Error("dataValue.value.value cannot be the same object twice! " + self.node.browseName.toString() + " " + dataValue.toString()  + "  " + self.oldDataValue.toString().cyan);
     }
 
     // istanbul ignore next

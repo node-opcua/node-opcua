@@ -147,6 +147,11 @@ ServerSession.prototype.__defineGetter__("addressSpace", function () {
     return this.parent.addressSpace;
 });
 
+ServerSession.prototype.__defineGetter__("currentPublishRequestInQueue", function() {
+    var self = this;
+    return self.publishEngine ? self.publishEngine.pendingPublishRequestCount : 0;
+});
+
 //xx ServerSession.prototype.__defineGetter__("serverDiagnostics")
 
 var ServiceCounter = require("node-opcua-common").ServiceCounter;
@@ -157,21 +162,76 @@ var DataType = require("node-opcua-variant").DataType;
 var Variant = require("node-opcua-variant").Variant;
 var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
 
+
+
+
+ServerSession.prototype.updateClientLastContactTime = function(currentTime) {
+    var self = this;
+    if (self._sessionDiagnostics && self._sessionDiagnostics.clientLastContactTime) {
+        currentTime = currentTime  || new Date();
+        // do not record all ticks as this may be overwhelming,
+        if (currentTime.getTime()  - 250 >= self._sessionDiagnostics.clientLastContactTime.getTime()) {
+            self._sessionDiagnostics.clientLastContactTime = currentTime;
+        }
+    }
+};
+
+
+/**
+ * required for watch dog
+ */
+ServerSession.prototype.onClientSeen = function(currentTime) {
+    var self = this;
+
+    self.updateClientLastContactTime(currentTime);
+
+    if (self._sessionDiagnostics) {
+        // see https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
+        assert(self._sessionDiagnostics.hasOwnProperty("currentMonitoredItemsCount"));
+        assert(self._sessionDiagnostics.hasOwnProperty("currentSubscriptionsCount"));
+        assert(self._sessionDiagnostics.hasOwnProperty("currentPublishRequestsInQueue"));
+
+        // note : https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
+        // sessionDiagnostics extension object uses a different spelling
+        // here with an S !!!!
+        self._sessionDiagnostics.currentMonitoredItemsCount = self.currentMonitoredItemCount;
+        self._sessionDiagnostics.currentSubscriptionsCount = self.currentSubscriptionCount;
+        self._sessionDiagnostics.currentPublishRequestsInQueue = self.currentPublishRequestInQueue;
+    }
+};
+
 ServerSession.prototype.incrementTotalRequestCount = function () {
 
     var self = this;
     if (self._sessionDiagnostics && self._sessionDiagnostics.totalRequestCount) {
         self._sessionDiagnostics.totalRequestCount.totalCount += 1;
     }
-    /*
+};
+
+var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
+
+ServerSession.prototype.incrementRequestTotalCounter = function (counterName) {
+    var self = this;
     if (self._sessionDiagnostics) {
-        self._sessionDiagnostics.totalRequestCount.totalCount +=1;
-        var now = getCurrentClock();
-        self.sessionDiagnostics.totalRequestCount.totalCount.touchValue(now);
-        self.sessionDiagnostics.totalRequestCount.touchValue(now);
-        self.sessionDiagnostics.touchValue(now);
+        var propName = lowerFirstLetter(counterName + "Count");
+        if (!self._sessionDiagnostics.hasOwnProperty(propName)) {
+            console.log(" cannot find" ,propName);
+           //xx return;
+        }
+     //   console.log(self._sessionDiagnostics.toString());
+        self._sessionDiagnostics[propName].totalCount = self._sessionDiagnostics[propName].totalCount + 1;
     }
-    */
+};
+ServerSession.prototype.incrementRequestErrorCounter = function (counterName) {
+    var self = this;
+    if (self._sessionDiagnostics) {
+        var propName = lowerFirstLetter(counterName + "Count");
+        if (!self._sessionDiagnostics.hasOwnProperty(propName)) {
+            console.log(" cannot find" ,propName);
+          //xx  return;
+        }
+        self._sessionDiagnostics[propName].errorCount +=1;
+    }
 };
 
 ServerSession.prototype._createSessionObjectInAddressSpace = function () {
@@ -231,6 +291,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         // the extension object
         self._sessionDiagnostics = self.addressSpace.constructExtensionObject(sessionDiagnosticsDataType, {});
 
+        // install property getter on property that are unlikely to change
         if (self.parent.clientDescription) {
             self._sessionDiagnostics.clientDescription = self.parent.clientDescription;
         }
@@ -240,12 +301,6 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
                 return self.clientConnectionTime;
             }
         });
-        Object.defineProperty(self._sessionDiagnostics, "clientLastContactTime", {
-            get: function () {
-                return self.clientLastContactTime;
-            }
-        });
-
 
         Object.defineProperty(self._sessionDiagnostics, "actualSessionTimeout", {
             get: function () {
@@ -253,29 +308,11 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
             }
         });
 
-        Object.defineProperty(self._sessionDiagnostics, "currentMonitoredItemsCount", {
-            get: function () {
-                return self.currentMonitoredItemsCount;
-            }
-        });
-
-        Object.defineProperty(self._sessionDiagnostics, "currentSubscriptionsCount", {
-            get: function () {
-                return self.currentSubscriptionCount;
-            }
-        });
-        Object.defineProperty(self._sessionDiagnostics, "currentPublishRequestsInQueue", {
-            get: function () {
-                return self.publishEngine ? self.publishEngine.pendingPublishRequestCount : 0;
-            }
-        });
-        /*
         Object.defineProperty(self._sessionDiagnostics,"sessionId",{
             get: function() {
                 return self.nodeId;
             }
         });
-        */
         Object.defineProperty(self._sessionDiagnostics, "sessionName", {
             get: function () {
                 assert(_.isString(self.sessionName));
@@ -286,28 +323,11 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         self.sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
             browseName: "SessionDiagnostics",
             componentOf: self.sessionObject,
-            extensionObject: self._sessionDiagnostics
-            // value: {
-            //     timestamped_get: function () {
-            //         return new DataValue({
-            //             value: new Variant({dataType: DataType.ExtensionObject, value: self._sessionDiagnostics}),
-            //             sourceTimestamp:  new Date(),
-            //             sourcePicoseconds: 0,
-            //             serverTimestamp: new Date()
-            //         });
-            //     }
-            // }
+            extensionObject: self._sessionDiagnostics,
+            minimumSamplingInterval: 2000 // 2 seconds
         });
 
         self._sessionDiagnostics = self.sessionDiagnostics.$extensionObject;
-
-        /*
-        self.sessionDiagnostics.minimumSamplingInterval = 1000;
-        self.sessionDiagnostics.clientLastContactTime.minimumSamplingInterval = 1000;
-        self.sessionDiagnostics.totalRequestCount.minimumSamplingInterval = 1000;
-        self.sessionDiagnostics.totalRequestCount.totalCount.minimumSamplingInterval = 1000;
-        self.sessionDiagnostics.totalRequestCount.errorCount.minimumSamplingInterval = 1000;
-        */
     }
     return self.sessionObject;
 };
@@ -332,20 +352,6 @@ ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
         self.sessionObject = null;
     }
 };
-
-
-//ServerSession.prototype._createDiagnostics = function(addressSpace) {
-//    var self = this;
-//
-//    if (!self.sessionObject) {
-//        return 0;
-//    }
-//    // create SessionsDiagnosticsSummary
-//    var serverDiagnostics = addressSpace.findNode("ServerDiagnostics");
-//    var subscriptionDiagnosticsArray = serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray");
-//    eoan.bindExtObjArrayNode(subscriptionDiagnosticsArray,"SubscriptionDiagnosticsType","subscriptionId");
-//
-//};
 
 var Subscription = require("./subscription").Subscription;
 
@@ -492,12 +498,12 @@ ServerSession.prototype.__defineGetter__("cumulatedSubscriptionCount", function 
 
 /**
  * number of monitored items
- * @property currentMonitoredItemsCount
+ * @property currentMonitoredItemCount
  * @type {Number}
  */
-ServerSession.prototype.__defineGetter__("currentMonitoredItemsCount", function () {
+ServerSession.prototype.__defineGetter__("currentMonitoredItemCount", function () {
     var self = this;
-    return self.publishEngine ? self.publishEngine.currentMonitoredItemsCount : 0;
+    return self.publishEngine ? self.publishEngine.currentMonitoredItemCount : 0;
 });
 
 
@@ -596,6 +602,7 @@ ServerSession.prototype.close = function (deleteSubscriptions, reason) {
     }
 
     self._deleteSubscriptions();
+
     assert(self.currentSubscriptionCount === 0);
 
     // ---------------- shut down publish engine

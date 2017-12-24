@@ -136,7 +136,7 @@ function ServerEngine(options) {
     this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
     this.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
 
-    // --------------------------------------------------- serverDiagnosticsSummary
+    // --------------------------------------------------- serverDiagnosticsSummary extension Object
     this.serverDiagnosticsSummary = new ServerDiagnosticsSummary({});
     assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
 
@@ -145,7 +145,10 @@ function ServerEngine(options) {
         return Object.keys(self._sessions).length;
     });
 
+    // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
+    //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
     assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSubscriptionCount"));
+
     this.serverDiagnosticsSummary.__defineGetter__("currentSubscriptionCount", function () {
         // currentSubscriptionCount returns the total number of subscriptions
         // that are currently active on all sessions

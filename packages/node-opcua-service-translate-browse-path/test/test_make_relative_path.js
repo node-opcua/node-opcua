@@ -3,16 +3,16 @@ var should = require("should");
 
 
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var makeNodeId   =  require("node-opcua-nodeid").makeNodeId;
+var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var QualifiedName = require("node-opcua-data-model").QualifiedName;
 
 var tbp_service = require("..");
 
 var makeRelativePath = tbp_service.makeRelativePath;
-var RelativePath  = tbp_service.RelativePath;
-var RelativePathElement  = tbp_service.RelativePathElement;
+var RelativePath = tbp_service.RelativePath;
+var RelativePathElement = tbp_service.RelativePathElement;
 
-describe("makeRelativePath",function() {
+describe("makeRelativePath", function () {
 
 
     var hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
@@ -347,6 +347,30 @@ describe("makeRelativePath",function() {
             isInverse: false,
             includeSubtypes: true,
             targetName: new QualifiedName({namespaceIndex: 2, name: "test-path"})
+        }));
+
+    });
+    it("TJ should construct simple RelativePath for SessionDiagnostics.TotalRequestsCount.TotalCount", function () {
+
+        var relativePath = makeRelativePath(".SessionDiagnostics.TotalRequestsCount.TotalCount", null);
+
+        relativePath.elements[0].should.eql(new RelativePathElement({
+            referenceTypeId: aggregatesReferenceTypeNodeId,
+            isInverse: false,
+            includeSubtypes: true,
+            targetName: new QualifiedName({namespaceIndex: 0, name: "SessionDiagnostics"})
+        }));
+        relativePath.elements[1].should.eql(new RelativePathElement({
+            referenceTypeId: aggregatesReferenceTypeNodeId,
+            isInverse: false,
+            includeSubtypes: true,
+            targetName: new QualifiedName({namespaceIndex: 0, name: "TotalRequestsCount"})
+        }));
+        relativePath.elements[2].should.eql(new RelativePathElement({
+            referenceTypeId: aggregatesReferenceTypeNodeId,
+            isInverse: false,
+            includeSubtypes: true,
+            targetName: new QualifiedName({namespaceIndex: 0, name: "TotalCount"})
         }));
 
     });

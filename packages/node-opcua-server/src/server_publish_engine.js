@@ -482,7 +482,7 @@ ServerSidePublishEngine.prototype.__defineGetter__("pendingClosedSubscriptionCou
     return this._closed_subscriptions.length;
 });
 
-ServerSidePublishEngine.prototype.__defineGetter__("currentMonitoredItemsCount", function () {
+ServerSidePublishEngine.prototype.__defineGetter__("currentMonitoredItemCount", function () {
 
     var result =  _.reduce(this._subscriptions,function(cumul,subscription) {
         return cumul + subscription.monitoredItemCount;
