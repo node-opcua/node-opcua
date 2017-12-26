@@ -25,7 +25,7 @@
 //     The  ValuePrecision  Property  is an approximation that is intended to prov ide guidance to a  Client. A
 //     Server  is expected to silently round any value with more precision that it supports. This implies that
 //     a  Client  may encounter cases where the value read back from a  Server  differs from the value that it
-//    wrote to the Server. This   difference shall be no more than the difference suggested by this  Property
+//     wrote to the Server. This   difference shall be no more than the difference suggested by this  Property
 
 var assert = require("node-opcua-assert");
 var address_space = require("../address_space");
@@ -76,7 +76,7 @@ function add_dataItem_stuff(variable, options) {
             browseName: "ValuePrecision",
             typeDefinition: "PropertyType",
             description: valuePrecision_Description,
-            dataType: "Number",
+            dataType: "Double",
             value: new Variant({dataType: DataType.Double, value: options.valuePrecision}),
             minimumSamplingInterval: 0
         });
