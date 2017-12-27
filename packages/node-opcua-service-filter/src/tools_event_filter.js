@@ -162,7 +162,6 @@ SimpleAttributeOperand.prototype.toPath = function() {
     }).join("/");
 };
 
-*
 /**
  * @class SimpleAttributeOperand
  * @method toShortString
