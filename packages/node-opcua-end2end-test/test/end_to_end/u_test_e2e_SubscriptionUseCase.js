@@ -2052,10 +2052,7 @@ module.exports = function (test) {
                     }
                 });
 
-
             }, done);
-
-
         });
 
         it("AZA3-R Server should revise publishingInterval to be at least server minimum publishing interval", function (done) {
@@ -2101,13 +2098,18 @@ module.exports = function (test) {
 
         function test_revised_sampling_interval(requestedPublishingInterval, requestedSamplingInterval, revisedSamplingInterval, done) {
 
+
+            var forcedMinimumInterval = 1;
             var namespaceIndex = 411;
             var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
-            nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
+            //xx nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
 
             var node = server.engine.addressSpace.findNode(nodeId);
-
             //xx console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".cyan,node.toString());
+            var server_node = test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.scalar_Static.scalar_Static_Int16;
+            //xx console.log("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
+            server_node.minimumSamplingInterval= forcedMinimumInterval;
+
 
             var itemToMonitor = new opcua.read_service.ReadValueId({
                 nodeId: nodeId,
@@ -2116,6 +2118,25 @@ module.exports = function (test) {
             var subscriptionId = -1;
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 async.series([
+
+                    function read_minimumSamplingInterval(callback) {
+
+                        var minimumSamplingIntervalOnNode;
+                        var nodesToRead = [{
+                            nodeId: nodeId,
+                            attributeId: opcua.AttributeIds.MinimumSamplingInterval
+                        }];
+                        session.read(nodesToRead,function(err,unused,results){
+                            if (err) { return callback(err); }
+                            results[0].statusCode.should.eql(opcua.StatusCodes.Good);
+                            minimumSamplingIntervalOnNode = results[0].value.value;
+                            //xx console.log("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
+
+                            minimumSamplingIntervalOnNode.should.eql(forcedMinimumInterval);
+
+                            callback();
+                        });
+                    },
                     function (callback) {
 
 
@@ -2156,6 +2177,7 @@ module.exports = function (test) {
                         //xx console.log("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
 
                         session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
+                            if (err) { return  callback(err);}
                             //xx console.log("ERRR = ", err);
                             should.not.exist(err);
                             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
