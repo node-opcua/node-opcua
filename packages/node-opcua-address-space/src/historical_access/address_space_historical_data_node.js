@@ -66,7 +66,7 @@ exports.install = function (AddressSpace) {
 
         // ensure that values are set with date increasing
         if (sourceTime.getTime() <= node.lastDate.getTime()) {
-            console.log("Warning date not increasing ".red, newDataValue.toString(), " last known date = ", lastDate);
+            console.log("Warning date not increasing ".red, newDataValue.toString(), " last known date = ", node.lastDate);
         }
 
         node.lastDate = sourceTime;
