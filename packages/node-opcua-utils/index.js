@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @module opcua.datamodel
+ * @module opcua.utils
  */
 
 var util = require("util");

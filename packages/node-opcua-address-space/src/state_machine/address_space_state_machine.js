@@ -21,7 +21,7 @@ exports.install = function (AddressSpace) {
      * @param stateName   {string}
      * @param stateNumber {number}
      * @param isInitialState {boolean}
-     * @returns {UAObject} {StateType|InitialStateType}
+     * @return {UAObject} {StateType|InitialStateType}
      */
     AddressSpace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
 

@@ -38,11 +38,11 @@ exports.UAExclusiveDeviationAlarm = UAExclusiveDeviationAlarm;
 
 /**
  *
- * @param addressSpace
+ * @param addressSpace {AddressSpace}
  * @param type
  * @param options
  * @param data
- * @returns {UAExclusiveLimitAlarm}
+ * @return {UAExclusiveLimitAlarm}
  */
 UAExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data ){
 

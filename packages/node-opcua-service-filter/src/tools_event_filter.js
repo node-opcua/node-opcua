@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @module opcua.helpers
+ * @module service.filter.tools
  */
 
 
@@ -146,14 +146,11 @@ exports.constructEventFilter = constructEventFilter;
 
 
 /**
- *
- * @param referenceBaseName
+ * @class SimpleAttributeOperand
+ * @method toPath
+ * @return {String}
  *
  * @example:
- *
- *  // returns all children elements with a reference type that derives from "Aggregates"
- *  // (i.e HasProperty, HasComponent, HasOrderedComponent)
- *  var nodes = obj.getChildren("Aggregates");
  *
  *
  */
@@ -164,6 +161,17 @@ SimpleAttributeOperand.prototype.toPath = function() {
         return a.name;
     }).join("/");
 };
+
+*
+/**
+ * @class SimpleAttributeOperand
+ * @method toShortString
+ * @return {String}
+ *
+ * @example:
+ *
+ *
+ */
 
 SimpleAttributeOperand.prototype.toShortString = function(addressSpace) {
 
@@ -186,8 +194,10 @@ function assert_valid_event_data(eventData) {
 
 
 /**
+ *
+ * @method extractEventField
  * extract a eventField from a event node, matching the given selectClause
- * @param eventNode
+ * @param eventData
  * @param selectClause
  */
 function extractEventField(eventData, selectClause) {
@@ -248,8 +258,8 @@ function extractEventField(eventData, selectClause) {
 }
 
 /**
+ * @method extractEventFields
  * extract a array of eventFields from a event node, matching the selectClauses
- * @param eventTypeNode
  * @param selectClauses
  * @param eventData : a pseudo Node that provides a browse Method and a readValue(nodeId)
  */

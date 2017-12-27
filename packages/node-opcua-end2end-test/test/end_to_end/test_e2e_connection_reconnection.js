@@ -1124,7 +1124,7 @@ describe("testing ability for client to reconnect when server close connection",
         // ensure we have more value than previous call
         // ensure that series is continuous
         if (doDebug) {
-            //xx console.log(values_to_check.join(" "));
+            console.log(values_to_check.join(" "));
         }
 
         values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
@@ -1179,7 +1179,7 @@ describe("testing ability for client to reconnect when server close connection",
         var server_subscription = get_server_side_subscription();
 
         // let's cheat a little bit => we don't really want to wait until subscriptions times out
-        // let make sure it will timeout almost immediataly
+        // let make sure it will timeout almost immediately
         function accelerate_subscription_timeout(subscription, callback) {
             //xx console.log("accelerate_subscription_timeout", subscription.id, " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
             subscription._life_time_counter = subscription.lifeTimeCount - 1;

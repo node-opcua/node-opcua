@@ -134,7 +134,7 @@ function w(str,width) {
  *    toDate("13:00");      => today at 13:00
  *    toDate("1 hour ago"); => today one our ago....
  *
- * @returns {Date}
+ * @return {Date}
  */
 function toDate(str) {
     console.log(" parsing : '" + str + "'");

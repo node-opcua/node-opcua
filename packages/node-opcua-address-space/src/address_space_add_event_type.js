@@ -46,7 +46,7 @@ function EventData(eventTypeNode) {
 /**
  * @method resolveSelectClause
  * @param selectClause {SimpleAttributeOperand}
- * @returns {NodeId|null}
+ * @return {NodeId|null}
  */
 EventData.prototype.resolveSelectClause = function(selectClause) {
     var self = this;
@@ -98,7 +98,7 @@ EventData.prototype.setValue = function(lowerName,node,variant) {
  * @method readValue
  * @param nodeId {NodeId}
  * @param selectClause {SimpleAttributeOperand}
- * @returns {Variant}
+ * @return {Variant}
  */
 EventData.prototype.readValue = function(nodeId,selectClause) {
     assert(nodeId instanceof NodeId);

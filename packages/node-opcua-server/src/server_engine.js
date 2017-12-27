@@ -545,21 +545,9 @@ ServerEngine.prototype.initialize = function (options, callback) {
                     serverDiagnostics_Enabled = newFlag;
                 });
 
-
-            var serverDiagnosticsSummary_var = new Variant({
-                dataType: DataType.ExtensionObject,
-                value: self.serverDiagnosticsSummary
-            });
-            bindVariableIfPresent(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary), {
-                get: function () {
-                    return serverDiagnosticsSummary_var;
-                },
-                set: null
-            });
-
             var serverDiagnosticsSummary = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary));
             if (serverDiagnosticsSummary) {
-                serverDiagnosticsSummary.bindExtensionObject();
+                serverDiagnosticsSummary.bindExtensionObject(self.serverDiagnosticsSummary);
             }
 
         }
@@ -571,29 +559,19 @@ ServerEngine.prototype.initialize = function (options, callback) {
                 return;
             }
             if (serverStatusNode) {
-
-                serverStatusNode.bindExtensionObject();
-                serverStatusNode.updateExtensionObjectPartial(self.serverStatus);
-                self.serverStatus = serverStatusNode.$extensionObject;
+                serverStatusNode.bindExtensionObject(self.serverStatus);
+                //xx serverStatusNode.updateExtensionObjectPartial(self.serverStatus);
+                //xx self.serverStatus = serverStatusNode.$extensionObject;
                 serverStatusNode.minimumSamplingInterval = 1000;
-
-                // setInterval(function() {
-                //     serverStatusNode.touchValue();
-                //     console.log("periodic serverStatusUpdate ",serverStatusNode.$extensionObject.currentTime,serverStatusNode._dataValue.sourceTimestamp);
-                // },500);
-
-                // var t = serverStatusNode._timestamped_get_func;
-                // assert(_.isFunction(t));
-                // serverStatusNode._timestamped_get_func = function() {
-                //     serverStatusNode._dataValue.sourceTimestamp = new Date();
-                //     return t.call(this);
-                // }
-
             }
 
             var currentTimeNode = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
             if (currentTimeNode) {
-                currentTimeNode.minimumSamplingInterval = 1;
+                currentTimeNode.minimumSamplingInterval = 1000;
+            }
+            var secondsTillShutdown = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown));
+            if (secondsTillShutdown) {
+                secondsTillShutdown.minimumSamplingInterval = 1000;
             }
 
             serverStatusNode.$extensionObject = new Proxy(serverStatusNode.$extensionObject, {

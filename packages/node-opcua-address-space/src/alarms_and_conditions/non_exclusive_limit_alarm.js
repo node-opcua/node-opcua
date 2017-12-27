@@ -146,7 +146,7 @@ exports.UANonExclusiveLimitAlarm = UANonExclusiveLimitAlarm;
  * @param type
  * @param options
  * @param data
- * @returns {UANonExclusiveLimitAlarm}
+ * @return {UANonExclusiveLimitAlarm}
  */
 UANonExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data) {
 

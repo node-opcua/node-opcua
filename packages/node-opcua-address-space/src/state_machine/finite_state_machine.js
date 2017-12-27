@@ -85,7 +85,7 @@ function getComponentFromTypeAndSubtype(typeDef) {
 
 /**
  * @method getStates
- * @returns {*}
+ * @return {*}
  */
 UAStateMachine.prototype.getStates = function() {
 
@@ -118,7 +118,7 @@ UAStateMachine.prototype.__defineGetter__("states",function() {
 /**
  * @method getStateByName
  * @param name  {string}
- * @returns {null|UAObject}
+ * @return {null|UAObject}
  */
 UAStateMachine.prototype.getStateByName = function(name) {
 
@@ -220,7 +220,7 @@ UAObject.prototype.__defineGetter__("fromStateNode",function() {
 /**
  * @method isValidTransition
  * @param toStateNode
- * @returns {boolean}
+ * @return {boolean}
  */
 UAStateMachine.prototype.isValidTransition = function(toStateNode) {
     assert(toStateNode);
@@ -248,7 +248,7 @@ UAStateMachine.prototype.isValidTransition = function(toStateNode) {
  * @method findTransitionNode
  * @param fromStateNode {NodeId|BaseNode|string}
  * @param toStateNode   {NodeId|BaseNode|string}
- * @returns {UAObject}
+ * @return {UAObject}
  */
 UAStateMachine.prototype.findTransitionNode = function(fromStateNode,toStateNode) {
 

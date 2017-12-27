@@ -1,4 +1,8 @@
-
+/**
+ * @module opcua.address_space
+ *
+ * @type {{AddressSpace: AddressSpace, SessionContext: SessionContext, BaseNode: BaseNode, UAObject: UAObject, UAVariable: UAVariable, UAObjectType: UAObjectType, UAVariableType: UAVariableType, UAMethod: UAMethod, Reference: Reference, ReferenceType: ReferenceType, UADataType: UADataType, UAStateMachine: UAStateMachine, ConditionInfo: ConditionInfo, ConditionSnapshot: ConditionSnapshot, UAConditionBase: UAConditionBase, UAAcknowledgeableConditionBase: UAAcknowledgeableConditionBase, UALimitAlarm: UALimitAlarm, UANonExclusiveLimitAlarm: UANonExclusiveLimitAlarm, UAExclusiveLimitAlarm: UAExclusiveLimitAlarm, UADiscreteAlarm: UADiscreteAlarm, checkSelectClauses: checkSelectClauses, checkSelectClause: checkSelectClause, getMethodDeclaration_ArgumentList: getMethodDeclaration_ArgumentList, Argument: Argument, binaryStoreSize_ArgumentList: binaryStoreSize_ArgumentList, build_retrieveInputArgumentsDefinition: build_retrieveInputArgumentsDefinition, verifyArguments_ArgumentList: verifyArguments_ArgumentList, bindExtObjArrayNode: bindExtObjArrayNode, addElement: addElement, removeElement: removeElement, EventData: EventData, View: View, generate_address_space: generate_address_space}}
+ */
 
 
 module.exports = {

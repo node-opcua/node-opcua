@@ -60,7 +60,7 @@ function difference(v1,v2,absoluteDeadband) {
 }
 
 /**
- * detect true
+ * @method check_deadband
  * @param variant1 {Variant}
  * @param variant2 {Variant}
  * @param deadbandType  {DeadbandType}

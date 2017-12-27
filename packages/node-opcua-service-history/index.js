@@ -1,3 +1,7 @@
+"use strict";
+/**
+ * @module services.history
+ */
 module.exports ={
     AggregateConfiguration: require("./_generated_/_auto_generated_AggregateConfiguration").AggregateConfiguration,
     HistoryData: require("./_generated_/_auto_generated_HistoryData").HistoryData,

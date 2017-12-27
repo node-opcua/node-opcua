@@ -137,7 +137,7 @@ exports.prepareDataType = prepareDataType;
  * @param uaArrayVariableNode {UAVariable}
  * @param variableType        {DataType}
  * @param indexPropertyName   {String}
- * @returns {UAVariable}
+ * @return {UAVariable}
  */
 function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyName) {
 
@@ -194,7 +194,7 @@ exports.bindExtObjArrayNode = bindExtObjArrayNode;
  *
  * @param options {Object}   data used to construct the underlying ExtensionObject
  * @param uaArrayVariableNode {UAVariable}
- * @returns {*}
+ * @return {*}
  */
 function addElement(options, uaArrayVariableNode) {
 

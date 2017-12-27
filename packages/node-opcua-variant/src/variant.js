@@ -31,7 +31,7 @@ Variant.coerce = _coerceVariant;
  * @method clone
  *   deep clone a variant
  *
- * @returns {exports.Variant}
+ * @return {exports.Variant}
  */
 Variant.prototype.clone = function () {
     return new this.constructor(this);

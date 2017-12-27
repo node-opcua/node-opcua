@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @module services.register
+ * @module services.register-server
  */
 
 /**

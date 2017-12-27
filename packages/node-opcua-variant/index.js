@@ -1,3 +1,7 @@
+"use strict";
+/**
+ * @module opcua.variant
+ */
 exports.Variant = require("./src/variant").Variant;
 exports.DataType = require("./src/variant").DataType;
 exports.VariantArrayType = require("./src/variant").VariantArrayType;

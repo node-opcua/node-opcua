@@ -204,7 +204,7 @@ ConditionSnapshot.prototype._constructEventData = function () {
 
 /**
  * @method resolveSelectClause
- * @param selectClause
+ * @param selectClause {SelectClause}
  */
 ConditionSnapshot.prototype.resolveSelectClause = function (selectClause) {
     var self = this;
@@ -212,10 +212,10 @@ ConditionSnapshot.prototype.resolveSelectClause = function (selectClause) {
 };
 
 /**
- *
- * @param nodeId
- * @param selectClause
- * @return {*}
+ * @method readValue
+ * @param nodeId {NodeId}
+ * @param selectClause {SelectClause}
+ * @return {Variant}
  */
 ConditionSnapshot.prototype.readValue = function (nodeId, selectClause) {
     var self = this;
@@ -323,6 +323,7 @@ ConditionSnapshot.prototype.getEventId = function () {
     return self._get_var("eventId", DataType.ByteString);
 };
 /**
+ * @method getRetain
  * @return {Boolean}
  */
 ConditionSnapshot.prototype.getRetain = function () {
@@ -332,6 +333,7 @@ ConditionSnapshot.prototype.getRetain = function () {
 
 /**
  *
+ * @method setRetain
  * @param retainFlag {Boolean}
  */
 ConditionSnapshot.prototype.setRetain = function (retainFlag) {
@@ -341,7 +343,8 @@ ConditionSnapshot.prototype.setRetain = function (retainFlag) {
 };
 
 /**
- *
+ * @method renewEventId
+ * 
  */
 ConditionSnapshot.prototype.renewEventId = function () {
     var self = this;
@@ -363,7 +366,8 @@ ConditionSnapshot.prototype.getEnabledState = function () {
     return self._get_twoStateVariable("enabledState");
 };
 /**
- * @param {Boolean}
+ *
+ * @param value {Boolean}
  */
 ConditionSnapshot.prototype.setEnabledState = function (value) {
     var self = this;
@@ -832,7 +836,7 @@ function _create_new_branch_id() {
 
 /**
  * @method createBranch
- * @returns {ConditionSnapshot}
+ * @return {ConditionSnapshot}
  */
 UAConditionBase.prototype.createBranch = function () {
     var self = this;
@@ -922,7 +926,7 @@ UAConditionBase.prototype.evaluateConditionsAfterEnabled = function () {
 /**
  * @method _setEnabledState
  * @param requestedEnabledState {Boolean}
- * @returns {StatusCode} StatusCodes.Good if successful or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
+ * @return {StatusCode} StatusCodes.Good if successful or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
  * @private
  */
 UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
@@ -1343,7 +1347,7 @@ UAConditionBase.prototype._raiseAuditConditionCommentEvent = function (sourceNam
 
 /**
  * @method currentBranch
- * @returns {ConditionSnapshot}
+ * @return {ConditionSnapshot}
  */
 UAConditionBase.prototype.currentBranch = function () {
     return this._branch0;
@@ -1589,9 +1593,8 @@ function _disable_method(inputArguments, context, callback) {
 
 
 /**
- * verify that the subscription id belongs to the session that
- * make the call.
- *
+ * verify that the subscription id belongs to the session that make the call.
+ * @method _check_subscription_id_is_valid
  * @param subscriptionId {Number}
  * @param context {Object}
  * @private

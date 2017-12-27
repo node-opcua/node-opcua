@@ -12,9 +12,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var DataType = require("node-opcua-variant").DataType;
 
 /**
- * @module opcua.address_space
- * @inherit UADiscreteAlarm
- * @class AddressSpace
+ * @module opcua.address_space.AlarmsAndConditions
  */
 
 var UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
@@ -46,7 +44,7 @@ util.inherits(UAOffNormalAlarm, UADiscreteAlarm);
 
 /**
  * @method getNormalStateNode
- * @returns {BaseNode}
+ * @return {BaseNode}
  */
 UAOffNormalAlarm.prototype.getNormalStateNode = function () {
     var nodeId = this.normalState.readValue().value.value;
@@ -57,7 +55,7 @@ UAOffNormalAlarm.prototype.getNormalStateNode = function () {
 
 /**
  * @method getNormalStateValue
- * @returns {Any}
+ * @return {Any}
  */
 UAOffNormalAlarm.prototype.getNormalStateValue = function () {
     var normalStateNode = this.getNormalStateNode();

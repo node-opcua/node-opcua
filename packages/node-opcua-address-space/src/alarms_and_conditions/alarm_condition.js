@@ -452,7 +452,7 @@ UAAlarmConditionBase.prototype.getInputNodeNode = function () {
 
 /**
  * @method getInputNodeValue
- * @returns {*}
+ * @return {*}
  */
 UAAlarmConditionBase.prototype.getInputNodeValue = function () {
     var node = this.getInputNodeNode();

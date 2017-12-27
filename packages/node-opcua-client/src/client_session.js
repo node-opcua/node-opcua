@@ -927,7 +927,7 @@ ClientSession.prototype.close = function (deleteSubscription,callback) {
 
 /**
  *
- * @returns {Boolean}
+ * @return {Boolean}
  */
 ClientSession.prototype.hasBeenClosed = function() {
     return utils.isNullOrUndefined(this._client) || this._closed;

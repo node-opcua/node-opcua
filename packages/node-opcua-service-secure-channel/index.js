@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * @module services.secure-channel
+ */
 var ChannelSecurityToken =require("./_generated_/_auto_generated_ChannelSecurityToken").ChannelSecurityToken;
 /**
  * @property expired

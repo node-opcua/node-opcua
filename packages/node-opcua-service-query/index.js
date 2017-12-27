@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @module services.historizing
+ * @module services.query
  */
 
 /**

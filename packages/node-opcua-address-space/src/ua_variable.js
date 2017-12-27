@@ -315,14 +315,20 @@ UAVariable.prototype.nodeClass = NodeClass.Variable;
 /**
  *
  *
- * @param context
- * @returns {boolean}
+ * @param context  {SesionContext}
+ * @return {boolean}
  */
 UAVariable.prototype.isReadable = function (context) {
     assert(context instanceof SessionContext);
     return this.accessLevel.has("CurrentRead");
 };
 
+/**
+ *
+ *
+ * @param context  {SesionContext}
+ * @return {boolean}
+ */
 UAVariable.prototype.isUserReadable = function (context) {
     var self = this;
     assert(context instanceof SessionContext);
@@ -336,13 +342,20 @@ UAVariable.prototype.isUserReadable = function (context) {
 /**
  *
  *
- * @param context
- * @returns {boolean}
+ * @param context {SessionContext}
+ * @return {boolean}
  */
 UAVariable.prototype.isWritable = function (context) {
     assert(context instanceof SessionContext);
     return this.accessLevel.has("CurrentWrite");
 };
+
+/**
+ *
+ *
+ * @param context {SessionContext}
+ * @return {boolean}
+ */
 UAVariable.prototype.isUserWritable = function (context) {
     var self = this;
     assert(context instanceof SessionContext);
@@ -692,7 +705,7 @@ function _apply_default_timestamps(dataValue) {
 /**
  *
  * @note : this method is overridden in address-space-data-access
- * @returns {StatusCode}
+ * @return {StatusCode}
  */
 UAVariable.prototype.isValueInRange = function () {
 
@@ -1444,6 +1457,7 @@ UAVariable.prototype.__defineGetter__("dataTypeObj", function () {
 });
 
 /**
+ * @param  [optionalExtensionObject=null] {ExtensionObject}
  * @return {ExtensionObject}
  */
 UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
