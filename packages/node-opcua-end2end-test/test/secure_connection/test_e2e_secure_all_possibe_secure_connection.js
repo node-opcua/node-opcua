@@ -32,12 +32,20 @@ var start_simple_server = require("../../test_helpers/external_server_fixture").
 var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
 
-var g_defaultSecureTokenLifetime = 500;
-var g_cycleNumber = 3;
+var g_defaultSecureTokenLifetime = 750;
+var g_cycleNumber = 2;
 var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
 
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
+
+var no_reconnect_connectivity_strategy = {
+    maxRetry: 0, // NO RETRY !!!
+    initialDelay: 100,
+    maxDelay: 200,
+    randomisationFactor: 0
+};
+
 
 function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
@@ -187,7 +195,7 @@ function keep_monitoring_some_variable(session, duration, done) {
     var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
 
     var subscription = new ClientSubscription(session, {
-        requestedPublishingInterval: 500,
+        requestedPublishingInterval: 250,
         requestedLifetimeCount: 100,
         requestedMaxKeepAliveCount: 3,
         maxNotificationsPerPublish: 3,
@@ -231,7 +239,9 @@ function common_test(securityPolicy, securityMode, options, done) {
     options = _.extend(options, {
         securityMode: opcua.MessageSecurityMode.get(securityMode),
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
-        serverCertificate: serverCertificate
+        serverCertificate: serverCertificate,
+        connectionStrategy: no_reconnect_connectivity_strategy
+
     });
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
@@ -266,7 +276,9 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
         securityMode: opcua.MessageSecurityMode.get(securityMode),
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
-        defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
+        defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
+        connectionStrategy: no_reconnect_connectivity_strategy
+
     });
     var client = new OPCUAClient(options);
 
@@ -447,7 +459,9 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         var options = {
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
-            serverCertificate: serverCertificate
+            serverCertificate: serverCertificate,
+            connectionStrategy: no_reconnect_connectivity_strategy
+
         };
         client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -468,7 +482,9 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
-            serverCertificate: serverCertificate
+            serverCertificate: serverCertificate,
+            connectionStrategy: no_reconnect_connectivity_strategy
+
         };
         client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -488,7 +504,10 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
-            serverCertificate: serverCertificate
+            serverCertificate: serverCertificate,
+
+            connectionStrategy: no_reconnect_connectivity_strategy
+
         };
         client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -507,7 +526,10 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic256Sha256,
-            serverCertificate: serverCertificate
+            serverCertificate: serverCertificate,
+
+            connectionStrategy: no_reconnect_connectivity_strategy
+
         };
         client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -526,7 +548,10 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
-            serverCertificate: serverCertificate
+            serverCertificate: serverCertificate,
+
+            connectionStrategy: no_reconnect_connectivity_strategy
+
         };
         client = new OPCUAClient(options);
 
@@ -558,7 +583,8 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime
+            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
+            connectionStrategy: no_reconnect_connectivity_strategy
         };
 
         var token_change = 0;
@@ -627,12 +653,6 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
     it("server shall shutdown the connection if client doesn't renew security token on time", function (done) {
 
-        var no_reconnect_connectivity_strategy = {
-            maxRetry: 0, // NO RETRY !!!
-            initialDelay: 100,
-            maxDelay: 200,
-            randomisationFactor: 0
-        };
         var options = {
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
@@ -653,9 +673,9 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             });
         }, function(err) {
 
-            // Server must have disconneced
+            // Server must have disconnected because client did not renew token on time...
             should.exist(err);
-            err.message.toLowerCase().should.match(/disconnected by third party/);
+            err.message.toLowerCase().should.match(/disconnected by third party|invalid channel /);
             done();
 
         });

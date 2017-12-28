@@ -148,6 +148,7 @@ OPCUAClientBase.prototype.__defineGetter__("knowsServerEndpoint",function() {
 
 OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
+
     var self = this;
     if (self._secureChannel) {
 
@@ -266,11 +267,10 @@ OPCUAClientBase.prototype._recreate_secure_channel = function(callback) {
 
         self._internal_create_secure_channel(function (err) {
 
-
             if (err) {
                 debugLog("OPCUAClientBase: cannot reconnect ..".bgWhite.red);
             } else {
-                assert(self._secureChannel);
+                assert(self._secureChannel,"expecting a secureChannel here ");
                 // a new channel has be created and a new connection is established
                 debugLog("OPCUAClientBase:  RECONNECTED                                       !!!".bgWhite.red)
             }
@@ -345,8 +345,10 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
                     debugLog("Cannot create secureChannel".yellow, (err.message ? err.message.cyan : ""));
                     self._destroy_secure_channel();
                 } else {
+                    assert(self._secureChannel !== null);
                     _install_secure_channel_event_handlers(self,secureChannel);
                 }
+                assert(err || self._secureChannel !== null);
                 _inner_callback(err);
             });
 
@@ -366,10 +368,12 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
             if (!self.knowsServerEndpoint) {
                 assert(self._secureChannel !== null);
                 self.getEndpointsRequest(function (err/*, endpoints*/) {
+                    assert(self._secureChannel !== null);
                     _inner_callback(err);
                 });
             } else {
                 // end points are already known
+                assert(self._secureChannel !== null);
                 _inner_callback(null);
             }
         }
@@ -382,9 +386,9 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
             self._secureChannel = null;
             callback(err);
         } else {
+            assert(self._secureChannel !== null);
             callback(err,secureChannel);
         }
-
     });
 
 };

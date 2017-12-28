@@ -148,7 +148,7 @@ module.exports = function (test) {
         });
 
 
-        function check_semantic_change(samplingInterveal, done) {
+        function check_semantic_change(samplingInterval, done) {
 
             var analogDataItem = "ns=411;s=DoubleAnalogDataItem";
 
@@ -179,7 +179,7 @@ module.exports = function (test) {
 
                         var monitoringParameters = new opcua.subscription_service.MonitoringParameters({
                             clientHandle: 1000,
-                            samplingInterval: samplingInterveal,
+                            samplingInterval: samplingInterval,
                             filter: null,
                             queueSize: 10,
                             discardOldest: true
@@ -277,12 +277,16 @@ module.exports = function (test) {
             }, done);
         }
 
-        it("YY1 should set SemanticChanged - with sampling monitored item", function (done) {
+        it("YY1 should set SemanticChanged - with sampling monitored item - 100 ms", function (done) {
             check_semantic_change(100, done);
         });
 
         it("YY2 should set SemanticChanged - with event based monitored item", function (done) {
             check_semantic_change(0, done);
+        });
+
+        it("YY3 should set SemanticChanged - with sampling monitored item - 1000 ms", function (done) {
+            check_semantic_change(1000, done);
         });
 
 

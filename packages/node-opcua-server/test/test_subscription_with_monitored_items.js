@@ -1387,6 +1387,7 @@ describe("monitoredItem advanced", function () {
 
         });
         function add_monitored_item() {
+
             var nodeId = "i=2258"; // CurrentTime
             var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {nodeId: nodeId },
@@ -1394,7 +1395,7 @@ describe("monitoredItem advanced", function () {
 
                 requestedParameters: {
                     queueSize: 10,
-                    samplingInterval: 100
+                    samplingInterval: 1200
                 }
             });
             var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
@@ -1507,13 +1508,13 @@ describe("monitoredItem advanced", function () {
             subscription.publishingInterval.should.eql(100);
 
             var m = add_monitored_item();
-            m.samplingInterval.should.eql(100,"monitored item sampling interval should be 1 seconds");
+            m.samplingInterval.should.eql(1200,"monitored item sampling interval should be 1 seconds");
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(1);
 
 
             // simulate notification
             // now simulate some data change in 5 seconds 
-            this.clock.tick(500);
+            this.clock.tick(1200*5);
 
             evtNotificationCounter.should.eql(5);
             

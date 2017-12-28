@@ -872,7 +872,7 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
     assert(self._client);
 
     if (!self.isChannelValid()) {
-        // we need to queue this transaction,as a secure token may be being reprocessed
+        // we need to queue this transaction, as a secure token may be being reprocessed
         console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ".bgWhite.red);
         return callback(new Error("Invalid Channel "));
     }
