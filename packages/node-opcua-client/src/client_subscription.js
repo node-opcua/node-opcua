@@ -259,6 +259,7 @@ ClientSubscription.prototype.onNotificationMessage = function (notificationMessa
 
     var self = this;
     assert(notificationMessage.hasOwnProperty("sequenceNumber"));
+
     self.lastSequenceNumber = notificationMessage.sequenceNumber;
 
     self.emit("raw_notification", notificationMessage);

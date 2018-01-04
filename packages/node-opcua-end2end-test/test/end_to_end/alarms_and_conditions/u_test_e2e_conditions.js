@@ -1,4 +1,4 @@
-/*global xit,it,describe,before,after,beforeEach,afterEach*/
+    /*global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
 var assert = require("node-opcua-assert");
@@ -33,7 +33,7 @@ var construct_demo_alarm_in_address_space = require("node-opcua-address-space/te
 
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
     // setImmediate(callback);
-    setTimeout(callback, 200);
+    setTimeout(callback, 250);
 }
 
 module.exports = function (test) {
@@ -142,13 +142,10 @@ module.exports = function (test) {
             };
 
             test.monitoredItem1 = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
-
-                // let's install the spy on the 'changed' event
-                test.monitoredItem1.on("changed", test.spy_monitored_item1_changes);
-
                 setTimeout(callback, 100);
-
             });
+            // let's install the spy on the 'changed' event
+            test.monitoredItem1.on("changed", test.spy_monitored_item1_changes);
         }
 
         it("GGG2 -  Limit Alarm should trigger Event when ever the input node goes out of limit", function (done) {

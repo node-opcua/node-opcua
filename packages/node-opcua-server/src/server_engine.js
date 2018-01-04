@@ -1457,10 +1457,17 @@ ServerEngine.prototype.transferSubscription = function (session, subscriptionId,
     // TODO StatusChangeNotification notificationMessage with the status code Good_SubscriptionTransferred
     // TODO to the old Session.
 
-    return new TransferResult({
+    var result = new TransferResult({
         statusCode: StatusCodes.Good,
         availableSequenceNumbers: subscription.getAvailableSequenceNumbers()
     });
+
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("TransferResult",result.toString());
+    }
+
+    return result;
 
 };
 

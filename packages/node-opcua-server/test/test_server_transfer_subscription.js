@@ -53,6 +53,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
         var transferResult = engine.transferSubscription(session2,subscription.id,true);
         transferResult.statusCode.should.eql(StatusCodes.Good);
+        transferResult.availableSequenceNumbers.length.should.eql(0);
 
 
         var publishSpy = sinon.spy();

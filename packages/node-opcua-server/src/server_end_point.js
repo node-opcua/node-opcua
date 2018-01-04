@@ -654,8 +654,9 @@ OPCUAServerEndPoint.prototype.listen = function (callback) {
         self._started = false;
         self._end_listen(err);
     });
-
-    self._server.listen(self.port, function (err) { //'listening' listener
+    self._server.on("listening",function() {
+    });
+    self._server.listen(self.port, "::", function (err) { //'listening' listener
         debugLog("LISTENING TO PORT ".green.bold, self.port, "err  ", err);
         assert(!err, " cannot listen to port ");
         self._started = true;

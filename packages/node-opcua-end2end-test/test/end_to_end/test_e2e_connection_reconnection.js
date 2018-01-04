@@ -60,15 +60,23 @@ function f(func) {
         if (doDebug) {
             console.log("FUNC=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold);
         }
-        func(function (err) {
-            if (doDebug) {
-                console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
-            }
-            step_count++;
-            setImmediate(function () {
-                callback(err);
+        try {
+
+            func(function (err) {
+                if (doDebug) {
+                    console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
+                }
+                step_count++;
+                setImmediate(function () {
+                    callback(err);
+                });
             });
-        });
+        } catch(err) {
+            if (doDebug) {
+                console.log("END WITH EXCEPTION=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
+            }
+            callback(err);
+        }
     };
 }
 
@@ -733,8 +741,9 @@ describe("testing ability for client to reconnect when server close connection",
     beforeEach(function () {
         requestedSessionTimeout = 10000;
     });
-    afterEach(function () {
+    afterEach(function (done) {
         should.not.exist(client, "client must have been disposed");
+        done();
     });
 
     function create_client_and_create_a_connection_to_server(_options, connectionStrategy, done) {
@@ -767,7 +776,8 @@ describe("testing ability for client to reconnect when server close connection",
             debugLog("starting reconnection");
         });
         client.on("backoff", function (/*number,delay*/) {
-            backoff_counter += 1;
+          debugLog("Backoff");
+          backoff_counter += 1;
         });
         client.connect(endpointUrl, function (err) {
             done(err);
@@ -1100,7 +1110,9 @@ describe("testing ability for client to reconnect when server close connection",
         });
 
         monitoredItem.on("changed", function (dataValue) {
-            //xx console.log(" client ", " received value change ", dataValue.value.toString());
+            if (doDebug) {
+                console.log(" client ", " received value change ", dataValue.value.toString());
+            }
             values_to_check.push(dataValue.value.value);
         });
     }
@@ -1127,7 +1139,11 @@ describe("testing ability for client to reconnect when server close connection",
             console.log(values_to_check.join(" "));
         }
 
-        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
+        // let check that new values have been received
+        // when the following test fails, this probably means that the publish mecanism is not working as expected
+        values_to_check.length.should.be.greaterThan(previous_value_count + 1,
+            " expecting that new values have been received since last check : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
+
         if (values_to_check.length > 0) {
             values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
         }
@@ -1584,7 +1600,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(disconnect_client),
             f(shutdown_server)
         ], function (err) {
-            if (server) {
+            if (!err && server) {
                 server.engine.currentSessionCount.should.eql(0);
             }
             done(err);

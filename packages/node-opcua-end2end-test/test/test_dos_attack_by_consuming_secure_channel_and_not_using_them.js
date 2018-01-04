@@ -399,10 +399,12 @@ describe("testing Server resilience to DOS attacks", function () {
         }
         function verify_server_channel_count(callback) {
 
-            // verify that there are no channel opened on the server.
-            console.log(" currentChannelCount = ",serverEndpoint.currentChannelCount);
-            serverEndpoint.currentChannelCount.should.eql(0);
             setTimeout(function() {
+
+                // verify that there are no channel opened on the server.
+                console.log(" currentChannelCount = ",serverEndpoint.currentChannelCount);
+                serverEndpoint.currentChannelCount.should.eql(0);
+
                 spyNewChannel.callCount.should.eql(counter,"expecting spyNewChannel to have been called");
                 spyCloseChannel.callCount.should.eql(counter,"expecting spyCloseChannel to have been called");
                 callback();

@@ -595,6 +595,12 @@ ServerSidePublishEngine.transferSubscription = function(subscription,destPublish
     }
 };
 
+/**
+ *
+ * @param srcPublishEngine {ServerSidePublishEngine}
+ * @param destPublishEngine {ServerSidePublishEngine}
+ * @static
+ */
 ServerSidePublishEngine.transferSubscriptions = function(srcPublishEngine,destPublishEngine) {
 
     var tmp = srcPublishEngine._subscriptions;

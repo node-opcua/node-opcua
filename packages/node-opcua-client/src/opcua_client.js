@@ -76,7 +76,7 @@ function OPCUAClient(options) {
     // if set to true , create Session will only accept connection from server which endpoint_url has been reported
     // by GetEndpointsRequest.
     // By default, the client is strict.
-    this.endpoint_must_exist = ( options.endpoint_must_exist === null) ? true : options.endpoint_must_exist;
+    this.endpoint_must_exist = (options.endpoint_must_exist === null) ? true : options.endpoint_must_exist;
 
     this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
 
@@ -85,6 +85,7 @@ function OPCUAClient(options) {
     this.clientName = options.clientName || "Session";
 
 }
+
 util.inherits(OPCUAClient, OPCUAClientBase);
 
 
@@ -152,7 +153,7 @@ OPCUAClient.prototype.__resolveEndPoint = function () {
 
 OPCUAClient.prototype._createSession = function (callback) {
 
-    var self  = this;
+    var self = this;
     assert(typeof callback === "function");
     assert(self._secureChannel);
     if (!self.__resolveEndPoint() || !self.endpoint) {
@@ -162,10 +163,10 @@ OPCUAClient.prototype._createSession = function (callback) {
     self.endpoint_url = self._secureChannel.endpoint_url;
 
     var session = new ClientSession(self);
-    this.__createSession_step2(session,callback);
+    this.__createSession_step2(session, callback);
 };
 
-OPCUAClient.prototype.__createSession_step2 = function (session,callback) {
+OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
 
     var self = this;
 
@@ -174,6 +175,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session,callback) {
     assert(self.serverUri, " must have a valid server URI");
     assert(self.endpoint_url, " must have a valid server endpoint_url");
     assert(self.endpoint);
+
 
     var applicationUri = self._getApplicationUri();
 
@@ -193,10 +195,10 @@ OPCUAClient.prototype.__createSession_step2 = function (session,callback) {
 
     var request = new CreateSessionRequest({
         clientDescription: applicationDescription,
-        serverUri:         self.serverUri,
-        endpointUrl:       self.endpoint_url,
-        sessionName:       self._nextSessionName(),
-        clientNonce:       self.clientNonce,
+        serverUri: self.serverUri,
+        endpointUrl: self.endpoint_url,
+        sessionName: self._nextSessionName(),
+        clientNonce: self.clientNonce,
         clientCertificate: self.getCertificate(),
         requestedSessionTimeout: self.requestedSessionTimeout,
         maxResponseMessageSize: 800000
@@ -245,7 +247,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session,callback) {
         if (err) {
             callback(err);
         } else {
-            callback(null,session);
+            callback(null, session);
         }
     });
 
@@ -676,8 +678,10 @@ OPCUAClient.prototype.closeSession = function (session, deleteSubscriptions, cal
 OPCUAClient.prototype._ask_for_subscription_republish = function (session, callback) {
 
     debugLog("_ask_for_subscription_republish ".bgCyan.yellow.bold);
+    assert(session.getPublishEngine().nbPendingPublishRequests === 0, "at this time, publish request queue shall still be empty");
     session.getPublishEngine().republish(function (err) {
         debugLog("_ask_for_subscription_republish done".bgCyan.yellow.bold);
+        // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
         session.resumePublishEngine();
         callback(err);
     });
@@ -793,18 +797,23 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                         debugLog("Aborting reactivation of old session because user requested session to be closed".bgWhite.red);
                         return callback(new Error("reconnection cancelled due to session termination"));
                     }
-//xx                    return next(err);
+
                     //   if failed => recreate a new Channel and transfer the subscription
                     var new_session = null;
                     async.series([
                         function (callback) {
-                            debugLog("Activating old session has failed !\n  => Creating a new session ....".bgWhite.red);
-                            // create new session
-                            self.__createSession_step2(session,function(err,_new_session){
-                                debugLog(" Creating a new session .... Done".bgWhite.cyan);
+
+                            debugLog("Activating old session has failed ! => Creating a new session ....".bgWhite.red);
+
+                            session.getPublishEngine().suspend(true);
+
+                            // create new session, based on old session,
+                            // so we can reuse subscriptions data
+                            self.__createSession_step2(session, function (err, _new_session) {
+                                debugLog(" Creating a new session (based on old session data).... Done".bgWhite.cyan);
                                 if (!err) {
                                     new_session = _new_session;
-                                    assert(session === _new_session);
+                                    assert(session === _new_session, "session should be recycled");
                                 }
                                 callback(err);
                             });
@@ -827,30 +836,33 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                                 debugLog(" No subscriptions => skipping transfer subscriptions");
                                 return callback(); // no need to transfer subscriptions
                             }
-                            debugLog(" asking server to transfer subscriptions = [",subscriptionsIds.join(", ") ,"]");
+                            debugLog(" asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
                             // Transfer subscriptions
                             var options = {
                                 subscriptionIds: subscriptionsIds,
                                 sendInitialValues: false
                             };
-                            new_session.transferSubscriptions(options,function(err,results){
+
+                            assert(new_session.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
+                            new_session.transferSubscriptions(options, function (err, results) {
                                 if (err) {
                                     return callback(err);
                                 }
-                                debugLog("Transfer subscriptions  done",results.toString());
+                                debugLog("Transfer subscriptions  done", results.toString());
                                 debugLog("  new session subscriptionCount = ", new_session.getPublishEngine().subscriptionCount);
                                 callback();
                             });
                         },
                         function (callback) {
-                            //xxx self._removeSession(session);
-                            callback();
-                        },
-                        function(callback) {
+                            assert(new_session.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
                             //      call Republish
                             return self._ask_for_subscription_republish(new_session, callback);
+                        },
+                        function start_publishing_as_normal(callback) {
+                            new_session.getPublishEngine().suspend(false);
+                            callback();
                         }
-                    ],next);
+                    ], next);
 
                 } else {
                     //      call Republish
@@ -919,13 +931,13 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
 
         function (callback) {
             try {
-                inner_func(the_session, function(err){
+                inner_func(the_session, function (err) {
                     the_error = err;
                     callback();
                 });
             }
-            catch(err) {
-                console.log("OPCUAClient#withClientSession",err.message);
+            catch (err) {
+                console.log("OPCUAClient#withClientSession", err.message);
                 the_error = err;
                 callback();
             }
@@ -933,7 +945,7 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
 
         // close session
         function (callback) {
-            the_session.close(/*deleteSubscriptions=*/true,function (err) {
+            the_session.close(/*deleteSubscriptions=*/true, function (err) {
                 if (err) {
                     console.log("OPCUAClient#withClientSession: session closed failed ?");
                 }
@@ -950,14 +962,14 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
             });
         }
 
-    ], function(err1) {
-        if(need_disconnect) {
-            console.log("Disconnecting client after failure")
-            client.disconnect(function(err2) {
-                return callback(the_error||err1||err2);
+    ], function (err1) {
+        if (need_disconnect) {
+            console.log("Disconnecting client after failure");
+            client.disconnect(function (err2) {
+                return callback(the_error || err1 || err2);
             });
         } else {
-            return callback(the_error||err1);
+            return callback(the_error || err1);
         }
     });
 };

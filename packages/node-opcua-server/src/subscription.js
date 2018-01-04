@@ -268,6 +268,8 @@ function Subscription(options) {
     // Message is sent out the first time the publishing timer expires.
     self.messageSent = false;
 
+    self._unacknowledgedMessageCount = 0;
+    
     self.timerId = null;
     self._start_timer();
 
@@ -462,10 +464,14 @@ Subscription.prototype._publish_pending_notifications = function () {
         moreNotifications: moreNotifications
     },false);
     self.messageSent = true;
+    self._unacknowledgedMessageCount ++;
+    
     self.resetLifeTimeAndKeepAliveCounters();
 
     if (doDebug) {
-        debugLog("Subscription sending a notificationMessage subscriptionId=", subscriptionId, notificationMessage.toString());
+        debugLog("Subscription sending a notificationMessage subscriptionId=", subscriptionId,
+            "sequenceNumber = ",notificationMessage.sequenceNumber.toString());
+        // debugLog(notificationMessage.toString());
     }
 
     if (self.state !== SubscriptionState.CLOSED) {
@@ -813,7 +819,7 @@ Subscription.prototype._addNotificationMessage = function (notificationData) {
     assert(notificationData.length === 1 || notificationData.length === 2); // as per spec part 3.
 
     // istanbul ignore next
-    if (doDebug) {
+    if (false && doDebug) {
         debugLog("Subscription#_addNotificationMessage".yellow,notificationData.toString());
     }
     var self = this;
@@ -898,6 +904,7 @@ var maxNotificationMessagesInQueue = 100;
 Subscription.prototype.discardOldSentNotifications = function () {
 
     var self = this;
+
     // Sessions maintain a retransmission queue of sent NotificationMessages. NotificationMessages
     // are retained in this queue until they are acknowledged. The Session shall maintain a
     // retransmission queue size of at least two times the number of Publish requests per Session the
@@ -906,6 +913,7 @@ Subscription.prototype.discardOldSentNotifications = function () {
     // Subscription is transferred to another Session, the queued NotificationMessages for this
     // Subscription are moved from the old to the new Session.
     if (maxNotificationMessagesInQueue <= self._sent_notifications.length) {
+        debugLog("discardOldSentNotifications = ",self._sent_notifications.length);
         self._sent_notifications.splice(self._sent_notifications.length - maxNotificationMessagesInQueue);
     }
     //
@@ -953,9 +961,16 @@ Subscription.prototype.acknowledgeNotification = function (sequenceNumber) {
         }
     });
     if (foundIndex === -1) {
+        if (doDebug) {
+            debugLog("acknowledging sequence FAILED !!! ".red, sequenceNumber.toString().cyan);
+        }
         return StatusCodes.BadSequenceNumberUnknown;
     } else {
+        if (doDebug) {
+            debugLog("acknowledging sequence ".yellow, sequenceNumber.toString().cyan);
+        }
         self._sent_notifications.splice(foundIndex, 1);
+        self._unacknowledgedMessageCount --;
         return StatusCodes.Good;
     }
 };
@@ -1018,9 +1033,8 @@ Subscription.prototype.__defineGetter__("disabledMonitoredItemCount", function (
  * @type {Number}
  */
 Subscription.prototype.__defineGetter__("unacknowledgedMessageCount", function () {
-
-    return 0;
-
+    var self = this;
+    return self._unacknowledgedMessageCount;
 });
 
 
