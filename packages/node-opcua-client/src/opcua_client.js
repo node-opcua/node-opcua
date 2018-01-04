@@ -678,7 +678,7 @@ OPCUAClient.prototype.closeSession = function (session, deleteSubscriptions, cal
 OPCUAClient.prototype._ask_for_subscription_republish = function (session, callback) {
 
     debugLog("_ask_for_subscription_republish ".bgCyan.yellow.bold);
-    assert(session.getPublishEngine().nbPendingPublishRequests === 0, "at this time, publish request queue shall still be empty");
+    //xx assert(session.getPublishEngine().nbPendingPublishRequests === 0, "at this time, publish request queue shall still be empty");
     session.getPublishEngine().republish(function (err) {
         debugLog("_ask_for_subscription_republish done".bgCyan.yellow.bold);
         // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
