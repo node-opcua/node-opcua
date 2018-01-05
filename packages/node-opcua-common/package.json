@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-common",
- "version": "0.1.0-13",
+ "version": "0.1.1-0",
  "description": "pure nodejs OPCUA SDK - module -common",
  "scripts": {
   "test": "mocha test",
@@ -9,18 +9,18 @@
  },
  "main": "index.js",
  "dependencies": {
-  "node-opcua-assert": "^0.1.0-13",
-  "node-opcua-basic-types": "^0.1.0-13",
+  "node-opcua-assert": "^0.1.1-0",
+  "node-opcua-basic-types": "^0.1.1-0",
   "node-opcua-crypto": "0.0.16",
-  "node-opcua-data-model": "^0.1.0-13",
-  "node-opcua-factory": "^0.1.0-13",
-  "node-opcua-nodeid": "^0.1.0-13",
-  "node-opcua-service-endpoints": "^0.1.0-13",
-  "node-opcua-service-secure-channel": "^0.1.0-13",
+  "node-opcua-data-model": "^0.1.1-0",
+  "node-opcua-factory": "^0.1.1-0",
+  "node-opcua-nodeid": "^0.1.1-0",
+  "node-opcua-service-endpoints": "^0.1.1-0",
+  "node-opcua-service-secure-channel": "^0.1.1-0",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.1.0-13"
+  "node-opcua-generator": "^0.1.1-0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

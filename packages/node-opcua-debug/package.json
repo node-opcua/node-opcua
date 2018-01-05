@@ -1,14 +1,14 @@
 {
  "name": "node-opcua-debug",
- "version": "0.1.0-13",
+ "version": "0.1.1-0",
  "description": "pure nodejs OPCUA SDK - module -debug",
  "scripts": {
   "test": "mocha test"
  },
  "dependencies": {
   "hexy": "^0.2.10",
-  "node-opcua-assert": "^0.1.0-13",
-  "node-opcua-buffer-utils": "^0.1.0-13",
+  "node-opcua-assert": "^0.1.1-0",
+  "node-opcua-buffer-utils": "^0.1.1-0",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
