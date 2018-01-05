@@ -60,3 +60,4 @@ bin/crypto_create_CA_config.js
 _source_ignored_
 pki
 test_fixtures/
+.nyc_output/

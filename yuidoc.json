@@ -6,8 +6,9 @@
     "options": {
         "outdir":   "../node-opcua.github.io/api_doc",
         "paths": [ "packages" ],
-        "ignorePaths": [ "./packages/node-opcua-server/test","./packages/**/test" ],
-        "_themedir": "node_modules/yuidoc-bootstrap-theme",
-        "_helpers": ["node_modules/yuidoc-bootstrap-theme/helpers/helpers.js"]
-    }
-}
+        "ignorePaths": [ "./packages/node-opcua-server/test","./packages/**/test" ]
+    },
+     "themedir": "../node-opcua.github.io/theme/",
+     "helpers": ["../node-opcua.github.io/theme/helpers/helpers.js"]
+
+ }
