@@ -8,7 +8,8 @@ IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION WE MIGHT CLOSE YOUR ISSUE WITHOU
  - ( ) bug report => search github for a similar issue or PR before submitting
  - ( ) feature request
  - ( ) support request => Please do not submit support request here, instead see use 
-       [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
+      - use [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua) for community support, or 
+      - [contact Sterfive for commercial support](https://www.sterfive.com)
 
 **Current behavior**
 <!-- Describe how the bug manifests. -->
