@@ -11,6 +11,7 @@ var UAMethod = require("..").UAMethod;
 var DataType = require("node-opcua-variant").DataType;
 var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
+var createCameraType = require("./fixture_camera_type").createCameraType;
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", function () {
@@ -133,7 +134,6 @@ describe("testing add new ObjectType ", function () {
 
     it("should create a new CameraType with Method", function (done) {
 
-        var createCameraType = require("./fixture_camera_type").createCameraType;
         var cameraType = createCameraType(addressSpace);
 
         var camera1 = cameraType.instantiate({

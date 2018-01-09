@@ -372,7 +372,8 @@ function reverse_map(nodeId) {
 function resolveNodeId(node_or_string) {
 
     var nodeId;
-    var raw_id = _name_to_nodeid_index[node_or_string];
+
+    var raw_id = (typeof node_or_string === "string") ? _name_to_nodeid_index[node_or_string] : undefined ;
     if (raw_id !== undefined) {
         return raw_id;
     } else {

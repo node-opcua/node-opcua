@@ -33,7 +33,7 @@ var factories = require("node-opcua-factory");
 var NodeId = require("node-opcua-nodeid").NodeId;
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-
+var resolveNodeId =  require("node-opcua-nodeid").resolveNodeId;
 var DataType = require("node-opcua-variant").DataType;
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
@@ -45,14 +45,17 @@ var Argument_Schema = {
         var dataType = options.dataType;
         if (dataType) {
             if (typeof dataType === "string") {
-                dataType = makeNodeId(dataType.value, 0);
-                //dataType = coerceNodeId(DataType[dataType].value);
+                dataType = resolveNodeId(dataType);
+            } else if ( dataType instanceof NodeId ) {
+                // nothing
             } else {
-                dataType = coerceNodeId(dataType.value);
+                assert(dataType.hasOwnProperty("value"));
+                dataType = coerceNodeId(dataType.value,dataType.namespace);
             }
            options.dataType = dataType;
         }
         return options;
+
     },
     fields: [
         {name: "name", fieldType: "String", documentation: "The name of the argument."},

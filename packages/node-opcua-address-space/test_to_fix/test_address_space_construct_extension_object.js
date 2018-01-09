@@ -323,7 +323,7 @@ describe("testing address space namespace loading", function () {
             objs.push(sessionObject);
         }
 
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 100; i++) {
             createDiagnostic(i);
         }
         objs.forEach(function (obj) {

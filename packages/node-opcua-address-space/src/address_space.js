@@ -1672,6 +1672,38 @@ AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, s
     return new BrowseResult(browseResult);
 };
 
+/**
+ *
+ * @param options
+ * @param options.isAbstract
+ * @param options.browseName {BrowseName}
+ * @param options.superType {NodeId}
+ * @param [options.nodeId]
+ * @param [options.displayName]
+ * @param [options.description]
+ *
+ */
+AddressSpace.prototype.createDataType = function(options) {
+    assert(options.hasOwnProperty("isAbstract"));
+    assert(!options.hasOwnProperty("nodeClass"));
+    assert(options.hasOwnProperty("browseName"),"must provide a browseName");
+    var self = this;
+    options.nodeClass = NodeClass.DataType;
+
+    options.references = options.references ||[];
+
+    if (options.references.length === 0) {
+        assert(options.hasOwnProperty("superType"),"must provide a superType");
+        options.references.push({
+            referenceType: "HasSupertype", isForward: true, nodeId: options.superType
+        });
+    }
+
+    var node = self._createNode(options);
+
+    return node;
+};
+
 exports.AddressSpace = AddressSpace;
 
 
