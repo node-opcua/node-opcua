@@ -489,7 +489,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                             case "i=888":  // EUInformation
                                 break;
                             default:
-                                console.warn("xxxx::: unsupported typeId in ExtensionObject " + typeId);
+                                console.warn("loadnodeset2 ( checking identifier type) : unsupported typeId in ExtensionObject " + typeId);
                                 break;
                         }
                     }
@@ -519,7 +519,8 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                         assert(_.isObject(self.extensionObject));
                         break;
                     default:
-                        console.log("Xxxxxx unsupported typeId in ExtensionObject " + self.typeId);
+                        // to do: implement a post action to create and bind extension object
+                        console.log("loadnodeset2: unsupported typeId in ExtensionObject " + self.typeId);
                         break;
                 }
             }
