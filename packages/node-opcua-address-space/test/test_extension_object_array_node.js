@@ -13,6 +13,7 @@ var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnosti
 var eoan = require("../src/extension_object_array_node");
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("Extension Object Array Node (or Complex Variable)", function () {
 
 
@@ -154,6 +155,47 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         should.not.exist(arr.getComponentByName("1002"));
         should.not.exist(arr.getComponentByName("1000"));
 
+    });
+
+    it("should be possible to add an element in  the Extension array that already exists ",function() {
+
+        var rootFolder = addressSpace.findNode("RootFolder");
+
+        var arr = eoan.createExtObjArrayNode(rootFolder, {
+            browseName: "SubscriptionDiagnosticArrayForTest",
+            complexVariableType: "SubscriptionDiagnosticsArrayType",
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId"
+        });
+        arr.readValue().value.value.length.should.eql(0);
+        // create an element
+
+        var SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
+
+        should.exist(SubscriptionDiagnosticsType);
+
+        var item1 = SubscriptionDiagnosticsType.instantiate({
+            browseName:"testing",
+            componentOf: addressSpace.rootFolder
+        });
+        should.exist(item1.$extensionObject,"item1 must expose an extension object");
+        should.exist(item1.$extensionObject.enableCount,"item1 must expose an extension object");
+        item1.$extensionObject.enableCount.should.eql(0);
+
+        // now inject this instance in the arr
+        eoan.addElement(item1.$extensionObject,arr);
+
+
+        // verify that object has been added to the collection
+        arr.readValue().value.value.length.should.eql(1);
+
+        // verify that external object and instance in the arr represent the same instance ...
+        // in order to test this, we modify the original data
+
+        item1.$extensionObject.enableCount = 36;
+
+        arr.readValue().value.value[0].enableCount.should.eql(36);
+        item1.readValue().value.value.enableCount.should.eql(36);
     });
 
 });

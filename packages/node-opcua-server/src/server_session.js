@@ -240,6 +240,11 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
     if (self.sessionObject) {
         return;
     }
+
+    function getSessionDiagnosticsArray() {
+        return  self.addressSpace.rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
+    }
+
     assert(!self.sessionObject, "ServerSession#_createSessionObjectInAddressSpace already called ?");
 
     self.sessionObject = null;
@@ -328,6 +333,12 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         });
 
         self._sessionDiagnostics = self.sessionDiagnostics.$extensionObject;
+
+        var sessionDiagnosticsArray = getSessionDiagnosticsArray();
+
+        // make sessionDiagnostics
+        eoan.addElement(self._sessionDiagnostics,sessionDiagnosticsArray);
+
     }
     return self.sessionObject;
 };

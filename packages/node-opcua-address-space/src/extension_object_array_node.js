@@ -142,9 +142,14 @@ exports.prepareDataType = prepareDataType;
 function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyName) {
 
     assert(uaArrayVariableNode instanceof UAVariable);
+    assert(variableType);
+
     var addressSpace = uaArrayVariableNode.addressSpace;
 
     variableType = addressSpace.findVariableType(variableType);
+    if (!variableType) {
+        throw new Error("Cannot find VariableType " + variableType.toString());
+    }
     assert(!variableType.nodeId.isEmpty());
 
     var structure = addressSpace.findDataType("Structure");
@@ -152,6 +157,8 @@ function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyNam
 
     var dataType = addressSpace.findDataType(variableType.dataType);
     assert(dataType.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
+
+    assert(!uaArrayVariableNode.$$variableType ,"uaArrayVariableNode has already been bound !");
 
     uaArrayVariableNode.$$variableType = variableType;
 

@@ -5,6 +5,8 @@ var verify_multi_chunk_message = require("../test_helpers/verify_message_chunk")
 var redirectToFile = require("node-opcua-debug").redirectToFile;
 var makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
 
+var BrowseResponse = require("node-opcua-service-browse").BrowseResponse;
+
 
 var fixture_ws_browseRequest_message = makeBuffer(
     "4d 53 47 46 85 00 00 00 08 00 00 00 01 00 00 00 07 00 00 00 07 00 00 00 01 00 0f 02 05 00 00 20 " +

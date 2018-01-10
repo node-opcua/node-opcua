@@ -793,17 +793,17 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
             // create SessionsDiagnosticsSummary
             var serverDiagnostics = server.getComponentByName("ServerDiagnostics");
-
             if (!serverDiagnostics) {
                 return;
             }
+
             var subscriptionDiagnosticsArray = serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray");
-
             assert(subscriptionDiagnosticsArray instanceof UAVariable);
-
             eoan.bindExtObjArrayNode(subscriptionDiagnosticsArray, "SubscriptionDiagnosticsType", "subscriptionId");
 
-
+            var sessionDiagnosticsArray = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary").getComponentByName("SessionDiagnosticsArray");
+            assert(sessionDiagnosticsArray instanceof UAVariable);
+            eoan.bindExtObjArrayNode(sessionDiagnosticsArray,"SessionDiagnosticsVariableType","sessionId");
         }
 
         prepareServerDiagnostics();
@@ -1284,6 +1284,7 @@ ServerEngine.prototype.createSession = function (options) {
     //        in its SessionDiagnosticsArray Variable
 
 
+
     session.on("new_subscription", function (subscription) {
 
         self.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
@@ -1368,6 +1369,7 @@ ServerEngine.prototype.closeSession = function (authenticationToken, deleteSubsc
     //TODO make sure _closedSessions gets cleaned at some point
     self._closedSessions[key] = session;
 
+    // remove sessionDiagnostics from server.ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsSummary
     delete self._sessions[key];
 
 };
