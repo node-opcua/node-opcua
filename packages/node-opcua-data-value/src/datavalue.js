@@ -120,8 +120,8 @@ function _clone_with_array_replacement(dataValue, result) {
         value: {
             dataType: dataValue.value.dataType,
             arrayType: dataValue.value.arrayType,
+            dimensions: result.dimensions,
             value: result.array,
-            dimensions: dataValue.value.dimensions
         }
     });
 }
@@ -140,7 +140,7 @@ function extractRange(dataValue, indexRange) {
     //xx console.log("         can Range =", canRange(dataValue));
     var variant = dataValue.value;
     if (indexRange && canRange(dataValue)) {
-        var result = indexRange.extract_values(variant.value);
+        var result = indexRange.extract_values(variant.value,variant.dimensions);
         dataValue = _clone_with_array_replacement(dataValue, result);
         //xx console.log("         dataValue =",dataValue.toString());
     } else {

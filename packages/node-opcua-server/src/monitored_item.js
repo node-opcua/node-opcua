@@ -23,6 +23,7 @@ var BaseNode = require("node-opcua-address-space").BaseNode;
 
 var sameDataValue = require("node-opcua-data-value").sameDataValue;
 var sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
+var isValidVariant = require("node-opcua-variant").isValidVariant;
 
 var MonitoringMode = subscription_service.MonitoringMode;
 var MonitoringParameters = subscription_service.MonitoringParameters;
@@ -604,6 +605,7 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest) {
 
     assert(dataValue instanceof DataValue);
     assert(dataValue !== self.oldDataValue, "recordValue expects different dataValue to be provided");
+    assert(!dataValue.value  || dataValue.value.isValid(),"expecting a valid variant value");
 
     // extract the range that we are interested with
     dataValue = extractRange(dataValue, self.itemToMonitor.indexRange);

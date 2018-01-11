@@ -176,12 +176,12 @@ function _declareTypeArrayHelper(dataType, TypedArray) {
         decode: decodeTypedArray.bind(null, TypedArray)
     };
 }
-_declareTypeArrayHelper(DataType.Float, Float32Array);
+_declareTypeArrayHelper(DataType.Float,  Float32Array);
 _declareTypeArrayHelper(DataType.Double, Float64Array);
-_declareTypeArrayHelper(DataType.SByte, Int8Array);
-_declareTypeArrayHelper(DataType.Byte, Uint8Array);
-_declareTypeArrayHelper(DataType.Int16, Int16Array);
-_declareTypeArrayHelper(DataType.Int32, Int32Array);
+_declareTypeArrayHelper(DataType.SByte,  Int8Array);
+_declareTypeArrayHelper(DataType.Byte,   Uint8Array);
+_declareTypeArrayHelper(DataType.Int16,  Int16Array);
+_declareTypeArrayHelper(DataType.Int32,  Int32Array);
 _declareTypeArrayHelper(DataType.UInt16, Uint16Array);
 _declareTypeArrayHelper(DataType.UInt32, Uint32Array);
 
@@ -404,6 +404,11 @@ var Variant_Schema = {
 
                 assert(options.arrayType === VariantArrayType.Matrix);
                 options.value = options.value || [];
+
+                //Xx for (var i=0;i<options.value.length;i++) {
+                //Xx     options.value[i] = coerceVariantArray(options.dataType, options.value[i]);
+                //Xx }
+
                 options.value = coerceVariantArray(options.dataType, options.value);
 
                 if (!options.dimensions) {

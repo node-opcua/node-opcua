@@ -7,8 +7,6 @@ var NumericRangeType = NumericRange.NumericRangeType;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var assert_arrays_are_equal = require("node-opcua-test-helpers/src/typedarray_helpers").assert_arrays_are_equal;
 
-
-
 describe("Testing numerical range", function () {
 
     it("should construct an empty NumericRange", function () {
@@ -24,7 +22,7 @@ describe("Testing numerical range", function () {
 
     });
 
-    it("should construct a NumericRange from a integer", function () {
+    it("should construct a NumericRange from a integer (InvalidRange)", function () {
         var nr = new NumericRange("-12");
         nr.type.should.eql(NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
@@ -109,13 +107,18 @@ describe("Testing numerical range", function () {
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
-
+    
+    it("should be an InvalidRange when constructed with a string with invalid array range (low==high) ", function () {
+        var nr = new NumericRange([12,12]);
+        nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+        nr.isValid().should.equal(false);
+    });
+    
     it("should be an InvalidRange when constructed with a string with invalid array range ( low > high )", function () {
         var nr = new NumericRange("15:12");
         nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
         nr.isValid().should.equal(false);
     });
-
 
     it("should be an InvalidRange when constructed with a badly formed string '2-4' ", function () {
         var nr = new NumericRange("2-4");
@@ -131,13 +134,31 @@ describe("Testing numerical range", function () {
 
     describe("MatrixRange", function () {
 
-        it("should be an MatrixRange when constructed with a matrix formed string : '1:3,4:5' ", function () {
+        it("should be an MatrixRange when constructed with a string : '1:3,4:5' ", function () {
             var nr = new NumericRange("1:3,4:5");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
         });
 
-        it("should be an MatrixRange when constructed with a matrix formed string : '1,2' ", function () {
+        it("should be an InvalidRange when constructed with a matrix form string : '1:1,2:2'",function() {
+            var nr = new NumericRange("1:1,2:2");
+            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+            nr.isValid().should.equal(false);
+        });
+
+        it("should be an InvalidRange when constructed with a matrix form string : '1,2:2'",function() {
+            var nr = new NumericRange("1,2:2");
+            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+            nr.isValid().should.equal(false);
+        });
+
+        it("should be an InvalidRange when constructed with a matrix form string : '1:1,2'",function() {
+            var nr = new NumericRange("1:1,2");
+            nr.type.should.equal(NumericRange.NumericRangeType.InvalidRange);
+            nr.isValid().should.equal(false);
+        });
+
+        it("should be an MatrixRange when constructed with a matrix form string : '1,2' ", function () {
             var nr = new NumericRange("1,2");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
@@ -158,6 +179,7 @@ describe("Testing numerical range", function () {
             nr.isValid().should.equal(true);
             nr.toString().should.eql("1:2,3");
         });
+
 
     });
 
@@ -324,6 +346,79 @@ describe("Testing numerical range", function () {
         });
 
     });
+    describe("extracting ranges from matrix", function () {
+
+        function createMatrix(row,col,flatarray) {
+            if (!(flatarray instanceof Array && row*col == flatarray.length)) {
+                throw new Error("Invalid Matrix Size");
+            }
+            return flatarray;
+
+            var array = [];
+            for (var i=0;i<row;i++) {
+                array[i] = flatarray.slice(i*col,i*col+col);
+            }
+            return array;
+        }
+
+        var matrix = createMatrix(3,3,[11, 12, 13, 21, 22, 23, 31, 32, 33]);
+        var dimensions = [3,3];
+
+        beforeEach(function () {
+            matrix.length.should.eql(9);
+            matrix.should.eql([11,12,13,21,22,23,31,32,33]);
+        });
+        afterEach(function () {
+            matrix.length.should.eql(9,"original array should not be affected");
+            matrix.should.eql([11,12,13,21,22,23,31,32,33]);
+        });
+
+        it("should extract sub matrix at 0,0", function () {
+            var nr = new NumericRange("0,0");
+            var r = nr.extract_values(matrix,dimensions);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.dimensions.should.eql([1,1]);
+            r.array.length.should.eql(1);
+            r.array[0].should.eql(11);
+        });
+        it("should extract sub matrix at 1,0", function () {
+            var nr = new NumericRange("1,0");
+            var r = nr.extract_values(matrix,dimensions);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.dimensions.should.eql([1,1]);
+            r.array.length.should.eql(1);
+            r.array[0].should.eql(21);
+        });
+        it("should extract sub matrix at 0,1", function () {
+            var nr = new NumericRange("0,1");
+            var r = nr.extract_values(matrix,dimensions);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.dimensions.should.eql([1,1]);
+            r.array.length.should.eql(1);
+            r.array[0].should.eql(12);
+        });
+        it("should extract sub matrix column at 0:2,1 ( a column)", function () {
+            var nr = new NumericRange("0:2,0");
+            var r = nr.extract_values(matrix,dimensions);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.array.length.should.eql(3);
+            r.dimensions.should.eql([3,1]);
+            r.array.length.should.eql(3);
+            r.array[0].should.eql(11);
+            r.array[1].should.eql(21);
+            r.array[2].should.eql(31);
+        });
+        it("should extract sub matrix row at 0:2,1 ( a row)", function () {
+            var nr = new NumericRange("0,0:2");
+            var r = nr.extract_values(matrix,dimensions);
+            r.statusCode.should.eql(StatusCodes.Good);
+            r.dimensions.should.eql([1,3]);
+            r.array.length.should.eql(3);
+            r.array[0].should.eql(11);
+            r.array[1].should.eql(12);
+            r.array[2].should.eql(13);
+        });
+    });
 
     function makeBuffer(values) {
         var buff = new Buffer(values.length);
@@ -388,7 +483,7 @@ describe("Testing numerical range", function () {
                 r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
             });
 
-            it(name + " Z7 - it should return BadIndexRangeNoData if range is a MatrixRange and value is an array", function () {
+            it(name + " Z7 - it should return BadIndexRangeNoData if range is a MatrixRange and value is an array that contains no ArrayLike Elements", function () {
                 var nr = new NumericRange("1,1");
                 nr.type.should.eql(NumericRange.NumericRangeType.MatrixRange);
                 var r = nr.extract_values(array);
@@ -590,8 +685,6 @@ describe("Testing numerical range", function () {
 
     });
 
-
-
     describe("Operations", function () {
 
         it("'<empty>' '<empty>' should  overlap ", function () {
@@ -631,7 +724,6 @@ describe("Testing numerical range", function () {
         });
 
     });
-
 
 });
 

@@ -19,6 +19,7 @@ var VariantArrayType = exports.VariantArrayType = require("../schemas/VariantArr
  */
 var Variant = exports.Variant = require("../_generated_/_auto_generated_Variant").Variant;
 exports.isValidVariant = require("../schemas/Variant_schema").isValidVariant;
+Variant.isValidVariant = exports.isValidVariant;
 
 function _coerceVariant(variantLike) {
     var value =  (variantLike instanceof Variant) ? variantLike : new Variant(variantLike);
@@ -36,6 +37,8 @@ Variant.coerce = _coerceVariant;
 Variant.prototype.clone = function () {
     return new this.constructor(this);
 };
+
+
 
 var factory = require("node-opcua-factory");
 factory.registerSpecialVariantEncoder(Variant);

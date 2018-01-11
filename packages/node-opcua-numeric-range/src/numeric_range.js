@@ -63,6 +63,7 @@ var NumericRange_Schema = {
     },
 
 
+
     coerce: function (value) {
         if (value instanceof NumericRange) {
             return value;
@@ -142,7 +143,7 @@ function construct_numeric_range_from_string(str) {
         };
     }
 
-    // detect multi dim range
+    /* detect multi dim range*/
     var values = str.split(",");
 
     if (values.length === 1) {
@@ -154,7 +155,7 @@ function construct_numeric_range_from_string(str) {
         var elements = values.map(construct_numeric_range_bit_from_string);
         rowRange = elements[0];
         colRange = elements[1];
-        if (rowRange === NumericRangeType.InvalidRange || colRange === NumericRangeType.InvalidRange) {
+        if (rowRange.type === NumericRangeType.InvalidRange || colRange.type === NumericRangeType.InvalidRange) {
             return {type: NumericRangeType.InvalidRange, value: str};
         }
 
@@ -264,9 +265,14 @@ NumericRange.prototype.isEmpty = function () {
 NumericRange.prototype._check_range = function () {
 
     if (this.type === NumericRangeType.MatrixRange) {
+        assert(_.isNumber(this.value[0][0]));
+        assert(_.isNumber(this.value[0][1]));
+        assert(_.isNumber(this.value[1][0]));
+        assert(_.isNumber(this.value[1][1]));
 
         return _valid_range(this.value[0][0], this.value[0][1]) &&
             _valid_range(this.value[1][0], this.value[1][1]);
+
     } else if (this.type === NumericRangeType.ArrayRange) {
         return _valid_range(this.value[0], this.value[1]);
     } else if (this.type === NumericRangeType.SingleValue) {
@@ -358,9 +364,10 @@ function slice(arr, start, end) {
     return res;
 }
 
-function extract_empty(array) {
+function extract_empty(array, dimensions) {
     return {
         array: slice(array, 0, array.length),
+        dimensions: dimensions,
         statusCode: StatusCodes.Good
     };
 }
@@ -375,6 +382,7 @@ function extract_single_value(array, index) {
     };
 }
 function extract_array_range(array, low_index, high_index) {
+    assert(_.isFinite(low_index) && _.isFinite(high_index));
     assert(low_index >= 0);
     assert(low_index <= high_index);
     if (low_index >= array.length) {
@@ -393,24 +401,76 @@ function isArrayLike(value) {
     return _.isNumber(value.length) ||  value.hasOwnProperty("length");
 }
 
-function extract_matrix_range(array, rowRange, colRange) {
-
-    if (array.length === 0 || !isArrayLike(array[0])) {
+function extract_matrix_range(array, rowRange, colRange, dimension) {
+    assert(_.isArray(rowRange) && _.isArray(colRange));
+    if (array.length === 0) {
         return {
             array: [],
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
-    var result = extract_array_range(array, rowRange[0], rowRange[1]);
-
-    for (var i = 0; i < result.array.length; i++) {
-        var e = result.array[i];
-        result.array[i] = extract_array_range(e, colRange[0], colRange[1]).array;
+    if (isArrayLike(array[0]) && !dimension) {
+        // like extracting data from a one dimensionnal array of strings or byteStrings...
+        var result = extract_array_range(array, rowRange[0], rowRange[1]);
+        for (var i = 0; i < result.array.length; i++) {
+            var e = result.array[i];
+            result.array[i] = extract_array_range(e, colRange[0], colRange[1]).array;
+        }
+        return result;
     }
-    return result;
+    if (!dimension) {
+        return {
+            array: [],
+            statusCode: StatusCodes.BadIndexRangeNoData
+        };
+    }
+
+    assert(dimension, "expecting dimension to know the shape of the matrix represented by the flat array");
+
+    //
+    var rowLow = rowRange[0];
+    var rowHigh = rowRange[1];
+    var colLow = colRange[0];
+    var colHigh = colRange[1];
+
+    var nbRow = dimension[0];
+    var nbCol = dimension[1];
+
+    var nbRowDest = rowHigh - rowLow + 1;
+    var nbColDest = colHigh - colLow + 1;
+
+
+    // constrruct an array of the same type with the appropriate length to
+    // store the extracted matrix.
+    var tmp = new array.constructor(nbColDest * nbRowDest);
+
+    var row, col, r, c;
+    r = 0;
+    for (row = rowLow; row <= rowHigh; row++) {
+        c = 0;
+        for (col = colLow; col <= colHigh; col++) {
+            var srcIndex = row * nbCol + col;
+            var destIndex = r * nbColDest + c;
+            tmp[destIndex] = array[srcIndex];
+            c++;
+        }
+        r += 1;
+    }
+    return {
+        array: tmp,
+        dimensions: [nbRowDest, nbColDest],
+        statusCode: StatusCodes.Good
+    };
+
 }
 
-NumericRange.prototype.extract_values = function (array) {
+/**
+ *
+ * @param array {Array<Any>}  flat array containing values
+ * @param [dimensions = null ]{Array<Number>} dimension of the matrix if data is a matrix
+ * @returns {*}
+ */
+NumericRange.prototype.extract_values = function (array, dimensions) {
 
     if (!array) {
         return {
@@ -420,7 +480,7 @@ NumericRange.prototype.extract_values = function (array) {
     }
     switch (this.type) {
         case NumericRangeType.Empty:
-            return extract_empty(array);
+            return extract_empty(array, dimensions);
 
         case NumericRangeType.SingleValue:
             var index = this.value;
@@ -434,7 +494,7 @@ NumericRange.prototype.extract_values = function (array) {
         case NumericRangeType.MatrixRange:
             var rowRange = this.value[0];
             var colRange = this.value[1];
-            return extract_matrix_range(array, rowRange, colRange);
+            return extract_matrix_range(array, rowRange, colRange, dimensions);
 
         default:
             return {array: [], statusCode: StatusCodes.BadIndexRangeInvalid};
@@ -442,7 +502,7 @@ NumericRange.prototype.extract_values = function (array) {
 };
 
 function assert_array_or_buffer(array) {
-    assert(_.isArray(array) || (array.buffer instanceof ArrayBuffer ) || array instanceof Buffer);
+    assert(_.isArray(array) || (array.buffer instanceof ArrayBuffer) || array instanceof Buffer);
 }
 
 function insertInPlaceStandardArray(arrayToAlter, low, high, newValues) {
@@ -503,7 +563,7 @@ NumericRange.prototype.set_values = function (arrayToAlter, newValues) {
     if (high_index >= arrayToAlter.length || low_index >= arrayToAlter.length) {
         return {array: [], statusCode: StatusCodes.BadIndexRangeNoData};
     }
-    if ((this.type !== NumericRangeType.Empty ) && newValues.length !== (high_index - low_index + 1)) {
+    if ((this.type !== NumericRangeType.Empty) && newValues.length !== (high_index - low_index + 1)) {
         return {array: [], statusCode: StatusCodes.BadIndexRangeInvalid};
     }
 

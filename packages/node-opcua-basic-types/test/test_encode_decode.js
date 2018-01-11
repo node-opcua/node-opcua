@@ -520,6 +520,26 @@ describe("encoding and decoding arrays", function () {
         test_encode_decode(["Hoo", "Hello", "World", "你好世界", "привет мир", "こんにちは世界"], encode_array_string, decode_array_string, 93);
     });
 
+    it("should encode and decode an array of ByteString", function () {
+
+        function encode_array_string(arr, stream) {
+            ec.encodeArray(arr, stream, ec.encodeByteString);
+        }
+
+        function decode_array_string(stream) {
+            return ec.decodeArray(stream, ec.decodeByteString);
+        }
+
+        var data = [
+            new Buffer("ABCD"),
+            null,
+            new Buffer(0),
+            []
+        ];
+        data = data.map(ec.coerceByteString);
+
+        test_encode_decode(data, encode_array_string, decode_array_string, 24);
+    });
 });
 
 

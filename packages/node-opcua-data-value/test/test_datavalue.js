@@ -152,6 +152,77 @@ describe("DataValue", function () {
 
     });
 
+    it("DataValue - extractRange on a ByteString (null value)", function () {
+        var dataValue = new DataValue({
+            value: new Variant({
+                dataType: DataType.ByteString,
+                arrayType: VariantArrayType.Scalar,
+                value: null
+            })
+        });
+        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        dataValue1.value.dataType.should.eql(DataType.ByteString);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
+        should.equal(null,dataValue1.value.value);
+    });
+
+    it("DataValue - extractRange on a Array of ByteString", function () {
+
+        var dataValue = new DataValue({
+            value: new Variant({
+                dataType: DataType.ByteString,
+                arrayType: VariantArrayType.Array,
+                value: [
+                    new Buffer("ABC"),
+                    new Buffer("DEF"),
+                    new Buffer("GHI"),
+                    new Buffer("JKL"),
+                    null
+                ]
+           })
+        });
+        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        dataValue1.value.value.length.should.eql(2);
+        dataValue1.value.value[0].toString().should.eql("GHI");
+        dataValue1.value.value[1].toString().should.eql("JKL");
+        dataValue1.value.dataType.should.eql(DataType.ByteString);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Array);
+    });
+    it("DataValue - extractRange on a Matrix of ByteString", function () {
+
+        var dataValue = new DataValue({
+            value: new Variant({
+                dataType: DataType.ByteString,
+                arrayType: VariantArrayType.Matrix,
+                dimensions: [3, 3],
+                value: [
+                    //[
+                        new Buffer("11"),
+                        new Buffer("12"),
+                        new Buffer("13")
+                    ,//],
+                    //[
+                        new Buffer("21"),
+                        new Buffer("22"),
+                        new Buffer("23")
+                    ,//],
+                    //[
+                        new Buffer("31"),
+                        new Buffer("32"),
+                        new Buffer("33"),
+                    //]
+                ]
+            })
+        });
+        var dataValue1 = extractRange(dataValue, new NumericRange("2,1:2"));
+        dataValue1.value.value.length.should.eql(2);
+        dataValue1.value.value[0].toString().should.eql("32");
+        dataValue1.value.value[1].toString().should.eql("33");
+        dataValue1.value.dataType.should.eql(DataType.ByteString);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Matrix);
+        dataValue1.value.dimensions.should.eql([1,2]);
+    });
+
     describe("Cloning a DataValue", function () {
         function SomeExtensionObject(options) {
             this.a = options.a;
@@ -203,6 +274,41 @@ describe("DataValue", function () {
                 cloned.value.value[1].should.eql(37);
 
             });
+            it("should " + copy_construct_or_clone + " a DataValue with a variant array of ByteString", function () {
+
+                var dv = new DataValue({
+                    value: new Variant({
+                        dataType: DataType.ByteString,
+                        arrayType: VariantArrayType.Array,
+                        value: [
+                            new Buffer("ABC"),
+                            new Buffer("DEF"),
+                            new Buffer("GHI"),
+                            new Buffer("JKL"),
+                            null
+                        ]
+                    })
+                });
+
+                var cloned = copy_construct_or_clone_func(dv);
+
+                cloned.value.dataType.should.eql(dv.value.dataType);
+                cloned.value.value.should.eql(dv.value.value);
+                cloned.value.value[0].toString().should.eql(dv.value.value[0].toString());
+                cloned.value.value[1].toString().should.eql(dv.value.value[1].toString());
+                cloned.value.value[2].toString().should.eql(dv.value.value[2].toString());
+                cloned.value.value[3].toString().should.eql(dv.value.value[3].toString());
+
+                dv.value.value[0] = new Buffer("ZZZ");
+                dv.value.value[1] = new Buffer("YYY");
+
+                // clone object should not have been affected !
+                cloned.value.value[0].toString().should.eql("ABC");
+                cloned.value.value[1].toString().should.eql("DEF");
+
+            });
+
+
             it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object", function () {
 
                 var extObj = new SomeExtensionObject({a: 36});

@@ -21,7 +21,7 @@ function isEnumerationItem(value) {
 
 function coerceVariantType(dataType, value) {
     /* eslint max-statements: ["error",1000], complexity: ["error",1000]*/
-
+    if (value === undefined ) { value = null; }
     if (isEnumerationItem(value)) {
         // OPCUA Specification 1.0.3 5.8.2 encoding rules for various dataType:
         // [...]Enumeration are always encoded as Int32 on the wire [...]
@@ -75,6 +75,13 @@ function coerceVariantType(dataType, value) {
         case DataType.String:
             assert(typeof value === "string" || value === null);
             break;
+        case DataType.ByteString:
+            value = (typeof value === "string") ? new Buffer(value): value;
+            if (!(value === null || value instanceof Buffer)) {
+                throw new Error("BytString should be null or a Buffer");
+            }
+            assert(value === null || value instanceof Buffer);
+            break;
         default:
             assert(dataType !== undefined && dataType !== null, "Invalid DataType");
             break;
@@ -112,6 +119,8 @@ function isValidScalarVariant(dataType, value) {
             return ec.isValidInt8(value);
         case DataType.Boolean:
             return ec.isValidBoolean(value);
+        case DataType.ByteString:
+            return ec.isValidByteString(value);
         default:
             return true;
     }
@@ -138,13 +147,12 @@ function isValidArrayVariant(dataType, value) {
     }
     // array values can be store in Buffer, Float32Array
     assert(_.isArray(value));
-    var isValid = true;
-    value.forEach(function (element/*,elementIndex*/) {
-        if (!isValidScalarVariant(dataType, element)) {
-            isValid = false;
+    for (var i=0;i<value.length;i++) {
+        if (!isValidScalarVariant(dataType, value[i])) {
+            return false;
         }
-    });
-    return isValid;
+    }
+    return true;
 }
 
 /*istanbul ignore next*/
@@ -161,7 +169,7 @@ function isValidMatrixVariant(dataType,value,dimensions) {
 
 function isValidVariant(arrayType, dataType, value, dimensions) {
 
-    assert(dataType);
+    assert(dataType,"expecting a variant type");
 
     switch (arrayType) {
         case VariantArrayType.Scalar:

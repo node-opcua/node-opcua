@@ -299,10 +299,10 @@ var typeAndDefaultValue = [
     {type: "Int64", defaultValue: [0, 0]},
     //xx {type: "Variant",   realType:   "Variant", defaultValue:  {} },
     {type: "XmlElement", defaultValue: "<string1>OPCUA</string1>"},
-    {type: "ImageBMP", realType: "ByteString"},
-    {type: "ImageGIF", realType: "ByteString"},
-    {type: "ImageJPG", realType: "ByteString"},
-    {type: "ImagePNG", realType: "ByteString"},
+    {type: "ImageBMP", realType: "ByteString" , defaultValue: null},
+    {type: "ImageGIF", realType: "ByteString" , defaultValue: null},
+    {type: "ImageJPG", realType: "ByteString" , defaultValue: null},
+    {type: "ImagePNG", realType: "ByteString" , defaultValue: null},
     // {type: "Enumeration", realType: "UInt32" , defaultValue:0}
 ];
 
@@ -456,12 +456,13 @@ function add_scalar_static_variables(addressSpace, scalarFolder) {
     typeAndDefaultValue.forEach(function (e) {
         var dataType = e.type;
         var realType = e.realType || dataType;
+
         var defaultValue = _.isFunction(e.defaultValue) ? e.defaultValue() : e.defaultValue;
         add_variable(addressSpace, scalarStatic, dataType, realType, defaultValue, "");
     });
 
     function setImage__(imageType, filename) {
-        var fullpath = path.join(__dirname, "data", filename);
+        var fullpath = path.join(__dirname, "../data", filename);
         var imageNode = addressSpace.findNode("ns=411;s=Scalar_Static_Image" + imageType);
 
 
@@ -485,10 +486,15 @@ function add_scalar_static_variables(addressSpace, scalarFolder) {
 
     }
     function setImage(imageType, filename) {
-        var fullpath = path.join(__dirname, "data", filename);
+        var fullpath = path.join(__dirname, "../data", filename);
         var imageNode = addressSpace.findNode("ns=411;s=Scalar_Static_Image" + imageType);
         fs.readFile(fullpath, function (err, data) {
-            imageNode.setValueFromSource(new Variant({dataType: DataType.ByteString, value: data}));
+            if(!err) {
+                assert(data instanceof Buffer);
+                imageNode.setValueFromSource(new Variant({dataType: DataType.ByteString, value: data}));
+            } else {
+                console.log("cannot load file =",fullpath);
+            }
         });
     }
     setImage("BMP", "image.bmp");

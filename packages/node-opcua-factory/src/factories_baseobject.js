@@ -269,7 +269,7 @@ var _exploreObject = function (self, field, data, args) {
 
                 } else if (fieldType === "DateTime" || fieldType === "UtcTime") {
                     value = (value && value.toISOString) ? value.toISOString() : value;
-                } else if (typeof value === "object" && value !== null) {
+                } else if (typeof value === "object" && value !== null && value !== undefined) {
                     value = value.toString.apply(value,args);
                 }
                 str = fieldName_f + " " + fieldType_f + ": " + ((value === null || value === undefined) ? "null".blue.bold : value.toString());

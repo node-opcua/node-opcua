@@ -98,15 +98,16 @@ function OperationLimits(options) {
  * @param [options.operationLimits.maxNodesPerHistoryUpdateData=0]
  * @param [options.operationLimits.maxNodesPerHistoryUpdateEvents=0]
  * @param [options.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds=0]
- * @param options.serverProfileArray
- * @param options.localeIdArray
- * @param options.softwareCertificates
- * @param options.maxArrayLength
- * @param options.maxStringLength
- * @param options.maxBrowseContinuationPoints
- * @param options.maxQueryContinuationPoints
- * @param options.maxHistoryContinuationPoints
- * @param options.minSupportedSampleRate
+ * @param [options.serverProfileArray=0]
+ * @param [options.localeIdArray=0]
+ * @param [options.softwareCertificates=0]
+ * @param [options.maxArrayLength=0]
+ * @param [options.maxStringLength=0]
+ * @param [options.maxByteStringLength=0]
+ * @param [options.maxBrowseContinuationPoints=0]
+ * @param [options.maxQueryContinuationPoints=0]
+ * @param [options.maxHistoryContinuationPoints=0]
+ * @param [options.minSupportedSampleRate=0]
  * @constructor
  */
 function ServerCapabilities(options) {
@@ -127,6 +128,11 @@ function ServerCapabilities(options) {
      * @type {Number}
      */
     this.maxStringLength = options.maxStringLength || 0;
+    /**
+     * @property maxByteStringLength
+     * @type {Number}
+     */
+    this.maxByteStringLength = options.maxByteStringLength || 0;
     /**
      * @property maxBrowseContinuationPoints
      * @type {Number}

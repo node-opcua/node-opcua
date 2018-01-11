@@ -25,6 +25,8 @@ var Variant_TypeMask = 0x3F;
 
 var factories = require("node-opcua-factory");
 
+var NumericRange = require("node-opcua-numeric-range").NumericRange;
+var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 describe("Variant", function () {
 
@@ -268,7 +270,7 @@ describe("Variant", function () {
         //xx var1.toString().should.eql("Variant(Array<UInt32>, l= 4, value=[2,3,Bad!,5])");
     });
 
-    it("should create a Variant as a Matrix (2x3) of UInt32 ", function () {
+    it("should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a flat array", function () {
         var var1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
@@ -294,6 +296,42 @@ describe("Variant", function () {
 
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
+
+    xit("should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", function () {
+
+        var var1 = new ({
+            dataType: DataType.UInt32,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [2, 3],
+            value: [
+                [0x000, 0x001, 0x002],
+                [0x010, 0x011, 0x012]
+            ]
+        });
+        Variant
+        var1.arrayType.should.eql(VariantArrayType.Matrix);
+        var1.dimensions.should.eql([2, 3]);
+
+        var1.value.length.should.eql(6);
+
+
+        var1.dataType.should.eql(DataType.UInt32);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            // 1  encoding byte          1
+            // 1  UInt32 => ArrayLength  4
+            // 6  UInt32                 6*4
+            // 1  Uint32                 4
+            // 3  Uint32 (dimension)     2*4
+            //                           ----
+            //                           41
+            stream.length.should.equal(41);
+        });
+
+        var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
+    });
+
+
 
     it("should raise an exception when construction a Matrix with incorrect element size", function () {
 
@@ -335,6 +373,26 @@ describe("Variant", function () {
         });
     });
 
+    it("should create a Array of ByteString Variant", function () {
+
+        var value = [
+            new Buffer("ABCD"),
+            null,
+        ];
+
+        var var1 = new Variant({
+            arrayType: VariantArrayType.Array,
+            dataType: DataType.ByteString,
+            value: value,
+        });
+
+        var1.dataType.should.eql(DataType.ByteString);
+        var1.arrayType.should.eql(VariantArrayType.Array);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(17);
+        });
+    });
 });
 
 var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
@@ -751,7 +809,7 @@ describe("benchmarking float Array encode/decode", function () {
 describe("Variant with Advanced Array", function () {
 
 
-    it("should automatically detect that variant is an array when rrayType is missing ", function () {
+    it("should automatically detect that variant is an array when ArrayType is missing ", function () {
 
 
         var v = new Variant({
@@ -803,11 +861,16 @@ describe("Variant with Advanced Array", function () {
         var v = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Array,
-            value: ["ABCDEFGHIJKL", "BCDEFGHIJKLA", "CDEFGHIJKLAB", "DEFGHIJKLABC", "EFGHIJKLABCD", "FGHIJKLABCDE"]
+            value: [
+                "ABCDEFGHIJKL",
+                "BCDEFGHIJKLA",
+                "CDEFGHIJKLAB",
+                "DEFGHIJKLABC",
+                "EFGHIJKLABCD",
+                "FGHIJKLABCDE"
+            ]
 
         });
-        var NumericRange = require("node-opcua-numeric-range").NumericRange;
-        var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
         var nr = new NumericRange("3:4,1:3");
 
@@ -816,10 +879,40 @@ describe("Variant with Advanced Array", function () {
         var results = nr.extract_values(v.value);
         results.statusCode.should.eql(StatusCodes.Good);
 
-        results.array.should.eql(["EFG", "FGH"]);
+        results.array.should.eql([new Buffer("EFG"), new Buffer("FGH")]);
 
     });
 
+    it("AA should be possible to read a sub matrix of a matrix of double", function () {
+
+        var v = new Variant({
+            dataType: DataType.Double,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [5,4],
+            value: [
+                0x000, 0x001, 0x002, 0x003,
+                0x100, 0x101, 0x102, 0x103,
+                0x200, 0x201, 0x202, 0x203,
+                0x300, 0x301, 0x302, 0x303,
+                0x400, 0x401, 0x402, 0x403,
+            ]
+        });
+
+        var nr = new NumericRange("3:4,1:3");
+
+        nr.isValid().should.eql(true);
+
+        var results = nr.extract_values(v.value,v.dimensions); // << We must provide dimension here
+        results.statusCode.should.eql(StatusCodes.Good);
+
+        results.dimensions.should.eql([2,3]);
+
+        results.array.should.eql(new Float64Array([
+            0x301,0x302,0x303,
+            0x401,0x402,0x403,
+        ]));
+
+    });
 
 });
 

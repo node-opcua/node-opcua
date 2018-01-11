@@ -124,7 +124,11 @@ NodeId.prototype.toString = function (options) {
             break;
         default:
             assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
-            str = "ns=" + this.namespace + ";b=" + this.value.toString("hex");
+            if (this.value)  {
+                str = "ns=" + this.namespace + ";b=" + this.value.toString("hex");
+            } else {
+                str = "ns=" + this.namespace + ";b=<null>"
+            }
             break;
     }
 

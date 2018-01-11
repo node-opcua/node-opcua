@@ -636,6 +636,11 @@ ServerEngine.prototype.initialize = function (options, callback) {
                     return self.serverCapabilities.maxStringLength;
                 });
 
+            bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength,
+                DataType.UInt32, function () {
+                    return self.serverCapabilities.maxByteStringLength;
+                });
+
             function bindOperationLimits(operationLimits) {
 
                 assert(_.isObject(operationLimits));
