@@ -5,6 +5,7 @@
 var util = require('util');
 var xml = require("ersatz-node-expat");
 var fs = require("fs");
+var path = require("path");
 var csv = require("csv");
 var sprintf = require("sprintf").sprintf;
 
@@ -14,7 +15,10 @@ var sprintf = require("sprintf").sprintf;
 var codeMap = {};
 var code_list = [];
 
-csv().from.stream(fs.createReadStream(__dirname + '/Opc.Ua.StatusCodes.csv')).to.array(function (data) {
+
+var datafolder = path.join(__dirname,"1.03");
+
+csv().from.stream(fs.createReadStream(path.join(datafolder,'/Opc.Ua.StatusCodes.csv')).to.array(function (data) {
     data.forEach(function (e) {
         var codeName = e[0];
         console.log(e);

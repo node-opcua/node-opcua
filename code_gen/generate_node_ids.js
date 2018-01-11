@@ -1,6 +1,10 @@
+"use strict";
 var fs = require("fs");
+var path = require("path");
 var csv = require("csv");
 var sprintf = require("sprintf").sprintf;
+
+var datafolder = path.join(__dirname,"1.03");
 
 // see OPC-UA Part 6 , A2
 var codeMap= {};
@@ -9,7 +13,7 @@ var parser = csv.parse({delimiter: ','}, function(err, data){
     convert(data);
 });
 
-fs.createReadStream(__dirname+'/NodeIds.csv').pipe(parser);
+fs.createReadStream(path.join(datafolder,'/NodeIds.csv')).pipe(parser);
 
 
 function convert(data)
@@ -32,7 +36,7 @@ function convert(data)
 
 
     });
-    var outFile = fs.createWriteStream("lib/opcua_node_ids.js");
+    var outFile = fs.createWriteStream(path.join("../packages/node-opcua-constants/src","opcua_node_ids.js"));
     outFile.write("// this file has been automatically generated\n");
     outFile.write("// using code_gen/generate_node_ids.js\n");
 
@@ -79,7 +83,4 @@ function convert(data)
             outFile.write("};\n");
         }
     }
-
-
-
 }
