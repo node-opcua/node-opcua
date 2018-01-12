@@ -99,6 +99,8 @@ var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePubli
  * @param [options.serverCapabilities.localeIdArray]
  * @param options.applicationUri {String} the application URI.
  * @param [options.historyServerCapabilities]
+ * @param [options.serverDiagnosticsEnabled = true] set to true to enable serverDiagnostics
+ * 
  * @constructor
  */
 function ServerEngine(options) {
@@ -130,7 +132,12 @@ function ServerEngine(options) {
 
     // --------------------------------------------------- ServerCapabilities
     options.serverCapabilities = options.serverCapabilities || {};
-    options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [];
+    options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
+        "Standard UA Server Profile", 
+        "Embedded UA Server Profile",
+        "Micro Embedded Device Server Profile",
+        "Nano Embedded Device Server Profile"
+    ];
     options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
     this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
@@ -168,6 +175,10 @@ function ServerEngine(options) {
     this._shutdownTask = [];
 
     this._applicationUri = options.applicationUri || "<unset _applicationUri>";
+
+    options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable") ? coerceoptions.serverDiagnosticsEnabled : true;
+    this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
+
 }
 
 util.inherits(ServerEngine, EventEmitter);
@@ -374,6 +385,23 @@ ServerEngine.prototype.setServerState = function (serverState) {
     this.serverStatus.state = serverState;
 };
 
+ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function() {
+    // create SessionsDiagnosticsSummary
+    var serverDiagnostics = server.getComponentByName("ServerDiagnostics");
+    if (!serverDiagnostics) {
+        return false;
+    }
+    return serverDiagnostics.readValue().value.value;
+};
+
+ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function() {
+    // create SessionsDiagnosticsSummary
+    var serverDiagnostics = server.getComponentByName("ServerDiagnostics");
+    if (!serverDiagnostics) {
+        return false;
+    }
+    return serverDiagnostics.readValue().value.value;
+};
 
 /**
  * @method initialize
@@ -466,7 +494,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
         function bindStandardScalar(id, dataType, func, setter_func) {
 
-            assert(_.isNumber(id));
+            assert(_.isNumber(id),"expecting id to be a number");
             assert(_.isFunction(func));
             assert(_.isFunction(setter_func) || !setter_func);
             assert(dataType !== null); // check invalid dataType
@@ -536,13 +564,11 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
         function bindServerDiagnostics() {
 
-            var serverDiagnostics_Enabled = false;
-
             bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag,
                 DataType.Boolean, function () {
-                    return serverDiagnostics_Enabled;
+                    return self.serverDiagnosticsEnabled;
                 }, function (newFlag) {
-                    serverDiagnostics_Enabled = newFlag;
+                    self.serverDiagnosticsEnabled = newFlag;
                 });
 
             var serverDiagnosticsSummary = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary));
