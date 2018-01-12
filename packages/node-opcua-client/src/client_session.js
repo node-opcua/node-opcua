@@ -381,7 +381,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
     var self = this;
 
     assert(_.isFunction(callback));
-    assert(_.isArray(nodesToWrite));
+    assert(_.isArray(nodesToWrite),"nodesToWrite must be an array");
 
     var request = new write_service.WriteRequest({nodesToWrite: nodesToWrite});
 

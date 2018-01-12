@@ -1109,6 +1109,64 @@ describe("testing Variable#writeValue Array", function () {
 
     });
 
+    it("A6 - should write  a ByteString into a Array of Byte", function (done) {
+        // as  per CTT write Attibute test 007
+
+        var variable = addressSpace.addVariable({
+            organizedBy: rootFolder,
+            browseName: "SomeArrayOfByte",
+            dataType: "Byte",
+            typeDefinition: makeNodeId(68),
+            value: {
+                dataType: DataType.Byte,
+                arrayType: VariantArrayType.Array,
+                value: new Buffer([1, 2, 3, 4, 5, 6, 7])
+            }
+        });
+
+        async.series([
+
+            function (callback) {
+
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.statusCode.should.eql(StatusCodes.Good);
+                dataValue_check.value.dataType.should.eql(DataType.Byte);
+                dataValue_check.value.arrayType.should.eql(VariantArrayType.Array);
+                dataValue_check.value.value.should.eql(new Buffer([1, 2, 3, 4, 5, 6, 7]));
+                setImmediate(callback);
+            },
+            function (callback) {
+
+                var dataValue = new DataValue({
+                    statusCode: StatusCodes.Good,
+                    value: {
+                        dataType: DataType.ByteString,
+                        arrayType: VariantArrayType.Scalar,
+                        value: new Buffer([11, 12, 13, 14, 15, 16, 17])
+                    }
+                });
+
+                variable.writeValue(context, dataValue, null, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    callback(err);
+                });
+            },
+            function (callback) {
+
+                var dataValue_check = variable.readAttribute(context, AttributeIds.Value);
+                dataValue_check.should.be.instanceOf(DataValue);
+                dataValue_check.value.dataType.should.eql(DataType.Byte);
+                dataValue_check.value.arrayType.should.eql(VariantArrayType.Array);
+                dataValue_check.value.value.should.eql(new Buffer([11, 12, 13, 14, 15, 16, 17]));
+                callback(null);
+            }
+
+        ], done);
+
+
+    });
+
 });
 
 

@@ -758,13 +758,14 @@ UAVariable.prototype.writeValue = function (context, dataValue, indexRange, call
     // convert Variant( Scalar|ByteString) =>  Variant(Array|ByteArray)
     var variant = dataValue.value;
     if (variant.arrayType === VariantArrayType.Scalar && variant.dataType === DataType.ByteString) {
-        if ((self.dataType === DataType.Byte) && (self.dataType.namespace === 0)) { // Byte
+        if ((self.dataType.value === DataType.Byte.value) && (self.dataType.namespace === 0)) { // Byte
             variant.arrayType = VariantArrayType.Array;
             variant.dataType = DataType.Byte;
+            assert(variant.dataType == DataType.Byte);
         }
     }
 
-    var statusCode = self.isValueInRange(dataValue.value);
+    var statusCode = self.isValueInRange(variant);
     if (statusCode !== StatusCodes.Good) {
         return callback(null, statusCode);
     }
