@@ -270,7 +270,6 @@ function _dumpUADataTypeDefinition(xw, node) {
         _.forEach(indexes.nameIndex, function (defItem, key) {
 
             xw.startElement("Field");
-            console.log(defItem);
             xw.writeAttribute("Name", defItem.name);
 
             if (defItem.dataType && !defItem.dataType.isEmpty()) {

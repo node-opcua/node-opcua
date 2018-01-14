@@ -15,6 +15,7 @@ var dumpStateMachineToPlantUML = require("node-opcua-address-space/test_helpers/
 
 var redirectToFile = require("node-opcua-debug").redirectToFile;
 
+var doDebug = false;
 
 function ns(namespaceIndex, browseName) {
     return namespaceIndex.toString() + ":" + browseName;
@@ -129,19 +130,26 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
             return w(c.browseName.toString(), 25) + " " + w(c.nodeId.toString(), 25) + w(c.modellingRule, 25);
         }
 
-        objectType.getComponents().forEach(function (c) {
-            console.log(f(c));
-        });
+        if (doDebug) {
+            objectType.getComponents().forEach(function (c) {
+                console.log(f(c));
+            });
+        }
         //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + objectType.browseName.toString());
         var baseType = objectType.subtypeOfObj;
-        baseType.getComponents().forEach(function (c) {
-            console.log(f(c));
-        });
+
+        if (doDebug) {
+            baseType.getComponents().forEach(function (c) {
+                console.log(f(c));
+            });
+        }
         //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
         baseType = baseType.subtypeOfObj;
-        baseType.getComponents().forEach(function (c) {
-            console.log(f(c));
-        });
+        if (doDebug) {
+            baseType.getComponents().forEach(function (c) {
+                console.log(f(c));
+            });
+        }
         //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
 
     }
@@ -160,7 +168,9 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         should.exist(channel1.parameterSet, "Parameter set is mandatory since 1.1");
 
-        dumpObjectType(analyserChannelType);
+        if (doDebug) {
+            dumpObjectType(analyserChannelType);
+        }
 
         var channel2 = analyserChannelType.instantiate({
             browseName: "__Channel2",
@@ -169,11 +179,13 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         channel2.parameterSet.browseName.toString().should.eql("2:ParameterSet");
         channel2._clear_caches();
 
-        console.log(channel2.toString());
-        channel2.getComponents().forEach(function (c) {
-            console.log(c.browseName.toString())
-        });
+        if (doDebug) {
 
+            console.log(channel2.toString());
+            channel2.getComponents().forEach(function (c) {
+                console.log(c.browseName.toString())
+            });
+        }
         should.exist(channel2.getComponentByName("2:ParameterSet"));
 
         channel2.getComponentByName("2:ParameterSet").browseName.toString().should.eql("2:ParameterSet");
@@ -266,9 +278,11 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         });
         var results = stateMachineType.browseNode(bd);
-        results.forEach(function (result) {
-            console.log(result.toString());
-        });
+        if (doDebug) {
+            results.forEach(function (result) {
+                console.log(result.toString());
+            });
+        }
     }
 
     it("should have a AnalyserDeviceStateMachineType", function (done) {

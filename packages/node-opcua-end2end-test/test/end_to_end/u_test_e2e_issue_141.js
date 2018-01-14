@@ -64,19 +64,17 @@ module.exports = function (test) {
                 }
 
                 the_subscription.on("started", function () {
-                    console.log("revised publishingInterval :", the_subscription.publishingInterval);
-                    console.log("revised lifetimeCount      :", the_subscription.lifetimeCount);
-                    console.log("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
-                    console.log("started subscription       :", the_subscription.subscriptionId);
+                    //xx console.log("revised publishingInterval :", the_subscription.publishingInterval);
+                    //xx console.log("revised lifetimeCount      :", the_subscription.lifetimeCount);
+                    //xx console.log("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
+                    //xx console.log("started subscription       :", the_subscription.subscriptionId);
 
                 }).on("internal_error", function (err) {
                     console.log(" received internal error", err.message);
                     clearTimeout(timerId);
                     inner_done(err);
-
-
                 }).on("keepalive", function () {
-                    console.log("keepalive");
+                    //xx console.log("keepalive");
                     keepaliveCounter++;
 
                 }).on("terminated", function () {
@@ -130,7 +128,7 @@ module.exports = function (test) {
 
                 session.performMessageTransaction(request, function (err) {
                     //
-                    console.log(" received performMessageTransaction callback", request.constructor.name.toString());
+                    //xx console.log(" received performMessageTransaction callback", request.constructor.name.toString());
                     should.exist(err);
                     callback_received = true;
                     if (callback_received && event_received) {
@@ -139,7 +137,7 @@ module.exports = function (test) {
                 });
 
                 client.on("timed_out_request", function (request) {
-                    console.log(" received timed_out_request", request.constructor.name.toString());
+                    //xx console.log(" received timed_out_request", request.constructor.name.toString());
                     client.timedOutRequestCount.should.eql(1);
                     event_received = true;
                     if (callback_received && event_received) {

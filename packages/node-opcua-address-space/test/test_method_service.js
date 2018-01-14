@@ -17,6 +17,7 @@ var generate_address_space = require("..").generate_address_space;
 
 var call_service = require("node-opcua-service-call");
 var hexDump = require("node-opcua-debug").hexDump;
+var doDebug = false;
 
 var build_retrieveInputArgumentsDefinition = require("../src/argument_list").build_retrieveInputArgumentsDefinition;
 
@@ -74,7 +75,9 @@ describe("CallRequest on custom method", function () {
         var stream = new BinaryStream(size, options);
         callRequest.encode(stream, options);
 
-        console.log(hexDump(stream._buffer));
+        if (doDebug) {
+            console.log(hexDump(stream._buffer));
+        }
 
         // now decode
         var callRequest_reloaded = new call_service.CallRequest();

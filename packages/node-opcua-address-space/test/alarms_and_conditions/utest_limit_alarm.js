@@ -8,6 +8,7 @@ var NodeId = require("node-opcua-nodeid").NodeId;
 var DataType = require("node-opcua-variant").DataType;
 
 const fields = ["eventId", "eventType", "enabledState", "activeState", "ackedState", "lowLowLimit", "comment", "branchId", "quality", "message"];
+var doDebug = false;
 
 function dumpEvent(addressSpace, eventFields, eventData) {
 
@@ -256,7 +257,7 @@ module.exports = function (test) {
         });
 
 
-        it("ZZZAlarm should not trigger event if state change but enableState is false", function () {
+        it("Alarm should not trigger event if state change but enableState is false", function () {
 
             setVariableValue(0);
 
@@ -295,21 +296,24 @@ module.exports = function (test) {
             spyOnEvent.getCall(1).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
             spyOnEvent.getCall(2).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
 
-            dumpEvent(addressSpace, fields, spyOnEvent.getCall(1).args[0]);
-            dumpEvent(addressSpace, fields, spyOnEvent.getCall(2).args[0]);
-
+            if (doDebug) {
+                dumpEvent(addressSpace, fields, spyOnEvent.getCall(1).args[0]);
+                dumpEvent(addressSpace, fields, spyOnEvent.getCall(2).args[0]);
+            }
 
             alarm.setEnabledState(false);
             spyOnEvent.callCount.should.eql(4); // disabled Event must have been received
-            dumpEvent(addressSpace, fields, spyOnEvent.getCall(3).args[0]);
-
+            if (doDebug) {
+                dumpEvent(addressSpace, fields, spyOnEvent.getCall(3).args[0]);
+            }
             //should not trigger event if state change but enableState is false
             setVariableValue(-100);
             spyOnEvent.callCount.should.eql(4); // no more new EVENT, as alarm is disabled
 
             alarm.setEnabledState(true);
-            dumpEvent(addressSpace, fields, spyOnEvent.getCall(4).args[0]);
-
+            if (doDebug) {
+                dumpEvent(addressSpace, fields, spyOnEvent.getCall(4).args[0]);
+            }
             spyOnEvent.callCount.should.eql(6);
             // a new event should be raised because alarm is re-enabled and should be state is LowLow
             // there should be two events here because the alarm reraised the pending branches ...

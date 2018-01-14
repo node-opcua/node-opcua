@@ -115,8 +115,9 @@ module.exports = function(maintest) {
 
                     statusCode.should.eql(StatusCodes.Good);
 
-                    console.log(  multiStateValue._dataValue.toString())
-                    console.log(  multiStateValue.valueAsText._dataValue.toString())
+                    //Xx console.log(  multiStateValue._dataValue.toString());
+                    //Xx console.log(  multiStateValue.valueAsText._dataValue.toString());
+
                     multiStateValue.valueAsText.readValue().value.value.text.should.eql("Blue");
                     done(err);
                 });

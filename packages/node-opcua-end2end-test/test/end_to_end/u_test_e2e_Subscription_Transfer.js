@@ -98,7 +98,7 @@ module.exports = function (test) {
                     });
                 },
                 function (callback) {
-                    console.log("SubscriptionId ", the_subscriptionId);
+                    //xx console.log("SubscriptionId ", the_subscriptionId);
                     callback();
                 },
                 function (callback) {
@@ -112,7 +112,7 @@ module.exports = function (test) {
 
                             spy_on_terminated.callCount.should.eql(0);
                             response.results.length.should.eql(1);
-                            console.log(" => ", response.results[0].toString());
+                            //xx console.log(" => ", response.results[0].toString());
 
                             subscription.terminate();
                             done(err);
@@ -264,7 +264,7 @@ module.exports = function (test) {
                     function (callback) {
 
                         setTimeout(function () {
-                            console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
+                            //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);
                             spy_keepalive.callCount.should.be.greaterThan(1);
                             callback();
@@ -301,7 +301,7 @@ module.exports = function (test) {
 
                     function (callback) {
                         setTimeout(function () {
-                            console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
+                            //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(1);
                             callback();
                         }, 1000);
@@ -311,7 +311,7 @@ module.exports = function (test) {
                     }
 
                 ], function (err) {
-                    console.log("-------------------", subscription.subscriptionId);
+                    //xx console.log("-------------------", subscription.subscriptionId);
                     inner_done(err);
                 });
 
@@ -442,7 +442,7 @@ module.exports = function (test) {
                     // session 1 should receive StatusChangeNotification
                     function (callback) {
 
-                        console.log("count = ", spy_publish_session1.callCount);
+                        //xx console.log("count = ", spy_publish_session1.callCount);
 
                         var response0 = spy_publish_session1.getCall(0).args[1];
                         //xx console.log("response=",response0.toString());
@@ -484,7 +484,7 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        console.log("count = ", spy_publish_session2.callCount);
+                        //Xx console.log("count = ", spy_publish_session2.callCount);
 
                         var response0 = spy_publish_session2.getCall(0).args[1];
                         //xx console.log("response=",response0.toString());
@@ -506,7 +506,7 @@ module.exports = function (test) {
                         the_session2.close(callback);
                     },
                     function (callback) {
-                        console.log("count = ", spy_publish_session2.callCount);
+                        //xx console.log("count = ", spy_publish_session2.callCount);
                         spy_publish_session2.callCount.should.eql(4);
 
                         var response1 = spy_publish_session2.getCall(1).args[1];
@@ -522,7 +522,7 @@ module.exports = function (test) {
                         callback();
                     }
                 ], function (err) {
-                    console.log("-------------------", subscriptionId);
+                    //xx console.log("-------------------", subscriptionId);
                     inner_done(err);
                 });
 

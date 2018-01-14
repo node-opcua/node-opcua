@@ -30,8 +30,8 @@ module.exports = function (test) {
                 session.modifySubscription(request,function(err,response){
                     _.isNumber(response.revisedPublishingInterval).should.be.eql(true);
                     response.revisedPublishingInterval.should.not.eql(maxValue);
-                    console.log("   requestedPublishingInterval = ",maxValue);
-                    console.log("     revisedPublishingInterval = ",response.revisedPublishingInterval);
+                    //xx console.log("   requestedPublishingInterval = ",maxValue);
+                    //xx console.log("     revisedPublishingInterval = ",response.revisedPublishingInterval);
                     inner_done();
                 });
             },done);
