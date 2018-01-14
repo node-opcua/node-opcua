@@ -268,8 +268,12 @@ function removeElementByIndex(uaArrayVariableNode, elementIndex) {
 
 function removeElement(uaArrayVariableNode, element) {
 
+    assert(element,"element must exist");
     var _array = uaArrayVariableNode.$$extensionObjectArray;
-    var elementIndex;
+    if (_array.length === 0) {
+        throw new Error(" cannot remove an element from an empty array ");
+    }
+    var elementIndex = -1;
     if (_.isNumber(element)) {
         elementIndex = element;
         assert(elementIndex >= 0 && elementIndex < _array.length);
@@ -281,7 +285,10 @@ function removeElement(uaArrayVariableNode, element) {
             var browseName = uaArrayVariableNode.$$getElementBrowseName(obj);
             return (browseName === browseNameToFind);
         });
-    } else{
+    } else if (_.isFunction(element)) {
+        elementIndex = _array.findIndex(element);
+    }else{
+        assert(_array[0].constructor.name === element.constructor.name,"element must match");
         elementIndex = _array.findIndex(function(x) { return x === element });
     }
     if (elementIndex < 0) {

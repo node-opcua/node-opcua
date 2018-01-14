@@ -48,6 +48,8 @@ module.exports = function (test) {
         var AuditSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditSessionEventType").toString();
         var AuditCreateSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditCreateSessionEventType").toString();
         var AuditActivateSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditActivateSessionEventType").toString();
+        var AuditChannelEventTypeNodeIdString = opcua.resolveNodeId("AuditChannelEventType").toString();
+        var GeneralModelChangeEventTypeNodeIdString = opcua.resolveNodeId("GeneralModelChangeEventType").toString();
 
         var auditing_client = null;
         var auditing_session = null;
@@ -266,7 +268,7 @@ module.exports = function (test) {
 
             ], function final(err) {
 
-                events_received.length.should.eql(5);
+                events_received.length.should.eql(6);
 
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
@@ -284,6 +286,20 @@ module.exports = function (test) {
                 events_received[2].SourceName.value.should.eql("Session/Timeout");
                 events_received[2].SessionId.value.toString().should.eql(the_session.sessionId.toString());
                 events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
+
+                // "GeneralModelChangeEventType"
+                if (false) {
+
+                    events_received[3].SourceName.value.should.eql("Server");
+                    events_received[3].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
+
+                    events_received[4].SourceName.value.should.eql("Server");
+                    events_received[4].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
+
+                    events_received[5].SourceName.value.should.eql("Server");
+                    events_received[5].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
+                }
+
 
                 done(err);
             });
@@ -338,7 +354,7 @@ module.exports = function (test) {
 
             ], function final(err) {
 
-                events_received.length.should.eql(5);
+                events_received.length.should.eql(6);
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
                 //

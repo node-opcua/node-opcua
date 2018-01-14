@@ -107,6 +107,7 @@ function ServerSession(parent, sessionId, sessionTimeout) {
     self.creationDate = new Date();
 
 }
+
 util.inherits(ServerSession, EventEmitter);
 
 ServerSession.maxPublishRequestInQueue = 100;
@@ -147,7 +148,7 @@ ServerSession.prototype.__defineGetter__("addressSpace", function () {
     return this.parent.addressSpace;
 });
 
-ServerSession.prototype.__defineGetter__("currentPublishRequestInQueue", function() {
+ServerSession.prototype.__defineGetter__("currentPublishRequestInQueue", function () {
     var self = this;
     return self.publishEngine ? self.publishEngine.pendingPublishRequestCount : 0;
 });
@@ -163,14 +164,12 @@ var Variant = require("node-opcua-variant").Variant;
 var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
 
 
-
-
-ServerSession.prototype.updateClientLastContactTime = function(currentTime) {
+ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
     var self = this;
     if (self._sessionDiagnostics && self._sessionDiagnostics.clientLastContactTime) {
-        currentTime = currentTime  || new Date();
+        currentTime = currentTime || new Date();
         // do not record all ticks as this may be overwhelming,
-        if (currentTime.getTime()  - 250 >= self._sessionDiagnostics.clientLastContactTime.getTime()) {
+        if (currentTime.getTime() - 250 >= self._sessionDiagnostics.clientLastContactTime.getTime()) {
             self._sessionDiagnostics.clientLastContactTime = currentTime;
         }
     }
@@ -180,7 +179,7 @@ ServerSession.prototype.updateClientLastContactTime = function(currentTime) {
 /**
  * required for watch dog
  */
-ServerSession.prototype.onClientSeen = function(currentTime) {
+ServerSession.prototype.onClientSeen = function (currentTime) {
     var self = this;
 
     self.updateClientLastContactTime(currentTime);
@@ -215,10 +214,10 @@ ServerSession.prototype.incrementRequestTotalCounter = function (counterName) {
     if (self._sessionDiagnostics) {
         var propName = lowerFirstLetter(counterName + "Count");
         if (!self._sessionDiagnostics.hasOwnProperty(propName)) {
-            console.log(" cannot find" ,propName);
-           //xx return;
+            console.log(" cannot find", propName);
+            //xx return;
         }
-     //   console.log(self._sessionDiagnostics.toString());
+        //   console.log(self._sessionDiagnostics.toString());
         self._sessionDiagnostics[propName].totalCount = self._sessionDiagnostics[propName].totalCount + 1;
     }
 };
@@ -227,12 +226,18 @@ ServerSession.prototype.incrementRequestErrorCounter = function (counterName) {
     if (self._sessionDiagnostics) {
         var propName = lowerFirstLetter(counterName + "Count");
         if (!self._sessionDiagnostics.hasOwnProperty(propName)) {
-            console.log(" cannot find" ,propName);
-          //xx  return;
+            console.log(" cannot find", propName);
+            //xx  return;
         }
-        self._sessionDiagnostics[propName].errorCount +=1;
+        self._sessionDiagnostics[propName].errorCount += 1;
     }
 };
+
+ServerSession.prototype.getSessionDiagnosticsArray = function () {
+    var self = this;
+    return self.addressSpace.rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
+};
+
 
 ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
@@ -241,9 +246,6 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         return;
     }
 
-    function getSessionDiagnosticsArray() {
-        return  self.addressSpace.rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
-    }
 
     assert(!self.sessionObject, "ServerSession#_createSessionObjectInAddressSpace already called ?");
 
@@ -313,8 +315,8 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
             }
         });
 
-        Object.defineProperty(self._sessionDiagnostics,"sessionId",{
-            get: function() {
+        Object.defineProperty(self._sessionDiagnostics, "sessionId", {
+            get: function () {
                 return self.nodeId;
             }
         });
@@ -334,10 +336,10 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
         self._sessionDiagnostics = self.sessionDiagnostics.$extensionObject;
 
-        var sessionDiagnosticsArray = getSessionDiagnosticsArray();
+        var sessionDiagnosticsArray = self.getSessionDiagnosticsArray();
 
         // make sessionDiagnostics
-        eoan.addElement(self._sessionDiagnostics,sessionDiagnosticsArray);
+        eoan.addElement(self._sessionDiagnostics, sessionDiagnosticsArray);
 
     }
     return self.sessionObject;
@@ -353,6 +355,10 @@ ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
         return;
     }
     if (self.sessionDiagnostics) {
+
+        var sessionDiagnosticsArray = self.getSessionDiagnosticsArray();
+        eoan.removeElement(sessionDiagnosticsArray, self.sessionDiagnostics.$extensionObject);
+
         self.addressSpace.deleteNode(self.sessionDiagnostics);
         self._sessionDiagnostics = null;
         self.sessionDiagnostics = null;
@@ -414,11 +420,16 @@ ServerSession.prototype._exposeSubscriptionDiagnostics = function (subscription)
     }
 };
 
+function compareSessionId(sessionDiagnostics1, sessionDiagnostics2) {
+    return sessionDiagnostics1.sessionId.toString() == sessionDiagnostics2.sessionId.toString();
+}
+
 ServerSession.prototype._unexposeSubscriptionDiagnostics = function (subscription) {
 
     var self = this;
     var subscriptionDiagnosticsArray = self._getSubscriptionDiagnosticsArray();
     var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+    assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
         eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
     }

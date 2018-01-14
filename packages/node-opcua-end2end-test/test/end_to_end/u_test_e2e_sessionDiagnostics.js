@@ -12,7 +12,6 @@ var perform_operation_on_subscription = require("../../test_helpers/perform_oper
 
 module.exports = function (test) {
 
-
     describe("SDS1 Testing SessionDiagnostics", function () {
 
         it("SDS1-A server should expose a ServerDiagnostic object", function (done) {
@@ -51,7 +50,7 @@ module.exports = function (test) {
                             var currentSessionCount = results[2].value.value;
                             var currentSubscriptionCount = results[3].value.value;
 
-                            console.log(serverDiagnostics);
+                            //xx console.log(serverDiagnostics);
 
                             serverDiagnostics.cumulatedSessionCount.should.eql(cumulatedSessionCount);
                             serverDiagnostics.currentSessionCount.should.eql(currentSessionCount);
@@ -68,6 +67,7 @@ module.exports = function (test) {
             }, done);
 
         });
+
         it("SDS1-B server should expose a SessionDiagnostics per Session", function (done) {
 
             var client = new opcua.OPCUAClient({});
@@ -75,7 +75,6 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 //xx console.log("session nodeId = ",session.sessionId);
-
 
                 var currentSessionDiagnosticNodeId;
 
@@ -249,6 +248,7 @@ module.exports = function (test) {
 
             }, done);
         });
+
         it("SDS1-C server should expose a SessionDiagnostics in SessionDiagnosticsSummary.SessionDiagnosticsArray", function (done) {
 
             var client = new opcua.OPCUAClient({});
@@ -271,9 +271,7 @@ module.exports = function (test) {
                             }
                             //xx console.log(browsePathResults[3].toString());
                             browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
-
                             sessionDiagnosticsArrayNodeId = browsePathResults[0].targets[0].targetId;
-
                             callback();
                         });
                     },
@@ -289,7 +287,7 @@ module.exports = function (test) {
                                 return callback(err);
                             }
                             // enumerate all sessions availables
-                            console.log(browseResult[0].toString());
+                            //xx console.log(browseResult[0].toString());
                             sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
                             callback();
                         });
@@ -303,11 +301,11 @@ module.exports = function (test) {
                         }];
                         session.read(nodesToRead, function (err, unused, readResults) {
 
-                            if(err) { return callbakc(err); }
+                            if(err) { return callback(err); }
 
                             readResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
                             readResults[0].value.value.constructor.name.should.eql("SessionDiagnostics");
-                            readResults[0].value.value.totalRequestCount.totalCount.should.be.greaterThan(8);
+                            readResults[0].value.value.totalRequestCount.totalCount.should.be.greaterThan(7);
 
                             callback();
                         });
@@ -316,6 +314,90 @@ module.exports = function (test) {
 
             }, done);
 
+        });
+
+        function count_number_of_exposed_sessionDiagnostics(done){
+            var sessionDiagnosticsArrayNodeId = opcua.resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
+            var serverNodeId =opcua.resolveNodeId("Server");
+            var sessionDiagnosticsNodeId;
+            var nbSessionDiagnostics = -1;
+            var client = new opcua.OPCUAClient({});
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+                async.series([
+                    function get_sessionDiagnosticsArrayNodeId(callback) {
+                        var browsePath = [
+                            opcua.makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
+                        ];
+
+                        session.translateBrowsePath(browsePath, function (err, browsePathResults) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            //xx console.log(browsePathResults[3].toString());
+                            browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
+                            sessionDiagnosticsArrayNodeId = browsePathResults[0].targets[0].targetId;
+                            callback();
+                        });
+                    },
+                    function (callback) {
+                        var browseDesc = {
+                            nodeId: sessionDiagnosticsArrayNodeId,
+                            referenceTypeId: "HasComponent",
+                            browseDirection: opcua.BrowseDirection.Forward,
+                            resultMask: 63
+                        };
+                        session.browse([browseDesc], function (err, browseResult) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            // enumerate all sessions availables
+                            //xx console.log(browseResult[0].toString());
+                            sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
+                            nbSessionDiagnostics = browseResult[0].references.length;
+                            callback();
+                        });
+                    }
+                ], callback);
+            }, function(err) {
+                if(err) { return callback(err);}
+                done(null,nbSessionDiagnostics);
+            });
+
+        }
+        it("SDS1-D server should remove SessionDiagnostic when session is closed",function(done){
+
+            var nbSessionDiagnosticsStep1,nbSessionDiagnosticsStep2;
+            async.series([
+                function count_before(callback) {
+                    count_number_of_exposed_sessionDiagnostics(function(err,nbSessionDiagnostic) {
+                        if (err) { return callback (err);}
+                        //xx console.log("xxxx nbSessionDiagnostics =",nbSessionDiagnostic);
+                        nbSessionDiagnosticsStep1 = nbSessionDiagnostic;
+                        callback();
+                    });
+                },
+                function createSession(callback) {
+                    var client = new opcua.OPCUAClient({});
+                    perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+                        count_number_of_exposed_sessionDiagnostics(function(err,nbSessionDiagnostic) {
+                            if (err) { return callback (err);}
+                            //xx console.log("xxxx nbSessionDiagnostics =",nbSessionDiagnostic);
+                            nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnostic-1);
+                            callback();
+                        });
+                    },callback);
+                },
+                function count_before(callback) {
+                    count_number_of_exposed_sessionDiagnostics(function(err,nbSessionDiagnostic) {
+                        if (err) { return callback (err);}
+                        //xx console.log("xxxx nbSessionDiagnostics =",nbSessionDiagnostic);
+                        nbSessionDiagnosticsStep2 = nbSessionDiagnostic ;
+                        nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnosticsStep2);
+                        callback();
+                    });
+                },
+
+            ],done)
         });
     });
 };
