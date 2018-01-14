@@ -712,6 +712,41 @@ UAVariable.prototype.isValueInRange = function () {
     return StatusCodes.Good;
 };
 
+function adjustVariant(uaVariable,variant) {
+
+    var self = uaVariable;
+
+    // convert Variant( Scalar|ByteString) =>  Variant(Array|ByteArray)
+    var addressSpace = self.addressSpace;
+
+    var basicType = addressSpace.findCorrespondingBasicDataType(uaVariable.dataType);
+
+    if (basicType === DataType.Byte && uaVariable.valueRank === 1) {
+        if (variant.arrayType === VariantArrayType.Scalar && variant.dataType === DataType.ByteString) {
+
+            if ((uaVariable.dataType.value === DataType.Byte.value) && (self.dataType.namespace === 0)) { // Byte
+                variant.arrayType = VariantArrayType.Array;
+                variant.dataType = DataType.Byte;
+                assert(variant.dataType === DataType.Byte);
+                assert(!variant.value || variant.value instanceof Buffer);
+            }
+        }
+    }
+    if (basicType === DataType.ByteString && uaVariable.valueRank === -1 /* Scalar*/) {
+
+        if (variant.arrayType === VariantArrayType.Array && variant.dataType === DataType.Byte) {
+            if ((self.dataType.value === DataType.ByteString.value) && (self.dataType.namespace === 0)) { // Byte
+                variant.arrayType = VariantArrayType.Scalar;
+                variant.dataType = DataType.ByteString;
+                assert(variant.dataType === DataType.ByteString);
+                assert(!variant.value || variant.value instanceof Buffer);
+            }
+        }
+    }
+
+    return variant;
+
+}
 /**
  * @method writeValue
  * @param context {SessionContext}
@@ -755,15 +790,7 @@ UAVariable.prototype.writeValue = function (context, dataValue, indexRange, call
     }
 
     // adjust special case
-    // convert Variant( Scalar|ByteString) =>  Variant(Array|ByteArray)
-    var variant = dataValue.value;
-    if (variant.arrayType === VariantArrayType.Scalar && variant.dataType === DataType.ByteString) {
-        if ((self.dataType.value === DataType.Byte.value) && (self.dataType.namespace === 0)) { // Byte
-            variant.arrayType = VariantArrayType.Array;
-            variant.dataType = DataType.Byte;
-            assert(variant.dataType == DataType.Byte);
-        }
-    }
+    var variant = adjustVariant(self,dataValue.value);
 
     var statusCode = self.isValueInRange(variant);
     if (statusCode !== StatusCodes.Good) {
