@@ -252,7 +252,7 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-        keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 3 + 1000, function (err) {
+        keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 4 + 1000, function (err) {
             token_change.should.be.greaterThan(2);
             inner_done(err);
         });
