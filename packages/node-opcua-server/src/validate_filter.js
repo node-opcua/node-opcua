@@ -39,7 +39,7 @@ function __validateDataChangeFilter(filter,itemToMonitor,node) {
         // node must also have a valid euRange
         if (!node.euRange) {
             console.log(" node has no euRange ! DeadbandPercent cannot be used on node "+ node.nodeId.toString());
-            return StatusCodes.BadFilterNotAllowed;
+            return StatusCodes.BadMonitoredItemFilterUnsupported;
         }
     }
     return StatusCodes.Good;
