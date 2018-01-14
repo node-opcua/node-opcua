@@ -61,7 +61,7 @@ module.exports = function (test) {
 
                         outputArguments.length.should.equal(2);
                         outputArguments[0].name.should.equal("ServerHandles");
-                        outputArguments[0].dataType.toString().should.equal("ns=0;i=7")
+                        outputArguments[0].dataType.toString().should.equal("ns=0;i=7");
 
                         outputArguments[1].name.should.equal("ClientHandles");
                         outputArguments[1].dataType.toString().should.equal("ns=0;i=7");
@@ -102,23 +102,62 @@ module.exports = function (test) {
             });
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                 session.call(methodToCalls, function (err, results) {
+                session.call(methodToCalls, function (err, results) {
 
-                        exec_safely(function(){
+                    exec_safely(function(){
 
-                            should.not.exist(err);
+                        should.not.exist(err);
 
-                            should.exist(results);
+                        should.exist(results);
 
 
-                            results[0].inputArgumentResults.length.should.eql(1);
-                            results[0].inputArgumentResults[0].should.eql(StatusCodes.Good);
+                        results[0].inputArgumentResults.length.should.eql(1);
+                        results[0].inputArgumentResults[0].should.eql(StatusCodes.Good);
 
-                            results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                        results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
 
-                            inner_done();
-                         },inner_done);
-                    });
+                        results[0].outputArguments.length.should.eql(0);
+
+                        inner_done();
+                    },inner_done);
+                });
+            }, done);
+
+        });
+        it("Q3-2b should reports inputArgumentResults GOOD when CallRequest input is good", function (done) {
+
+
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+
+
+                var methodToCalls = [];
+                methodToCalls.push({
+                    objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [{dataType: DataType.UInt32 ,arrayType: VariantArrayType.Scalar, value:  subscription.subscriptionId }] //OK
+                });
+
+                session.call(methodToCalls, function (err, results) {
+
+                    exec_safely(function(){
+
+                        should.not.exist(err);
+
+                        should.exist(results);
+
+
+                        results[0].inputArgumentResults.length.should.eql(1);
+                        results[0].inputArgumentResults[0].should.eql(StatusCodes.Good);
+
+                        results[0].statusCode.should.eql(StatusCodes.Good);
+
+                        results[0].outputArguments.length.should.eql(2);
+                        results[0].outputArguments[0].should.be.instanceOf(opcua.Variant);
+                        results[0].outputArguments[1].should.be.instanceOf(opcua.Variant);
+
+                        inner_done();
+                    },inner_done);
+                });
             }, done);
 
         });

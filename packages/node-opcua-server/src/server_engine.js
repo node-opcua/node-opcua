@@ -100,7 +100,7 @@ var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePubli
  * @param options.applicationUri {String} the application URI.
  * @param [options.historyServerCapabilities]
  * @param [options.serverDiagnosticsEnabled = true] set to true to enable serverDiagnostics
- * 
+ *
  * @constructor
  */
 function ServerEngine(options) {
@@ -129,11 +129,10 @@ function ServerEngine(options) {
     });
 
 
-
     // --------------------------------------------------- ServerCapabilities
     options.serverCapabilities = options.serverCapabilities || {};
     options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
-        "Standard UA Server Profile", 
+        "Standard UA Server Profile",
         "Embedded UA Server Profile",
         "Micro Embedded Device Server Profile",
         "Nano Embedded Device Server Profile"
@@ -321,6 +320,8 @@ var CallMethodResult = require("node-opcua-service-call").CallMethodResult;
 function getMonitoredItemsId(inputArguments, context, callback) {
 
 
+    var self = this; // ServerEngine
+
     assert(_.isArray(inputArguments));
     assert(_.isFunction(callback));
 
@@ -334,6 +335,12 @@ function getMonitoredItemsId(inputArguments, context, callback) {
     var subscriptionId = inputArguments[0].value;
     var subscription = session.getSubscription(subscriptionId);
     if (!subscription) {
+        // subscription may belongs to a different session  that ours
+        if (self.findSubscription(subscriptionId)) {
+            // if yes, then access to  Subscription data should be denied
+            return callback(null, {statusCode: StatusCodes.BadUserAccessDenied});
+        }
+
         return callback(null, {statusCode: StatusCodes.BadSubscriptionIdInvalid});
     }
     var result = subscription.getMonitoredItems();
@@ -385,7 +392,7 @@ ServerEngine.prototype.setServerState = function (serverState) {
     this.serverStatus.state = serverState;
 };
 
-ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function() {
+ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
     // create SessionsDiagnosticsSummary
     var serverDiagnostics = server.getComponentByName("ServerDiagnostics");
     if (!serverDiagnostics) {
@@ -394,7 +401,7 @@ ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function() {
     return serverDiagnostics.readValue().value.value;
 };
 
-ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function() {
+ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
     // create SessionsDiagnosticsSummary
     var serverDiagnostics = server.getComponentByName("ServerDiagnostics");
     if (!serverDiagnostics) {
@@ -494,7 +501,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
         function bindStandardScalar(id, dataType, func, setter_func) {
 
-            assert(_.isNumber(id),"expecting id to be a number");
+            assert(_.isNumber(id), "expecting id to be a number");
             assert(_.isFunction(func));
             assert(_.isFunction(setter_func) || !setter_func);
             assert(dataType !== null); // check invalid dataType
@@ -646,6 +653,14 @@ ServerEngine.prototype.initialize = function (options, callback) {
                 DataType.UInt16, function () {
                     return self.serverCapabilities.maxHistoryContinuationPoints;
                 });
+
+
+            // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
+            //TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
+            //TODO     DataType.UInt16, function () {
+            //TODO         return self.serverCapabilities.maxInactiveLockTime;
+            //TODO });
+
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates,
                 DataType.ByteString, "SoftwareCertificates", function () {
@@ -809,6 +824,16 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
         self.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(self));
 
+        // fix getMonitoredItems.outputArguments arrayDimensions
+        (function fixGetMonitoredItemArgs() {
+             var objects = self.addressSpace.rootFolder.objects;
+            if (!objects || objects.server || objects.server.getMonitoredItems){ return; }
+            var outputArguments = objects.server.getMonitoredItems.outputArguments;
+            var dataValue = outputArguments.readValue();
+            assert(dataValue.value.value[0].arrayDimensions.length === 1 && dataValue.value.value[0].arrayDimensions[0] === 0);
+            assert(dataValue.value.value[1].arrayDimensions.length === 1 && dataValue.value.value[1].arrayDimensions[0] === 0);
+        })();
+
         function prepareServerDiagnostics() {
 
             var addressSpace = self.addressSpace;
@@ -834,7 +859,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
             var sessionDiagnosticsArray = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary").getComponentByName("SessionDiagnosticsArray");
             assert(sessionDiagnosticsArray instanceof UAVariable);
-            eoan.bindExtObjArrayNode(sessionDiagnosticsArray,"SessionDiagnosticsVariableType","sessionId");
+            eoan.bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
         }
 
         prepareServerDiagnostics();
@@ -1315,7 +1340,6 @@ ServerEngine.prototype.createSession = function (options) {
     //        in its SessionDiagnosticsArray Variable
 
 
-
     session.on("new_subscription", function (subscription) {
 
         self.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
@@ -1409,13 +1433,12 @@ ServerEngine.prototype.findSubscription = function (subscriptionId) {
 
     var self = this;
 
-    console.log("findSubscription  ", subscriptionId);
     var subscriptions = [];
     _.map(self._sessions, function (session) {
         if (subscriptions.length) return;
         var subscription = session.publishEngine.getSubscriptionById(subscriptionId);
         if (subscription) {
-            console.log("foundSubscription  ", subscriptionId, " in session", session.sessionName);
+            //xx console.log("foundSubscription  ", subscriptionId, " in session", session.sessionName);
             subscriptions.push(subscription)
         }
     });
@@ -1497,7 +1520,7 @@ ServerEngine.prototype.transferSubscription = function (session, subscriptionId,
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("TransferResult",result.toString());
+        debugLog("TransferResult", result.toString());
     }
 
     return result;

@@ -210,6 +210,14 @@ function verifyArguments_ArgumentList(addressSpace,methodInputArguments, inputAr
 
     var inputArgumentResults = [];
 
+    if (methodInputArguments.length === 0 && !inputArguments) {
+        // it is possible to not provide inputArguments when method  has no arguments
+        return {statusCode: StatusCodes.Good};
+    }
+    if (methodInputArguments.length > 0 && !inputArguments) {
+         return {statusCode: StatusCodes.BadArgumentsMissing};
+    }
+    inputArguments = inputArguments ||[];
     if (methodInputArguments.length > inputArguments.length) {
         // istanbul ignore next
         if (doDebug) {

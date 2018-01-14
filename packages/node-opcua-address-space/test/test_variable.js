@@ -326,12 +326,12 @@ describe("testing Variable#bindVariable", function () {
         var base = options.get.callCount;
 
         var dataValue1 = variable.readValue();
-        console.log("Value1", dataValue1.toString().green);
+        //Xx console.log("Value1", dataValue1.toString().green);
 
         options.get.callCount.should.eql(1 + base);
 
         var dataValue2 = variable.readValue();
-        console.log("Value2", dataValue2.toString().green);
+        //Xx console.log("Value2", dataValue2.toString().green);
         options.get.callCount.should.eql(2 + base);
 
         sameDataValue(dataValue1, dataValue2).should.eql(true);
@@ -342,7 +342,7 @@ describe("testing Variable#bindVariable", function () {
         value = value + 200;
 
         var dataValue3 = variable.readValue();
-        console.log("Value3", dataValue3.toString().green);
+        //Xx console.log("Value3", dataValue3.toString().green);
         options.get.callCount.should.eql(3 + base);
         sameDataValue(dataValue1, dataValue3).should.eql(false); // dataValue must have changed
 
@@ -1109,13 +1109,14 @@ describe("testing Variable#writeValue Array", function () {
 
     });
 
-    it("A6 - should write  a ByteString into a Array of Byte", function (done) {
+    it("A6 - should write a ByteString into a Array of Byte", function (done) {
         // as  per CTT write Attibute test 007
 
         var variable = addressSpace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeArrayOfByte",
             dataType: "Byte",
+            valueRank: 1, // Array !!!
             typeDefinition: makeNodeId(68),
             value: {
                 dataType: DataType.Byte,
@@ -1430,7 +1431,7 @@ describe("testing UAVariable ", function () {
         });
         temperatureVar.readValueAsync(context, function (err, value) {
             should.exist(err);
-            console.log("err=", err);
+            //xx console.log("err=", err);
             done();
         });
     });
@@ -1451,7 +1452,7 @@ describe("testing UAVariable ", function () {
         });
         temperatureVar.readValueAsync(context, function (err, value) {
             should.exist(err);
-            console.log("err=", err);
+            //Xx console.log("err=", err);
             done();
         });
 

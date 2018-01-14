@@ -128,14 +128,14 @@ UAMethod.prototype.bindMethod = function (async_func) {
  * @method execute
  * @async
  * @param context  {SessionContext}
- * @param inputArguments {Variant[]} input arguments as array of variant
- * @param context
+ * @param inputArguments {null|Variant[]} input arguments as array of variant
  * @param callback
  * @async
  */
 UAMethod.prototype.execute = function (inputArguments, context, callback) {
-    assert(_.isArray(inputArguments));
+    assert(inputArguments === null || _.isArray(inputArguments));
     assert(context instanceof SessionContext);
+    inputArguments = inputArguments ||[];
     inputArguments = inputArguments.map(Variant.coerce);
     assert(inputArguments.length === 0 || inputArguments[0] instanceof Variant);
     assert(_.isObject(context));

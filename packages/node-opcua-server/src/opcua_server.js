@@ -2376,7 +2376,7 @@ function callMethod(session, callMethodRequest, callback) {
         }
 
 
-        callMethodResponse.inputArgumentResults = response.inputArgumentResults;
+        callMethodResponse.inputArgumentResults = response.inputArgumentResults || [];
         assert(callMethodResponse.statusCode);
 
 
@@ -2422,7 +2422,9 @@ OPCUAServer.prototype._on_CallRequest = function (message, channel) {
 
 
         async.map(request.methodsToCall, callMethod.bind(server, session), function (err, results) {
-            assert(!err);
+            if (err) {
+                console.log("ERROR in method Call !! ", err);
+            }
             assert(_.isArray(results));
             response = new CallResponse({results: results});
             sendResponse(response);

@@ -766,8 +766,8 @@ function add_analog_data_items(addressSpace, parentFolder) {
             browseName: name,
             definition: "(tempA -25) + tempB",
             valuePrecision: 0.5,
-            engineeringUnitsRange: {low: 1, high: 50},
-            instrumentRange: {low: 1, high: 50},
+            engineeringUnitsRange: {low: -200, high: 200},
+            instrumentRange: {low: -200, high: 200},
             engineeringUnits: standardUnits.degree_celsius,
             dataType: dataType,
             value: new Variant({
@@ -795,8 +795,8 @@ function add_analog_data_items(addressSpace, parentFolder) {
             browseName: name,
             definition: "(tempA -25) + tempB",
             valuePrecision: 0.5,
-            engineeringUnitsRange: {low: 1, high: 50},
-            instrumentRange: {low: 1, high: 50},
+            engineeringUnitsRange: {low: -200, high: 200},
+            instrumentRange: {low: -200, high: 200},
             engineeringUnits: standardUnits.degree_celsius,
             dataType: dataType,
             value: new Variant({

@@ -54,6 +54,12 @@ var Argument_Schema = {
             }
            options.dataType = dataType;
         }
+
+        // fix missing ArrayDimension (The value is an array with one dimension.)
+        if (!options.valueRank === 1 || !options.arrayDimensions) {
+            options.arrayDimensions = [0];
+        }
+
         return options;
 
     },
