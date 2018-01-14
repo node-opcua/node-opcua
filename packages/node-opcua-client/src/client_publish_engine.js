@@ -103,6 +103,7 @@ ClientSidePublishEngine.prototype.send_publish_request = function () {
     assert(self.subscriptionCount >0);
 
     if (self.session && !self.session.isChannelValid()) {
+        // wait for channel  to be valid
         setTimeout(function () {
             if (self.subscriptionCount) {
                 self.send_publish_request();
@@ -110,8 +111,8 @@ ClientSidePublishEngine.prototype.send_publish_request = function () {
         }, 100);
     } else {
         setImmediate(function () {
-            if (!self.session) {
-                // session has been terminated
+            if (!self.session || self.isSuspended) {
+                // session has been terminated or suspended
                 return;
             }
             self._send_publish_request();
