@@ -497,7 +497,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         }
         done();
     }
-    it("should return BadFilterNotAllowed if filter is DataChangeFilter PercentDeadBand and variable has no EURange",function(done){
+    it("should return BadMonitoredItemFilterUnsupported if filter is DataChangeFilter PercentDeadBand and variable has no EURange",function(done){
 
         var not_a_analogItemNode = someVariableNode;
         on_subscription(function(subscription){
@@ -519,7 +519,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
             var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
-            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
+            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
         },done);
     });
 
