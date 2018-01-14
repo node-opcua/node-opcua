@@ -297,18 +297,18 @@ describe("Variant", function () {
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
 
-    xit("should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", function () {
+    xit("not  supported !! should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", function () {
 
         var var1 = new ({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
             dimensions: [2, 3],
             value: [
-                [0x000, 0x001, 0x002],
-                [0x010, 0x011, 0x012]
+                0x000, 0x001, 0x002,
+                0x010, 0x011, 0x012
             ]
         });
-        Variant
+
         var1.arrayType.should.eql(VariantArrayType.Matrix);
         var1.dimensions.should.eql([2, 3]);
 
@@ -330,7 +330,6 @@ describe("Variant", function () {
 
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
-
 
 
     it("should raise an exception when construction a Matrix with incorrect element size", function () {
@@ -423,6 +422,8 @@ describe("Variant - Analyser", function () {
         new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Scalar, value: 3.14}),
         new Variant({dataType: DataType.Guid, arrayType: VariantArrayType.Scalar, value: ec.randomGuid()}),
 
+
+        // various Variant Array
         new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array  /*, unspecified value*/}),
         new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: []}),
         new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([1])}),
@@ -444,6 +445,10 @@ describe("Variant - Analyser", function () {
         }),
         new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array(manyValues)}),
         new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: veryLargeFloatArray}),
+
+        // variant Matrix
+        new Variant({dataType: DataType.Int32 , arrayType:VariantArrayType.Matrix, value: [1,2,3,4,5,6], dimensions: [2,3]}),
+        new Variant({dataType: DataType.Int32 , arrayType:VariantArrayType.Matrix, value: [1,2,3,4,5,6], dimensions: [3,2]}),
     ];
 
     //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
