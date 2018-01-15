@@ -195,6 +195,11 @@ exports.install = function (AddressSpace) {
             on_value_change.call(node,dataValue);
         }
         node.on("value_changed",on_value_change);
+
+        // update the index of historizing nodes in the addressSpace
+        node.addressSpace.historizingNodes = node.addressSpace.historizingNodes || {};
+        node.addressSpace.historizingNodes[node.nodeId.toString()] = node;
+
     }
 
     AddressSpace.prototype.installHistoricalDataNode = installHistoricalDataNode;
