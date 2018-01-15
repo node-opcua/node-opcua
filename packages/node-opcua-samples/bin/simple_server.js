@@ -118,9 +118,14 @@ var server_options = {
         buildNumber: "1234"
     },
     serverCapabilities: {
+        maxBrowseContinuationPoints: 10,
+        maxHistoryContinuationPoints: 10,
+        // maxInactiveLockTime
         operationLimits: {
             maxNodesPerRead: 1000,
-            maxNodesPerBrowse: 2000
+            maxNodesPerWrite: 1000,
+            maxNodesPerHistoryReadData: 100,
+            maxNodesPerBrowse: 1000,
         }
     },
     userManager: userManager,
@@ -431,7 +436,7 @@ server.on("response", function (response) {
         case "xxCreateSubscriptionResponse":
         case "xxTranslateBrowsePathsToNodeIdsResponse":
         case "xxSetPublishingModeResponse":
-        case "xxWriteResponse":
+        case "WriteResponse":
             console.log(response.toString());
             break;
         case "xxPublishResponse":
@@ -470,8 +475,10 @@ server.on("request", function (request, channel) {
             }
             console.log(str);
             break;
-        case "xxWriteRequest":
-            if (request.nodesToWrite) {
+        case "WriteRequest":
+            console.log(request.toString());
+           break;
+           if (request.nodesToWrite) {
                 var lines = request.nodesToWrite.map(function (node) {
                     return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
                 });
