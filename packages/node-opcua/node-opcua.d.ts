@@ -297,8 +297,8 @@ declare interface DataValueOpts {
     value?: Variant;
     sourceTimestamp?: Date;
     serverTimestamp?: Date;
-    sourcePicosecond?: number;
-    serverPicosecond?: number;
+    sourcePicoseconds?: number;
+    serverPicoseconds?: number;
     statusCode?: StatusCode;
 }
 
@@ -307,8 +307,8 @@ export declare class DataValue {
     value: Variant;
     sourceTimestamp: Date;
     serverTimestamp: Date;
-    sourcePicosecond: number;
-    serverPicosecond: number;
+    sourcePicoseconds: number;
+    serverPicoseconds: number;
     statusCode: StatusCode;
 }
 
@@ -350,7 +350,7 @@ export enum EUEngineeringUnit {
 }
 
 export interface AddAnalogDataItemOpts extends _AddNodeOpts {
-    definition: string; // exemple  "(tempA -25) + tempB",
+    definition: string; // example  "(tempA -25) + tempB",
     valuePrecision: number; // 0.5,
     engineeringUnitsRange: {
         low: number,

@@ -70,6 +70,7 @@ exports.install = function (AddressSpace) {
         }
 
         node.lastDate = sourceTime;
+        node.lastDatePicoSeconds = newDataValue.sourcePicoseconds || 0;
 
         // we keep only a limited amount in main memory
         if (node._timeline.length > node._maxOnlineValues) {
@@ -103,6 +104,11 @@ exports.install = function (AddressSpace) {
     }
 
     var Dequeue = require("dequeue");
+
+    function on_value_change(newDataValue) {
+        var node = this;
+        node._historyPush.call(node, newDataValue);
+    }
 
     /**
      *
@@ -183,13 +189,12 @@ exports.install = function (AddressSpace) {
         });
 
         node.$historicalDataConfiguration = historicalDataConfiguration;
-        // The MinTimeInterval Variable specifies the minimum interval between data points in the
-        // history repository regardless of their value change (see Part 3 for definition of Duration).
 
-
-        node.on("value_changed", function (newDataValue) {
-            node._historyPush.call(node, newDataValue);
-        });
+        var dataValue = node.readValue();
+        if (dataValue.statusCode !== StatusCodes.BadWaitingForInitialData) {
+            on_value_change.call(node,dataValue);
+        }
+        node.on("value_changed",on_value_change);
     }
 
     AddressSpace.prototype.installHistoricalDataNode = installHistoricalDataNode;

@@ -250,4 +250,64 @@ describe("Testing Historical Data Node", function () {
         ], done);
 
     });
+    it("should store initial dataValue when historical stuff is set", function (done) {
+
+        var node = addressSpace.addVariable({
+            browseName: "MyVar42",
+            dataType: "Double",
+            componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
+        });
+        // let's injects some values into the history
+        var today = new Date();
+
+        var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
+            isReadModified: false,
+            startTime: date_add(today, {seconds: -10}),
+            endTime: date_add(today, {seconds: 10}),
+            numValuesPerNode: 1000,
+            returnBounds: true
+        });
+        var indexRange = null;
+        var dataEncoding = null;
+        var continuationPoint = null;
+
+
+        node.setValueFromSource({dataType: "Double", value: 3.14});
+
+        // install historical support after value has been set
+        addressSpace.installHistoricalDataNode(node, {
+            maxOnlineValues: 3 // Only very few values !!!!
+        });
+
+        async.series([
+            function read_history1(callback) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+
+                    var dataValues = historyReadResult.historyData.dataValues;
+                    dataValues.length.should.eql(1);
+                    dataValues[0].value.value.should.eql(3.14);
+                    callback();
+                });
+            },
+            function (callback) {
+                // wait a little bit to make sure that sourceTimestamp will change !
+                setTimeout(function() {
+                    node.setValueFromSource({dataType: "Double", value: 6.28});
+                    callback();
+                },10);
+            },
+            function read_history2(callback) {
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                    var dataValues = historyReadResult.historyData.dataValues;
+                    dataValues.length.should.eql(2);
+                    dataValues[0].value.value.should.eql(3.14);
+                    dataValues[1].value.value.should.eql(6.28);
+                    callback();
+                });
+            },
+        ], done);
+
+    });
+
+
 });
