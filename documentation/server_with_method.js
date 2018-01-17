@@ -58,7 +58,6 @@ function post_initialize() {
             outputArguments: [{
                 dataType: opcua.DataType.String,
                 arrayType: opcua.VariantArrayType.Array,
-                dimensions: [barks.length],
                 value: barks
             }]
         };
