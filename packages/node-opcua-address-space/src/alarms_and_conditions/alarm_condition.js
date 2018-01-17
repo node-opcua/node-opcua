@@ -349,6 +349,12 @@ function _timedShelve_method(inputArguments, context, callback) {
         });
     }
 
+    if (proposedDuration < 0) {
+        return callback(null, {
+            statusCode: StatusCodes.BadShelvingTimeOutOfRange
+        });
+    }
+
     _clear_timer_if_any(shelvingState);
     shelvingState.setState("TimedShelved");
     _start_timer_for_automatic_unshelve(shelvingState, proposedDuration);
@@ -426,7 +432,7 @@ function _unShelveTimeFunc(shelvingState) {
     }
     var now = new Date();
     var timeToAutomaticUnshelvedState = shelvingState._duration - (now - shelvingState._sheveldTime);
-    // timeToAutomaticUnshelvedState should be greater than zero
+    // timeToAutomaticUnshelvedState should always be greater than (or equal) zero
 
     return new Variant({
         dataType: DataType.Double, // duration

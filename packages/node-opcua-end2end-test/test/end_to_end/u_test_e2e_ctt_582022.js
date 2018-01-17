@@ -31,10 +31,10 @@ module.exports = function (test) {
                 async.series([
                     function read_initial_value(callback) {
 
-                        session.read([nodeToRead],function(err,unused,results){
+                        session.read(nodeToRead,function(err, dataValue){
                             //xx console.log(results[0].toString());
-                            results[0].value.value.length.should.be.greaterThan(2);
-                            l = results[0].value.value.length;
+                            dataValue.value.value.length.should.be.greaterThan(2);
+                            l = dataValue.value.value.length;
                             callback();
                         })
                     },

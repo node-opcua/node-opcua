@@ -20,7 +20,7 @@ function read_allvalues(session,nodeId,callback) {
         indexRange: null,
         dataEncoding: null
     });
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodesToRead, function (err, dataValues) {
         // inspect(dataValues);
         // expected_value = dataValues[0].value.value[indexToFind];
         callback(err,dataValues);
@@ -40,7 +40,7 @@ function read_range_value(session,nodeId,indexToFind,callback) {
         indexRange: new NumericRange(indexToFind),
         dataEncoding: null
     });
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodesToRead, function (err, dataValues) {
         callback(err,dataValues);
     });
 }

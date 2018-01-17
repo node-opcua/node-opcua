@@ -213,7 +213,7 @@ module.exports = function (test) {
 
                     function when_client_calling_ConditionRefresh(callback) {
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
 
                         // lets add a a event handler to detect when the Event has been
                         // raised we we will call ConditionRefresh
@@ -248,7 +248,7 @@ module.exports = function (test) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(2);
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -276,7 +276,7 @@ module.exports = function (test) {
                         var values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=9341");//ExclusiveLimitAlarmType
                         //xx dump_field_values(fields,values);
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -311,7 +311,7 @@ module.exports = function (test) {
                         values[7].value.toString().should.eql("ns=0;i=2788"); // RefreshEndEventType
                         //dump_field_values(fields,values);
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -805,7 +805,7 @@ module.exports = function (test) {
 
                     },
                     function (callback) {
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -849,7 +849,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -889,7 +889,7 @@ module.exports = function (test) {
                         //
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
                     // 4. Confirmed
@@ -927,7 +927,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -959,7 +959,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -1013,7 +1013,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
                     // 7. b) Prior state needs acknowledgment. Branch #1 created.
@@ -1047,7 +1047,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -1105,7 +1105,7 @@ module.exports = function (test) {
 
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
                     // 10. b) Alarm goes inactive again.
@@ -1158,7 +1158,7 @@ module.exports = function (test) {
 
 
                         alarmNode.getBranchCount().should.eql(2, " Expecting two extra branches apart from current branch");
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
 
@@ -1198,7 +1198,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConfirmedState.Id", dataValuesB).value.should.eql(true);
                         extract_value_for_field("Retain", dataValuesB).value.should.eql(false);
 
-                        test.spy_monitored_item1_changes.reset();
+                        test.spy_monitored_item1_changes.resetHistory();
                         callback();
                     },
                     // 13. Prior state acknowledged, Auto Confirmed by system Branch #2 deleted.

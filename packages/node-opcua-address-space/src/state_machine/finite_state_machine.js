@@ -197,7 +197,7 @@ UAStateMachine.prototype._coerceNode = function(node) {
         retValue  = self.getStateByName(node);
     }
     if (!retValue) {
-        console.log(" cannot find component with ",node ? node.toString():"null");
+        ///xx console.log(" cannot find component with ",node ? node.toString():"null");
     }
     return retValue;
 };

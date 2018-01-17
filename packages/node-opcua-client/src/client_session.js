@@ -11,7 +11,7 @@ var assert = require("node-opcua-assert");
 
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 
 var NodeId = require("node-opcua-nodeid").NodeId;
 var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
@@ -34,6 +34,8 @@ var call_service = require("node-opcua-service-call");
 var utils = require("node-opcua-utils");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+
+var getFunctionParameterNames = require("node-opcua-utils").getFunctionParameterNames;
 
 /**
  * @class ClientSession
@@ -90,7 +92,11 @@ function coerceBrowseDescription(data) {
  * form1:
  *
  *    ``` javascript
- *    session.browse("RootFolder",function(err,results,diagnostics) {} );
+ *    session.browse("RootFolder",function(err,browseResult,diagnostics) {
+ *      if(err) return callback(err);
+ *      console.log(browseResult.toString());
+ *      callback();
+ *    } );
  *    ```
  *
  * form2:
@@ -104,21 +110,25 @@ function coerceBrowseDescription(data) {
  *       nodeClassMask: 0,
  *       resultMask: 63
  *    }
- *    session.browse(browseDescription,function(err,results,diagnostics) {} );
+ *    session.browse(browseDescription,function(err, browseResult, diagnostics) {
+  *      if(err) return callback(err);
+ *       console.log(browseResult.toString());
+ *       callback();
+ *    });
  *    ```
  *
  * form3:
  *
  *    ``` javascript
- *    session.browse([ "RootFolder", "ObjectsFolder"],function(err,results,diagnostics) {
- *       assert(results.length === 2);
+ *    session.browse([ "RootFolder", "ObjectsFolder"],function(err, browseResults, diagnostics) {
+ *       assert(browseResults.length === 2);
  *    });
  *    ```
  *
  * form4:
  *
  *   ``` javascript
- *    var browseDescription = [
+ *    var browseDescriptions = [
  *      {
  *          nodeId: "ObjectsFolder",
  *          referenceTypeId: "Organizes",
@@ -126,17 +136,21 @@ function coerceBrowseDescription(data) {
  *          includeSubtypes: true,
  *          nodeClassMask: 0,
  *          resultMask: 63
- *      }
+ *      },
+ *      // {...}
  *    ]
- *    session.browse(browseDescription,function(err,results,diagnostics) {} );
+ *    session.browse(browseDescriptions,function(err, browseResults, diagnostics) {
+ *
+ *    });
  *    ```
  *
- * @param nodes {Object}
- * @param {Function} callback
- * @param {Error|null} callback.err
- * @param {BrowseResult[]} callback.results an array containing the BrowseResult of each BrowseDescription.
+ * @param nodeToBrowse {String|BrowseDescription|Array[BrowseDescription]}
+ * @param callback {Function}
+ * @param callback.err {Error|null}
+ * @param callback.results         {BrowseResult[]|BrowseResult}  an array containing the BrowseResult of each BrowseDescription.
+ * @param callback.diagnosticInfos {DiagnosticInfo}  an array containing the BrowseResult of each BrowseDescription.
  */
-ClientSession.prototype.browse = function (nodes, callback) {
+ClientSession.prototype.browse = function (nodeToBrowse, callback) {
 
     var self = this;
 
@@ -144,11 +158,12 @@ ClientSession.prototype.browse = function (nodes, callback) {
     assert(_.isFinite(self.requestedMaxReferencesPerNode));
     assert(_.isFunction(callback));
 
-    if (!_.isArray(nodes)) {
-        nodes = [nodes];
-    }
+    var isArray = _.isArray(nodeToBrowse);
+    if (!isArray) {
+        nodeToBrowse = [nodeToBrowse];
+     }
 
-    var nodesToBrowse = nodes.map(coerceBrowseDescription);
+    var nodesToBrowse = nodeToBrowse.map(coerceBrowseDescription);
 
     var request = new browse_service.BrowseRequest({
         nodesToBrowse: nodesToBrowse,
@@ -159,9 +174,8 @@ ClientSession.prototype.browse = function (nodes, callback) {
 
         var i, r;
 
-        /* istanbul ignore next */
         if (err) {
-            return callback(err, null, response);
+            return callback(err, response);
         }
 
         assert(response instanceof browse_service.BrowseResponse);
@@ -195,7 +209,10 @@ ClientSession.prototype.browse = function (nodes, callback) {
                 console.log("           continuationPoint ", r.continuationPoint);
             }
         }
-        callback(null, response.results, response.diagnosticInfos);
+
+        return callback(null, isArray ? response.results: response.results[0], isArray ?  response.diagnosticInfos :response.diagnosticInfos[0]);
+
+
     });
 };
 
@@ -205,9 +222,15 @@ ClientSession.prototype.browse = function (nodes, callback) {
  * @async
  * @example:
  *
- *     session.readVariableValue("ns=2;s=Furnace_1.Temperature",function(err,dataValues,diagnostics) {} );
+ *     session.readVariableValue("ns=2;s=Furnace_1.Temperature",function(err,dataValue,diagnostics) {
+ *        if(err) { return callback(err); }
+ *        if (dataValue.statusCode === opcua.StatusCodes.Good) {
+ *        }
+ *        console.log(dataValue.toString());
+ *        callback();
+ *     });
  *
- * @param nodes  {ReadValueId[]} - the read value id
+ * @param nodes  {NodeId|Array<NodeId>} - the nodeId of the  value to read or an array of node to Read
  * @param {Function} callback -   the callback function
  * @param callback.err {object|null} the error if write has failed or null if OK
  * @param callback.results {DataValue[]} - an array of dataValue each read
@@ -234,12 +257,13 @@ ClientSession.prototype.browse = function (nodes, callback) {
  *   });
  *
  *
-*/
+ */
 ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
     var self = this;
 
     assert(_.isFunction(callback));
+
 
 
     var isArray = _.isArray(nodes);
@@ -253,10 +277,10 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
         if (typeof node === "string" || node instanceof NodeId) {
             return new read_service.ReadValueId({
-                    nodeId: resolveNodeId(node),
-                    attributeId: read_service.AttributeIds.Value,
-                    indexRange: null,
-                    dataEncoding: {namespaceIndex: 0, name: null}
+                nodeId: resolveNodeId(node),
+                attributeId: read_service.AttributeIds.Value,
+                indexRange: null,
+                dataEncoding: {namespaceIndex: 0, name: null}
             });
 
         } else {
@@ -264,9 +288,8 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
             return new read_service.ReadValueId(node);
         }
     }
-    nodes.forEach(function (node) {
-        nodesToRead.push(coerceReadValueId(node));
-    });
+
+    nodesToRead = nodes.map(coerceReadValueId);
 
     var request = new read_service.ReadRequest({
         nodesToRead: nodesToRead,
@@ -289,10 +312,11 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
         response.results = response.results || [];
         response.diagnosticInfos = response.diagnosticInfos || [];
-        var results = isArray ? response.results : response.results[0];
-        var diags   = isArray ? response.diagnosticInfos : response.diagnosticInfos[0];
 
-        callback(null, results, diags);
+        var results         = isArray ? response.results : response.results[0];
+        var diagnosticInfos = isArray ? response.diagnosticInfos : response.diagnosticInfos[0];
+
+        callback(null, results, diagnosticInfos);
 
     });
 
@@ -317,7 +341,8 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
 
     var self = this;
     assert(_.isFunction(callback));
-    if (!_.isArray(nodes)) {
+    var isArray = _.isArray(nodes);
+    if (!isArray) {
         nodes = [nodes];
     }
 
@@ -361,7 +386,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
         assert(response instanceof historizing_service.HistoryReadResponse);
         assert(nodes.length === response.results.length);
 
-        callback(null, response.results, response.diagnosticInfos);
+        callback(null, isArray ? response.results : response.results[0],isArray ?  response.diagnosticInfos :response.diagnosticInfos[0]);
     });
 };
 
@@ -381,7 +406,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
     var self = this;
 
     assert(_.isFunction(callback));
-    assert(_.isArray(nodesToWrite),"nodesToWrite must be an array");
+    assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
 
     var request = new write_service.WriteRequest({nodesToWrite: nodesToWrite});
 
@@ -440,50 +465,109 @@ ClientSession.prototype.writeSingleNode = function (nodeId, value, callback) {
 };
 
 
+var keys = Object.keys(read_service.AttributeIds).filter(function (k) {
+    return k !== "INVALID";
+});
+
+function composeResult(nodes, nodesToRead, dataValues) {
+
+    assert(nodesToRead.length === dataValues.length);
+    var i = 0, c = 0;
+    var results = [];
+    var dataValue, k, nodeToRead;
+
+    for (var n = 0; n < nodes.length; n++) {
+
+        var node = nodes[n];
+
+
+        var data = {};
+        data.node = node;
+        var addedProperty = 0;
+
+        for (i = 0; i < keys.length; i++) {
+            dataValue = dataValues[c];
+            nodeToRead = nodesToRead[c];
+            c++;
+            if (dataValue.statusCode === StatusCodes.Good) {
+                k = utils.lowerFirstLetter(keys[i]);
+                data[k] = dataValue.value.value;
+                addedProperty += 1;
+            }
+        }
+
+        if (addedProperty > 0) {
+            data.statusCode = StatusCodes.Good;
+        } else {
+            data.nodeId = resolveNodeId(node);
+            data.statusCode = StatusCodes.BadNodeIdUnknown;
+        }
+        results.push(data);
+    }
+
+    return results;
+}
+
 /**
  * @method readAllAttributes
  *
  * @example:
  *
  *    ``` javascript
- *    session.readAllAttributes("ns=2;s=Furnace_1.Temperature",function(err,nodesToRead,dataValues,diagnostics) {} );
+ *    session.readAllAttributes("ns=2;s=Furnace_1.Temperature",function(err,data) {
+ *       if(data.statusCode === StatusCode.Good) {
+ *          console.log(" nodeId      = ",data.nodeId.toString());
+ *          console.log(" browseName  = ",data.browseName.toString());
+ *          console.log(" description = ",data.description.toString());
+ *          console.log(" value       = ",data.value.toString()));
+ *
+ *       }
+ *    });
  *    ```
  *
  * @async
- * @param nodes  {NodeId[]} - an array of nodeId to read
+ * @param nodes                  {NodeId|NodeId[]} - nodeId to read or an array of nodeId to read
  * @param callback              {Function} - the callback function
- * @param callback.err          {Error|null} - the error or null if the transaction was OK
- * @param callback.nodesToRead  {ReadValueId[]}
- * @param callback.results      {DataValue[]}
- * @param callback.diagnostic  {DiagnosticInfo[]}
+ * @param callback.err                  {Error|null} - the error or null if the transaction was OK
+ * @param callback.data                  {[]} a json object with the node attributes
+ * @param callback.data.statusCode      {StatusCodes}
+ * @param callback.data.nodeId          {NodeId}
+ * @param callback.data.<attribute>     {*}
+ *
  *
  */
 ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 
     assert(_.isFunction(callback));
-    if (!_.isArray(nodes)) {
+
+    var isArray = _.isArray(nodes);
+    if (!isArray) {
         nodes = [nodes];
     }
-
 
     var nodesToRead = [];
 
     nodes.forEach(function (node) {
-        Object.keys(read_service.AttributeIds).forEach(function (key) {
-            var attributeId = read_service.AttributeIds[key];
+        var nodeId = resolveNodeId(node);
+        if (!nodeId) {
+            throw new Error("cannot coerce " + node + " to a valid NodeId");
+        }
+        for (var i = 0; i < keys.length; i++) {
+            var attributeId = read_service.AttributeIds[keys[i]];
             nodesToRead.push({
-                nodeId: resolveNodeId(node),
+                nodeId: nodeId,
                 attributeId: attributeId,
                 indexRange: null,
                 dataEncoding: {namespaceIndex: 0, name: null}
             });
-        });
+        }
     });
 
-    this.read(nodesToRead, function (err, nodesToRead, result, diagnosticInfos) {
-        callback(err, nodesToRead, result, diagnosticInfos);
+    this.read(nodesToRead, function (err, dataValues /*, diagnosticInfos */) {
+        if (err) return callback(err);
+        var results = composeResult(nodes, nodesToRead, dataValues);
+        callback(err, isArray ? results : results[0]);
     });
-
 
 };
 
@@ -492,6 +576,8 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  *
  * @example:
  *
+ *  form1: reading many dataValue at once
+ *
  *    ``` javascript
  *    var nodesToRead = [
  *        {
@@ -499,21 +585,36 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  *             attributeId: AttributeIds.BrowseName
  *        }
  *    ];
- *    session.read(nodesToRead,function(err,nodesToRead,results,diagnosticInfos) {
+ *    session.read(nodesToRead,function(err,dataValues,diagnosticInfos) {
  *        if (!err) {
- *        }
- *    });
+ *           dataValues.forEach(dataValue=>console.log(dataValue.toString()));
+ *    }
+ *  });
+ *    ```
+ *
+ * form2: reading a single node
+ *
+ *  ``` javascript
+ *    var nodeToRead = {
+*             nodeId:      "ns=2;s=Furnace_1.Temperature",
+*             attributeId: AttributeIds.BrowseName
+*    };
+ *
+ *    session.read(nodeToRead,function(err,dataValue,diagnosticInfos) {
+*        if (!err) {
+*           console.log(dataValue.toString());
+*        }
+*    });
  *    ```
  *
  * @async
- * @param nodesToRead               {[]} - an array of nodeId to read
+ * @param nodesToRead               {ReadValueId|ReadValueId[]} - an array of nodeId to read or a ReadValueId
  * @param nodesToRead.nodeId       {NodeId|string}
- * @param nodesToRead.attributeId  {AttributeId[]}
+ * @param nodesToRead.attributeId  {AttributeIds}
  * @param [maxAge]                 {Number}
- * @param callback                 {Function}      - the callback function
- * @param callback.err             {Error|null}    - the error or null if the transaction was OK
- * @param callback.nodesToRead     {ReadValueId[]}
- * @param callback.results         {DataValue[]}
+ * @param callback                 {Function}                - the callback function
+ * @param callback.err             {Error|null}              - the error or null if the transaction was OK}
+ * @param callback.results         {DataValue|DataValue[]}
  * @param callback.diagnosticInfos {DiagnosticInfo[]}
  *
  */
@@ -525,9 +626,26 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
         callback = maxAge;
         maxAge = 0;
     }
+    var isArray = _.isArray(nodesToRead);
+    if (!isArray) {
+        nodesToRead = [nodesToRead];
+
+    }
 
     assert(_.isArray(nodesToRead));
     assert(_.isFunction(callback));
+
+    // the read method deprecation detection and warning
+    if (!(getFunctionParameterNames(callback)[1] === "dataValues" || getFunctionParameterNames(callback)[1] === "dataValue")) {
+        console.log("ERROR ClientSession#read  API has changed !!, please fix the client code".red);
+        console.log("replace ..:".red);
+        console.log("   session.read(nodesToRead,function(err,nodesToRead,results) {}".cyan);
+        console.log("with .... :".red);
+        console.log("   session.read(nodesToRead,function(err,dataValues) {}".cyan);
+        console.log("please make sure to refactor your code and check that he second argument of your callback function is named".yellow,"dataValues".cyan);
+        console.log("to make this exception disappear".yellow);
+        throw new Error("ERROR ClientSession#read  API has changed !!, please fix the client code");
+    }
 
     // coerce nodeIds
     nodesToRead.forEach(function (node) {
@@ -547,19 +665,27 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
             return callback(err, response);
         }
         assert(response instanceof read_service.ReadResponse);
-        callback(null, nodesToRead, response.results, response.diagnosticInfos);
+
+        return callback(null,isArray? response.results : response.results[0], isArray? response.diagnosticInfos:response.diagnosticInfos[0]);
 
     });
 };
 
-ClientSession.prototype.emitCloseEvent = function(statusCode) {
+ClientSession.prototype.readDeprecated = function (nodesToRead, maxAge, callback) {
+    assert(_.isArray(nodesToRead));
+    this.read(nodesToRead, maxAge, function (err, results, diagnosticInfos) {
+        callback(err, nodesToRead, results, diagnosticInfos);
+    });
+};
+
+ClientSession.prototype.emitCloseEvent = function (statusCode) {
 
 
     var self = this;
     if (!self._closeEventHasBeenEmmitted) {
         debugLog("ClientSession#emitCloseEvent");
         self._closeEventHasBeenEmmitted = true;
-        self.emit("session_closed",statusCode);
+        self.emit("session_closed", statusCode);
     }
 };
 
@@ -586,10 +712,10 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
                 // probably due to timeout issue
                 // let's print some statistics
                 var now = new Date();
-                debugLog( " server send BadSessionClosed !".bgWhite.red);
-                debugLog( " timeout.................. ",self.timeout);
-                debugLog( " lastRequestSentTime...... ",new Date(self.lastRequestSentTime).toISOString(), now - self.lastRequestSentTime);
-                debugLog( " lastResponseReceivedTime. ",new Date(self.lastResponseReceivedTime).toISOString(), now - self.lastResponseReceivedTime);
+                debugLog(" server send BadSessionClosed !".bgWhite.red);
+                debugLog(" timeout.................. ", self.timeout);
+                debugLog(" lastRequestSentTime...... ", new Date(self.lastRequestSentTime).toISOString(), now - self.lastRequestSentTime);
+                debugLog(" lastResponseReceivedTime. ", new Date(self.lastResponseReceivedTime).toISOString(), now - self.lastResponseReceivedTime);
 
                 self._terminatePublishEngine();
                 /**
@@ -675,7 +801,7 @@ ClientSession.prototype.deleteSubscriptions = function (options, callback) {
  * @param callback.err {Error|null}   - the Error if the async method has failed
  * @param callback.response {TransferSubscriptionsResponse} - the response
  */
-ClientSession.prototype.transferSubscriptions = function(options,callback) {
+ClientSession.prototype.transferSubscriptions = function (options, callback) {
     this._defaultRequest(
         subscription_service.TransferSubscriptionsRequest,
         subscription_service.TransferSubscriptionsResponse,
@@ -838,8 +964,8 @@ ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
 
     var translate_service = require("node-opcua-service-translate-browse-path");
 
-    var has_single_element = !_.isArray(browsePath);
-    browsePath = has_single_element ? [browsePath] : browsePath;
+    var  isArray = _.isArray(browsePath);
+    browsePath = isArray ?  browsePath :[browsePath];
 
     var request = new translate_service.TranslateBrowsePathsToNodeIdsRequest({
         browsePath: browsePath
@@ -852,7 +978,7 @@ ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
             return callback(err, response);
         }
         assert(response instanceof translate_service.TranslateBrowsePathsToNodeIdsResponse);
-        callback(null, has_single_element ? response.results[0] : response.results);
+        callback(null, isArray ? response.results : response.results[0]);
 
     });
 
@@ -910,7 +1036,7 @@ ClientSession.prototype._terminatePublishEngine = function () {
  * @param [deleteSubscription=true] {Boolean}
  * @param callback {Function}
  */
-ClientSession.prototype.close = function (deleteSubscription,callback) {
+ClientSession.prototype.close = function (deleteSubscription, callback) {
 
     if (arguments.length === 1) {
         callback = deleteSubscription;
@@ -921,7 +1047,7 @@ ClientSession.prototype.close = function (deleteSubscription,callback) {
     assert(this._client);
 
     this._terminatePublishEngine();
-    this._client.closeSession(this,deleteSubscription,callback);
+    this._client.closeSession(this, deleteSubscription, callback);
 
 };
 
@@ -929,7 +1055,7 @@ ClientSession.prototype.close = function (deleteSubscription,callback) {
  *
  * @return {Boolean}
  */
-ClientSession.prototype.hasBeenClosed = function() {
+ClientSession.prototype.hasBeenClosed = function () {
     return utils.isNullOrUndefined(this._client) || this._closed;
 };
 
@@ -1068,40 +1194,40 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
 
     assert(_.isFunction(callback));
     assert(methodId instanceof NodeId);
-    var self = this;
+    var session = this;
 
-    var browseDescription = [{
+    var browseDescription = {
         nodeId: methodId,
         referenceTypeId: resolveNodeId("HasProperty"),
         browseDirection: BrowseDirection.Forward,
         nodeClassMask: 0,// makeNodeClassMask("Variable"),
         includeSubtypes: true,
         resultMask: makeResultMask("BrowseName")
-    }];
+    };
 
     //Xx console.log("xxxx browseDescription", util.inspect(browseDescription, {colors: true, depth: 10}));
-    self.browse(browseDescription, function (err, results) {
+    session.browse(browseDescription, function (err, browseResult) {
 
         /* istanbul ignore next */
         if (err) {
             return callback(err);
         }
-        results[0].references = results[0].references || [];
+        browseResult.references = browseResult.references || [];
 
         //xx console.log("xxxx results", util.inspect(results, {colors: true, depth: 10}));
-        var inputArgumentRef = results[0].references.filter(function (r) {
+        var inputArgumentRef = browseResult.references.filter(function (r) {
             return r.browseName.name === "InputArguments";
         });
 
         // note : InputArguments property is optional thus may be missing
-        inputArgumentRef = (inputArgumentRef.length === 1)  ? inputArgumentRef[0] : null;
+        inputArgumentRef = (inputArgumentRef.length === 1) ? inputArgumentRef[0] : null;
 
-        var outputArgumentRef = results[0].references.filter(function (r) {
+        var outputArgumentRef = browseResult.references.filter(function (r) {
             return r.browseName.name === "OutputArguments";
         });
 
         // note : OutputArguments property is optional thus may be missing
-        outputArgumentRef = (outputArgumentRef.length === 1)  ? outputArgumentRef[0] : null;
+        outputArgumentRef = (outputArgumentRef.length === 1) ? outputArgumentRef[0] : null;
 
         //xx console.log("xxxx argument", util.inspect(argument, {colors: true, depth: 10}));
         //xx console.log("xxxx argument nodeId", argument.nodeId.toString());
@@ -1111,33 +1237,39 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
         var nodesToRead = [];
         var actions = [];
 
-        if(inputArgumentRef) {
+        if (inputArgumentRef) {
             nodesToRead.push({
                 nodeId: inputArgumentRef.nodeId,
                 attributeId: read_service.AttributeIds.Value
             });
-            actions.push(function(result) { inputArguments = result.value.value;});
+            actions.push(function (result) {
+                inputArguments = result.value.value;
+            });
         }
-        if(outputArgumentRef) {
+        if (outputArgumentRef) {
             nodesToRead.push({
                 nodeId: outputArgumentRef.nodeId,
-                    attributeId: read_service.AttributeIds.Value
+                attributeId: read_service.AttributeIds.Value
             });
-            actions.push(function(result) { outputArguments = result.value.value;});
+            actions.push(function (result) {
+                outputArguments = result.value.value;
+            });
         }
 
-        if (nodesToRead.length === 0 ) {
+        if (nodesToRead.length === 0) {
             return callback(null, inputArguments, outputArguments);
         }
         // now read the variable
-        self.read(nodesToRead, function (err, unused_nodesToRead, results) {
+        session.read(nodesToRead, function (err, dataValues) {
 
             /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
 
-            results.forEach(function(result,index){ actions[index].call(null,result); });
+            dataValues.forEach(function (result, index) {
+                actions[index].call(null, result);
+            });
 
             //xx console.log("xxxx result", util.inspect(result, {colors: true, depth: 10}));
             callback(null, inputArguments, outputArguments);
@@ -1166,7 +1298,7 @@ var query_service = require("node-opcua-service-query");
  * @param callback.response {queryFirstResponse}
  *
  */
-ClientSession.prototype.queryFirst = function(queryFirstRequest,callback) {
+ClientSession.prototype.queryFirst = function (queryFirstRequest, callback) {
     var self = this;
     assert(_.isFunction(callback));
 
@@ -1184,13 +1316,13 @@ ClientSession.prototype.queryFirst = function(queryFirstRequest,callback) {
 
 var ClientSessionKeepAliveManager = require("./client_session_keepalive_manager").ClientSessionKeepAliveManager;
 
-ClientSession.prototype.startKeepAliveManager = function() {
+ClientSession.prototype.startKeepAliveManager = function () {
     var self = this;
-    assert(!self._keepAliveManager,"keepAliveManger already started");
+    assert(!self._keepAliveManager, "keepAliveManger already started");
     self._keepAliveManager = new ClientSessionKeepAliveManager(this);
 
 
-    self._keepAliveManager.on("failure",function() {
+    self._keepAliveManager.on("failure", function () {
         self.stopKeepAliveManager();
         /**
          * raised when a keep-alive request has failed on the session, may be the session has timeout
@@ -1199,16 +1331,16 @@ ClientSession.prototype.startKeepAliveManager = function() {
          */
         self.emit("keepalive_failure");
     });
-    self._keepAliveManager.on("keepalive",function(state) {
+    self._keepAliveManager.on("keepalive", function (state) {
         /**
          * @event keepalive
          */
-        self.emit("keepalive",state);
+        self.emit("keepalive", state);
     });
     self._keepAliveManager.start();
 };
 
-ClientSession.prototype.stopKeepAliveManager = function() {
+ClientSession.prototype.stopKeepAliveManager = function () {
     var self = this;
     if (self._keepAliveManager) {
         self._keepAliveManager.stop();
@@ -1216,28 +1348,27 @@ ClientSession.prototype.stopKeepAliveManager = function() {
     }
 };
 
-ClientSession.prototype.dispose = function() {
+ClientSession.prototype.dispose = function () {
     assert(this._closeEventHasBeenEmmitted);
     this._terminatePublishEngine();
     this.stopKeepAliveManager();
     this.removeAllListeners();
 };
 
-ClientSession.prototype.toString = function() {
+ClientSession.prototype.toString = function () {
 
     var now = Date.now();
     var session = this;
-    console.log( " name..................... ",session.name);
-    console.log( " sessionId................ ",session.sessionId);
-    console.log( " authenticationToken...... ",session.authenticationToken);
-    console.log( " timeout.................. ",session.timeout);
-    console.log( " serverNonce.............. ",session.serverNonce.toString("hex"));
-    console.log( " serverCertificate........ ",session.serverCertificate.toString("base64"));
-    console.log( " serverSignature.......... ",session.serverSignature);
-    console.log( " lastRequestSentTime...... ",new Date(session.lastRequestSentTime).toISOString(), now - session.lastRequestSentTime);
-    console.log( " lastResponseReceivedTime. ",new Date(session.lastResponseReceivedTime).toISOString(), now - session.lastResponseReceivedTime);
+    console.log(" name..................... ", session.name);
+    console.log(" sessionId................ ", session.sessionId);
+    console.log(" authenticationToken...... ", session.authenticationToken);
+    console.log(" timeout.................. ", session.timeout);
+    console.log(" serverNonce.............. ", session.serverNonce.toString("hex"));
+    console.log(" serverCertificate........ ", session.serverCertificate.toString("base64"));
+    console.log(" serverSignature.......... ", session.serverSignature);
+    console.log(" lastRequestSentTime...... ", new Date(session.lastRequestSentTime).toISOString(), now - session.lastRequestSentTime);
+    console.log(" lastResponseReceivedTime. ", new Date(session.lastResponseReceivedTime).toISOString(), now - session.lastResponseReceivedTime);
 };
-
 
 
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
@@ -1245,14 +1376,14 @@ var ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var resultMask = makeResultMask("ReferenceType");
 
-function __findBasicDataType(session,dataTypeId,callback) {
+function __findBasicDataType(session, dataTypeId, callback) {
 
     assert(dataTypeId instanceof NodeId);
 
-    if (dataTypeId.value <=25) {
+    if (dataTypeId.value <= 25) {
         // we have a well-known DataType
         var dataType = DataType.get(dataTypeId.value);
-        callback(null,dataType);
+        callback(null, dataType);
     } else {
 
         // let's browse for the SuperType of this object
@@ -1264,14 +1395,14 @@ function __findBasicDataType(session,dataTypeId,callback) {
             resultMask: resultMask
         });
 
-        session.browse([nodeToBrowse],function(err,results) {
-            var result = results[0];
+        session.browse(nodeToBrowse, function (err, browseResult) {
             if (err) return callback(err);
-            var baseDataType = result.references[0].nodeId;
-            return __findBasicDataType(session,baseDataType,callback);
+            var baseDataType = browseResult.references[0].nodeId;
+            return __findBasicDataType(session, baseDataType, callback);
         });
     }
 }
+
 /**
  * retrieve the built-in DataType of a Variable, from its DataType attribute
  * useful to determine which DataType to use when constructing a Variant
@@ -1295,33 +1426,30 @@ function __findBasicDataType(session,dataTypeId,callback) {
  *     });
  *
  */
-ClientSession.prototype.getBuiltInDataType = function(nodeId,callback){
+ClientSession.prototype.getBuiltInDataType = function (nodeId, callback) {
 
     var dataTypeId = null;
-    var dataType;
     var session = this;
-    var nodes_to_read = [
-        {
-            nodeId: nodeId,
-            attributeId: AttributeIds.DataType
-        }
-    ];
-    session.read(nodes_to_read, 0, function(err,nodes_to_read,dataValues) {
+    var nodeToRead = {
+        nodeId: nodeId,
+        attributeId: AttributeIds.DataType
+    };
+    session.read(nodeToRead, 0, function (err, dataValue) {
         if (err) return callback(err);
-        if (dataValues[0].statusCode !== StatusCodes.Good) {
-            return callback(new Error("cannot read DataType Attribute "+  dataValues[0].statusCode.toString()));
+        if (dataValue.statusCode !== StatusCodes.Good) {
+            return callback(new Error("cannot read DataType Attribute " + dataValue.statusCode.toString()));
         }
-        dataTypeId = dataValues[0].value.value;
+        dataTypeId = dataValue.value.value;
         assert(dataTypeId instanceof NodeId);
-        __findBasicDataType(session,dataTypeId,callback);
+        __findBasicDataType(session, dataTypeId, callback);
     });
 
 };
 
-ClientSession.prototype.resumePublishEngine = function() {
-    var self =this;
+ClientSession.prototype.resumePublishEngine = function () {
+    var self = this;
 
-    if (self._publishEngine.subscriptionCount>0) {
+    if (self._publishEngine.subscriptionCount > 0) {
         self._publishEngine.replenish_publish_request_queue();
     }
 };

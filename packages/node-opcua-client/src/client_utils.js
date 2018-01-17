@@ -90,11 +90,11 @@ function readUAAnalogItem(session, nodeId, callback) {
         processProperty(3, "valuePrecision");
         processProperty(4, "definition");
 
-        session.read(nodesToRead, function (err, nodesToRead, results) {
+        session.read(nodesToRead, function (err,dataValues) {
             if (err) {
                 return callback(err);
             }
-            results.forEach(function (result, index) {
+            dataValues.forEach(function (result, index) {
                 actions[index].call(null, result);
             });
             callback(err, analogItemData);

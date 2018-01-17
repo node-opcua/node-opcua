@@ -51,6 +51,7 @@ function makeRefId(referenceTypeName) {
     }
     return nodeId;
 }
+
 exports.makeRefId = makeRefId;
 
 /**
@@ -78,37 +79,36 @@ exports.makeRefId = makeRefId;
  */
 function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
 
-    var nodesToRead = [{
+    var nodeToRead = {
         nodeId: dataTypeId,
         attributeId: AttributeIds.BrowseName
-    }];
+    };
 
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodeToRead, function (err, dataValue) {
 
         // istanbul ignore next
         if (err) {
             return callback(err);
         }
 
-        var dataValue = dataValues[0];
-
+        var dataType;
         // istanbul ignore next
         if (dataValue.statusCode !== StatusCodes.Good) {
             console.log("convertNodeIdToDataTypeAsync: Cannot read browse name for nodeID ".red + dataTypeId.toString());
-            var dataType = DataType.Null;
+            dataType = DataType.Null;
             return callback(null, dataType);
         }
 
         var dataTypeName = dataValue.value.value;
 
         if (dataTypeId.namespace === 0 && DataType.get(dataTypeId.value)) {
-            var dataType = DataType.get(dataTypeId.value);
+            dataType = DataType.get(dataTypeId.value);
             return callback(null, dataType);
         }
 
         /// example => Duration (i=290) => Double (i=11)
         // read subTypeOf
-        var nodesToBrowse = [{
+        var nodeToBrowse = {
             // BrowseDescription
             referenceTypeId: makeRefId("HasSubtype"),
             //xx nodeClassMask: makeNodeClassMask("ObjectType"),
@@ -116,14 +116,14 @@ function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
             browseDirection: BrowseDirection.Inverse,
             nodeId: dataTypeId,
             resultMask: resultMask
-        }];
-        session.browse(nodesToBrowse, function (err, results) {
+        };
+        session.browse(nodeToBrowse, function (err, browseResult) {
             // istanbul ignore next
             if (err) {
                 return callback(err);
             }
 
-            var references = results[0].references;
+            var references = browseResult.references;
 
             if (!references || references.length !== 1) {
                 return callback(new Error("cannot find SuperType of " + dataTypeName.toString()));
@@ -224,15 +224,13 @@ ProxyBaseNode.prototype.readValue = function (callback) {
         nodeId: self.nodeId,
         attributeId: AttributeIds.Value
     };
-    self.proxyManager.session.read([nodeToRead], function (err, unused, results) {
+    self.proxyManager.session.read(nodeToRead, function (err, dataValue) {
 
         // istanbul ignore next
         if (err) {
             return callback(err);
         }
-
-        var result = results[0];
-        var data = result.value;
+        var data = dataValue.value;
         callback(null, data);
 
     });
@@ -290,6 +288,7 @@ ProxyBaseNode.prototype.toString = function () {
 function ProxyVariable(session, nodeId) {
     ProxyBaseNode.apply(this, arguments);
 }
+
 util.inherits(ProxyVariable, ProxyBaseNode);
 
 var ProxyObject = ProxyVariable;
@@ -423,7 +422,7 @@ function readUAStructure(proxyManager, obj, callback) {
 
                 var dataType = convertNodeIdToDataType(arg.dataType);
 
-                var arrayType = ( arg.valueRank === 1) ? VariantArrayType.Array : VariantArrayType.Scalar;
+                var arrayType = (arg.valueRank === 1) ? VariantArrayType.Array : VariantArrayType.Scalar;
 
                 //xx console.log("xxx ",arg.toString());
                 var propName = lowerFirstLetter(arg.name);
@@ -584,7 +583,7 @@ function readUAStructure(proxyManager, obj, callback) {
 
         references = references || [];
         if (references.length !== 1) {
-            console.log(" cannot find type definition", references.length);
+            //xx console.log(" cannot find type definition", references.length);
             return callback();
         }
         var reference = references[0];
@@ -608,7 +607,7 @@ function readUAStructure(proxyManager, obj, callback) {
     }
 
 
-    session.browse(nodesToBrowse, function (err, results) {
+    session.browse(nodesToBrowse, function (err, browseResults) {
         function t(references) {
             return references.map(function (r) {
                 return r.browseName.name + " " + r.nodeId.toString();
@@ -626,27 +625,27 @@ function readUAStructure(proxyManager, obj, callback) {
         async.series([
 
             function (callback) {
-                async.map(results[0].references, add_component.bind(null, obj), callback);
+                async.map(browseResults[0].references, add_component.bind(null, obj), callback);
             },
 
             function (callback) {
-                async.map(results[1].references, add_property.bind(null, obj), callback);
+                async.map(browseResults[1].references, add_property.bind(null, obj), callback);
             },
 
             // now enrich our object with nice callable async methods
             function (callback) {
-                async.map(results[2].references, add_method.bind(null, obj), callback);
+                async.map(browseResults[2].references, add_method.bind(null, obj), callback);
             },
 
             // now set typeDefinition
             function (callback) {
-                add_typeDefinition.bind(null, obj)(results[3].references, callback);
+                add_typeDefinition.bind(null, obj)(browseResults[3].references, callback);
             },
 
             //
             function (callback) { // FromState
                 // fromState
-                var reference = results[4].references ? results[4].references[0] : null;
+                var reference = browseResults[4].references ? browseResults[4].references[0] : null;
                 // fromState
                 if (reference) {
                     return addFromState(obj, reference, callback);
@@ -654,7 +653,7 @@ function readUAStructure(proxyManager, obj, callback) {
                 callback();
             },
             function (callback) { // ToState
-                var reference = results[5].references ? results[5].references[0] : null;
+                var reference = browseResults[5].references ? browseResults[5].references[0] : null;
                 // fromState
                 if (reference) {
                     return addToState(obj, reference, callback);
@@ -662,7 +661,7 @@ function readUAStructure(proxyManager, obj, callback) {
                 callback();
             },
             function (callback) { // Organizes
-                async.map(results[6].references, addFolderElement.bind(null, obj), callback);
+                async.map(browseResults[6].references, addFolderElement.bind(null, obj), callback);
             }
 
         ], callback);
@@ -720,16 +719,16 @@ function getObject(proxyManager, nodeId, options, callback) {
                 attributeId: AttributeIds.AccessLevel
             }
         ];
-        session.read(nodesToRead, 1, function (err, node2reads, results) {
-            if (results[0].statusCode === StatusCodes.Good) {
-                clientObject.dataValue = AccessLevelFlag.get(results[0].value);
+        session.read(nodesToRead, 1, function (err, dataValues) {
+            if (dataValues[0].statusCode === StatusCodes.Good) {
+                clientObject.dataValue = AccessLevelFlag.get(dataValues[0].value);
             }
-            if (results[1].statusCode === StatusCodes.Good) {
+            if (dataValues[1].statusCode === StatusCodes.Good) {
                 //xx console.log("AccessLevel ", results[3].value.toString())
-                clientObject.userAccessLevel = AccessLevelFlag.get(results[1].value.value);
+                clientObject.userAccessLevel = AccessLevelFlag.get(dataValues[1].value.value);
             }
-            if (results[2].statusCode === StatusCodes.Good) {
-                clientObject.accessLevel = AccessLevelFlag.get(results[2].value.value);
+            if (dataValues[2].statusCode === StatusCodes.Good) {
+                clientObject.accessLevel = AccessLevelFlag.get(dataValues[2].value.value);
             }
             callback(err);
         });
@@ -741,11 +740,11 @@ function getObject(proxyManager, nodeId, options, callback) {
 
         function (callback) {
             // readAttributes like browseName and references
-            session.read(nodesToRead, 1, function (err, node2reads, results) {
+            session.read(nodesToRead, 1, function (err, dataValues) {
 
                 if (!err) {
 
-                    if (results[0].statusCode === StatusCodes.BadNodeIdUnknown) {
+                    if (dataValues[0].statusCode === StatusCodes.BadNodeIdUnknown) {
                         console.log(" INVALID NODE ", nodeId.toString());
                         return callback(new Error("Invalid Node " + nodeId.toString()));
                     }
@@ -754,9 +753,9 @@ function getObject(proxyManager, nodeId, options, callback) {
 
                     ///x console.log("xxxx ,s",results.map(function(a){ return a.toString();}));
 
-                    clientObject.browseName = results[0].value.value;
-                    clientObject.description = (results[1].value ? results[1].value.value : "");
-                    clientObject.nodeClass = NodeClass.get(results[2].value.value);
+                    clientObject.browseName = dataValues[0].value.value;
+                    clientObject.description = (dataValues[1].value ? dataValues[1].value.value : "");
+                    clientObject.nodeClass = NodeClass.get(dataValues[2].value.value);
                     //xx console.log("xxx nodeClass = ",clientObject.nodeClass.toString());
 
                     if (clientObject.nodeClass === NodeClass.Variable) {
@@ -793,8 +792,6 @@ function getObject(proxyManager, nodeId, options, callback) {
         callback(null, clientObject);
     });
 }
-
-
 
 
 /**
@@ -845,8 +842,8 @@ UAProxyManager.prototype.start = function (callback) {
 
     var createSubscriptionRequest = {
         requestedPublishingInterval: 100,
-        requestedLifetimeCount:     6000,
-        requestedMaxKeepAliveCount:  100,
+        requestedLifetimeCount: 6000,
+        requestedMaxKeepAliveCount: 100,
         maxNotificationsPerPublish: 1000,
         publishingEnabled: true,
         priority: 10

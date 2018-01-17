@@ -552,7 +552,7 @@ module.exports = function (test) {
                         }
                     ];
 
-                    session.read(nodesToRead, function (err, unused, dataValues, diagnosticInfos) {
+                    session.read(nodesToRead, function (err, dataValues, diagnosticInfos) {
                         if (!err) {
                             dataValues[0].statusCode.should.eql(StatusCodes.Good);
                             dataValues[0].value.dataType.should.eql(DataType.Boolean);

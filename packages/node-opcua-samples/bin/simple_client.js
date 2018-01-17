@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+    #!/usr/bin/env node
 "use strict";
 
 var fs = require("fs");
@@ -111,11 +111,11 @@ var crypto_utils = opcua.crypto_utils;
 
 
 function getBrowseName(session,nodeId,callback) {
-    session.read([{ nodeId: nodeId, attributeId: AttributeIds.BrowseName}],function(err,org,readValue) {
+    session.read({ nodeId: nodeId, attributeId: AttributeIds.BrowseName},function(err, dataValue) {
         if (!err) {
-            if (readValue[0].statusCode === opcua.StatusCodes.Good) {
-                assert(readValue[0].statusCode === opcua.StatusCodes.Good);
-                var browseName = readValue[0].value.value.name;
+            if (dataValue.statusCode === opcua.StatusCodes.Good) {
+                assert(dataValue.statusCode === opcua.StatusCodes.Good);
+                var browseName = dataValue.value.value.name;
                 return callback(null,browseName);
             }
         }
@@ -342,14 +342,12 @@ function getAllEventTypes(session,callback)
             nodeClassMask: opcua.NodeClassMask.ObjectType, // Objects
             resultMask: 63
         };
-
-        var nodesToBrowse = [browseDesc1];
-        session.browse(nodesToBrowse,function(err,results){
+        session.browse(browseDesc1, function(err,browseResult){
             if (err) {
                 console.log(" ERROR = ", err);
             } else {
                 // to do continuation points
-                results[0].references.forEach(function (reference) {
+                browseResult.references.forEach(function (reference) {
                     var subtree = {nodeId: reference.nodeId.toString()};
                     tree[reference.browseName.toString()] = subtree;
                     q.push({nodeId: reference.nodeId, tree: subtree});

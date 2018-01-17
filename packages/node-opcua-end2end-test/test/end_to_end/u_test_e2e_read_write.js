@@ -62,17 +62,17 @@ module.exports = function (test) {
                             dataEncoding: null
                         }
                     ];
-                    session.read(nodesToRead, function (err, r, results) {
+                    session.read(nodesToRead, function (err, dataValues) {
 
                         // note if dataValue didn't specied the timestamp it should not be overwritten.
                         if (!dataValue.serverTimestamp) {
-                            should.exist(results[0].serverTimestamp);
-                            dataValue.serverTimestamp =results[0].serverTimestamp;
-                            dataValue.serverPicoseconds =results[0].serverPicoseconds;
+                            should.exist(dataValues[0].serverTimestamp);
+                            dataValue.serverTimestamp =dataValues[0].serverTimestamp;
+                            dataValue.serverPicoseconds =dataValues[0].serverPicoseconds;
                         }
                         if (!dataValue.sourceTimestamp) {
-                            dataValue.sourceTimestamp =results[0].sourceTimestamp;
-                            dataValue.sourcePicoseconds =results[0].sourcePicoseconds;
+                            dataValue.sourceTimestamp =dataValues[0].sourceTimestamp;
+                            dataValue.sourcePicoseconds =dataValues[0].sourcePicoseconds;
                         }
 
 
@@ -81,21 +81,21 @@ module.exports = function (test) {
 
                         // verify that server provides a valid serverTimestamp and sourceTimestamp, regardless
                         // of what we wrote into the variable
-                        results[0].serverTimestamp.should.be.instanceOf(Date);
-                        results[0].sourceTimestamp.should.be.instanceOf(Date);
+                        dataValues[0].serverTimestamp.should.be.instanceOf(Date);
+                        dataValues[0].sourceTimestamp.should.be.instanceOf(Date);
 
 
                         // verify that value and status codes are identical
-                        (results[0].serverTimestamp.getTime()+1).should.be.greaterThan(dataValue.serverTimestamp.getTime());
+                        (dataValues[0].serverTimestamp.getTime()+1).should.be.greaterThan(dataValue.serverTimestamp.getTime());
 
                         // now disregard serverTimestamp
                         dataValue.serverTimestamp = null;
-                        results[0].serverTimestamp = null;
-                        if (!sameDataValue(dataValue, results[0])) {
+                        dataValues[0].serverTimestamp = null;
+                        if (!sameDataValue(dataValue, dataValues[0])) {
                             console.log(" ------- > expected".yellow);
                             console.log(dataValue.toString().yellow);
                             console.log(" ------- > actual".cyan);
-                            console.log(results[0].toString().cyan);
+                            console.log(dataValues[0].toString().cyan);
                             // dataValue.toString().split("\n").should.eql(results[0].toString().split("\n"));
                             return inner_done(new Error("dataValue is not as expected"));
                         }
@@ -231,17 +231,15 @@ module.exports = function (test) {
 
                     var nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
 
-                    var nodesToRead = [
-                        {
+                    var nodeToRead =  {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.Value,
                             indexRange: null,
                             dataEncoding: null
-                        }
-                    ];
-                    session.read(nodesToRead, function (err/*, r, results*/) {
+                        };
+                    session.read(nodeToRead, function (err, dataValue) {
                         //xx console.log(results[0].toString());
-
+                        should.exist(dataValue);
                         inner_done(err);
                     });
 
@@ -253,15 +251,13 @@ module.exports = function (test) {
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                     var nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
-                    var nodesToRead = [
-                        {
+                    var nodeToRead = {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.Value,
                             indexRange: null,
                             dataEncoding: null
-                        }
-                    ];
-                    session.read(nodesToRead, function (err, r, results) {
+                        };
+                    session.read(nodeToRead, function (err,dataValue) {
 
                         if (err) {
                             return inner_done(err);
@@ -269,7 +265,7 @@ module.exports = function (test) {
 
                         //xx console.log(results[0].toString());
 
-                        var variant = results[0].value;
+                        var variant = dataValue.value;
                         variant.value[1] = 2;
                         variant.value[3] = 2;
                         variant.value[4] = 2;
@@ -279,7 +275,7 @@ module.exports = function (test) {
                                 nodeId: nodeId,
                                 attributeId: opcua.AttributeIds.Value,
                                 indexRange: null,
-                                value: results[0]
+                                value: dataValue
                             }
                         ];
                         session.write(nodesToWrite, function (err) {
@@ -295,7 +291,8 @@ module.exports = function (test) {
                                 if (err) {
                                     return inner_done(err);
                                 }
-                                session.read(nodesToRead, function (err/*, r, results*/) {
+                                session.read(nodeToRead, function (err, dataValue) {
+                                    should.exist(dataValue);
                                     //xx console.log(results[0].toString());
                                     inner_done(err);
                                 });

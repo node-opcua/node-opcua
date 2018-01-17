@@ -36,15 +36,15 @@ function writeIncrement(session, analogDataItem, done) {
     async.series([
 
         function (callback) {
-            var nodesToRead = [{
+            var nodeToRead = {
                 nodeId: analogDataItem,
                 attributeId: opcua.AttributeIds.Value,
                 indexRange: null,
                 dataEncoding: null
-            }];
-            session.read(nodesToRead, function (err, r, results) {
+            };
+            session.read(nodeToRead, function (err, dataValue) {
                 if (!err) {
-                    value = results[0].value.value;
+                    value = dataValue.value.value;
                 }
                 callback(err)
             });
@@ -68,7 +68,7 @@ function writeIncrement(session, analogDataItem, done) {
 
 function readEURange(session, nodeId, done) {
     var euRangeNodeId;
-    var euRange ;
+    var euRange;
     async.series([
         function (callback) {
             getEURangeNodeId(session, nodeId, function (err, result) {
@@ -77,28 +77,27 @@ function readEURange(session, nodeId, done) {
             });
         },
         function (callback) {
-            var nodesToRead = [
-                {
-                    nodeId: euRangeNodeId,
-                    attributeId: opcua.AttributeIds.Value,
-                    indexRange: null,
-                    dataEncoding: null
-                }
-            ];
-            session.read(nodesToRead, function (err, r, results) {
-                 if (!err) {
-                    euRange  = results[0].value.value;
+            var nodesToRead = {
+                nodeId: euRangeNodeId,
+                attributeId: opcua.AttributeIds.Value,
+                indexRange: null,
+                dataEncoding: null
+            };
+            session.read(nodesToRead, function (err, dataValue) {
+                if (!err) {
+                    euRange = dataValue.value.value;
                     //xx console.log(" euRange =", euRange.toString());
                 }
-                callback(err,euRange)
+                callback(err, euRange)
             });
         }
 
-    ], function(results) {
-        done(null,euRange)
+    ], function (results) {
+        done(null, euRange)
     });
 
 }
+
 function writeEURange(session, nodeId, euRange, done) {
 
     var euRangeNodeId;
@@ -118,7 +117,7 @@ function writeEURange(session, nodeId, euRange, done) {
                 })
             }
             ];
-            session.write(nodesToWrite, function (err, r, results) {
+            session.write(nodesToWrite, function (err) {
                 if (!err) {
                 }
                 callback(err)
@@ -259,7 +258,7 @@ module.exports = function (test) {
                             subscriptionAcknowledgements: []
                         });
                         session.publish(publish_request, function (err, publish_response) {
-                           //xx console.log(publish_response.toString());
+                            //xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
                             var monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
                             monitoredData.value.statusCode.hasSemanticChangedBit.should.eql(false, "SemanticChange Bit shall not be set");

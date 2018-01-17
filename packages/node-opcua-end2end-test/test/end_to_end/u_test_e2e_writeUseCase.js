@@ -306,19 +306,19 @@ module.exports = function (test) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.Good);
 
-                    var nodesToRead = [{
+                    var nodesToRead = {
                         nodeId: setPointTemperatureId,
                         attributeId: AttributeIds.Value
-                    }];
-                    session.read(nodesToRead, function (err, r, results) {
+                    };
+                    session.read(nodesToRead, function (err, dataValue) {
                         if (err) {
                             return done(err);
                         }
                         //xx console.log("====", results[0].sourceTimestamp.getTime());
                         //xx console.log(results[0].toString());
-                        results[0].sourceTimestamp.getTime().should.eql(date.getTime());
-                        results[0].sourcePicoseconds.should.eql(112);
-                        results[0].statusCode.should.eql(opcua.StatusCodes.GoodLocalOverride);
+                        dataValue.sourceTimestamp.getTime().should.eql(date.getTime());
+                        dataValue.sourcePicoseconds.should.eql(112);
+                        dataValue.statusCode.should.eql(opcua.StatusCodes.GoodLocalOverride);
                         done();
                     });
                 });
@@ -359,21 +359,21 @@ module.exports = function (test) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.Good);
 
-                    var nodesToRead = [{
+                    var nodeToRead = {
                         nodeId: asyncNodeId,
                         attributeId: AttributeIds.Value
-                    }];
+                    };
 
-                    session.read(nodesToRead, function (err, r, results) {
+                    session.read(nodeToRead, function (err, dataValue) {
 
                         if (err) {
                             return done(err);
                         }
                         //xx console.log(" server    source timestamp =",results[0].sourceTimestamp.getTime());
                         //xx console.log(results[0].toString());
-                        results[0].sourceTimestamp.getTime().should.eql(date.getTime());
-                        results[0].sourcePicoseconds.should.eql(112);
-                        results[0].statusCode.should.eql(opcua.StatusCodes.UncertainSensorNotAccurate);
+                        dataValue.sourceTimestamp.getTime().should.eql(date.getTime());
+                        dataValue.sourcePicoseconds.should.eql(112);
+                        dataValue.statusCode.should.eql(opcua.StatusCodes.UncertainSensorNotAccurate);
                         done();
                     });
                 });

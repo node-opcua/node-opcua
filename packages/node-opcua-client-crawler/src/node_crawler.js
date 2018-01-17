@@ -145,16 +145,16 @@ NodeCrawler.prototype._readOperationalLimits = function (callback) {
         {nodeId: n2, attributeId: AttributeIds.Value}
     ];
     self.transactionCounter++;
-    self.session.read(nodesToRead, function (err, nodeIds, results) {
+    self.session.read(nodesToRead, function (err, dataValues) {
         if (!err) {
-            if (results[0].statusCode === StatusCodes.Good) {
-                self.maxNodesPerRead = results[0].value.value;
+            if (dataValues[0].statusCode === StatusCodes.Good) {
+                self.maxNodesPerRead = dataValues[0].value.value;
             }
             // ensure we have a sensible maxNodesPerRead value in case the server doesn't specify one
             self.maxNodesPerRead = self.maxNodesPerRead || 500;
 
-            if (results[1].statusCode === StatusCodes.Good) {
-                self.maxNodesPerBrowse = results[1].value.value;
+            if (dataValues[1].statusCode === StatusCodes.Good) {
+                self.maxNodesPerBrowse = dataValues[1].value.value;
             }
             // ensure we have a sensible maxNodesPerBrowse value in case the server doesn't specify one
             self.maxNodesPerBrowse = self.maxNodesPerBrowse || 500;
@@ -250,11 +250,11 @@ NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
     self.readCounter += nodesToRead.length;
     self.transactionCounter++;
 
-    self.session.read(nodesToRead, function (err, nodesToRead, results /*, diagnostics*/) {
+    self.session.read(nodesToRead, function (err, dataValues /*, diagnostics*/) {
 
         if (!err) {
 
-            _.zip(_nodesToReadEx, results).forEach(function (pair) {
+            _.zip(_nodesToReadEx, dataValues).forEach(function (pair) {
                 var _nodeToReadEx = pair[0];
 
                 var dataValue = pair[1];

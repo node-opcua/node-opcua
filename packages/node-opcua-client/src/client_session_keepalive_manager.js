@@ -44,8 +44,8 @@ ClientSessionKeepAliveManager.prototype.ping_server = function(callback) {
     }
     //xx console.log("readVariableValue ",timeSinceLastServerContact,self.session.timeout);
 
-    var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
-    the_session.readVariableValue(nodes, function (err, dataValues) {
+    // Server_ServerStatus_State
+    the_session.readVariableValue(serverStatus_State_Id, function (err, dataValue) {
         if (err) {
             console.log(" warning : ClientSessionKeepAliveManager#ping_server ".cyan, err.message.yellow);
             self.stop();
@@ -58,11 +58,11 @@ ClientSessionKeepAliveManager.prototype.ping_server = function(callback) {
             self.emit("failure");
 
         } else {
-            if (dataValues[0].statusCode === StatusCodes.Good) {
-                var newState = ServerState.get(dataValues[0].value.value);
+            if (dataValue.statusCode === StatusCodes.Good) {
+                var newState = ServerState.get(dataValue.value.value);
                 //istanbul ignore next
                 if (newState !== self.lastKnownState) {
-                    // console.log(" Server State = ", newState.toString());
+                    console.log(" Server State = ", newState.toString());
                 }
                 self.lastKnownState = newState;
             }

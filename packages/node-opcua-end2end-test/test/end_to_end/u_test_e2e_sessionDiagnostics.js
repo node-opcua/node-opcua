@@ -40,15 +40,15 @@ module.exports = function (test) {
                                 attributeId: opcua.AttributeIds.Value
                             },
                         ];
-                        session.read(nodesToRead, function (err, unused, results) {
+                        session.read(nodesToRead, function (err, dataValues) {
                             if (err) {
                                 return callback(err);
                             }
 
-                            var serverDiagnostics = results[0].value.value;
-                            var cumulatedSessionCount = results[1].value.value;
-                            var currentSessionCount = results[2].value.value;
-                            var currentSubscriptionCount = results[3].value.value;
+                            var serverDiagnostics = dataValues[0].value.value;
+                            var cumulatedSessionCount = dataValues[1].value.value;
+                            var currentSessionCount = dataValues[2].value.value;
+                            var currentSubscriptionCount = dataValues[3].value.value;
 
                             //xx console.log(serverDiagnostics);
 
@@ -128,15 +128,17 @@ module.exports = function (test) {
                     },
                     function read_session_diagnostics(callback) {
 
-                        var nodesToRead = [{
+                        var nodeToRead = {
                             nodeId: currentSessionDiagnosticNodeId,
                             attributeId: opcua.AttributeIds.Value
-                        }];
-                        session.read(nodesToRead, function (err, unused, readResults) {
+                        };
+                        session.read(nodeToRead, function (err, dataValue) {
 
-                            readResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
-                            readResults[0].value.value.constructor.name.should.eql("SessionDiagnostics");
-                            readResults[0].value.value.totalRequestCount.totalCount.should.be.greaterThan(8);
+                            if(err) { return callback(err); }
+
+                            dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
+                            dataValue.value.value.constructor.name.should.eql("SessionDiagnostics");
+                            dataValue.value.value.totalRequestCount.totalCount.should.be.greaterThan(8);
 
                             callback();
                         });
@@ -217,13 +219,15 @@ module.exports = function (test) {
                     },
                     function verify_that_clientLastContactTime_has_changed_in_monitored_item(callback) {
 
-                        var nodesToRead = [{
+                        var nodeToRead = {
                             nodeId: currentSessionDiagnosticNodeId,
                             attributeId: opcua.AttributeIds.Value
-                        }];
-                        session.read(nodesToRead, function (err, unused, results) {
+                        };
+                        session.read(nodeToRead, function (err, dataValue) {
 
-                            var sessionDiagnostic = results[0].value.value;
+                            if(err) { return callback(err); }
+
+                            var sessionDiagnostic = dataValue.value.value;
                             sessionDiagnostic.clientConnectionTime.getTime().should.be.lessThan(
                                 sessionDiagnostic.clientLastContactTime.getTime());
                             sessionDiagnostic.writeCount.totalCount.should.eql(1);
@@ -295,17 +299,17 @@ module.exports = function (test) {
 
                     function read_session_diagnostics(callback) {
 
-                        var nodesToRead = [{
+                        var nodeToRead = {
                             nodeId: sessionDiagnosticsNodeId,
                             attributeId: opcua.AttributeIds.Value
-                        }];
-                        session.read(nodesToRead, function (err, unused, readResults) {
+                        };
+                        session.read(nodeToRead, function (err, dataValue) {
 
                             if(err) { return callback(err); }
 
-                            readResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
-                            readResults[0].value.value.constructor.name.should.eql("SessionDiagnostics");
-                            readResults[0].value.value.totalRequestCount.totalCount.should.be.greaterThan(7);
+                            dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
+                            dataValue.value.value.constructor.name.should.eql("SessionDiagnostics");
+                            dataValue.value.value.totalRequestCount.totalCount.should.be.greaterThan(7);
 
                             callback();
                         });

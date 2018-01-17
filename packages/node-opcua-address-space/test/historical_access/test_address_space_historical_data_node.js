@@ -308,6 +308,4 @@ describe("Testing Historical Data Node", function () {
         ], done);
 
     });
-
-
 });

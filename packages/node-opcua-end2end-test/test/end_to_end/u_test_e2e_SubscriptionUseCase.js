@@ -787,12 +787,12 @@ module.exports = function (test) {
                             statusCodes[0].should.eql(opcua.StatusCodes.Good);
                         }
 
-                        session.read([{
-                            attributeId: 13,
+                        session.read({
+                            attributeId: opcua.AttributeIds.Value,
                             nodeId: nodeId,
-                        }], function (err, a, result) {
-                            should.exist(a);
-                            should.exist(result);
+                        }, function (err, dataValue) {
+                            should.not.exist(err);
+                            should.exist(dataValue);
                             //xx console.log(" written ",result[0].value.toString());
                             callback(err);
 
@@ -947,13 +947,13 @@ module.exports = function (test) {
                             statusCodes.length.should.equal(nodesToWrite.length);
                             statusCodes[0].should.eql(opcua.StatusCodes.Good);
                         }
-                        session.read([{
-                            attributeId: 13,
+                        session.read({
+                            attributeId:opcua.AttributeIds.Value,
                             nodeId: nodeId,
-                        }], function (err, a, result) {
-                            ///xx console.log(" written ",result[0].value.toString());
+                        }, function (err, dataValue) {
+                            should.exist(dataValue);
+                            ///xx console.log(" written ",dataValue.value.toString());
                             callback(err);
-
                         });
                     });
 
@@ -2122,14 +2122,14 @@ module.exports = function (test) {
                     function read_minimumSamplingInterval(callback) {
 
                         var minimumSamplingIntervalOnNode;
-                        var nodesToRead = [{
+                        var nodeToRead = {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.MinimumSamplingInterval
-                        }];
-                        session.read(nodesToRead,function(err,unused,results){
+                        };
+                        session.read(nodeToRead,function(err,dataValue){
                             if (err) { return callback(err); }
-                            results[0].statusCode.should.eql(opcua.StatusCodes.Good);
-                            minimumSamplingIntervalOnNode = results[0].value.value;
+                            dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
+                            minimumSamplingIntervalOnNode = dataValue.value.value;
                             //xx console.log("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
 
                             minimumSamplingIntervalOnNode.should.eql(forcedMinimumInterval);
@@ -2783,11 +2783,12 @@ module.exports = function (test) {
                             statusCodes.length.should.eql(1);
                             statusCodes[0].should.eql(StatusCodes.Good);
 
-                            session.read([{
-                                attributeId: 13,
+                            session.read({
+                                attributeId: opcua.AttributeIds.Value,
                                 nodeId: nodeId,
-                            }], function (err, a, result) {
-                                //xx console.log(" written ",result[0].value.toString());
+                            }, function (err, dataValue) {
+                                should.exist(dataValue);
+                                //xx console.log(" written ",dataValue.value.toString());
                                 callback(err);
                             });
 

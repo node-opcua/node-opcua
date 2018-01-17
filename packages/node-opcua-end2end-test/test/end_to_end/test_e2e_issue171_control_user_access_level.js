@@ -108,19 +108,17 @@ describe("testing Client-Server with UserName/Password identity token", function
         var client = new OPCUAClient();
 
         function read(session, callback) {
-            var nodesToRead = [
-                {
-                    nodeId: node1.nodeId.toString(),
-                    attributeId: opcua.AttributeIds.Value,
-                    indexRange: null,
-                    dataEncoding: null
-                }
-            ];
-            session.read(nodesToRead, function (err, r, results) {
+            var nodeToRead = {
+                nodeId: node1.nodeId.toString(),
+                attributeId: opcua.AttributeIds.Value,
+                indexRange: null,
+                dataEncoding: null
+            };
+            session.read(nodeToRead, function (err, dataValue) {
                 if (err) {
                     return callback(err);
                 }
-                callback(err, results[0].statusCode);
+                callback(err, dataValue.statusCode);
             });
         }
 

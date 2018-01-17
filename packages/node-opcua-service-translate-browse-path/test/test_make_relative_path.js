@@ -51,6 +51,17 @@ describe("makeRelativePath", function () {
             targetName: new QualifiedName({})
         }));
     });
+    it("T3 should construct simple RelativePath for '<!HasSubtype>' ", function () {
+        var relativePath = makeRelativePath("<!HasSubtype>");
+        relativePath.elements.length.should.eql(1);
+        relativePath.elements[0].should.eql(new RelativePathElement({
+            referenceTypeId: resolveNodeId("HasSubtype"),
+            isInverse: true,
+            includeSubtypes: true,
+            targetName: new QualifiedName({})
+        }));
+    });
+
 
     it("T4 should construct simple RelativePath for '<#HasChild>' ", function () {
         var relativePath = makeRelativePath("<#HasChild>");

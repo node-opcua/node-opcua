@@ -132,7 +132,7 @@ module.exports = function (test) {
                             attributeId: AttributeIds.Value
                         });
 
-                        the_session.read(nodesToRead, function (err, a, results) {
+                        the_session.read(nodesToRead, function (err, dataValues) {
 
                             if (err) {
                                 return callback(err);
@@ -141,9 +141,9 @@ module.exports = function (test) {
                             //xx console.log("-----------------------------------------------".bgWhite.red,err);
                             //xx console.log("results = ",results);
 
-                            results.length.should.eql(3);
-                            var currentMonitoredItemsCount =  results[0].value.value;
-                            var currentSubcriptionsCount   =  results[1].value.value;
+                            dataValues.length.should.eql(3);
+                            var currentMonitoredItemsCount =  dataValues[0].value.value;
+                            var currentSubcriptionsCount   =  dataValues[1].value.value;
 
                             debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
                             debugLog("currentSubcriptionsCount   = ", currentSubcriptionsCount);
@@ -151,10 +151,10 @@ module.exports = function (test) {
                             currentSubcriptionsCount.should.eql(1, "expecting one subscription ");
                             currentMonitoredItemsCount.should.eql(2);
 
-                            results[2].value.value.constructor.name.should.eql("SessionDiagnostics");
-                            results[2].value.value.sessionName.toString().should.eql("Session1");
+                            dataValues[2].value.value.constructor.name.should.eql("SessionDiagnostics");
+                            dataValues[2].value.value.sessionName.toString().should.eql("Session1");
 
-                            debugLog("diagnostic = ", results[2].value.toString());
+                            debugLog("diagnostic = ", dataValues[2].value.toString());
 
                             callback(err);
                         });

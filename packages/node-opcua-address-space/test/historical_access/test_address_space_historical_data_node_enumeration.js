@@ -3,8 +3,8 @@
 var should = require("should");
 var fs = require("fs");
 var async = require("async");
+var _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 var AddressSpace = require("../..").AddressSpace;
 var SessionContext = require("../..").SessionContext;
@@ -67,7 +67,6 @@ describe("Testing Historical Data Node", function () {
     });
 
 
-    var _ = require("underscore");
     it("should be easy to enumerate  UAVariable with History from a addressSpace",function() {
 
 

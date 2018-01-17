@@ -1,6 +1,5 @@
 var opcua = require("node-opcua");
 var path = require("path");
-var assert = require("node-opcua-assert");
 // Let's create an instance of OPCUAServer
 var server = new opcua.OPCUAServer({
     port: 26543, // the port of the listening socket of the server

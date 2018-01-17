@@ -198,7 +198,7 @@ module.exports = function (test) {
 
                 //xx alarm.shelvingState.maxTimeShelved.setValueFromSource({dataType: "Double",value: 100 });
 
-                // simulate a call tro timeshelved
+                // simulate a call to timeshelved
 
                 var timeShelvedDuration = 500; // 0.5 seconds
                 var shelvingTime = new Variant({dataType: DataType.Double, value: timeShelvedDuration });

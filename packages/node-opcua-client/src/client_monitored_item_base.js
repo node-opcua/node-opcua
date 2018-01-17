@@ -171,9 +171,9 @@ ClientMonitoredItemBase._toolbox_monitor = function (subscription, timestampsToR
 
         /* istanbul ignore next */
         if (err) {
-            console.log("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ".red, err.message);
-            console.log("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ".red, err);
-            console.log(createMonitorItemsRequest.toString());
+            //xx console.log("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ".red, err.message);
+            //xx  console.log("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ".red, err);
+            //xx  console.log(createMonitorItemsRequest.toString());
         } else {
             assert(response instanceof subscription_service.CreateMonitoredItemsResponse);
 

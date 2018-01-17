@@ -169,10 +169,10 @@ module.exports = function (test) {
                 function (callback) {
 
                     timerId = setInterval(function(){
-                        the_session.read([{nodeId: "ns=1;i=54"}],function(err){
+                        the_session.read({nodeId: "ns=1;i=54"},function(err,dataValue){
                         });
-
                     },500);
+
                     setTimeout(function() {
                         clearInterval(timerId);
                         callback();

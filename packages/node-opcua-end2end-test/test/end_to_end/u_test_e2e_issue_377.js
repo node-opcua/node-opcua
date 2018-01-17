@@ -44,14 +44,13 @@ module.exports = function (test) {
                     referenceTypeId: null,
                     browseDirection: opcua.BrowseDirection.Forward
                 };
-                session.browse(browseDesc, function (err, results) {
+                session.browse(browseDesc, function (err, browseResult) {
                     if (err) {
                         return callback(err);
                     }
-                    var nodeIds = results[0].references.map(function (a) {
+                    var nodeIds = browseResult.references.map(function (a) {
                         return a.nodeId;
                     });
-
                     nodeIds[nodeIds.length - 1].toString().should.eql("ns=0;s=1cf5e1fa-202a-2ab8-0440-c4fc2f22f2bf");
                     callback();
                 });

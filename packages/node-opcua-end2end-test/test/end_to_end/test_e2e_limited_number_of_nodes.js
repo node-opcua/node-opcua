@@ -112,12 +112,12 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             var n2 = opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
 
             var nodeId1 = opcua.makeNodeId(n1);
-            var nodesToRead = [
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value}
-            ];
-            session.read(nodesToRead, function (err, a, results) {
+
+            var nodeToRead ={nodeId: nodeId1, attributeId: opcua.AttributeIds.Value};
+
+            session.read(nodeToRead, function (err, dataValue) {
                 // console.log(results);
-                results[0].value.value.should.eql(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
+                dataValue.value.value.should.eql(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
                 done(err);
             });
 
@@ -154,7 +154,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             ];
             nodesToRead.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
 
-            session.read(nodesToRead, function (err, a, results) {
+            session.read(nodesToRead, function (err, dataValues) {
                 should.exist(err);
                 err.message.should.match(/BadTooManyOperations/);
                 done();
@@ -186,7 +186,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             browseRequest.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse);
 
-            session.browse(browseRequest, function (err, results) {
+            session.browse(browseRequest, function (err, browseResults) {
                 should.exist(err);
                 err.message.should.match(/BadTooManyOperations/);
                 done();

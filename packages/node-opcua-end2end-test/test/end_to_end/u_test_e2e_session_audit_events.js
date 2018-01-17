@@ -172,14 +172,13 @@ module.exports = function (test) {
                 },
                 // read auditing Flag
                 function(callback){
-                    var nodesToRead = [{
+                    var nodeToRead = {
                         nodeId: opcua.VariableIds.Server_Auditing,
                         attributeId: opcua.AttributeIds.Value
-                    }];
-                    auditing_session.read(nodesToRead,function(err,unused,dataValues){
-
+                    };
+                    auditing_session.read(nodeToRead,function(err, dataValue){
                         //xx console.log(" Auditing = ",dataValues[0].toString());
-                        isAuditing = dataValues[0].value.value;
+                        isAuditing = dataValue.value.value;
                         callback();
                     });
                 }

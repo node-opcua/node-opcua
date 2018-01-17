@@ -76,3 +76,5 @@ exports.isNullOrUndefined = isNullOrUndefined;
 
 
 exports.constructFilename = require("./src/construct_filename").constructFilename;
+
+exports.getFunctionParameterNames = require("./src/get_function_parameters_name").getFunctionParameterNames;

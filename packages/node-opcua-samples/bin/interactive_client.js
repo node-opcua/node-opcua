@@ -655,13 +655,14 @@ function process_line(line) {
         case "ra":
         case "readall":
             apply_on_valid_session(cmd, function (the_session, callback) {
-                nodes = [args[1]];
+                var node = args[1];
 
-                the_session.readAllAttributes(nodes, function (err, nodesToRead, dataValues/*,diagnosticInfos*/) {
+                the_session.readAllAttributes(node, function (err, result/*,diagnosticInfos*/) {
                     if (!err) {
                         save_history(function () {
                         });
-                        dump_dataValues(nodesToRead, dataValues);
+                        console.log(result);
+                        //xx dump_dataValues(nodesToRead, dataValues);
                     }
                     callback();
                 });

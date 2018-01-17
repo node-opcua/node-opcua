@@ -123,7 +123,7 @@ describe("testing AnalogItem on client side", function () {
 
             if (err) { return callback(err); }
 
-            result = result[0];
+
             if (result.statusCode !== StatusCodes.Good) {
                 return callback(null, null);
             }
@@ -159,16 +159,16 @@ describe("testing AnalogItem on client side", function () {
                 attributeId: AttributeIds.Value
             };
             console.log("propertyId = ", propertyId.toString());
-            g_session.read([nodeToRead], function (err, nodeToRead, results) {
+            g_session.read(nodeToRead, function (err, dataValue) {
                 if (err) {
                     return done(err);
                 }
-                var result = results[0];
-                //xx console.log("result = ",result.toString());
-                result.value.dataType.should.eql(DataType.ExtensionObject);
 
-                result.value.value.low.should.eql(100);
-                result.value.value.high.should.eql(200);
+                //xx console.log("result = ",result.toString());
+                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+
+                dataValue.value.value.low.should.eql(100);
+                dataValue.value.value.high.should.eql(200);
 
                 done(err);
             });

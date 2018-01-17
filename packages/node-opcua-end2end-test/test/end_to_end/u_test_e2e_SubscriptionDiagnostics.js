@@ -71,14 +71,13 @@ module.exports = function (test) {
                         function (callback) {
 
                             var subscriptionDiagnosticNodeId = result[1].targets[0].targetId;
-                            session.read([{
+                            session.read({
                                 nodeId: subscriptionDiagnosticNodeId,
                                 attributeId: opcua.AttributeIds.Value
-                            }], function (err, nodesToRead, results) {
+                            }, function (err, dataValue) {
 
                                 if(err) {return callback(err);}
 
-                                var dataValue = results[0];
                                 dataValue.statusCode.should.eql(StatusCodes.Good);
                                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                                 dataValue.value.arrayType.should.eql(VariantArrayType.Scalar);
@@ -94,13 +93,12 @@ module.exports = function (test) {
 
                             // reading SubscriptionDiagnosticsArray should return an array of extension object
                             var subscriptionDiagnosticArrayNodeId = result[0].targets[0].targetId;
-                            session.read([{
+                            session.read({
                                 nodeId: subscriptionDiagnosticArrayNodeId,
                                 attributeId: opcua.AttributeIds.Value
-                            }], function (err, nodesToRead, results) {
+                            }, function (err,dataValue) {
                                 if(err) {return callback(err);}
 
-                                var dataValue = results[0];
                                 dataValue.statusCode.should.eql(StatusCodes.Good);
                                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                                 dataValue.value.arrayType.should.eql(VariantArrayType.Array);
@@ -137,13 +135,13 @@ module.exports = function (test) {
 
         function  readSubscriptionDiagnosticArray(session,callback) {
             var subscriptionDiagnosticArrayNodeId = "ns=0;i=2290";
-            session.read([{
+            session.read({
                 nodeId: subscriptionDiagnosticArrayNodeId,
                 attributeId: opcua.AttributeIds.Value
-            }], function (err, nodesToRead, results) {
+            }, function (err, dataValue) {
                 if (err) {return callback(err);}
-                results[0].statusCode.should.eql(StatusCodes.Good);
-                callback(null,results[0].value.value);
+                dataValue.statusCode.should.eql(StatusCodes.Good);
+                callback(null,dataValue.value.value);
             });
 
         }

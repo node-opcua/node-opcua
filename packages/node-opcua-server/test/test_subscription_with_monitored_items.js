@@ -807,7 +807,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 monitoredItem.samplingFunc = sinon.spy(function (oldValue, callback) {
                     assert(monitoredItem.node);
                     var dataValue = monitoredItem.node.readAttribute(monitoredItem.attributeId);
-                    console.log(" dataValue ",dataValue.toString());
+                    //xx console.log("dataValue ",dataValue.toString());
                     callback(null, dataValue);
                 });
 

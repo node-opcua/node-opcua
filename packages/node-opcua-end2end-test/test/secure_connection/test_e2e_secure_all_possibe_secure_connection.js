@@ -46,6 +46,7 @@ var no_reconnect_connectivity_strategy = {
     randomisationFactor: 0
 };
 
+var parallel = require('mocha.parallel');
 
 function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
@@ -434,6 +435,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("ZZA- testing Secure Client-Server communication", function () {
 
     this.timeout(Math.max(this._timeout, 20001));
@@ -778,7 +780,6 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
     });
 });
-
 
 describe("ZZE- testing with various client certificates", function () {
 

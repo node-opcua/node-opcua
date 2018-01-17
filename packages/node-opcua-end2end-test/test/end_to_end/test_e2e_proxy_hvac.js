@@ -149,29 +149,29 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
-                        console.log("currentTime = ",dataValue.toString());
-                        callback();
+                        //xx console.log("currentTime = ",dataValue.toString());
+                        callback(err);
                     });
                 },
                 function (callback) {
 
                     serverObject.serverArray.readValue(function(err,dataValue){
-                        console.log("ServerArray = ",dataValue.toString());
-                        callback();
+                        //xx console.log("ServerArray = ",dataValue.toString());
+                        callback(err);
                     });
                 },
                 function (callback) {
 
                     serverObject.serverStatus.readValue(function(err,dataValue){
-                        console.log("serverStatus = ",dataValue.toString());
-                        callback();
+                        //xx console.log("serverStatus = ",dataValue.toString());
+                        callback(err);
                     });
                 },
                 function (callback) {
 
                     serverObject.serverStatus.buildInfo.readValue(function(err,dataValue){
-                        console.log("serverStatus = ",dataValue.toString());
-                        callback();
+                        //xx console.log("serverStatus = ",dataValue.toString());
+                        callback(err);
                     });
                 },
 
@@ -182,18 +182,18 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
-                        console.log("currentTime = ",dataValue.toString());
-                        callback();
+                        //xx console.log("currentTime = ",dataValue.toString());
+                        callback(err);
                     });
                 },
 
                 function (callback) {
 
                     // now call getMonitoredItems
-                    console.log(" SubscriptionID= ", subscriptionId);
+                    //xx console.log(" SubscriptionID= ", subscriptionId);
 
                     serverObject.getMonitoredItems({subscriptionId: subscriptionId }, function (err, outputArgs) {
-                        console.log("err = ", err);
+                        //xx console.log("err = ", err);
                         if (!err && outputArgs){
                             console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
                             console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
@@ -259,7 +259,7 @@ describe("testing client Proxy", function () {
 
                     hvac.interiorTemperature.readValue(function (err, value) {
                         console.log(" reading Interior temperature, got = ...", value.toString());
-                        callback();
+                        callback(err);
                     });
                 },
 

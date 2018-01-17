@@ -79,7 +79,7 @@ module.exports = function (test) {
                     results[0].value.value.name.should.eql("CurrentTime");
                     results[1].value.value.should.eql(2);
 
-                    console.log(" dataValue = ", results[1].toString());
+                    //xx console.log("dataValue = ", results[1].toString());
                     inner_done();
                 });
             }, done);

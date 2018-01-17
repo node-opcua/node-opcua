@@ -14,7 +14,7 @@ var StatusCodes = require("node-opcua").StatusCode;
 //        indexRange: null,
 //        dataEncoding: null
 //    });
-//    session.read(nodesToRead, function (err, unused, dataValues) {
+//    session.read(nodesToRead, function (err, dataValues) {
 //        // inspect(dataValues);
 //        // expected_value = dataValues[0].value.value[indexToFind];
 //        callback(err,dataValues);
@@ -60,9 +60,9 @@ function read_attribute(session,nodeId,attributeId,callback) {
         indexRange: null,
         dataEncoding: null
     });
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodesToRead, function (err, dataValues) {
 
-        check_expecting_no_error_and_one_datavalue_with_statusGood(err,dataValues," while reading " + nodeId.toString(),function(err,dataValues){
+        check_expecting_no_error_and_one_datavalue_with_statusGood(err, dataValues," while reading " + nodeId.toString(),function(err,dataValues){
 
             callback(err,dataValues[0]);
         });

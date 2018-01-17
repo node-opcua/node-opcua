@@ -153,9 +153,9 @@ the_session.close(function(err){
 ### browsing the root folder
 
 ```javascript
-the_session.browse("RootFolder", function(err,browse_result){
+the_session.browse("RootFolder", function(err,browseResult){
     if(!err) {
-        browse_result[0].references.forEach(function(reference) {
+        browseResult.references.forEach(function(reference) {
             console.log( reference.browseName.toString());
         });
     }
@@ -167,13 +167,12 @@ the_session.browse("RootFolder", function(err,browse_result){
 ### read a variable with read
 
 ```javascript
-var max_age = 0;
-var nodes_to_read = [
-   { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value } 
-];
-the_session.read(nodes_to_read, max_age, function(err,nodes_to_read,dataValues) {
+var maxAge = 0;
+var nodeToRead = { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value };
+
+the_session.read(nodeToRead, maxAge, function(err, dataValue) {
     if (!err) {
-        console.log(" free mem % = " , dataValues[0]);
+        console.log(" free mem % = " , dataValue.toString());
     }
     callback(err);
 });
