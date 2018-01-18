@@ -46,7 +46,6 @@ var no_reconnect_connectivity_strategy = {
     randomisationFactor: 0
 };
 
-var parallel = require('mocha.parallel');
 
 function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
