@@ -110,7 +110,7 @@ describe("testing Client - Umbrella ", function () {
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             var relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
             var browsePath = [
-                opcua.browse_service.makeBrowsePath("RootFolder", relativePath),
+                opcua.makeBrowsePath("RootFolder", relativePath),
             ];
 
             var sessionDiagnosticsSummaryNodeId;
