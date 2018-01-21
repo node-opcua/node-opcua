@@ -34,6 +34,7 @@ var call_service = require("node-opcua-service-call");
 var utils = require("node-opcua-utils");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+var helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 
 var getFunctionParameterNames = require("node-opcua-utils").getFunctionParameterNames;
 
@@ -321,6 +322,7 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
     });
 
 };
+
 
 /**
  * @method readHistoryValue
@@ -635,16 +637,19 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
     assert(_.isArray(nodesToRead));
     assert(_.isFunction(callback));
 
-    // the read method deprecation detection and warning
-    if (!(getFunctionParameterNames(callback)[1] === "dataValues" || getFunctionParameterNames(callback)[1] === "dataValue")) {
-        console.log("ERROR ClientSession#read  API has changed !!, please fix the client code".red);
-        console.log("replace ..:".red);
-        console.log("   session.read(nodesToRead,function(err,nodesToRead,results) {}".cyan);
-        console.log("with .... :".red);
-        console.log("   session.read(nodesToRead,function(err,dataValues) {}".cyan);
-        console.log("please make sure to refactor your code and check that he second argument of your callback function is named".yellow,"dataValues".cyan);
-        console.log("to make this exception disappear".yellow);
-        throw new Error("ERROR ClientSession#read  API has changed !!, please fix the client code");
+    if (helpAPIChange) {
+        // the read method deprecation detection and warning
+        if (!(getFunctionParameterNames(callback)[1] === "dataValues" || getFunctionParameterNames(callback)[1] === "dataValue")) {
+            console.log("ERROR ClientSession#read  API has changed !!, please fix the client code".red);
+            console.log("   replace ..:".red);
+            console.log("   session.read(nodesToRead,function(err,nodesToRead,results) {}".cyan);
+            console.log("   with .... :".red);
+            console.log("   session.read(nodesToRead,function(err,dataValues) {}".cyan);
+            console.log("");
+            console.log("please make sure to refactor your code and check that he second argument of your callback function is named".yellow,("dataValue" + (isArray?"s":"")).cyan);
+            console.log("to make this exception disappear".yellow);
+            throw new Error("ERROR ClientSession#read  API has changed !!, please fix the client code");
+        }
     }
 
     // coerce nodeIds
@@ -670,6 +675,7 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
 
     });
 };
+
 
 ClientSession.prototype.readDeprecated = function (nodesToRead, maxAge, callback) {
     assert(_.isArray(nodesToRead));
@@ -950,7 +956,7 @@ ClientSession.prototype.setPublishingMode = function (publishingEnabled, subscri
  *
  * @method translateBrowsePath
  * @async
- * @param browsePath {BrowsePath|Array<BrowsePathResult>}
+ * @param browsePath {BrowsePath|Array<BrowsePath>}
  * @param callback {Function}
  * @param callback.err {Error|null}
  * @param callback.response {BrowsePathResult|Array<BrowsePathResult>}
@@ -1457,3 +1463,31 @@ ClientSession.prototype.resumePublishEngine = function () {
 exports.ClientSession = ClientSession;
 
 
+
+var thenify = require("thenify");
+
+ClientSession.prototype.browse                = thenify.withCallback(ClientSession.prototype.browse);
+ClientSession.prototype.readVariableValue     = thenify.withCallback(ClientSession.prototype.readVariableValue);
+ClientSession.prototype.readHistoryValue      = thenify.withCallback(ClientSession.prototype.readHistoryValue);
+ClientSession.prototype.write                 = thenify.withCallback(ClientSession.prototype.write);
+ClientSession.prototype.writeSingleNode       = thenify.withCallback(ClientSession.prototype.writeSingleNode);
+ClientSession.prototype.readAllAttributes     = thenify.withCallback(ClientSession.prototype.readAllAttributes);
+ClientSession.prototype.read                  = thenify.withCallback(ClientSession.prototype.read);
+ClientSession.prototype.createSubscription    = thenify.withCallback(ClientSession.prototype.createSubscription);
+ClientSession.prototype.deleteSubscriptions   = thenify.withCallback(ClientSession.prototype.deleteSubscriptions);
+ClientSession.prototype.transferSubscriptions = thenify.withCallback(ClientSession.prototype.transferSubscriptions);
+ClientSession.prototype.createMonitoredItems  = thenify.withCallback(ClientSession.prototype.createMonitoredItems);
+ClientSession.prototype.modifyMonitoredItems  = thenify.withCallback(ClientSession.prototype.modifyMonitoredItems);
+ClientSession.prototype.modifySubscription    = thenify.withCallback(ClientSession.prototype.modifySubscription);
+ClientSession.prototype.setMonitoringMode     = thenify.withCallback(ClientSession.prototype.setMonitoringMode);
+ClientSession.prototype.publish               = thenify.withCallback(ClientSession.prototype.publish);
+ClientSession.prototype.republish             = thenify.withCallback(ClientSession.prototype.republish);
+ClientSession.prototype.deleteMonitoredItems  = thenify.withCallback(ClientSession.prototype.deleteMonitoredItems);
+ClientSession.prototype.setPublishingMode     = thenify.withCallback(ClientSession.prototype.setPublishingMode);
+ClientSession.prototype.translateBrowsePath   = thenify.withCallback(ClientSession.prototype.translateBrowsePath);
+ClientSession.prototype.performMessageTransaction= thenify.withCallback(ClientSession.prototype.performMessageTransaction);
+ClientSession.prototype.close                 = thenify.withCallback(ClientSession.prototype.close);
+ClientSession.prototype.call                  = thenify.withCallback(ClientSession.prototype.call);
+ClientSession.prototype.getMonitoredItems     = thenify.withCallback(ClientSession.prototype.getMonitoredItems);
+ClientSession.prototype.getArgumentDefinition = thenify.withCallback(ClientSession.prototype.getArgumentDefinition);
+ClientSession.prototype.queryFirst            = thenify.withCallback(ClientSession.prototype.queryFirst);

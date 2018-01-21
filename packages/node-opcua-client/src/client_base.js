@@ -803,7 +803,7 @@ OPCUAClientBase.prototype._removeSession = function (session) {
  */
 OPCUAClientBase.prototype.disconnect = function (callback) {
 
-    assert(_.isFunction(callback));
+    assert(_.isFunction(callback),"expecting a callback function here");
 
     var self = this;
     if (self.isReconnecting) {

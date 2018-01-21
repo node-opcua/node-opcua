@@ -104,6 +104,7 @@
     "q": "^1.5.1",
     "set-prototype-of": "^1.0.0",
     "sprintf": "0.1.5",
+    "thenify": "^3.3.0",
     "treeify": "1.0.1",
     "underscore": "^1.8.3",
     "xml-writer": "^1.7.0",

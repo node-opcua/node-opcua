@@ -597,6 +597,8 @@ OPCUAClient.prototype.createSession = function (userIdentityInfo, callback) {
     });
 };
 
+
+
 OPCUAClient.prototype.changeSessionIdentity = function (session, userIdentityInfo, callback) {
 
     var self = this;
@@ -611,6 +613,7 @@ OPCUAClient.prototype.changeSessionIdentity = function (session, userIdentityInf
 
 
 };
+
 
 OPCUAClient.prototype._closeSession = function (session, deleteSubscriptions, callback) {
 
@@ -878,6 +881,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
 
 };
 
+
 OPCUAClient.prototype.toString = function () {
     OPCUAClientBase.prototype.toString.call(this);
     console.log("  requestedSessionTimeout....... ", this.requestedSessionTimeout);
@@ -897,9 +901,8 @@ exports.ClientSession = ClientSession;
  */
 OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback) {
 
-    assert(_.isFunction(inner_func));
-    assert(_.isFunction(callback));
-
+    assert(_.isFunction(inner_func),"expecting inner function");
+    assert(_.isFunction(callback),"expecting callback function");
 
     var client = this;
 
@@ -971,5 +974,97 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
         } else {
             return callback(the_error || err1);
         }
+    });
+};
+
+
+var thenify = require("thenify");
+OPCUAClient.prototype.connect = thenify.withCallback(OPCUAClient.prototype.connect);
+OPCUAClient.prototype.disconnect = thenify.withCallback(OPCUAClient.prototype.disconnect);
+OPCUAClient.prototype.createSession = thenify.withCallback(OPCUAClient.prototype.createSession);
+OPCUAClient.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClient.prototype.changeSessionIdentity);
+OPCUAClient.prototype.closeSession = thenify.withCallback(OPCUAClient.prototype.closeSession);
+
+//xx OPCUAClient.prototype.withSession2 = thenify(OPCUAClient.prototype.withSession);
+OPCUAClient.prototype.withSessionAsync = async function (endpointUrl,func) {
+
+    assert(_.isFunction(func));
+    assert(func.length === 1,"expecting a single argument in func");
+
+    try {
+        await this.connect(endpointUrl);
+        const session = await this.createSession({});
+
+        let result;
+        try {
+            result = await func(session);
+        }
+        catch (err) {
+
+            console.log(err);
+        }
+        await session.close();
+        await this.disconnect();
+        return result;
+    }
+    catch (err) {
+        throw err;
+    }
+    finally {
+    }
+};
+OPCUAClient.prototype.withSubscription = function (endpointUrl,subscriptionParameters,innerFunc,callback) {
+
+    assert(_.isFunction(innerFunc));
+    assert(_.isFunction(callback));
+
+    this.withSession(endpointUrl,function(session,done){
+        assert(_.isFunction(done));
+
+        const subscription =  new ClientSubscription(session,subscriptionParameters);
+
+        try {
+            innerFunc(session,subscription,function() {
+
+                console.log("terminate");
+                subscription.terminate(function(err) {
+                    done(err);
+                });
+            });
+
+        }
+        catch(err) {
+            console.log(err);
+            done(err);
+        }
+    },callback);
+};
+//xx OPCUAClient.prototype.withSubscription = thenify(OPCUAClient.prototype.withSubscription);
+
+var ClientSubscription = require("./client_subscription").ClientSubscription;
+OPCUAClient.prototype.withSubscriptionAsync = async function (endpointUrl,parameters,func) {
+    await this.withSessionAsync(endpointUrl,async function(session){
+        assert(session," session must exist");
+        const subscription =  new ClientSubscription(session,parameters);
+
+        subscription.on("started", function () {
+            //xx console.log("started subscription :", subscription.subscriptionId);
+            //xx console.log(" revised parameters ");
+            //xx console.log("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount," ( requested ", parameters.requestedMaxKeepAliveCount + ")");
+            //xx console.log("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
+            //xx console.log("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+            //xx console.log("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
+        }).on("internal_error", function (err) {
+            console.log(" received internal error", err.message);
+        }).on("keepalive", function () {
+
+
+        }).on("terminated", function (err) {
+            //xx console.log(" terminated");
+        });
+
+        await func(session,subscription);
+
+        await subscription.terminate();
     });
 };

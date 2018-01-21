@@ -41,6 +41,7 @@
   "node-opcua-utils": "^0.1.1-0",
   "node-opcua-variant": "^0.1.1-0",
   "once": "^1.4.0",
+  "thenify": "^3.3.0",
   "underscore": "^1.8.3"
  },
  "devDependencies": {

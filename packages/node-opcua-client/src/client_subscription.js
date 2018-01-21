@@ -559,7 +559,12 @@ ClientSubscription.prototype.monitor = function (itemToMonitor, requestedParamet
         if (err) {
             return done && done(err);
         }
-        monitoredItem._monitor(done);
+        monitoredItem._monitor(function(err){
+            if(err) {
+                return done && done(err);
+            }
+            done && done(err,monitoredItem);
+        });
     });
     return monitoredItem;
 };
@@ -587,7 +592,12 @@ ClientSubscription.prototype.monitorItems = function (itemsToMonitor, requestedP
         if (err) {
             return done && done(err);
         }
-        monitoredItemGroup._monitor(done);
+        monitoredItemGroup._monitor(function(err) {
+            if(err) {
+                return done && done(err);
+            }
+            done && done(err,monitoredItemGroup);
+        });
     });
     return monitoredItemGroup;
 };
@@ -636,7 +646,6 @@ ClientSubscription.prototype.monitorItems = function (itemsToMonitor, requestedP
 //     setImmediate(wait_for_subscription_and_monitor);
 //     return monitoredItem;
 // };
-
 
 ClientSubscription.prototype.isActive = function () {
     var self = this;
@@ -775,3 +784,11 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
 };
 
 exports.ClientSubscription = ClientSubscription;
+
+var thenify = require("thenify");
+
+ClientSubscription.prototype.setPublishingMode = thenify.withCallback(ClientSubscription.prototype.setPublishingMode);
+//xx ClientSubscription.prototype.monitor           = thenify.withCallback(ClientSubscription.prototype.monitor);
+//xx ClientSubscription.prototype.monitorItems      = thenify.withCallback(ClientSubscription.prototype.monitorItems);
+ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = thenify.withCallback(ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem);
+ClientSubscription.prototype.terminate = thenify.withCallback(ClientSubscription.prototype.terminate);
