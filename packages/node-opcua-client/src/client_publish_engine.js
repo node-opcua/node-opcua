@@ -100,7 +100,6 @@ ClientSidePublishEngine.prototype.send_publish_request = function () {
     if (self.nbPendingPublishRequests >= self.nbMaxPublishRequestsAcceptedByServer) {
         return;
     }
-    assert(self.subscriptionCount >0);
 
     if (self.session && !self.session.isChannelValid()) {
         // wait for channel  to be valid
