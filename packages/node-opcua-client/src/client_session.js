@@ -631,9 +631,7 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
     var isArray = _.isArray(nodesToRead);
     if (!isArray) {
         nodesToRead = [nodesToRead];
-
     }
-
     assert(_.isArray(nodesToRead));
     assert(_.isFunction(callback));
 
@@ -671,7 +669,9 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
         }
         assert(response instanceof read_service.ReadResponse);
 
-        return callback(null,isArray? response.results : response.results[0], isArray? response.diagnosticInfos:response.diagnosticInfos[0]);
+        const result =isArray? response.results : response.results[0];
+
+        return callback(null,result, isArray? response.diagnosticInfos:response.diagnosticInfos[0]);
 
     });
 };
@@ -1465,29 +1465,29 @@ exports.ClientSession = ClientSession;
 
 
 var thenify = require("thenify");
-
-ClientSession.prototype.browse                = thenify.withCallback(ClientSession.prototype.browse);
-ClientSession.prototype.readVariableValue     = thenify.withCallback(ClientSession.prototype.readVariableValue);
-ClientSession.prototype.readHistoryValue      = thenify.withCallback(ClientSession.prototype.readHistoryValue);
-ClientSession.prototype.write                 = thenify.withCallback(ClientSession.prototype.write);
-ClientSession.prototype.writeSingleNode       = thenify.withCallback(ClientSession.prototype.writeSingleNode);
-ClientSession.prototype.readAllAttributes     = thenify.withCallback(ClientSession.prototype.readAllAttributes);
-ClientSession.prototype.read                  = thenify.withCallback(ClientSession.prototype.read);
-ClientSession.prototype.createSubscription    = thenify.withCallback(ClientSession.prototype.createSubscription);
-ClientSession.prototype.deleteSubscriptions   = thenify.withCallback(ClientSession.prototype.deleteSubscriptions);
-ClientSession.prototype.transferSubscriptions = thenify.withCallback(ClientSession.prototype.transferSubscriptions);
-ClientSession.prototype.createMonitoredItems  = thenify.withCallback(ClientSession.prototype.createMonitoredItems);
-ClientSession.prototype.modifyMonitoredItems  = thenify.withCallback(ClientSession.prototype.modifyMonitoredItems);
-ClientSession.prototype.modifySubscription    = thenify.withCallback(ClientSession.prototype.modifySubscription);
-ClientSession.prototype.setMonitoringMode     = thenify.withCallback(ClientSession.prototype.setMonitoringMode);
-ClientSession.prototype.publish               = thenify.withCallback(ClientSession.prototype.publish);
-ClientSession.prototype.republish             = thenify.withCallback(ClientSession.prototype.republish);
-ClientSession.prototype.deleteMonitoredItems  = thenify.withCallback(ClientSession.prototype.deleteMonitoredItems);
-ClientSession.prototype.setPublishingMode     = thenify.withCallback(ClientSession.prototype.setPublishingMode);
-ClientSession.prototype.translateBrowsePath   = thenify.withCallback(ClientSession.prototype.translateBrowsePath);
-ClientSession.prototype.performMessageTransaction= thenify.withCallback(ClientSession.prototype.performMessageTransaction);
-ClientSession.prototype.close                 = thenify.withCallback(ClientSession.prototype.close);
-ClientSession.prototype.call                  = thenify.withCallback(ClientSession.prototype.call);
-ClientSession.prototype.getMonitoredItems     = thenify.withCallback(ClientSession.prototype.getMonitoredItems);
-ClientSession.prototype.getArgumentDefinition = thenify.withCallback(ClientSession.prototype.getArgumentDefinition);
-ClientSession.prototype.queryFirst            = thenify.withCallback(ClientSession.prototype.queryFirst);
+var opts = { multiArgs : false };
+ClientSession.prototype.browse                = thenify.withCallback(ClientSession.prototype.browse,opts);
+ClientSession.prototype.readVariableValue     = thenify.withCallback(ClientSession.prototype.readVariableValue,opts);
+ClientSession.prototype.readHistoryValue      = thenify.withCallback(ClientSession.prototype.readHistoryValue,opts);
+ClientSession.prototype.write                 = thenify.withCallback(ClientSession.prototype.write,opts);
+ClientSession.prototype.writeSingleNode       = thenify.withCallback(ClientSession.prototype.writeSingleNode,opts);
+ClientSession.prototype.readAllAttributes     = thenify.withCallback(ClientSession.prototype.readAllAttributes,opts);
+ClientSession.prototype.read                  = thenify.withCallback(ClientSession.prototype.read,opts);
+ClientSession.prototype.createSubscription    = thenify.withCallback(ClientSession.prototype.createSubscription,opts);
+ClientSession.prototype.deleteSubscriptions   = thenify.withCallback(ClientSession.prototype.deleteSubscriptions,opts);
+ClientSession.prototype.transferSubscriptions = thenify.withCallback(ClientSession.prototype.transferSubscriptions,opts);
+ClientSession.prototype.createMonitoredItems  = thenify.withCallback(ClientSession.prototype.createMonitoredItems,opts);
+ClientSession.prototype.modifyMonitoredItems  = thenify.withCallback(ClientSession.prototype.modifyMonitoredItems,opts);
+ClientSession.prototype.modifySubscription    = thenify.withCallback(ClientSession.prototype.modifySubscription,opts);
+ClientSession.prototype.setMonitoringMode     = thenify.withCallback(ClientSession.prototype.setMonitoringMode,opts);
+ClientSession.prototype.publish               = thenify.withCallback(ClientSession.prototype.publish,opts);
+ClientSession.prototype.republish             = thenify.withCallback(ClientSession.prototype.republish,opts);
+ClientSession.prototype.deleteMonitoredItems  = thenify.withCallback(ClientSession.prototype.deleteMonitoredItems,opts);
+ClientSession.prototype.setPublishingMode     = thenify.withCallback(ClientSession.prototype.setPublishingMode,opts);
+ClientSession.prototype.translateBrowsePath   = thenify.withCallback(ClientSession.prototype.translateBrowsePath,opts);
+ClientSession.prototype.performMessageTransaction= thenify.withCallback(ClientSession.prototype.performMessageTransaction,opts);
+ClientSession.prototype.close                 = thenify.withCallback(ClientSession.prototype.close,opts);
+ClientSession.prototype.call                  = thenify.withCallback(ClientSession.prototype.call,opts);
+ClientSession.prototype.getMonitoredItems     = thenify.withCallback(ClientSession.prototype.getMonitoredItems,opts);
+ClientSession.prototype.getArgumentDefinition = thenify.withCallback(ClientSession.prototype.getArgumentDefinition,opts);
+ClientSession.prototype.queryFirst            = thenify.withCallback(ClientSession.prototype.queryFirst,opts);

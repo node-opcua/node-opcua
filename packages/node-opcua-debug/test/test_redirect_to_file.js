@@ -46,7 +46,7 @@ describe("testing redirectToFile", function () {
         });
     }
 
-    it("should redirectToFile with a async function", function (done) {
+    it("should redirectToFile with a asynchronous function", function (done) {
 
 
         redirectToFile("redirectToFile_async.log", function (inner_done) {

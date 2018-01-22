@@ -27,9 +27,9 @@ var ApplicationType = endpoints_service.ApplicationType;
 var EndpointDescription = endpoints_service.EndpointDescription;
 var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var SecurityPolicy   = require("node-opcua-secure-channel").SecurityPolicy;
+var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 var getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
-var fromURI          = require("node-opcua-secure-channel").fromURI;
+var fromURI = require("node-opcua-secure-channel").fromURI;
 
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
 var UserNameIdentityToken = session_service.UserNameIdentityToken;
@@ -598,7 +598,6 @@ OPCUAClient.prototype.createSession = function (userIdentityInfo, callback) {
 };
 
 
-
 OPCUAClient.prototype.changeSessionIdentity = function (session, userIdentityInfo, callback) {
 
     var self = this;
@@ -901,8 +900,8 @@ exports.ClientSession = ClientSession;
  */
 OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback) {
 
-    assert(_.isFunction(inner_func),"expecting inner function");
-    assert(_.isFunction(callback),"expecting callback function");
+    assert(_.isFunction(inner_func), "expecting inner function");
+    assert(_.isFunction(callback), "expecting callback function");
 
     var client = this;
 
@@ -985,86 +984,37 @@ OPCUAClient.prototype.createSession = thenify.withCallback(OPCUAClient.prototype
 OPCUAClient.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClient.prototype.changeSessionIdentity);
 OPCUAClient.prototype.closeSession = thenify.withCallback(OPCUAClient.prototype.closeSession);
 
-//xx OPCUAClient.prototype.withSession2 = thenify(OPCUAClient.prototype.withSession);
-OPCUAClient.prototype.withSessionAsync = async function (endpointUrl,func) {
 
-    assert(_.isFunction(func));
-    assert(func.length === 1,"expecting a single argument in func");
-
-    try {
-        await this.connect(endpointUrl);
-        const session = await this.createSession({});
-
-        let result;
-        try {
-            result = await func(session);
-        }
-        catch (err) {
-
-            console.log(err);
-        }
-        await session.close();
-        await this.disconnect();
-        return result;
-    }
-    catch (err) {
-        throw err;
-    }
-    finally {
-    }
-};
-OPCUAClient.prototype.withSubscription = function (endpointUrl,subscriptionParameters,innerFunc,callback) {
+OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionParameters, innerFunc, callback) {
 
     assert(_.isFunction(innerFunc));
     assert(_.isFunction(callback));
 
-    this.withSession(endpointUrl,function(session,done){
+    this.withSession(endpointUrl, function (session, done) {
         assert(_.isFunction(done));
 
-        const subscription =  new ClientSubscription(session,subscriptionParameters);
+        const subscription = new ClientSubscription(session, subscriptionParameters);
 
         try {
-            innerFunc(session,subscription,function() {
+            innerFunc(session, subscription, function () {
 
                 console.log("terminate");
-                subscription.terminate(function(err) {
+                subscription.terminate(function (err) {
                     done(err);
                 });
             });
 
         }
-        catch(err) {
+        catch (err) {
             console.log(err);
             done(err);
         }
-    },callback);
+    }, callback);
 };
 //xx OPCUAClient.prototype.withSubscription = thenify(OPCUAClient.prototype.withSubscription);
+var nodeVersion = parseInt(process.version.match(/v([0-9]*)\./)[1]);
 
-var ClientSubscription = require("./client_subscription").ClientSubscription;
-OPCUAClient.prototype.withSubscriptionAsync = async function (endpointUrl,parameters,func) {
-    await this.withSessionAsync(endpointUrl,async function(session){
-        assert(session," session must exist");
-        const subscription =  new ClientSubscription(session,parameters);
+if (nodeVersion >= 8) {
+    require("./opcua_client_es2017_extensions");
+}
 
-        subscription.on("started", function () {
-            //xx console.log("started subscription :", subscription.subscriptionId);
-            //xx console.log(" revised parameters ");
-            //xx console.log("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount," ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-            //xx console.log("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
-            //xx console.log("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
-            //xx console.log("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
-        }).on("internal_error", function (err) {
-            console.log(" received internal error", err.message);
-        }).on("keepalive", function () {
-
-
-        }).on("terminated", function (err) {
-            //xx console.log(" terminated");
-        });
-
-        await func(session,subscription);
-
-        await subscription.terminate();
-    });
-};

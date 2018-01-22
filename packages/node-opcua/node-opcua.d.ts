@@ -116,8 +116,6 @@ export declare class OPCUAClientBase {
     performMessageTransaction(request: any,
         callback: ResponseCallback<any>): void;
 
-
-
     on(event: string, eventhandler: Function): void;
 }
 
@@ -176,7 +174,7 @@ export interface RelativePathElement
     targetName?: QualifiedName //the browse name of the target.
 }
 
-export interface BrowsePath {
+export class BrowsePath {
     startingNode: NodeId
     relativePath: {
         elements: Array<RelativePathElement>
@@ -260,6 +258,7 @@ export declare class ClientSession {
     translateBrowsePath(
         browsePaths: Array<BrowsePath>
     ): Promise<Array<BrowsePathResult>>;
+
 
     read(
         nodeToRead: CoercibleToReadValueId,
@@ -464,12 +463,13 @@ export interface VariantOpts {
     arrayType?: VariantArrayType;
     dimensions?: number[];
 }
+
 export declare class Variant {
     constructor(options: VariantOpts)
     dataType: DataType;
     value: any;
     arrayType: VariantArrayType;
-    dimensions: number[];
+    dimensions: null | number[];
 }
 
 declare interface DataValueOpts {
@@ -665,4 +665,4 @@ export declare class ClientSubscription {
 export declare function coerceNodeId(nodeId: any): NodeId;
 export declare function makeNodeId(nodeId: any): NodeId;
 export declare function resolveNodeId(id: NodeId | string): NodeId;
-export declare function makeBrowsePath(rootNode:NodeId,relativePath:string):any;
+export declare function makeBrowsePath(rootNode:NodeId,relativePath:string):BrowsePath;
