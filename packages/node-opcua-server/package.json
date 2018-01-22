@@ -59,7 +59,7 @@
   "node-opcua-test-helpers": "^0.1.1-0",
   "node-opcua-transport": "^0.1.1-0",
   "should": "13.2.1",
-  "sinon": "^4.1.5"
+  "sinon": "^4.2.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
