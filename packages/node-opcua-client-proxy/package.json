@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-client-proxy",
- "version": "0.1.1-0",
+ "version": "0.2.0",
  "description": "pure nodejs OPCUA SDK - module -client-proxy",
  "scripts": {
   "test": "mocha test"
@@ -8,16 +8,16 @@
  "main": "index.js",
  "dependencies": {
   "async": "^2.5.0",
-  "node-opcua-assert": "^0.1.1-0",
-  "node-opcua-client": "^0.1.1-0",
-  "node-opcua-constants": "^0.1.1-0",
-  "node-opcua-data-model": "^0.1.1-0",
-  "node-opcua-nodeid": "^0.1.1-0",
-  "node-opcua-service-call": "^0.1.1-0",
-  "node-opcua-service-read": "^0.1.1-0",
-  "node-opcua-status-code": "^0.1.1-0",
-  "node-opcua-utils": "^0.1.1-0",
-  "node-opcua-variant": "^0.1.1-0",
+  "node-opcua-assert": "^0.2.0",
+  "node-opcua-client": "^0.2.0",
+  "node-opcua-constants": "^0.2.0",
+  "node-opcua-data-model": "^0.2.0",
+  "node-opcua-nodeid": "^0.2.0",
+  "node-opcua-service-call": "^0.2.0",
+  "node-opcua-service-read": "^0.2.0",
+  "node-opcua-status-code": "^0.2.0",
+  "node-opcua-utils": "^0.2.0",
+  "node-opcua-variant": "^0.2.0",
   "underscore": "^1.8.3"
  },
  "author": "Etienne Rossignon",
