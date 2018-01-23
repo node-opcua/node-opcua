@@ -297,6 +297,8 @@ export declare class OPCUAClient extends OPCUAClientBase {
 
 
     // async with callback methods
+
+
     createSession(
         userIdentityInfo: UserIdentityInfo,
         callback: ResponseCallback<ClientSession>
@@ -341,8 +343,16 @@ export declare class OPCUAClient extends OPCUAClientBase {
 
 
     createSession(
-        callback: ResponseCallback<ClientSession>
-    ): void;
+        userIdentityInfo: UserIdentityInfo,
+    ): Promise<ClientSession>;
+
+    createSession(
+    ): Promise<ClientSession>;
+
+    closeSession(
+        session: ClientSession,
+        deleteSubscriptions: boolean
+    ): Promise<void>
 
 }
 
