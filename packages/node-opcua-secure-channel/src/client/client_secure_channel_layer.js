@@ -594,7 +594,7 @@ function _on_connection(transport, callback, err) {
  *
  * @method create
  * @async
- * @param endpoint_url {String}
+ * @param endpointUrl {String}
  * @param callback {Function}  the async callback function
  * @param callback.err {Error|null}
  *
@@ -621,7 +621,7 @@ function _on_connection(transport, callback, err) {
  *
  *    ```
  */
-ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
+ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
 
     assert(_.isFunction(callback));
     var self = this;
@@ -643,7 +643,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
                 }
                 self.receiverPublicKey = publicKey;
                 assert(!_.isUndefined(self.receiverPublicKey)); // make sure we wont go into infinite recursion calling create again.
-                self.create(endpoint_url, callback);
+                self.create(endpointUrl, callback);
             });
             return undefined;
         }
@@ -651,7 +651,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
     }
 
 
-    self.endpoint_url = endpoint_url;
+    self.endpointUrl = endpointUrl;
     var transport = new ClientTCP_transport();
     transport.timeout = self.transportTimeout;
     transport.protocolVersion = self.protocolVersion;
@@ -660,7 +660,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
     // -------------------------------------------------------------------------
     // Handle reconnection
     // --------------------------------------------------------------------------
-    var _establish_connection = function (transport, endpoint_url, callback) {
+    var _establish_connection = function (transport, endpointUrl, callback) {
 
 
         var last_err = null;
@@ -671,7 +671,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
                 return;
             }
 
-            transport.connect(endpoint_url, function (err) {
+            transport.connect(endpointUrl, function (err) {
 
                 // force Backoff to fail if err is not ECONNRESET or ECONNREFUSE
                 // this mean that the connection to the server has succeeded but for some reason
@@ -768,7 +768,7 @@ ClientSecureChannelLayer.prototype.create = function (endpoint_url, callback) {
 
     };
 
-    _establish_connection(transport, endpoint_url, _on_connection.bind(this, transport, callback));
+    _establish_connection(transport, endpointUrl, _on_connection.bind(this, transport, callback));
 
 };
 

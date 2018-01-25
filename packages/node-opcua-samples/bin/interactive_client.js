@@ -479,27 +479,27 @@ function process_line(line) {
             set_debug(flag);
             break;
         case "open":
-            var endpoint_url = args[1];
-            if (!endpoint_url.match(/^opc.tcp:\/\//)) {
-                endpoint_url = "opc.tcp://" + endpoint_url;
+            var endpointUrl = args[1];
+            if (!endpointUrl.match(/^opc.tcp:\/\//)) {
+                endpointUrl = "opc.tcp://" + endpointUrl;
             }
-            var p = opcua.parseEndpointUrl(endpoint_url);
+            var p = opcua.parseEndpointUrl(endpointUrl);
             var hostname = p.hostname;
             var port = p.port;
-            log(" open    url : ", endpoint_url);
+            log(" open    url : ", endpointUrl);
             log("    hostname : ", (hostname || "<null>").yellow);
             log("        port : ", port.toString().yellow);
 
             apply_command(cmd,function(callback) {
 
 
-                client.connect(endpoint_url, function (err) {
+                client.connect(endpointUrl, function (err) {
                     if (err) {
                         log("client connected err=", err);
                     } else {
                         log("client connected : ", "OK".green);
 
-                        add_endpoint_to_history(endpoint_url);
+                        add_endpoint_to_history(endpointUrl);
 
                         save_history(function () {
                         });

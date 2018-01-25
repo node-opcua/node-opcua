@@ -34,9 +34,9 @@ var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
 var decodeMessage = require("./tools").decodeMessage;
 
-function createClientSocket(endpoint_url) {
+function createClientSocket(endpointUrl) {
     // create a socket based on Url
-    var ep = parseEndpointUrl(endpoint_url);
+    var ep = parseEndpointUrl(endpointUrl);
     var port = ep.port;
     var hostname = ep.hostname;
     switch (ep.protocol) {
@@ -117,11 +117,11 @@ ClientTCP_transport.prototype.on_socket_ended = function(err) {
 /**
  * @method connect
  * @async
- * @param endpoint_url {String}
+ * @param endpointUrl {String}
  * @param callback {Function} the callback function
  * @param [options={}]
  */
-ClientTCP_transport.prototype.connect = function (endpoint_url, callback, options) {
+ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options) {
 
     assert(_.isFunction(callback));
 
@@ -132,19 +132,19 @@ ClientTCP_transport.prototype.connect = function (endpoint_url, callback, option
     self.protocolVersion = (options.protocolVersion !== undefined) ? options.protocolVersion : self.protocolVersion;
     assert(_.isFinite(self.protocolVersion));
 
-    var ep = parseEndpointUrl(endpoint_url);
+    var ep = parseEndpointUrl(endpointUrl);
 
     var hostname = require("os").hostname();
 
-    self.endpoint_url = endpoint_url;
+    self.endpointUrl = endpointUrl;
 
     self.serverUri = "urn:" + hostname + ":Sample";
 
-    debugLog("endpoint_url =", endpoint_url, "ep", ep);
+    debugLog("endpointUrl =", endpointUrl, "ep", ep);
 
 
     try {
-        self._socket = createClientSocket(endpoint_url);
+        self._socket = createClientSocket(endpointUrl);
     }
     catch (err) {
         return callback(err);
@@ -257,7 +257,7 @@ ClientTCP_transport.prototype._send_HELLO_request = function () {
     var self = this;
     assert(self._socket);
     assert(_.isFinite(self.protocolVersion));
-    assert(self.endpoint_url.length > 0, " expecting a valid endpoint url");
+    assert(self.endpointUrl.length > 0, " expecting a valid endpoint url");
 
     // Write a message to the socket as soon as the client is connected,
     // the server will receive it as message from the client
@@ -267,7 +267,7 @@ ClientTCP_transport.prototype._send_HELLO_request = function () {
         sendBufferSize:       1024 * 64 * 10,// 8196 min,
         maxMessageSize:       0, // 0 - no limits
         maxChunkCount:        0, // 0 - no limits
-        endpointUrl: self.endpoint_url
+        endpointUrl: self.endpointUrl
     });
 
     var messageChunk = packTcpMessage("HEL", request);

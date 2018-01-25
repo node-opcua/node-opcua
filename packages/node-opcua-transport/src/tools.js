@@ -55,14 +55,14 @@ function packTcpMessage(msgType, encodableObject) {
 }
 
 // opc.tcp://xleuri11022:51210/UA/SampleServer
-function parseEndpointUrl(endpoint_url) {
+function parseEndpointUrl(endpointUrl) {
 
     var r = /^([a-z.]*):\/\/([a-zA-Z\_\-\.\-0-9]*):([0-9]*)(\/.*){0,1}/;
 
-    var matches = r.exec(endpoint_url);
+    var matches = r.exec(endpointUrl);
 
     if(!matches) {
-        throw new Error("Invalid endpoint url ",endpoint_url);
+        throw new Error("Invalid endpoint url ",endpointUrl);
     }
     return {
         protocol: matches[1],

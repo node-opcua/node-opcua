@@ -122,7 +122,7 @@ OPCUAClient.prototype.__resolveEndPoint = function () {
 
     this.securityPolicy = this.securityPolicy || SecurityPolicy.None;
 
-    var endpoint = this.findEndpoint(this._secureChannel.endpoint_url, this.securityMode, this.securityPolicy);
+    var endpoint = this.findEndpoint(this._secureChannel.endpointUrl, this.securityMode, this.securityPolicy);
     this.endpoint = endpoint;
 
 
@@ -133,7 +133,7 @@ OPCUAClient.prototype.__resolveEndPoint = function () {
 
     if (!this.endpoint) {
         if (this.endpoint_must_exist) {
-            debugLog("OPCUAClient#endpoint_must_exist = true and endpoint with url ", this._secureChannel.endpoint_url, " cannot be found");
+            debugLog("OPCUAClient#endpoint_must_exist = true and endpoint with url ", this._secureChannel.endpointUrl, " cannot be found");
             return false;
         } else {
             // fallback :
@@ -157,10 +157,10 @@ OPCUAClient.prototype._createSession = function (callback) {
     assert(typeof callback === "function");
     assert(self._secureChannel);
     if (!self.__resolveEndPoint() || !self.endpoint) {
-        return callback(new Error(" End point must exist " + self._secureChannel.endpoint_url));
+        return callback(new Error(" End point must exist " + self._secureChannel.endpointUrl));
     }
     self.serverUri = self.endpoint.server.applicationUri;
-    self.endpoint_url = self._secureChannel.endpoint_url;
+    self.endpointUrl = self._secureChannel.endpointUrl;
 
     var session = new ClientSession(self);
     this.__createSession_step2(session, callback);
@@ -173,7 +173,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
     assert(typeof callback === "function");
     assert(self._secureChannel);
     assert(self.serverUri, " must have a valid server URI");
-    assert(self.endpoint_url, " must have a valid server endpoint_url");
+    assert(self.endpointUrl, " must have a valid server endpointUrl");
     assert(self.endpoint);
 
 
@@ -196,7 +196,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
     var request = new CreateSessionRequest({
         clientDescription: applicationDescription,
         serverUri: self.serverUri,
-        endpointUrl: self.endpoint_url,
+        endpointUrl: self.endpointUrl,
         sessionName: self._nextSessionName(),
         clientNonce: self.clientNonce,
         clientCertificate: self.getCertificate(),
@@ -513,7 +513,7 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
 
     // istanbul ignore next
     if (!this.__resolveEndPoint() || !this.endpoint) {
-        return callback(new Error(" End point must exist " + this._secureChannel.endpoint_url));
+        return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
     }
 
     assert(session._client.endpointUrl === self.endpointUrl, "cannot reactivateSession on a different endpoint");
@@ -884,8 +884,8 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
 OPCUAClient.prototype.toString = function () {
     OPCUAClientBase.prototype.toString.call(this);
     console.log("  requestedSessionTimeout....... ", this.requestedSessionTimeout);
-    console.log("  endpoint_url................... ", this.endpoint_url);
-    console.log("  serverUri...................... ", this.serverUri);
+    console.log("  endpointUrl................... ", this.endpointUrl);
+    console.log("  serverUri..................... ", this.serverUri);
 };
 
 exports.OPCUAClient = OPCUAClient;

@@ -526,15 +526,15 @@ function _install_secure_channel_event_handlers(self,secureChannel) {
  * connect the OPC-UA client to a server end point.
  * @method connect
  * @async
- * @param endpoint_url {string}
+ * @param endpointUrl {string}
  * @param callback {Function}
  */
-OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
+OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
 
     assert(_.isFunction(callback), "expecting a callback");
     var self = this;
 
-    self.endpointUrl = endpoint_url;
+    self.endpointUrl = endpointUrl;
 
     // prevent illegal call to connect
     if (self._secureChannel !== null) {
@@ -559,7 +559,7 @@ OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
         // if the certificate has been certified by an Certificate Authority we have to
         // verify that the certificates in the chain are valid and not revoked.
         //
-        return __findEndpoint(endpoint_url,this.securityMode,this.securityPolicy,function(err,endpoint){
+        return __findEndpoint(endpointUrl,this.securityMode,this.securityPolicy,function(err, endpoint){
             if (err) { return callback(err); }
             if (!endpoint) {
                 return callback(new Error("cannot find end point"));
@@ -568,12 +568,12 @@ OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
             _verify_serverCertificate(endpoint.serverCertificate,function(err) {
                 if (err) { return callback(err); }
                 self.serverCertificate = endpoint.serverCertificate;
-                return self.connect(endpoint_url,callback);
+                return self.connect(endpointUrl,callback);
             });
         });
     }
 
-    //todo: make sure endpoint_url exists in the list of endpoints send by the server
+    //todo: make sure endpointUrl exists in the list of endpoints send by the server
     // [...]
 
     // make sure callback will only be call once regardless of outcome, and will be also deferred.
@@ -662,7 +662,7 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
     }
     assert(_.isFunction(callback));
 
-    options.endpointUrl = options.endpointUrl || self.endpoint_url;
+    options.endpointUrl = options.endpointUrl || self.endpointUrl;
     options.localeIds = options.localeIds || [];
     options.profileUris = options.profileUris || [];
 
@@ -722,7 +722,7 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
     }
 
     var request = new FindServersRequest({
-        endpointUrl: options.endpointUrl || this.endpoint_url,
+        endpointUrl: options.endpointUrl || this.endpointUrl,
         localeIds: options.localeIds || [],
         serverUris: options.serverUris || []
     });

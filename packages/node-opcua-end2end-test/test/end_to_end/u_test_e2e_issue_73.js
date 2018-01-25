@@ -54,9 +54,9 @@ module.exports = function (test) {
             var sequenceNumbers = [];
             var messages = [];
 
-            function new_client_connect(endpoint_url, callback) {
+            function new_client_connect(endpointUrl, callback) {
                 var self = this;
-                old_client_connect.call(this, endpoint_url, function (err) {
+                old_client_connect.call(this, endpointUrl, function (err) {
 
 
                     self._secureChannel.messageBuilder.on("message", function (msg) {
