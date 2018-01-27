@@ -150,7 +150,7 @@ function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     var t = date.getTime(); // number of milliseconds since 1/1/70
 
     var bn_value = new BigNumber(t).plus(offset).times(factor);
-    var high = bn_value.div(0x100000000).floor();
+    var high = bn_value.div(0x100000000);
     var low = bn_value.mod(0x100000000);
     return [parseInt(high.toString(), 10), parseInt(low.toString(), 10)];
 }
