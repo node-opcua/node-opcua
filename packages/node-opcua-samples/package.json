@@ -25,7 +25,7 @@
   "sprintf": "^0.1.5",
   "treeify": "^1.0.1",
   "underscore": "^1.8.3",
-  "yargs": "^10.1.1"
+  "yargs": "^11.0.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

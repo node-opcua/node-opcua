@@ -12,7 +12,7 @@
  },
  "devDependencies": {
   "should": "13.2.1",
-  "sinon": "^4.2.0"
+  "sinon": "^4.2.2"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

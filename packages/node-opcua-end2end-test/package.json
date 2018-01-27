@@ -33,9 +33,9 @@
   "node-opcua-service-filter": "^0.2.0",
   "node-opcua-service-secure-channel": "^0.2.0",
   "should": "13.2.1",
-  "sinon": "^4.2.0",
+  "sinon": "^4.2.2",
   "underscore": "^1.8.3",
-  "yargs": "^10.1.1"
+  "yargs": "^11.0.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
