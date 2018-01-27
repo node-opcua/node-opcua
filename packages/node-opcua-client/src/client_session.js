@@ -1058,7 +1058,7 @@ ClientSession.prototype.close = function (deleteSubscription, callback) {
 };
 
 /**
- *
+ * @method hasBeenClosed
  * @return {Boolean}
  */
 ClientSession.prototype.hasBeenClosed = function () {
@@ -1188,8 +1188,8 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
 
 
 /**
- * extract the argument definition of a method
  * @method getArgumentDefinition
+ * extract the argument definition of a method
  * @param methodId {NodeId}
  * @param callback  {Function}
  * @param {Error|null} callback.err
@@ -1410,6 +1410,7 @@ function __findBasicDataType(session, dataTypeId, callback) {
 }
 
 /**
+ * @method getBuiltInDataType
  * retrieve the built-in DataType of a Variable, from its DataType attribute
  * useful to determine which DataType to use when constructing a Variant
  * @param nodeId {NodeId} the node id of the variable to query

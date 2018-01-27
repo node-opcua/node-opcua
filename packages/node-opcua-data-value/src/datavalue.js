@@ -210,7 +210,7 @@ exports.timestampHasChanged = timestampHasChanged;
 
 
 /**
- *
+ * @method sameDataValue
  * @param v1 {DataValue}
  * @param v2 {DataValue}
  * @param [timestampsToReturn {TimestampsToReturn}]

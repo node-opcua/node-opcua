@@ -718,8 +718,8 @@ function isGoodish(statusCode) {
 }
 
 /**
- *
- * @param dataValue {DataValue}
+ * @method _enqueue_value
+ * @param dataValue {DataValue} the dataValue to enquue
  * @private
  */
 MonitoredItem.prototype._enqueue_value = function (dataValue) {

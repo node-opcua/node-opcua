@@ -401,11 +401,13 @@ function readUAStructure(proxyManager, obj, callback) {
 
 
     /**
+     * @method add_method
      * construct a callable method
      *
      * @param obj
      * @param reference
      * @param callback
+     * @private
      */
     function add_method(obj, reference, callback) {
 
@@ -670,6 +672,7 @@ function readUAStructure(proxyManager, obj, callback) {
 }
 
 /**
+ * @method getObject
  *
  * @param proxyManager
  * @param nodeId
@@ -795,7 +798,7 @@ function getObject(proxyManager, nodeId, options, callback) {
 
 
 /**
- *
+ * @class UAProxyManager
  * @param session
  * @constructor
  */
@@ -811,7 +814,8 @@ function UAProxyManager(session) {
 
 
 /**
- *
+ * @class ClientSession
+ * @method createSubscription2
  * @param createSubscriptionRequest
  * @param callback
  * @param callback.err
@@ -837,6 +841,11 @@ ClientSession.prototype.createSubscription2 = function (createSubscriptionReques
     });
 };
 
+/**
+ * @class UAProxyManager
+ * @method start
+ * @param callback
+ */
 UAProxyManager.prototype.start = function (callback) {
     var self = this;
 
@@ -858,6 +867,10 @@ UAProxyManager.prototype.start = function (callback) {
     });
 };
 
+/**
+ * @method stop
+ * @param callback
+ */
 UAProxyManager.prototype.stop = function (callback) {
     var self = this;
     if (self.subscription) {
@@ -874,6 +887,12 @@ UAProxyManager.prototype.stop = function (callback) {
     }
 };
 
+/**
+ * @method getOBject
+ * @param nodeId
+ * @param callback
+ * @param options
+ */
 UAProxyManager.prototype.getObject = function (nodeId, callback, options) {
 
     var self = this;

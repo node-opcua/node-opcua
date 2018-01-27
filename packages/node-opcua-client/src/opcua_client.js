@@ -558,15 +558,14 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
  *
  *
  * @example :
- *
- *
  *     // create a anonymous session
- *     client.createSession(function(err) {
+ *     client.createSession(function(err,session) {
  *       if (err) {} else {}
  *     });
  *
+ * @example :
  *     // create a session with a userName and password
- *     client.createSession({userName: "JoeDoe", password:"secret"}, function(err) {
+ *     client.createSession({userName: "JoeDoe", password:"secret"}, function(err,session) {
  *       if (err) {} else {}
  *     });
  *
@@ -598,6 +597,13 @@ OPCUAClient.prototype.createSession = function (userIdentityInfo, callback) {
 };
 
 
+/**
+ * @method changeSessionIdentity
+ * @param session
+ * @param userIdentityInfo
+ * @param callback
+ * @async
+ */
 OPCUAClient.prototype.changeSessionIdentity = function (session, userIdentityInfo, callback) {
 
     var self = this;
@@ -978,10 +984,57 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
 
 
 var thenify = require("thenify");
+/**
+ * @method connect
+ * @param endpointUrl {string}
+ * @async
+ * @return {Promise}
+ */
 OPCUAClient.prototype.connect = thenify.withCallback(OPCUAClient.prototype.connect);
+/**
+ * @method disconnect
+ * disconnect client from server
+ * @return {Promise}
+ * @async
+ */
 OPCUAClient.prototype.disconnect = thenify.withCallback(OPCUAClient.prototype.disconnect);
+/**
+ * @method createSession
+ * @param [userIdentityInfo {Object} ] optional
+ * @param [userIdentityInfo.userName {String} ]
+ * @param [userIdentityInfo.password {String} ]
+ * @return {Promise}
+ * @async
+ *
+ * @example
+ *     // create a anonymous session
+ *     const session = await client.createSession();
+ *
+ * @example
+ *     // create a session with a userName and password
+ *     const userIdentityInfo  = { userName: "JoeDoe", password:"secret"};
+ *     const session = client.createSession(userIdentityInfo);
+ *
+ */
 OPCUAClient.prototype.createSession = thenify.withCallback(OPCUAClient.prototype.createSession);
+/**
+ * @method changeSessionIdentity
+ * @param session
+ * @param userIdentityInfo
+ * @return {Promise}
+ * @async
+ */
 OPCUAClient.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClient.prototype.changeSessionIdentity);
+/**
+ * @method closeSession
+ * @param session {ClientSession}
+ * @param deleteSubscriptions  {Boolean} - whether to delete
+ * @return {Promise}
+ * @async
+ * @example
+ *    const session  = await client.createSession();
+ *    await client.closeSession(session);
+ */
 OPCUAClient.prototype.closeSession = thenify.withCallback(OPCUAClient.prototype.closeSession);
 
 

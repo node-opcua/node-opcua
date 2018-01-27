@@ -373,17 +373,30 @@ OPCUAServer.prototype.__defineGetter__("currentSubscriptionCount", function () {
 });
 
 /**
+ * @property rejectedSessionCount
  * @type {number}
  */
 OPCUAServer.prototype.__defineGetter__("rejectedSessionCount", function () {
     return this.engine.rejectedSessionCount;
 });
+/**
+ * @property rejectedSessionCount
+ * @type {number}
+ */
 OPCUAServer.prototype.__defineGetter__("rejectedRequestsCount", function () {
     return this.engine.rejectedRequestsCount;
 });
+/**
+ * @property sessionAbortCount
+ * @type {number}
+ */
 OPCUAServer.prototype.__defineGetter__("sessionAbortCount", function () {
     return this.engine.sessionAbortCount;
 });
+/**
+ * @property publishingIntervalCount
+ * @type {number}
+ */
 OPCUAServer.prototype.__defineGetter__("publishingIntervalCount", function () {
     return this.engine.publishingIntervalCount;
 });
@@ -1517,7 +1530,7 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
 
 // browse services
 /**
- *
+ * @method _on_BrowseRequest
  * @param message
  * @param channel
  * @private
@@ -1581,7 +1594,7 @@ OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
 };
 
 /**
- *
+ * @method _on_BrowseNextRequest
  * @param message
  * @param channel
  * @private

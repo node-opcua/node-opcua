@@ -147,7 +147,7 @@ function getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId) {
 exports.getMethodDeclaration_ArgumentList = getMethodDeclaration_ArgumentList;
 
 /**
- *
+ * @method isArgumentValid
  * @param addressSpace  {AddressSpace}
  * @param argDefinition {Argument}
  * @param arg           {Variant}
@@ -200,7 +200,7 @@ function isArgumentValid(addressSpace,argDefinition, arg) {
 }
 
 /**
- *
+ * @method verifyArguments_ArgumentList
  * @param addressSpace {AddressSpace}
  * @param methodInputArguments {Argument[]}
  * @param inputArguments       {Variant[]}

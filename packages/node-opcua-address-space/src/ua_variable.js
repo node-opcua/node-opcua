@@ -314,7 +314,7 @@ UAVariable.prototype.nodeClass = NodeClass.Variable;
 
 /**
  *
- *
+ * @method isReadable
  * @param context  {SesionContext}
  * @return {boolean}
  */
@@ -325,7 +325,7 @@ UAVariable.prototype.isReadable = function (context) {
 
 /**
  *
- *
+ * @method isUserReadable
  * @param context  {SesionContext}
  * @return {boolean}
  */
@@ -340,7 +340,7 @@ UAVariable.prototype.isUserReadable = function (context) {
 };
 
 /**
- *
+ * @method isWritable
  *
  * @param context {SessionContext}
  * @return {boolean}
@@ -352,7 +352,7 @@ UAVariable.prototype.isWritable = function (context) {
 
 /**
  *
- *
+ * @method isUserWritable
  * @param context {SessionContext}
  * @return {boolean}
  */
@@ -703,8 +703,9 @@ function _apply_default_timestamps(dataValue) {
 }
 
 /**
- *
- * @note : this method is overridden in address-space-data-access
+ * @method isValueInRange
+ * note:
+ *     this method is overridden in address-space-data-access
  * @return {StatusCode}
  */
 UAVariable.prototype.isValueInRange = function () {
@@ -1109,6 +1110,7 @@ function bind_getter(self, options) {
 }
 
 /**
+ * @method touchValue
  * touch the source timestamp of a Variable and cascade up the change
  * to the parent variable if any.
  *
@@ -1485,6 +1487,7 @@ UAVariable.prototype.__defineGetter__("dataTypeObj", function () {
 });
 
 /**
+ * @method bindExtensionObject
  * @param  [optionalExtensionObject=null] {ExtensionObject}
  * @return {ExtensionObject}
  */

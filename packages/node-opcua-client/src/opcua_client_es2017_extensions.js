@@ -6,8 +6,10 @@ var _ = require("underscore");
 /**
  * @method withSessionAsync
  * @param endpointUrl
- * @param func
- * @returns {Promise<*>}
+ * @param func {Function}   Async function
+ * @param func.session {ClientSession}
+ *
+ * @return {Promise<*>}
  *
  *
  * Note: only present on node >= 8

@@ -67,6 +67,8 @@ var userManager = {
 };
 
 /**
+ * @method build_server_with_temperature_device
+ *
  * create and start a fake OPCUA Server that exposes a temperature set point variable.
  *
  *    the SetPoint temperature can be set on the server side by accessing the

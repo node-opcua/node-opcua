@@ -157,7 +157,7 @@ server.on("post_initialize", function () {
 
     var myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
 
-    /**
+    /*
      * variation 0:
      * ------------
      *
@@ -178,7 +178,7 @@ server.on("post_initialize", function () {
     }, 10);
 
 
-    /**
+    /*
      * variation 1:
      * ------------
      *
@@ -219,7 +219,7 @@ server.on("post_initialize", function () {
     });
 
 
-    /**
+    /*
      * variation 2:
      * ------------
      *
@@ -250,7 +250,7 @@ server.on("post_initialize", function () {
     });
 
 
-    /**
+    /*
      * variation 3:
      * ------------
      *

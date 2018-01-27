@@ -465,10 +465,10 @@ function extract_matrix_range(array, rowRange, colRange, dimension) {
 }
 
 /**
- *
+ * @method extract_values
  * @param array {Array<Any>}  flat array containing values
  * @param [dimensions = null ]{Array<Number>} dimension of the matrix if data is a matrix
- * @returns {*}
+ * @return {*}
  */
 NumericRange.prototype.extract_values = function (array, dimensions) {
 

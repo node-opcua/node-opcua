@@ -177,7 +177,10 @@ ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
 
 
 /**
+ * @method onClientSeen
  * required for watch dog
+ * @param currentTime {DateTime}
+ * @private
  */
 ServerSession.prototype.onClientSeen = function (currentTime) {
     var self = this;

@@ -277,8 +277,8 @@ UAAcknowledgeableConditionBase.prototype.autoConfirmBranch = function(branch,com
 
 /**
  * @method acknowledgeAndAutoConfirmBranch
- * @param branch
- * @param comment
+ * @param branch {ConditionSnapshot}
+ * @param comment {String|LocalizedText}
  */
 UAAcknowledgeableConditionBase.prototype.acknowledgeAndAutoConfirmBranch = function(branch,comment) {
 
@@ -288,13 +288,13 @@ UAAcknowledgeableConditionBase.prototype.acknowledgeAndAutoConfirmBranch = funct
     this._acknowledge_branch(eventId,comment,branch,"Server/Acknowledge");
     this.autoConfirmBranch(branch,comment);
 };
-/**
+
+/*
  *
- * StatusCodes :
+ * param inputArguments {Variant[]}
+ * param context        {Object}
+ * param callback       {Function}
  *
- * @param inputArguments {Variant[]}
- * @param context        {Object}
- * @param callback       {Function}
  * @private
  */
 function _confirm_method(inputArguments,context,callback) {

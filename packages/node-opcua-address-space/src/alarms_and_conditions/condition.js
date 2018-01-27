@@ -359,6 +359,7 @@ ConditionSnapshot.prototype.renewEventId = function () {
 };
 
 /**
+ * @method getEnabledState
  * @return {Boolean}
  */
 ConditionSnapshot.prototype.getEnabledState = function () {
@@ -366,14 +367,16 @@ ConditionSnapshot.prototype.getEnabledState = function () {
     return self._get_twoStateVariable("enabledState");
 };
 /**
- *
+ * @method setEnabledState
  * @param value {Boolean}
+ * @return void
  */
 ConditionSnapshot.prototype.setEnabledState = function (value) {
     var self = this;
     return self._set_twoStateVariable("enabledState",value);
 };
 /**
+ * @method getEnabledStateAsString
  * @return {String}
  */
 ConditionSnapshot.prototype.getEnabledStateAsString = function () {
@@ -382,6 +385,7 @@ ConditionSnapshot.prototype.getEnabledStateAsString = function () {
 };
 
 /**
+ * @method getComment
  * @return {LocalizedText}
  */
 ConditionSnapshot.prototype.getComment = function () {
@@ -417,6 +421,7 @@ ConditionSnapshot.prototype.setComment = function (txtMessage) {
 
 /**
  *
+ * @method setMessage
  * @param txtMessage {LocalizedText}
  */
 ConditionSnapshot.prototype.setMessage = function (txtMessage) {
@@ -427,7 +432,7 @@ ConditionSnapshot.prototype.setMessage = function (txtMessage) {
 };
 
 /**
- *
+ * @method setClientUserId
  * @param userIdentity {String}
  */
 ConditionSnapshot.prototype.setClientUserId = function (userIdentity) {
@@ -540,6 +545,7 @@ ConditionSnapshot.prototype.setSeverity = function (severity) {
 };
 
 /**
+ * @method getSeverity
  * @return {UInt16}
  */
 ConditionSnapshot.prototype.getSeverity = function () {
@@ -1004,7 +1010,8 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
 
 /**
  *
- * @param requestedEnabledState
+ * @method setEnabledState
+ * @param requestedEnabledState {Boolean}
  * @private
  */
 UAConditionBase.prototype.setEnabledState = function (requestedEnabledState) {

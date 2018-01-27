@@ -398,7 +398,7 @@ var createExtensionObjectDefinition = function (addressSpace) {
     //xx nodeset.SamplingIntervalDiagnostics = nodeset.SamplingIntervalDiagnostics || registerDataType(addressSpace,"SamplingIntervalDiagnostics",force);
     //xx nodeset.SessionSecurityDiagnostics = nodeset.SessionSecurityDiagnostics || registerDataType(addressSpace,"SessionSecurityDiagnostics",force);
 
-    /**
+    /*
      *  This Structured DataType defines the local time that may or may not take daylight saving time
      *  into account. Its elements are described in Table 24.
      *  Table 24 – TimeZoneDataType Definition

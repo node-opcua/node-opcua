@@ -36,7 +36,8 @@ function ResourceLeakDetector() {
 }
 
 /**
- *
+ * @method verify_registry_counts
+ * @private
  * @param info
  * @return {boolean}
  */

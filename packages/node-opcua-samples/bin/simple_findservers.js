@@ -1,10 +1,7 @@
-    #!/usr/bin/env node
+#!/usr/bin/env node
 "use strict";
+// this script queries the discovery server and display the discovery urls
 
-/**
- * this script queries the discovery server and display the discovery urls
- *
- */
 var opcua = require("node-opcua");
 
 var perform_findServersRequest = opcua.perform_findServersRequest;

@@ -53,7 +53,7 @@ function compare(obj_reloaded,obj) {
 
 
 /**
- *
+ * @method encode_decode_round_trip_test
  * @param obj {Object} : object to test ( the object must provide a binaryStoreSize,encode,decode method
  * @param [options]
  * @param callback_buffer

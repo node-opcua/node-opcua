@@ -2,7 +2,8 @@ var assert = require("node-opcua-assert");
 
 
 /**
- *
+ * @method makeOptionalsMap
+ * @param optionals
  * transform  optional into a map
  */
 

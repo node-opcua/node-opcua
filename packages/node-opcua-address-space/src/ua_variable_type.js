@@ -131,6 +131,7 @@ UAVariableType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAVariabl
 
 
 /**
+ * @class MandatoryChildOrRequestedOptionalFilter
  * return true if node is a mandatory child or a requested optional
  * @param instance
  * @param optionalsMap
@@ -148,6 +149,11 @@ function MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap) {
 
 }
 
+/**
+ * @method shouldKeep
+ * @param node   {BaseNode}
+ * @return {boolean}
+ */
 MandatoryChildOrRequestedOptionalFilter.prototype.shouldKeep = function(node)
 {
     var self = this;
@@ -187,6 +193,7 @@ MandatoryChildOrRequestedOptionalFilter.prototype.shouldKeep = function(node)
             return false; // ignored
     }
 };
+
 MandatoryChildOrRequestedOptionalFilter.prototype.filterFor = function(childinstance)
 {
     // construct
@@ -209,7 +216,7 @@ MandatoryChildOrRequestedOptionalFilter.prototype.filterFor = function(childinst
 /*
  * @function _get_parent_as_VariableOrObjectType
  * @param originalObject
- * @return {null|UABaseNode}
+ * @return {null|BaseNode}
  * @private
  */
 function _get_parent_as_VariableOrObjectType(originalObject) {
@@ -330,6 +337,7 @@ function _initialize_properties_and_components(instance,topMostType,typeNode,opt
 }
 
 /**
+ * @method hasChildWithBrowseName
  * returns true if the parent object has a child  with the provided browseName
  * @param parent
  * @param childBrowseName

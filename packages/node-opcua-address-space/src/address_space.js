@@ -1673,7 +1673,7 @@ AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, s
 };
 
 /**
- *
+ * @method createDataType
  * @param options
  * @param options.isAbstract
  * @param options.browseName {BrowseName}

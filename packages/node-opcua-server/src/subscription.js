@@ -1418,10 +1418,13 @@ Subscription.prototype.__defineGetter__("hasMonitoredItemNotifications", functio
 });
 
 /**
+ * @method extract_notifications_chunk
  * extract up to maxNotificationsPerPublish notifications
- * @param monitoredItems
- * @param maxNotificationsPerPublish
- * @return {Array}
+ * @param monitoredItems {Array<MonitoredItem>}
+ * @param maxNotificationsPerPublish {Number} the maximum number of notification to extract
+ * @return {Array<MonitoredItem>}
+ * @static
+ * @private
  */
 function extract_notifications_chunk(monitoredItems, maxNotificationsPerPublish) {
 

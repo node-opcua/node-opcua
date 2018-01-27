@@ -580,6 +580,15 @@ ServerSidePublishEngine.prototype.findLateSubscriptionsSortedByAge = function ()
     return late_subscriptions;
 };
 
+/**
+ * @method transferSubscription
+ *
+ * @param subscription
+ * @param destPublishEngine
+ * @param sendInitialValues {boolean} true if initial values should be sent
+ * @return {void}
+ * @private
+ */
 ServerSidePublishEngine.transferSubscription = function(subscription,destPublishEngine,sendInitialValues) {
 
     var self = this;
@@ -596,9 +605,11 @@ ServerSidePublishEngine.transferSubscription = function(subscription,destPublish
 };
 
 /**
- *
+ * @method transferSubscriptions
  * @param srcPublishEngine {ServerSidePublishEngine}
  * @param destPublishEngine {ServerSidePublishEngine}
+ * @return void
+ * @private
  * @static
  */
 ServerSidePublishEngine.transferSubscriptions = function(srcPublishEngine,destPublishEngine) {

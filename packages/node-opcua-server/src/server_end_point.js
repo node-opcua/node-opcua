@@ -166,6 +166,7 @@ function dumpChannelInfo(channels) {
 }
 
 /**
+ * @method _prevent_DOS_Attack
  * @async
  * @param self
  * @param establish_connection
@@ -683,7 +684,7 @@ OPCUAServerEndPoint.prototype.restoreConnection = function (callback) {
 };
 
 /**
- *
+ * @method shutdown_channel
  * @param channel
  * @param inner_callback
  */

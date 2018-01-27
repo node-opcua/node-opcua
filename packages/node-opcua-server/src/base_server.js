@@ -406,7 +406,9 @@ OPCUABaseServer.prototype.getChannels = function () {
 
 /**
  * set all the end point into a state where they do not accept further connections
- * @note this method is useful for testing purpose
+ *
+ * note:
+ *     this method is useful for testing purpose
  *
  * @method suspendEndPoints
  * @param callback {Function}
@@ -422,7 +424,8 @@ OPCUABaseServer.prototype.suspendEndPoints = function (callback) {
 };
 /**
  * set all the end point into a state where they do accept connections
- * @note this method is useful for testing purpose
+ * note:
+ *    this method is useful for testing purpose
  * @method resumeEndPoints
  * @param callback {Function}
  */

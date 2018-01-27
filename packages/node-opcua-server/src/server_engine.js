@@ -1470,8 +1470,9 @@ ServerEngine.prototype.deleteOrphanSubscription = function (subscription) {
 };
 
 var TransferResult = require("node-opcua-service-subscription").TransferResult;
+
 /**
- *
+ * @method transferSubscription
  * @param session           {ServerSession}
  * @param subscriptionId    {IntegerId}
  * @param sendInitialValues {Boolean}

@@ -112,7 +112,6 @@ require("net").createServer(function (socket) {
         try {
             socket.write(data);
         } catch (err) {
-            /**/
         }
     });
 

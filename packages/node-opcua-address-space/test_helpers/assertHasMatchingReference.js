@@ -7,7 +7,7 @@ var sameNodeId = require("node-opcua-nodeid").sameNodeId;
 /**
  * asserts that the provided reference exists in the node references
  *
- * @function assertHasMatchingReference
+ * @method assertHasMatchingReference
  *
  * @param node
  * @param reference (Reference}

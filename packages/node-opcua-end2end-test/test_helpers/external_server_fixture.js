@@ -17,7 +17,7 @@ function constructFilename(p) {
 }
 
 /**
- *
+ * @method start_simple_server
  * @param options
  * @param options.env
  * @param [options.server_sourcefile {String} ="./bin/simple_server"]

@@ -14,7 +14,7 @@ var _ = require("underscore");
 
 var UAVariable = require("../ua_variable").UAVariable;
 /**
- *
+ * @class UAMultiStateDiscreteType
  * @constructor
  */
 function UAMultiStateDiscreteType() {
@@ -26,6 +26,10 @@ UAMultiStateDiscreteType.prototype.getValue = function() {
     return this.readValue().value.value;
 };
 
+/**
+ * @method getValueAsString
+ * @return {String}
+ */
 UAMultiStateDiscreteType.prototype.getValueAsString = function() {
 
     var index = this.getValue();

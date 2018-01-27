@@ -572,7 +572,7 @@ ClientSubscription.prototype.monitor = function (itemToMonitor, requestedParamet
 
 var ClientMonitoredItemGroup = require("./client_monitored_item_group").ClientMonitoredItemGroup;
 /**
- *
+ * @method monitorItems
  * @param itemsToMonitor
  * @param requestedParameters
  * @param timestampsToReturn

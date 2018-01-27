@@ -14,7 +14,7 @@ function getUserName(userIdentityToken) {
 
 
 /**
- *
+ * @class SessionContext
  * @param options
  * @constructor
  */
@@ -26,6 +26,10 @@ function SessionContext(options) {
 }
 
 
+/**
+ * @method getCurrentUserRole
+ * @return {String}
+ */
 SessionContext.prototype.getCurrentUserRole = function () {
     var userIdentityToken = this.session.userIdentityToken;
     var username = getUserName(userIdentityToken);
@@ -42,6 +46,12 @@ SessionContext.prototype.getCurrentUserRole = function () {
     return this.session.userManager.getUserRole(username);
 };
 
+/**
+ * @method checkPermission
+ * @param node
+ * @param action
+ * @return {Boolean}
+ */
 SessionContext.prototype.checkPermission = function (node, action) {
 
     assert(action === "CurrentRead" || action === "CurrentWrite");
@@ -87,4 +97,5 @@ SessionContext.prototype.queryUserAccess = function (node) {
     // to do
 };
 exports.SessionContext = SessionContext;
+
 SessionContext.defaultContext = new SessionContext();

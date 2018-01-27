@@ -1,5 +1,6 @@
 "use strict";
-/**
+
+/*
  * class Node {
  *     { browseName: "string", nodeId: NodeId}
  * }

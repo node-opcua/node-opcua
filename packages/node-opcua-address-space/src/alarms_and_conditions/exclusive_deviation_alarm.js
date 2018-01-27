@@ -38,6 +38,7 @@ exports.UAExclusiveDeviationAlarm = UAExclusiveDeviationAlarm;
 
 /**
  *
+ * @method instantiate
  * @param addressSpace {AddressSpace}
  * @param type
  * @param options

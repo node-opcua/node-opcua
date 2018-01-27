@@ -310,7 +310,7 @@ function CacheNode(nodeId) {
      */
     this.browseName = pendingBrowseName;
     /**
-     * property references
+     * @property references
      * @type ReferenceDescription[]
      */
     this.references = [];
@@ -400,7 +400,7 @@ function dedup_reference(references) {
     return results;
 }
 /**
- *
+ * @method _process_single_browseResult
  * @param _objectToBrowse
  * @param browseResult {BrowseResult}
  * @private
@@ -577,6 +577,7 @@ NodeCrawler.prototype._resolve_deferred_browseNode = function (callback) {
 };
 
 /**
+ * @method _unshift_task
  * add a task on top of the queue (high priority)
  * @param name {string}
  * @param task
@@ -591,6 +592,7 @@ NodeCrawler.prototype._unshift_task = function (name, task) {
 };
 
 /**
+ * @method _push_task
  * add a task at the bottom of the queue (low priority)
  * @param name {string}
  * @param task
@@ -612,7 +614,7 @@ NodeCrawler.follow = function (crawler, cacheNode, userData) {
     }
 };
 /***
- *
+ * @method _emit_on_crawled
  * @param cacheNode
  * @param userData
  * @param [userData.onBrowsed=null] {Function}

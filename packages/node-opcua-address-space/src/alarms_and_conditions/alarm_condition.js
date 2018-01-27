@@ -479,10 +479,14 @@ UAAlarmConditionBase.prototype._onInputDataValueChange = function (newValue) {
     //xx console.log("class=",this.constructor.name,this.browseName.toString());
     //xx throw new Error("_onInputDataValueChange must be overridden");
 };
+
 /**
+ * @method _installInputNodeMonitoring
  * install mechanism that listen to input node datavalue changes so that alarm status
  * can be automatically updated appropriatly.
- * @protected  
+ * @param inputNode {BaseNode}
+ * @return {void}
+ * @protected
  */
 UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode) {
     var alarm = this;

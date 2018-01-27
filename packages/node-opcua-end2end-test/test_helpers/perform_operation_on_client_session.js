@@ -9,6 +9,8 @@ var ClientSubscription = opcua.ClientSubscription;
 var resolveNodeId = opcua.resolveNodeId;
 var AttributeIds = opcua.AttributeIds;
 /**
+ * @method perform_operation_on_client_session
+ *
  * simple wrapper that operates on a freshly created opcua session.
  * The wrapper:
  *   - connects to the server,
@@ -33,6 +35,8 @@ exports.perform_operation_on_client_session = perform_operation_on_client_sessio
 
 
 /**
+ * @method perform_operation_on_subscription
+ *
  *  simple wrapper that operates on a freshly created subscription.
  *
  *  - connects to the server,and create a session

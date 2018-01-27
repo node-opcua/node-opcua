@@ -124,7 +124,7 @@ ClientSession.prototype.addCommentCondition = function(conditionId,eventId,comme
 
 
 /**
- *
+ * @method findMethodId
  * @param nodeId
  * @param methodName
  * @param callback
@@ -220,6 +220,7 @@ ClientSession.prototype.confirmCondition = function(conditionId,eventId,comment,
 };
 
 /**
+ * @class ClientSession
  * @method acknowledgeCondition
  *
  * from Spec 1.03 Part 9 : page 27

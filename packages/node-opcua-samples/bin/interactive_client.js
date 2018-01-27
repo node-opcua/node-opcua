@@ -126,7 +126,7 @@ function w(str,width) {
     return (str + "                                                      ").substr(0,width);
 }
 /**
- *
+ * @method toDate
  * @param str
  *
  * @example

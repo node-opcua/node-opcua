@@ -133,7 +133,7 @@ function prepareDataType(dataType) {
 exports.prepareDataType = prepareDataType;
 
 /**
- *
+ * @method bindExtObjArrayNode
  * @param uaArrayVariableNode {UAVariable}
  * @param variableType        {DataType}
  * @param indexPropertyName   {String}

@@ -1,4 +1,4 @@
-/**
+/*
  *  This Structured DataType defines the local time that may or may not take daylight saving time
  *  into account. Its elements are described in Table 24.
  *  Table 24 – TimeZoneDataType Definition

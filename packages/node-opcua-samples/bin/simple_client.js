@@ -316,6 +316,7 @@ var makeNodeId = opcua.makeNodeId;
 var ObjectTypeIds = opcua.ObjectTypeIds;
 
 /**
+ * @method getAllEventType
  * getAllEventType recursively
  * @param callback
  */
