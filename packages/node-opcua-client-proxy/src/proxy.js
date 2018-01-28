@@ -939,7 +939,7 @@ UAProxyManager.prototype._monitor_value = function (proxyObject, callback) {
         attributeId: AttributeIds.Value
     };
     var monitoringParameters = { // MonitoringParameters
-        samplingInterval: 1000, /* event-based */
+        samplingInterval: 0, /* event-based */
         discardOldest: true,
         queueSize: 10
     };
