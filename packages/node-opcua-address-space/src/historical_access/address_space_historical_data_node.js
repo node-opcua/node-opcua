@@ -50,23 +50,45 @@ exports.install = function (AddressSpace) {
         return r;
     }
 
+
+    function _get_startOfOfflineArchive(node) {
+        return node.$historicalDataConfiguration.startOfArchive.readValue();
+    }
+    function _get_startOfArchive(node) {
+        return  node.$historicalDataConfiguration.startOfArchive.readValue();
+    }
+
     function _update_startOfOnlineArchive(newDate) {
         var node = this;
+
+        // The StartOfArchive Variable specifies the date before which there is no data in the archive either online or offline.
+        // The StartOfOnlineArchive Variable specifies the date of the earliest data in the online archive.
         node.$historicalDataConfiguration.startOfOnlineArchive.setValueFromSource({
             dataType: DataType.DateTime, value: newDate
         });
+
+        var startOfArchiveDataValue = _get_startOfOfflineArchive(node);
+        if (startOfArchiveDataValue.statusCode !== StatusCodes.Good || startOfArchiveDataValue.value.value.getTime() >= newDate.getTime()) {
+            node.$historicalDataConfiguration.startOfArchive.setValueFromSource({
+                dataType: DataType.DateTime, value: newDate
+            });
+        }
     }
 
     function _historyPush(newDataValue) {
 
         var node = this;
+
         node._timeline.push(newDataValue);
 
         var sourceTime = newDataValue.sourceTimestamp || new Date();
+        var sourcePicoSeconds = newDataValue.sourcePicoseconds || 0;
 
         // ensure that values are set with date increasing
         if (sourceTime.getTime() <= node.lastDate.getTime()) {
-            console.log("Warning date not increasing ".red, newDataValue.toString(), " last known date = ", node.lastDate);
+            if (!(sourceTime.getTime() === node.lastDate.getTime() && sourcePicoSeconds > node.lastDatePicoSeconds)) {
+                console.log("Warning date not increasing ".red, newDataValue.toString(), " last known date = ", node.lastDate);
+            }
         }
 
         node.lastDate = sourceTime;
@@ -79,6 +101,7 @@ exports.install = function (AddressSpace) {
                 node._timeline.shift();
             }
         }
+
         if (node._timeline.length >= node._maxOnlineValues || node._timeline.length === 1) {
             var first = node._timeline.first();
             _update_startOfOnlineArchive.call(node, first.sourceTimestamp);
@@ -111,7 +134,7 @@ exports.install = function (AddressSpace) {
     }
 
     /**
-     *
+     * @method installHistoricalDataNode
      * @param node      UAVariable
      * @param [options] {Object}
      * @param [options.maxOnlineValues = 1000]
@@ -152,7 +175,6 @@ exports.install = function (AddressSpace) {
         var historicalDataConfiguration = historicalDataConfigurationType.instantiate({
             browseName: "HA Configuration",
             optionals: optionals,
-            // TODO : historicalConfigurationOf: node
         });
 
         // All Historical Configuration Objects shall be referenced using the HasHistoricalConfiguration ReferenceType.
@@ -187,6 +209,41 @@ exports.install = function (AddressSpace) {
             dataType: DataType.DateTime,
             value: startOfOnlineArchive
         });
+
+        //TreatUncertainAsBad
+        // The TreatUncertainAsBad Variable indicates how the Server treats data returned with a
+        //    StatusCode severity Uncertain with respect to Aggregate calculations. A value of True indicates
+        // the Server considers the severity equivalent to Bad, a value of False indicates the Server
+        // considers the severity equivalent to Good, unless the Aggregate definition says otherwise. The
+        // default value is True. Note that the value is still treated as Uncertain when the StatusCode for
+        // the result is calculated.
+        historicalDataConfiguration.aggregateConfiguration.treatUncertainAsBad.setValueFromSource({dataType: "Boolean", value: true});
+
+        // The PercentDataBad Variable indicates the minimum percentage of Bad data in a given interval required for the
+        // StatusCode for the given interval for processed data request to be set to Bad.
+        // (Uncertain is treated as defined above.) Refer to 5.4.3 for details on using this Variable when assigning
+        // StatusCodes. For details on which Aggregates use the PercentDataBad Variable, see
+        // the definition of each Aggregate. The default value is 100.
+        historicalDataConfiguration.aggregateConfiguration.percentDataBad.setValueFromSource({dataType:"Byte",value:100});
+
+        // The PercentDataGood Variable indicates the minimum percentage of Good data in a given
+        // interval required for the StatusCode for the given interval for the processed data requests to be
+        // set to Good. Refer to 5.4.3 for details on using this Variable when assigning StatusCodes. For
+        // details on which Aggregates use the PercentDataGood Variable, see the definition of each
+        // Aggregate. The default value is 100.
+        historicalDataConfiguration.aggregateConfiguration.percentDataGood.setValueFromSource({dataType:"Byte",value:100});
+
+        //
+        // The PercentDataGood and PercentDataBad shall follow the following relationship
+        // PercentDataGood ≥ (100 – PercentDataBad). If they are equal the result of the
+        // PercentDataGood calculation is used. If the values entered for PercentDataGood and
+        //
+        // PercentDataBad do not result in a valid calculation (e.g. Bad = 80; Good = 0) the result will
+        // have a StatusCode of Bad_AggregateInvalidInputs The StatusCode
+        //
+        // Bad_AggregateInvalidInputs will be returned if the value of PercentDataGood or
+        // PercentDataBad exceed 100.
+
 
         node.$historicalDataConfiguration = historicalDataConfiguration;
 
