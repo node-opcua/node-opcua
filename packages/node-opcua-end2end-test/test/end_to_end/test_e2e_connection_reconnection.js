@@ -854,7 +854,7 @@ describe("testing ability for client to reconnect when server close connection",
             " expecting that new values have been received since last check : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
 
         if (values_to_check.length > 0) {
-            values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
+            values_to_check[values_to_check.length - 1].should.be.belowOrEqual(values_to_check[0] + values_to_check.length - 1);
         }
         previous_value_count = values_to_check.length;
         callback();
