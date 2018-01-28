@@ -236,6 +236,7 @@ ProxyBaseNode.prototype.readValue = function (callback) {
     });
 };
 
+
 /**
  * set the Value of the Variable, by using a WriteRequest
  * @method writeValue
@@ -845,6 +846,7 @@ ClientSession.prototype.createSubscription2 = function (createSubscriptionReques
  * @class UAProxyManager
  * @method start
  * @param callback
+ * @async
  */
 UAProxyManager.prototype.start = function (callback) {
     var self = this;
@@ -870,6 +872,7 @@ UAProxyManager.prototype.start = function (callback) {
 /**
  * @method stop
  * @param callback
+ * @async
  */
 UAProxyManager.prototype.stop = function (callback) {
     var self = this;
@@ -888,13 +891,14 @@ UAProxyManager.prototype.stop = function (callback) {
 };
 
 /**
- * @method getOBject
+ * @method getObject
  * @param nodeId
  * @param callback
- * @param options
+ * @async
  */
-UAProxyManager.prototype.getObject = function (nodeId, callback, options) {
+UAProxyManager.prototype.getObject = function (nodeId, callback) {
 
+    var options = {};
     var self = this;
 
     setImmediate(function () {
@@ -935,7 +939,7 @@ UAProxyManager.prototype._monitor_value = function (proxyObject, callback) {
         attributeId: AttributeIds.Value
     };
     var monitoringParameters = { // MonitoringParameters
-        samplingInterval: 0, /* event-based */
+        samplingInterval: 1000, /* event-based */
         discardOldest: true,
         queueSize: 10
     };
@@ -950,7 +954,7 @@ UAProxyManager.prototype._monitor_value = function (proxyObject, callback) {
     proxyObject.__monitoredItem.on("changed", function (dataValue) {
         proxyObject.dataValue = dataValue;
         proxyObject.emit("value_changed", dataValue);
-        // console.log("xxx Value Changed ".red,proxyObject.nodeId.toString() , proxyObject.browseName,proxyObject.dataValue.toString());
+        //xx console.log("xxx Value Changed ".red,proxyObject.nodeId.toString() , proxyObject.browseName,proxyObject.dataValue.toString());
     });
 
 };
@@ -992,3 +996,11 @@ UAProxyManager.prototype._monitor_execution_flag = function (proxyObject, callba
 };
 
 exports.UAProxyManager = UAProxyManager;
+
+var thenify = require("thenify");
+UAProxyManager.prototype.start = thenify.withCallback(UAProxyManager.prototype.start);
+UAProxyManager.prototype.stop = thenify.withCallback(UAProxyManager.prototype.stop);
+
+UAProxyManager.prototype.getObject = thenify.withCallback(UAProxyManager.prototype.getObject);
+ProxyBaseNode.prototype.readValue  = thenify.withCallback(ProxyBaseNode.prototype.readValue);
+ProxyBaseNode.prototype.writeValue = thenify.withCallback(ProxyBaseNode.prototype.writeValue);

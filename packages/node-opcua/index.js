@@ -165,3 +165,4 @@ module.exports.construct_demo_alarm_in_address_space = require("node-opcua-addre
 module.exports.createBoilerType = require("node-opcua-address-space/test_helpers/boiler_system").createBoilerType;
 module.exports.makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
 
+module.exports.UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;

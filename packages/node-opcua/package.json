@@ -11,6 +11,7 @@
   "node-opcua-assert": "^0.2.0",
   "node-opcua-client": "^0.2.0",
   "node-opcua-client-crawler": "^0.2.0",
+  "node-opcua-client-proxy": "^0.2.0",
   "node-opcua-common": "^0.2.0",
   "node-opcua-constants": "^0.2.0",
   "node-opcua-crypto": "0.0.16",
