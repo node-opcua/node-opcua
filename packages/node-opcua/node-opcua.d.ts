@@ -100,13 +100,19 @@ export declare class OPCUAClientBase {
     serverCertificate: Uint8Array | null;
 
     /**
-     *
+     * @method connect
      * connect the OPC-UA client to a server end point.
-     * @param options
-     * @param callback
+     *
+     * @param {string} endpointUrl
+     * @param {ErrorCallback} callback
      */
     connect(endpointUrl: string,
             callback: ErrorCallback): void;
+    /**
+     * @method connect
+     * @param {string} endpointUrl
+     * @return {Promise<void>}
+     */
     connect(endpointUrl: string): Promise<void>;
 
     disconnect(callback: ErrorCallback): void;
@@ -116,7 +122,14 @@ export declare class OPCUAClientBase {
     performMessageTransaction(request: any,
                               callback: ResponseCallback<any>): void;
 
-    on(event: string, eventhandler: Function): void;
+    /**
+     * @method on
+     * @param {string} event
+     * @param {Function} eventHandler
+     * @returns {OPCUAClientBase}
+     * @chainable
+     */
+    on(event: string, eventHandler: Function): OPCUAClientBase;
 }
 
 export interface BrowseResponse {
@@ -251,8 +264,8 @@ export declare class ClientSession {
     read(nodesToRead: Array<CoercibleToReadValueId>): Promise<Array<DataValue>>
 
 
-    close(callback: ErrorCallback):void;
-    close():Promise<void>;
+    close(callback: ErrorCallback): void;
+    close(): Promise<void>;
 
     // properties
     public sessionId: NodeId; // the session Id
@@ -266,7 +279,7 @@ export declare interface UAProxyBase {
     nodeClass: NodeClass
     typeDefinition: string | null
 
-    on(event: string, lambda: Function):void;
+    on(event: string, eventHandler: Function): UAProxyBase;
 }
 
 export declare interface UAProxyVariable extends UAProxyBase {
@@ -598,7 +611,7 @@ export declare class OPCUAServer {
     shutdown(timeout: number, callback: ResponseCallback<void>): void;
 
     // "postinitialize" , "session_closed", "create_session"
-    on(event: string, eventhandler: () => void): void;
+    on(event: string, eventHandler: Function): OPCUAServer;
 }
 
 export declare class ClientMonitoredItem {
@@ -606,7 +619,13 @@ export declare class ClientMonitoredItem {
     terminate(callback: ErrorCallback): void;
     terminate(): Promise<void>;
 
-    on(event: string, eventhandler: (v: Variant) => void): void;
+    /**
+     * @method on
+     * @param {string} event
+     * @param {Function} eventHandler
+     * @chainable
+     */
+    on(event: string, eventHandler: Function): ClientMonitoredItem;
 }
 
 export interface TimestampsToReturn {
@@ -672,11 +691,11 @@ export declare class ClientSubscription {
             requestedParameters: CoercibleToItemToMonitorRequestedParameters,
             timestampsToReturn?: number): Promise<ClientMonitoredItem>
 
-    on(event:string,eventHandler: Function): ClientSubscription
+    on(event: string, eventHandler: Function): ClientSubscription
 
-    terminate(callback: ErrorCallback):void;
+    terminate(callback: ErrorCallback): void;
 
-    terminate():Promise<void>
+    terminate(): Promise<void>
 
 }
 
