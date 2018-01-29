@@ -161,7 +161,7 @@ exports.UALimitAlarm = UALimitAlarm;
  * @return {UALimitAlarm}
  */
 UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
-    /* eslint max-instructions: 40000 */
+    /* eslint max-instructions: off */
     // must provide a inputNode
     //xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
     assert(options.hasOwnProperty("inputNode"), "UALimitAlarm.instantiate: options must provide the inputNode");

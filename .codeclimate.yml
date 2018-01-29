@@ -29,6 +29,7 @@ engines:
     enabled: false
   eslint:
     enabled: true
+    channel: "eslint-4"
   csslint:
     enabled: false
 
