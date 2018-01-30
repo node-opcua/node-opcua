@@ -151,15 +151,38 @@ BinaryStream.prototype.writeDouble = function (value) {
 };
 
 
-var my_memcpy = function my_memcpy(target, targetStart, source, sourceStart, sourceEnd) {
-    assert(target instanceof Buffer || target instanceof Uint8Array);
-    assert(source instanceof Buffer || source instanceof Uint8Array);
-    var l = targetStart;
-    for (var i = sourceStart; i < sourceEnd; i++) {
-        target[l++] = source[i];
+/**
+ * @method writeArrayBuffer
+ * @param arrayBuf {ArrayBuffer}
+ * @param offset   {Number}
+ * @param length   {Number}
+ */
+BinaryStream.prototype.writeArrayBuffer = function (arrayBuf, offset, length) {
+
+    offset = offset || 0;
+    assert(arrayBuf instanceof ArrayBuffer);
+    var byteArr = new Uint8Array(arrayBuf);
+    var n = (length || byteArr.length) + offset;
+    for (var i = offset; i < n; i++) {
+        this._buffer[this.length++] = byteArr[i];
     }
-    return sourceEnd - sourceStart;
 };
+
+/**
+ * @method readArrayBuffer
+ * @param length
+ * @returns {Uint8Array}
+ */
+BinaryStream.prototype.readArrayBuffer = function (length) {
+    assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
+    var slice = this._buffer.slice(this.length, this.length + length);
+    assert(slice.length === length);
+    var byteArr = new Uint8Array(slice);
+    assert(byteArr.length === length);
+    this.length += length;
+    return byteArr;
+}
+
 
 var displayWarnings = false;
 require("colors");
@@ -176,34 +199,46 @@ function display_memcpy_missing_message() {
 //
 // consider using https://github.com/dcodeIO/node-memcpy
 try {
+    var my_memcpy = function my_memcpy(target, targetStart, source, sourceStart, sourceEnd) {
+        //xx assert(target instanceof Buffer || target instanceof Uint8Array);
+        //xx assert(source instanceof Buffer || source instanceof Uint8Array);
+        var l = targetStart;
+        for (var i = sourceStart; i < sourceEnd; i++) {
+            target[l++] = source[i];
+        }
+        return sourceEnd - sourceStart;
+    };
+
     var memcpy = require("memcpy");      // C++ binding if available, else native JS
     my_memcpy = memcpy;
     console.log("Warning : using memcpy : OK".yellow);
+
+    BinaryStream.prototype.writeArrayBuffer = function (arrayBuf, offset, length) {
+
+        offset = offset || 0;
+
+        assert(arrayBuf instanceof ArrayBuffer);
+        var byteArr = new Uint8Array(arrayBuf);
+        length = length || byteArr.length;
+        if (length === 0) {
+            return;
+        }
+        this.length += my_memcpy(this._buffer, this.length, byteArr, offset, offset + length);
+    };
+
+    BinaryStream.prototype.readArrayBuffer = function (length) {
+        assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
+        var byteArr = new Uint8Array(new ArrayBuffer(length));
+        my_memcpy(byteArr, 0, this._buffer, this.length, this.length + length);
+        this.length += length;
+        return byteArr;
+    };
+
 }
 catch (err) {
     if (displayWarnings) { display_memcpy_missing_message();}
 }
 
-BinaryStream.prototype.writeArrayBuffer = function (arrayBuf, offset, length) {
-
-    offset = offset || 0;
-
-    assert(arrayBuf instanceof ArrayBuffer);
-    var byteArr = new Uint8Array(arrayBuf);
-    length = length || byteArr.length;
-    if (length === 0) {
-        return;
-    }
-    this.length += my_memcpy(this._buffer, this.length, byteArr, offset, offset + length);
-};
-
-BinaryStream.prototype.readArrayBuffer = function (length) {
-    assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
-    var byteArr = new Uint8Array(new ArrayBuffer(length));
-    my_memcpy(byteArr, 0, this._buffer, this.length, this.length + length);
-    this.length += length;
-    return byteArr;
-};
 /**
  * read a single signed byte  (8 bits) from the stream.
  * @method readByte
@@ -424,7 +459,7 @@ BinaryStreamSizeCalculator.prototype.writeDouble = function (value) {
 BinaryStreamSizeCalculator.prototype.writeArrayBuffer = function (arrayBuf, offset, byteLength) {
     offset = offset || 0;
     assert(arrayBuf instanceof ArrayBuffer);
-    this.length += (byteLength || new Uint8Array(arrayBuf).length);
+    this.length += (byteLength || arrayBuf.byteLength);
 };
 
 BinaryStreamSizeCalculator.prototype.writeByteStream = function (buf) {
@@ -433,7 +468,6 @@ BinaryStreamSizeCalculator.prototype.writeByteStream = function (buf) {
     } else {
         this.writeUInt32(buf.length);
         this.length += buf.length;
-
     }
 };
 BinaryStreamSizeCalculator.prototype.writeString = function (string) {
