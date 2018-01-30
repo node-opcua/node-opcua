@@ -13,7 +13,10 @@ var context = SessionContext.defaultContext;
 var generate_address_space = require("../..").generate_address_space;
 
 var nodesets = require("node-opcua-nodesets");
-
+var WriteValue = require("node-opcua-service-write").WriteValue;
+var AttributeIds = require("node-opcua-data-model").AttributeIds;
+var DataType = require("node-opcua-variant").DataType;
+var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var historizing_service = require("node-opcua-service-history");
 require("date-utils");
 
@@ -308,4 +311,94 @@ describe("Testing Historical Data Node", function () {
         ], done);
 
     });
+
+    it("#420 should be possible to set/unset historizing attribute ",function(done){
+
+        // unseting the historizing flag shall suspend value being collected
+
+        var node = addressSpace.addVariable({
+            browseName: "MyVar",
+            dataType: "Double",
+            componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
+        });
+        addressSpace.installHistoricalDataNode(node, {
+            maxOnlineValues: 10 // Only very few values !!!!
+        });
+        node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
+
+        var today = new Date();
+
+        node.setValueFromSource({dataType: "Double", value: 0}, StatusCodes.Good, date_add(today, {seconds: 0}));
+
+        async.series([
+
+            function turn_historizing_attribrute_to_false(callback) {
+                var v = new WriteValue({
+                    attributeId: AttributeIds.Historizing,
+                    value: {value: {dataType: DataType.Boolean, value: false}}
+                });
+                node.writeAttribute(context, v, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    node.historizing.should.eql(false);
+                    callback(err);
+                });
+            },
+            function  lets_inject_some_values(callback) {
+                node.setValueFromSource({dataType: "Double", value: 1}, StatusCodes.Good, date_add(today, {seconds: 1}));
+                node.setValueFromSource({dataType: "Double", value: 2}, StatusCodes.Good, date_add(today, {seconds: 2}));
+                node.setValueFromSource({dataType: "Double", value: 3}, StatusCodes.Good, date_add(today, {seconds: 3}));
+                setImmediate(callback);
+
+            },
+            function turn_historizing_attribrute_to_true(callback) {
+                var v = new WriteValue({
+                    attributeId: AttributeIds.Historizing,
+                    value: {value: {dataType: DataType.Boolean, value: true}}
+                });
+                node.writeAttribute(context, v, function (err, statusCode) {
+                    statusCode.should.eql(StatusCodes.Good);
+                    node.historizing.should.eql(true);
+                    callback(err);
+                });
+            },
+            function  lets_inject_some_more_values(callback) {
+                node.setValueFromSource({dataType: "Double", value: 4}, StatusCodes.Good, date_add(today, {seconds: 4}));
+                node.setValueFromSource({dataType: "Double", value: 5}, StatusCodes.Good, date_add(today, {seconds: 5}));
+                node.setValueFromSource({dataType: "Double", value: 6}, StatusCodes.Good, date_add(today, {seconds: 6}));
+                setImmediate(callback);
+            },
+
+            function (callback) {
+
+                var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
+                    isReadModified: false,
+                    startTime: date_add(today, {seconds: -10}),
+                    endTime: date_add(today, {seconds: 10}),
+                    numValuesPerNode: 1000,
+                    returnBounds: true
+                });
+                var indexRange = null;
+                var dataEncoding = null;
+                var continuationPoint = null;
+
+
+                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+
+                    var dataValues = historyReadResult.historyData.dataValues;
+                    dataValues.length.should.eql(4);
+
+                    dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
+                    // no data recorded
+                    dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 4}));
+                    dataValues[2].sourceTimestamp.should.eql(date_add(today, {seconds: 5}));
+                    dataValues[3].sourceTimestamp.should.eql(date_add(today, {seconds: 6}));
+                    callback();
+                });
+
+            }
+
+        ],done);
+
+    });
+
 });

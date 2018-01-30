@@ -79,6 +79,13 @@ exports.install = function (AddressSpace) {
 
         var node = this;
 
+        assert(node.hasOwnProperty("historizing"),"expecting a historizing attribute on node");
+
+        if (!node.historizing) {
+            return; //
+        }
+        assert(node.historizing === true);
+
         node._timeline.push(newDataValue);
 
         var sourceTime = newDataValue.sourceTimestamp || new Date();

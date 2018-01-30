@@ -876,6 +876,21 @@ UAVariable.prototype.writeAttribute = function (context, writeValue, callback) {
         case AttributeIds.Value:
             this.writeValue(context, writeValue.value, writeValue.indexRange, callback);
             break;
+        case AttributeIds.Historizing:
+            if(!writeValue.value.value.dataType === DataType.Boolean) {
+                return callback(null, StatusCodes.BadNotSupported)
+            }
+            // if the uavariable has no historization in place reject
+            if (!this["hA Configuration"]) {
+                return callback(null, StatusCodes.BadNotSupported)
+            }
+            // check if user is allowed to do that !
+            // TODO
+
+            this.historizing = !!writeValue.value.value.value; // yes ! indeed !
+
+            return callback(null,StatusCodes.Good);
+            break;
         default:
             BaseNode.prototype.writeAttribute.call(this, context, writeValue, callback);
     }
