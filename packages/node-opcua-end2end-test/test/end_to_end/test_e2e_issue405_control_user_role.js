@@ -12,7 +12,16 @@ var perform_operation_on_client_session = require("../../test_helpers/perform_op
 
 
 var users = [
-    {username: "user1", password: "1", role: "operator"},
+    {
+        username: "user1",
+        password: "1",
+        role: "operator"
+    },
+    {
+        username: "user2",
+        password: "2",
+        role: "admin"
+    },
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
@@ -36,7 +45,7 @@ var userManager = {
             return x.username === username;
         });
         if (uIndex < 0) {
-            return "unknown";
+            return "guest"; // by default were guest! ( i.e anonymous)
         }
         var userRole = users[uIndex].role;
         return userRole;
@@ -71,16 +80,18 @@ describe("testing Client-Server with UserName/Password identity token", function
             server.userManager = userManager;
 
             var addressSpace = server.engine.addressSpace;
-            // create a variable that can only be read and written by admin
+
+            // create a variable that can  be read and written by admins
+            // and read/nowrite by operators
+            // and noRead/noWrite by guests
             node1 = addressSpace.addVariable({
                 browseName: "v1",
                 organizedBy: addressSpace.rootFolder.objects,
                 dataType: "Double",
                 value: {dataType: "Double", value: 3.14},
-
                 permissions: permissionType1
             });
-            // create a variable that can  be read and written by admin and read/nowrite by operator
+            //xx node1.permissions = permissionType1;
 
             done(err);
         });
@@ -102,22 +113,20 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("Operator user should be able to read but not to write V1 node value", function (done) {
 
-        var client = new OPCUAClient();
+        var client = new OPCUAClient({});
 
         function read(session, callback) {
-            var nodesToRead = [
-                {
-                    nodeId: node1.nodeId.toString(),
-                    attributeId: opcua.AttributeIds.Value,
-                    indexRange: null,
-                    dataEncoding: null
-                }
-            ];
-            session.read(nodesToRead, function (err, r, results) {
+            var nodeToRead = {
+                nodeId: node1.nodeId.toString(),
+                attributeId: opcua.AttributeIds.Value,
+                indexRange: null,
+                dataEncoding: null
+            };
+            session.read(nodeToRead, function (err,result) {
                 if (err) {
                     return callback(err);
                 }
-                callback(err, results[0].statusCode);
+                callback(err, result.statusCode);
             });
         }
 
@@ -125,20 +134,19 @@ describe("testing Client-Server with UserName/Password identity token", function
 
         function write(session, callback) {
             _the_value = _the_value + 1.12;
-            var nodesToWrite = [
-                {
-                    nodeId: node1.nodeId.toString(),
-                    attributeId: opcua.AttributeIds.Value,
-                    value: /*new DataValue(*/{
-                        value: {/* Variant */dataType: opcua.DataType.Double, value: _the_value}
-                    }
+
+            var nodeToWrite = {
+                nodeId: node1.nodeId.toString(),
+                attributeId: opcua.AttributeIds.Value,
+                value: /*new DataValue(*/{
+                    value: {/* Variant */dataType: opcua.DataType.Double, value: _the_value}
                 }
-            ];
-            session.write(nodesToWrite, function (err, results) {
+            };
+            session.write(nodeToWrite, function (err, statusCode) {
                 if (err) {
                     return callback(err);
                 }
-                callback(err, results[0]);
+                callback(err, statusCode);
             });
         }
 
@@ -146,6 +154,28 @@ describe("testing Client-Server with UserName/Password identity token", function
 
             async.series([
 
+                // ---------------------------------------------------------------------------------
+                // As anonymous user
+                // ---------------------------------------------------------------------------------
+                function (callback) {
+
+                    read(session, function (err, statusCode) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+                        callback();
+                    });
+                },
+                function (callback) {
+                    write(session, function (err, statusCode) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+                        callback();
+                    });
+                },
                 // ---------------------------------------------------------------------------------
                 // As operator user
                 // ---------------------------------------------------------------------------------
@@ -162,6 +192,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 },
 
                 function (callback) {
+
                     read(session, function (err, statusCode) {
                         if (err) {
                             return callback(err);
@@ -178,7 +209,77 @@ describe("testing Client-Server with UserName/Password identity token", function
                         statusCode.should.eql(StatusCodes.BadUserAccessDenied);
                         callback();
                     });
-                }
+                },
+
+                // ---------------------------------------------------------------------------------
+                // As admin user
+                // ---------------------------------------------------------------------------------
+                function (callback) {
+                    console.log("    impersonate user user2 on existing session (user2 is admin)");
+                    var userIdentity = {userName: "user2", password: "2"};
+                    client.changeSessionIdentity(session, userIdentity, function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback();
+                    });
+                },
+
+                function (callback) {
+
+                    read(session, function (err, statusCode) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        statusCode.should.eql(StatusCodes.Good);
+                        callback();
+                    });
+                },
+
+                function (callback) {
+                    write(session, function (err, statusCode) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        statusCode.should.eql(StatusCodes.Good);
+                        callback();
+                    });
+                },
+                // ---------------------------------------------------------------------------------
+                // Back as anonymous
+                // ---------------------------------------------------------------------------------
+                function (callback) {
+                    console.log("    impersonate anonymous user again");
+                    var userIdentity = {};
+
+                    client.changeSessionIdentity(session, userIdentity, function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback();
+                    });
+                },
+
+                function (callback) {
+
+                    read(session, function (err, statusCode) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+                        callback();
+                    });
+                },
+                function (callback) {
+                    write(session, function (err, statusCode) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+                        callback();
+                    });
+                },
+
             ], inner_done);
 
         }, done);

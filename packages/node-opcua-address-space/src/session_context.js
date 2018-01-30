@@ -16,6 +16,9 @@ function getUserName(userIdentityToken) {
 /**
  * @class SessionContext
  * @param options
+ * @param [options.session=null] {Session}
+ * @param [options.object=null] {Session}
+ * @param [options.server=null] {OPCUAServer}
  * @constructor
  */
 function SessionContext(options) {
@@ -31,7 +34,12 @@ function SessionContext(options) {
  * @return {String}
  */
 SessionContext.prototype.getCurrentUserRole = function () {
+
+    assert(this.session!=null,"expecting a session");
+    assert(this.server !=null,"expecting a server");
+
     var userIdentityToken = this.session.userIdentityToken;
+
     var username = getUserName(userIdentityToken);
 
     if (username === "anonymous") {
@@ -40,6 +48,7 @@ SessionContext.prototype.getCurrentUserRole = function () {
     if (!this.server || !this.server.userManager) {
         return "default";
     }
+
     if (!_.isFunction(this.server.userManager.getUserRole)) {
         return "default";
     }

@@ -1962,7 +1962,7 @@ OPCUAServer.prototype._on_CreateSubscriptionRequest = function (message, channel
 
         var subscription = session.createSubscription(request);
 
-        subscription.$context = context;
+        subscription.$session = session;
 
         subscription.on("monitoredItem", function (monitoredItem) {
             prepareMonitoredItem(context, addressSpace, monitoredItem);
