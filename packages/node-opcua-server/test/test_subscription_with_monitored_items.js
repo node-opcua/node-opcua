@@ -18,7 +18,7 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 var makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
 
 var DataType = require("node-opcua-variant").DataType;
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var Variant = require("node-opcua-variant").Variant;
 var VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
@@ -27,11 +27,12 @@ var AttributeIds = require("node-opcua-data-model").AttributeIds;
 var NodeId = require("node-opcua-nodeid").NodeId;
 var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-
+var MonitoredItem = require("../src/monitored_item").MonitoredItem;
 var encode_decode = require("node-opcua-basic-types");
 
 var SessionContext = require("node-opcua-address-space").SessionContext;
 var context = SessionContext.defaultContext;
+var MonitoringParameters = subscription_service.MonitoringParameters;
 
 
 var now = (new Date()).getTime();
@@ -47,15 +48,17 @@ var fake_publish_engine = {
         this.pendingPublishRequestCount -= 1;
         return true;
     },
-    on_close_subscription: function(/*subscription*/) {
+    on_close_subscription: function (/*subscription*/) {
 
     }
 };
 
 var dataSourceFrozen = false;
+
 function freeze_data_source() {
     dataSourceFrozen = true;
 }
+
 function unfreeze_data_source() {
     dataSourceFrozen = false;
 }
@@ -79,16 +82,17 @@ var server_engine = require("../src/server_engine");
 var add_eventGeneratorObject = require("node-opcua-address-space/test_helpers/add_event_generator_object").add_eventGeneratorObject;
 
 
-function simulate_client_adding_publish_request(publishEngine,callback) {
-    callback = callback || function(){};
+function simulate_client_adding_publish_request(publishEngine, callback) {
+    callback = callback || function () {
+    };
     var publishRequest = new subscription_service.PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
-var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
-describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("Subscriptions and MonitoredItems", function () {
 
-    this.timeout(Math.max(300000,this._timeout));
+    this.timeout(Math.max(300000, this._timeout));
 
     var addressSpace;
     var someVariableNode;
@@ -106,7 +110,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
             var node = addressSpace.addVariable({
-                organizedBy:"RootFolder",
+                organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: {dataType: DataType.UInt32, value: 0}
@@ -117,7 +121,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             function addVar(typeName, value) {
                 addressSpace.addVariable({
-                    organizedBy:"RootFolder",
+                    organizedBy: "RootFolder",
                     nodeId: "ns=100;s=Static_" + typeName,
                     browseName: "Static_" + typeName,
                     dataType: typeName,
@@ -146,7 +150,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             var namespaceIndex = 100;
 
             accessLevel_CurrentRead_NotUserNode = addressSpace.addVariable({
-                organizedBy:"RootFolder",
+                organizedBy: "RootFolder",
                 browseName: name,
                 description: {locale: "en", text: name},
                 nodeId: makeNodeId(name, namespaceIndex),
@@ -168,7 +172,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             function addAnalogItem(dataType) {
 
-                var name ="AnalogItem"+dataType;
+                var name = "AnalogItem" + dataType;
                 var nodeId = makeNodeId(name, namespaceIndex);
 
                 addressSpace.addAnalogDataItem({
@@ -191,6 +195,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 return nodeId;
 
             }
+
             analogItemNode = addAnalogItem("Double");
             done();
         });
@@ -341,7 +346,6 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         var publishEngine = new ServerSidePublishEngine();
 
 
-
         var subscription = new Subscription({
             publishingInterval: 500,
             maxKeepAliveCount: 20,
@@ -473,7 +477,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     });
 
 
-    function on_subscription(actionFunc,done) {
+    function on_subscription(actionFunc, done) {
 
         // see Err-03.js
         var subscription = new Subscription({
@@ -489,7 +493,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         try {
             actionFunc(subscription);
         }
-        catch(err) {
+        catch (err) {
             return done(err);
         }
         finally {
@@ -497,10 +501,11 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         }
         done();
     }
-    it("should return BadMonitoredItemFilterUnsupported if filter is DataChangeFilter PercentDeadBand and variable has no EURange",function(done){
+
+    it("should return BadMonitoredItemFilterUnsupported if filter is DataChangeFilter PercentDeadBand and variable has no EURange", function (done) {
 
         var not_a_analogItemNode = someVariableNode;
-        on_subscription(function(subscription){
+        on_subscription(function (subscription) {
             var monitoredItemCreateRequest1 = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: not_a_analogItemNode,
@@ -520,7 +525,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
             monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
-        },done);
+        }, done);
     });
 
     it("should return an error when filter is DataChangeFilter deadband is out of bound", function (done) {
@@ -544,7 +549,8 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
         }
-        on_subscription(function(subscription) {
+
+        on_subscription(function (subscription) {
 
             var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
             var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
@@ -558,13 +564,13 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             var monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
             monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
 
-        },done);
+        }, done);
 
     });
 
     it("should return BadFilterNotAllowed if a DataChangeFilter is specified on a non-Value Attribute monitored item", function (done) {
 
-        on_subscription(function(subscription) {
+        on_subscription(function (subscription) {
 
             function test_with_attributeId(attributeId, statusCode) {
                 var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
@@ -597,7 +603,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             test_with_attributeId(AttributeIds.Historizing).should.eql(StatusCodes.BadFilterNotAllowed);
             test_with_attributeId(AttributeIds.Value).should.eql(StatusCodes.Good);
 
-        },done);
+        }, done);
 
     });
 
@@ -607,14 +613,15 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         var publishEngine = new ServerSidePublishEngine({});
 
-        var _clientHandle=1;
+        var _clientHandle = 1;
 
-        function my_samplingFunc(oldData,callback) {
+        function my_samplingFunc(oldData, callback) {
             var self = this;
             //xx console.log(self.toString());
             var dataValue = addressSpace.findNode(self.node.nodeId).readAttribute(13);
-            callback(null,dataValue);
+            callback(null, dataValue);
         }
+
         function add_monitoredItem(subscription) {
 
             var nodeId = 'ns=100;s=Static_Float';
@@ -631,7 +638,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 }
             });
 
-            var n  = addressSpace.findNode('ns=100;s=Static_Float');
+            var n = addressSpace.findNode('ns=100;s=Static_Float');
             //xx console.log(n.toString());
 
             subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
@@ -641,9 +648,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         function perform_publish_transaction_and_check_subscriptionId(subscription) {
 
-            var pubFunc= sinon.spy();
+            var pubFunc = sinon.spy();
 
-            simulate_client_adding_publish_request(publishEngine,pubFunc);
+            simulate_client_adding_publish_request(publishEngine, pubFunc);
 
             test.clock.tick(subscription.publishingInterval);
 
@@ -673,7 +680,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         // we use a subscription with a small publishingInterval interval here
         var subscription1 = new Subscription({
             publishingInterval: 250,
-            maxKeepAliveCount:   10,
+            maxKeepAliveCount: 10,
             id: 10000,
             publishEngine: publishEngine
         });
@@ -696,7 +703,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         var subscription2 = new Subscription({
             id: 20000,
             publishingInterval: 1000,
-            maxKeepAliveCount:    20,
+            maxKeepAliveCount: 20,
             publishEngine: publishEngine
         });
         publishEngine.add_subscription(subscription2);
@@ -779,7 +786,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     });
 
-    describe("Access",function() {
+    describe("Access", function () {
 
 
         var subscription = null;
@@ -859,6 +866,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
+
             //xx monitoredItem.queue.length.should.eql(1);
 
             function simulate_publish_request_expected_statusCode(expectedStatusCode) {
@@ -876,7 +884,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
                 } else {
 
-                    notifs.length.should.eql(1," should have one pending notification");
+                    notifs.length.should.eql(1, " should have one pending notification");
                     notifs[0].value.statusCode.should.eql(expectedStatusCode);
 
                     //xx console.log(notifs[0].value.toString());
@@ -934,8 +942,8 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         var floatWritesPass = [6.4, 4.1, 8.4];
 
         var integer64Deadband = 2;
-        var integer64WritesFail = [ [0,8], [0,7], [0,10]];
-        var integer64WritesPass = [ [0,3], [0,6], [0,13]];
+        var integer64WritesFail = [[0, 8], [0, 7], [0, 10]];
+        var integer64WritesPass = [[0, 3], [0, 6], [0, 13]];
 
         /*
          Specify a filter using a deadband absolute.
@@ -952,12 +960,16 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             function simulate_nodevalue_change(currentValue) {
 
-                var v = new Variant({dataType: DataType[dataType], arrayType: VariantArrayType.Scalar, value: currentValue});
+                var v = new Variant({
+                    dataType: DataType[dataType],
+                    arrayType: VariantArrayType.Scalar,
+                    value: currentValue
+                });
 
                 test.clock.tick(1000);
 
                 node.setValueFromSource(v);
-                node.readValue().value.value.should.eql(currentValue,"value must have been recorded");
+                node.readValue().value.value.should.eql(currentValue, "value must have been recorded");
             }
 
             var notifs;
@@ -1010,9 +1022,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
                 } else {
 
-                    notifs.length.should.eql(1," should have one pending notification");
+                    notifs.length.should.eql(1, " should have one pending notification");
 
-                    expectedValue = encode_decode["coerce"+ dataType](expectedValue);
+                    expectedValue = encode_decode["coerce" + dataType](expectedValue);
 
 
                     // verify that value matches expected value
@@ -1050,14 +1062,14 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         }
 
 
-        ["SByte", "Int16" ,"Int32" , "Byte", "UInt16","UInt32"].forEach(function (dataType) {
+        ["SByte", "Int16", "Int32", "Byte", "UInt16", "UInt32"].forEach(function (dataType) {
 
             it("testing with " + dataType, function () {
                 test_deadband(dataType, integerDeadband, integerWritesPass, integerWritesFail);
             });
 
         });
-        ["Float","Double"].forEach(function (dataType) {
+        ["Float", "Double"].forEach(function (dataType) {
 
             it("testing with " + dataType, function () {
                 test_deadband(dataType, floatDeadband, floatWritesPass, floatWritesFail);
@@ -1074,11 +1086,11 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         });
 
 
-        it("ZZ0 testing with String and DeadBandFilter",function(done) {
+        it("ZZ0 testing with String and DeadBandFilter", function (done) {
 
             var nodeId = "ns=100;s=Static_LocalizedText";
 
-            var filter =  new subscription_service.DataChangeFilter({
+            var filter = new subscription_service.DataChangeFilter({
                 trigger: subscription_service.DataChangeTrigger.StatusValue,
                 deadbandType: subscription_service.DeadbandType.Absolute,
                 deadbandValue: 10.0
@@ -1110,7 +1122,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             // now modify monitoredItem setting a filter
-            var res = monitoredItem.modify(null,new subscription_service.MonitoringParameters({
+            var res = monitoredItem.modify(null, new subscription_service.MonitoringParameters({
                 samplingInterval: 0,
                 discardOldest: true,
                 queueSize: 1,
@@ -1126,7 +1138,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     });
 
 
-    describe("MonitoredItem should set SemanticChanged bit on statusCode when appropriate",function() {
+    describe("MonitoredItem should set SemanticChanged bit on statusCode when appropriate", function () {
 
 
         function changeEURange(analogItem, done) {
@@ -1151,10 +1163,138 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         }
     });
 
+    describe("matching minimumSamplingInterval", function () {
+
+        it("server should not allow monitoredItem sampling interval to be lesser than UAVariable minimumSampling interval", function (done) {
+
+
+
+            try {
+
+                addressSpace.rootFolder.someVariable.minimumSamplingInterval = 1000;
+                addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(1000);
+
+                var subscription = new Subscription({
+                    publishingInterval: 1000,
+                    maxKeepAliveCount: 20,
+                    publishEngine: fake_publish_engine
+                });
+                subscription.on("monitoredItem", function (monitoredItem) {
+                    monitoredItem.samplingFunc = install_spying_samplingFunc();
+                });
+                var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                    itemToMonitor: {nodeId: someVariableNode},
+                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                    requestedParameters: {
+                        clientHandle: 123,
+                        queueSize: 10,
+                        samplingInterval: 100
+                    }
+                });
+                monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(100, "Requesting a very small sampling interval");
+
+                var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+
+                var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+                monitoredItem.samplingInterval.should.eql(1000, "monitoredItem samplingInterval should match node minimumSamplingInterval");
+
+                // ---------------------------------------------------------------------------------------------------------
+                // Modifying sampling interval
+                // ---------------------------------------------------------------------------------------------------------
+
+                var timestampsToReturn = TimestampsToReturn.Both;
+                var requestedParameters = new MonitoringParameters({
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1000
+                });
+
+                var monitoredItemModifyResult = monitoredItem.modify(timestampsToReturn, requestedParameters);
+
+                monitoredItemModifyResult.revisedSamplingInterval.should.eql(1000);
+
+                monitoredItem.samplingInterval.should.eql(1000, "monitoredItem samplingInterval should match node minimumSamplingInterval");
+
+
+
+            }
+            catch (err) {
+                return done(err);
+            }
+            finally {
+                subscription.terminate();
+            }
+            done();
+
+        });
+        it("server should not allow monitoredItem sampling interval to be lesser than the MonitoredItem.minimumSamplingInterval limit (unless 0) ",function(done){
+            addressSpace.rootFolder.someVariable.minimumSamplingInterval = 20;
+            addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(20);
+            addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.be.lessThan(MonitoredItem.minimumSamplingInterval);
+
+
+            try {
+
+                var subscription = new Subscription({
+                    publishingInterval: 1000,
+                    maxKeepAliveCount: 20,
+                    publishEngine: fake_publish_engine
+                });
+
+                subscription.on("monitoredItem", function (monitoredItem) {
+                    monitoredItem.samplingFunc = install_spying_samplingFunc();
+                });
+
+                var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                    itemToMonitor: {nodeId: someVariableNode},
+                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                    requestedParameters: {
+                        clientHandle: 123,
+                        queueSize: 10,
+                        samplingInterval: 10
+                    }
+                });
+                monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(10, "Requesting a very small sampling interval");
+
+                var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+
+                var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+
+                monitoredItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval, "monitoredItem samplingInterval should match node minimumSamplingInterval");
+
+                // ---------------------------------------------------------------------------------------------------------
+                // Modifying sampling interval
+                // ---------------------------------------------------------------------------------------------------------
+
+                var timestampsToReturn = TimestampsToReturn.Both;
+                var requestedParameters = new MonitoringParameters({
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1000
+                });
+
+                var monitoredItemModifyResult = monitoredItem.modify(timestampsToReturn, requestedParameters);
+
+                monitoredItemModifyResult.revisedSamplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+
+                monitoredItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval, "monitoredItem samplingInterval should match node minimumSamplingInterval");
+
+
+            }
+            catch (err) {
+                return done(err);
+            }
+            finally {
+                subscription.terminate();
+            }
+            done();
+
+        })
+    });
 });
-
-
-
 
 describe("monitoredItem advanced", function () {
 
@@ -1169,17 +1309,18 @@ describe("monitoredItem advanced", function () {
 
             addressSpace = engine.addressSpace;
 
+
             var node = addressSpace.addVariable({
-                organizedBy:"RootFolder",
+                organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: {dataType: DataType.UInt32, value: 0}
             });
             someVariableNode = node.nodeId;
 
-            add_eventGeneratorObject(engine.addressSpace,"ObjectsFolder");
+            add_eventGeneratorObject(engine.addressSpace, "ObjectsFolder");
 
-            var browsePath = makeBrowsePath("RootFolder","/Objects/EventGeneratorObject");
+            var browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
 
             var opts = {addressSpace: engine.addressSpace};
             //xx console.log("eventGeneratingObject",browsePath.toString(opts));
@@ -1192,7 +1333,6 @@ describe("monitoredItem advanced", function () {
         engine.shutdown();
         engine = null;
     });
-
 
 
     beforeEach(function () {
@@ -1227,6 +1367,7 @@ describe("monitoredItem advanced", function () {
 
             done();
         });
+
         function numberOfnotifications(publishResponse) {
             var notificationData = publishResponse.notificationMessage.notificationData;
 
@@ -1274,10 +1415,10 @@ describe("monitoredItem advanced", function () {
             });
 
             this.clock.tick(subscription.publishingInterval);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
 
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
@@ -1293,11 +1434,11 @@ describe("monitoredItem advanced", function () {
 
 
             // simulate client sending publish request
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
-            simulate_client_adding_publish_request(publishEngine,spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
+            simulate_client_adding_publish_request(publishEngine, spy_callback);
 
             // now simulate some data change on monitored items
             this.clock.tick(100);
@@ -1361,19 +1502,19 @@ describe("monitoredItem advanced", function () {
         });
     });
 
-    describe("Subscription.subscriptionDiagnostics",function() {
+    describe("Subscription.subscriptionDiagnostics", function () {
 
 
         var subscription;
-        beforeEach(function(){
+        beforeEach(function () {
             fake_publish_engine.pendingPublishRequestCount = 1000;
 
             subscription = new Subscription({
                 priority: 10,
                 publishingInterval: 100,
                 maxNotificationsPerPublish: 123,
-                maxKeepAliveCount:     21,
-                lifeTimeCount:         67,
+                maxKeepAliveCount: 21,
+                lifeTimeCount: 67,
                 publishingEnabled: true,              //  PUBLISHING IS ENABLED !!!
                 publishEngine: fake_publish_engine,
                 sessionId: coerceNodeId("i=5;s=tmp")
@@ -1386,11 +1527,12 @@ describe("monitoredItem advanced", function () {
             });
 
         });
+
         function add_monitored_item() {
 
             var nodeId = "i=2258"; // CurrentTime
             var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
-                itemToMonitor: {nodeId: nodeId },
+                itemToMonitor: {nodeId: nodeId},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
 
                 requestedParameters: {
@@ -1405,7 +1547,7 @@ describe("monitoredItem advanced", function () {
             return monitoredItem;
         }
 
-        afterEach(function() {
+        afterEach(function () {
 
             subscription.terminate();
             subscription = null;
@@ -1413,57 +1555,57 @@ describe("monitoredItem advanced", function () {
 
         var MonitoringMode = subscription_service.MonitoringMode;
 
-        it("should update Subscription.subscriptionDiagnostics.sessionId",function() {
+        it("should update Subscription.subscriptionDiagnostics.sessionId", function () {
             subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.getSessionId());
         });
 
-        it("should update Subscription.subscriptionDiagnostics.subscriptionId",function() {
+        it("should update Subscription.subscriptionDiagnostics.subscriptionId", function () {
             subscription.subscriptionDiagnostics.subscriptionId.should.eql(subscription.id);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.priority",function() {
+        it("should update Subscription.subscriptionDiagnostics.priority", function () {
             subscription.priority.should.eql(10);
             subscription.subscriptionDiagnostics.priority.should.eql(subscription.priority);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.publishingInterval",function() {
+        it("should update Subscription.subscriptionDiagnostics.publishingInterval", function () {
             subscription.publishingInterval.should.eql(100);
             subscription.subscriptionDiagnostics.publishingInterval.should.eql(subscription.publishingInterval);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount",function() {
-            subscription.lifeTimeCount.should.be.above(subscription.maxKeepAliveCount*3-1);
+        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount", function () {
+            subscription.lifeTimeCount.should.be.above(subscription.maxKeepAliveCount * 3 - 1);
             subscription.subscriptionDiagnostics.maxLifetimeCount.should.eql(subscription.lifeTimeCount);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount",function() {
+        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount", function () {
             subscription.maxKeepAliveCount.should.eql(21);
             subscription.subscriptionDiagnostics.maxKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish",function() {
+        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish", function () {
             subscription.maxNotificationsPerPublish.should.eql(123);
             subscription.subscriptionDiagnostics.maxNotificationsPerPublish.should.eql(subscription.maxNotificationsPerPublish);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.publishingEnabled",function() {
+        it("should update Subscription.subscriptionDiagnostics.publishingEnabled", function () {
             subscription.publishingEnabled.should.eql(true);
             subscription.subscriptionDiagnostics.publishingEnabled.should.eql(subscription.publishingEnabled);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber",function() {
+        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber", function () {
             subscription._get_future_sequence_number().should.eql(1);
             subscription.subscriptionDiagnostics.nextSequenceNumber.should.eql(subscription._get_future_sequence_number());
         });
 
-        it("should update Subscription.subscriptionDiagnostics.disabledMonitoredItemCount",function() {
+        it("should update Subscription.subscriptionDiagnostics.disabledMonitoredItemCount", function () {
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
             subscription.monitoredItemCount.should.eql(0);
 
-            var m1  = add_monitored_item();
-            var m2  = add_monitored_item();
-            var m3  = add_monitored_item();
+            var m1 = add_monitored_item();
+            var m2 = add_monitored_item();
+            var m3 = add_monitored_item();
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(3);
             subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(0);
@@ -1478,7 +1620,7 @@ describe("monitoredItem advanced", function () {
 
         });
 
-        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount",function() {
+        it("should update Subscription.subscriptionDiagnostics.monitoredItemCount", function () {
 
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
@@ -1495,36 +1637,36 @@ describe("monitoredItem advanced", function () {
 
         });
 
-        it("should update Subscription.subscriptionDiagnostics.dataChangeNotificationsCount",function() {
+        it("should update Subscription.subscriptionDiagnostics.dataChangeNotificationsCount", function () {
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(0);
 
             var evtNotificationCounter = 0;
-            subscription.on("notificationMessage",function(/*notificationMessage*/) {
-                evtNotificationCounter+=1;
+            subscription.on("notificationMessage", function (/*notificationMessage*/) {
+                evtNotificationCounter += 1;
             });
 
             subscription.publishingInterval.should.eql(100);
 
             var m = add_monitored_item();
-            m.samplingInterval.should.eql(1200,"monitored item sampling interval should be 1 seconds");
+            m.samplingInterval.should.eql(1200, "monitored item sampling interval should be 1 seconds");
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(1);
 
 
             // simulate notification
             // now simulate some data change in 5 seconds 
-            this.clock.tick(1200*5);
+            this.clock.tick(1200 * 5);
 
             evtNotificationCounter.should.eql(5);
-            
+
             subscription.subscriptionDiagnostics.notificationsCount.should.eql(evtNotificationCounter);
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(evtNotificationCounter);
-            
-        });
-        
 
-        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount",function() {
+        });
+
+
+        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount", function () {
             // todo
         });
     });

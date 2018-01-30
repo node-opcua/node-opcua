@@ -32,9 +32,9 @@ var start_simple_server = require("../../test_helpers/external_server_fixture").
 var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
 
-var g_defaultSecureTokenLifetime = 750;
+var g_defaultSecureTokenLifetime = 1000; // 2 seconds lifetime
 var g_cycleNumber = 2;
-var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 10);
+var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 4);
 
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
@@ -627,10 +627,12 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         ClientSecureChannelLayer.prototype._renew_security_token = function () {
             if (timerId) {return;}
             var self = this;
+
+            // delay renewal of security token by a long time (exceeding secureTokenLifeTime)
             timerId = setTimeout(function () {
                 timerId = null;
                 old_method.call(self);
-            }, 1500);
+            }, g_defaultSecureTokenLifetime*2);
         };
 
         start_server(function (err, handle) {
@@ -675,7 +677,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         }, function(err) {
 
             // Server must have disconnected because client did not renew token on time...
-            should.exist(err);
+            should.exist(err,"Expecting connection to be closed by server as we haven't updated the security token");
             err.message.toLowerCase().should.match(/disconnected by third party|invalid channel /);
             done();
 

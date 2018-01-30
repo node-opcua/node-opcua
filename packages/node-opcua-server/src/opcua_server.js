@@ -1923,7 +1923,7 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
 
             var self = this;
             assert(self instanceof MonitoredItem);
-            assert(oldDa < taValue instanceof DataValue);
+            assert(oldDataValue instanceof DataValue);
             assert(_.isFunction(callback));
 
             var newDataValue = node.readAttribute(itemToMonitor.attributeId);

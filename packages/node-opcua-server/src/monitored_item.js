@@ -37,23 +37,23 @@ var defaultItemToMonitor = {indexRange: null, attributeId: read_service.Attribut
 var SessionContext = require("node-opcua-address-space").SessionContext;
 
 
-var minimumSamplingInterval = 50;              // 50 ms as a minimum sampling interval
-var defaultSamplingInterval = 1500;            // 1500 ms as a default sampling interval
-var maximumSamplingInterval = 1000 * 60 * 60;  // 1 hour !
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-function _adjust_sampling_interval(samplingInterval) {
+function _adjust_sampling_interval(samplingInterval,node_minimumSamplingInterval) {
+
+    assert(_.isNumber(node_minimumSamplingInterval,"expecting a number"));
 
     if (samplingInterval === 0) {
-        return samplingInterval;
+        return (node_minimumSamplingInterval === 0) ? samplingInterval : Math.max(MonitoredItem.minimumSamplingInterval,node_minimumSamplingInterval);
     }
     assert(samplingInterval >= 0, " this case should have been prevented outside");
-    samplingInterval = samplingInterval || defaultSamplingInterval;
-    maximumSamplingInterval = maximumSamplingInterval || defaultSamplingInterval;
-    samplingInterval = Math.max(samplingInterval, minimumSamplingInterval);
-    samplingInterval = Math.min(samplingInterval, maximumSamplingInterval);
+    samplingInterval = samplingInterval || MonitoredItem.defaultSamplingInterval;
+    samplingInterval = Math.max(samplingInterval, MonitoredItem.minimumSamplingInterval);
+    samplingInterval = Math.min(samplingInterval, MonitoredItem.maximumSamplingInterval);
+    samplingInterval = node_minimumSamplingInterval === 0 ? samplingInterval : Math.max(samplingInterval, node_minimumSamplingInterval);
+
     return samplingInterval;
 }
 
@@ -135,19 +135,19 @@ util.inherits(MonitoredItem, EventEmitter);
 var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 MonitoredItem.registry = new ObjectRegistry();
 
-MonitoredItem.minimumSamplingInterval = minimumSamplingInterval;
-MonitoredItem.defaultSamplingInterval = defaultSamplingInterval;
-MonitoredItem.maximumSamplingInterval = maximumSamplingInterval;
+MonitoredItem.minimumSamplingInterval = 50;              // 50 ms as a minimum sampling interval
+MonitoredItem.defaultSamplingInterval = 1500;            // 1500 ms as a default sampling interval
+MonitoredItem.maximumSamplingInterval = 1000 * 60 * 60;  // 1 hour !
 
-function _validate_parameters(options) {
+function _validate_parameters(monitoringParameters) {
     //xx assert(options instanceof MonitoringParameters);
-    assert(options.hasOwnProperty("clientHandle"));
-    assert(options.hasOwnProperty("samplingInterval"));
-    assert(_.isFinite(options.clientHandle));
-    assert(_.isFinite(options.samplingInterval));
-    assert(_.isBoolean(options.discardOldest));
-    assert(_.isFinite(options.queueSize));
-    assert(options.queueSize >= 0);
+    assert(monitoringParameters.hasOwnProperty("clientHandle"));
+    assert(monitoringParameters.hasOwnProperty("samplingInterval"));
+    assert(_.isFinite(monitoringParameters.clientHandle));
+    assert(_.isFinite(monitoringParameters.samplingInterval));
+    assert(_.isBoolean(monitoringParameters.discardOldest));
+    assert(_.isFinite(monitoringParameters.queueSize));
+    assert(monitoringParameters.queueSize >= 0);
 }
 
 MonitoredItem.prototype.__defineGetter__("node", function () {
@@ -377,18 +377,18 @@ MonitoredItem.prototype.setMonitoringMode = function (monitoringMode) {
     }
 };
 
-MonitoredItem.prototype._set_parameters = function (options) {
+MonitoredItem.prototype._set_parameters = function (monitoredParameters) {
     var self = this;
-    _validate_parameters(options);
-    self.clientHandle = options.clientHandle;
+    _validate_parameters(monitoredParameters);
+    self.clientHandle = monitoredParameters.clientHandle;
 
     // The Server may support data that is collected based on a sampling model or generated based on an
     // exception-based model. The fastest supported sampling interval may be equal to 0, which indicates
     // that the data item is exception-based rather than being sampled at some period. An exception-based
     // model means that the underlying system does not require sampling and reports data changes.
-    self.samplingInterval = _adjust_sampling_interval(options.samplingInterval);
-    self.discardOldest = options.discardOldest;
-    self.queueSize = _adjust_queue_size(options.queueSize);
+    self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval,self.node ?  self.node.minimumSamplingInterval : 0 );
+    self.discardOldest = monitoredParameters.discardOldest;
+    self.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
 };
 
 /**
@@ -411,7 +411,6 @@ MonitoredItem.prototype.terminate = function () {
 MonitoredItem.prototype._on_sampling_timer = function () {
 
     var self = this;
-
 
     // istanbul ignore next
     if (doDebug) {
@@ -881,9 +880,8 @@ MonitoredItem.prototype._clear_timer = function () {
 MonitoredItem.prototype._set_timer = function () {
 
     var self = this;
-    assert(self.samplingInterval >= minimumSamplingInterval);
+    assert(self.samplingInterval >= MonitoredItem.minimumSamplingInterval);
     assert(!self._samplingId);
-
 
     if (useCommonTimer) {
         self._samplingId = appendToTimer(self);
@@ -942,9 +940,9 @@ MonitoredItem.prototype._adjust_sampling = function (old_samplingInterval) {
 
 var validateFilter = require("./validate_filter").validateFilter;
 
-MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
+MonitoredItem.prototype.modify = function (timestampsToReturn, monitoredParameters) {
 
-    assert(options instanceof MonitoringParameters);
+    assert(monitoredParameters instanceof MonitoringParameters);
 
     var self = this;
 
@@ -952,19 +950,19 @@ MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
 
     self.timestampsToReturn = timestampsToReturn || self.timestampsToReturn;
 
-    if (old_samplingInterval !== 0 && options.samplingInterval === 0) {
-        options.samplingInterval = minimumSamplingInterval; // fastest possible
+    if (old_samplingInterval !== 0 && monitoredParameters.samplingInterval === 0) {
+        monitoredParameters.samplingInterval = MonitoredItem.minimumSamplingInterval; // fastest possible
     }
 
-    self._set_parameters(options);
+    self._set_parameters(monitoredParameters);
 
     self._adjust_queue_to_match_new_queue_size();
 
     self._adjust_sampling(old_samplingInterval);
 
 
-    if (options.filter) {
-        var statusCodeFilter = validateFilter(options.filter, self.itemToMonitor, self.node);
+    if (monitoredParameters.filter) {
+        var statusCodeFilter = validateFilter(monitoredParameters.filter, self.itemToMonitor, self.node);
         if (statusCodeFilter !== StatusCodes.Good) {
             return new MonitoredItemModifyResult({
                 statusCode: statusCodeFilter
