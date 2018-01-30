@@ -83,26 +83,27 @@ function coerceBrowseDescription(data) {
 }
 
 /**
- * browse a node or an array of nodes.
- *
  * @method browse
  * @async
+ * @param nodeToBrowse           {String|BrowseDescription}
+ * @param callback               {Function}
+ * @param callback.err           {Error|null}
+ * @param callback.browseResult  {BrowseResult}
  *
  * @example:
  *
- * form1:
- *
  *    ``` javascript
- *    session.browse("RootFolder",function(err,browseResult,diagnostics) {
+ *    session.browse("RootFolder",function(err,browseResult) {
  *      if(err) return callback(err);
  *      console.log(browseResult.toString());
  *      callback();
  *    } );
  *    ```
  *
- * form2:
  *
- *    ``` javascript
+ * @example
+ *
+ * ``` javascript
  *    var browseDescription = {
  *       nodeId: "ObjectsFolder",
  *       referenceTypeId: "Organizes",
@@ -111,23 +112,29 @@ function coerceBrowseDescription(data) {
  *       nodeClassMask: 0,
  *       resultMask: 63
  *    }
- *    session.browse(browseDescription,function(err, browseResult, diagnostics) {
-  *      if(err) return callback(err);
+ *    session.browse(browseDescription,function(err, browseResult) {
+ *       if(err) return callback(err);
  *       console.log(browseResult.toString());
  *       callback();
  *    });
  *    ```
  *
- * form3:
+ * @method browse
+ * @async
+ * @param nodesToBrowse           {Array<String|BrowseDescription>}
+ * @param callback                {Function}
+ * @param callback.err            {Error|null}
+ * @param callback.browseResults  {Array<BrowseResult>}  an array containing the BrowseResult of each BrowseDescription.
  *
- *    ``` javascript
- *    session.browse([ "RootFolder", "ObjectsFolder"],function(err, browseResults, diagnostics) {
+ * @example
+ *
+ * ``` javascript
+ * session.browse([ "RootFolder", "ObjectsFolder"],function(err, browseResults) {
  *       assert(browseResults.length === 2);
- *    });
- *    ```
+ * });
+ * ```
  *
- * form4:
- *
+ * @example
  *   ``` javascript
  *    var browseDescriptions = [
  *      {
@@ -145,11 +152,16 @@ function coerceBrowseDescription(data) {
  *    });
  *    ```
  *
- * @param nodeToBrowse {String|BrowseDescription|Array[BrowseDescription]}
- * @param callback {Function}
- * @param callback.err {Error|null}
- * @param callback.results         {BrowseResult[]|BrowseResult}  an array containing the BrowseResult of each BrowseDescription.
- * @param callback.diagnosticInfos {DiagnosticInfo}  an array containing the BrowseResult of each BrowseDescription.
+ * @method browse
+ * @async
+ * @param nodesToBrowse                 {Array<String|BrowseDescription>}
+ * @return {Promise<Array<BrowseResult>>}
+ *
+ * @method browse
+ * @async
+ * @param nodeToBrowse                 {String|BrowseDescription}
+ * @return {Promise<BrowseResult>}
+ *
  */
 ClientSession.prototype.browse = function (nodeToBrowse, callback) {
 
@@ -221,9 +233,14 @@ ClientSession.prototype.browse = function (nodeToBrowse, callback) {
 /**
  * @method readVariableValue
  * @async
+ * @param node               {NodeId}    - the nodeId of the  value to read
+ * @param callback           {Function}  - the callback function
+ * @param callback.err       {Error|null}- the error if write has failed or null if OK
+ * @param callback.dataValue {DataValue} - the dataValue
+ *
  * @example:
  *
- *     session.readVariableValue("ns=2;s=Furnace_1.Temperature",function(err,dataValue,diagnostics) {
+ *     session.readVariableValue("ns=2;s=Furnace_1.Temperature",function(err,dataValue) {
  *        if(err) { return callback(err); }
  *        if (dataValue.statusCode === opcua.StatusCodes.Good) {
  *        }
@@ -231,25 +248,17 @@ ClientSession.prototype.browse = function (nodeToBrowse, callback) {
  *        callback();
  *     });
  *
- * @param nodes  {NodeId|Array<NodeId>} - the nodeId of the  value to read or an array of node to Read
- * @param {Function} callback -   the callback function
- * @param callback.err {object|null} the error if write has failed or null if OK
- * @param callback.results {DataValue[]} - an array of dataValue each read
- * @param callback.diagnosticInfos {DiagnosticInfo[]} - the diagnostic info.
+ * @method readVariableValue
+ * @async
+ * @param nodes              {Array<NodeId>}    - an array of node to Read
+ * @param callback           {Function}         - the callback function
+ * @param callback.err       {Error|null}       - the error if write has failed or null if OK
+ * @param callback.results   {Array<DataValue>} - an array of dataValue each read
  *
  *
  *
  * @example
  *
- * - read a single node :
- *
- *   session.readVariableValue("ns=0;i=2257",function(err,dataValue) {
- *      if (!err) {
- *         console.log(dataValue.toString());
- *      }
- *   });
- *
- * - read a array of nodes
  *   session.readVariableValue(["ns=0;i=2257","ns=0;i=2258"],function(err,dataValues) {
  *      if (!err) {
  *         console.log(dataValues[0].toString());
@@ -257,7 +266,20 @@ ClientSession.prototype.browse = function (nodeToBrowse, callback) {
  *      }
  *   });
  *
+ * @method readVariableValue
+ * @async
+ * @param node               {NodeId|string}    - the nodeId of the UAVariable to read
+ * @return {Promise<DataValue>}
+ * @example
+ *     const dataValue = await session.readVariableValue("ns=1;s=Temperature");
  *
+ * @method readVariableValue
+ * @async
+ * @param nodes              {Array<NodeId>}    - an array of node to Read
+ * @return {Promise<Array<DataValue>>}
+ *
+ * @example
+ *     const dataValues = await session.readVariableValue(["ns=1;s=Temperature","ns=1;s=Pressure"]);
  */
 ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
@@ -270,8 +292,6 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
     if (!isArray) {
         nodes = [nodes];
     }
-
-    var nodesToRead = [];
 
     function coerceReadValueId(node) {
 
@@ -289,7 +309,7 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
         }
     }
 
-    nodesToRead = nodes.map(coerceReadValueId);
+    var nodesToRead = nodes.map(coerceReadValueId);
 
     var request = new read_service.ReadRequest({
         nodesToRead: nodesToRead,
@@ -461,7 +481,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  *
  * @method write
  * @param nodeToWrite {WriteValue}  - the value to write
- * @return Promise<StatusCode>
+ * @return {Promise<StatusCode>}
  * @async
  *
  * @example
@@ -472,7 +492,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  *
  * @method write
  * @param nodesToWrite {Array<WriteValue>}  - the value to write
- * @return Promise<Array<StatusCode>>
+ * @return {Promise<Array<StatusCode>>}
  * @async
  *
  * @example
@@ -513,14 +533,20 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
 
 /**
  *
- * @async
  * @method writeSingleNode
+ * @async
  * @param nodeId  {NodeId}  - the node id of the node to write
  * @param value   {Variant} - the value to write
  * @param callback   {Function}
  * @param callback.err {object|null} the error if write has failed or null if OK
  * @param callback.statusCode {StatusCode} - the status code of the write
- * @param callback.diagnosticInfo {DiagnosticInfo} the diagnostic info.
+ *
+ * @method writeSingleNode
+ * @async
+ * @param nodeId  {NodeId}  - the node id of the node to write
+ * @param value   {Variant} - the value to write
+ * @return {Promise<StatusCode>} - the status code of the write
+ *
  */
 ClientSession.prototype.writeSingleNode = function (nodeId, value, callback) {
 
@@ -657,24 +683,16 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 
 /**
  * @method read
+ * @async
+ * @param nodeToRead               {ReadValueId}
+ * @param nodeToRead.nodeId        {NodeId|string}
+ * @param nodeToRead.attributeId   {AttributeIds}
+ * @param [maxAge]                 {Number}
+ * @param callback                 {Function}                - the callback function
+ * @param callback.err             {Error|null}              - the error or null if the transaction was OK}
+ * @param callback.dataValue       {DataValue}
  *
  * @example:
- *
- *  form1: reading many dataValue at once
- *
- *    ``` javascript
- *    var nodesToRead = [
- *        {
- *             nodeId:      "ns=2;s=Furnace_1.Temperature",
- *             attributeId: AttributeIds.BrowseName
- *        }
- *    ];
- *    session.read(nodesToRead,function(err,dataValues,diagnosticInfos) {
- *        if (!err) {
- *           dataValues.forEach(dataValue=>console.log(dataValue.toString()));
- *    }
- *  });
- *    ```
  *
  * form2: reading a single node
  *
@@ -691,15 +709,45 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 *    });
  *    ```
  *
+ *
+ * @method read
  * @async
- * @param nodesToRead               {ReadValueId|ReadValueId[]} - an array of nodeId to read or a ReadValueId
- * @param nodesToRead.nodeId       {NodeId|string}
- * @param nodesToRead.attributeId  {AttributeIds}
+ * @param nodesToRead               {Array<ReadValueId>} - an array of nodeId to read or a ReadValueId
  * @param [maxAge]                 {Number}
  * @param callback                 {Function}                - the callback function
  * @param callback.err             {Error|null}              - the error or null if the transaction was OK}
- * @param callback.results         {DataValue|DataValue[]}
- * @param callback.diagnosticInfos {DiagnosticInfo[]}
+ * @param callback.dataValues       {Array<DataValue>}
+ *
+ * @example
+ *
+ *   ``` javascript
+ *   var nodesToRead = [
+ *        {
+ *             nodeId:      "ns=2;s=Furnace_1.Temperature",
+ *             attributeId: AttributeIds.BrowseName
+ *        }
+ *   ];
+ *   session.read(nodesToRead,function(err,dataValues) {
+ *     if (!err) {
+ *       dataValues.forEach(dataValue=>console.log(dataValue.toString()));
+ *     }
+ *   });
+ *   ```
+ *
+ * @method read
+ * @async
+ * @param nodeToRead               {ReadValueId}
+ * @param nodeToRead.nodeId        {NodeId|string}
+ * @param nodeToRead.attributeId   {AttributeIds}
+ * @param [maxAge]                 {Number}
+ * @return {Promise<DataValue>}
+ *
+ * @example:
+ * @method read
+ * @async
+ * @param nodesToRead               {Array<ReadValueId>}
+ * @param [maxAge]                  {Number}
+ * @return {Promise<Array<DataValue>>}
  *
  */
 ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
