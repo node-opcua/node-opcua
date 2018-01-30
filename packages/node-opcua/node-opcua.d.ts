@@ -174,8 +174,11 @@ export interface ReferenceDescription {
 }
 
 export declare class BrowseResult {
+
     statusCode: StatusCodes
+
     continuationPoint: any
+
     references: Array<ReferenceDescription>
 }
 
@@ -223,7 +226,11 @@ export declare class ClientSession {
     translateBrowsePath(browsesPath: Array<BrowsePath>,
                         callback: ResponseCallback<Array<BrowsePathResult>>): void
 
-    write(nodes: Array<WriteValue>,
+
+    write(nodeToWrite: CoercibleToWriteValue,
+          callback: ResponseCallback<StatusCodes>): void;
+
+    write(nodesToWrite: Array<CoercibleToWriteValue>,
           callback: ResponseCallback<Array<StatusCodes>>): void;
 
     writeSingleNode(path: string, value: Variant, callback: Function): void;
@@ -243,6 +250,11 @@ export declare class ClientSession {
          callback: ResponseCallback<Array<DataValue>>): void;
 
 
+    readVariableValue(nodeId: CoercibleToNodeId,callback: ResponseCallback<DataValue>): void;
+
+    close(callback: ErrorCallback): void;
+
+
     // ------------------------------------------------------------
     browse(nodeToBrowse: CoercibleToBrowseDescription): Promise<BrowseResult>;
 
@@ -252,6 +264,10 @@ export declare class ClientSession {
 
     translateBrowsePath(browsePaths: Array<BrowsePath>): Promise<Array<BrowsePathResult>>;
 
+    write(nodesToWrite: Array<CoercibleToWriteValue>):
+        Promise<Array<StatusCodes>>;
+    write(nodeToWrite: CoercibleToWriteValue):
+        Promise<StatusCodes>;
 
     read(nodeToRead: CoercibleToReadValueId,
          max_age: number): Promise<DataValue>
@@ -264,7 +280,8 @@ export declare class ClientSession {
     read(nodesToRead: Array<CoercibleToReadValueId>): Promise<Array<DataValue>>
 
 
-    close(callback: ErrorCallback): void;
+    readVariableValue(nodeId: CoercibleToNodeId): Promise<DataValue>;
+
     close(): Promise<void>;
 
     // properties
@@ -513,9 +530,19 @@ export declare class DataValue {
 export declare class WriteValue {
     nodeId: NodeId;
     attributeId: AttributeIds;
-    indexRange: any;
+    indexRange?: any;
     value: DataValue;
 }
+
+type CoercibleToNodeId = string | NodeId;
+
+type CoercibleToWriteValue = {
+    nodeId: CoercibleToNodeId,
+    attributeId: AttributeIds
+    indexRange?: any;
+    value: CoercibleToDataValue;
+} | WriteValue;
+
 
 export declare class DiagnosticInfo {
     namespaceUri: number;

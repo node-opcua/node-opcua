@@ -266,7 +266,6 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
     assert(_.isFunction(callback));
 
 
-
     var isArray = _.isArray(nodes);
     if (!isArray) {
         nodes = [nodes];
@@ -394,18 +393,102 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
 
 
 /**
- * @async
+ *
  * @method write
  * @param nodesToWrite {Array.<WriteValue>}  - the array of value to write. One or more elements.
- *
  * @param {Function} callback -   the callback function
  * @param callback.err {object|null} the error if write has failed or null if OK
  * @param callback.statusCodes {StatusCode[]} - an array of status code of each write
  * @param callback.diagnosticInfos {DiagnosticInfo[]} - the diagnostic infos.
+ * @async
+ *
+ * @example
+ *
+ *     const nodesToWrite = [
+ *     {
+ *          nodeId: "ns=1;s=SetPoint1",
+ *          attributeIds: opcua.AttributeIds.Value,
+ *          value: {
+ *             statusCode: Good,
+ *             value: {
+ *               dataType: opcua.DataType.Double,
+ *               value: 100.0
+ *             }
+ *          }
+ *     },
+ *     {
+ *          nodeId: "ns=1;s=SetPoint2",
+ *          attributeIds: opcua.AttributeIds.Value,
+ *          value: {
+ *             statusCode: Good,
+ *             value: {
+ *               dataType: opcua.DataType.Double,
+ *               value: 45.0
+ *             }
+ *          }
+ *     }
+ *     ];
+ *     session.write(nodesToWrite,function (err,statusCodes) {
+ *       if(err) { return callback(err);}
+ *       //
+ *     });
+ *
+ * @method write
+ * @param nodeToWrite {WriteValue}  - the value to write
+ * @param {Function} callback -   the callback function
+ * @param callback.err {object|null} the error if write has failed or null if OK
+ * @param callback.statusCode {StatusCodes} - the status code of the write
+ * @async
+ *
+ * @example
+ *
+ *     const nodeToWrite = {
+ *          nodeId: "ns=1;s=SetPoint",
+ *          attributeIds: opcua.AttributeIds.Value,
+ *          value: {
+ *             statusCode: Good,
+ *             value: {
+ *               dataType: opcua.DataType.Double,
+ *               value: 100.0
+ *             }
+ *          }
+ *     };
+ *     session.write(nodeToWrite,function (err,statusCode) {
+ *       if(err) { return callback(err);}
+ *       //
+ *     });
+ *
+ *
+ * @method write
+ * @param nodeToWrite {WriteValue}  - the value to write
+ * @return Promise<StatusCode>
+ * @async
+ *
+ * @example
+ *   session.write(nodeToWrite).then(function(statusCode) { });
+ *
+ * @example
+ *   const statusCode = await session.write(nodeToWrite);
+ *
+ * @method write
+ * @param nodesToWrite {Array<WriteValue>}  - the value to write
+ * @return Promise<Array<StatusCode>>
+ * @async
+ *
+ * @example
+ *   session.write(nodesToWrite).then(function(statusCodes) { });
+ *
+ * @example
+ *   const statusCodes = await session.write(nodesToWrite);
  */
 ClientSession.prototype.write = function (nodesToWrite, callback) {
 
     var self = this;
+
+    var isArray = _.isArray(nodesToWrite);
+    if (!isArray) {
+        nodesToWrite = [nodesToWrite];
+    }
 
     assert(_.isFunction(callback));
     assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
@@ -423,8 +506,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
         }
         assert(response instanceof write_service.WriteResponse);
         assert(nodesToWrite.length === response.results.length);
-        callback(null, response.results, response.diagnosticInfos);
-
+        callback(null, isArray ? response.results : response.results[0]);
     });
 };
 
