@@ -1,19 +1,19 @@
 {
  "name": "node-opcua-basic-types",
- "version": "0.2.0",
+ "version": "0.2.1",
  "description": "pure nodejs OPCUA SDK - module -basic-types",
  "main": "index.js",
  "scripts": {},
  "dependencies": {
   "node-opcua-assert": "^0.2.0",
-  "node-opcua-binary-stream": "^0.2.0",
+  "node-opcua-binary-stream": "^0.2.1",
   "node-opcua-buffer-utils": "^0.2.0",
-  "node-opcua-date-time": "^0.2.0",
+  "node-opcua-date-time": "^0.2.1",
   "node-opcua-enum": "^0.2.0",
   "node-opcua-guid": "^0.2.0",
   "node-opcua-nodeid": "^0.2.0",
-  "node-opcua-status-code": "^0.2.0",
-  "node-opcua-utils": "^0.2.0",
+  "node-opcua-status-code": "^0.2.1",
+  "node-opcua-utils": "^0.2.1",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
