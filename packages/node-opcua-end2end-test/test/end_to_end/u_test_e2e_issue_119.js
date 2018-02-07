@@ -107,8 +107,7 @@ module.exports = function (test) {
                         function (callback) {
                             setTimeout(function () {
                                 change_count.should.eql(2);
-                                subscription.terminate();
-                                callback();
+                                subscription.terminate(callback);
                             }, 1500);
                         }
 
@@ -201,8 +200,8 @@ module.exports = function (test) {
                                 count.should.be.greaterThan(50);
 
                                 clearInterval(timerId);
-                                subscription.terminate();
-                                callback();
+                                subscription.terminate(callback);
+
                             }, 1000);
                         }
 

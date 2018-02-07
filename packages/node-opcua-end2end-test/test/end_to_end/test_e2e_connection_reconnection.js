@@ -3,7 +3,7 @@
 var should = require("should");
 var async = require("async");
 var _ = require("underscore");
-
+var os = require("os");
 var opcua = require("node-opcua");
 
 var OPCUAClient = opcua.OPCUAClient;
@@ -221,7 +221,7 @@ describe("testing basic Client-Server communication", function () {
         client.protocolVersion = 0;
 
         var unused_port = 8909;
-        var bad_endpointUrl = "opc.tcp://localhost:" + unused_port;
+        var bad_endpointUrl = "opc.tcp://"+ os.hostname()+":" + unused_port;
 
         async.series([
             function (callback) {
@@ -787,9 +787,8 @@ describe("testing ability for client to reconnect when server close connection",
         //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
         subscription.on("terminated", function () {
             //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
-            callback();
         });
-        subscription.terminate();
+        subscription.terminate(callback);
 
     }
 

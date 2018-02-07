@@ -79,7 +79,6 @@ module.exports = function (test) {
                         if (doDebug) {
                             console.log("subscription terminated");
                         }
-                        callback();
                     });
                     subscription.once("started",function() {
                         if (doDebug) {
@@ -124,7 +123,7 @@ module.exports = function (test) {
 
 
                     setTimeout(function(){
-                        subscription.terminate();
+                        subscription.terminate(callback);
                     },1000);
                 },
 

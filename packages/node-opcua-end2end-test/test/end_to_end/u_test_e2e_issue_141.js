@@ -59,7 +59,11 @@ module.exports = function (test) {
                 var timerId;
                 if (timeout > 0) {
                     timerId = setTimeout(function () {
-                        the_subscription.terminate();
+                        the_subscription.terminate(function() {
+                            keepaliveCounter.should.be.greaterThan(1);
+                            client.timedOutRequestCount.should.eql(0);
+                            inner_done();
+                        });
                     }, timeout);
                 }
 
@@ -74,15 +78,10 @@ module.exports = function (test) {
                     clearTimeout(timerId);
                     inner_done(err);
                 }).on("keepalive", function () {
-                    //xx console.log("keepalive");
+                    console.log("keepalive");
                     keepaliveCounter++;
 
                 }).on("terminated", function () {
-                    keepaliveCounter.should.be.greaterThan(1);
-
-                    client.timedOutRequestCount.should.eql(0);
-
-                    inner_done();
                 });
 
             }, done);

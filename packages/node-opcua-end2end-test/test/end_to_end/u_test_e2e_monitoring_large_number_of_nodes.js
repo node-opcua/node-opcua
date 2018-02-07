@@ -58,9 +58,6 @@ module.exports = function (test) {
                     priority: 6
                 });
 
-                subscription.once("terminated", function () {
-                    inner_done();
-                });
 
                 var monitoredItems = [];
 
@@ -81,7 +78,7 @@ module.exports = function (test) {
 
                 subscription.once("started", function (subscriptionId) {
                     setTimeout(function () {
-                        subscription.terminate();
+                        subscription.terminate(inner_done);
                         Object.keys(changeByNodes).length.should.eql(ids.length);
                     }, 3000);
 
@@ -164,9 +161,6 @@ module.exports = function (test) {
                     priority: 6
                 });
 
-                subscription.once("terminated", function () {
-                    inner_done();
-                });
 
                 var notificationMessageSpy = new sinon.spy();
 
@@ -188,13 +182,13 @@ module.exports = function (test) {
                      session.createMonitoredItems(createMonitorItemsRequest, function (err, response) {
 
                             if(err){
-                                subscription.terminate();
-                                return;
+                                return; subscription.terminate(inner_done);
+
                             }
                             //Xx console.log(response.toString());
                             subscription.on("raw_notification",function(n){
 
-                                console.log(n.notificationData[0].monitoredItems[0].toString());
+                                //xx console.log(n.notificationData[0].monitoredItems[0].toString());
 
                                 n.notificationData[0].monitoredItems.length.should.eql(itemsToCreate.length);
 
@@ -202,7 +196,7 @@ module.exports = function (test) {
                                 //xx console.log(notificationMessageSpy.getCall(0).args[0].toString());
                                 //xx console.log(notificationMessageSpy.getCall(1).args[0].toString());
 
-                                subscription.terminate();
+                                subscription.terminate(inner_done);
                             });
 
                         });

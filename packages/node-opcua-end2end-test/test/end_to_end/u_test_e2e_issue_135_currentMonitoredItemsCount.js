@@ -163,11 +163,7 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    the_subscription.once("terminated", function () {
-                        debugLog("subscription terminated");
-                        callback();
-                    });
-                    the_subscription.terminate();
+                    the_subscription.terminate(callback);
                 },
 
                 function (callback) {

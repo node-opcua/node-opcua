@@ -197,8 +197,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    auditing_subscription.once("terminated", callback);
-                    auditing_subscription.terminate();
+                    auditing_subscription.terminate(callback);
                     auditing_subscription = null;
                 },
                 function (callback) {

@@ -209,7 +209,14 @@ function keep_monitoring_some_variable(session, duration, done) {
         //xx console.log("xxx    starting monitoring for ",duration," ms");
         setTimeout(function () {
             //xx console.log("xxx    terminating subscription  ");
-            subscription.terminate();
+            subscription.terminate(function() {
+                debugLog("        subscription terminated ");
+                if (!the_error) {
+                    var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
+                    nbTokenId.should.be.greaterThan(2);
+                }
+                done(the_error);
+            });
         }, duration);
     });
 
@@ -218,13 +225,6 @@ function keep_monitoring_some_variable(session, duration, done) {
         the_error = err;
     });
     subscription.on("terminated", function () {
-
-        debugLog("        subscription terminated ");
-        if (!the_error) {
-            var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
-            nbTokenId.should.be.greaterThan(2);
-        }
-        done(the_error);
     });
 }
 

@@ -94,11 +94,9 @@ module.exports = function (test) {
 
                     subscription.once("terminated", function () {
                         //xx console.log("subscription terminated");
-                        callback();
                     });
                     subscription.once("started", function () {
                         //xx console.log("publishingInterval", subscription.publishingInterval);
-
                     });
 
                     var monitoredItem = subscription.monitor(
@@ -115,7 +113,7 @@ module.exports = function (test) {
 
 
                     setTimeout(function () {
-                        subscription.terminate();
+                        subscription.terminate(callback);
                     }, 3000);
                 },
 

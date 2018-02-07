@@ -87,11 +87,10 @@ async.series([
        }).on("keepalive",function(){
            console.log("keepalive");
        }).on("terminated",function(){
-           callback();
        });
        
        setTimeout(function(){
-           the_subscription.terminate();
+           the_subscription.terminate(callback);
        },10000);
        
        // install monitored item

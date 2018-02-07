@@ -77,12 +77,12 @@ module.exports = function (test) {
                 });
                 subscription.on("started", function () {
                     setTimeout(function () {
-                        subscription.terminate();
-                    }, 200);
-                });
-                subscription.on("terminated", function () {
-                    setTimeout(function () {
-                        inner_done();
+                        subscription.terminate(function() {
+                            setTimeout(function () {
+                                inner_done();
+                            }, 200);
+
+                        });
                     }, 200);
                 });
             }, done);
@@ -104,11 +104,8 @@ module.exports = function (test) {
                 });
                 subscription.on("started", function () {
                     setTimeout(function () {
-                        subscription.terminate();
+                        subscription.terminate(done);
                     }, 200);
-                });
-                subscription.on("terminated", function () {
-                    done();
                 });
             }, done);
         });
@@ -131,7 +128,10 @@ module.exports = function (test) {
                 });
                 subscription.on("started", function () {
                     setTimeout(function () {
-                        subscription.terminate();
+                        subscription.terminate(function(){
+                            nb_keep_alive_received.should.be.greaterThan(0);
+                            done();
+                        });
                     }, 1000);
                 });
                 subscription.on("keepalive", function () {
@@ -139,8 +139,6 @@ module.exports = function (test) {
                 });
                 subscription.on("terminated", function () {
                     //xx console.log(" subscription has received ", nb_keep_alive_received, " keep-alive event(s)");
-                    nb_keep_alive_received.should.be.greaterThan(0);
-                    done();
                 });
             }, done);
         });
@@ -168,9 +166,6 @@ module.exports = function (test) {
                 subscription.on("started", function () {
 
                 });
-                subscription.on("terminated", function () {
-                    done();
-                });
 
                 var monitoredItem = subscription.monitor({
                     nodeId: resolveNodeId("ns=0;i=2258"),
@@ -184,7 +179,7 @@ module.exports = function (test) {
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItem.on("initialized", function () {
                     monitoredItem.terminate(function () {
-                        subscription.terminate();
+                        subscription.terminate(done);
                     });
                 });
 
@@ -445,68 +440,68 @@ module.exports = function (test) {
         });
 
         it("AZA2-B a server should accept several Publish Requests from the client without sending notification immediately," +
-          " and should still be able to reply to other requests",
-          function (done) {
+            " and should still be able to reply to other requests",
+            function (done) {
 
-              var subscriptionId;
-              perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+                var subscriptionId;
+                perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-                  async.series([
+                    async.series([
 
-                      function (callback) {
-                          session.createSubscription({
-                              requestedPublishingInterval: 100, // Duration
-                              requestedLifetimeCount: 10, // Counter
-                              requestedMaxKeepAliveCount: 10, // Counter
-                              maxNotificationsPerPublish: 10, // Counter
-                              publishingEnabled: true, // Boolean
-                              priority: 14 // Byte
-                          }, function (err, response) {
-                              subscriptionId = response.subscriptionId;
-                              callback(err);
-                          });
-                      },
-                      function (callback) {
-                          session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
-                              should.exist(dataValue);
-                              callback(err);
-                          });
-                      },
-                      function (callback) {
+                        function (callback) {
+                            session.createSubscription({
+                                requestedPublishingInterval: 100, // Duration
+                                requestedLifetimeCount: 10, // Counter
+                                requestedMaxKeepAliveCount: 10, // Counter
+                                maxNotificationsPerPublish: 10, // Counter
+                                publishingEnabled: true, // Boolean
+                                priority: 14 // Byte
+                            }, function (err, response) {
+                                subscriptionId = response.subscriptionId;
+                                callback(err);
+                            });
+                        },
+                        function (callback) {
+                            session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
+                                should.exist(dataValue);
+                                callback(err);
+                            });
+                        },
+                        function (callback) {
 
-                          function publish_callback(err, response) {
-                              should.exist(response);
-                              should(err.message).match(/BadNoSubscription/);
-                          }
+                            function publish_callback(err, response) {
+                                should.exist(response);
+                                should(err.message).match(/BadNoSubscription/);
+                            }
 
-                          // send many publish requests, in one go
-                          session.publish({}, publish_callback);
-                          session.publish({}, publish_callback);
-                          session.publish({}, publish_callback);
-                          session.publish({}, publish_callback);
-                          session.publish({}, publish_callback);
-                          session.publish({}, publish_callback);
-                          callback();
-                      },
-                      function (callback) {
-                          session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
-                              callback(err);
-                          });
-                      },
-                      function (callback) {
-                          session.deleteSubscriptions({
-                              subscriptionIds: [subscriptionId]
-                          }, function (err, response) {
-                              should.exist(response);
-                              callback(err);
-                          });
-                      }
-                  ], function (err) {
-                      done(err);
-                  });
+                            // send many publish requests, in one go
+                            session.publish({}, publish_callback);
+                            session.publish({}, publish_callback);
+                            session.publish({}, publish_callback);
+                            session.publish({}, publish_callback);
+                            session.publish({}, publish_callback);
+                            session.publish({}, publish_callback);
+                            callback();
+                        },
+                        function (callback) {
+                            session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
+                                callback(err);
+                            });
+                        },
+                        function (callback) {
+                            session.deleteSubscriptions({
+                                subscriptionIds: [subscriptionId]
+                            }, function (err, response) {
+                                should.exist(response);
+                                callback(err);
+                            });
+                        }
+                    ], function (err) {
+                        done(err);
+                    });
 
-              }, done);
-          });
+                }, done);
+            });
 
         it("AZA2-C A Subscription can be added and then deleted", function (done) {
             var subscriptionId;
@@ -758,33 +753,27 @@ module.exports = function (test) {
                 function write(value, indexRange, callback) {
 
                     assert(_.isFunction(callback));
+                    assert(_.isArray(value));
 
-                    var sourceTimestamp = new Date();
-                    var serverTimestamp = sourceTimestamp;
+                    var nodeToWrite = {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: /*new DataValue(*/{
+                            serverTimestamp: null,
+                            sourceTimestamp: null,
+                            value: {
+                                /* Variant */
+                                dataType: DataType.Int32,
+                                arrayType: VariantArrayType.Array,
+                                value: value
+                            }
+                        },
+                        indexRange: indexRange
+                    };
 
-                    var nodesToWrite = [
-                        {
-                            nodeId: nodeId,
-                            attributeId: AttributeIds.Value,
-                            value: /*new DataValue(*/{
-                                serverTimestamp: null,
-                                sourceTimestamp: null,
-                                //xx serverTimestamp: serverTimestamp,
-                                //xx sourceTimestamp: sourceTimestamp,
-                                value: {
-                                    /* Variant */
-                                    dataType: DataType.Int32,
-                                    value: value
-                                }
-                            },
-                            indexRange: indexRange
-                        }
-                    ];
-
-                    session.write(nodesToWrite, function (err, statusCodes) {
+                    session.write(nodeToWrite, function (err, statusCode) {
                         if (!err) {
-                            statusCodes.length.should.equal(nodesToWrite.length);
-                            statusCodes[0].should.eql(opcua.StatusCodes.Good);
+                            statusCode.should.eql(opcua.StatusCodes.Good);
                         }
 
                         session.read({
@@ -793,9 +782,8 @@ module.exports = function (test) {
                         }, function (err, dataValue) {
                             should.not.exist(err);
                             should.exist(dataValue);
-                            //xx console.log(" written ",result[0].value.toString());
+                            //xx console.log(" written ",dataValue.toString());
                             callback(err);
-
                         });
                     });
 
@@ -803,15 +791,15 @@ module.exports = function (test) {
 
                 function create_monitored_item(callback) {
                     var monitoredItem = subscription.monitor({
-                          nodeId: nodeId,
-                          attributeId: AttributeIds.Value,
-                          indexRange: "2:9"
-                      }, {
-                          samplingInterval: 0, // event based
-                          discardOldest: true,
-                          queueSize: 1
-                      },
-                      opcua.read_service.TimestampsToReturn.Both
+                            nodeId: nodeId,
+                            attributeId: AttributeIds.Value,
+                            indexRange: "2:9"
+                        }, {
+                            samplingInterval: 0, // event based
+                            discardOldest: true,
+                            queueSize: 1
+                        },
+                        opcua.read_service.TimestampsToReturn.Both
                     );
 
                     monitoredItem.on("err", function (statusMessage) {
@@ -849,6 +837,7 @@ module.exports = function (test) {
                     wait.bind(null, 300),
                     function (callback) {
                         // no change ! there is no overlap
+                        //xx console.log(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
                         monitoredItemOnChangedSpy.callCount.should.eql(1);
                         callback();
                     },
@@ -857,6 +846,7 @@ module.exports = function (test) {
                     function (callback) {
                         // there is a overlap ! we should receive a monitoredItem On Change event
                         monitoredItemOnChangedSpy.callCount.should.eql(2);
+                        monitoredItemOnChangedSpy.getCall(1 ).args[0].value.value.should.eql(new Int32Array([222, 333    , 4, 5, 6, 7, 8, 9]));
                         callback();
                     }
                 ], callback);
@@ -890,15 +880,15 @@ module.exports = function (test) {
                 function create_monitored_item(callback) {
 
                     var monitoredItem = subscription.monitor({
-                          nodeId: nodeId,
-                          attributeId: AttributeIds.Value,
-                          indexRange: "2:4"
-                      }, {
-                          samplingInterval: 100,
-                          discardOldest: true,
-                          queueSize: 1
-                      },
-                      opcua.read_service.TimestampsToReturn.Both
+                            nodeId: nodeId,
+                            attributeId: AttributeIds.Value,
+                            indexRange: "2:4"
+                        }, {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 1
+                        },
+                        opcua.read_service.TimestampsToReturn.Both
                     );
 
                     monitoredItem.on("err", function (statusMessage) {
@@ -922,33 +912,25 @@ module.exports = function (test) {
 
                 function write(value, callback) {
 
-                    var sourceTimestamp = new Date();
-                    var serverTimestamp = sourceTimestamp;
-                    var nodesToWrite = [
-                        {
+                    var nodeToWrite =  {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
                             value: /*new DataValue(*/{
-                                serverTimestamp: null,
-                                sourceTimestamp: null,
-                                //xx serverTimestamp: serverTimestamp,
-                                //xx sourceTimestamp: sourceTimestamp,
                                 value: {
                                     /* Variant */
                                     dataType: DataType.Int32,
+                                    arrayType: VariantArrayType.Array,
                                     value: value
                                 }
                             }
-                        }
-                    ];
+                        };
 
-                    session.write(nodesToWrite, function (err, statusCodes) {
+                    session.write(nodeToWrite, function (err, statusCode) {
                         if (!err) {
-                            statusCodes.length.should.equal(nodesToWrite.length);
-                            statusCodes[0].should.eql(opcua.StatusCodes.Good);
+                            statusCode.should.eql(opcua.StatusCodes.Good);
                         }
                         session.read({
-                            attributeId:opcua.AttributeIds.Value,
+                            attributeId: opcua.AttributeIds.Value,
                             nodeId: nodeId,
                         }, function (err, dataValue) {
                             should.exist(dataValue);
@@ -1006,19 +988,19 @@ module.exports = function (test) {
 
                 // create a disabled monitored Item
                 var monitoredItem = subscription.monitor(
-                  /* itemToMonitor:*/
-                  {
-                      nodeId: nodeId,
-                      attributeId: AttributeIds.Value
-                  },
-                  /* requestedParameters:*/
-                  {
-                      samplingInterval: 100,
-                      discardOldest: true,
-                      queueSize: 1
-                  },
-                  opcua.read_service.TimestampsToReturn.Both
-                  //xx opcua.subscription_service.MonitoringMode.Disabled
+                    /* itemToMonitor:*/
+                    {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value
+                    },
+                    /* requestedParameters:*/
+                    {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    opcua.read_service.TimestampsToReturn.Both
+                    //xx opcua.subscription_service.MonitoringMode.Disabled
                 );
                 monitoredItem.monitoringMode = opcua.subscription_service.MonitoringMode.Reporting;
                 monitoredItem.on("changed", monitoredItemOnChangedSpy);
@@ -1199,15 +1181,15 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
                 var monitoredItem = subscription.monitor({
-                      nodeId: resolveNodeId("ns=0;i=2258"),
-                      attributeId: AttributeIds.Value
-                  }, {
-                      samplingInterval: 100,
-                      discardOldest: true,
-                      queueSize: 1
-                  },
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
 
-                  TimestampsToReturn.Invalid
+                    TimestampsToReturn.Invalid
                 );
 
                 var err_counter = 0;
@@ -1235,22 +1217,22 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
                 var monitoredItem = subscription.monitor({
-                      nodeId: resolveNodeId("ns=0;i=2258"),
-                      attributeId: 13
-                  }, {
-                      samplingInterval: 100,
-                      discardOldest: true,
-                      queueSize: 1
-                  },
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: 13
+                    }, {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
 
 
-                  TimestampsToReturn.Invalid, // <= A invalid  TimestampsToReturn
+                    TimestampsToReturn.Invalid, // <= A invalid  TimestampsToReturn
 
-                  function (err) {
+                    function (err) {
 
-                      should(err).be.instanceOf(Error);
-                      callback(!err);
-                  }
+                        should(err).be.instanceOf(Error);
+                        callback(!err);
+                    }
                 );
 
 
@@ -1484,7 +1466,7 @@ module.exports = function (test) {
                         subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
                         subscription.publish_engine._send_publish_request.restore();
                         subscription.publish_engine._send_publish_request();
-                    }, subscription.publishingInterval * ( subscription.lifetimeCount + 10) + 500);
+                    }, subscription.publishingInterval * (subscription.lifetimeCount + 10) + 500);
 
 
                 }).on("status_changed", function (statusCode) {
@@ -1495,14 +1477,12 @@ module.exports = function (test) {
                     // but delay a little bit so we can verify that _send_publish_request
                     // is not called
                     setTimeout(function () {
-                        subscription.terminate();
+                        subscription.terminate(function(){
+                            nb_keep_alive_received.should.be.equal(0);
+                            inner_done();
+                        });
                     }, 200);
-
-                }).on("terminated", function () {
-                    nb_keep_alive_received.should.be.equal(0);
-                    inner_done();
                 });
-
             }, done);
 
 
@@ -1646,9 +1626,8 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        subscription.terminate();
-                        subscription.on("terminated", function () {
-                            callback();
+                        subscription.terminate(function(err) {
+                            callback(err);
                         });
                     }
                 ], inner_done);
@@ -1817,9 +1796,9 @@ module.exports = function (test) {
                     function (callback) {
                         // let modify monitored item with new parameters.
                         monitoredItem.modify(parameters,
-                          function (err, result) {
-                              inner_func(err, result, callback);
-                          }
+                            function (err, result) {
+                                inner_func(err, result, callback);
+                            }
                         );
                     },
 
@@ -2002,11 +1981,11 @@ module.exports = function (test) {
                 };
 
                 var monitoredItem = subscription.monitor(readValue, {
-                      samplingInterval: 10,
-                      discardOldest: true,
-                      queueSize: 1
-                  },
-                  TimestampsToReturn.Both);
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    TimestampsToReturn.Both);
 
                 monitoredItem.on("err", function (err) {
                     should(err).eql(null);
@@ -2043,8 +2022,7 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        subscription.terminate();
-                        callback();
+                        subscription.terminate(callback);
                     }
                 ], function (err) {
                     if (err) {
@@ -2108,7 +2086,7 @@ module.exports = function (test) {
             //xx console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".cyan,node.toString());
             var server_node = test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.scalar_Static.scalar_Static_Int16;
             //xx console.log("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
-            server_node.minimumSamplingInterval= forcedMinimumInterval;
+            server_node.minimumSamplingInterval = forcedMinimumInterval;
 
 
             var itemToMonitor = new opcua.read_service.ReadValueId({
@@ -2126,8 +2104,10 @@ module.exports = function (test) {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.MinimumSamplingInterval
                         };
-                        session.read(nodeToRead,function(err,dataValue){
-                            if (err) { return callback(err); }
+                        session.read(nodeToRead, function (err, dataValue) {
+                            if (err) {
+                                return callback(err);
+                            }
                             dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
                             minimumSamplingIntervalOnNode = dataValue.value.value;
                             //xx console.log("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
@@ -2177,7 +2157,9 @@ module.exports = function (test) {
                         //xx console.log("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
 
                         session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
-                            if (err) { return  callback(err);}
+                            if (err) {
+                                return callback(err);
+                            }
                             //xx console.log("ERRR = ", err);
                             should.not.exist(err);
                             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -2232,11 +2214,11 @@ module.exports = function (test) {
         });
 
         xit("AZA3-W When a user adds a monitored item that the user is denied read access to, the add operation for the" +
-          " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
-          " returned in the Publish response",
-          function (done) {
-              done();
-          });
+            " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
+            " returned in the Publish response",
+            function (done) {
+                done();
+            });
 
         /**
          * see CTT createMonitoredItems591014 ( -009.js)
@@ -2908,7 +2890,6 @@ module.exports = function (test) {
 
                 subscription.on("terminated", function () {
                     //xx console.log(" subscription terminated ".yellow);
-                    inner_done();
                 });
                 subscription.on("started", function () {
 
@@ -2927,11 +2908,9 @@ module.exports = function (test) {
                             });
                         },
                         function (callback) {
-                            subscription.terminate();
-                            callback();
+                            subscription.terminate(callback);
                         }
-                    ], function () {
-                    });
+                    ],inner_done);
 
                 });
 
@@ -3096,8 +3075,7 @@ module.exports = function (test) {
                         },
 
                         function (callback) {
-                            subscription.on("terminated", callback);
-                            subscription.terminate();
+                            subscription.terminate(callback);
                         }
                     ], function (err) {
                         done(err);

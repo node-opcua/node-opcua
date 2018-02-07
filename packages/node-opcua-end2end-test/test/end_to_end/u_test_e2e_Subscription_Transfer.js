@@ -114,8 +114,8 @@ module.exports = function (test) {
                             response.results.length.should.eql(1);
                             //xx console.log(" => ", response.results[0].toString());
 
-                            subscription.terminate();
-                            done(err);
+                            subscription.terminate(function(err1) { done(err); });
+
                         });
                     }, function (err) {
 

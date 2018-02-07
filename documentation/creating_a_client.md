@@ -229,11 +229,11 @@ the_subscription.on("started",function(){
 }).on("keepalive",function(){
     console.log("keepalive");
 }).on("terminated",function(){
-    callback();
+   console.log("terminated");
 });
 
 setTimeout(function(){
-    the_subscription.terminate();
+    the_subscription.terminate(callback);
 },10000);
 
 // install monitored item
