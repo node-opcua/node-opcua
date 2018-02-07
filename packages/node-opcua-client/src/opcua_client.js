@@ -47,6 +47,7 @@ var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 var OPCUAClientBase = require("./client_base").OPCUAClientBase;
+var isNullOrUndefined = require("node-opcua-utils").isNullOrUndefined;
 
 function validateServerNonce(serverNonce) {
     return (serverNonce && serverNonce.length < 32) ? false : true;
@@ -76,7 +77,7 @@ function OPCUAClient(options) {
     // if set to true , create Session will only accept connection from server which endpoint_url has been reported
     // by GetEndpointsRequest.
     // By default, the client is strict.
-    this.endpoint_must_exist = (options.endpoint_must_exist === null) ? true : options.endpoint_must_exist;
+    this.endpoint_must_exist = (isNullOrUndefined(options.endpoint_must_exist)) ? true : !!options.endpoint_must_exist;
 
     this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
 
@@ -157,6 +158,9 @@ OPCUAClient.prototype._createSession = function (callback) {
     assert(typeof callback === "function");
     assert(self._secureChannel);
     if (!self.__resolveEndPoint() || !self.endpoint) {
+        console.log(this._server_endpoints.map(function (endpoint){
+           return endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri;
+        }));
         return callback(new Error(" End point must exist " + self._secureChannel.endpointUrl));
     }
     self.serverUri = self.endpoint.server.applicationUri;
@@ -1051,7 +1055,6 @@ OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionPara
         try {
             innerFunc(session, subscription, function () {
 
-                console.log("terminate");
                 subscription.terminate(function (err) {
                     done(err);
                 });
