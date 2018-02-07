@@ -42,4 +42,3 @@ function get_fully_qualified_domain_name(optional_max_length) {
 }
 // note : under windows ... echo %COMPUTERNAME%.%USERDNSDOMAIN%
 exports.get_fully_qualified_domain_name = get_fully_qualified_domain_name;
-²
