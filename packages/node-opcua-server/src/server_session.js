@@ -106,6 +106,10 @@ function ServerSession(parent, sessionId, sessionTimeout) {
      */
     self.creationDate = new Date();
 
+
+    self._registeredNodesCounter = 0;
+    self._registeredNodes    = {};
+    self._registeredNodesInv = {};
 }
 
 util.inherits(ServerSession, EventEmitter);
@@ -254,18 +258,18 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
     self.sessionObject = null;
     if (!self.addressSpace) {
-        console.log("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
+        debugLog("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
         return; // no addressSpace
     }
     var root = self.addressSpace.findNode(makeNodeId(ObjectIds.RootFolder));
     assert(root, "expecting a root object");
 
     if (!root.objects) {
-        console.log("ServerSession#_createSessionObjectInAddressSpace : no object folder");
+        debugLog("ServerSession#_createSessionObjectInAddressSpace : no object folder");
         return false;
     }
     if (!root.objects.server) {
-        console.log("ServerSession#_createSessionObjectInAddressSpace : no server object");
+        debugLog("ServerSession#_createSessionObjectInAddressSpace : no server object");
         return false;
     }
 
@@ -273,7 +277,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
     var serverDiagnosticsNode = root.objects.server.serverDiagnostics;
 
     if (!serverDiagnosticsNode || !serverDiagnosticsNode.sessionsDiagnosticsSummary) {
-        console.log("ServerSession#_createSessionObjectInAddressSpace : no serverDiagnostics.sessionsDiagnosticsSummary");
+        debugLog("ServerSession#_createSessionObjectInAddressSpace : no serverDiagnostics.sessionsDiagnosticsSummary");
         return false;
     }
 
@@ -669,6 +673,71 @@ ServerSession.prototype.watchdogReset = function () {
     var self = this;
     // the server session has expired and must be removed from the server
     self.emit("timeout");
+};
+
+
+const registeredNodeNameSpace = 9999;
+
+ServerSession.prototype.registerNode = function(nodeId) {
+
+    assert(nodeId instanceof NodeId);
+    var session = this;
+
+    if (nodeId.namespace === 0 && nodeId.identifierType === NodeIdType.NUMERIC) {
+        return nodeId;
+    }
+
+
+    var key = nodeId.toString();
+
+    var registeredNode = session._registeredNodes[key];
+    if (registeredNode) {
+        // already registered
+        return registeredNode;
+    }
+
+    var node = session.addressSpace.findNode(nodeId);
+    if (!node) {
+        return nodeId;
+    }
+
+    session._registeredNodesCounter +=1;
+
+    var aliasNodeId = makeNodeId(session._registeredNodesCounter,registeredNodeNameSpace);
+    session._registeredNodes[key] = aliasNodeId;
+    session._registeredNodesInv[aliasNodeId.toString()] = node;
+    return aliasNodeId;
+};
+
+ServerSession.prototype.unRegisterNode = function(aliasNodeId) {
+
+    assert(aliasNodeId instanceof NodeId);
+    if (aliasNodeId.namespace !== registeredNodeNameSpace) {
+        return aliasNodeId; // not a registered Node
+    }
+    var session = this;
+
+
+    var node = session._registeredNodesInv[aliasNodeId.toString()];
+    if (!node) {
+        return ;
+    }
+    session._registeredNodesInv[aliasNodeId.toString()] = null;
+    session._registeredNodes[node.nodeId.toString()] = null;
+
+};
+ServerSession.prototype.resolveRegisteredNode = function(aliasNodeId) {
+
+    var session = this;
+
+    if (aliasNodeId.namespace !== registeredNodeNameSpace) {
+        return aliasNodeId; // not a registered Node
+    }
+    var node = session._registeredNodesInv[aliasNodeId.toString()];
+    if (!node) {
+        return aliasNodeId;
+    }
+    return node.nodeId;
 };
 
 
