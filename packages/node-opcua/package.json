@@ -9,6 +9,7 @@
   "node-opcua-address-space": "^0.2.1",
   "node-opcua-address-space-for-conformance-testing": "^0.2.1",
   "node-opcua-assert": "^0.2.0",
+  "node-opcua-basic-types": "^0.2.0",
   "node-opcua-client": "^0.2.1",
   "node-opcua-client-crawler": "^0.2.1",
   "node-opcua-client-proxy": "^0.2.1",

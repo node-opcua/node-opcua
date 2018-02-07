@@ -134,6 +134,7 @@ module.exports.UADataType = require("node-opcua-address-space").UADataType;
 module.exports.getAddressSpaceFixture = require("node-opcua-address-space/test_helpers/get_address_space_fixture").getAddressSpaceFixture;
 module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 
+module.exports.basic_types = require("node-opcua-basic-types");
 
 // version
 module.exports.version                = require("./package.json").version;
