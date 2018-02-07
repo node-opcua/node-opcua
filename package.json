@@ -96,6 +96,7 @@
     "humanize": "0.0.9",
     "lerna": "^2.8.0",
     "ltx": "^2.7.1",
+    "mocha-clean": "^1.0.0",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "0.0.16",
     "node-opcua-pki": "0.0.29",
