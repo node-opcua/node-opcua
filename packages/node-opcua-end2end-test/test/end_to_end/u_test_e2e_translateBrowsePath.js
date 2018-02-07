@@ -111,7 +111,7 @@ module.exports = function (test) {
                     should.not.exist(err);
                     browsePathResult._schema.name.should.equal("BrowsePathResult");
                     browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
-                    console.log(browsePathResult.toString())
+                    //xx console.log(browsePathResult.toString())
                     browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
 
                     inner_done();

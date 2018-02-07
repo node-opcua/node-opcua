@@ -195,15 +195,13 @@ describe("testing client Proxy", function () {
                     serverObject.getMonitoredItems({subscriptionId: subscriptionId }, function (err, outputArgs) {
                         //xx console.log("err = ", err);
                         if (!err && outputArgs){
-                            console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
-                            console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
+                            //xx console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
+                            //xx console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
                         }
                         callback(err);
                     });
-
                 }
             ], inner_done);
-
         }, done);
     });
 
@@ -230,8 +228,8 @@ describe("testing client Proxy", function () {
 
                             hvac = data;
 
-                            console.log("Target temperature nodeId =",hvac.targetTemperature.nodeId.toString());
-                            console.log("Inside temperature nodeId =",hvac.interiorTemperature.nodeId.toString());
+                            //xx console.log("Target temperature nodeId =",hvac.targetTemperature.nodeId.toString());
+                            //xx console.log("Inside temperature nodeId =",hvac.interiorTemperature.nodeId.toString());
                             //xx console.log("hvac.setTargetTemperature = ",hvac.setTargetTemperature);
                             hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
                             hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double.value);
@@ -246,7 +244,7 @@ describe("testing client Proxy", function () {
                               //  console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
                             });
                             hvac.targetTemperature.on("value_changed",function(value){
-                                console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
+                                //xx console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
                             });
 
 
@@ -258,14 +256,14 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     hvac.interiorTemperature.readValue(function (err, value) {
-                        console.log(" reading Interior temperature, got = ...", value.toString());
+                        //xx console.log(" reading Interior temperature, got = ...", value.toString());
                         callback(err);
                     });
                 },
 
                 function (callback) {
 
-                    console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
+                    //xx console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
 
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
                     hvac.interiorTemperature.writeValue({
@@ -304,7 +302,7 @@ describe("testing client Proxy", function () {
                 },
                 function(callback) {
                     hvac.setTargetTemperature({targetTemperature: 37},function(err,results){
-                        console.log("result",results);
+                        //xx console.log("result",results);
                         callback();
                     });
 
@@ -325,7 +323,7 @@ describe("testing client Proxy", function () {
                     setTimeout(callback,2000);
                 },
                 function (callback) {
-                    console.log("stopping proxy")
+                    //xx console.log("stopping proxy");
                     proxyManager.stop(callback);
                 }
 
@@ -338,7 +336,7 @@ describe("testing client Proxy", function () {
     it("ZZ1 should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", function(done) {
 
         var proxyManager;
-        //xx endpointUrl = "opc.tcp://localhost:48010";
+
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager = new UAProxyManager(session);

@@ -589,7 +589,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         var browseNames = browseResult.references.map(function (r) {
             return r.browseName.name;
         });
-        console.log(browseNames);
+        //xx console.log(browseNames);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -1061,7 +1061,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should return BadNodeIdUnknown  - readSingleNode - with unknown object", function () {
 
-        var readResult = engine.readSingleNode(context, "**UNKNOWN**", AttributeIds.DisplayName);
+        var readResult = engine.readSingleNode(context, "ns=0;s=**UNKNOWN**", AttributeIds.DisplayName);
         readResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
     });
 

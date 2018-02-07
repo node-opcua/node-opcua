@@ -34,9 +34,6 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
                 // find the session diagnostic info...
-
-                console.log(" getting diagnostic for subscription.id=", subscription.subscriptionId);
-
                 var relativePath = "/Objects/Server.ServerDiagnostics.SubscriptionDiagnosticsArray";
 
                 var browsePath = [

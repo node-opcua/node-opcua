@@ -129,7 +129,7 @@ describe("testing AnalogItem on client side", function () {
             }
 
             var tmp = _.filter(result.references, function (e) {
-                console.log("     ", e.nodeId.toString(), e.browseName.name.yellow);
+                //xx console.log("     ", e.nodeId.toString(), e.browseName.name.yellow);
                 return e.browseName.name === browseName;
             });
             tmp = tmp.map(function (e) {
@@ -158,7 +158,7 @@ describe("testing AnalogItem on client side", function () {
                 nodeId: propertyId,
                 attributeId: AttributeIds.Value
             };
-            console.log("propertyId = ", propertyId.toString());
+            //xx console.log("propertyId = ", propertyId.toString());
             g_session.read(nodeToRead, function (err, dataValue) {
                 if (err) {
                     return done(err);

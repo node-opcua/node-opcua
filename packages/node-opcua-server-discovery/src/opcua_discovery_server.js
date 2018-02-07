@@ -111,7 +111,7 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
     assert(request instanceof RegisterServerRequest);
 
     function sendError(statusCode) {
-        console.log("_on_RegisterServerRequest error".red, statusCode.toString());
+        ///Xx xconsole.log("_on_RegisterServerRequest error".red, statusCode.toString());
         var response = new RegisterServerResponse({responseHeader: {serviceResult: statusCode}});
         return channel.send_response("MSG", response, message);
     }
@@ -137,7 +137,7 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
     var key = request.server.serverUri;
 
     if (request.server.isOnline) {
-        console.log(" registering server : ".cyan, request.server.serverUri.yellow);
+        //xx console.log(" registering server : ".cyan, request.server.serverUri.yellow);
         server.registered_servers[key] = request.server;
 
         // prepare serverInfo which will be used by FindServers
@@ -153,7 +153,7 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
 
     } else {
         if (key in server.registered_servers) {
-            console.log(" unregistering server : ".cyan, request.server.serverUri.yellow);
+            //xx console.log(" unregistering server : ".cyan, request.server.serverUri.yellow);
             delete server.registered_servers[key];
         }
     }

@@ -197,8 +197,8 @@ describe("ServerEngine Subscriptions service", function () {
         // after subscription has been deleted, the 2 outstanding publish request shall
         // be completed
         publishSpy.callCount.should.eql(2);
-        console.log(publishSpy.getCall(0).args[0].toString());
-        console.log(publishSpy.getCall(0).args[1].toString());
+        //xx console.log(publishSpy.getCall(0).args[0].toString());
+        //xx console.log(publishSpy.getCall(0).args[1].toString());
         publishSpy.getCall(0).args[1].responseHeader.requestHandle.should.eql(100);
         publishSpy.getCall(1).args[1].responseHeader.requestHandle.should.eql(101);
         publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
