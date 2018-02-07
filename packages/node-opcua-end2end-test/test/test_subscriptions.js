@@ -29,55 +29,85 @@ describe("testing basic Client Server dealing with subscription at low level", f
         client_server.shutdown(done);
     });
 
-    var subscriptionId = null;
+
     it("server should create a subscription (CreateSubscriptionRequest)", function (done) {
 
+        var subscriptionId = null;
         // CreateSubscriptionRequest
         var request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100 * 60 * 10,
-            requestedMaxKeepAliveCount: 2,
-            maxNotificationsPerPublish: 2,
+            requestedMaxKeepAliveCount: 20,
+            maxNotificationsPerPublish: 10,
             publishingEnabled: true,
             priority: 6
         });
         g_session.createSubscription(request, function (err, response) {
-            if (!err) {
-                response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
-                subscriptionId = response.subscriptionId;
+            if (err) {
+                return done(err);
             }
-            done(err);
+            response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+            subscriptionId = response.subscriptionId;
+            console.log(response.toString());
 
+            setImmediate(function () {
+                var request = new subscription_service.DeleteSubscriptionsRequest({
+                    subscriptionIds: [ subscriptionId ]
+                });
+                g_session.deleteSubscriptions(request, function (err, result) {
+                    done(err);
+                });
+            });
         });
     });
+
     it("server should create a monitored item  (CreateMonitoredItems)", function (done) {
 
 
-        // CreateMonitoredItemsRequest
-        var request = new subscription_service.CreateMonitoredItemsRequest({
-            subscriptionId: subscriptionId,
-            timestampsToReturn: read_service.TimestampsToReturn.Both,
-            itemsToCreate: [
-                {
-                    itemToMonitor: {
-                        nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
-                    },
-                    monitoringMode: subscription_service.MonitoringMode.Sampling,
-                    requestedParameters: {
-                        clientHandle: 26,
-                        samplingInterval: 100,
-                        filter: null,
-                        queueSize: 100,
-                        discardOldest: true
-                    }
-                }
-            ]
+        var subscriptionId = null;
+        // CreateSubscriptionRequest
+        var request = new subscription_service.CreateSubscriptionRequest({
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount: 100 * 60 * 10,
+            requestedMaxKeepAliveCount: 20,
+            maxNotificationsPerPublish: 10,
+            publishingEnabled: true,
+            priority: 6
         });
-        g_session.createMonitoredItems(request, function (err, response) {
-            if (!err) {
-                response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
+        g_session.createSubscription(request, function (err, response) {
+            if (err) {
+                return done(err);
             }
-            done(err);
+            response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+            subscriptionId = response.subscriptionId;
+
+
+            // CreateMonitoredItemsRequest
+            var request = new subscription_service.CreateMonitoredItemsRequest({
+                subscriptionId: subscriptionId,
+                timestampsToReturn: read_service.TimestampsToReturn.Both,
+                itemsToCreate: [
+                    {
+                        itemToMonitor: {
+                            nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
+                        },
+                        monitoringMode: subscription_service.MonitoringMode.Sampling,
+                        requestedParameters: {
+                            clientHandle: 26,
+                            samplingInterval: 100,
+                            filter: null,
+                            queueSize: 100,
+                            discardOldest: true
+                        }
+                    }
+                ]
+            });
+            g_session.createMonitoredItems(request, function (err, response) {
+                if (!err) {
+                    response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
+                }
+                done(err);
+            });
         });
     });
 

@@ -237,12 +237,7 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
         // handler must be named _on_ActionRequest()
         var handler = self["_on_" + request._schema.name];
         if (_.isFunction(handler)) {
-
-            var t1 = utils.get_clock_tick();
             handler.apply(self, arguments);
-            var t2 = utils.get_clock_tick();
-            //xx console.log(request._schema.name," => t2-t1",t2-t1);
-
         } else {
             errMessage = "UNSUPPORTED REQUEST !! " + request._schema.name;
             console.log(errMessage);

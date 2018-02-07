@@ -625,7 +625,7 @@ describe("benchmarking variant encode", function () {
             encode.call(this, v, stream);
         }
 
-        var stream = new BinaryStream();
+        var stream = new BinaryStream(4096);
         var variant = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,

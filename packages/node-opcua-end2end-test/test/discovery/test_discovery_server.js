@@ -181,8 +181,8 @@ describe("Discovery server", function () {
                 perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
-                    console.log(" initialServerCount = ", initialServerCount);
-                    console.log("servers[0].discoveryUrls", servers[0].discoveryUrls.join("\n"));
+                    //xx console.log(" initialServerCount = ", initialServerCount);
+                    //xx console.log("servers[0].discoveryUrls", servers[0].discoveryUrls.join("\n"));
                     callback(err);
                 });
             },
@@ -198,7 +198,7 @@ describe("Discovery server", function () {
 
             function (callback) {
                 perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
-                    console.log(servers[0].toString());
+                    //xx console.log(servers[0].toString());
                     servers.length.should.eql(initialServerCount + 1);
                     servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
                     callback(err);

@@ -1,12 +1,22 @@
 "use strict";
 Error.stackTraceLimit = Infinity;
 
+
 var Mocha = require("mocha"),
   fs = require("fs"),
   path = require("path");
 
+require("mocha-clean");
+
+var filterOpts = process.argv[2];
+
 // Instantiate a Mocha instance.
-var mocha = new Mocha({bail: true, fullTrace: true});
+var mocha = new Mocha({
+    bail: false,
+    grep: filterOpts,
+    fullTrace: true,
+    reporter: "spec" //"nyan", //"tap"
+});
 
 
 var test_files = [];
@@ -22,7 +32,9 @@ function collect_files(test_folder) {
                 //xx if (!file.match("test_e2e_connection_reconnection.js")) {
                 //xx     return;
                 //xx }
+                //xx if (filterOpts && file.match(filterOpts)) {
                 test_files.push(f);
+                //xx }
             } else {
                 //xx console.log("skipping file ",f);
             }
@@ -63,6 +75,8 @@ test_files.filter(function (file) {
 
 mocha.timeout(200000);
 mocha.bail(true);
+
+mocha.filter
 // Run the tests.
 mocha.run(function (failures) {
 

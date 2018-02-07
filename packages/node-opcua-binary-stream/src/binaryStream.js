@@ -9,8 +9,8 @@ var util = require("util");
 var buffer_utils = require("node-opcua-buffer-utils");
 var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-var noAssert = true;
-
+var noAssert = false;
+var performCheck = false;
 /**
  * a BinaryStream can be use to perform sequential read or write
  * inside a buffer.
@@ -67,7 +67,8 @@ BinaryStream.prototype.rewind = function () {
  * @param {Number} value
  */
 BinaryStream.prototype.writeInt8 = function (value) {
-    assert(value >= -128 && value < 128);
+    !performCheck || assert(this._buffer.length >= this.length + 1 , "not enough space in buffer");
+    !performCheck || assert(value >= -128 && value < 128);
     this._buffer.writeInt8(value, this.length, noAssert);
     this.length += 1;
 };
@@ -78,7 +79,8 @@ BinaryStream.prototype.writeInt8 = function (value) {
  * @param {Number} value
  */
 BinaryStream.prototype.writeUInt8 = function (value) {
-    assert(value >= 0 && value < 256 && " writeUInt8 : out of bound ");
+    !performCheck || assert(this._buffer.length >= this.length + 1 , "not enough space in buffer");
+    !performCheck || assert(value >= 0 && value < 256 && " writeUInt8 : out of bound ");
     this._buffer.writeUInt8(value, this.length, noAssert);
     this.length += 1;
 };
@@ -89,6 +91,7 @@ BinaryStream.prototype.writeUInt8 = function (value) {
  * @param {Number} value
  */
 BinaryStream.prototype.writeInt16 = function (value) {
+    !performCheck || assert(this._buffer.length >= this.length + 2 , "not enough space in buffer");
     this._buffer.writeInt16LE(value, this.length, noAssert);
     this.length += 2;
 };
@@ -99,6 +102,7 @@ BinaryStream.prototype.writeInt16 = function (value) {
  * @param {Number} value
  */
 BinaryStream.prototype.writeUInt16 = function (value) {
+    !performCheck || assert(this._buffer.length >= this.length + 2 , "not enough space in buffer");
     this._buffer.writeUInt16LE(value, this.length, noAssert);
     this.length += 2;
 };
@@ -110,24 +114,30 @@ BinaryStream.prototype.writeUInt16 = function (value) {
  * @param {Number} value
  */
 BinaryStream.prototype.writeInteger = function (value) {
+    !performCheck || assert(this._buffer.length >= this.length + 4 , "not enough space in buffer");
     this._buffer.writeInt32LE(value, this.length, noAssert);
     this.length += 4;
 };
 
+const _ = require("underscore");
+const MAXUINT32 = 2**32;
 /**
  * write a single 32 bit unsigned integer to the stream.
  * @method writeUInt32
  * @param {Number} value
  */
 BinaryStream.prototype.writeUInt32 = function (value) {
+    !performCheck || assert(this._buffer.length >= this.length + 4 , "not enough space in buffer");
+    !performCheck || assert(_.isFinite(value));
+    !performCheck || assert(value >= 0  && value < MAXUINT32);
     this._buffer.writeUInt32LE(value, this.length, noAssert);
     this.length += 4;
     /*
-     assert(this._buffer[this.length - 4] === value % 256);
-     assert(this._buffer[this.length - 3] === (value >>> 8) % 256);
-     assert(this._buffer[this.length - 2] === (value >>> 16) % 256);
-     assert(this._buffer[this.length - 1] === (value >>> 24) % 256);
-     */
+      assert(this._buffer[this.length - 4] === value % 256);
+      assert(this._buffer[this.length - 3] === (value >>> 8) % 256);
+      assert(this._buffer[this.length - 2] === (value >>> 16) % 256);
+      assert(this._buffer[this.length - 1] === (value >>> 24) % 256);
+      */
 };
 
 /**
@@ -136,6 +146,7 @@ BinaryStream.prototype.writeUInt32 = function (value) {
  * @param {Number} value
  */
 BinaryStream.prototype.writeFloat = function (value) {
+    !performCheck || assert(this._buffer.length >= this.length + 4 , "not enough space in buffer");
     this._buffer.writeFloatLE(value, this.length, noAssert);
     this.length += 4;
 };
@@ -146,6 +157,7 @@ BinaryStream.prototype.writeFloat = function (value) {
  * @param value
  */
 BinaryStream.prototype.writeDouble = function (value) {
+    !performCheck || assert(this._buffer.length >= this.length + 8 , "not enough space in buffer");
     this._buffer.writeDoubleLE(value, this.length, noAssert);
     this.length += 8;
 };
@@ -160,7 +172,7 @@ BinaryStream.prototype.writeDouble = function (value) {
 BinaryStream.prototype.writeArrayBuffer = function (arrayBuf, offset, length) {
 
     offset = offset || 0;
-    assert(arrayBuf instanceof ArrayBuffer);
+    !performCheck || assert(arrayBuf instanceof ArrayBuffer);
     var byteArr = new Uint8Array(arrayBuf);
     var n = (length || byteArr.length) + offset;
     for (var i = offset; i < n; i++) {
@@ -174,11 +186,11 @@ BinaryStream.prototype.writeArrayBuffer = function (arrayBuf, offset, length) {
  * @returns {Uint8Array}
  */
 BinaryStream.prototype.readArrayBuffer = function (length) {
-    assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
+    !performCheck || assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
     var slice = this._buffer.slice(this.length, this.length + length);
-    assert(slice.length === length);
+    !performCheck || assert(slice.length === length);
     var byteArr = new Uint8Array(slice);
-    assert(byteArr.length === length);
+    !performCheck || assert(byteArr.length === length);
     this.length += length;
     return byteArr;
 }
@@ -186,6 +198,7 @@ BinaryStream.prototype.readArrayBuffer = function (length) {
 
 var displayWarnings = false;
 require("colors");
+
 function display_memcpy_missing_message() {
     console.warn("\n Warning : the memcpy package is not installed on your system ".yellow);
     console.warn("\n           memcpy could allow you to get better encoding/decoding performance on typed array ".yellow);
@@ -236,7 +249,9 @@ try {
 
 }
 catch (err) {
-    if (displayWarnings) { display_memcpy_missing_message();}
+    if (displayWarnings) {
+        display_memcpy_missing_message();
+    }
 }
 
 /**
@@ -245,7 +260,7 @@ catch (err) {
  * @return {Number}
  */
 BinaryStream.prototype.readByte = function () {
-    var retVal = this._buffer.readInt8(this.length);
+    var retVal = this._buffer.readInt8(this.length,noAssert);
     this.length += 1;
     return retVal;
 };
@@ -256,7 +271,8 @@ BinaryStream.prototype.readInt8 = BinaryStream.prototype.readByte;
  * @return {Number}
  */
 BinaryStream.prototype.readUInt8 = function () {
-    var retVal = this._buffer.readUInt8(this.length);
+    !performCheck || assert (this._buffer.length >= this.length+1);
+    var retVal = this._buffer.readUInt8(this.length,noAssert);
     this.length += 1;
     return retVal;
 };
@@ -267,7 +283,7 @@ BinaryStream.prototype.readUInt8 = function () {
  * @return {Number}
  */
 BinaryStream.prototype.readInt16 = function () {
-    var retVal = this._buffer.readInt16LE(this.length);
+    var retVal = this._buffer.readInt16LE(this.length,noAssert);
     this.length += 2;
     return retVal;
 };
@@ -278,7 +294,7 @@ BinaryStream.prototype.readInt16 = function () {
  * @return {Number}  q
  */
 BinaryStream.prototype.readUInt16 = function () {
-    var retVal = this._buffer.readUInt16LE(this.length);
+    var retVal = this._buffer.readUInt16LE(this.length,noAssert);
     this.length += 2;
     return retVal;
 };
@@ -289,7 +305,7 @@ BinaryStream.prototype.readUInt16 = function () {
  * @return {Number}
  */
 BinaryStream.prototype.readInteger = function () {
-    var retVal = this._buffer.readInt32LE(this.length);
+    var retVal = this._buffer.readInt32LE(this.length,noAssert);
     this.length += 4;
     return retVal;
 };
@@ -300,7 +316,7 @@ BinaryStream.prototype.readInteger = function () {
  * @return {Number} the value read from the stream
  */
 BinaryStream.prototype.readUInt32 = function () {
-    var retVal = this._buffer.readUInt32LE(this.length);
+    var retVal = this._buffer.readUInt32LE(this.length,noAssert);
     this.length += 4;
     return retVal;
 };
@@ -311,7 +327,7 @@ BinaryStream.prototype.readUInt32 = function () {
  * @return {Number} the value read from the stream
  */
 BinaryStream.prototype.readFloat = function () {
-    var retVal = this._buffer.readFloatLE(this.length);
+    var retVal = this._buffer.readFloatLE(this.length,noAssert);
     this.length += 4;
     return retVal;
 };
@@ -322,7 +338,7 @@ BinaryStream.prototype.readFloat = function () {
  * @return {Number} the value read from the stream
  */
 BinaryStream.prototype.readDouble = function () {
-    var retVal = this._buffer.readDoubleLE(this.length);
+    var retVal = this._buffer.readDoubleLE(this.length,noAssert);
     this.length += 8;
     return retVal;
 };
@@ -355,16 +371,50 @@ BinaryStream.prototype.writeByteStream = function (buf) {
 };
 
 
+/**
+ * calculate the size in bytes of a utf8 string
+ * @param str {String}
+ */
+function calculateByteLength(str) {
+    // returns the byte length of an utf8 string
+    var s = str.length;
+    for (var i = str.length - 1; i >= 0; i--) {
+        var code = str.charCodeAt(i);
+        if (code > 0x7f && code <= 0x7ff) {
+            s++;
+        }
+        else if (code > 0x7ff && code <= 0xffff) {
+            s += 2;
+        }
+        if (code >= 0xDC00 && code <= 0xDFFF) {
+            //trail surrogate
+            i--;
+        }
+    }
+    return s;
+}
+
 BinaryStream.prototype.writeString = function (value) {
-  if(value === undefined || value === null) {
-    this.writeInteger(-1);
-    return;
-  }
-  var buf = new Buffer(value,"utf-8");
-  this.writeByteStream(buf);
+    if (value === undefined || value === null) {
+        this.writeInteger(-1);
+        return;
+    }
+    var byteLength = calculateByteLength(value);
+    this.writeInteger(byteLength);
+    // make sure there is enough room in destination buffer
+    var remaining_bytes = this._buffer.length - this.length;
+    /* istanbul ignore next */
+    if (remaining_bytes < byteLength) {
+        throw new Error("BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +byteLength+ " but only " + remaining_bytes + " left");
+    }
+    if (byteLength>0) {
+        this._buffer.write(value,this.length,"utf-8");
+        this.length += byteLength;
+    }
 };
 
 
+var zeroLengthBuffer = createFastUninitializedBuffer(0);
 /**
  * read a byte stream to the stream.
  * The method reads the length of the byte array from the stream as a 32 bits integer before reading the byte stream.
@@ -378,28 +428,37 @@ BinaryStream.prototype.readByteStream = function () {
         return null;
     }
     if (bufLen === 0) {
-        return createFastUninitializedBuffer(0);
+        return zeroLengthBuffer;
     }
+    // check that there is enough space in the buffer
+    var remaining_bytes = this._buffer.length - this.length;
+    if (remaining_bytes < bufLen) {
+        throw new Error("BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " + bufLen + " but only " + remaining_bytes + " left");
+    }
+    //create a shared memory buffer ! for speed
+    var buf = this._buffer.slice(this.length, this.length + bufLen);
+    this.length += bufLen;
+    return buf;
+};
 
+BinaryStream.prototype.readString = function () {
+
+    var bufLen = this.readUInt32();
+    if (bufLen === 0xFFFFFFFF) {
+        return null;
+    }
+    if (bufLen === 0) {
+        return "";
+    }
     // check that there is enough space in the buffer
     var remaining_bytes = this._buffer.length - this.length;
     if (remaining_bytes < bufLen) {
         throw new Error("BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " + bufLen + " but only " + remaining_bytes + " left");
     }
 
-    var buf = createFastUninitializedBuffer(bufLen);
-    this._buffer.copy(buf, 0, this.length, this.length + bufLen);
+    var str = this._buffer.toString("utf-8", this.length , this.length +bufLen);
     this.length += bufLen;
-    return buf;
-};
-
-BinaryStream.prototype.readString = function () {
-    var buff = this.readByteStream();
-    if (!buff) {
-        return null;
-    }
-    return buff.toString("utf-8");
-
+    return str;
 };
 exports.BinaryStream = BinaryStream;
 
@@ -473,11 +532,12 @@ BinaryStreamSizeCalculator.prototype.writeByteStream = function (buf) {
 BinaryStreamSizeCalculator.prototype.writeString = function (string) {
 
     if (string === undefined || string === null) {
-        this.writeInteger(-1);
+        this.writeUInt32(-1);
         return;
     }
-    var buf = Buffer.from(string);
-    return this.writeByteStream(buf);
+    var bufLength =  calculateByteLength(string);
+    this.writeUInt32(bufLength);
+    this.length += bufLength;
 };
 
 exports.BinaryStreamSizeCalculator = BinaryStreamSizeCalculator;

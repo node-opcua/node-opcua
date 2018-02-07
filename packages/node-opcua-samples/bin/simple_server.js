@@ -169,7 +169,7 @@ server.on("post_initialize", function () {
         browseName: "FanSpeed",
         nodeId: "ns=1;s=FanSpeed",
         dataType: "Double",
-        value: new Variant({dataType: DataTyreadDouble, value: 1000.0})
+        value: new Variant({dataType: DataType.Double, value: 1000.0})
     });
 
     setInterval(function () {

@@ -51,15 +51,15 @@ function writeIncrement(session, analogDataItem, done) {
         },
 
         function (callback) {
-            var nodesToWrite = [{
+            var nodeToWrite = {
                 nodeId: analogDataItem,
                 attributeId: opcua.AttributeIds.Value,
                 value: new DataValue({
                     value: {dataType: DataType.Double, value: value + 1}
                 })
-            }];
-            session.write(nodesToWrite, function (err, results) {
-                results[0].should.eql(opcua.StatusCodes.Good);
+            };
+            session.write(nodeToWrite, function (err, statusCode) {
+                statusCode.should.eql(opcua.StatusCodes.Good);
                 callback(err);
             });
         }
@@ -109,16 +109,16 @@ function writeEURange(session, nodeId, euRange, done) {
             });
         },
         function (callback) {
-            var nodesToWrite = [{
+            var nodeToWrite = {
                 nodeId: euRangeNodeId,
                 attributeId: opcua.AttributeIds.Value,
                 value: new DataValue({
                     value: {dataType: DataType.ExtensionObject, value: new Range(euRange)}
                 })
-            }
-            ];
-            session.write(nodesToWrite, function (err) {
+            };
+            session.write(nodeToWrite, function (err,statusCode) {
                 if (!err) {
+                    statusCode.should.eql(opcua.StatusCodes.Good);
                 }
                 callback(err)
             });

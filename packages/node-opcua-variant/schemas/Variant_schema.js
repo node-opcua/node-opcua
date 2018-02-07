@@ -105,9 +105,9 @@ function encodeTypedArray(ArrayType, stream, value) {
 function encodeGeneralArray(dataType, stream, value) {
 
     var arr = value || [];
-
+    assert(arr instanceof Array);
+    assert(_.isFinite(arr.length));
     ec.encodeUInt32(arr.length, stream);
-
     var encode = get_encoder(dataType);
     var i, n = arr.length;
     for (i = 0; i < n; i++) {

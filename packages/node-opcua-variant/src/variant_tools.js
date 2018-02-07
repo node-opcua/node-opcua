@@ -50,8 +50,8 @@ function coerceVariantType(dataType, value) {
             break;
         case DataType.Int16:
         case DataType.UInt16:
-        case DataType.UInt32:
         case DataType.Int32:
+        case DataType.UInt32:
             assert(value !== undefined);
             if (isEnumerationItem(value)) {
                 // value is a enumeration of some sort
@@ -59,7 +59,7 @@ function coerceVariantType(dataType, value) {
             } else {
                 value = parseInt(value, 10);
             }
-            assert(_.isFinite(value));
+            assert(_.isFinite(value), "expecting a number");
             break;
         case DataType.UInt64:
             value = encode_decode.coerceUInt64(value);
@@ -78,7 +78,7 @@ function coerceVariantType(dataType, value) {
         case DataType.ByteString:
             value = (typeof value === "string") ? new Buffer(value): value;
             if (!(value === null || value instanceof Buffer)) {
-                throw new Error("BytString should be null or a Buffer");
+                throw new Error("ByteString should be null or a Buffer");
             }
             assert(value === null || value instanceof Buffer);
             break;
@@ -246,8 +246,8 @@ function __check_same_array(arr1,arr2) {
         // this is the most efficient way to compare 2 buffers but it doesn't work with node <= 0.12
         assert(arr2.buffer);
         // compare byte by byte
-        var b1 = Buffer.from(arr1.buffer);
-        var b2 = Buffer.from(arr2.buffer);
+        var b1 = Buffer.from(arr1.buffer,arr1.byteOffset,arr1.byteLength);
+        var b2 = Buffer.from(arr2.buffer,arr2.byteOffset,arr2.byteLength);
         return b1.equals(b2);
     }
     var n = arr1.length;

@@ -77,18 +77,30 @@ function argsIn(obj, properties) {
 }
 
 var ChunkManager_options = [
-    "chunkSize", "headerSize", "signatureLength",
-    "sequenceHeaderSize", "cipherBlockSize", "plainBlockSize",
-    "compute_signature", "encrypt_buffer", "writeSequenceHeaderFunc", "writeHeaderFunc"
+    "chunkSize",
+    "headerSize",
+    "signatureLength",
+    "sequenceHeaderSize",
+    "cipherBlockSize",
+    "plainBlockSize",
+    "compute_signature",
+    "encrypt_buffer",
+    "writeSequenceHeaderFunc",
+    "writeHeaderFunc"
 ];
 /**
  * @class ChunkManager
  * @param options {Object}
- * @param options.chunkSize
- * @param options.padding_size
- * @param [options.headerSize = 0 ]
- * @param [options.signatureLength = 0]
- * @param [options.sequenceHeaderSize = 8] size of the sequence header
+ * @param options.chunkSize  {number}
+ * @param [options.headerSize = 0 ] {number}
+ * @param [options.signatureLength = 0] {number}
+ * @param [options.sequenceHeaderSize = 8] {number}size of the sequence header
+ * @param [options.cipherBlockSize=0] {number}
+ * @param [options.plainBlockSize=0]  {number}
+ * @param [options.compute_signature=null] {Function}
+ * @param [options.encrypt_buffer] {Function}
+ * @param [options.writeSequenceHeaderFunc=null] {Function}
+ * @param [options.writeHeaderFunc] {Function}
  * @extends EventEmitter
  * @constructor
  */
@@ -148,8 +160,7 @@ function ChunkManager(options) {
     // where the data starts in the block
     this.dataOffset = this.headerSize + this.sequenceHeaderSize;
 
-    this.chunk = createFastUninitializedBuffer(this.chunkSize);
-
+    this.chunk = null;
     this.cursor = 0;
     this.pending_chunk = null;
 
@@ -265,6 +276,8 @@ ChunkManager.prototype.write = function (buffer, length) {
 
         var nb_to_write = Math.min(length - input_cursor, space_left);
 
+        this.chunk  = this.chunk || createFastUninitializedBuffer(this.chunkSize);
+
         if (buffer) {
             buffer.copy(this.chunk, this.cursor + this.dataOffset, input_cursor, input_cursor + nb_to_write);
         }
@@ -344,6 +357,7 @@ ChunkManager.prototype._postprocess_current_chunk = function () {
     //  - this.pending_chunk has the correct size but is not signed nor encrypted yet
     //    as we don't know what to write in the header yet
     //  - as a result,
+    this.chunk  = null;
     this.cursor = 0;
 };
 

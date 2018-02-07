@@ -105,6 +105,19 @@ function write_enumeration(f, schema, field, member, i) {
 
 }
 
+function write_complex_fast_construct(f, schema, field, member/*, i*/) {
+    assert(f instanceof LineFile);
+    function write() {
+        f.write.apply(f, arguments);
+    }
+    if (field.isArray) {
+        write("        self." + member + " =  null; /* null array */");
+    } else {
+        write("        self." + member + " =  null; /* new " + field.fieldType + "(null); */");
+    }
+
+}
+
 function write_complex(f, schema, field, member/*, i*/) {
 
     assert(f instanceof LineFile);
@@ -370,11 +383,36 @@ function produce_code(schema_file, schema_name, source_file) {
     if (_.isFunction(schema.construct_hook)) {
         write("    //construction hook");
         write("    options = schema.construct_hook(options); ");
-
     }
     if (baseclass) {
         write("    " + baseclass + ".call(this,options);");
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Special case when options === null => fast constructor for deserialization
+    // -----------------------------------------------------------------------------------------------------------------
+    write("    if (options === null) { ");
+    if (baseclass) {
+        write("        " + baseclass + ".call(this,options);");
+    }
+    for (i = 0; i < n; i++) {
+        field = schema.fields[i];
+        fieldType = field.fieldType;
+
+        member = field.name;
+        __member = "__" + member;
+        if (field.category === "enumeration") {
+            //xx write_enumeration(f, schema, field, member, i);
+        } else if (field.category === "complex") {
+            write_complex_fast_construct(f, schema, field, member, i);
+        } else {
+            //xx write_basic(f, schema, field, member, i);
+        }
+    }
+
+    write("        return ;");
+    write("    }");
+    // -----------------------------------------------------------------------------------------------------------------
 
     for (i = 0; i < n; i++) {
 
@@ -597,7 +635,7 @@ function produce_code(schema_file, schema_name, source_file) {
                 assert(field.category === "complex");
                 if (field.isArray) {
                     write("    this." + member + " = decodeArray(stream, function(stream) { ");
-                    write("       var obj = new " + field.fieldType + "();");
+                    write("       var obj = new " + field.fieldType + "(null);");
                     write("       obj.decode(stream,options);");
                     write("       return obj; ");
                     write("    });");

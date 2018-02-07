@@ -1684,9 +1684,14 @@ OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
+
+        // proceed with registered nodes alias resolution
+        for (let i=0;i<request.nodesToRead.length;i++) {
+            request.nodesToRead[i].nodeId = session.resolveRegisteredNode(request.nodesToRead[i].nodeId);
+        }
+
         // ask for a refresh of asynchronous variables
         server.engine.refreshValues(request.nodesToRead, function (err) {
-
             assert(!err, " error not handled here , fix me");
 
             results = server.engine.read(context, request);
@@ -1695,9 +1700,11 @@ OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
             assert(results.length === request.nodesToRead.length);
 
             response = new ReadResponse({
-                results: results,
+                results: null,
                 diagnosticInfos: null
             });
+            // set it here for performance
+            response.results = results;
             assert(response.diagnosticInfos.length === 0);
             sendResponse(response);
         });
@@ -1812,6 +1819,12 @@ OPCUAServer.prototype._on_WriteRequest = function (message, channel) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
+
+        // proceed with registered nodes alias resolution
+        for (let i=0;i<request.nodesToWrite.length;i++) {
+            request.nodesToWrite[i].nodeId = session.resolveRegisteredNode(request.nodesToWrite[i].nodeId);
+        }
+
         var context = new SessionContext({session, server});
 
         assert(request.nodesToWrite[0]._schema.name === "WriteValue");
@@ -2471,8 +2484,17 @@ OPCUAServer.prototype._on_RegisterNodesRequest = function (message, channel) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
+        // A list of NodeIds which the Client shall use for subsequent access operations. The
+        // size and order of this list matches the size and order of the nodesToRegister
+        // request parameter.
+        // The Server may return the NodeId from the request or a new (an alias) NodeId. It
+        // is recommended that the Server return a numeric NodeIds for aliasing.
+        // In case no optimization is supported for a Node, the Server shall return the
+        // NodeId from the request.
+        var registeredNodeIds = request.nodesToRegister.map(nodeId => session.registerNode(nodeId));
+
         response = new RegisterNodesResponse({
-            registeredNodeIds: request.nodesToRegister
+            registeredNodeIds: registeredNodeIds
         });
         sendResponse(response);
     });
@@ -2497,6 +2519,9 @@ OPCUAServer.prototype._on_UnregisterNodesRequest = function (message, channel) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
+
+        request.nodesToUnregister.map(nodeId => session.unRegisterNode(nodeId));
+
         response = new UnregisterNodesResponse({});
         sendResponse(response);
     });

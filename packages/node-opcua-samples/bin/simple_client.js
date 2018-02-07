@@ -430,8 +430,10 @@ async.series([
                     serverCertificate = endpoint.serverCertificate;
 
                     var certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
-                    fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"));
 
+                   if (serverCertificate) {
+                       fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"),function(){});
+                   }
                     table.newRow();
                 });
                 console.log(table.toString());
@@ -877,10 +879,7 @@ async.series([
                 if (!the_subscription) {
                     return callback();
                 }
-                the_subscription.once("terminated",function() {
-                    callback();
-                });
-                the_subscription.terminate();
+                the_subscription.terminate(callback);
             }, timeout);
 
             // simulate a connection break at t =timeout/2
@@ -951,7 +950,7 @@ process.on("SIGINT", function () {
         console.log(" Received client interruption from user ".red.bold);
         console.log(" shutting down ...".red.bold);
 
-        the_subscription.terminate();
+        the_subscription.terminate(function() {});
         the_subscription = null;
     }
 });

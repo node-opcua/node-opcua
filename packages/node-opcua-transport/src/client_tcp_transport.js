@@ -41,7 +41,10 @@ function createClientSocket(endpointUrl) {
     var hostname = ep.hostname;
     switch (ep.protocol) {
         case "opc.tcp":
-            return net.connect({host: hostname, port: port});
+            var socket = net.connect({host: hostname, port: port});
+            socket.setNoDelay(true);
+
+            return socket;
         case "fake":
             var fakeSocket = getFakeTransport();
             assert(ep.protocol === "fake", " Unsupported transport protocol");
@@ -49,6 +52,7 @@ function createClientSocket(endpointUrl) {
                 fakeSocket.emit("connect");
             });
             return fakeSocket;
+        case "websocket":
         case "http":
         case "https":
         default:

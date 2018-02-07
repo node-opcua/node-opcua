@@ -876,13 +876,7 @@ var UAVariable = require("node-opcua-address-space").UAVariable;
 require("node-opcua-address-space");
 
 ServerEngine.prototype.__findObject = function (nodeId) {
-    // coerce nodeToBrowse to NodeId
-    try {
-        nodeId = resolveNodeId(nodeId);
-    }
-    catch (err) {
-        return null;
-    }
+    nodeId = resolveNodeId(nodeId);
     assert(nodeId instanceof NodeId);
     return this.addressSpace.findNode(nodeId);
 };
@@ -992,6 +986,8 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
             return new DataValue({statusCode: StatusCodes.BadInternalError});
         }
 
+       //Xx console.log(dataValue.toString());
+
         dataValue = apply_timestamps(dataValue, timestampsToReturn, attributeId);
 
         return dataValue;
@@ -1040,12 +1036,13 @@ ServerEngine.prototype.read = function (context, readRequest) {
     assert(self.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToRead));
 
-    var dataValues = nodesToRead.map(function (readValueId) {
-        assert(readValueId.indexRange instanceof NumericRange);
-        return self._readSingleNode(context, readValueId, timestampsToReturn);
-    });
+    context.currentTime = new Date();
 
-    assert(dataValues.length === readRequest.nodesToRead.length);
+    var dataValues = [];
+    for (let i=0;i<nodesToRead.length;i++) {
+        var readValueId = nodesToRead[i];
+        dataValues[i] =  self._readSingleNode(context, readValueId, timestampsToReturn);
+    }
     return dataValues;
 };
 
@@ -1078,7 +1075,7 @@ ServerEngine.prototype.writeSingleNode = function (context, writeValue, callback
 
     var obj = self.__findObject(nodeId);
     if (!obj) {
-        callback(null, StatusCodes.BadNodeIdUnknown);
+        return callback(null, StatusCodes.BadNodeIdUnknown);
     } else {
         obj.writeAttribute(context, writeValue, callback);
     }
@@ -1105,6 +1102,8 @@ ServerEngine.prototype.write = function (context, nodesToWrite, callback) {
     var self = this;
 
     assert(self.addressSpace instanceof AddressSpace); // initialize not called
+
+    context.currentTime = new Date();
 
     function performWrite(writeValue, inner_callback) {
         assert(writeValue instanceof WriteValue);

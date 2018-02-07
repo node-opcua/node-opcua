@@ -50,7 +50,10 @@ module.exports = function (test) {
 
                 var objectId = coerceNodeId("ns=0;i=2253");// server
                 var methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItem
-                session.getArgumentDefinition(methodId, function (err, inputArguments, outputArguments) {
+                session.getArgumentDefinition(methodId, function (err, args) {
+
+                    var inputArguments  = args.inputArguments;
+                    var outputArguments = args.outputArguments;
 
                     exec_safely(function(){
                         //xx console.log("inputArguments  ",inputArguments.toString());

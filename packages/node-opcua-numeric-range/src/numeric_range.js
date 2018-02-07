@@ -63,7 +63,6 @@ var NumericRange_Schema = {
     },
 
 
-
     coerce: function (value) {
         if (value instanceof NumericRange) {
             return value;
@@ -71,7 +70,7 @@ var NumericRange_Schema = {
         if (value === null || value === undefined) {
             return new NumericRange();
         }
-        if ( value === NumericRangeEmpty_str) {
+        if (value === NumericRangeEmpty_str) {
             return new NumericRange();
         }
         assert(typeof value === "string" || _.isArray(value));
@@ -131,9 +130,11 @@ function construct_numeric_range_bit_from_string(str) {
         };
     }
 }
+
 function _normalize(e) {
     return e.type === NumericRangeType.SingleValue ? [e.value, e.value] : e.value;
 }
+
 function construct_numeric_range_from_string(str) {
 
     if (!regexNumericRange.test(str)) {
@@ -171,58 +172,57 @@ function construct_numeric_range_from_string(str) {
 
 }
 
+function _construct_from_string(self, value) {
+    var nr = construct_numeric_range_from_string(value);
+    self.type = nr.type;
+    self.value = nr.value;
+}
+
+function _construct_from_values(self, value, second_value) {
+    if (_.isUndefined(second_value)) {
+        self._set_single_value(value);
+
+    } else {
+
+        if (!_.isFinite(second_value)) {
+            throw new Error(" invalid second argument, expecting a number");
+        }
+        self._set_range_value(value, second_value);
+    }
+
+}
+
+function _construct_from_array(self, value) {
+    assert(value.length === 2);
+    if (_.isFinite(value[0])) {
+        if (!_.isFinite(value[1])) {
+            throw new Error(" invalid range in " + value);
+        }
+        self._set_range_value(value[0], value[1]);
+    }
+}
+
+function _construct_from_NumericRange(self, value) {
+    self.value = _.clone(value);
+    self.type = value.type;
+}
+
 function NumericRange(value, second_value) {
 
     var self = this;
 
-    function _construct_from_string(value) {
-        var nr = construct_numeric_range_from_string(value);
-        self.type = nr.type;
-        self.value = nr.value;
-    }
-
-    function _construct_from_values(value, second_value) {
-        if (_.isUndefined(second_value)) {
-            self._set_single_value(value);
-
-        } else {
-
-            if (!_.isFinite(second_value)) {
-                throw new Error(" invalid second argument, expecting a number");
-            }
-            self._set_range_value(value, second_value);
-        }
-
-    }
-
-    function _construct_from_array(value) {
-        assert(value.length === 2);
-        if (_.isFinite(value[0])) {
-            if (!_.isFinite(value[1])) {
-                throw new Error(" invalid range in " + value);
-            }
-            self._set_range_value(value[0], value[1]);
-        }
-    }
-
-    function _construct_from_NumericRange(value) {
-        self.value = _.clone(value);
-        self.type = value.type;
-    }
-
     assert(!value || !(value instanceof NumericRange), "use coerce to create a NumericRange");
 
     if (typeof value === "string") {
-        _construct_from_string(value);
-
+        _construct_from_string(self, value);
     } else if (_.isFinite(value) && !_.isUndefined(value)) {
-        _construct_from_values(value, second_value);
+        _construct_from_values(self, value, second_value);
 
     } else if (_.isArray(value)) {
-        _construct_from_array(value);
+        _construct_from_array(self, value);
 
     } else if (value instanceof NumericRange) {
-        _construct_from_NumericRange(value);
+        _construct_from_NumericRange(self, value);
 
     } else {
         this.value = "<invalid>";
@@ -346,20 +346,31 @@ NumericRange.prototype.isDefined = function () {
 function slice(arr, start, end) {
 
     assert(arr, "expecting value to slice");
+
+    if (start===0 && end === arr.length) {
+        return arr;
+    }
+
     var res;
+    //xx console.log("arr",arr.constructor.name,arr.length,start,end);
     if (arr.buffer instanceof ArrayBuffer) {
-      res= arr.subarray(start, end);
+        //xx console.log("XXXX ERN ERN ERN 2");
+        res = arr.subarray(start, end);
     } else {
+        //xx console.log("XXXX ERN ERN ERN 3");
+
         assert(_.isFunction(arr.slice));
         assert(arr instanceof Buffer || arr instanceof Array || typeof arr === "string");
         res = arr.slice(start, end);
     }
     if (res instanceof Uint8Array && arr instanceof Buffer) {
-      // note in iojs 3.00 onward standard Buffer are implemented differently and
-      // provides a buffer member and a subarray method, in fact in iojs 3.0
-      // it seems that Buffer acts as a Uint8Array. in this very special case
-      // we need to make sure that we end up with a Buffer object and not a Uint8Array.
-       res  = Buffer.from(res);
+
+        //xx  console.log("XXXX ERN ERN ERN 1");
+        // note in iojs 3.00 onward standard Buffer are implemented differently and
+        // provides a buffer member and a subarray method, in fact in iojs 3.0
+        // it seems that Buffer acts as a Uint8Array. in this very special case
+        // we need to make sure that we end up with a Buffer object and not a Uint8Array.
+        res = Buffer.from(res);
     }
     return res;
 }
@@ -381,6 +392,7 @@ function extract_single_value(array, index) {
         statusCode: StatusCodes.Good
     };
 }
+
 function extract_array_range(array, low_index, high_index) {
     assert(_.isFinite(low_index) && _.isFinite(high_index));
     assert(low_index >= 0);
@@ -389,7 +401,7 @@ function extract_array_range(array, low_index, high_index) {
         return {array: [], statusCode: StatusCodes.BadIndexRangeNoData};
     }
     // clamp high index
-    high_index = Math.min(high_index,array.length-1);
+    high_index = Math.min(high_index, array.length - 1);
 
     return {
         array: slice(array, low_index, high_index + 1),
@@ -397,8 +409,9 @@ function extract_array_range(array, low_index, high_index) {
     };
 
 }
+
 function isArrayLike(value) {
-    return _.isNumber(value.length) ||  value.hasOwnProperty("length");
+    return _.isNumber(value.length) || value.hasOwnProperty("length");
 }
 
 function extract_matrix_range(array, rowRange, colRange, dimension) {

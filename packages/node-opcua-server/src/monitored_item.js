@@ -35,6 +35,7 @@ var apply_timestamps = require("node-opcua-data-value").apply_timestamps;
 var defaultItemToMonitor = {indexRange: null, attributeId: read_service.AttributeIds.Value};
 
 var SessionContext = require("node-opcua-address-space").SessionContext;
+var NumericRange = require("node-opcua-numeric-range").NumericRange;
 
 
 
@@ -215,10 +216,10 @@ MonitoredItem.prototype._stop_sampling = function () {
 
 };
 
-MonitoredItem.prototype._on_value_changed = function (dataValue) {
+MonitoredItem.prototype._on_value_changed = function (dataValue,indexRange) {
     var self = this;
     assert(dataValue instanceof DataValue);
-    self.recordValue(dataValue, false);
+    self.recordValue(dataValue, false, indexRange);
 };
 
 MonitoredItem.prototype._on_semantic_changed = function () {
@@ -300,7 +301,7 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
         if (recordInitialValue) {
             // read initial value
             var dataValue = self.node.readAttribute(context, self.itemToMonitor.attributeId);
-            self.recordValue(dataValue, true);
+            self.recordValue(dataValue, true, null);
 
         }
         return;
@@ -439,7 +440,10 @@ MonitoredItem.prototype._on_sampling_timer = function () {
             if (err) {
                 console.log(" SAMPLING ERROR =>", err);
             } else {
+                // only record value if source timestamp is newer
+                //xx if (newDataValue.sourceTimestamp > self.oldDataValue.sourceTimestamp) {
                 self._on_value_changed(newDataValue);
+                //xx }
             }
             self._is_sampling = false;
         });
@@ -594,21 +598,45 @@ MonitoredItem.prototype.__defineGetter__("isSampling", function () {
 /**
  * @method recordValue
  * @param dataValue {DataValue}     the whole dataValue
- * @param skipChangeTest {Boolean}
+ * @param skipChangeTest {Boolean}  indicates whether recordValue should  not check that dataValue is really different
+ *                                  from previous one, ( by checking timestamps but also variant value)
+ * @private
  *
- * Note: recordValue can only be called within timer event
+ * Notes:
+ *  - recordValue can only be called within timer event
+ *  - for performance reason, dataValue may be a shared value with the underlying node,
+ *    therefore recordValue must clone the dataValue to make sure it retains a snapshot
+ *    of the contain at the time recordValue was called.
+ *
  */
-MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest) {
+MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest , indexRange) {
 
     var self = this;
 
     assert(dataValue instanceof DataValue);
-    assert(dataValue !== self.oldDataValue, "recordValue expects different dataValue to be provided");
+    assert(dataValue !== self.oldDataValue,               "recordValue expects different dataValue to be provided");
+    assert(!dataValue.value  || dataValue.value !== self.oldDataValue.value,   "recordValue expects different dataValue.value to be provided");
     assert(!dataValue.value  || dataValue.value.isValid(),"expecting a valid variant value");
+
+    var hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
+
+    //xx   console.log("`\n----------------------------",skipChangeTest,self.clientHandle,
+    //             self.node.listenerCount("value_changed"),self.node.nodeId.toString());
+    //xx   console.log("events ---- ",self.node.eventNames().join("-"));
+    //xx    console.log((new Error()).stack);
+    //xx    console.log("indexRange = ",indexRange ? indexRange.toString() :"");
+    //xx    console.log("self.itemToMonitor.indexRange = ",self.itemToMonitor.indexRange.toString());
+
+    if (!hasSemanticChanged && indexRange && self.itemToMonitor.indexRange) {
+        // we just ignore changes that do not fall within our range
+        // ( unless semantic bit has changed )
+        if (!NumericRange.overlap(indexRange,self.itemToMonitor.indexRange)) {
+            return; // no overlap !
+        }
+    }
 
     // extract the range that we are interested with
     dataValue = extractRange(dataValue, self.itemToMonitor.indexRange);
-
 
     // istanbul ignore next
     if (doDebug) {
@@ -616,10 +644,11 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest) {
     }
 
     // if semantic has changed, value need to be enqueued regardless of other assumptions
-    var hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
     if (hasSemanticChanged) {
         return self._enqueue_value(dataValue);
     }
+
+    var useIndexRange = self.itemToMonitor.indexRange && !self.itemToMonitor.indexRange.isEmpty();
 
     if (!skipChangeTest) {
         var hasChanged = !sameDataValue(dataValue, self.oldDataValue);
@@ -627,13 +656,22 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest) {
             return;
         }
     }
+
     if (!apply_filter(self, dataValue)) {
         return;
     }
 
-    if (self.itemToMonitor.indexRange && !self.itemToMonitor.indexRange.isEmpty()) {
+    if (useIndexRange) {
         // when an indexRange is provided , make sure that no record happens unless
         // extracted variant in the selected range  has really changed.
+
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("Current : ",self.oldDataValue.toString());
+            debugLog("New : ",dataValue.toString());
+            debugLog("indexRange=",indexRange);
+        }
+
         if (sameVariant(dataValue.value, self.oldDataValue.value)) {
             return;
         }
@@ -731,10 +769,15 @@ MonitoredItem.prototype._enqueue_value = function (dataValue) {
     // lets verify that, if status code is good then we have a valid Variant in the dataValue
     assert(!isGoodish(dataValue.statusCode) || dataValue.value instanceof Variant);
     //xx assert(isGoodish(dataValue.statusCode) || util.isNullOrUndefined(dataValue.value) );
-
     // let's check that data Value is really a different object
     // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications
     assert(dataValue !== self.oldDataValue, "dataValue cannot be the same object twice!");
+
+
+    //Xx // todo ERN !!!! PLEASE CHECK THIS !!!
+    //Xx // let make a clone, so we have a snapshot
+    //Xx dataValue = dataValue.clone();
+
 
     // let's check that data Value is really a different object
     // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications

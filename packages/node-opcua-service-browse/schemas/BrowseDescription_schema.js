@@ -7,7 +7,7 @@ var NodeClass = require("node-opcua-data-model").NodeClass;
 
 var BrowseDescription_Schema = {
     name: "BrowseDescription",
-    documentation: 'A request to browse the the references from a node.',
+    documentation: "A request to browse the the references from a node.",
     fields: [
         {name: "nodeId", fieldType: "NodeId", documentation: "The id of the node to browse."},
         {name: "browseDirection", fieldType: "BrowseDirection", documentation: "The direction of the references to return."},

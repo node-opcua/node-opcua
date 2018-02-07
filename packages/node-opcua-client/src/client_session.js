@@ -1,4 +1,5 @@
 "use strict";
+
 /**
  * @module opcua.client
  */
@@ -85,7 +86,7 @@ function coerceBrowseDescription(data) {
 /**
  * @method browse
  * @async
- * @param nodeToBrowse           {String|BrowseDescription}
+ * @param nodesToBrowse           {String|BrowseDescription}
  * @param callback               {Function}
  * @param callback.err           {Error|null}
  * @param callback.browseResult  {BrowseResult}
@@ -147,7 +148,7 @@ function coerceBrowseDescription(data) {
  *      },
  *      // {...}
  *    ]
- *    session.browse(browseDescriptions,function(err, browseResults, diagnostics) {
+ *    session.browse(browseDescriptions,function(err, browseResults) {
  *
  *    });
  *    ```
@@ -159,11 +160,11 @@ function coerceBrowseDescription(data) {
  *
  * @method browse
  * @async
- * @param nodeToBrowse                 {String|BrowseDescription}
+ * @param nodesToBrowse                 {String|BrowseDescription}
  * @return {Promise<BrowseResult>}
  *
  */
-ClientSession.prototype.browse = function (nodeToBrowse, callback) {
+ClientSession.prototype.browse = function (nodesToBrowse, callback) {
 
     var self = this;
 
@@ -171,12 +172,12 @@ ClientSession.prototype.browse = function (nodeToBrowse, callback) {
     assert(_.isFinite(self.requestedMaxReferencesPerNode));
     assert(_.isFunction(callback));
 
-    var isArray = _.isArray(nodeToBrowse);
+    var isArray = _.isArray(nodesToBrowse);
     if (!isArray) {
-        nodeToBrowse = [nodeToBrowse];
+        nodesToBrowse = [nodesToBrowse];
      }
 
-    var nodesToBrowse = nodeToBrowse.map(coerceBrowseDescription);
+    var nodesToBrowse = nodesToBrowse.map(coerceBrowseDescription);
 
     var request = new browse_service.BrowseRequest({
         nodesToBrowse: nodesToBrowse,
@@ -223,7 +224,7 @@ ClientSession.prototype.browse = function (nodeToBrowse, callback) {
             }
         }
 
-        return callback(null, isArray ? response.results: response.results[0], isArray ?  response.diagnosticInfos :response.diagnosticInfos[0]);
+        return callback(null, isArray ? response.results: response.results[0]);
 
 
     });
@@ -331,12 +332,9 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
         assert(nodes.length === response.results.length);
 
         response.results = response.results || [];
-        response.diagnosticInfos = response.diagnosticInfos || [];
 
         var results         = isArray ? response.results : response.results[0];
-        var diagnosticInfos = isArray ? response.diagnosticInfos : response.diagnosticInfos[0];
-
-        callback(null, results, diagnosticInfos);
+        callback(null, results);
 
     });
 
@@ -348,7 +346,7 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
  * @async
  * @example:
  *
- *     session.readHistoryValue("ns=5;s=Simulation Examples.Functions.Sine1","2015-06-10T09:00:00.000Z","2015-06-10T09:01:00.000Z",function(err,dataValues,diagnostics) {} );
+ *     session.readHistoryValue("ns=5;s=Simulation Examples.Functions.Sine1","2015-06-10T09:00:00.000Z","2015-06-10T09:01:00.000Z",function(err,dataValues) {} );
  *
  * @param nodes  {ReadValueId[]} - the read value id
  * @param start - the starttime in UTC format
@@ -356,7 +354,6 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
  * @param {Function} callback -   the callback function
  * @param callback.err {object|null} the error if write has failed or null if OK
  * @param callback.results {DataValue[]} - an array of dataValue each read
- * @param callback.diagnosticInfos {DiagnosticInfo[]} - the diagnostic infos.
  */
 ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback) {
 
@@ -407,7 +404,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
         assert(response instanceof historizing_service.HistoryReadResponse);
         assert(nodes.length === response.results.length);
 
-        callback(null, isArray ? response.results : response.results[0],isArray ?  response.diagnosticInfos :response.diagnosticInfos[0]);
+        callback(null, isArray ? response.results : response.results[0]);
     });
 };
 
@@ -419,7 +416,6 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  * @param {Function} callback -   the callback function
  * @param callback.err {object|null} the error if write has failed or null if OK
  * @param callback.statusCodes {StatusCode[]} - an array of status code of each write
- * @param callback.diagnosticInfos {DiagnosticInfo[]} - the diagnostic infos.
  * @async
  *
  * @example
@@ -552,25 +548,21 @@ ClientSession.prototype.writeSingleNode = function (nodeId, value, callback) {
 
     assert(_.isFunction(callback));
 
-    var nodesToWrite = [];
-
-    nodesToWrite.push({
+    var nodeToWrite = {
         nodeId: resolveNodeId(nodeId),
         attributeId: read_service.AttributeIds.Value,
         indexRange: null,
         value: new DataValue({value: value})
-    });
-    this.write(nodesToWrite, function (err, statusCodes, diagnosticInfos) {
+    };
+
+    this.write(nodeToWrite, function (err, statusCode) {
 
         /* istanbul ignore next */
         if (err) {
             return callback(err);
         }
-
-        assert(statusCodes.length === 1);
-        var diagnosticInfo = diagnosticInfos ? diagnosticInfos[0] : null;
-        callback(null, statusCodes[0], diagnosticInfo);
-
+        assert(statusCode);
+        callback(null, statusCode);
     });
 };
 
@@ -673,7 +665,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
         }
     });
 
-    this.read(nodesToRead, function (err, dataValues /*, diagnosticInfos */) {
+    this.read(nodesToRead, function (err, dataValues) {
         if (err) return callback(err);
         var results = composeResult(nodes, nodesToRead, dataValues);
         callback(err, isArray ? results : results[0]);
@@ -702,7 +694,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 *             attributeId: AttributeIds.BrowseName
 *    };
  *
- *    session.read(nodeToRead,function(err,dataValue,diagnosticInfos) {
+ *    session.read(nodeToRead,function(err,dataValue) {
 *        if (!err) {
 *           console.log(dataValue.toString());
 *        }
@@ -801,7 +793,7 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
 
         const result =isArray? response.results : response.results[0];
 
-        return callback(null,result, isArray? response.diagnosticInfos:response.diagnosticInfos[0]);
+        return callback(null,result);
 
     });
 };
@@ -1148,11 +1140,17 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
 
         /* istanbul ignore next */
         if (err) {
+            if (response && response.diagnosticInfo) {
+                err.diagnosticInfo = response.diagnosticInfo;
+            }
             return callback(err, response);
         }
 
         if (response.responseHeader.serviceResult !== StatusCodes.Good) {
             err = new Error(" ServiceResult is " + response.responseHeader.serviceResult.toString());
+            if (response && response.diagnosticInfo) {
+                err.diagnosticInfo = response.diagnosticInfo;
+            }
         }
         callback(err, response);
     });
@@ -1199,6 +1197,32 @@ ClientSession.prototype.hasBeenClosed = function () {
  *
  * @method call
  *
+ * @param methodToCall {CallMethodRequest} the call method request
+ * @param callback {Function}
+ * @param callback.err {Error|null}
+ * @param callback.response {CallMethodResult}
+ *
+ * @example :
+ *
+ * var methodToCall = {
+ *     objectId: "ns=2;i=12",
+ *     methodId: "ns=2;i=13",
+ *     inputArguments: [
+ *         new Variant({...}),
+ *         new Variant({...}),
+ *     ]
+ * }
+ * session.call(methodToCall,function(err,callResult) {
+ *    if (!err) {
+ *         console.log(" statusCode = ",callResult.statusCode);
+ *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
+ *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
+ *         console.log(" outputArgument[0]       = ",callResult.outputArgument[0].toString()); // array of variant
+ *    }
+ * });
+ *
+ * @method call
+ *
  * @param methodsToCall {CallMethodRequest[]} the call method request array
  * @param callback {Function}
  * @param callback.err {Error|null}
@@ -1215,19 +1239,22 @@ ClientSession.prototype.hasBeenClosed = function () {
  *         new Variant({...}),
  *     ]
  * }];
- * session.call(methodsToCall,function(err,response) {
+ * session.call(methodsToCall,function(err,callResutls) {
  *    if (!err) {
- *         var rep = response[0];
+ *         var callResult = callResutls[0];
  *         console.log(" statusCode = ",rep.statusCode);
- *         console.log(" inputArgumentResults[0] = ",rep.inputArgumentResults[0].toString());
- *         console.log(" inputArgumentResults[1] = ",rep.inputArgumentResults[1].toString());
- *         console.log(" outputArgument[0]       = ",rep.outputArgument[0].toString()); // array of variant
+ *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
+ *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
+ *         console.log(" outputArgument[0]       = ",callResult.outputArgument[0].toString()); // array of variant
  *    }
  * });
  */
 ClientSession.prototype.call = function (methodsToCall, callback) {
 
     var self = this;
+
+    var isArray = _.isArray(methodsToCall);
+    if (!isArray) { methodsToCall = [methodsToCall]; }
 
     assert(_.isArray(methodsToCall));
 
@@ -1245,9 +1272,8 @@ ClientSession.prototype.call = function (methodsToCall, callback) {
         if (err) {
             return callback(err);
         }
-
         assert(response instanceof call_service.CallResponse);
-        callback(null, response.results);
+        callback(null, isArray ? response.results : response.results[0]);
 
     });
 
@@ -1279,7 +1305,7 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
             ]
         });
 
-    self.call([methodsToCall], function (err, result, diagnosticInfo) {
+    self.call([methodsToCall], function (err, result) {
 
             /* istanbul ignore next */
             if (err) {
@@ -1287,13 +1313,10 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
             }
 
             result = result[0];
-            diagnosticInfo = diagnosticInfo ? diagnosticInfo[0] : null;
-            //xx console.log(" xxxxxxxxxxxxxxxxxx RRR err",err);
-            //xx console.log(" xxxxxxxxxxxxxxxxxx RRR result ".red.bold,result.toString());
-            //xx console.log(" xxxxxxxxxxxxxxxxxx RRR err",diagnosticInfo);
+
             if (result.statusCode !== StatusCodes.Good) {
 
-                callback(new Error(result.statusCode.toString()), result, diagnosticInfo);
+                callback(new Error(result.statusCode.toString()), result);
 
             } else {
 
@@ -1310,7 +1333,7 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
 
                 assert(data.serverHandles instanceof Uint32Array);
                 assert(data.clientHandles instanceof Uint32Array);
-                callback(null, data, diagnosticInfo);
+                callback(null, data);
             }
         }
     );
@@ -1319,12 +1342,20 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
 
 /**
  * @method getArgumentDefinition
- * extract the argument definition of a method
+ *    extract the argument definition of a method
  * @param methodId {NodeId}
  * @param callback  {Function}
  * @param {Error|null} callback.err
- * @param {Argument<>} callback.inputArguments
- * @param {Argument<>} callback.outputArguments
+ * @param [object} callback.args
+ * @param {Argument<>} callback.args.inputArguments
+ * @param {Argument<>} callback.args.outputArguments
+ * @async
+ *
+ * @method getArgumentDefinition
+ * @param  methodId {NodeId}
+ * @return {Promise<obj>}  {inputArguments: .., outputArguments: ...}
+ * @async
+ *
  */
 ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
 
@@ -1332,14 +1363,14 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
     assert(methodId instanceof NodeId);
     var session = this;
 
-    var browseDescription = {
+    var browseDescription = new browse_service.BrowseDescription({
         nodeId: methodId,
         referenceTypeId: resolveNodeId("HasProperty"),
         browseDirection: BrowseDirection.Forward,
         nodeClassMask: 0,// makeNodeClassMask("Variable"),
         includeSubtypes: true,
         resultMask: makeResultMask("BrowseName")
-    };
+    });
 
     //Xx console.log("xxxx browseDescription", util.inspect(browseDescription, {colors: true, depth: 10}));
     session.browse(browseDescription, function (err, browseResult) {
@@ -1393,7 +1424,7 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
         }
 
         if (nodesToRead.length === 0) {
-            return callback(null, inputArguments, outputArguments);
+            return callback(null, { inputArguments, outputArguments });
         }
         // now read the variable
         session.read(nodesToRead, function (err, dataValues) {
@@ -1408,9 +1439,8 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
             });
 
             //xx console.log("xxxx result", util.inspect(result, {colors: true, depth: 10}));
-            callback(null, inputArguments, outputArguments);
+            callback(null, { inputArguments, outputArguments });
         });
-
 
     });
 };
@@ -1424,6 +1454,48 @@ ClientSession.prototype.__defineGetter__("endpoint", function () {
     return this._client.endpoint;
 });
 
+var register_node_service = require("node-opcua-service-register-node");
+/**
+ *
+ */
+ClientSession.prototype.registerNodes = function(nodesToRegister,callback) {
+    var self = this;
+    assert(_.isFunction(callback));
+    assert(_.isArray(nodesToRegister));
+
+    var request = new register_node_service.RegisterNodesRequest({
+        nodesToRegister: nodesToRegister.map(resolveNodeId)
+    });
+
+    self.performMessageTransaction(request, function (err, response) {
+        /* istanbul ignore next */
+        if (err) {
+            return callback(err);
+        }
+        assert(response instanceof register_node_service.RegisterNodesResponse);
+        callback(null, response.registeredNodeIds);
+    });
+
+};
+
+ClientSession.prototype.unregisterNodes = function(nodesToRegister,callback) {
+    var self = this;
+    assert(_.isFunction(callback));
+    assert(_.isArray(nodesToUnregister));
+
+    var request = new register_node_service.UnregisterNodesRequest({
+        nodesToUnregister: nodesToUnregister.map(resolveNodeId)
+    });
+
+    self.performMessageTransaction(request, function (err, response) {
+        /* istanbul ignore next */
+        if (err) {
+            return callback(err);
+        }
+        assert(response instanceof register_node_service.UnregisterNodesResponse);
+        callback(null);
+    });
+};
 
 var query_service = require("node-opcua-service-query");
 /**
@@ -1622,3 +1694,5 @@ ClientSession.prototype.call                  = thenify.withCallback(ClientSessi
 ClientSession.prototype.getMonitoredItems     = thenify.withCallback(ClientSession.prototype.getMonitoredItems,opts);
 ClientSession.prototype.getArgumentDefinition = thenify.withCallback(ClientSession.prototype.getArgumentDefinition,opts);
 ClientSession.prototype.queryFirst            = thenify.withCallback(ClientSession.prototype.queryFirst,opts);
+ClientSession.prototype.registerNodes         = thenify.withCallback(ClientSession.prototype.registerNodes,opts);
+ClientSession.prototype.unregisterNodes       = thenify.withCallback(ClientSession.prototype.unregisterNodes,opts);

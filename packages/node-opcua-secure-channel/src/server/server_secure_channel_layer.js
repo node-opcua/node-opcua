@@ -61,6 +61,7 @@ function getNextChannelId() {
 }
 
 var get_clock_tick = require("node-opcua-utils").get_clock_tick;
+var doPerfMonitoring = false;
 
 /**
  * @class ServerSecureChannelLayer
@@ -132,7 +133,9 @@ function ServerSecureChannelLayer(options) {
 
     self.secureChannelId = getNextChannelId();
 
-    self._tick0 = 0;
+    if (doPerfMonitoring) {
+        self._tick0 = 0;
+    }
 
     self.securityMode = MessageSecurityMode.INVALID;
 
@@ -463,21 +466,25 @@ function _send_chunk(callback, messageChunk) {
     if (messageChunk) {
         self.transport.write(messageChunk);
     } else {
-        // record tick 3 : transaction completed.
-        self._tick3 = get_clock_tick();
+
+        if (doPerfMonitoring) {
+            // record tick 3 : transaction completed.
+            self._tick3 = get_clock_tick();
+        }
 
         if (callback) {
             setImmediate(callback);
         }
 
-        self._record_transaction_statistics();
+        if (doPerfMonitoring) {
+            self._record_transaction_statistics();
 
-        /* istanbul ignore next */
-        if (doDebug) {
-            // dump some statistics about transaction ( time and sizes )
-            self._dump_transaction_statistics();
+            /* istanbul ignore next */
+            if (doDebug) {
+                // dump some statistics about transaction ( time and sizes )
+                self._dump_transaction_statistics();
+            }
         }
-
         self.emit("transaction_done");
 
     }
@@ -562,8 +569,10 @@ ServerSecureChannelLayer.prototype.send_response = function (msgType, response, 
 
     self.msgType = msgType;
 
-    // record tick : send response received.
-    self._tick2 = get_clock_tick();
+    if (doPerfMonitoring) {
+        // record tick : send response received.
+        self._tick2 = get_clock_tick();
+    }
 
     assert(self.securityToken);
 
@@ -915,11 +924,13 @@ ServerSecureChannelLayer.prototype._record_transaction_statistics = function () 
 
 ServerSecureChannelLayer.prototype._dump_transaction_statistics = function () {
     var self = this;
-    console.log("                Bytes Read : ", self.last_transaction_stats.bytesRead);
-    console.log("             Bytes Written : ", self.last_transaction_stats.bytesWritten);
-    console.log("   time to receive request : ", self.last_transaction_stats.lap_reception / 1000, " sec");
-    console.log("   time to process request : ", self.last_transaction_stats.lap_processing / 1000, " sec");
-    console.log("   time to send response   : ", self.last_transaction_stats.lap_emission / 1000, " sec");
+    if (self.last_transaction_stats) {
+        console.log("                Bytes Read : ", self.last_transaction_stats.bytesRead);
+        console.log("             Bytes Written : ", self.last_transaction_stats.bytesWritten);
+        console.log("   time to receive request : ", self.last_transaction_stats.lap_reception / 1000, " sec");
+        console.log("   time to process request : ", self.last_transaction_stats.lap_processing / 1000, " sec");
+        console.log("   time to send response   : ", self.last_transaction_stats.lap_emission / 1000, " sec");
+    }
 };
 
 
@@ -971,8 +982,10 @@ var _on_common_message = function (request, msgType, requestId, secureChannelId)
 
         } else {
 
-            // record tick 1 : after message has been received, before message processing
-            self._tick1 = get_clock_tick();
+            if (doPerfMonitoring) {
+                // record tick 1 : after message has been received, before message processing
+                self._tick1 = get_clock_tick();
+            }
 
             /**
              * notify the observer that a OPCUA message has been received.
@@ -1153,9 +1166,10 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
     self.messageBuilder
         .on("message", _on_common_message.bind(self))
         .on("start_chunk", function () {
-            //record tick 0: when the first chunk is received
-            self._tick0 = get_clock_tick();
-
+            if (doPerfMonitoring) {
+                //record tick 0: when the first chunk is received
+                self._tick0 = get_clock_tick();
+            }
         });
 
     // handle initial OpenSecureChannelRequest

@@ -94,7 +94,7 @@ function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
         var dataType;
         // istanbul ignore next
         if (dataValue.statusCode !== StatusCodes.Good) {
-            console.log("convertNodeIdToDataTypeAsync: Cannot read browse name for nodeID ".red + dataTypeId.toString());
+            //Xx console.log("convertNodeIdToDataTypeAsync: Cannot read browse name for nodeID ".red + dataTypeId.toString());
             dataType = DataType.Null;
             return callback(null, dataType);
         }
@@ -418,8 +418,7 @@ function readUAStructure(proxyManager, obj, callback) {
 
             assert(_.isFunction(callback));
             // convert input arguments into Variants
-            var inputArgsDef = obj[name].inputArguments;
-
+            var inputArgsDef = obj[name].inputArguments || [];
 
             var inputArguments = inputArgsDef.map(function (arg) {
 
@@ -451,25 +450,25 @@ function readUAStructure(proxyManager, obj, callback) {
 
             //xx console.log(" calling ",methodToCall.toString());
 
-            var methodsToCall = [methodToCall];
-
-            session.call(methodsToCall, function (err, result /*, diagInfo */) {
-
+            session.call(methodToCall, function (err, callResult) {
 
                 // istanbul ignore next
                 if (err) {
                     return callback(err);
                 }
-
-                if (result[0].statusCode !== StatusCodes.Good) {
-                    return callback(new Error("Error " + result[0].statusCode.toString()));
+                if (callResult.statusCode !== StatusCodes.Good) {
+                    return callback(new Error("Error " + callResult.statusCode.toString()));
                 }
-                assert(result[0].outputArguments.length === obj[name].outputArguments.length);
+                callResult.outputArguments = callResult.outputArguments || [];
+
+                obj[name].outputArguments =  obj[name].outputArguments || [];
+
+                assert(callResult.outputArguments.length === obj[name].outputArguments.length);
                 var outputArgs = {};
 
                 var outputArgsDef = obj[name].outputArguments;
 
-                _.zip(outputArgsDef, result[0].outputArguments).forEach(function (pair) {
+                _.zip(outputArgsDef, callResult.outputArguments).forEach(function (pair) {
                     var arg = pair[0];
                     var variant = pair[1];
 
@@ -485,7 +484,7 @@ function readUAStructure(proxyManager, obj, callback) {
 
         function extractDataType(arg, callback) {
 
-            if (arg.dataType._dataType) {
+            if (arg.dataType && arg.dataType._dataType) {
                 return callback(); // already converted
             }
 
@@ -499,12 +498,13 @@ function readUAStructure(proxyManager, obj, callback) {
         }
 
 
-        session.getArgumentDefinition(reference.nodeId, function (err, inputArguments, outputArguments) {
-
+        session.getArgumentDefinition(reference.nodeId, function (err, args) {
             // istanbul ignore next
             if (err) {
                 return callback(err);
             }
+            var inputArguments  = args.inputArguments;
+            var outputArguments = args.outputArguments;
 
             obj[name].inputArguments = inputArguments;
             obj[name].outputArguments = outputArguments;
@@ -749,7 +749,7 @@ function getObject(proxyManager, nodeId, options, callback) {
                 if (!err) {
 
                     if (dataValues[0].statusCode === StatusCodes.BadNodeIdUnknown) {
-                        console.log(" INVALID NODE ", nodeId.toString());
+                        //xx console.log(" INVALID NODE ", nodeId.toString());
                         return callback(new Error("Invalid Node " + nodeId.toString()));
                     }
 
@@ -877,10 +877,7 @@ UAProxyManager.prototype.start = function (callback) {
 UAProxyManager.prototype.stop = function (callback) {
     var self = this;
     if (self.subscription) {
-        self.subscription.terminate();
-        self.subscription.once("terminated", function () {
-            // todo
-            // console.log("xxxx UAProxyManager subscription terminated");
+        self.subscription.terminate(function() {
             self.subscription = null;
             callback();
         });

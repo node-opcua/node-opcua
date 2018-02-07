@@ -70,10 +70,15 @@ var F_div_factor = (F / factor);
 // A decoder shall truncate the value if a decoder encounters a DateTime value with a resolution that is
 // greater than the resolution supported on the DevelopmentPlatform.
 //
+/**
+ *
+ * @param date {Date}
+ * @returns {[high,low]}
+ */
 function bn_dateToHundredNanoSecondFrom1601_fast(date) {
     assert(date instanceof Date);
     if (date.high_low) {
-        return date.high_low;
+         return date.high_low;
     }
 
     // note : The value returned by the getTime method is the number
@@ -106,11 +111,7 @@ function bn_dateToHundredNanoSecondFrom1601_fast(date) {
     var value_l = ((t % F + ol) * fl) % F;
     value_l = (value_l + F) % F;
     var high_low = [value_h, value_l];
-    Object.defineProperty(date, "high_low", {
-        get: function () {
-            return high_low;
-        }, enumerable: false
-    });
+    date.high_low = high_low;
     return high_low;
 }
 
@@ -128,12 +129,15 @@ function bn_hundredNanoSecondFrom1601ToDate_fast(high, low) {
     //    o = oh * F + ol
     var value1 = (Math.floor(high / factor) - oh) * F + Math.floor((high % factor) * F_div_factor + low / factor) - ol;
     var date = new Date(value1);
+
     // enrich the date
-    Object.defineProperty(date, "high_low", {
-        get: function () {
-            return [high, low];
-        }, enumerable: false
-    });
+    date.high_low = [high,low];
+    //xxObject.defineProperty(date, "high_low", {
+    //xx    get: function () {
+    //xx        return [high, low];
+    //xx    }, enumerable: false
+    //xx});
+
     return date;
 }
 

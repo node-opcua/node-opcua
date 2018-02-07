@@ -18,6 +18,7 @@ var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
 var get_clock_tick = require("node-opcua-utils").get_clock_tick;
 
+var doPerfMonitoring = false;
 
 function readRawMessageHeader(data) {
     var messageHeader = readMessageHeader(new BinaryStream(data));
@@ -53,8 +54,10 @@ var MessageBuilderBase = function (options) {
     });
     this.packetAssembler.on("newMessage", function (info, data) {
 
-        // record tick 0: when the first data is received
-        self._tick0 = get_clock_tick();
+        if(doPerfMonitoring) {
+            // record tick 0: when the first data is received
+            self._tick0 = get_clock_tick();
+        }
         /**
          *
          * notify the observers that a new message is being built
@@ -178,9 +181,10 @@ MessageBuilderBase.prototype._feed_messageChunk = function (messageChunk) {
 
         var full_message_body = Buffer.concat(this.blocks);
 
-        //record tick 1: when a complete message has been received ( all chunks assembled)
-        this._tick1 = get_clock_tick();
-
+        if(doPerfMonitoring) {
+            //record tick 1: when a complete message has been received ( all chunks assembled)
+            this._tick1 = get_clock_tick();
+        }
         /**
          * notify the observers that a full message has been received
          * @event full_message_body

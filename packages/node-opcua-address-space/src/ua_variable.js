@@ -761,16 +761,27 @@ function adjustVariant(uaVariable,variant) {
  */
 UAVariable.prototype.writeValue = function (context, dataValue, indexRange, callback) {
 
+    var self = this;
     if (!context) {
         context = SessionContext.defaultContext;
     }
     if (!dataValue.sourceTimestamp) {
-        var clock = getCurrentClock();
-        dataValue.sourceTimestamp = clock.timestamp;
-        dataValue.sourcePicoseconds = clock.picoseconds;
+        if (context.currentTime) {
+            dataValue.sourceTimestamp = context.currentTime;
+            dataValue.sourcePicoseconds = 0;
+        } else {
+            var clock = getCurrentClock();
+            dataValue.sourceTimestamp = clock.timestamp;
+            dataValue.sourcePicoseconds = clock.picoseconds;
+        }
     }
+
+    if (context.currentTime  && !dataValue.serverTimestamp ) {
+        dataValue.serverTimestamp   = context.currentTime;
+        dataValue.serverPicoseconds = 0;
+    }
+
     assert(context instanceof SessionContext);
-    var self = this;
 
     // adjust arguments if optional indexRange Parameter is not given
     if (!_.isFunction(callback) && _.isFunction(indexRange)) {
@@ -806,7 +817,6 @@ UAVariable.prototype.writeValue = function (context, dataValue, indexRange, call
     assert(self._timestamped_set_func);
 
     self._timestamped_set_func(dataValue, indexRange, function (err, statusCode, correctedDataValue) {
-
 
         if (!err) {
 
@@ -1145,7 +1155,10 @@ UAVariable.prototype.touchValue = function (optionalNow) {
 
     if (variable.minimumSamplingInterval === 0) {
         //xx console.log("xxx touchValue = ",variable.browseName.toString(),variable._dataValue.value.value);
-        variable.emit("value_changed", variable._dataValue);
+        if (variable.listenerCount("value_changed") > 0) {
+            var clonedDataValue = variable._dataValue.clone();
+            variable.emit("value_changed", clonedDataValue);
+        }
     }
     if (variable.parent && variable.parent.nodeClass == NodeClass.Variable) {
         variable.parent.touchValue(now);
@@ -1465,22 +1478,23 @@ function w(str, n) {
     return (str + "                                                              ").substr(0, n);
 }
 
-
+function _getter(target, key/*, receiver*/) {
+    if (target[key] === undefined) {
+        return undefined;
+    }
+    return target[key];
+}
+function _setter(variable,target, key, value/*, receiver*/) {
+    target[key] = value;
+    if (variable[key] && variable[key].touchValue) {
+        variable[key].touchValue();
+    }
+    return true; // true means the set operation has succeeded
+}
 function makeHandler(variable) {
     var handler = {
-        get: function (target, key, receiver) {
-            if (target[key] === undefined) {
-                return undefined;
-            }
-            return target[key];
-        },
-        set: function (target, key, value, receiver) {
-            target[key] = value;
-            if (variable[key] && variable[key].touchValue) {
-                variable[key].touchValue();
-            }
-            return true; // true means the set operation has succeeded
-        }
+        get: _getter,
+        set: _setter.bind(null,variable)
     };
     return handler;
 }

@@ -149,7 +149,7 @@ var DataValue_Schema = {
         if( check_flag(encoding_mask,DataValueEncodingByte.Value)) {
             //xx var Variant =
             // re("./variant").Variant;
-            dataValue.value = new Variant();
+            dataValue.value = new Variant(null);
             dataValue.value.decode(stream,options);
         }
         // read statusCode

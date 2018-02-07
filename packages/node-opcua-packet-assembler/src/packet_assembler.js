@@ -53,10 +53,12 @@ PacketAssembler.prototype._build_data = function (data) {
 
 PacketAssembler.prototype.feed = function (data) {
 
-    var messageChunk;
+    var self = this;
 
-    assert(data.length > 0, "PacketAssembler expects a no-zero size data block");
-    assert(this.expectedLength === 0 || this.currentLength <= this.expectedLength);
+    var messageChunk;
+    //xx assert(data instanceof Buffer);
+    // xx assert(data.length > 0, "PacketAssembler expects a no-zero size data block");
+    //xx assert(this.expectedLength === 0 || this.currentLength <= this.expectedLength);
 
     if (this.expectedLength === 0 && this.currentLength + data.length >= this.minimumSizeInBytes) {
 
@@ -105,18 +107,16 @@ PacketAssembler.prototype.feed = function (data) {
         this.emit("message", messageChunk);
 
     } else {
-
-        assert(this.expectedLength > 0);
         // there is more data in this chunk than expected...
         // the chunk need to be split
         var size1 = this.expectedLength - this.currentLength;
         if (size1 > 0) {
             var chunk1 = data.slice(0, size1);
-            this.feed(chunk1);
+            self.feed(chunk1);
         }
         var chunk2 = data.slice(size1);
         if (chunk2.length > 0) {
-            this.feed(chunk2);
+            self.feed(chunk2);
         }
     }
 };

@@ -45,13 +45,18 @@ function build_client_server_session(options,done) {
         };
     }
 
+    options.port = options.port || 2001;
+
     server = new OPCUAServer(options);
     // we will connect to first server end point
     endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+
     debugLog("endpointUrl", endpointUrl);
+
     opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-    client = new OPCUAClient();
+
+    client = new OPCUAClient({});
 
     function start(done) {
         server.start(function () {
@@ -74,7 +79,7 @@ function build_client_server_session(options,done) {
     function shutdown(done) {
 
         // let's verify that the server has got at least one session active (the one we created above)
-        assert(server.engine.currentSessionCount >= 1);
+        assert(server.engine.currentSessionCount >= 1 , "expecting at least one active session on service side");
         assert(client_server.g_session);
 
         client_server.g_session.close(function () {

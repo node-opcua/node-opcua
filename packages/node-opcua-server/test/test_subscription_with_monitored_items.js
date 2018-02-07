@@ -833,7 +833,7 @@ describe("Subscriptions and MonitoredItems", function () {
             // specs:
             // When a user adds a monitored item that the user is denied read access to, the add operation for
             // the item shall succeed and the bad status Bad_NotReadable or Bad_UserAccessDenied shall be
-            // returned in the Publish response. This is the same behaviour for the case where the access rig hts
+            // returned in the Publish response. This is the same behaviour for the case where the access rights
             // are changed after the call to CreateMonitoredItems. If the access rights change to read rights, the
             // Server shall start sending data for the MonitoredItem. The same procedure shall be applied for an
             // IndexRange that does not deliver data for the current value but could deliver data in the future.

@@ -1,7 +1,7 @@
 "use strict";
 
 var assert = require("node-opcua-assert");
-var _ =require("underscore");
+var _ = require("underscore");
 
 
 var DataValue = exports.DataValue = require("../_generated_/_auto_generated_DataValue").DataValue;
@@ -42,18 +42,75 @@ DataValue.prototype.clone = function () {
         serverPicoseconds: self.serverPicoseconds,
         sourcePicoseconds: self.sourcePicoseconds,
         statusCode: self.statusCode,
-        value: self.value.clone()
-        // value: {
-        //     dataType: self.value.dataType,
-        //     arrayType: self.value.arrayType,
-        //     value: self.value.value
-        // }
+        value: self.value ? self.value.clone() : null
     });
 
     return tmp;
 };
 
+
+function _partial_clone(dataValue) {
+    var cloneDataValue = new DataValue(null);
+    cloneDataValue.value = dataValue.value;
+    cloneDataValue.statusCode = dataValue.statusCode;
+    return cloneDataValue;
+}
+
 function apply_timestamps(dataValue, timestampsToReturn, attributeId) {
+
+    assert(attributeId > 0);
+    assert(timestampsToReturn.hasOwnProperty("key"));
+    assert(dataValue instanceof DataValue);
+    assert(dataValue.hasOwnProperty("serverTimestamp"));
+    assert(dataValue.hasOwnProperty("sourceTimestamp"));
+
+    var cloneDataValue = null;
+    var now = null;
+    // apply timestamps
+    switch (timestampsToReturn) {
+        case TimestampsToReturn.Neither:
+            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
+            break;
+        case TimestampsToReturn.Server:
+            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
+            cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
+            cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
+            if (!cloneDataValue.serverTimestamp) {
+                now = now || getCurrentClock();
+                cloneDataValue.serverTimestamp = now.timestamp;
+                cloneDataValue.serverPicoseconds = now.picoseconds;
+            }
+            break;
+        case TimestampsToReturn.Source:
+            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
+            cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
+            cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
+            break;
+        case TimestampsToReturn.Both:
+            if (false && attributeId !== 13 && dataValue.sourceTimestamp && dataValue.serverTimestamp) {
+                return dataValue;
+            }
+            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
+            cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
+            cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
+            if (!cloneDataValue.serverTimestamp) {
+                now = now || getCurrentClock();
+                cloneDataValue.serverTimestamp = now.timestamp;
+                cloneDataValue.serverPicoseconds = now.picoseconds;
+            }
+            cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
+            cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
+            break;
+    }
+
+    // unset sourceTimestamp unless AttributeId is Value
+    if (attributeId !== 13/*AttributeIds.Value*/) {
+        cloneDataValue.sourceTimestamp = null;
+    }
+    return cloneDataValue;
+}
+
+function apply_timestamps2(dataValue, timestampsToReturn, attributeId) {
 
     assert(attributeId > 0);
     assert(timestampsToReturn.hasOwnProperty("key"));
@@ -71,8 +128,8 @@ function apply_timestamps(dataValue, timestampsToReturn, attributeId) {
         case TimestampsToReturn.Server:
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            if (true || !cloneDataValue.serverTimestamp ) {
-                cloneDataValue.serverTimestamp =now.timestamp;
+            if (true || !cloneDataValue.serverTimestamp) {
+                cloneDataValue.serverTimestamp = now.timestamp;
                 cloneDataValue.serverPicoseconds = now.picoseconds;
             }
             break;
@@ -83,8 +140,8 @@ function apply_timestamps(dataValue, timestampsToReturn, attributeId) {
         case TimestampsToReturn.Both:
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            if (true || !cloneDataValue.serverTimestamp ) {
-                cloneDataValue.serverTimestamp =now.timestamp;
+            if (true || !cloneDataValue.serverTimestamp) {
+                cloneDataValue.serverTimestamp = now.timestamp;
                 cloneDataValue.serverPicoseconds = now.picoseconds;
             }
 
@@ -99,6 +156,7 @@ function apply_timestamps(dataValue, timestampsToReturn, attributeId) {
     }
     return cloneDataValue;
 }
+
 exports.apply_timestamps = apply_timestamps;
 
 /*
@@ -111,48 +169,55 @@ exports.apply_timestamps = apply_timestamps;
  */
 function _clone_with_array_replacement(dataValue, result) {
 
-    return new DataValue({
+    var clonedDataValue = new DataValue({
         statusCode: result.statusCode,
         serverTimestamp: dataValue.serverTimestamp,
         serverPicoseconds: dataValue.serverPicoseconds,
         sourceTimestamp: dataValue.sourceTimestamp,
         sourcePicoseconds: dataValue.sourcePicoseconds,
         value: {
-            dataType: dataValue.value.dataType,
-            arrayType: dataValue.value.arrayType,
-            dimensions: result.dimensions,
-            value: result.array,
+            dataType: DataType.Null
         }
     });
+    clonedDataValue.value.dataType   = dataValue.value.dataType;
+    clonedDataValue.value.arrayType  = dataValue.value.arrayType;
+    clonedDataValue.value.dimensions = result.dimensions;
+    clonedDataValue.value.value =result.array;
+    return clonedDataValue;
 }
 
 function canRange(dataValue) {
-    return dataValue.value && (( dataValue.value.arrayType !== VariantArrayType.Scalar ) ||
-        ( (dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString) ) ||
-        ( (dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String) ));
+    return dataValue.value && ((dataValue.value.arrayType !== VariantArrayType.Scalar) ||
+        ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString)) ||
+        ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String)));
 }
 
 
+/**
+ * return a deep copy of the dataValue by applying indexRange if necessary on  Array/Matrix
+ * @param dataValue {DataValue}
+ * @param indexRange {NumericalRange}
+ * @returns {DataValue}
+ */
 function extractRange(dataValue, indexRange) {
 
-    //xx console.log("xxxxxxx indexRange =".yellow,indexRange ? indexRange.toString():"<null>") ;
-    //xx console.log("         dataValue =",dataValue.toString());
-    //xx console.log("         can Range =", canRange(dataValue));
     var variant = dataValue.value;
     if (indexRange && canRange(dataValue)) {
-        var result = indexRange.extract_values(variant.value,variant.dimensions);
+        // let's extract an array of elements corresponding to the indexRange
+        var result = indexRange.extract_values(variant.value, variant.dimensions);
         dataValue = _clone_with_array_replacement(dataValue, result);
         //xx console.log("         dataValue =",dataValue.toString());
     } else {
         // clone the whole data Value
-        dataValue =new DataValue(dataValue);
+        dataValue = dataValue.clone();
     }
     return dataValue;
 }
+
 exports.extractRange = extractRange;
 
 
-function sameDate(date1,date2) {
+function sameDate(date1, date2) {
 
     if (date1 === date2) {
         return true;
@@ -168,44 +233,47 @@ function sameDate(date1,date2) {
 
 function sourceTimestampHasChanged(dataValue1, dataValue2) {
 
-    assert(dataValue1,"expecting valid dataValue1");
-    assert(dataValue2,"expecting valid dataValue2");
+    assert(dataValue1, "expecting valid dataValue1");
+    assert(dataValue2, "expecting valid dataValue2");
     var hasChanged =
-        !sameDate(dataValue1.sourceTimestamp, dataValue2.sourceTimestamp )||
+        !sameDate(dataValue1.sourceTimestamp, dataValue2.sourceTimestamp) ||
         (dataValue1.sourcePicoseconds !== dataValue2.sourcePicoseconds);
     return hasChanged;
 }
+
 exports.sourceTimestampHasChanged = sourceTimestampHasChanged;
 
 function serverTimestampHasChanged(dataValue1, dataValue2) {
-    assert(dataValue1,"expecting valid dataValue1");
-    assert(dataValue2,"expecting valid dataValue2");
+    assert(dataValue1, "expecting valid dataValue1");
+    assert(dataValue2, "expecting valid dataValue2");
     var hasChanged =
-        !sameDate(dataValue1.serverTimestamp ,dataValue2.serverTimestamp) ||
+        !sameDate(dataValue1.serverTimestamp, dataValue2.serverTimestamp) ||
         (dataValue1.serverPicoseconds !== dataValue2.serverPicoseconds);
     return hasChanged;
 }
+
 exports.serverTimestampHasChanged = serverTimestampHasChanged;
 
-function timestampHasChanged(dataValue1, dataValue2,timestampsToReturn) {
+function timestampHasChanged(dataValue1, dataValue2, timestampsToReturn) {
 
 //TODO:    timestampsToReturn = timestampsToReturn || { key: "Neither"};
     if (!timestampsToReturn) {
-        return sourceTimestampHasChanged(dataValue1,dataValue2) || serverTimestampHasChanged(dataValue1,dataValue2);
+        return sourceTimestampHasChanged(dataValue1, dataValue2) || serverTimestampHasChanged(dataValue1, dataValue2);
     }
-    switch(timestampsToReturn.key) {
+    switch (timestampsToReturn.key) {
         case "Neither":
             return false;
         case "Both":
-            return sourceTimestampHasChanged(dataValue1,dataValue2) || serverTimestampHasChanged(dataValue1,dataValue2);
+            return sourceTimestampHasChanged(dataValue1, dataValue2) || serverTimestampHasChanged(dataValue1, dataValue2);
         case "Source":
-            return sourceTimestampHasChanged(dataValue1,dataValue2);
+            return sourceTimestampHasChanged(dataValue1, dataValue2);
         default:
             assert(timestampsToReturn.key === "Server");
-            return serverTimestampHasChanged(dataValue1,dataValue2);
+            return serverTimestampHasChanged(dataValue1, dataValue2);
     }
 //    return sourceTimestampHasChanged(dataValue1,dataValue2) || serverTimestampHasChanged(dataValue1,dataValue2);
 }
+
 exports.timestampHasChanged = timestampHasChanged;
 
 
@@ -216,7 +284,7 @@ exports.timestampHasChanged = timestampHasChanged;
  * @param [timestampsToReturn {TimestampsToReturn}]
  * @return {boolean} true if data values are identical
  */
-function sameDataValue(v1, v2,timestampsToReturn) {
+function sameDataValue(v1, v2, timestampsToReturn) {
 
     if (v1 === v2) {
         return true;
@@ -238,13 +306,14 @@ function sameDataValue(v1, v2,timestampsToReturn) {
     // This will prevent us to deep compare potential large arrays.
     // but before this is possible, we need to implement a mechanism
     // that ensure that date() is always strictly increasing
-    if ((v1.sourceTimestamp && v2.sourceTimestamp) && !sourceTimestampHasChanged(v1,v2)) {
-       return true;
+    if ((v1.sourceTimestamp && v2.sourceTimestamp) && !sourceTimestampHasChanged(v1, v2)) {
+        return true;
     }
-    if (timestampHasChanged(v1,v2,timestampsToReturn)) {
+    if (timestampHasChanged(v1, v2, timestampsToReturn)) {
         return false;
     }
 
     return sameVariant(v1.value, v2.value);
 }
+
 exports.sameDataValue = sameDataValue;

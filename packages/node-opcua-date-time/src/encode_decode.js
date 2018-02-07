@@ -48,6 +48,15 @@ exports.encodeDateTime = function (date, stream) {
     var hl = bn_dateToHundredNanoSecondFrom1601(date);
     var hi = hl[0];
     var lo = hl[1];
+
+    // make sure that date are not lower than expected limit
+    if (hi<0 || lo<0) {
+        hi=0;lo=0;
+    }
+    if (hi <0 || lo<0 || hi > 2**32 || lo > 2**32 ) {
+        var hl = bn_dateToHundredNanoSecondFrom1601(date);
+        throw new Error("INVALID " + hi  + " "+lo + " "+date.toUTCString());
+    }
     stream.writeUInt32(lo);
     stream.writeUInt32(hi);
     //xx assert(date.toString() === bn_hundredNanoSecondFrom1601ToDate(hi, lo).toString());
@@ -61,6 +70,9 @@ exports.decodeDateTime = function (stream) {
 
 
 function coerceDateTime(value) {
+    if (value instanceof Date) {
+        return value;
+    }
     return new Date(value);
 }
 exports.coerceDateTime = coerceDateTime;

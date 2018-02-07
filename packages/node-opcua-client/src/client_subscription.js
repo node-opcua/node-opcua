@@ -212,7 +212,7 @@ ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = fu
         // notificationMessage with the status code Good_SubscriptionTransferred to the old Session.
         console.log("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
         self.hasTimedOut = true;
-        self.terminate();
+        self.terminate(function(){});
     }
     if (notification.statusCode === StatusCodes.BadTimeout) {
         // the server tells use that the subscription has timed out ..
@@ -231,7 +231,7 @@ ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = fu
         //    notificationMessage with the status code Bad_Timeout.
         //
         self.hasTimedOut = true;
-        self.terminate();
+        self.terminate(function(){});
     }
     /**
      * notify the observers that the server has send a status changed notification (such as BadTimeout )
@@ -336,18 +336,17 @@ ClientSubscription.prototype._terminate_step2 = function (callback) {
 
 /**
  * @method terminate
+ * @param callback
+ *
  */
 ClientSubscription.prototype.terminate = function (callback) {
 
     var self = this;
-
-    callback = callback || function () {
-      };
+    assert(_.isFunction(callback),"expecting a callback function");
 
     if (self.subscriptionId === "terminated") {
         // already terminated... just ignore
-        callback(new Error("Already Terminated"));
-        return;
+        return callback(new Error("Already Terminated"));
     }
 
     if (_.isFinite(self.subscriptionId)) {

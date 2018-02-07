@@ -50,22 +50,21 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
 
         addressSpace.findNode(arr.dataType).should.be.instanceOf(UADataType);
+
         var expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
-        arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString());
+        arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString(),"should have typeDefinition SubscriptionDiagnosticsArrayType");
 
         var dv = arr.readValue();
         should(dv.value.value).eql([]);
         dv.value.value.should.be.instanceOf(Array);
-        dv.value.value.length.should.eql(0);
-
-        arr.readValue().value.value.length.should.eql(0, "expecting no element in array");
+        dv.value.value.length.should.eql(0,"expecting no element in array");
 
         var counter = 10;
-        // now add a new object
+
+        // now, let's add a new extension  objecct into the array
         var options = {
             subscriptionId: counter
         };
-
         var elementNode = eoan.addElement(options, arr);
 
         arr.readValue().value.value.length.should.eql(1, "expecting a new element in array");
@@ -75,7 +74,7 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         elementNode.readValue().value.value.should.be.instanceOf(SubscriptionDiagnostics);
         elementNode.readValue().value.should.be.instanceOf(Variant);
 
-        // verify that object is now bond, by modifying a value of a property of  the underlying data structure
+        // verify that object is now bond, by modifying a value of a property of the underlying data structure
         // and checking that the corresponding node has changed.
 
         // we read a copy of the element at pos [0]

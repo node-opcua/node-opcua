@@ -51,6 +51,8 @@ var SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
 var do_trace_message = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
 var do_trace_statistics = process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
 
+var doPerfMonitoring = false;
+
 function process_request_callback(request_data, err, response) {
 
     assert(_.isFunction(request_data.callback));
@@ -113,18 +115,24 @@ function _on_message_received(response, msgType, requestId) {
         debugLog(" RESPONSE ".red);
         debugLog(response.toString());
     }
-    // record tick2 : after response message has been received, before message processing
-    request_data._tick2 = self.messageBuilder._tick1;
+
+    if (doPerfMonitoring) {
+        // record tick2 : after response message has been received, before message processing
+        request_data._tick2 = self.messageBuilder._tick1;
+    }
     request_data.bytesRead = self.messageBuilder.total_message_size;
 
-    // record tick3 : after response message has been received, before message processing
-    request_data._tick3 = get_clock_tick();
+    if (doPerfMonitoring) {
+        // record tick3 : after response message has been received, before message processing
+        request_data._tick3 = get_clock_tick();
+    }
     process_request_callback(request_data, null, response);
 
 
-    // record tick4 after callback
-    request_data._tick4 = get_clock_tick();
-    // store some statistics
+    if (doPerfMonitoring) {
+        // record tick4 after callback
+        request_data._tick4 = get_clock_tick();
+    }    // store some statistics
     self._record_transaction_statistics(request_data);
 
     // notify that transaction is completed
@@ -1054,6 +1062,7 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
     if (do_trace_message) {
         console.log("xxxxx   >>>>>>                     ".cyan, requestId, requestMessage._schema.name);
     }
+
     self._request_data[requestId] = {
         request: requestMessage,
         msgType: msgType,
@@ -1062,18 +1071,22 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
         bytesWritten_before: self.bytesWritten,
         bytesWritten_after: 0,
 
-        //record tick0 : before request is being sent to server
-        _tick0: get_clock_tick(),
-        //record tick1:  after request has been sent to server
-        _tick1: null,
-        // record tick2 : after response message has been received, before message processing
-        _tick2: null,
-        // record tick3 : after response message has been received, before message processing
-        _tick3: null,
-        // record tick4 after callback
-        _tick4: null,
         chunk_count: 0
     };
+
+    if (doPerfMonitoring) {
+        const stats = self._request_data[requestId];
+        //record tick0 : before request is being sent to server
+        stats._tick0= get_clock_tick();
+        //record tick1:  after request has been sent to server
+        stats._tick1= null;
+        // record tick2 : after response message has been received, before message processing
+        stats._tick2= null;
+        // record tick3 : after response message has been received, before message processing
+        stats._tick3= null;
+        // record tick4 after callback
+        stats._tick4= null;
+    }
 
     self._sendSecureOpcUARequest(msgType, requestMessage, requestId);
 
@@ -1112,8 +1125,10 @@ ClientSecureChannelLayer.prototype._send_chunk = function (requestId, messageChu
             debugLog("CLIENT SEND done.".yellow.bold);
         }
         if (request_data) {
-            //record tick1: when request has been sent to server
-            request_data._tick1 = get_clock_tick();
+            if (doPerfMonitoring) {
+                //record tick1: when request has been sent to server
+                request_data._tick1 = get_clock_tick();
+            }
             request_data.bytesWritten_after = self.bytesWritten;
         }
     }

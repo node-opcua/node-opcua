@@ -134,6 +134,12 @@ var Enum = function (map) {
  */
 Enum.prototype.get = function (key) {
 
+    if (key instanceof EnumItem) {
+      //xx console.log("sssss");
+      if (!this[key.key]){ throw new Error("Invalid key"); }
+      return key;
+    }
+
     if (key === null || key === undefined) {
         return null;
     }

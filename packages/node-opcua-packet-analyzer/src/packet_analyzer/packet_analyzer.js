@@ -143,7 +143,8 @@ function make_tracer(buffer, padding, offset) {
                             if (fieldType === "ExtensionObject") {
                                 display_encodeable(value, buffer, start, end);
                             } else {
-                                display(value.toString().green);
+                                var str = value.toString() || "<empty>";
+                                display(str.green);
                             }
                         }
                         break;
