@@ -17,7 +17,7 @@ module.exports = function (test) {
     var MAXSESSIONS = 50;
 
     function getTick() {
-        return (new Date()).getTime()/1000.0;
+        return Date.now()/1000.0;
     }
 
     var connectivity_strategy = {
@@ -99,8 +99,6 @@ module.exports = function (test) {
             };
             client = new opcua.OPCUAClient(options);
             var endpointUrl = test.endpointUrl;
-            //xx var endpointUrl = "opc.tcp://localhost:12111";
-            //xx var endpointUrl =  "opc.tcp://KANARY:26543";
             client.on("send_request",function(req) {
                 if(doDebug) { console.log(req.constructor.name); }
             });

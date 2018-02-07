@@ -28,7 +28,7 @@ module.exports = function (test) {
     }
 
     function getTick() {
-        return (new Date()).getTime()/1000.0;
+        return Date.now()/1000.0;
     }
 
     var connectivity_strategy = {
@@ -92,7 +92,6 @@ module.exports = function (test) {
         var the_session;
 
 
-        //var endpointUrl = "opc.tcp://localhost:12111";
         async.series([
 
             perform.bind(null,"connecting client " + data.index,function(callback) {

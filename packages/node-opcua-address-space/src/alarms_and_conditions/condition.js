@@ -1197,10 +1197,11 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
 
     var branch = self.currentBranch();
 
+    var now = new Date();
     // install the eventTimestamp
     // set the received Time
-    branch.setTime(new Date());
-    branch.setReceiveTime(new Date());
+    branch.setTime(now);
+    branch.setReceiveTime(now);
     branch.setLocalTime(new TimeZone({
         offset: 0,
         daylightSavingInOffset: false

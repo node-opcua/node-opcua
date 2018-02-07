@@ -124,16 +124,26 @@ TCP_transport.prototype.createChunk = function (msg_type, chunk_type, length) {
     return buffer;
 };
 
+var counter =0;
+function record(data,extra) {
+
+    extra = extra || "";
+
+    var c = ("00000000" +counter.toString(10)).substr(-8);
+    data._serialNumber = c;
+    data.info = data.info || "";
+    var l ="";// "-L="+("00000000" +data.length).substr(-8);
+    require("fs").writeFileSync("data"+c+l+data.info+extra+".org",data,"binary");
+    counter++;
+}
+
 
 TCP_transport.prototype._write_chunk = function (message_chunk) {
 
     if (this._socket) {
         this.bytesWritten += message_chunk.length;
-        this.lastTransactionTime = Date.now();
         this.chunkWrittenCount ++;
-        // we need to clone the buffer here to make sure there 
-        var b = new Buffer(message_chunk);
-        this._socket.write(b);
+        this._socket.write(message_chunk);
     }
 };
 
@@ -265,7 +275,7 @@ TCP_transport.prototype._on_socket_ended_message =  function(err) {
     _fulfill_pending_promises.call(self, new Error("Connection aborted - ended by server : " + (err ? err.message : "")));
 };
 
-var counter = 0;
+
 /**
  * @method _install_socket
  * @param socket {Socket}
@@ -290,6 +300,7 @@ TCP_transport.prototype._install_socket = function (socket) {
     self.packetAssembler.on("message", function (message_chunk) {
         _on_message_received.call(self, message_chunk);
     });
+
 
     self._socket.on("data", function (data) {
         self.bytesRead += data.length;

@@ -135,7 +135,7 @@ OPCUAServerEndPoint.prototype._setup_server = function () {
         debugLog("server closed : all connections have ended");
     }).on("error", function (err) {
         // this could be because the port is already in use
-        console.log("server error: ".red.bold, err.message);
+        debugLog("server error: ".red.bold, err.message);
     });
 };
 
@@ -151,9 +151,7 @@ function dumpChannelInfo(channels) {
         console.log("");
         console.log("        bytesWritten  = ", channel.bytesWritten);
         console.log("        bytesRead     = ", channel.bytesRead);
-
-        console.log("   lastTransactionTime= ", channel.transport.lastTransactionTime);
-
+        
         var socket = channel.transport._socket;
         if (!socket) {
             console.log(" SOCKET IS CLOSED");
@@ -221,6 +219,8 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
 
     // a client is attempting a connection on the socket
     var self = this;
+
+    socket.setNoDelay(true);
 
     debugLog("OPCUAServerEndPoint#_on_client_connection", self._started);
     if (!self._started) {
@@ -693,9 +693,8 @@ function shutdown_channel(channel, inner_callback) {
     assert(_.isFunction(inner_callback));
 
     channel.on("close", function () {
-        console.log(" ON CLOSED !!!!");
-        //xx setImmediate(inner_callback);
-    });
+        //xx console.log(" ON CLOSED !!!!");
+     });
 
     channel.close(function () {
         inner_callback();

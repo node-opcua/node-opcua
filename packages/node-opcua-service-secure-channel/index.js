@@ -8,7 +8,7 @@ var ChannelSecurityToken =require("./_generated_/_auto_generated_ChannelSecurity
  * @type {Boolean} - True if the security token has expired.
  */
 ChannelSecurityToken.prototype.__defineGetter__("expired", function () {
-    return (this.createdAt.getTime() + this.revisedLifeTime * 1.6) < (new Date()).getTime();
+    return (this.createdAt.getTime() + this.revisedLifeTime * 1.6) < Date.now();
 });
 
 module.exports = {

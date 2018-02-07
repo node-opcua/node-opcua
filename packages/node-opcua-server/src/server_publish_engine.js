@@ -164,7 +164,7 @@ function dummy_function() {
 
 function prepare_timeout_info(request) {
     // record received time
-    request.received_time = (new Date()).getTime();
+    request.received_time = Date.now();
     assert(request.requestHeader.timeoutHint >= 0);
     request.timeout_time = (request.requestHeader.timeoutHint > 0) ? request.received_time + request.requestHeader.timeoutHint : 0;
 }

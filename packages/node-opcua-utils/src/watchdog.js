@@ -7,7 +7,7 @@ var assert = require("node-opcua-assert");
 function WatchDog() {
     this._subscriber = {};
     this._counter = 0;
-    this._current_time = new Date();
+    this._current_time = Date.now();
     this._visit_subscriber_b = this._visit_subscriber.bind(this);
     this._timer = null;
 }
@@ -40,7 +40,7 @@ function _stop_timer() {
 WatchDog.prototype._visit_subscriber = function () {
 
     var self = this;
-    self._current_time = new Date();
+    self._current_time = Date.now();
 
     var expired_subscribers = _.filter(self._subscriber, function (watchDogData) {
         watchDogData.visitCount += 1;
@@ -55,16 +55,16 @@ WatchDog.prototype._visit_subscriber = function () {
         self.removeSubscriber(subscriber.subscriber);
         subscriber.subscriber.watchdogReset();
     });
-    self._current_time = new Date();
+    //xx self._current_time = Date.now();
 };
 
 function keepAliveFunc() {
     var self = this;
     assert(self._watchDog instanceof WatchDog);
     assert(_.isNumber(self._watchDogData.key));
-    self._watchDogData.last_seen = new Date();
+    self._watchDogData.last_seen = Date.now();
     if (self.onClientSeen) {
-        self.onClientSeen(self._watchDogData .last_seen);
+        self.onClientSeen(new Date(self._watchDogData.last_seen));
     }
 }
 
@@ -86,7 +86,7 @@ WatchDog.prototype.addSubscriber = function (subscriber, timeout) {
 
     var self = this;
 
-    self._current_time = new Date();
+    self._current_time = Date.now();
 
     timeout = timeout || 1000;
     assert(_.isNumber(timeout), " invalid timeout ");
@@ -109,7 +109,7 @@ WatchDog.prototype.addSubscriber = function (subscriber, timeout) {
     self._subscriber[key] = subscriber._watchDogData;
 
     if (subscriber.onClientSeen) {
-        subscriber.onClientSeen(subscriber._watchDogData .last_seen);
+        subscriber.onClientSeen(new Date(subscriber._watchDogData.last_seen));
     }
 
     subscriber.keepAlive = keepAliveFunc.bind(subscriber);

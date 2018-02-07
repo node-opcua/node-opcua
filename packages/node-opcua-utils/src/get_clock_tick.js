@@ -15,7 +15,7 @@ if (process.hrtime) {
 
 } else {
     get_clock_tick = function get_clock_tick() {
-        return (new Date()).getTime();
+        return Date.now();
     };
 }
 
