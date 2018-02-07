@@ -1,4 +1,6 @@
 "use strict";
+var os = require("os");
+
 var trim = function (str, length) {
     if (!length) {
         return str;
@@ -32,7 +34,7 @@ function get_fully_qualified_domain_name(optional_max_length) {
 
         } catch (err) {
             // fall back to old method
-            _fully_qualified_domain_name_cache = require("os").hostname();
+            _fully_qualified_domain_name_cache = os.hostname();
         }
 
     }
@@ -40,3 +42,4 @@ function get_fully_qualified_domain_name(optional_max_length) {
 }
 // note : under windows ... echo %COMPUTERNAME%.%USERDNSDOMAIN%
 exports.get_fully_qualified_domain_name = get_fully_qualified_domain_name;
+²

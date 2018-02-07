@@ -2,7 +2,7 @@
 var async = require("async");
 var should = require("should");
 var opcua = require("node-opcua");
-
+var os = require("os");
 var OPCUAClient = opcua.OPCUAClient;
 
 var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
@@ -203,7 +203,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };
-        var endpointUrl_truncated = "opc.tcp://localhost:" + port.toString();
+        var endpointUrl_truncated = "opc.tcp://" + os.hostname() + ":" + port.toString();
 
         perform_simple_connection(endpointUrl_truncated, options, {userName: userName, password: password}, done);
 

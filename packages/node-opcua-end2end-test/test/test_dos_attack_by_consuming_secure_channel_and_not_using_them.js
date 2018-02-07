@@ -121,7 +121,7 @@ describe("testing Server resilience to DOS attacks", function () {
 
 
         // uncomment this line to run with external server
-        //xx endpointUrl = "opc.tcp://localhost:26543";
+        //xx endpointUrl = "opc.tcp://" + os.hostname() + ":26543";
 
         server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
 

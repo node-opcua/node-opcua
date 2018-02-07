@@ -6,7 +6,7 @@ var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
 var spawn = require("child_process").spawn;
-
+var os = require("os");
 function constructFilename(p) {
     var filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
@@ -91,7 +91,7 @@ function start_simple_server(options, callback) {
                     callback(null, {
                         process: server_exec,
                         pid_collected: pid_collected,
-                        endpointUrl: "opc.tcp://localhost:" + port + "/UA/SampleServer",
+                        endpointUrl: "opc.tcp://" + os.hostname() + ":" + port + "/UA/SampleServer",
                         serverCertificate: crypto_utils.readCertificate(serverCertificateFilename)
                     });
 

@@ -766,6 +766,9 @@ Subscription.prototype.resetLifeTimeAndKeepAliveCounters = function () {
  *
  */
 Subscription.prototype.terminate = function () {
+
+    assert(arguments.length === 0);
+
     var self = this;
 
     if (self.state === SubscriptionState.CLOSED) {
