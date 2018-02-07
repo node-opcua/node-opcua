@@ -69,7 +69,6 @@ ReferenceType.prototype.readAttribute = function (context, attributeId, indexRan
     }
     return new DataValue(options);
 };
-exports.ReferenceType = ReferenceType;
 
 
 var tools = require("./tool_isSupertypeOf");
