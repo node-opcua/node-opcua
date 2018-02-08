@@ -120,7 +120,7 @@ BinaryStream.prototype.writeInteger = function (value) {
 };
 
 const _ = require("underscore");
-const MAXUINT32 = 2**32;
+const MAXUINT32 = 4294967296 ; // 2**32;
 /**
  * write a single 32 bit unsigned integer to the stream.
  * @method writeUInt32
