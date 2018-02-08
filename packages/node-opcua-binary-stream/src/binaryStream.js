@@ -120,7 +120,7 @@ BinaryStream.prototype.writeInteger = function (value) {
 };
 
 const _ = require("underscore");
-const MAXUINT32 = 4294967296 ; // 2**32;
+const MAXUINT32 = 4294967295 ; // 2**32 -1;
 /**
  * write a single 32 bit unsigned integer to the stream.
  * @method writeUInt32
@@ -129,7 +129,7 @@ const MAXUINT32 = 4294967296 ; // 2**32;
 BinaryStream.prototype.writeUInt32 = function (value) {
     !performCheck || assert(this._buffer.length >= this.length + 4 , "not enough space in buffer");
     !performCheck || assert(_.isFinite(value));
-    !performCheck || assert(value >= 0  && value < MAXUINT32);
+    !performCheck || assert(value >= 0  && value <= MAXUINT32);
     this._buffer.writeUInt32LE(value, this.length, noAssert);
     this.length += 4;
     /*

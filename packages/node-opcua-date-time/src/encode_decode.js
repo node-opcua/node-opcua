@@ -34,7 +34,7 @@ exports.randomDateTime = function () {
       r(0, 24), r(0, 59), r(0, 59), r(0, 1000));
 
 };
-const MAXUINT32 = 4294967296; // 2**32
+const MAXUINT32 = 4294967295; // 2**32 - 1
 exports.encodeDateTime = function (date, stream) {
 
     if (!date) {
