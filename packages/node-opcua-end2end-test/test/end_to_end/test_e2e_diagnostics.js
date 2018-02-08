@@ -47,33 +47,41 @@ describe("Testing Server and Client diagnostic facilities", function () {
         return channel;
     }
 
-    it("Server should keep track of transaction statistics", function (done) {
+    it("MM01- Server should keep track of transaction statistics", function (done) {
 
-        redirectToFile("transaction_statistics.log", function (done) {
+        //xx redirectToFile("transaction_statistics.log", function (done) {
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
                 var server_channel = extract_server_channel();
 
                 var transaction_done_counter = 0;
+
+                var transactionCounter = client.transactionsPerformed;
                 server_channel.on("transaction_done", function () {
                     transaction_done_counter++;
+
+
                     server_channel._dump_transaction_statistics();
 
                     console.log(" Server bytes read : ", server_channel.bytesRead, " bytes written : ", server_channel.bytesWritten);
                     console.log(" Client bytes read : ", client.bytesRead, " bytes written : ", client.bytesWritten);
                     console.log(" transaction count : ", client.transactionsPerformed);
-                    if (transaction_done_counter === 1) {
-                        done();
-                    }
+
+                    client.bytesWritten.should.eql(server_channel.bytesRead);
+                    client.transactionsPerformed.should.eql(transactionCounter+1);
+                    transactionCounter+=1;
+
                 });
 
-                session.browse("RootFolder", function (err, browseResults, diagnosticInfos) {
+                session.browse("RootFolder", function (err, browseResult) {
                     should(err).eql(null);
+                    should.exist(browseResult);
+                    inner_done();
                 });
 
             }, done);
-        }, done);
+        //xx }, done);
     });
 });

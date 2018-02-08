@@ -24,22 +24,19 @@ function redirectToFile(tmpfile, action_func, callback) {
 
     var log_file = getTempFilename(tmpfile);
 
+    //xx    console.log(" log_file ",log_file);
     var f = fs.createWriteStream(log_file, {flags: 'w', encoding: "ascii"});
 
     function _write_to_file(d) { //
 
         var msg = util.format.apply(null, arguments);
+
         f.write(msg + '\n');
         if (process.env.DEBUG) {
-            old_console_log.call(old_console_log, msg);
+            old_console_log.call(console, msg);
         }
     }
 
-    f.on('finish', function () {
-        if (callback) {
-            callback();
-        }
-    });
 
     if (!is_async) {
 
@@ -54,20 +51,20 @@ function redirectToFile(tmpfile, action_func, callback) {
         catch(err){
             console.log = old_console_log;
 
-            console.log("redirectToFile  has intercepted an error");
+            console.log("redirectToFile  has intercepted an error :" , err);
             // we don't want the callback anymore since we got an error
-            callback = function() {
-                // display file on screen  for insvestigation
-                console.log(fs.readFileSync(log_file).toString("ascii"));
-                // rethrow exception
-                throw err;
-            };
-            f.end();
+            // display file on screen  for insvestigation
+
+            console.log(fs.readFileSync(log_file).toString("ascii"));
+
+            f.end(function() {
+                callback(err);
+            });
 
         }
         console.log = old_console_log;
-
-        f.end();
+        console.log("Termin");
+        f.end(callback);
 
     } else {
 
@@ -75,10 +72,15 @@ function redirectToFile(tmpfile, action_func, callback) {
         console.log = _write_to_file;
 
         // async version
+
         action_func(function (err) {
             assert(callback);
-            f.end();
             console.log = old_console_log;
+            if (err) {
+                console.log("redirectToFile  has intercepted an error");
+                throw err;
+            }
+            f.end(callback);
         });
     }
 }

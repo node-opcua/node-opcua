@@ -223,9 +223,7 @@ async function enumerateAllAlarmAndConditionInstances(the_session) {
         //x return derivedType.indexOf(nodeId.toString()) >=0;
     }
 
-    function exploreForObjectOfType(session, nodeId, callback) {
-
-
+    async function exploreForObjectOfType(session, nodeId) {
         const q = async.queue(function worker(element, callback) {
 
             //xx console.log(" exploring elements,",element.nodeId.toString());
@@ -860,7 +858,7 @@ async.series([
                 the_subscription.once("terminated", function () {
                     callback();
                 });
-                the_subscription.terminate();
+                the_subscription.terminate(function(){});
             }, timeout);
 
             // simulate a connection break at t =timeout/2
@@ -931,7 +929,7 @@ process.on("SIGINT", function () {
         console.log(" Received client interruption from user ".red.bold);
         console.log(" shutting down ...".red.bold);
 
-        the_subscription.terminate();
+        the_subscription.terminate(function() {});
         the_subscription = null;
     }
 });
