@@ -56,8 +56,9 @@ exports.SubscriptionState = SubscriptionState;
 var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
 var minimumPublishingInterval = 100;  // fastest possible
-var defaultPublishingInterval = 100;
-var maximumPublishingInterval = 1000 * 60 * 60 * 24 * 30; // 1 month
+var defaultPublishingInterval = 1000; // one second
+var maximumPublishingInterval = 1000 * 60 * 60 * 24 * 15; // 15 days
+assert(maximumPublishingInterval < 2147483648 , "maximumPublishingInterval cannot exceed 2*31 ms ");
 
 function _adjust_publishing_interval(publishingInterval) {
     publishingInterval = publishingInterval || defaultPublishingInterval;
@@ -82,7 +83,7 @@ function _adjust_lifeTimeCount(lifeTimeCount, maxKeepAliveCount,publishingInterv
     //        "The lifetime count shall be a minimum of three times the keep keep-alive count."
     lifeTimeCount = Math.max(lifeTimeCount, maxKeepAliveCount * 3 );
 
-    var minTicks = Math.ceil(10 *1000 / (publishingInterval)); // we want 10 seconds moin
+    var minTicks = Math.ceil(5 *1000 / (publishingInterval)); // we want 5 seconds min
 
     lifeTimeCount = Math.max(minTicks,lifeTimeCount);
     return lifeTimeCount;
@@ -1545,7 +1546,7 @@ Subscription.prototype.notifyTransfer = function() {
     // notificationMessage with the status code Good_SubscriptionTransferred to the old Session.
     var self = this;
 
-    console.warn(" Subscription => Notifying Transfer                                  ".bgWhite.red);
+    debugLog(" Subscription => Notifying Transfer                                  ".red);
 
     var notificationData = [new StatusChangeNotification({statusCode: StatusCodes.GoodSubscriptionTransferred})];
 

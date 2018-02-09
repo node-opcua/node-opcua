@@ -210,9 +210,9 @@ ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = fu
         // OPCUA UA Spec 1.0.3 : part 3 - page 82 - 5.13.7 TransferSubscriptions:
         // If the Server transfers the Subscription to the new Session, the Server shall issue a StatusChangeNotification
         // notificationMessage with the status code Good_SubscriptionTransferred to the old Session.
-        console.log("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
+        debugLog("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
         self.hasTimedOut = true;
-        self.terminate(function(){});
+        self.terminate(function() {});
     }
     if (notification.statusCode === StatusCodes.BadTimeout) {
         // the server tells use that the subscription has timed out ..
@@ -346,7 +346,6 @@ ClientSubscription.prototype.terminate = function (callback) {
 
     if (self.subscriptionId === "terminated" || self.subscriptionId == "terminating" ) {
         // already terminated... just ignore
-
         return callback(new Error("Already Terminated"));
     }
 

@@ -914,10 +914,14 @@ ClientSecureChannelLayer.prototype.isOpened = function () {
     var self = this;
     return self.isValid() && self._isOpened;
 };
+
+var minTransactionTimeout =  30 * 1000;    // 30 sec
+
 var defaultTransactionTimeout = 60 * 1000; // 1 minute
 /**
  * internal version of _performMessageTransaction.
  *
+ * @method _performMessageTransaction
  * @method _performMessageTransaction
  * @param msgType {String}
  * @param requestMessage
@@ -949,6 +953,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     var local_callback = callback;
 
     var timeout = requestMessage.requestHeader.timeoutHint || defaultTransactionTimeout;
+    timeout = Math.max(minTransactionTimeout,timeout);
 
     var timerId = null;
 
@@ -1003,7 +1008,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
         console.log(" Timeout .... waiting for response for ", requestMessage.constructor.name, requestMessage.requestHeader.toString());
 
         hasTimedOut = true;
-        modified_callback(new Error("Transaction has timed out"), null);
+        modified_callback(new Error("Transaction has timed out ( timeout = "+ timeout +" ms)"), null);
 
         self._timedout_request_count += 1;
         /**

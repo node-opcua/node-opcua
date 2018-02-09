@@ -371,7 +371,7 @@ ServerSidePublishEngine.prototype.send_notification_message = function (param,fo
     });
 
     if (self.pendingPublishRequestCount === 0) {
-        console.log(" ---------------------------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANWSER !".bgRed.cyan);
+        console.log(" ---------------------------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANWSER !".bgRed.white.bold);
         self._publish_response_queue.push(response);
     } else {
         var publishData = self._publish_request_queue.shift();
@@ -594,9 +594,9 @@ ServerSidePublishEngine.transferSubscription = function(subscription,destPublish
     var self = this;
     var srcPublishEngine = subscription.publishEngine;
 
-    console.log("ServerSidePublishEngine.transferSubscription  =<".bgWhite.red ,self.pendingPublishRequestCount );
-    subscription.notifyTransfer();
+    debugLog("ServerSidePublishEngine.transferSubscription  =<".red ,srcPublishEngine.pendingPublishRequestCount );
 
+    subscription.notifyTransfer();
     destPublishEngine.add_subscription(srcPublishEngine.detach_subscription(subscription));
     subscription.resetLifeTimeCounter();
     if (sendInitialValues) {

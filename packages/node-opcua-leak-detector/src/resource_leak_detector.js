@@ -81,7 +81,7 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
 
         console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setInterval/clearInterval");
         _.forEach(self.interval_map, function (value, key) {
-            if (!value.disposed) {
+            if (value && !value.disposed) {
                 console.log("key =", key, "value.disposed = ", value.disposed);
                 console.log(value.stack);//.split("\n"));
             }
@@ -157,7 +157,7 @@ ResourceLeakDetector.prototype.start = function (info) {
 
             var timeoutId = self.setTimeout_old(function () {
 
-                if (self.timeout_map[key].isCleared) {
+                if (!self.timeout_map[key] || self.timeout_map[key].isCleared) {
                     // throw new Error("Invalid timeoutId, timer has already been cleared - " + key);
                     console.log("WARNING : setTimeout:  Invalid timeoutId, timer has already been cleared - " + key);
                     return;
@@ -206,21 +206,22 @@ ResourceLeakDetector.prototype.start = function (info) {
                 throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " time out has already been honored");
             }
 
-            self.timeout_map[timeoutId].isCleared = true;
-            self.timeout_map[timeoutId].disposed = true;
+            var data = self.timeout_map[timeoutId];
+            self.timeout_map[timeoutId] = null;
+
+            data.isCleared = true;
+            data.disposed = true;
 
             self.setTimeoutCallPendingCount -= 1;
 
             // increase overall timeout counter;
             self.clearTimeoutCallCount += 1;
 
-            //xx console.log(" xxx                          xxxxxxxxx = >clearTimeout".yellow, timeoutId, self.setTimeoutCallPendingCount);
-            //xx console.log(new Error().stack);
+            // call original clearTimeout
+            var retValue = self.clearTimeout_old(data.timeoutId);
 
-            var ret = self.timeout_map[timeoutId];
-            //xx self.timeout_map[timeoutId] = null;
             //xx delete self.timeout_map[timeoutId];
-            return self.clearTimeout_old(ret.timeoutId);
+            return retValue;
         };
 
     }
@@ -265,11 +266,16 @@ ResourceLeakDetector.prototype.start = function (info) {
         }
         var key = intervalId;
         assert(self.interval_map.hasOwnProperty(key));
-        intervalId = self.interval_map[key].intervalId;
 
-        self.interval_map[key].disposed = true;
+        var data = self.interval_map[key];
 
-        return self.clearInterval_old(intervalId);
+        self.interval_map[key] = null;
+        delete self.interval_map[key];
+
+        data.disposed = true;
+        var retValue =  self.clearInterval_old(data.intervalId);
+
+        return retValue;
     };
 
 };
@@ -299,7 +305,26 @@ ResourceLeakDetector.prototype.stop = function (info) {
     global.clearTimeout = self.clearTimeout_old;
     self.clearTimeout_old = null;
 
-    return self.verify_registry_counts(info);
+
+    var  results=  self.verify_registry_counts(info);
+
+    self.interval_map = {};
+    self.timeout_map = {};
+
+
+    // call garbage collector
+    if (_.isFunction(global.gc)) {
+        global.gc(true);
+    }
+
+    if (0) {
+        var heapdump = require('heapdump');
+        heapdump.writeSnapshot(function(err, filename) {
+            console.log('dump written to', filename);
+        });
+    }
+
+    return results;
 };
 
 ResourceLeakDetector.singleton = new ResourceLeakDetector();
@@ -317,6 +342,12 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
         });
+        beforeEach(function() {
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
+        });
         if (func) {
             func.call(this);
         }
@@ -327,6 +358,11 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
 
     } else {
         beforeEach(function () {
+
+            if (global.gc) {
+                global.gc(true);
+            }
+
             var self = this;
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();

@@ -117,9 +117,9 @@ describe("testing client Proxy", function () {
 
                     session.createSubscription({
                         requestedPublishingInterval: 100, // Duration
-                        requestedLifetimeCount: 10,    // Counter
-                        requestedMaxKeepAliveCount: 10, // Counter
-                        maxNotificationsPerPublish: 10, // Counter
+                        requestedLifetimeCount:     1000, // Counter
+                        requestedMaxKeepAliveCount:   10, // Counter
+                        maxNotificationsPerPublish:   10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     }, function (err, response) {
@@ -375,10 +375,10 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     session.createSubscription({
-                        requestedPublishingInterval: 100, // Duration
-                        requestedLifetimeCount: 10,    // Counter
-                        requestedMaxKeepAliveCount: 10, // Counter
-                        maxNotificationsPerPublish: 10, // Counter
+                        requestedPublishingInterval:  100, // Duration
+                        requestedLifetimeCount:      6000, // Counter
+                        requestedMaxKeepAliveCount:  1000, // Counter
+                        maxNotificationsPerPublish:    10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     }, function (err, response) {

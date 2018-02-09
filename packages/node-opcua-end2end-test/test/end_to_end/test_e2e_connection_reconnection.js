@@ -9,14 +9,6 @@ var opcua = require("node-opcua");
 var OPCUAClient = opcua.OPCUAClient;
 var StatusCodes = opcua.StatusCodes;
 var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var makeNodeId = opcua.makeNodeId;
-var ReferenceTypeIds = opcua.ReferenceTypeIds;
-var VariableIds = opcua.VariableIds;
-var VariantArrayType = opcua.VariantArrayType;
-
-var BrowseDirection = opcua.BrowseDirection;
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
@@ -1241,12 +1233,14 @@ describe("testing ability for client to reconnect when server close connection",
             f(ensure_continuous),
             f(wait_a_little_while),
             f(ensure_continuous),
+            f(wait_a_little_while),
 
             // now drop connection  for 1.5 seconds
             f(simulate_connection_break.bind(null, 1500, "EPIPE")),
             // make sure that we have received all notifications
             // (thanks to republish )
 
+            f(wait_a_little_while),
             f(wait_a_little_while),
             f(ensure_continuous),
             f(wait_a_little_while),

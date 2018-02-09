@@ -450,10 +450,10 @@ module.exports = function (test) {
 
                         function (callback) {
                             session.createSubscription({
-                                requestedPublishingInterval: 100, // Duration
-                                requestedLifetimeCount:     10, // Counter <<= Small value so we can timeout quick
-                                requestedMaxKeepAliveCount:  10, // Counter
-                                maxNotificationsPerPublish:   10, // Counter
+                                requestedPublishingInterval: 1000, // Duration
+                                requestedLifetimeCount:      1000, // Counter
+                                requestedMaxKeepAliveCount:   100, // Counter
+                                maxNotificationsPerPublish:    10, // Counter
                                 publishingEnabled: true, // Boolean
                                 priority: 14 // Byte
                             }, function (err, response) {
@@ -1405,7 +1405,10 @@ module.exports = function (test) {
         });
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = new OPCUAClient({
+                keepSessionAlive:true,
+                requestedSessionTimeout: 120 * 1000, // 2 min ! make sure that session doesn't drop during test
+            });
             done();
         });
 
@@ -1415,7 +1418,7 @@ module.exports = function (test) {
         });
 
 
-        it("AZA3-A A server should send a StatusChangeNotification if the client doesn't send PublishRequest within the expected interval", function (done) {
+        it("AZA3-A A server should send a StatusChangeNotification (BadTimeout) if the client doesn't send PublishRequest within the expected interval", function (done) {
 
             //xx endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
 
@@ -1433,12 +1436,11 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:    10, // short publishing interval required here
-                    requestedLifetimeCount:         60, // short lifetimeCount needed here !
-                    requestedMaxKeepAliveCount:     10,
-                    maxNotificationsPerPublish:     10,
+                    requestedPublishingInterval:    100, // short publishing interval required here
+                    requestedLifetimeCount:          60, // short lifetimeCount needed here !
+                    requestedMaxKeepAliveCount:      10,
+                    maxNotificationsPerPublish:      10,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -1467,8 +1469,7 @@ module.exports = function (test) {
                         subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
                         subscription.publish_engine._send_publish_request.restore();
                         subscription.publish_engine._send_publish_request();
-                    }, subscription.publishingInterval * (subscription.lifetimeCount + 2) + 250);
-
+                    }, subscription.publishingInterval * (subscription.lifetimeCount + 5) + 2000);
 
                 }).on("status_changed", function (statusCode) {
 
@@ -1478,12 +1479,13 @@ module.exports = function (test) {
                     // but delay a little bit so we can verify that _send_publish_request
                     // is not called
                     setTimeout(function () {
-                        subscription.terminate(function(){
+                        subscription.terminate(function(err){
                             nb_keep_alive_received.should.be.equal(0);
                             inner_done();
                         });
                     }, 200);
                 });
+
             }, done);
 
 
@@ -1778,19 +1780,19 @@ module.exports = function (test) {
 
                 async.series([
                     function (callback) {
-                        // wait 400 ms to make sure we get the initial notification
-                        setTimeout(function () {
+                        // let's wait for for notification to be received
+                        monitoredItem.once("changed",function() {
                             // we reset change count,
                             change_count = 0;
                             callback();
-                        }, 400);
+                        });
                     },
                     function (callback) {
-                        // wait 400 ms and verify that the subscription is not sending notification.
+                        // wait 800 ms and verify that the subscription is not sending notification.
                         setTimeout(function () {
                             change_count.should.equal(0);
                             callback();
-                        }, 400);
+                        }, 800);
                     },
 
 
@@ -1804,7 +1806,7 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        // wait 400 ms and verify that the subscription is now sending notification.
+                        // wait 2000 ms and verify that the subscription is now sending notification.
                         setTimeout(function () {
                             change_count.should.be.greaterThan(1);
                             callback();
@@ -2751,7 +2753,7 @@ module.exports = function (test) {
 
                     function write_node(value, callback) {
                         assert(value instanceof Array);
-                        var nodesToWrite = [{
+                        var nodeToWrite = {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
                             value: /*new DataValue(*/ {
@@ -2762,17 +2764,16 @@ module.exports = function (test) {
                                     value: new Int32Array(value)
                                 }
                             }
-                        }];
-                        session.write(nodesToWrite, function (err, statusCodes) {
-                            statusCodes.length.should.eql(1);
-                            statusCodes[0].should.eql(StatusCodes.Good);
+                        };
+                        session.write(nodeToWrite, function (err, statusCode) {
+                            statusCode.should.eql(StatusCodes.Good);
 
                             session.read({
                                 attributeId: opcua.AttributeIds.Value,
                                 nodeId: nodeId,
                             }, function (err, dataValue) {
                                 should.exist(dataValue);
-                                //xx console.log(" written ",dataValue.value.toString());
+                                //xxconsole.log(" written ",dataValue.value.toString());
                                 callback(err);
                             });
 
@@ -2792,7 +2793,7 @@ module.exports = function (test) {
                             createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                         },
                         function (callback) {
-                            setTimeout(callback, 10);
+                            setTimeout(callback, 100);
                         },
                         function (callback) {
                             sendPublishRequest(session, function (err, response) {
@@ -2815,11 +2816,14 @@ module.exports = function (test) {
                         },
 
                         write_node.bind(null, [-1, -2, -3]),
+                        function (callback) {
+                            setTimeout(callback, 100);
+                        },
 
                         write_node.bind(null, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
 
                         function (callback) {
-                            setTimeout(callback, 10);
+                            setTimeout(callback, 100);
                         },
 
                         function (callback) {

@@ -263,12 +263,13 @@ module.exports = function (test) {
                 async.series([
                     function (callback) {
 
+                        var timeout = subscription.publishingInterval * 2;
                         setTimeout(function () {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);
-                            spy_keepalive.callCount.should.be.greaterThan(1);
+                            spy_keepalive.callCount.should.be.aboveOrEqual(1);
                             callback();
-                        }, 1500);
+                        }, timeout);
                     },
                     function (callback) {
                         client.createSession(function (err, session) {

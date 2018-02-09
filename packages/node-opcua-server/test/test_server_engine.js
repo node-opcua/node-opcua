@@ -53,8 +53,8 @@ function resolveExpandedNodeId(nodeId) {
     return makeExpandedNodeId(resolveNodeId(nodeId));
 }
 
-var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
-describeWithLeakDetector("testing ServerEngine", function () {
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("testing ServerEngine", function () {
 
     var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 

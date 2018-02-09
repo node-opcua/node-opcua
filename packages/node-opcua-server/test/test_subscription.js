@@ -46,8 +46,8 @@ var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest
 
 var add_mock_monitored_item = require("./helper").add_mock_monitored_item;
 
-var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
-describeWithLeakDetector("Subscriptions", function () {
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("Subscriptions", function () {
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();

@@ -27,7 +27,10 @@ module.exports = function (test) {
         var client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = new OPCUAClient({
+                keepSessionAlive:true,
+                requestedSessionTimeout: 120*1000
+            });
             endpointUrl = test.endpointUrl;
             done();
         });
@@ -46,9 +49,9 @@ module.exports = function (test) {
 
                 var subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 150,
-                    requestedLifetimeCount: 10 * 60 * 10,
-                    requestedMaxKeepAliveCount: 10,
-                    maxNotificationsPerPublish: 2,
+                    requestedLifetimeCount:      6000,// make sure subscription will not timeout
+                    requestedMaxKeepAliveCount:  1000,// make sure we won't received spurious KeepAlive PublishResponse
+                    maxNotificationsPerPublish:  20,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -101,7 +104,6 @@ module.exports = function (test) {
                                 change_count.should.eql(2);
                                 callback();
                             }, 3000);
-
                         },
 
                         function (callback) {
@@ -110,7 +112,6 @@ module.exports = function (test) {
                                 subscription.terminate(callback);
                             }, 1500);
                         }
-
                     ]);
                 });
             }, done);

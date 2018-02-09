@@ -184,18 +184,29 @@ UAAlarmConditionBase.prototype.getSuppressedOrShelved = function () {
 };
 
 /**
+ *
+ * @type {Duration}
+ */
+UAAlarmConditionBase.MaxDuration = Math.pow(2,31);
+
+/**
  * @method setMaxTimeShelved
  * @param duration  ( Duration in Milliseconds)
+ *
+ * note: duration must be greater than 10ms and lesser than 2**31 ms
  */
 UAAlarmConditionBase.prototype.setMaxTimeShelved = function (duration) {
+
     var self = this;
+    if (duration < 10 || duration >= Math.pow(2,31)) {
+        throw new Error(" Invalid maxTimeShelved duration: " + duration+ "  must be [10,2**31] ");
+    }
     self.maxTimeShelved.setValueFromSource({
         dataType: "Duration", // <= Duration is basic Type Double! ( milliseconds)
         value: duration
     });
 };
 
-UAAlarmConditionBase.MaxDuration = 999999999.999;
 /**
  * @method getMaxTimeShelved
  * @return {Duration}
@@ -203,6 +214,8 @@ UAAlarmConditionBase.MaxDuration = 999999999.999;
 UAAlarmConditionBase.prototype.getMaxTimeShelved = function () {
     var node = this;
     if (!node.maxTimeShelved) {
+        // if maxTimeShelved is not provided we assume MaxDuration
+        assert(UAAlarmConditionBase.MaxDuration <= 2147483648 , "MaxDuration cannot be greater than 2**31");
         return UAAlarmConditionBase.MaxDuration;
     }
     var dataValue = node.maxTimeShelved.readValue();
@@ -270,27 +283,33 @@ function _automatically_unshelve(shelvingState) {
     shelvingState._timer = null;
 
     if (doDebug) {
-        console.log("Automatically unshelving variable ", shelvingState.browseName.toString());
+        debugLog("Automatically unshelving variable ", shelvingState.browseName.toString());
     }
 
     if (shelvingState.getCurrentState() === "Unshelved") {
-        throw new Error(StatusCodes.BadConditionNotShelved);
+        // just ignore !!!
+        return ;
+        //throw new Error(StatusCodes.BadConditionNotShelved);
     }
     shelvingState.setState("Unshelved");
-
     shelvingState._unsheveldTime = new Date(); // now
     assert(!shelvingState._timer);
 }
 
 function _start_timer_for_automatic_unshelve(shelvingState, duration) {
 
+    if (duration < 10 || duration >= Math.pow(2,31)) {
+        throw new Error(" Invalid maxTimeShelved duration: " + duration+ "  must be [10,2**31] ");
+    }
+    assert(!shelvingState._timer);
+
     shelvingState._sheveldTime = new Date(); // now
     shelvingState._duration = duration;
+
     if (doDebug) {
-        console.log("shelvingState._duration", shelvingState._duration);
+        debugLog("shelvingState._duration", shelvingState._duration);
     }
 
-    assert(!shelvingState._timer);
     if (duration !== UAAlarmConditionBase.MaxDuration) {
         assert(!shelvingState._timer);
         shelvingState._timer = setTimeout(_automatically_unshelve.bind(null, shelvingState), shelvingState._duration);
@@ -424,6 +443,12 @@ function _unShelveTimeFunc(shelvingState) {
         });
     }
 
+    if (!shelvingState._sheveldTime) {
+        return new Variant({
+            dataType: DataType.StatusCode,
+            value: StatusCodes.BadConditionNotShelved
+        });
+    }
     if (shelvingState.getCurrentState() === "OneShotShelved" && shelvingState._duration === UAAlarmConditionBase.MaxDuration) {
         return new Variant({
             dataType: DataType.Double,
@@ -431,9 +456,9 @@ function _unShelveTimeFunc(shelvingState) {
         });
     }
     var now = new Date();
-    var timeToAutomaticUnshelvedState = shelvingState._duration - (now - shelvingState._sheveldTime);
+    var timeToAutomaticUnshelvedState = shelvingState._duration - (now.getTime() - shelvingState._sheveldTime.getTime());
     // timeToAutomaticUnshelvedState should always be greater than (or equal) zero
-
+    timeToAutomaticUnshelvedState = Math.max(timeToAutomaticUnshelvedState,0);
     return new Variant({
         dataType: DataType.Double, // duration
         value: timeToAutomaticUnshelvedState

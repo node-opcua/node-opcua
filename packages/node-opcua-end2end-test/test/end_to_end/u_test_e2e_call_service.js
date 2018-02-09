@@ -31,7 +31,7 @@ module.exports = function (test) {
 
         beforeEach(function (done) {
             client = new OPCUAClient({
-                requestedSessionTimeout: 60000 // use long session time out
+                requestedSessionTimeout: 600 *1000 // use long session time out
             });
             endpointUrl = test.endpointUrl;
             done();

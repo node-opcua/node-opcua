@@ -11,7 +11,7 @@ var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 132", function () {
 
 
-    this.timeout(2000); // could be slow on appveyor !
+    this.timeout(20000); // could be slow on appveyor !
 
     var addressSpace;
 

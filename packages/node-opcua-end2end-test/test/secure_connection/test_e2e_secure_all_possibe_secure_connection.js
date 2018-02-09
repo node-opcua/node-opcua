@@ -32,9 +32,9 @@ var start_simple_server = require("../../test_helpers/external_server_fixture").
 var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
 
-var g_defaultSecureTokenLifetime = 750; // 1 seconds lifetime
-var g_cycleNumber = 1;
-var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 2);
+var g_defaultSecureTokenLifetime = 2000; // ms
+var g_cycleNumber = 2;
+var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 3);
 
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
@@ -213,7 +213,7 @@ function keep_monitoring_some_variable(session, duration, done) {
                 debugLog("        subscription terminated ");
                 if (!the_error) {
                     var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
-                    nbTokenId.should.be.greaterThan(2);
+                    nbTokenId.should.be.aboveOrEqual(2);
                 }
                 done(the_error);
             });
@@ -231,6 +231,7 @@ function keep_monitoring_some_variable(session, duration, done) {
 
 function common_test(securityPolicy, securityMode, options, done) {
 
+    if (global.gc) { global.gc(true); }
     //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
     opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
@@ -240,8 +241,8 @@ function common_test(securityPolicy, securityMode, options, done) {
         securityMode: opcua.MessageSecurityMode.get(securityMode),
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
-        connectionStrategy: no_reconnect_connectivity_strategy
-
+        connectionStrategy: no_reconnect_connectivity_strategy,
+        requestedSessionTimeout: 120* 60 * 1000
     });
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
@@ -253,7 +254,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
         keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 3 + 500, function (err) {
-            token_change.should.be.greaterThan(2);
+            token_change.should.be.aboveOrEqual(2);
             inner_done(err);
         });
     }, done);

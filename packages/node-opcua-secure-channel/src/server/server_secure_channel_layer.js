@@ -226,7 +226,7 @@ function _start_security_token_watch_dog() {
 
     // install securityToken timeout watchdog
     self._securityTokenTimeout = setTimeout(function () {
-        console.log(" Security token has really expired and shall be discarded !!!!");
+        console.log(" Security token has really expired and shall be discarded !!!! (lifetime is = ",self.securityToken.revisedLifeTime,")");
         console.log(" Server will now refuse message with token ", self.securityToken.tokenId);
         self._securityTokenTimeout = null;
     }, self.securityToken.revisedLifeTime * 120 / 100);
@@ -295,6 +295,8 @@ function _set_lifetime(requestedLifetime) {
     } else {
         self.revisedLifeTime = Math.min(self.defaultSecureTokenLifetime, self.revisedLifeTime);
     }
+
+    ///xx console.log('requestedLifetime,self.defaultSecureTokenLifetime, self.revisedLifeTime',requestedLifetime,self.defaultSecureTokenLifetime, self.revisedLifeTime);
 
 }
 
@@ -845,6 +847,8 @@ function _handle_OpenSecureChannelRequest(message, callback) {
 
     self.send_response("OPN", response, message, function (/*err*/) {
         if (response.responseHeader.serviceResult !== StatusCodes.Good) {
+
+            console.log("OpenSecureChannelRequest Closing communication ", response.responseHeader.serviceResult.toString());
             self.close();
         }
         callback(null);
@@ -972,7 +976,8 @@ var _on_common_message = function (request, msgType, requestId, secureChannelId)
 
     } else if (msgType === "OPN" && request._schema.name === "OpenSecureChannelRequest") {
         // intercept client request to renew security Token
-        _handle_OpenSecureChannelRequest.call(self, message, function () {
+        _handle_OpenSecureChannelRequest.call(self, message, function (err) {
+            
         });
     } else {
 

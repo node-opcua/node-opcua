@@ -117,9 +117,11 @@ module.exports = function (test) {
             });
         }
 
-        it("HGHGH should ....", function (done) {
+        it("verifying that RepublishRequest service is working as expected", function (done) {
 
-            var client = new OPCUAClient();
+            var client = new OPCUAClient({
+
+            });
             var endpointUrl = test.endpointUrl;
 
             var expected_values = [];
@@ -140,6 +142,8 @@ module.exports = function (test) {
                     callback(err);
                 });
             }
+
+
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 async.series([

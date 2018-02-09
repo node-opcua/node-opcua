@@ -15,6 +15,7 @@ var mocha = new Mocha({
     bail: false,
     grep: filterOpts,
     fullTrace: true,
+    slow: 1000,
     reporter: "spec" //"nyan", //"tap"
 });
 
