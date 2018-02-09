@@ -126,8 +126,8 @@ function perform_operation_on_raw_subscription(client,endpointUrl,f,done) {
 
                 session.createSubscription({
                     requestedPublishingInterval: 100, // Duration
-                    requestedLifetimeCount:       60,    // Counter
-                    requestedMaxKeepAliveCount:   10, // Counter
+                    requestedLifetimeCount:      600,  // Counter
+                    requestedMaxKeepAliveCount:  100, // Counter
                     maxNotificationsPerPublish:   10, // Counter
                     publishingEnabled:          true,   // Boolean
                     priority:                     14 // Byte

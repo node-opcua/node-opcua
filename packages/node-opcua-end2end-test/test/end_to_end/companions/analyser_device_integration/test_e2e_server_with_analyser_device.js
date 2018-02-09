@@ -211,7 +211,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     });
 
 
-    it("should have a AnalyserDeviceType", function () {
+    it("should have an AnalyserDeviceType", function () {
 
 
         var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
@@ -229,7 +229,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     });
 
 
-    it("should have a AnalyserDeviceType v2", function () {
+    it("should have an AnalyserDeviceType v2", function () {
 
         var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
 
@@ -285,7 +285,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         }
     }
 
-    it("should have a AnalyserDeviceStateMachineType", function (done) {
+    it("should have an AnalyserDeviceStateMachineType", function (done) {
 
         /**
          @startuml
@@ -317,8 +317,10 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
-            //xx dumpStateMachineToGraphViz(analyserDeviceStateMachineType);
-            //xxdumpStateMachine(analyserDeviceStateMachineType);
+            if (doDebug) {
+                dumpStateMachineToGraphViz(analyserDeviceStateMachineType);
+                dumpStateMachine(analyserDeviceStateMachineType);
+            }
 
             var proxyManager = new UAProxyManager(session);
 

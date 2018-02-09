@@ -344,22 +344,24 @@ ClientSubscription.prototype.terminate = function (callback) {
     var self = this;
     assert(_.isFunction(callback),"expecting a callback function");
 
-    if (self.subscriptionId === "terminated") {
+    if (self.subscriptionId === "terminated" || self.subscriptionId == "terminating" ) {
         // already terminated... just ignore
+
         return callback(new Error("Already Terminated"));
     }
 
     if (_.isFinite(self.subscriptionId)) {
 
-        self.publish_engine.unregisterSubscription(self.subscriptionId);
+        var subscriptionId = self.subscriptionId;
+        self.subscriptionId = "terminating";
+        self.publish_engine.unregisterSubscription(subscriptionId);
 
         if (!self.session) {
             return self._terminate_step2(callback);
         }
 
-
         self.session.deleteSubscriptions({
-            subscriptionIds: [self.subscriptionId]
+            subscriptionIds: [subscriptionId]
         }, function (err) {
 
             if (err) {
@@ -661,8 +663,11 @@ ClientSubscription.prototype._remove = function (monitoredItem) {
 };
 
 ClientSubscription.prototype._delete_monitored_items = function (monitoredItems, callback) {
+
+    assert(_.isFunction(callback));
     assert(_.isArray(monitoredItems));
     var self = this;
+
     assert(self.isActive());
 
     monitoredItems.forEach(function (monitoredItem) {

@@ -451,9 +451,9 @@ module.exports = function (test) {
                         function (callback) {
                             session.createSubscription({
                                 requestedPublishingInterval: 100, // Duration
-                                requestedLifetimeCount: 10, // Counter
-                                requestedMaxKeepAliveCount: 10, // Counter
-                                maxNotificationsPerPublish: 10, // Counter
+                                requestedLifetimeCount:     10, // Counter <<= Small value so we can timeout quick
+                                requestedMaxKeepAliveCount:  10, // Counter
+                                maxNotificationsPerPublish:   10, // Counter
                                 publishingEnabled: true, // Boolean
                                 priority: 14 // Byte
                             }, function (err, response) {
@@ -1159,17 +1159,17 @@ module.exports = function (test) {
                 monitoredItem.on("initialized", function () {
                     //xx console.log("Initialized");
                 });
+                monitoredItem.on("terminated", function () {
+                    // xx console.log("monitored item terminated");
+                });
 
                 monitoredItem.on("changed", function (dataValue) {
                     should.exist(dataValue);
                     // the changed event has been received !
                     // lets stop monitoring this item
                     setImmediate(function () {
-                        monitoredItem.terminate();
+                        monitoredItem.terminate(inner_callback);
                     });
-                });
-                monitoredItem.on("terminated", function () {
-                    inner_callback();
                 });
 
             }, done);

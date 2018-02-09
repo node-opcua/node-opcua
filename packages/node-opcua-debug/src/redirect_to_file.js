@@ -63,7 +63,6 @@ function redirectToFile(tmpfile, action_func, callback) {
 
         }
         console.log = old_console_log;
-        console.log("Termin");
         f.end(callback);
 
     } else {

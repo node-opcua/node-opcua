@@ -88,7 +88,7 @@ function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
 
         // istanbul ignore next
         if (err) {
-            return callback(err);
+            return setImmediate(function(){callback(err);});
         }
 
         var dataType;
@@ -96,14 +96,14 @@ function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
         if (dataValue.statusCode !== StatusCodes.Good) {
             //Xx console.log("convertNodeIdToDataTypeAsync: Cannot read browse name for nodeID ".red + dataTypeId.toString());
             dataType = DataType.Null;
-            return callback(null, dataType);
+            return setImmediate(function(){callback(null, dataType);});
         }
 
         var dataTypeName = dataValue.value.value;
 
         if (dataTypeId.namespace === 0 && DataType.get(dataTypeId.value)) {
             dataType = DataType.get(dataTypeId.value);
-            return callback(null, dataType);
+            return setImmediate(function(){callback(null, dataType);});
         }
 
         /// example => Duration (i=290) => Double (i=11)
@@ -256,17 +256,13 @@ ProxyBaseNode.prototype.writeValue = function (dataValue, callback) {
         attributeId: AttributeIds.Value,
         value: dataValue
     };
-    self.proxyManager.session.write([nodeToWrite], function (err, results) {
-
+    self.proxyManager.session.write(nodeToWrite, function (err, statusCode) {
         // istanbul ignore next
         if (err) {
             return callback(err);
         }
-
-        var result = results[0];
-        /// console.log("xxxx r=",results.toString());
-        if (result !== StatusCodes.Good) {
-            callback(new Error(result.toString()));
+        if (statusCode !== StatusCodes.Good) {
+            callback(new Error(statusCode.toString()));
         } else {
             callback(null);
         }
@@ -485,7 +481,7 @@ function readUAStructure(proxyManager, obj, callback) {
         function extractDataType(arg, callback) {
 
             if (arg.dataType && arg.dataType._dataType) {
-                return callback(); // already converted
+                return setImmediate(callback); // already converted
             }
 
             convertNodeIdToDataTypeAsync(session, arg.dataType, function (err, dataType) {
@@ -497,28 +493,6 @@ function readUAStructure(proxyManager, obj, callback) {
             });
         }
 
-
-        session.getArgumentDefinition(reference.nodeId, function (err, args) {
-            // istanbul ignore next
-            if (err) {
-                return callback(err);
-            }
-            var inputArguments  = args.inputArguments;
-            var outputArguments = args.outputArguments;
-
-            obj[name].inputArguments = inputArguments;
-            obj[name].outputArguments = outputArguments;
-
-            async.series([
-                function (callback) {
-                    async.each(obj[name].inputArguments, extractDataType, callback);
-                },
-                function (callback) {
-                    async.each(obj[name].outputArguments, extractDataType, callback);
-                }
-            ], callback)
-        });
-
         var methodObj = {
             nodeId: reference.nodeId,
             executableFlag: false,
@@ -527,9 +501,35 @@ function readUAStructure(proxyManager, obj, callback) {
         };
         obj.$methods[name] = methodObj;
 
-        proxyManager._monitor_execution_flag(methodObj, function () {
+        async.parallel([
+            function(callback) {
+                session.getArgumentDefinition(reference.nodeId, function (err, args) {
+                    // istanbul ignore next
+                    if (err) {
+                        return setImmediate(function() { callback(err); });
+                    }
+                    var inputArguments  = args.inputArguments;
+                    var outputArguments = args.outputArguments;
 
-        });
+                    obj[name].inputArguments = inputArguments;
+                    obj[name].outputArguments = outputArguments;
+
+                    async.series([
+                        function (callback) {
+                            async.each(obj[name].inputArguments, extractDataType, callback);
+                        },
+                        function (callback) {
+                            async.each(obj[name].outputArguments, extractDataType, callback);
+                        }
+                    ], callback)
+                });
+            },
+            function(callback) {
+                proxyManager._monitor_execution_flag(methodObj, function () {
+                    callback();
+                });
+            }
+        ],callback);
 
     }
 
@@ -579,20 +579,19 @@ function readUAStructure(proxyManager, obj, callback) {
         obj[name] = new ProxyVariable(proxyManager, reference.nodeId, reference);
         obj.$properties[name] = obj[name];
 
-        callback(null);
+        setImmediate(callback);
     }
 
     function add_typeDefinition(obj, references, callback) {
-
         references = references || [];
         if (references.length !== 1) {
             //xx console.log(" cannot find type definition", references.length);
-            return callback();
+            return setImmediate(callback);
         }
         var reference = references[0];
         assert(!obj.typeDefinition, "type definition can only be set once");
         obj.typeDefinition = reference.browseName.name || "";
-        callback();
+        setImmediate(callback);
     }
 
     function addFromState(obj, reference, callback) {
@@ -625,7 +624,7 @@ function readUAStructure(proxyManager, obj, callback) {
         //xx console.log("Components", t(results[0].references));
         //xx console.log("Properties", t(results[1].references));
         //xx console.log("Methods", t(results[2].references));
-        async.series([
+        async.parallel([
 
             function (callback) {
                 async.map(browseResults[0].references, add_component.bind(null, obj), callback);
@@ -690,7 +689,9 @@ function getObject(proxyManager, nodeId, options, callback) {
     nodeId = coerceNodeId(nodeId);
 
     if (nodeId.isEmpty()) {
-        return callback(new Error(" Invalid empty node in getObject"));
+        return setImmediate(function() {
+            callback(new Error(" Invalid empty node in getObject"));
+        });
     }
 
     var nodesToRead = [

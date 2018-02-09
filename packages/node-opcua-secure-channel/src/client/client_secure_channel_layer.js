@@ -230,8 +230,6 @@ function ClientSecureChannelLayer(options) {
 
     self.__in_normal_close_operation = false;
 
-    self._renew_security_token_requested = 0;
-
     self._timedout_request_count = 0;
 
     self._securityTokenTimeoutId = null;
@@ -824,30 +822,28 @@ ClientSecureChannelLayer.prototype._renew_security_token = function () {
     var self = this;
     debugLog("ClientSecureChannelLayer#_renew_security_token");
 
-    /* istanbul ignore if */
-    if (0 && self.isTransactionInProgress()) {
-
-        self._renew_security_token_requested += 1;
-
-    } else {
-        var is_initial = false;
-        _open_secure_channel_request.call(self, is_initial, function (err) {
-
-            /* istanbul ignore else */
-            if (!err) {
-                debugLog(" token renewed");
-                /**
-                 * notify the observers that the security has been renewed
-                 * @event security_token_renewed
-                 */
-                self.emit("security_token_renewed");
-
-            } else {
-                console.error("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed");
-            }
-        });
-        self._renew_security_token_requested = 0;
+    if (!self.isValid()) {
+        // this may happen if the communication has been closed by the client or the sever
+        console.log("Invalid socket => Communication has been lost, cannot renew token");
+        return;
     }
+
+    var is_initial = false;
+    _open_secure_channel_request.call(self, is_initial, function (err) {
+
+        /* istanbul ignore else */
+        if (!err) {
+            debugLog(" token renewed");
+            /**
+             * notify the observers that the security has been renewed
+             * @event security_token_renewed
+             */
+            self.emit("security_token_renewed");
+
+        } else {
+            debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
+        }
+    });
 };
 
 ClientSecureChannelLayer.prototype._on_receive_message_chunk = function (message_chunk) {

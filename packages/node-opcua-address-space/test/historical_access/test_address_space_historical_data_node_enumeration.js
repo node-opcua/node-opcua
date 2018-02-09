@@ -19,7 +19,7 @@ require("date-utils");
 
 // make sure extra error checking is made on object constructions
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing Historical Data Node", function () {
+describe("Testing Historical Data Node Enumeration", function () {
 
     var addressSpace;
 

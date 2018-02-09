@@ -64,7 +64,7 @@ ClientMonitoredItem.prototype.toString = function() {
  */
 ClientMonitoredItem.prototype.terminate = function (done) {
 
-    assert(!done || _.isFunction(done));
+    assert(_.isFunction(done));
     var self = this;
     /**
      * Notify the observer that this monitored item has been terminated.
