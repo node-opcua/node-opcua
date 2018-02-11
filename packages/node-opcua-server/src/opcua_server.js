@@ -1022,6 +1022,26 @@ function findUserTokenByPolicy(endpoint_description, policyId) {
     return r.length === 0 ? null : r[0];
 }
 
+var UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+function findUserTokenPolicy(endpoint_description, userTokenType) {
+    assert(endpoint_description instanceof EndpointDescription);
+    var r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
+        // assert(userIdentity instanceof UserTokenPolicy)
+        assert(userIdentity.tokenType);
+        return userIdentity.tokenType === userTokenType;
+    });
+    return r.length === 0 ? null : r[0];
+}
+function createAnonymousIdentityToken(endpoint_desc) {
+    assert(endpoint_desc instanceof EndpointDescription);
+    var userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.ANONYMOUS);
+    if (!userTokenPolicy) {
+        throw new Error("Cannot find ANONYMOUS user token policy in end point description");
+    }
+    return new AnonymousIdentityToken({policyId: userTokenPolicy.policyId});
+}
+
+
 OPCUAServer.prototype.isValidUserIdentityToken = function (channel, session, userIdentityToken) {
 
     var self = this;
@@ -1200,6 +1220,9 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
     if (!server.verifyClientSignature(session, channel, request.clientSignature, session.clientCertificate)) {
         return rejectConnection(StatusCodes.BadApplicationSignatureInvalid);
     }
+
+    // userIdentityToken may be missing , assume anonymous access then
+    request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(channel.endpoint);
 
     // check request.userIdentityToken is correct ( expected type and correctly formed)
     if (!server.isValidUserIdentityToken(channel, session, request.userIdentityToken)) {

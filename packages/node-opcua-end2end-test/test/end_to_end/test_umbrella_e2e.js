@@ -243,6 +243,7 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_355")(test);
     require("./u_test_e2e_issue_377")(test);
     require("./u_test_e2e_issue_417")(test);
+    require("./u_test_e2e_issue_433")(test);
     require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./u_test_e2e_sessionDiagnostics")(test);
 

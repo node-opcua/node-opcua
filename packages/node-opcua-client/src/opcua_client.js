@@ -371,6 +371,9 @@ OPCUAClient.prototype.createUserIdentityToken = function (session, userIdentityT
     assert(_.isFunction(callback));
     var self = this;
 
+    if (null === self.userIdentityInfo) {
+        return callback(null,null);
+    }
     if (isAnonymous(self.userIdentityInfo)) {
 
         try {
