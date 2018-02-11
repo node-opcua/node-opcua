@@ -1017,7 +1017,8 @@ AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseT
         nodeClass:     nodeClass,
         isAbstract:    !!options.isAbstract,
         eventNotifier: +options.eventNotifier,
-        references:    references
+        references:    references,
+        nodeId: options.nodeId
     });
 
     objectType.propagate_back_references();
