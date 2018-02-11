@@ -672,10 +672,10 @@ describe("testing Variable#bindVariable", function () {
             timestamped_get: function () {
                 return value_with_timestamp;
             },
-            timestamped_set: function (ts_value, callback) {
-                value_with_timestamp.value = ts_value.value;
-                value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
-                value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
+            timestamped_set: function (dataValue, callback) {
+                value_with_timestamp.value = dataValue.value;
+                value_with_timestamp.sourceTimestamp = dataValue.sourceTimestamp;
+                value_with_timestamp.sourcePicoseconds = dataValue.sourcePicoseconds;
                 callback(null, StatusCodes.Good);
             }
         };
@@ -719,11 +719,11 @@ describe("testing Variable#bindVariable", function () {
                     callback(null, value_with_timestamp);
                 }, 100);
             },
-            timestamped_set: function (ts_value, callback) {
+            timestamped_set: function (dataValue, callback) {
                 setTimeout(function () {
-                    value_with_timestamp.value = ts_value.value;
-                    value_with_timestamp.sourceTimestamp = ts_value.sourceTimestamp;
-                    value_with_timestamp.sourcePicoseconds = ts_value.sourcePicoseconds;
+                    value_with_timestamp.value = dataValue.value;
+                    value_with_timestamp.sourceTimestamp = dataValue.sourceTimestamp;
+                    value_with_timestamp.sourcePicoseconds = dataValue.sourcePicoseconds;
                     callback(null, StatusCodes.Good);
                 }, 100);
             }

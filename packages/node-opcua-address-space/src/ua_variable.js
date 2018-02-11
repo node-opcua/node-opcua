@@ -1087,6 +1087,7 @@ function _Variable_bind_with_timestamped_set(options) {
     var self = this;
     assert(self instanceof UAVariable);
     assert(_.isFunction(options.timestamped_set));
+    assert(options.timestamped_set.length === 2, "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){}");
     assert(!options.set, "should not specify set when timestamped_set_func exists ");
     self._timestamped_set_func = function (dataValue, indexRange, callback) {
         //xx assert(!indexRange,"indexRange Not Implemented");
@@ -1578,8 +1579,8 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
                 var d = new DataValue(property._dataValue);
                 return d;
             },
-            timestamped_set: function () {
-                throw new Error("!!!!");
+            timestamped_set: function (dataValue,callback) {
+                callback(new Error("Variable is readonly"));
             }
         }, true);
     }
@@ -1611,8 +1612,8 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
                 d.value = new Variant(d.value);
                 return d;
             },
-            timestamped_set: function () {
-                throw new Error("!!!!");
+            timestamped_set: function (dataValue,callback) {
+                callback(new Error("variable is read only"));
             }
         }, true);
 
