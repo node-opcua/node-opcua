@@ -526,6 +526,7 @@ export declare class DataValue {
     serverPicoseconds: number;
     statusCode: StatusCode;
 }
+type CoercibleToDataValue = DataValue | DataValueOpts;
 
 export declare class WriteValue {
     nodeId: NodeId;
@@ -535,6 +536,7 @@ export declare class WriteValue {
 }
 
 type CoercibleToNodeId = string | NodeId;
+
 
 type CoercibleToWriteValue = {
     nodeId: CoercibleToNodeId,
@@ -571,7 +573,6 @@ export interface AddVariableOpts extends _AddNodeOpts {
 
 export enum EUEngineeringUnit {
     degree_celsius,
-    meter,
     // to be continued
 }
 
