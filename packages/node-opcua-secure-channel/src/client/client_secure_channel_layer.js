@@ -104,8 +104,8 @@ function _on_message_received(response, msgType, requestId) {
         var actual = response.responseHeader.requestHandle;
         var moreinfo = "Class = " + response._schema.name;
         console.log((" WARNING SERVER responseHeader.requestHandle is invalid" +
-          ": expecting 0x" + expected.toString(16) +
-          "  but got 0x" + actual.toString(16) + " ").red.bold, moreinfo.yellow);
+            ": expecting 0x" + expected.toString(16) +
+            "  but got 0x" + actual.toString(16) + " ").red.bold, moreinfo.yellow);
     }
 
     request_data.response = response;
@@ -151,6 +151,7 @@ var g_channelId = 0;
  * @uses MessageBuilder
  * @param options
  * @param {Number} [options.defaultSecureTokenLifetime=30000 = 30 seconds]
+ * @param {Number} [options.tokenRenewalInterval =0]  if 0, security token renewa&l will happen at 75% of defaultSecureTokenLifetime
  * @param [options.securityMode=MessageSecurityMode.NONE]
  * @param [options.securityPolicy=SecurityPolicy.None]
  * @param [options.serverCertificate=null] the serverCertificate (required if securityMode!=None)
@@ -190,6 +191,7 @@ function ClientSecureChannelLayer(options) {
     });
 
     self.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 30000;
+    self.tokenRenewalInterval = options.tokenRenewalInterval || 0;
 
     self.securityMode = options.securityMode || MessageSecurityMode.NONE;
 
@@ -210,11 +212,11 @@ function ClientSecureChannelLayer(options) {
     self._request_data = {};
 
     self.messageBuilder
-    .on("message", _on_message_received.bind(this))
-    .on("start_chunk", function () {
-        // record tick2: when the first response chunk is received
-        // request_data._tick2 = get_clock_tick();
-    }).on("error", function (err, requestId) {
+        .on("message", _on_message_received.bind(this))
+        .on("start_chunk", function () {
+            // record tick2: when the first response chunk is received
+            // request_data._tick2 = get_clock_tick();
+        }).on("error", function (err, requestId) {
         //
         debugLog("request id = ", requestId, err);
         var request_data = self._request_data[requestId];
@@ -278,9 +280,9 @@ function _dump_transaction_statistics() {
 
     console.log("--------------------------------------------------------------------->> Stats".green.bold);
     console.log("   request                   : ",
-      transaction_stats.request._schema.name.toString().yellow, " / ",
-      transaction_stats.response._schema.name.toString().yellow, " - ",
-      transaction_stats.response.responseHeader.serviceResult.toString());
+        transaction_stats.request._schema.name.toString().yellow, " / ",
+        transaction_stats.response._schema.name.toString().yellow, " - ",
+        transaction_stats.response.responseHeader.serviceResult.toString());
     console.log("   Bytes Read                : ", w(transaction_stats.bytesRead), " bytes");
     console.log("   Bytes Written             : ", w(transaction_stats.bytesWritten), " bytes");
     console.log("   transaction duration      : ", w(transaction_stats.lap_transaction.toFixed(3)), " milliseconds");
@@ -422,17 +424,23 @@ function _install_security_token_watchdog() {
     //
     // install timer event to raise a 'lifetime_75' when security token is about to expired
     // so that client can request for a new security token
+    // note that, for speedup in test,
+    // it is possible to tweak this interval for test by specifying a tokenRenewalInterval value
     //
     var liveTime = self.securityToken.revisedLifeTime;
     assert(liveTime && liveTime > 20);
-    debugLog(" revisedLifeTime = ".red.bold, liveTime);
+    var timeout = self.tokenRenewalInterval || liveTime * 75 / 100;
+    timeout = Math.min(timeout, liveTime * 75 / 100);
+
+    if (doDebug) {
+        debugLog(" time until next security token renal = ".red.bold, timeout, "( lifefime = ", liveTime + ")");
+    }
 
     assert(self._securityTokenTimeoutId === null);
     self._securityTokenTimeoutId = setTimeout(function () {
         self._securityTokenTimeoutId = null;
         _on_security_token_about_to_expire.call(self);
-
-    }, liveTime * 75 / 100);
+    }, timeout);
 }
 
 function _build_client_nonce() {
@@ -494,13 +502,14 @@ function _open_secure_channel_request(is_initial, callback) {
 
     self._performMessageTransaction(msgType, msg, function (error, response) {
 
+
         if (response && response.responseHeader.serviceResult !== StatusCodes.Good) {
             error = new Error(response.responseHeader.serviceResult.toString());
         }
         if (!error) {
 
             /* istanbul ignore next */
-            if (doDebug) {
+            if (false && doDebug) {
                 debugLog(response.toString());
             }
             assert(response instanceof OpenSecureChannelResponse);
@@ -915,7 +924,7 @@ ClientSecureChannelLayer.prototype.isOpened = function () {
     return self.isValid() && self._isOpened;
 };
 
-var minTransactionTimeout =  30 * 1000;    // 30 sec
+var minTransactionTimeout = 30 * 1000;    // 30 sec
 
 var defaultTransactionTimeout = 60 * 1000; // 1 minute
 /**
@@ -953,7 +962,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     var local_callback = callback;
 
     var timeout = requestMessage.requestHeader.timeoutHint || defaultTransactionTimeout;
-    timeout = Math.max(minTransactionTimeout,timeout);
+    timeout = Math.max(minTransactionTimeout, timeout);
 
     var timerId = null;
 
@@ -1008,7 +1017,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
         console.log(" Timeout .... waiting for response for ", requestMessage.constructor.name, requestMessage.requestHeader.toString());
 
         hasTimedOut = true;
-        modified_callback(new Error("Transaction has timed out ( timeout = "+ timeout +" ms)"), null);
+        modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms)"), null);
 
         self._timedout_request_count += 1;
         /**
@@ -1078,15 +1087,15 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
     if (doPerfMonitoring) {
         const stats = self._request_data[requestId];
         //record tick0 : before request is being sent to server
-        stats._tick0= get_clock_tick();
+        stats._tick0 = get_clock_tick();
         //record tick1:  after request has been sent to server
-        stats._tick1= null;
+        stats._tick1 = null;
         // record tick2 : after response message has been received, before message processing
-        stats._tick2= null;
+        stats._tick2 = null;
         // record tick3 : after response message has been received, before message processing
-        stats._tick3= null;
+        stats._tick3 = null;
         // record tick4 after callback
-        stats._tick4= null;
+        stats._tick4 = null;
     }
 
     self._sendSecureOpcUARequest(msgType, requestMessage, requestId);

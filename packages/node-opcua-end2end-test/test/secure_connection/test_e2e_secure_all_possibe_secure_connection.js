@@ -32,10 +32,9 @@ var start_simple_server = require("../../test_helpers/external_server_fixture").
 var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
 
-var g_defaultSecureTokenLifetime = 2000; // ms
-var g_cycleNumber = 2;
-var g_defaultTestDuration = g_defaultSecureTokenLifetime * ( g_cycleNumber + 3);
-
+var g_defaultSecureTokenLifetime = 30 * 1000; // ms
+var g_tokenRenewalInterval = 50; // ms => renew token as fast as possible
+var g_numberOfTokenRenewal = 2;
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
 
@@ -188,10 +187,29 @@ function stop_server(data, callback) {
 var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
 
-function keep_monitoring_some_variable(session, duration, done) {
+
+function keep_monitoring_some_variable(client,session, security_token_renewed_limit, done) {
 
     should(session).be.instanceof(ClientSession);
 
+    var security_token_renewed_counter = 0;
+
+    client.on("security_token_renewed",function() {
+
+        debugLog(" Security token has been renewed");
+
+        security_token_renewed_counter +=1 ;
+        if (security_token_renewed_counter===security_token_renewed_limit)  {
+            subscription.terminate(function() {
+                debugLog("        subscription terminated ");
+                if (!the_error) {
+                    var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
+                    nbTokenId.should.be.aboveOrEqual(2);
+                }
+                done(the_error);
+            });
+        }
+    });
     var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
 
     var subscription = new ClientSubscription(session, {
@@ -205,19 +223,7 @@ function keep_monitoring_some_variable(session, duration, done) {
 
     var the_error = null;
     subscription.on("started", function () {
-
-        //xx console.log("xxx    starting monitoring for ",duration," ms");
-        setTimeout(function () {
-            //xx console.log("xxx    terminating subscription  ");
-            subscription.terminate(function() {
-                debugLog("        subscription terminated ");
-                if (!the_error) {
-                    var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
-                    nbTokenId.should.be.aboveOrEqual(2);
-                }
-                done(the_error);
-            });
-        }, duration);
+        debugLog("xxx    starting monitoring ");
     });
 
     subscription.on("internal_error", function (err) {
@@ -246,6 +252,10 @@ function common_test(securityPolicy, securityMode, options, done) {
     });
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
+
+    // make suret hat securityToken renewal will happen very soon,
+    options.tokenRenewalInterval = g_tokenRenewalInterval;
+
     //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
     var token_change = 0;
@@ -253,17 +263,25 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-        keep_monitoring_some_variable(session, options.defaultSecureTokenLifetime * 3 + 500, function (err) {
+        keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
             token_change.should.be.aboveOrEqual(2);
             inner_done(err);
         });
     }, done);
 
     client.on("lifetime_75", function (token) {
-        debugLog("received lifetime_75", JSON.stringify(token));
+        // check if we are late!
+        //
+        var expectedExpiryTick = token.createdAt.getTime() + token.revisedLifeTime;
+        var delay = ( expectedExpiryTick - Date.now() );
+        if (delay <= 100) {
+            console.log("WARNING : token renewal is happening too late !!".red, delay);
+        }
+        debugLog("received lifetime_75", JSON.stringify(token), delay);
     });
     client.on("security_token_renewed", function () {
         token_change += 1;
+        debugLog("received security_token_renewed", token_change);
     });
     client.on("close", function () {
         debugLog(" connection has been closed");
@@ -334,7 +352,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         client.on("start_reconnection", start_reconnection_spy);
         client.on("after_reconnection", after_reconnection_spy);
 
-        keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
+        keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
             console.log("err = ", err);
             // inner_done(err);
         });
@@ -593,9 +611,9 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
+            keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
                 //xx console.log("end of Monitoring ")
-                token_change.should.be.greaterThan(g_cycleNumber);
+                token_change.should.be.greaterThan(g_numberOfTokenRenewal);
                 inner_done(err);
             });
         }, done);
@@ -633,7 +651,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             timerId = setTimeout(function () {
                 timerId = null;
                 old_method.call(self);
-            }, Math.min(g_defaultSecureTokenLifetime*4,g_defaultTestDuration));
+            }, g_defaultSecureTokenLifetime*4);
         };
 
         start_server(function (err, handle) {
@@ -670,7 +688,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         var client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(session, g_defaultTestDuration, function (err) {
+            keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
                 //xx console.log("end of Monitoring ")
                 //xx token_change.should.be.greaterThan(g_cycleNumber);
                 inner_done(err);
@@ -685,11 +703,11 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         });
 
         client.on("lifetime_75", function (token) {
-            //xx console.log("received lifetime_75", JSON.stringify(token));
+            console.log("received lifetime_75", JSON.stringify(token));
         });
         client.on("security_token_renewed", function () {
             token_change += 1;
-            //xx console.log("security_token_renewed");
+            console.log("security_token_renewed");
         });
 
         // common_test_expected_server_initiated_disconnection(opcua.SecurityPolicy.Basic128Rsa15, opcua.MessageSecurityMode.SIGN, done);

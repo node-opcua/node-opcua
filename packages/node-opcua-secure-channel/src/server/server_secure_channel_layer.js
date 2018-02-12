@@ -71,7 +71,7 @@ var doPerfMonitoring = false;
  * @constructor
  * @param options
  * @param options.parent {OPCUAServerEndPoint} parent
- * @param [options.timeout = 10000] {Number} timeout in milliseconds
+ * @param [options.timeout = 30000] {Number} timeout in milliseconds
  * @param [options.defaultSecureTokenLifetime = 30000] defaultSecureTokenLifetime
  * @param [options.objectFactory] an factory that provides a method createObjectId(id) for the message builder
  */
@@ -87,7 +87,7 @@ function ServerSecureChannelLayer(options) {
 
     self.lastTokenId = 0;
 
-    self.timeout = options.timeout || 10000; // connection timeout
+    self.timeout = options.timeout || 30000; // connection timeout
 
     self.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
 

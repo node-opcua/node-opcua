@@ -48,6 +48,7 @@ var defaultConnectionStrategy = {
  * @param [options.privateKeyFile="certificates/client_key_1024.pem"] {String} client private key pem file.
  * @param [options.connectionStrategy] {Object}
  * @param [options.keepSessionAlive=false]{Boolean}
+ * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLiveTime
  * @constructor
  */
 function OPCUAClientBase(options) {
@@ -82,7 +83,8 @@ function OPCUAClientBase(options) {
     this._secureChannel = null;
 
     this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
-
+    this.tokenRenewalInterval = options.tokenRenewalInterval || 0;
+    assert(_.isFinite(this.tokenRenewalInterval) && this.tokenRenewalInterval >= 0);
     /**
      * @property securityMode
      * @type MessageSecurityMode
@@ -356,7 +358,8 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
                 serverCertificate: self.serverCertificate,
                 parent: self,
                 objectFactory: self.objectFactory,
-                connectionStrategy: self.connectionStrategy
+                connectionStrategy: self.connectionStrategy,
+                tokenRenewalInterval: self.tokenRenewalInterval,
             });
 
             self._secureChannel = secureChannel;
@@ -658,7 +661,7 @@ OPCUAClientBase.prototype.findEndpointForSecurity = function (securityMode, secu
  */
 OPCUAClientBase.prototype.findEndpoint = function (endpointUrl, securityMode, securityPolicy) {
     assert(this.knowsServerEndpoint, "Server end point are not known yet");
-        return _.find(this._server_endpoints, function (endpoint) {
+    return _.find(this._server_endpoints, function (endpoint) {
         return endpoint.endpointUrl === endpointUrl &&
             endpoint.securityMode === securityMode &&
             endpoint.securityPolicyUri === securityPolicy.value;
