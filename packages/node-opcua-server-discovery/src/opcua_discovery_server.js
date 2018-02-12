@@ -2,6 +2,8 @@
 var util = require("util");
 var _ = require("underscore");
 var assert = require("node-opcua-assert");
+var path = require("path");
+var fs = require("fs");
 
 var OPCUABaseServer = require("node-opcua-server").OPCUABaseServer;
 var OPCUAServerEndPoint = require("node-opcua-server").OPCUAServerEndPoint;
@@ -18,11 +20,8 @@ var ApplicationType = endpoints_service.ApplicationType;
 var get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
 
 function constructFilename(p) {
-    var path = require("path");
-    var fs = require("fs");
     var filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
-    assert(fs.existsSync(filename));
     return filename;
 }
 
@@ -34,9 +33,11 @@ function OPCUADiscoveryServer(options) {
 
     var default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
     options.certificateFile = options.certificateFile || default_certificate_file;
+    assert(fs.existsSync(options.certificateFile));
 
     var default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
     options.privateKeyFile = options.privateKeyFile || default_private_key_file;
+    assert(fs.existsSync(options.certificateFile));
 
     var defaultApplicationUri = makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-DiscoveryServer");
 
