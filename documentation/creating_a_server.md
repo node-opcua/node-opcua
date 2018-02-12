@@ -71,7 +71,7 @@ var server = new opcua.OPCUAServer({
 ```
 
 The resource path will be used to construct the endpoint uniform resource identifier (uri) of our server.
-In our case, the endpoint urn of our server will be <pre>opc.tcp://<hostname>:4334/UA/MyLittleServer</pre>
+In our case, the endpoint urn of our server will be <pre>opc.tcp://\<hostname\>:4334/UA/MyLittleServer</pre>
 where <pre>hostname</pre> shall be replaced with your computer name or fully qualified domain name.
 
 Client will have to use this URN to connect to the server.
