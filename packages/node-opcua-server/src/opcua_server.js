@@ -639,6 +639,31 @@ function _attempt_to_close_some_old_unactivated_session(server) {
     }
 }
 
+
+function onlyforUri(serverUri,endpoint) {
+    assert(_.isString(serverUri));
+    assert(endpoint instanceof EndpointDescription);
+    // to do  ...
+    return serverUri === endpoint.endpointUri;
+}
+function getRequiredEndpointInfo(endpoint) {
+    assert(endpoint instanceof EndpointDescription);
+    // It is recommended that Servers only include the endpointUrl, securityMode,
+    // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
+    // other parameters set to null. Only the recommended parameters shall be verified by
+    // the client.
+    var e=  new EndpointDescription({
+        endpointUrl: endpoint.endpointUrl,
+        securityMode: endpoint.securityMode,
+        securityPolicyUri: endpoint.securityPolicyUri,
+        userIdentityTokens: endpoint.userIdentityTokens,
+        securityLevel: endpoint.securityLevel,
+    });
+    // reduce even further by explicitly setting unwanted members to null
+    e.server =  null;
+    e.serverCertificate = null;
+    return e;
+}
 // session services
 OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
@@ -815,7 +840,9 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
         // other parameters set to null. Only the recommended parameters shall be verified by
         // the client.
-        serverEndpoints: server._get_endpoints(),
+        serverEndpoints: server._get_endpoints()
+                                .filter(onlyforUri.bind(null,request.serverUri))
+                                .map(getRequiredEndpointInfo),
 
         //This parameter is deprecated and the array shall be empty.
         serverSoftwareCertificates: null,
@@ -835,6 +862,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         maxRequestMessageSize: 0x4000000
 
     });
+
 
     server.emit("create_session", session);
 
