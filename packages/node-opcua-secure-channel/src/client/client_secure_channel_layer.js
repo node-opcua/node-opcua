@@ -217,18 +217,17 @@ function ClientSecureChannelLayer(options) {
             // record tick2: when the first response chunk is received
             // request_data._tick2 = get_clock_tick();
         }).on("error", function (err, requestId) {
-        //
-        debugLog("request id = ", requestId, err);
-        var request_data = self._request_data[requestId];
-        console.log(" message was ");
-        console.log(request_data);
-        if (!request_data) {
-            request_data = self._request_data[requestId + 1];
-            console.log(" message was 2:", request_data ? request_data.request.toString() : "<null>");
-        }
-        // xx console.log(request_data.request.toString());
-
-    });
+            //
+            debugLog("request id = ", requestId, err);
+            var request_data = self._request_data[requestId];
+            console.log(" message was ");
+            console.log(request_data);
+            if (!request_data) {
+                request_data = self._request_data[requestId + 1];
+                console.log(" message was 2:", request_data ? request_data.request.toString() : "<null>");
+            }
+            // xx console.log(request_data.request.toString());
+        });
 
     self.__in_normal_close_operation = false;
 

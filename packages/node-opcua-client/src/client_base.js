@@ -174,13 +174,17 @@ OPCUAClientBase.prototype._destroy_secure_channel = function () {
 };
 
 
-function __findEndpoint(endpointUrl, securityMode, securityPolicy, callback) {
+function __findEndpoint(endpointUrl, params, callback) {
 
-    var client = new OPCUAClientBase({
-        connectionStrategy: {
-            maxRetry: 1
-        }
-    });
+    var securityMode = params.securityMode;
+    var securityPolicy = params.securityPolicy;
+
+    var options = {
+        connectionStrategy: params.connectionStrategy,
+        endpoint_must_exist: false
+    };
+
+    var client = new OPCUAClientBase(options);
 
     var selected_endpoint = null;
     var all_endpoints = null;
@@ -194,7 +198,6 @@ function __findEndpoint(endpointUrl, securityMode, securityPolicy, callback) {
                     console.log("Fail to connect to server ", endpointUrl, " to collect certificate server");
                 }
                 return callback(err);
-
             });
         },
         function (callback) {
@@ -202,7 +205,7 @@ function __findEndpoint(endpointUrl, securityMode, securityPolicy, callback) {
 
                 if (!err) {
                     endpoints.forEach(function (endpoint, i) {
-                        if (endpoint.securityMode === securityMode && endpoint.securityPolicyUri == securityPolicy.value) {
+                        if (endpoint.securityMode === securityMode && endpoint.securityPolicyUri === securityPolicy.value) {
                             selected_endpoint = endpoint; // found it
                         }
                     });
@@ -268,6 +271,7 @@ OPCUAClientBase.prototype._recreate_secure_channel = function (callback) {
     assert(_.isFunction(callback));
 
     if (!self.knowsServerEndpoint) {
+        console.log("Cannot reconnect , server endpoint is unknown");
         return callback(new Error("Cannot reconnect, server endpoint is unknown"));
     }
     assert(self.knowsServerEndpoint);
@@ -500,34 +504,37 @@ function _install_secure_channel_event_handlers(self, secureChannel) {
         } else {
 
 
-            self._recreate_secure_channel(function (err) {
+            setImmediate(function () {
 
-                debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err ? err.message : "OK");
-                if (err) {
-                    //xx assert(!self._secureChannel);
-                    self.emit("close", err);
-                    return;
-                } else {
-                    /**
-                     * @event connection_reestablished
-                     *        send when the connection is reestablished after a connection break
-                     */
-                    self.emit("connection_reestablished");
+                self._recreate_secure_channel(function (err) {
 
-                    // now delegate to upper class the
-                    if (self._on_connection_reestablished) {
-                        assert(_.isFunction(self._on_connection_reestablished));
-                        self._on_connection_reestablished(function (err) {
+                    debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err ? err.message : "OK");
+                    if (err) {
+                        //xx assert(!self._secureChannel);
+                        self.emit("close", err);
+                        return;
+                    } else {
+                        /**
+                         * @event connection_reestablished
+                         *        send when the connection is reestablished after a connection break
+                         */
+                        self.emit("connection_reestablished");
 
-                            if (err) {
-                                debugLog("connection_reestablished has failed");
-                                self.disconnect(function () {
-                                    //xx callback(err);
-                                });
-                            }
-                        });
+                        // now delegate to upper class the
+                        if (self._on_connection_reestablished) {
+                            assert(_.isFunction(self._on_connection_reestablished));
+                            self._on_connection_reestablished(function (err) {
+
+                                if (err) {
+                                    debugLog("connection_reestablished has failed");
+                                    self.disconnect(function () {
+                                        //xx callback(err);
+                                    });
+                                }
+                            });
+                        }
                     }
-                }
+                });
             });
         }
         //xx console.log("xxxx OPCUAClientBase emitting close".yellow.bold,err);
@@ -585,7 +592,13 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
         // if the certificate has been certified by an Certificate Authority we have to
         // verify that the certificates in the chain are valid and not revoked.
         //
-        return __findEndpoint(endpointUrl, this.securityMode, this.securityPolicy, function (err, result) {
+        var params = {
+            securityMode: this.securityMode,
+            securityPolicy: this.securityPolicy,
+            connectionStrategy: this.connectionStrategy,
+            endpoint_must_exist: false
+        };
+        return __findEndpoint(endpointUrl,params, function (err, result) {
             if (err) {
                 return callback(err);
             }

@@ -62,3 +62,6 @@ _source_ignored_
 pki
 test_fixtures/
 .nyc_output/
+*.heapsnapshot
+*.log
+*.stackdump

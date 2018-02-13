@@ -383,6 +383,7 @@ async.series([
     function (callback) {
 
         var options = {
+            endpoint_must_exist: false,
             keepSessionAlive: true,
             connectionStrategy: {
                 maxRetry: 10,
@@ -475,6 +476,8 @@ async.series([
             serverCertificate: serverCertificate,
 
             defaultSecureTokenLifetime: 40000,
+
+            endpoint_must_exist:false,
 
             connectionStrategy: {
                 maxRetry: 10,

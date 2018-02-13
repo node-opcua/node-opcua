@@ -130,7 +130,6 @@ OPCUAServerEndPoint.prototype._setup_server = function () {
             debugLog("server connected  with : " + socket.remoteAddress + ":" + socket.remotePort);
         }
 
-
     }).on("close", function () {
         debugLog("server closed : all connections have ended");
     }).on("error", function (err) {
@@ -665,6 +664,20 @@ OPCUAServerEndPoint.prototype.listen = function (callback) {
     });
 };
 
+OPCUAServerEndPoint.prototype.killClientSockets = function (callback) {
+
+    var self = this;
+    var chnls = _.values(this._channels);
+    chnls.forEach(function(channel){
+        if (channel._transport && channel._transport._socket) {
+            channel._transport._socket.close();
+            channel._transport._socket.destroy();
+            channel._transport._socket.emit("error", new Error("EPIPE"));
+        }
+
+    });
+    callback();
+};
 
 OPCUAServerEndPoint.prototype.suspendConnection = function (callback) {
 

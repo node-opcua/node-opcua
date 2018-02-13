@@ -664,6 +664,21 @@ function getRequiredEndpointInfo(endpoint) {
     e.serverCertificate = null;
     return e;
 }
+// serverUri  String This value is only specified if the EndpointDescription has a gatewayServerUri.
+//            This value is the applicationUri from the EndpointDescription which is the applicationUri for the
+//            underlying Server. The type EndpointDescription is defined in 7.10.
+
+function _serverEndpointsForCreateSessionResponse(server,serverUri) {
+    serverUri; // unused then
+    // The Server shall return a set of EndpointDescriptions available for the serverUri specified in the request.
+    // It is recommended that Servers only include the endpointUrl, securityMode,
+    // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all other parameters
+    // set to null. Only the recommended parameters shall be verified by the client.
+    return server._get_endpoints()
+        //xx .filter(onlyforUri.bind(null,serverUri)
+        .map(getRequiredEndpointInfo);
+}
+
 // session services
 OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
@@ -724,6 +739,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         }
     }
 
+
     function validate_applicationUri(applicationUri, clientCertificate) {
 
         // if session is insecure there is no need to check certificate information
@@ -774,6 +790,18 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         return rejectConnection(errStatus);
     }
 
+    //endpointUrl String The network address that the Client used to access the Session Endpoint. The HostName portion
+    //            of the URL should be one of the HostNames for the application that are specified in the Server’s
+    //            ApplicationInstanceCertificate (see 7.2). The Server shall raise an AuditUrlMismatchEventType event
+    //            if the URL does not match the Server’s HostNames. AuditUrlMismatchEventType event type is defined in
+    //            Part 5. The Server uses this information for diagnostics and to determine the set of
+    //            EndpointDescriptions to return in the response.
+    function validate_endpointUri() {
+        // ToDo: check endpointUrl validity and emit an AuditUrlMismatchEventType event if not
+    }
+    validate_endpointUri();
+
+
     // see Release 1.02  27  OPC Unified Architecture, Part 4
     var session = server.createSession({
         sessionTimeout: revisedSessionTimeout,
@@ -808,6 +836,14 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
     var serverCertificateChain = server.getCertificateChain();
 
+    var hasEncryption = true;
+    // If the securityPolicyUri is NONE and none of the UserTokenPolicies requires encryption
+    if (session.channel.securityMode === MessageSecurityMode.NONE) {
+        // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
+        // and set hasEncryption = false under this condition
+    }
+
+
     var response = new CreateSessionResponse({
         // A identifier which uniquely identifies the session.
         sessionId: session.nodeId,
@@ -829,7 +865,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         // If the securityPolicyUri is NONE and none of the UserTokenPolicies requires
         // encryption, the Server shall not send an ApplicationInstanceCertificate and the Client
         // shall ignore the ApplicationInstanceCertificate.
-        serverCertificate: serverCertificateChain,
+        serverCertificate: hasEncryption ? serverCertificateChain : null,
 
         // The endpoints provided by the server.
         // The Server shall return a set of EndpointDescriptions available for the serverUri
@@ -840,9 +876,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
         // other parameters set to null. Only the recommended parameters shall be verified by
         // the client.
-        serverEndpoints: server._get_endpoints()
-                                .filter(onlyforUri.bind(null,request.serverUri))
-                                .map(getRequiredEndpointInfo),
+        serverEndpoints: _serverEndpointsForCreateSessionResponse(server,request.serverUri),
 
         //This parameter is deprecated and the array shall be empty.
         serverSoftwareCertificates: null,

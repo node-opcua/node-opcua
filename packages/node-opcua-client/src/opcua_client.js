@@ -170,6 +170,25 @@ OPCUAClient.prototype._createSession = function (callback) {
     this.__createSession_step2(session, callback);
 };
 
+function verifyEndpointDescriptionMatches(client,responseServerEndpoints) {
+    // The Server returns its EndpointDescriptions in the response. Clients use this information to
+    // determine whether the list of EndpointDescriptions returned from the Discovery Endpoint matches
+    // the Endpoints that the Server has. If there is a difference then the Client shall close the
+    // Session and report an error.
+    // The Server returns all EndpointDescriptions for the serverUri
+    // specified by the Client in the request. The Client only verifies EndpointDescriptions with a
+    // transportProfileUri that matches the profileUri specified in the original GetEndpoints request.
+    // A Client may skip this check if the EndpointDescriptions were provided by a trusted source
+    // such as the Administrator.
+    //serverEndpoints:
+    // The Client shall verify this list with the list from a Discovery Endpoint if it used a Discovery Endpoint
+    // fetch to the EndpointDescriptions.
+
+    // ToDo
+
+    return true;
+}
+
 OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
 
     var self = this;
@@ -241,7 +260,15 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
 
                 debugLog("revised session timeout = ".yellow, session.timeout);
 
-                self._server_endpoints = response.serverEndpoints;
+
+                if (!verifyEndpointDescriptionMatches(self,response.serverEndpoints)) {
+                    console.log("Endpoint description previously retrieved with GetendpointsDescription");
+                    console.log(self._server_endpoints);
+                    console.log("CreateSessionResponse.serverEndpoints= ");
+                    console.log(response.serverEndpoints);
+                    return callback(new Error("Invalid endpoint descriptions Found" ));
+                }
+                //xx self._server_endpoints = response.serverEndpoints;
                 session.serverEndpoints = response.serverEndpoints;
 
             } else {
