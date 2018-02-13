@@ -200,14 +200,18 @@ function keep_monitoring_some_variable(client,session, security_token_renewed_li
 
         security_token_renewed_counter +=1 ;
         if (security_token_renewed_counter===security_token_renewed_limit)  {
-            subscription.terminate(function() {
-                debugLog("        subscription terminated ");
-                if (!the_error) {
-                    var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
-                    nbTokenId.should.be.aboveOrEqual(2);
-                }
-                done(the_error);
+
+            setImmediate(function() {
+                subscription.terminate(function() {
+                    debugLog("        subscription terminated ");
+                    if (!the_error) {
+                        var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
+                        nbTokenId.should.be.aboveOrEqual(2);
+                    }
+                    done(the_error);
+                });
             });
+
         }
     });
     var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
@@ -252,8 +256,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     });
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
-
-    // make suret hat securityToken renewal will happen very soon,
+    // make sure that securityToken renewal will happen very soon,
     options.tokenRenewalInterval = g_tokenRenewalInterval;
 
     //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
@@ -296,6 +299,7 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
+        tokenRenewalInterval: g_tokenRenewalInterval,
         connectionStrategy: no_reconnect_connectivity_strategy
 
     });
@@ -337,6 +341,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
+        tokenRenewalInterval: g_tokenRenewalInterval,
 
         connectionStrategy: fail_fast_connectivity_strategy
     };
@@ -604,27 +609,31 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
+            tokenRenewalInterval: g_tokenRenewalInterval,
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 
         var token_change = 0;
         client = new OPCUAClient(options);
+
+        client.on("lifetime_75", function (token) {
+            //xx  console.log("received lifetime_75", JSON.stringify(token));
+        });
+
+        client.on("security_token_renewed", function () {
+            token_change += 1;
+            //xx  console.log("security_token_renewed");
+        });
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
+            keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal+3, function (err) {
                 //xx console.log("end of Monitoring ")
-                token_change.should.be.greaterThan(g_numberOfTokenRenewal);
+                token_change.should.be.aboveOrEqual(g_numberOfTokenRenewal);
                 inner_done(err);
             });
         }, done);
 
-        client.on("lifetime_75", function (token) {
-            //xx console.log("received lifetime_75", JSON.stringify(token));
-        });
-        client.on("security_token_renewed", function () {
-            token_change += 1;
-            //xx console.log("security_token_renewed");
-        });
+
 
     });
 });
@@ -673,41 +682,44 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         stop_server(serverHandle, done);
     });
 
-    it("server shall shutdown the connection if client doesn't renew security token on time", function (done) {
+    it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", function (done) {
 
         var options = {
+            keepSessionAlive:true,
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
-
+            defaultSecureTokenLifetime: 2000,
+            tokenRenewalInterval: 3000,
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 
         var token_change = 0;
         var client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
-            keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
-                //xx console.log("end of Monitoring ")
-                //xx token_change.should.be.greaterThan(g_cycleNumber);
-                inner_done(err);
+            client.once("close",function(err) {
+                token_change.should.be.eql(0);
+                inner_done();
             });
+            setTimeout(function() {
+                // security token has now expired
+                //
+                // this request will fail as we haven't renewed the securityToken
+                // Server will close the connection when receiving this request
+                session.read([],function(){
+
+                });
+            },5000);
         }, function(err) {
-
-            // Server must have disconnected because client did not renew token on time...
-            should.exist(err,"Expecting connection to be closed by server as we haven't updated the security token");
-            err.message.toLowerCase().should.match(/disconnected by third party|invalid channel /);
             done();
-
         });
 
         client.on("lifetime_75", function (token) {
-            console.log("received lifetime_75", JSON.stringify(token));
+            //xx console.log("received lifetime_75", JSON.stringify(token));
         });
         client.on("security_token_renewed", function () {
             token_change += 1;
-            console.log("security_token_renewed");
+            //xx console.log("security_token_renewed");
         });
 
         // common_test_expected_server_initiated_disconnection(opcua.SecurityPolicy.Basic128Rsa15, opcua.MessageSecurityMode.SIGN, done);

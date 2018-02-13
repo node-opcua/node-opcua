@@ -26,40 +26,44 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     this.timeout(Math.max(this._timeout,10000));
 
-    var server = new OPCUAServer({
-        port: port,
+    var server;
 
-        // xx nodeset_filename: empty_nodeset_filename,
+    var client;
 
-        maxAllowedSessionNumber: 1,
-
-        serverCapabilities: {
-            maxArrayLength: 0,
-            maxStringLength: 0,
-            maxBrowseContinuationPoints: 0,
-            maxQueryContinuationPoints: 0,
-            maxHistoryContinuationPoints: 0,
-            operationLimits: {
-                maxNodesPerRead: 10,
-                maxNodesPerWrite: 10,
-                maxNodesPerMethodCall: 10,
-                maxNodesPerBrowse: 2,
-                maxNodesPerRegisterNodes: 3,
-                maxNodesPerNodeManagement: 4,
-                maxMonitoredItemsPerCall: 120,
-                maxNodesPerHistoryReadData: 5,
-                maxNodesPerHistoryReadEvents: 6,
-                maxNodesPerHistoryUpdateData: 7,
-                maxNodesPerHistoryUpdateEvents: 8,
-                maxNodesPerTranslateBrowsePathsToNodeIds: 9
-            }
-        }
-    });
-
-    var client = new OPCUAClient();
 
     var endpointUrl;
     before(function (done) {
+
+        server = new OPCUAServer({
+            port: port,
+
+            // xx nodeset_filename: empty_nodeset_filename,
+
+            maxAllowedSessionNumber: 1,
+
+            serverCapabilities: {
+                maxArrayLength: 0,
+                maxStringLength: 0,
+                maxBrowseContinuationPoints: 0,
+                maxQueryContinuationPoints: 0,
+                maxHistoryContinuationPoints: 0,
+                operationLimits: {
+                    maxNodesPerRead: 10,
+                    maxNodesPerWrite: 10,
+                    maxNodesPerMethodCall: 10,
+                    maxNodesPerBrowse: 2,
+                    maxNodesPerRegisterNodes: 3,
+                    maxNodesPerNodeManagement: 4,
+                    maxMonitoredItemsPerCall: 120,
+                    maxNodesPerHistoryReadData: 5,
+                    maxNodesPerHistoryReadEvents: 6,
+                    maxNodesPerHistoryUpdateData: 7,
+                    maxNodesPerHistoryUpdateEvents: 8,
+                    maxNodesPerTranslateBrowsePathsToNodeIds: 9
+                }
+            }
+        });
+        client = new OPCUAClient();
         server.start(function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done();
