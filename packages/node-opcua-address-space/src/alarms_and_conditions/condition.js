@@ -265,6 +265,7 @@ ConditionSnapshot.prototype._get_var = function (varName, dataType) {
     var self = this;
 
     if (!self.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
+        console.log("ConditionSnapshot#_get_var condition enabled =",self.condition.getEnabledState());
         return disabledVar;
     }
 
@@ -529,7 +530,11 @@ ConditionSnapshot.prototype.getQuality = function () {
  * @param severity {UInt16}
  */
 ConditionSnapshot.prototype.setSeverity = function (severity) {
+
+
     var self = this;
+    assert(_.isFinite(severity),"expecting a UInt16");
+
     // record automatically last severity
     var lastSeverity = self.getSeverity();
     self.setLastSeverity(lastSeverity);
@@ -550,7 +555,9 @@ ConditionSnapshot.prototype.setSeverity = function (severity) {
  */
 ConditionSnapshot.prototype.getSeverity = function () {
     var self = this;
-    return self._get_var("severity", DataType.UInt16);
+    assert(self.condition.getEnabledState(),"condition must be enabled");
+    var value =  self._get_var("severity", DataType.UInt16);
+    return +value;
 };
 
 /*
@@ -1180,6 +1187,12 @@ UAConditionBase.defaultSeverity = 250;
  */
 UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
 
+
+    var self = this;
+    if (!self.getEnabledState()) {
+        throw new Error("UAConditionBase#raiseNewCondition Condition is not enabled");
+    }
+
     conditionInfo = conditionInfo || {};
 
     conditionInfo.severity = conditionInfo.hasOwnProperty("severity") ? conditionInfo.severity : UAConditionBase.defaultSeverity;
@@ -1187,7 +1200,7 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
     //only valid for ConditionObjects
     // todo check that object is of type ConditionType
 
-    var self = this;
+
     var addressSpace = self.addressSpace;
 
     var selfConditionType = self.typeDefinitionObj;
@@ -1214,12 +1227,15 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
     // self.receiveTime.setValueFromSource();
 
     if (conditionInfo.hasOwnProperty("severity") && conditionInfo.severity !== null) {
+        assert(_.isFinite(conditionInfo.severity));
         branch.setSeverity(conditionInfo.severity);
     }
     if (conditionInfo.hasOwnProperty("quality") && conditionInfo.quality !== null) {
+        assert(conditionInfo.quality instanceof StatusCode);
         branch.setQuality(conditionInfo.quality);
     }
     if (conditionInfo.hasOwnProperty("retain") && conditionInfo.retain !== null) {
+        assert(_.isBoolean(conditionInfo.retain));
         branch.setRetain(!!conditionInfo.retain);
     }
 
