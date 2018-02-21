@@ -285,6 +285,9 @@ ResourceLeakDetector.prototype.check = function () {
 };
 
 ResourceLeakDetector.prototype.stop = function (info) {
+    if(!global.ResourceLeakDetectorStarted) {
+        return;
+    }
     global.ResourceLeakDetectorStarted =false;
 
     var self = ResourceLeakDetector.singleton;

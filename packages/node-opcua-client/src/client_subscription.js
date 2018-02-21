@@ -115,6 +115,7 @@ function ClientSubscription(session, options) {
         });
     });
 }
+
 util.inherits(ClientSubscription, EventEmitter);
 
 
@@ -152,7 +153,7 @@ ClientSubscription.prototype.__create_subscription = function (callback) {
             self.lifetimeCount = response.revisedLifetimeCount;
             self.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
 
-            self.timeoutHint = (self.maxKeepAliveCount + 10 ) * self.publishingInterval;
+            self.timeoutHint = (self.maxKeepAliveCount + 10) * self.publishingInterval;
 
             if (doDebug) {
                 debugLog("registering callback".yellow.bold);
@@ -212,7 +213,8 @@ ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = fu
         // notificationMessage with the status code Good_SubscriptionTransferred to the old Session.
         debugLog("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
         self.hasTimedOut = true;
-        self.terminate(function() {});
+        self.terminate(function () {
+        });
     }
     if (notification.statusCode === StatusCodes.BadTimeout) {
         // the server tells use that the subscription has timed out ..
@@ -231,7 +233,8 @@ ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = fu
         //    notificationMessage with the status code Bad_Timeout.
         //
         self.hasTimedOut = true;
-        self.terminate(function(){});
+        self.terminate(function () {
+        });
     }
     /**
      * notify the observers that the server has send a status changed notification (such as BadTimeout )
@@ -342,9 +345,9 @@ ClientSubscription.prototype._terminate_step2 = function (callback) {
 ClientSubscription.prototype.terminate = function (callback) {
 
     var self = this;
-    assert(_.isFunction(callback),"expecting a callback function");
+    assert(_.isFunction(callback), "expecting a callback function");
 
-    if (self.subscriptionId === "terminated" || self.subscriptionId == "terminating" ) {
+    if (self.subscriptionId === "terminated" || self.subscriptionId == "terminating") {
         // already terminated... just ignore
         return callback(new Error("Already Terminated"));
     }
@@ -559,11 +562,11 @@ ClientSubscription.prototype.monitor = function (itemToMonitor, requestedParamet
         if (err) {
             return done && done(err);
         }
-        monitoredItem._monitor(function(err){
-            if(err) {
+        monitoredItem._monitor(function (err) {
+            if (err) {
                 return done && done(err);
             }
-            done && done(err,monitoredItem);
+            done && done(err, monitoredItem);
         });
     });
     return monitoredItem;
@@ -592,11 +595,11 @@ ClientSubscription.prototype.monitorItems = function (itemsToMonitor, requestedP
         if (err) {
             return done && done(err);
         }
-        monitoredItemGroup._monitor(function(err) {
-            if(err) {
+        monitoredItemGroup._monitor(function (err) {
+            if (err) {
                 return done && done(err);
             }
-            done && done(err,monitoredItemGroup);
+            done && done(err, monitoredItemGroup);
         });
     });
     return monitoredItemGroup;
@@ -784,6 +787,17 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
         }
 
     ], callback);
+};
+
+ClientSubscription.prototype.toString = function () {
+
+    var subscription = this;
+    var str = "";
+    str += "subscriptionId      :" + subscription.subscriptionId + "\n";
+    str += "publishingInterval  :" + subscription.publishingInterval + "\n";
+    str += "lifetimeCsount      :" + subscription.lifetimeCount + "\n";
+    str += "maxKeepAliveCount   :" + subscription.maxKeepAliveCount + "\n";
+    return str;
 };
 
 exports.ClientSubscription = ClientSubscription;

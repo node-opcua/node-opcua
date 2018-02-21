@@ -1307,11 +1307,13 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
     self.__in_normal_close_operation = true;
 
     if (!self._transport || self._transport.__disconnecting__) {
+        self.dispose();
         return callback(new Error("Transport disconnected"));
     }
 
     self._performMessageTransaction("CLO", request, function () {
         ///xx self._transport.disconnect(function() {
+        self.dispose();
         callback();
         //xxx });
     });

@@ -3,8 +3,8 @@
 var opcua = require("node-opcua");
 var should = require("should");
 var async = require("async");
-var assert = require("node-opcua-assert");
 
+var assert = require("node-opcua-assert");
 
 var OPCUAServer = opcua.OPCUAServer;
 var OPCUAClient = opcua.OPCUAClient;
@@ -13,12 +13,9 @@ var OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscovery
 
 var perform_findServersRequest = opcua.perform_findServersRequest;
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
-
 // add the tcp/ip endpoint with no security
 
+var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Discovery server", function () {
 
 
@@ -29,11 +26,11 @@ describe("Discovery server", function () {
     before(function () {
         OPCUAServer.registry.count().should.eql(0);
         server = new OPCUAServer({port: 1235});
-        //server.serverType = opcua.ApplicationType.SERVER;
     });
 
-    after(function () {
+    after(function (done) {
         OPCUAServer.registry.count().should.eql(0);
+        done();
     });
 
     beforeEach(function (done) {
@@ -49,7 +46,7 @@ describe("Discovery server", function () {
     function send_registered_server_request(discovery_server_endpointUrl, registerServerRequest, externalFunc, done) {
 
 
-        var client = new OPCUAClient();
+        var client = new OPCUAClient({});
         async.series([
             function (callback) {
                 client.connect(discovery_server_endpointUrl, callback);
@@ -214,6 +211,9 @@ describe("Discovery server", function () {
                     servers.length.should.eql(initialServerCount);
                     callback(err);
                 });
+            },
+            function (callback) {
+                server.shutdown(callback);
             }
 
         ], done);

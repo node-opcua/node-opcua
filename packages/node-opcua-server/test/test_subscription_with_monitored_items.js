@@ -34,6 +34,7 @@ var SessionContext = require("node-opcua-address-space").SessionContext;
 var context = SessionContext.defaultContext;
 var MonitoringParameters = subscription_service.MonitoringParameters;
 
+var doDebug = false;
 
 var now = (new Date()).getTime();
 
@@ -50,7 +51,11 @@ var fake_publish_engine = {
     },
     on_close_subscription: function (/*subscription*/) {
 
+    },
+    cancelPendingPublishRequestBeforeChannelChange: function() {
+
     }
+
 };
 
 var dataSourceFrozen = false;
@@ -89,8 +94,8 @@ function simulate_client_adding_publish_request(publishEngine, callback) {
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Subscriptions and MonitoredItems", function () {
+var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
+describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
@@ -201,8 +206,11 @@ describe("Subscriptions and MonitoredItems", function () {
         });
     });
     after(function () {
-        engine.shutdown();
-        engine = null;
+        if (engine) {
+            engine.shutdown();
+            engine.dispose();
+            engine = null;
+        }
     });
 
     beforeEach(function () {
@@ -251,7 +259,7 @@ describe("Subscriptions and MonitoredItems", function () {
             done();
         });
         subscription.terminate();
-
+        subscription.dispose();
     });
 
     it("a subscription should fire the event removeMonitoredItem", function (done) {
@@ -279,7 +287,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         subscription.terminate();
-
+        subscription.dispose();
     });
 
     it("a subscription should collect monitored item notification with _collectNotificationData", function (done) {
@@ -336,7 +344,7 @@ describe("Subscriptions and MonitoredItems", function () {
             done();
         });
         subscription.terminate();
-
+        subscription.dispose();
     });
 
     it("a subscription should collect monitored item notification at publishing interval", function (done) {
@@ -437,7 +445,10 @@ describe("Subscriptions and MonitoredItems", function () {
             done();
         });
         subscription.terminate();
+        subscription.dispose();
 
+        publishEngine.shutdown();
+        publishEngine.dispose();
     });
 
     it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", function (done) {
@@ -473,6 +484,7 @@ describe("Subscriptions and MonitoredItems", function () {
         result.clientHandles.map(parseInt).should.eql([monitoredItem.clientHandle]);
 
         subscription.terminate();
+        subscription.dispose();
         done();
     });
 
@@ -498,6 +510,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
         finally {
             subscription.terminate();
+            subscription.dispose();
         }
         done();
     }
@@ -607,7 +620,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    xit("With 3 subscriptions with monitored items", function () {
+    it("With 3 subscriptions with monitored items", function () {
 
         test.clock = sinon.useFakeTimers(now);
 
@@ -618,7 +631,7 @@ describe("Subscriptions and MonitoredItems", function () {
         function my_samplingFunc(oldData, callback) {
             var self = this;
             //xx console.log(self.toString());
-            var dataValue = addressSpace.findNode(self.node.nodeId).readAttribute(13);
+            var dataValue = addressSpace.findNode(self.node.nodeId).readAttribute(null,13);
             callback(null, dataValue);
         }
 
@@ -734,13 +747,16 @@ describe("Subscriptions and MonitoredItems", function () {
 
         //xx console.log(pubFunc.getCall(0).args[0].toString());
         //xx console.log(pubFunc.getCall(0).args[1].toString());
-        perform_publish_transaction_and_check_subscriptionId(subscription3);
+        //perform_publish_transaction_and_check_subscriptionId(subscription1);
 
         subscription1.terminate();
+        subscription1.dispose();
         subscription2.terminate();
+        subscription2.dispose();
         subscription3.terminate();
-
+        subscription3.dispose();
         publishEngine.shutdown();
+        publishEngine.dispose();
         test.clock.restore();
 
     });
@@ -783,17 +799,18 @@ describe("Subscriptions and MonitoredItems", function () {
         test_with_nodeId("ns=100;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
-
-    describe("Access", function () {
+    
+    describe("MonitoredItem - Access Right - and Unknown Nodes", function () {
 
 
         var subscription = null;
 
         var test = this;
 
-        before(function () {
+        beforeEach(function () {
 
             test = this;
 
@@ -812,8 +829,7 @@ describe("Subscriptions and MonitoredItems", function () {
             subscription.on("monitoredItem", function (monitoredItem) {
 
                 monitoredItem.samplingFunc = sinon.spy(function (oldValue, callback) {
-                    assert(monitoredItem.node);
-                    var dataValue = monitoredItem.node.readAttribute(monitoredItem.attributeId);
+                    var dataValue = monitoredItem.node.readAttribute(null,monitoredItem.itemToMonitor.attributeId);
                     //xx console.log("dataValue ",dataValue.toString());
                     callback(null, dataValue);
                 });
@@ -822,13 +838,37 @@ describe("Subscriptions and MonitoredItems", function () {
             });
 
         });
-        after(function (done) {
+        afterEach(function (done) {
             subscription.terminate();
+            subscription.dispose();
             subscription = null;
             done();
         });
 
-        it("pp CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ", function () {
+        function simulate_publish_request_expected_statusCode(monitoredItem,expectedStatusCode) {
+
+            test.clock.tick(100);
+
+            // process publish
+            var notifs = monitoredItem.extractMonitoredItemNotifications();
+
+            monitoredItem.queue.length.should.eql(0);
+
+            if (expectedStatusCode === undefined) {
+
+                notifs.length.should.eql(0, "should have no pending notification");
+
+            } else {
+
+//xx console.log("-----------!!!!");
+//xx notifs.forEach(x=>console.log(x.toString()));
+                notifs.length.should.eql(1, " should have one pending notification");
+                notifs[0].value.statusCode.should.eql(expectedStatusCode);
+
+            }
+        }
+
+        it("FGFG0 CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ", function () {
 
             // specs:
             // When a user adds a monitored item that the user is denied read access to, the add operation for
@@ -838,8 +878,10 @@ describe("Subscriptions and MonitoredItems", function () {
             // Server shall start sending data for the MonitoredItem. The same procedure shall be applied for an
             // IndexRange that does not deliver data for the current value but could deliver data in the future.
 
-            console.log("    ", accessLevel_CurrentRead_NotUserNode.toString());
-            console.log("   accessLevel_CurrentRead_NotUserNode.isUserReadable(context)  ", accessLevel_CurrentRead_NotUserNode.isUserReadable(context));
+            if (doDebug) {
+                console.log("    ", accessLevel_CurrentRead_NotUserNode.toString());
+                console.log("   accessLevel_CurrentRead_NotUserNode.isUserReadable(context)  ", accessLevel_CurrentRead_NotUserNode.isUserReadable(context));
+            }
             accessLevel_CurrentRead_NotUserNode.isReadable(context).should.eql(true);
             accessLevel_CurrentRead_NotUserNode.isUserReadable(context).should.eql(false);
 
@@ -869,29 +911,88 @@ describe("Subscriptions and MonitoredItems", function () {
 
             //xx monitoredItem.queue.length.should.eql(1);
 
-            function simulate_publish_request_expected_statusCode(expectedStatusCode) {
+            simulate_publish_request_expected_statusCode(monitoredItem,StatusCodes.BadUserAccessDenied);
 
-                test.clock.tick(100);
+        });
 
-                // process publish
-                var notifs = monitoredItem.extractMonitoredItemNotifications();
 
-                monitoredItem.queue.length.should.eql(0);
+        it("FGFG1 should return BadNodeIdUnknown when trying to monitor an invalid node",function(done) {
 
-                if (expectedStatusCode === undefined) {
+            var nodeId = "ns=5;s=MyVariable";
 
-                    notifs.length.should.eql(0, "should have no pending notification");
-
-                } else {
-
-                    notifs.length.should.eql(1, " should have one pending notification");
-                    notifs[0].value.statusCode.should.eql(expectedStatusCode);
-
-                    //xx console.log(notifs[0].value.toString());
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 0
                 }
+            });
+
+
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+
+            if (doDebug) {
+                console.log(monitoredItemCreateResult.toString());
             }
 
-            simulate_publish_request_expected_statusCode(StatusCodes.BadUserAccessDenied);
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
+
+            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            should.not.exist(monitoredItem);
+
+            done();
+        });
+        it("FGFG2 should eventually emit DataChangeNotification when trying to monitor an invalid node that become valid",function(done) {
+
+            var nodeId = "ns=5;s=MyVariable";
+            var nodeVariable = addressSpace.addVariable({
+                browseName: "MyVar",
+                nodeId: nodeId,
+                dataType: "Double",
+                value: {dataType: "Double", value: 3.14},
+                minimumSamplingInterval: 100
+            });
+
+
+
+            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: {
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    queueSize: 10,
+                    samplingInterval: 0
+                }
+            });
+
+
+            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+
+            if (doDebug) {
+                console.log(monitoredItemCreateResult.toString());
+            }
+
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+
+            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            should.exist(monitoredItem);
+
+            simulate_publish_request_expected_statusCode(monitoredItem,StatusCodes.Good);
+
+            nodeVariable.setValueFromSource({dataType: "Double", value: 6.28});
+            simulate_publish_request_expected_statusCode(monitoredItem,StatusCodes.Good);
+
+            addressSpace.deleteNode(nodeVariable);
+
+            simulate_publish_request_expected_statusCode(monitoredItem,StatusCodes.BadNodeIdInvalid);
+
+            done();
 
         });
 
@@ -929,6 +1030,7 @@ describe("Subscriptions and MonitoredItems", function () {
         });
         after(function (done) {
             subscription.terminate();
+            subscription.dispose();
             subscription = null;
             done();
         });
@@ -1225,6 +1327,7 @@ describe("Subscriptions and MonitoredItems", function () {
             }
             finally {
                 subscription.terminate();
+                subscription.dispose();
             }
             done();
 
@@ -1289,6 +1392,7 @@ describe("Subscriptions and MonitoredItems", function () {
             }
             finally {
                 subscription.terminate();
+                subscription.dispose();
             }
             done();
 
@@ -1364,6 +1468,7 @@ describe("monitoredItem advanced", function () {
             subscription.maxNotificationsPerPublish.should.eql(0);
 
             subscription.terminate();
+            subscription.dispose();
 
             done();
         });
@@ -1490,6 +1595,7 @@ describe("monitoredItem advanced", function () {
 
 
             subscription.terminate();
+            subscription.dispose();
             done();
         });
 
@@ -1550,6 +1656,7 @@ describe("monitoredItem advanced", function () {
         afterEach(function () {
 
             subscription.terminate();
+            subscription.dispose();
             subscription = null;
         });
 

@@ -94,7 +94,7 @@ module.exports = function (test) {
                     dataValue.value.value.should.have.ownProperty("shutdownReason");
                     dataValue.value.value.constructor.name.should.eql("ServerStatus");
 
-                    console.log(dataValue.value.value.currentTime.toISOString());
+                    //xx console.log(dataValue.value.value.currentTime.toISOString());
                     //xx console.log("dataValue = ",dataValue.toString());
                     counter +=1;
                     if (counter>3) {

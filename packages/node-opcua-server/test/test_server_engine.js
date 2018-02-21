@@ -22,7 +22,7 @@ var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeEx
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 var DataType = require("node-opcua-variant").DataType;
-var DataValue =  require("node-opcua-data-value").DataValue;
+var DataValue = require("node-opcua-data-value").DataValue;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var makeNodeId = require("node-opcua-nodeid").makeNodeId;
 var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
@@ -83,63 +83,63 @@ describe("testing ServerEngine", function () {
             }
 
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "TestArray",
-                  nodeId: "ns=1;s=TestArray",
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      },
-                      set: null // read only
-                  }
-              }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "TestArray",
+                    nodeId: "ns=1;s=TestArray",
+                    dataType: "Double",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        },
+                        set: null // read only
+                    }
+                }
             );
 
             // add a writable Int32
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "WriteableInt32",
-                  nodeId: "ns=1;s=WriteableInt32",
-                  dataType: "Int32",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      },
-                      set: function (variant) {
-                          // Variation 1 : synchronous
-                          // assert(_.isFunction(callback));
-                          return StatusCodes.Good;
-                      }
-                  }
-              }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "WriteableInt32",
+                    nodeId: "ns=1;s=WriteableInt32",
+                    dataType: "Int32",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        },
+                        set: function (variant) {
+                            // Variation 1 : synchronous
+                            // assert(_.isFunction(callback));
+                            return StatusCodes.Good;
+                        }
+                    }
+                }
             );
 
             // add a writable Int32
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "WriteableUInt32Async",
-                  nodeId: "ns=1;s=WriteableUInt32Async",
-                  dataType: "UInt32",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "WriteableUInt32Async",
+                    nodeId: "ns=1;s=WriteableUInt32Async",
+                    dataType: "UInt32",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        }
 
-                  }
-              }
+                    }
+                }
             );
             done();
         });
@@ -167,21 +167,21 @@ describe("testing ServerEngine", function () {
         var addressSpace = engine.addressSpace;
 
         addressSpace.normalizeReferenceType(
-          {referenceType: "OrganizedBy", isForward: true}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: false})
+            {referenceType: "OrganizedBy", isForward: true}).should.eql(
+            new Reference({referenceType: "Organizes", isForward: false})
         );
 
         addressSpace.normalizeReferenceType(
-          {referenceType: "OrganizedBy", isForward: false}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: true})
+            {referenceType: "OrganizedBy", isForward: false}).should.eql(
+            new Reference({referenceType: "Organizes", isForward: true})
         );
         addressSpace.normalizeReferenceType(
-          {referenceType: "Organizes", isForward: false}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: false})
+            {referenceType: "Organizes", isForward: false}).should.eql(
+            new Reference({referenceType: "Organizes", isForward: false})
         );
         addressSpace.normalizeReferenceType(
-          {referenceType: "Organizes", isForward: true}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: true})
+            {referenceType: "Organizes", isForward: true}).should.eql(
+            new Reference({referenceType: "Organizes", isForward: true})
         );
     });
 
@@ -334,20 +334,20 @@ describe("testing ServerEngine", function () {
         var newFolder = addressSpace.addFolder("ObjectsFolder", "MyNewFolder1");
 
         var newVariable = addressSpace.addVariable(
-          {
-              componentOf: newFolder,
-              browseName: "Temperature",
-              dataType: "Float",
-              value: {
-                  get: function () {
-                      return new Variant({dataType: DataType.Float, value: 10.0});
-                  },
-                  set: function () {
-                      return StatusCodes.BadNotWritable;
-                  }
-              }
+            {
+                componentOf: newFolder,
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    get: function () {
+                        return new Variant({dataType: DataType.Float, value: 10.0});
+                    },
+                    set: function () {
+                        return StatusCodes.BadNotWritable;
+                    }
+                }
 
-          });
+            });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.nodeId.should.equal(newFolder.nodeId);
 
@@ -510,7 +510,8 @@ describe("testing ServerEngine", function () {
         var newFolderWithFilteredItems = engine.addressSpace.addFolder("ObjectsFolder", {"browseName": "filteredItemsFolder"});
 
         var newFolder1 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder1", "browseFilter": function (session) {
+            "browseName": "filteredFolder1",
+            "browseFilter": function (session) {
                 if (session && session.hasOwnProperty("testFilterArray"))
                     if (session["testFilterArray"].indexOf(1) > -1)
                         return (true);
@@ -523,7 +524,8 @@ describe("testing ServerEngine", function () {
         assert(newFolder1);
 
         var newFolder2 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder2", "browseFilter": function (session) {
+            "browseName": "filteredFolder2",
+            "browseFilter": function (session) {
                 if (session && session.hasOwnProperty("testFilterArray"))
                     if (session["testFilterArray"].indexOf(2) > -1)
                         return (true);
@@ -536,7 +538,8 @@ describe("testing ServerEngine", function () {
         assert(newFolder2);
 
         var newFolder3 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder3", "browseFilter": function (session) {
+            "browseName": "filteredFolder3",
+            "browseFilter": function (session) {
                 if (session && session.hasOwnProperty("testFilterArray"))
                     if (session["testFilterArray"].indexOf(3) > -1)
                         return (true);
@@ -744,9 +747,11 @@ describe("testing ServerEngine", function () {
     });
 
     it("should handle a BrowseRequest of a session with a filtered result", function () {
+
+        var filteredItemsFolder = engine.addressSpace.rootFolder.objects.getFolderElementByName("filteredItemsFolder");
         var browseDescription = {
             nodesToBrowse: [{
-                nodeId: engine.addressSpace.rootFolder.objects.getFolderElementByName("filteredItemsFolder").nodeId,
+                nodeId: filteredItemsFolder.nodeId,
                 browseDirection: BrowseDirection.Forward,
                 resultMask: 63,
                 nodeClassMask: 1 // 1=Objects
@@ -1094,20 +1099,20 @@ describe("testing ServerEngine", function () {
         var nodeId = "ns=1;s=TestVar";
         before(function () {
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "TestVar",
-                  nodeId: nodeId,
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              value: 0
-                          });
-                      },
-                      set: null // read only
-                  }
-              }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "TestVar",
+                    nodeId: nodeId,
+                    dataType: "Double",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                value: 0
+                            });
+                        },
+                        set: null // read only
+                    }
+                }
             );
         });
 
@@ -1162,29 +1167,29 @@ describe("testing ServerEngine", function () {
     describe("testing read operation with timestamps", function () {
 
         var nodesToRead =
-          [
-              {
-                  nodeId: resolveNodeId("RootFolder"),
-                  attributeId: AttributeIds.DisplayName,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              },
-              {
-                  nodeId: resolveNodeId("RootFolder"),
-                  attributeId: AttributeIds.BrowseName,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              },
-              {
-                  nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
-                  attributeId: AttributeIds.Value,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              }
-          ];
+            [
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.DisplayName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.BrowseName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
+                    attributeId: AttributeIds.Value,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ];
         it("should read and set the required timestamps : TimestampsToReturn.Neither", function (done) {
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
+            var DataValue = require("node-opcua-data-value").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Neither,
@@ -1225,7 +1230,7 @@ describe("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Server", function () {
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
+            var DataValue = require("node-opcua-data-value").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Server,
@@ -1260,7 +1265,7 @@ describe("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Source", function () {
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
+            var DataValue = require("node-opcua-data-value").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Source,
@@ -1295,7 +1300,7 @@ describe("testing ServerEngine", function () {
         it("should read and set the required timestamps : TimestampsToReturn.Both", function () {
 
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
+            var DataValue = require("node-opcua-data-value").DataValue;
             var readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
@@ -1888,19 +1893,19 @@ describe("testing ServerEngine", function () {
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "FailingPLCValue",
-                  nodeId: "ns=1;s=FailingPLCValue",
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          // we return a StatusCode here instead of a Variant
-                          // this means : "Houston ! we have a problem"
-                          return StatusCodes.BadResourceUnavailable;
-                      },
-                      set: null // read only
-                  }
-              }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "FailingPLCValue",
+                    nodeId: "ns=1;s=FailingPLCValue",
+                    dataType: "Double",
+                    value: {
+                        get: function () {
+                            // we return a StatusCode here instead of a Variant
+                            // this means : "Houston ! we have a problem"
+                            return StatusCodes.BadResourceUnavailable;
+                        },
+                        set: null // read only
+                    }
+                }
             );
         });
 
@@ -1934,45 +1939,45 @@ describe("testing ServerEngine", function () {
 
             // add a variable that provide a on demand refresh function
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "RefreshedOnDemandValue",
-                  nodeId: "ns=1;s=RefreshedOnDemandValue",
-                  dataType: "Double",
-                  value: {
-                      refreshFunc: function (callback) {
-                          // add some delay to simulate a long operation to perform the asynchronous read
-                          setTimeout(function () {
-                              value1 += 1;
-                              var dataValue = new DataValue({
-                                  value: {
-                                      dataType: DataType.Double,
-                                      value: value1
-                                  }
-                              });
-                              callback(null, dataValue);
-                          }, 10);
-                      }
-                  }
-              }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "RefreshedOnDemandValue",
+                    nodeId: "ns=1;s=RefreshedOnDemandValue",
+                    dataType: "Double",
+                    value: {
+                        refreshFunc: function (callback) {
+                            // add some delay to simulate a long operation to perform the asynchronous read
+                            setTimeout(function () {
+                                value1 += 1;
+                                var dataValue = new DataValue({
+                                    value: {
+                                        dataType: DataType.Double,
+                                        value: value1
+                                    }
+                                });
+                                callback(null, dataValue);
+                            }, 10);
+                        }
+                    }
+                }
             );
             // add an other variable that provide a on demand refresh function
             engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "OtherRefreshedOnDemandValue",
-                  nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
-                  dataType: "Double",
-                  value: {
-                      refreshFunc: function (callback) {
-                          setTimeout(function () {
-                              value2 += 1;
-                              var dataValue = new DataValue({
-                                  value: {dataType: DataType.Double, value: value2}
-                              });
-                              callback(null, dataValue);
-                          }, 10);
-                      }
-                  }
-              }
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "OtherRefreshedOnDemandValue",
+                    nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
+                    dataType: "Double",
+                    value: {
+                        refreshFunc: function (callback) {
+                            setTimeout(function () {
+                                value2 += 1;
+                                var dataValue = new DataValue({
+                                    value: {dataType: DataType.Double, value: value2}
+                                });
+                                callback(null, dataValue);
+                            }, 10);
+                        }
+                    }
+                }
             );
         });
 

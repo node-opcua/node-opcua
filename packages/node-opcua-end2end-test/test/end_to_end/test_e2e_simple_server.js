@@ -15,7 +15,7 @@ var perform_operation_on_client_session = require("../../test_helpers/perform_op
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing a simple server from Server side", function () {
 
-    it("should have at least one endpoint", function () {
+    it("should have at least one endpoint", function (done) {
 
         var server = new OPCUAServer({port: 6789, nodeset_filename: empty_nodeset_filename});
 
@@ -29,6 +29,8 @@ describe("Testing a simple server from Server side", function () {
         e.hostname.should.be.match(new RegExp(expected_hostname));
 
         e.port.should.eql(6789);
+
+        server.shutdown(done);
 
     });
     it("OPCUAServer#getChannels", function (done) {

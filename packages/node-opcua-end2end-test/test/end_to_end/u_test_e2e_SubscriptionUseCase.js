@@ -7,6 +7,7 @@ var async = require("async");
 var should = require("should");
 var sinon = require("sinon");
 var _ = require("underscore");
+var async = require("async");
 
 var opcua = require("node-opcua");
 
@@ -27,6 +28,10 @@ var perform_operation_on_client_session = require("../../test_helpers/perform_op
 var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 var perform_operation_on_monitoredItem = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 
+var Subscription = require("node-opcua-server/src/subscription").Subscription;
+
+var doDebug=false;
+var f = require("../../test_helpers/display_function_name").f.bind(null, true);
 
 function trace_console_log() {
     var log1 = global.console.log;
@@ -68,16 +73,16 @@ module.exports = function (test) {
                 assert(session instanceof ClientSession);
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:  100,
-                    requestedLifetimeCount:      6000,
-                    requestedMaxKeepAliveCount:   100,
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
                     maxNotificationsPerPublish: 5,
                     publishingEnabled: true,
                     priority: 6
                 });
                 subscription.on("started", function () {
                     setTimeout(function () {
-                        subscription.terminate(function() {
+                        subscription.terminate(function () {
                             setTimeout(function () {
                                 inner_done();
                             }, 200);
@@ -96,9 +101,9 @@ module.exports = function (test) {
 
                 var subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100, // ms
-                    requestedLifetimeCount:     6000,
-                    requestedMaxKeepAliveCount:  100,
-                    maxNotificationsPerPublish:    5,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 5,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -119,16 +124,16 @@ module.exports = function (test) {
                 var nb_keep_alive_received = 0;
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:  100,
-                    requestedLifetimeCount:      6000,
-                    requestedMaxKeepAliveCount:   100,
-                    maxNotificationsPerPublish:     2,
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 2,
                     publishingEnabled: true,
                     priority: 6
                 });
                 subscription.on("started", function () {
                     setTimeout(function () {
-                        subscription.terminate(function(){
+                        subscription.terminate(function () {
                             nb_keep_alive_received.should.be.greaterThan(0);
                             done();
                         });
@@ -155,10 +160,10 @@ module.exports = function (test) {
                 assert(session instanceof ClientSession);
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:  150,
-                    requestedLifetimeCount:      6000,
-                    requestedMaxKeepAliveCount:   100,
-                    maxNotificationsPerPublish:     2,
+                    requestedPublishingInterval: 150,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 2,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -192,10 +197,10 @@ module.exports = function (test) {
                 assert(session instanceof ClientSession);
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:   50,
-                    requestedLifetimeCount:      6000,
-                    requestedMaxKeepAliveCount:   100,
-                    maxNotificationsPerPublish:     2,
+                    requestedPublishingInterval: 50,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 2,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -275,10 +280,10 @@ module.exports = function (test) {
                 function (callback) {
 
                     var subscription = new ClientSubscription(the_session, {
-                        requestedPublishingInterval:  100,
-                        requestedLifetimeCount:      6000,
-                        requestedMaxKeepAliveCount:   100,
-                        maxNotificationsPerPublish:     5,
+                        requestedPublishingInterval: 100,
+                        requestedLifetimeCount: 6000,
+                        requestedMaxKeepAliveCount: 100,
+                        maxNotificationsPerPublish: 5,
                         publishingEnabled: true,
                         priority: 6
                     });
@@ -451,9 +456,9 @@ module.exports = function (test) {
                         function (callback) {
                             session.createSubscription({
                                 requestedPublishingInterval: 1000, // Duration
-                                requestedLifetimeCount:      1000, // Counter
-                                requestedMaxKeepAliveCount:   100, // Counter
-                                maxNotificationsPerPublish:    10, // Counter
+                                requestedLifetimeCount: 1000, // Counter
+                                requestedMaxKeepAliveCount: 100, // Counter
+                                maxNotificationsPerPublish: 10, // Counter
                                 publishingEnabled: true, // Boolean
                                 priority: 14 // Byte
                             }, function (err, response) {
@@ -589,22 +594,22 @@ module.exports = function (test) {
 
         it("AZA2-F should return BadNodeIdUnknown  if the client tries to monitored an non-existent node", function (done) {
 
-            this.timeout(5000);
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                var monitoredItem = subscription.monitor({
+                var itemToMonitor = {
                     nodeId: resolveNodeId("ns=0;s=**unknown**"),
                     attributeId: AttributeIds.Value
-                }, {
+                };
+                var parameters = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1
-                });
+                };
+
+                var monitoredItem = subscription.monitor(itemToMonitor, parameters);
 
                 monitoredItem.on("err", function (statusMessage) {
-
-                    //xx console.log(" ERR event received");
-
+                    console.log(" ERR event received");
                     statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
                     callback();
                 });
@@ -846,7 +851,7 @@ module.exports = function (test) {
                     function (callback) {
                         // there is a overlap ! we should receive a monitoredItem On Change event
                         monitoredItemOnChangedSpy.callCount.should.eql(2);
-                        monitoredItemOnChangedSpy.getCall(1 ).args[0].value.value.should.eql(new Int32Array([222, 333    , 4, 5, 6, 7, 8, 9]));
+                        monitoredItemOnChangedSpy.getCall(1).args[0].value.value.should.eql(new Int32Array([222, 333, 4, 5, 6, 7, 8, 9]));
                         callback();
                     }
                 ], callback);
@@ -912,18 +917,18 @@ module.exports = function (test) {
 
                 function write(value, callback) {
 
-                    var nodeToWrite =  {
-                            nodeId: nodeId,
-                            attributeId: AttributeIds.Value,
-                            value: /*new DataValue(*/{
-                                value: {
-                                    /* Variant */
-                                    dataType: DataType.Int32,
-                                    arrayType: VariantArrayType.Array,
-                                    value: value
-                                }
+                    var nodeToWrite = {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: /*new DataValue(*/{
+                            value: {
+                                /* Variant */
+                                dataType: DataType.Int32,
+                                arrayType: VariantArrayType.Array,
+                                value: value
                             }
-                        };
+                        }
+                    };
 
                     session.write(nodeToWrite, function (err, statusCode) {
                         if (!err) {
@@ -1406,7 +1411,7 @@ module.exports = function (test) {
 
         beforeEach(function (done) {
             client = new OPCUAClient({
-                keepSessionAlive:true,
+                keepSessionAlive: true,
                 requestedSessionTimeout: 120 * 1000, // 2 min ! make sure that session doesn't drop during test
             });
             done();
@@ -1417,6 +1422,30 @@ module.exports = function (test) {
             done();
         });
 
+        /**
+         * async method to create a client subscription
+         * @param session
+         * @param subscriptionParameters
+         * @param callback
+         */
+        function my_CreateSubscription(session, subscriptionParameters, callback) {
+
+            var subscription = new ClientSubscription(session, subscriptionParameters);
+
+            subscription.once("started", function () {
+                callback(null, subscription);
+            });
+
+            // install a little keepalive counter
+            subscription.nb_keep_alive_received = 0;
+            subscription.on("keepalive", function () {
+                subscription.nb_keep_alive_received += 1;
+            });
+
+            subscription.on("timeout", function () {
+                console.log("Subscription has timed out");
+            });
+        }
 
         it("AZA3-A A server should send a StatusChangeNotification (BadTimeout) if the client doesn't send PublishRequest within the expected interval", function (done) {
 
@@ -1436,58 +1465,127 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:    100, // short publishing interval required here
-                    requestedLifetimeCount:          60, // short lifetimeCount needed here !
-                    requestedMaxKeepAliveCount:      10,
-                    maxNotificationsPerPublish:      10,
-                    publishingEnabled: true,
-                    priority: 6
-                });
 
-                subscription.publish_engine._send_publish_request.should.be.instanceOf(Function);
+                function setUnpublishing(session) {
+                    // replace _send_publish_request so that it doesn't do anything for a little while
+                    // The publish engine is shared amongst all subscription and belongs to the  session object
+                    session.getPublishEngine()._send_publish_request.should.be.instanceOf(Function);
+                    sinon.stub(session.getPublishEngine(), "_send_publish_request").returns();
+                }
 
-                // replace _send_publish_request so that it doesn't do anything for a little while
-                sinon.stub(subscription.publish_engine, "_send_publish_request").callsFake(function () {
-                });
+                /**
+                 * restore the publishing mechanism on a unpublishing subscription
+                 * @param subscription
+                 */
+                function repairUnpublishing(session) {
+                    session.getPublishEngine()._send_publish_request.callCount.should.be.greaterThan(1);
+                    session.getPublishEngine()._send_publish_request.restore();
+                    session.getPublishEngine()._send_publish_request();
+                }
 
-                subscription.on("keepalive", function () {
-                    nb_keep_alive_received += 1;
-                });
+                setUnpublishing(session);
 
-                subscription.on("started", function () {
 
-                    if (false) {
-                        console.log("subscriptionId     :", subscription.subscriptionId);
-                        console.log("publishingInterval :", subscription.publishingInterval);
-                        console.log("lifetimeCount      :", subscription.lifetimeCount);
-                        console.log("maxKeepAliveCount  :", subscription.maxKeepAliveCount);
-                    }
+                // in this test we need two subscriptions
+                //    - one subscription with a short live time
+                //    - one subscription with a long life time,
+                //
+                // at the beginning, both subscriptions will not send PublishRequest
 
-                    setTimeout(function () {
-                        ///xx console.log(" Restoring default behavior");
-                        subscription.publish_engine._send_publish_request.callCount.should.be.greaterThan(1);
-                        subscription.publish_engine._send_publish_request.restore();
-                        subscription.publish_engine._send_publish_request();
-                    }, subscription.publishingInterval * (subscription.lifetimeCount + 5) + 2000);
+                var longlifeSubscription, shortlifeSubscription;
+                async.series([
 
-                }).on("status_changed", function (statusCode) {
+                    function create_longlife_subscription(callback) {
 
-                    statusCode.should.eql(StatusCodes.BadTimeout);
+                        var subscriptionParameters = {
+                            requestedPublishingInterval: 100, // short publishing interval required here
+                            requestedLifetimeCount: 1000, // long lifetimeCount needed here !
+                            requestedMaxKeepAliveCount: 50,
+                            maxNotificationsPerPublish: 30,
+                            publishingEnabled: true,
+                            priority: 6
+                        };
 
-                    // let explicitly close the subscription by calling terminate
-                    // but delay a little bit so we can verify that _send_publish_request
-                    // is not called
-                    setTimeout(function () {
-                        subscription.terminate(function(err){
-                            nb_keep_alive_received.should.be.equal(0);
-                            inner_done();
+                        my_CreateSubscription(session, subscriptionParameters, function (err, subscription) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            longlifeSubscription = subscription;
+                            callback();
                         });
-                    }, 200);
-                });
+                    },
+
+                    f(function create_shortlife_subscription(callback) {
+
+                        var subscriptionParameters = {
+                            requestedPublishingInterval: 100, // short publishing interval required here
+                            requestedLifetimeCount: 30, // short lifetimeCount needed here !
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 30,
+                            publishingEnabled: true,
+                            priority: 6
+                        };
+
+                        my_CreateSubscription(session, subscriptionParameters, function (err, subscription) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            shortlifeSubscription = subscription;
+                            callback();
+                        });
+
+                    }),
+                    f(function wait_for_shortlife_subscripion_to_expire(callback) {
+
+                        // let's make sure that the subscription will expired
+                        var timetoWaitBeforeResendingPublishInterval = shortlifeSubscription.publishingInterval *
+                            (shortlifeSubscription.lifetimeCount + shortlifeSubscription.maxKeepAliveCount);
+
+                        if (doDebug) {
+                            console.log(shortlifeSubscription.toString());
+                            console.log("timetoWaitBeforeResendingPublishInterval  :", timetoWaitBeforeResendingPublishInterval);
+                            console.log("Count To WaitBeforeResendingPublishInterval  :", timetoWaitBeforeResendingPublishInterval / shortlifeSubscription.publishingInterval);
+                        }
+
+                        shortlifeSubscription.once("status_changed", function (statusCode) {
+                            statusCode.should.eql(StatusCodes.BadTimeout);
+                            callback();
+                        });
+
+                        setTimeout(function () {
+                            if (doDebug) {
+                                console.log(" Restoring default Publishing behavior");
+                            }
+                            repairUnpublishing(session);
+
+                        }, timetoWaitBeforeResendingPublishInterval);
+
+                    }),
+                    f(function terminate_shortlife_subscription(callback) {
+
+                        var timeout = shortlifeSubscription.publishingInterval * shortlifeSubscription.maxKeepAliveCount * 2;
+                        if (doDebug) {
+                            console.log("timeout = ", timeout);
+                        }
+                        // let explicitly close the subscription by calling terminate
+                        // but delay a little bit so we can verify that _send_publish_request
+                        // is not called
+                        setTimeout(function () {
+                            shortlifeSubscription.terminate(function (err) {
+                                shortlifeSubscription.nb_keep_alive_received.should.be.equal(0);
+                                callback();
+                            });
+                        }, timeout);
+
+                    }),
+                    f(function terminate_longlife_subscription(callback) {
+                        longlifeSubscription.terminate(function (err) {
+                            callback();
+                        });
+                    })
+                ], inner_done);
 
             }, done);
-
 
         });
 
@@ -1496,10 +1594,10 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:  100,
-                    requestedLifetimeCount:      6000,
-                    requestedMaxKeepAliveCount:   100,
-                    maxNotificationsPerPublish:    10,
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -1557,27 +1655,31 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var subscription = new ClientSubscription(session, {
+                var parameters= {
                     requestedPublishingInterval: 100,
-                    requestedLifetimeCount:     6000,
-                    requestedMaxKeepAliveCount:  100,
-                    maxNotificationsPerPublish:   10,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     priority: 6
-                });
+                };
+
+                var subscription = new ClientSubscription(session, parameters);
 
 
                 subscription.on("terminated", function () {
                 });
-                var monitoredItem = subscription.monitor({
+
+                var itemToMonitor = {
                     nodeId: resolveNodeId("ns=0;i=2258"),
                     attributeId: AttributeIds.Value
-                }, {
+                };
+                var monitoringParameters = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1
-                });
-
+                };
+                var monitoredItem = subscription.monitor(itemToMonitor, monitoringParameters);
 
                 var change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
@@ -1629,7 +1731,7 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        subscription.terminate(function(err) {
+                        subscription.terminate(function (err) {
                             callback(err);
                         });
                     }
@@ -1643,10 +1745,10 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:  100,
-                    requestedLifetimeCount:      6000,
-                    requestedMaxKeepAliveCount:   100,
-                    maxNotificationsPerPublish:    10,
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: false,
                     priority: 6
                 });
@@ -1708,9 +1810,9 @@ module.exports = function (test) {
 
                 var subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100,
-                    requestedLifetimeCount:     6000,
-                    requestedMaxKeepAliveCount:  100,
-                    maxNotificationsPerPublish:   10,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -1736,10 +1838,10 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:  200,
-                    requestedLifetimeCount:     60000,
-                    requestedMaxKeepAliveCount:  1000,
-                    maxNotificationsPerPublish:    10,
+                    requestedPublishingInterval: 200,
+                    requestedLifetimeCount: 60000,
+                    requestedMaxKeepAliveCount: 1000,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -1781,7 +1883,7 @@ module.exports = function (test) {
                 async.series([
                     function (callback) {
                         // let's wait for for notification to be received
-                        monitoredItem.once("changed",function() {
+                        monitoredItem.once("changed", function () {
                             // we reset change count,
                             change_count = 0;
                             callback();
@@ -1965,10 +2067,10 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:   10,
-                    requestedLifetimeCount:     60000,
-                    requestedMaxKeepAliveCount:  1000,
-                    maxNotificationsPerPublish:    10,
+                    requestedPublishingInterval: 10,
+                    requestedLifetimeCount: 60000,
+                    requestedMaxKeepAliveCount: 1000,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -2038,7 +2140,8 @@ module.exports = function (test) {
 
         it("AZA3-R Server should revise publishingInterval to be at least server minimum publishing interval", function (done) {
 
-            var server_minimumPublishingInterval = 100;
+
+            Subscription.minimumPublishingInterval.should.eql(50);
             var too_small_PublishingInterval = 30;
             var server_actualPublishingInterval = 100;
 
@@ -2060,9 +2163,11 @@ module.exports = function (test) {
                         });
 
                         session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+                            if(err) { return callback(err); }
+                            console.log("response",response.toString());
 
                             subscriptionId = response.subscriptionId;
-                            response.revisedPublishingInterval.should.eql(server_minimumPublishingInterval);
+                            response.revisedPublishingInterval.should.eql(Subscription.minimumPublishingInterval);
 
                             callback(err);
                         });
@@ -2266,6 +2371,11 @@ module.exports = function (test) {
         }
 
         function createSubscription2(session, createSubscriptionRequest, callback) {
+
+            createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest(createSubscriptionRequest);
+
+            _.isFunction(callback).should.eql(true,"expecting a function");
+
             session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
                 response.subscriptionId.should.be.greaterThan(0);
                 subscriptionId = response.subscriptionId;
@@ -2276,14 +2386,15 @@ module.exports = function (test) {
         var publishingInterval = 40;
 
         function createSubscription(session, callback) {
-            var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+            _.isFunction(callback).should.eql(true,"expecting a function");
+            var createSubscriptionRequest = {
                 requestedPublishingInterval: publishingInterval,
-                requestedLifetimeCount:      6000,
-                requestedMaxKeepAliveCount:   100,
-                maxNotificationsPerPublish:    10,
+                requestedLifetimeCount: 6000,
+                requestedMaxKeepAliveCount: 100,
+                maxNotificationsPerPublish: 10,
                 publishingEnabled: true,
                 priority: 6
-            });
+            };
             createSubscription2(session, createSubscriptionRequest, callback);
         }
 
@@ -2831,7 +2942,7 @@ module.exports = function (test) {
                             sendPublishRequest(session, function (err, response) {
 
                                 if (!err) {
-                                    response.notificationMessage.notificationData[0].monitoredItems.length.should.be.aboveOrEqual(2,"expecting two monitoredItem in  notification data");
+                                    response.notificationMessage.notificationData[0].monitoredItems.length.should.be.aboveOrEqual(2, "expecting two monitoredItem in  notification data");
                                     var notification1 = response.notificationMessage.notificationData[0].monitoredItems[0];
                                     notification1.value.statusCode.should.eql(StatusCodes.Good);
                                     notification1.value.value.value.should.eql(new Int32Array([-3]));
@@ -2888,10 +2999,10 @@ module.exports = function (test) {
 
 
                 var subscription = new ClientSubscription(session, {
-                    requestedPublishingInterval:   10,
-                    requestedLifetimeCount:     60000,
-                    requestedMaxKeepAliveCount:  1000,
-                    maxNotificationsPerPublish:    10,
+                    requestedPublishingInterval: 10,
+                    requestedLifetimeCount: 60000,
+                    requestedMaxKeepAliveCount: 1000,
+                    maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -2918,7 +3029,7 @@ module.exports = function (test) {
                         function (callback) {
                             subscription.terminate(callback);
                         }
-                    ],inner_done);
+                    ], inner_done);
 
                 });
 
@@ -3068,10 +3179,10 @@ module.exports = function (test) {
 
                         function (callback) {
                             subscription = new ClientSubscription(session, {
-                                requestedPublishingInterval:  publishingInterval,
-                                requestedLifetimeCount:       60,
-                                requestedMaxKeepAliveCount:    10, // 10 requested here !
-                                maxNotificationsPerPublish:     2,
+                                requestedPublishingInterval: publishingInterval,
+                                requestedLifetimeCount: 60,
+                                requestedMaxKeepAliveCount: 10, // 10 requested here !
+                                maxNotificationsPerPublish: 2,
                                 publishingEnabled: true,
                                 priority: 6
                             });

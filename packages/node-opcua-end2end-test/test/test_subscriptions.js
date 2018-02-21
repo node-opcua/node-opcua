@@ -1,6 +1,8 @@
 "use strict";
 var should = require("should");
 
+var async = require("async");
+
 var build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
 
 var VariableIds = require("node-opcua").VariableIds;
@@ -10,6 +12,9 @@ var makeNodeId = require("node-opcua").makeNodeId;
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {
+
+    this.timeout(20000);
+
     var g_session;
     var client_server;
 
@@ -33,6 +38,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
     it("server should create a subscription (CreateSubscriptionRequest)", function (done) {
 
         var subscriptionId = null;
+
         // CreateSubscriptionRequest
         var request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
@@ -42,13 +48,16 @@ describe("testing basic Client Server dealing with subscription at low level", f
             publishingEnabled: true,
             priority: 6
         });
+
         g_session.createSubscription(request, function (err, response) {
+
             if (err) {
                 return done(err);
             }
             response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
             subscriptionId = response.subscriptionId;
-            console.log(response.toString());
+
+            //xx console.log(response.toString());
 
             setImmediate(function () {
                 var request = new subscription_service.DeleteSubscriptionsRequest({
@@ -113,24 +122,60 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle Publish request", function (done) {
 
-        // publish request now requires a subscriptions
-        var request = new subscription_service.PublishRequest({
-            subscriptionAcknowledgements: []
-        });
-        g_session.publish(request, function (err, response) {
+        var subscriptionId = null;
 
-            if (!err) {
-                response.should.be.instanceof(subscription_service.PublishResponse);
+        async.series([
+            function (callback) {
 
-                response.should.have.ownProperty("subscriptionId");          // IntegerId
-                response.should.have.ownProperty("availableSequenceNumbers");// Array,Counter,
-                response.should.have.ownProperty("moreNotifications");       // Boolean
-                response.should.have.ownProperty("notificationMessage");
-                response.should.have.ownProperty("results");
-                response.should.have.ownProperty("diagnosticInfos");
+                // CreateSubscriptionRequest
+                var request = new subscription_service.CreateSubscriptionRequest({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 100 * 60 * 10,
+                    requestedMaxKeepAliveCount: 20,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                g_session.createSubscription(request, function (err, response) {
+                    if (err) {
+                        return done(err);
+                    }
+                    subscriptionId = response.subscriptionId;
+                    callback();
+                });
+            },
+            function (callback) {
+
+                // publish request now requires a subscriptions
+                var request = new subscription_service.PublishRequest({
+                    subscriptionAcknowledgements: []
+                });
+
+                g_session.publish(request, function (err, response) {
+
+                    if (!err) {
+                        response.should.be.instanceof(subscription_service.PublishResponse);
+
+                        response.should.have.ownProperty("subscriptionId");          // IntegerId
+                        response.should.have.ownProperty("availableSequenceNumbers");// Array,Counter,
+                        response.should.have.ownProperty("moreNotifications");       // Boolean
+                        response.should.have.ownProperty("notificationMessage");
+                        response.should.have.ownProperty("results");
+                        response.should.have.ownProperty("diagnosticInfos");
+                    }
+                    callback(err);
+                });
+            },
+            function(callback) {
+                var request = new subscription_service.DeleteSubscriptionsRequest({
+                    subscriptionIds: [ subscriptionId ]
+                });
+                g_session.deleteSubscriptions(request, function (err, result) {
+                    callback(err);
+                });
             }
-            done(err);
-        });
+
+        ],done);
     });
 
 

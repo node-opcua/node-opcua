@@ -34,7 +34,7 @@ var stop_simple_server = require("../../test_helpers/external_server_fixture").s
 
 var g_defaultSecureTokenLifetime = 30 * 1000; // ms
 var g_tokenRenewalInterval = 50; // ms => renew token as fast as possible
-var g_numberOfTokenRenewal = 2;
+var g_numberOfTokenRenewal = 3;
 
 var server, temperatureVariableId, endpointUrl, serverCertificate;
 
@@ -73,7 +73,7 @@ function stop_inner_server_local(data, callback) {
             // it is possible that server still have running session in this series of test, as we are testing
             // faulty client that do not renew token properly, causing server to abruptly drop the connection that
             // has become un-secured. We simply issue a warning rather than a exception if we find that currentSessionCount != 0
-            if(server.engine.currentSessionCount !== 0 ) {
+            if (server.engine.currentSessionCount !== 0) {
                 console.log("stop_inner_server_local:  Warning all sessions should have been closed".yellow);
             }
             //xxx server.engine.currentSessionCount.should.equal(0, " all sessions should have been closed");
@@ -188,25 +188,27 @@ var ClientSession = opcua.ClientSession;
 var ClientSubscription = opcua.ClientSubscription;
 
 
-function keep_monitoring_some_variable(client,session, security_token_renewed_limit, done) {
+function keep_monitoring_some_variable(client, session, security_token_renewed_limit, done) {
 
     should(session).be.instanceof(ClientSession);
 
     var security_token_renewed_counter = 0;
+    var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
 
-    client.on("security_token_renewed",function() {
+
+    client.on("security_token_renewed", function () {
 
         debugLog(" Security token has been renewed");
 
-        security_token_renewed_counter +=1 ;
-        if (security_token_renewed_counter===security_token_renewed_limit)  {
+        security_token_renewed_counter += 1;
+        if (security_token_renewed_counter === security_token_renewed_limit) {
 
-            setImmediate(function() {
-                subscription.terminate(function() {
+            setImmediate(function () {
+                subscription.terminate(function () {
                     debugLog("        subscription terminated ");
                     if (!the_error) {
                         var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
-                        nbTokenId.should.be.aboveOrEqual(2);
+                        nbTokenId.should.be.aboveOrEqual(security_token_renewed_limit-1);
                     }
                     done(the_error);
                 });
@@ -214,8 +216,6 @@ function keep_monitoring_some_variable(client,session, security_token_renewed_li
 
         }
     });
-    var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
-
     var subscription = new ClientSubscription(session, {
         requestedPublishingInterval: 250,
         requestedLifetimeCount: 100,
@@ -241,7 +241,9 @@ function keep_monitoring_some_variable(client,session, security_token_renewed_li
 
 function common_test(securityPolicy, securityMode, options, done) {
 
-    if (global.gc) { global.gc(true); }
+    if (global.gc) {
+        global.gc(true);
+    }
     //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
     opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
@@ -252,7 +254,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
         connectionStrategy: no_reconnect_connectivity_strategy,
-        requestedSessionTimeout: 120* 60 * 1000
+        requestedSessionTimeout: 120 * 60 * 1000
     });
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
@@ -266,7 +268,7 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-        keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
+        keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
             token_change.should.be.aboveOrEqual(2);
             inner_done(err);
         });
@@ -276,7 +278,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         // check if we are late!
         //
         var expectedExpiryTick = token.createdAt.getTime() + token.revisedLifeTime;
-        var delay = ( expectedExpiryTick - Date.now() );
+        var delay = (expectedExpiryTick - Date.now());
         if (delay <= 100) {
             console.log("WARNING : token renewal is happening too late !!".red, delay);
         }
@@ -357,7 +359,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         client.on("start_reconnection", start_reconnection_spy);
         client.on("after_reconnection", after_reconnection_spy);
 
-        keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal, function (err) {
+        keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
             console.log("err = ", err);
             // inner_done(err);
         });
@@ -377,7 +379,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
     });
 
     client.on("backoff", function (number, delay) {
-        console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+        console.log("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
     });
     client.on("lifetime_75", function (token) {
         debugLog("            received lifetime_75", JSON.stringify(token));
@@ -435,8 +437,8 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
     prefix = prefix || "";
 
     function build_options(keySize) {
-        var client_certificate_pem_file = path.join(certificate_store, "client_cert_"+keySize+".pem");
-        var client_certificate_privatekey_file = path.join(certificate_store, "client_key_"+keySize+".pem");
+        var client_certificate_pem_file = path.join(certificate_store, "client_cert_" + keySize + ".pem");
+        var client_certificate_privatekey_file = path.join(certificate_store, "client_key_" + keySize + ".pem");
         fs.existsSync(client_certificate_pem_file).should.eql(true, client_certificate_pem_file + " must exist");
         fs.existsSync(client_certificate_privatekey_file).should.eql(true, client_certificate_privatekey_file + " must exist");
         var options = {
@@ -445,6 +447,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
         };
         return options;
     }
+
     var options_2048 = build_options(2048);
     var options_3072 = build_options(3072);
     var options_4096 = build_options(4096);
@@ -626,13 +629,12 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         });
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(client,session, g_numberOfTokenRenewal+3, function (err) {
+            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3, function (err) {
                 //xx console.log("end of Monitoring ")
                 token_change.should.be.aboveOrEqual(g_numberOfTokenRenewal);
                 inner_done(err);
             });
         }, done);
-
 
 
     });
@@ -644,7 +646,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
     var serverHandle;
     var old_method;
-    var timerId  = null;
+    var timerId = null;
     before(function (done) {
 
         ClientSecureChannelLayer.prototype._renew_security_token.should.be.instanceOf(Function);
@@ -653,14 +655,16 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         old_method = ClientSecureChannelLayer.prototype._renew_security_token;
 
         ClientSecureChannelLayer.prototype._renew_security_token = function () {
-            if (timerId) {return;}
+            if (timerId) {
+                return;
+            }
             var self = this;
 
             // delay renewal of security token by a long time (exceeding secureTokenLifeTime)
             timerId = setTimeout(function () {
                 timerId = null;
                 old_method.call(self);
-            }, g_defaultSecureTokenLifetime*4);
+            }, g_defaultSecureTokenLifetime * 4);
         };
 
         start_server(function (err, handle) {
@@ -685,7 +689,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
     it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", function (done) {
 
         var options = {
-            keepSessionAlive:true,
+            keepSessionAlive: true,
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
@@ -697,20 +701,20 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         var token_change = 0;
         var client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            client.once("close",function(err) {
+            client.once("close", function (err) {
                 token_change.should.be.eql(0);
                 inner_done();
             });
-            setTimeout(function() {
+            setTimeout(function () {
                 // security token has now expired
                 //
                 // this request will fail as we haven't renewed the securityToken
                 // Server will close the connection when receiving this request
-                session.read([],function(){
+                session.read([], function () {
 
                 });
-            },5000);
-        }, function(err) {
+            }, 5000);
+        }, function (err) {
             done();
         });
 

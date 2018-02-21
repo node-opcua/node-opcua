@@ -301,6 +301,7 @@ AddressSpace.prototype.deleteNode = function (nodeOrNodeId) {
         }
         assert(addressSpace._nodeid_index[indexName] === node);
         delete addressSpace._nodeid_index[indexName];
+
         node.dispose();
     });
 
@@ -824,8 +825,8 @@ AddressSpace.prototype._addVariable = function (options) {
 
     var baseDataVariableTypeId = self.findVariableType("BaseDataVariableType").nodeId;
 
-    assert(options.hasOwnProperty("browseName"));
-    assert(options.hasOwnProperty("dataType"));
+    assert(options.hasOwnProperty("browseName"),"options.browseName must be provided");
+    assert(options.hasOwnProperty("dataType"),"options.dataType must be provided");
 
     options.historizing = !!options.historizing;
 

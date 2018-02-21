@@ -46,7 +46,7 @@ var decodeStatusCode = require("node-opcua-status-code").decodeStatusCode;
  * @param options.securityMode {MessageSecurityMode} the security Mode
  * @param [options.objectFactory=factories] a object that provides a constructObject(id) method
  */
-var MessageBuilder = function (options) {
+function MessageBuilder(options) {
 
     options = options || {};
     MessageBuilderBase.call(this, options);
@@ -74,6 +74,22 @@ MessageBuilder.prototype.setSecurity = function (securityMode, securityPolicy) {
 };
 
 
+MessageBuilderBase.prototype.dispose = function() {
+    var self = this;
+    self.removeAllListeners();
+};
+
+MessageBuilder.prototype.dispose = function() {
+    var self = this;
+    MessageBuilderBase.prototype.dispose.call(this);
+    self.securityPolicy = null;
+    self.securityMode = null;
+    self.objectFactory = null;
+    self.cryptoFactory = null;
+    self.securityHeader = null;
+    self._tokenStack = null;
+
+};
 MessageBuilder.prototype._validateSequenceNumber = function (sequenceNumber) {
 
     // checking that sequenceNumber is increasing
@@ -198,6 +214,7 @@ MessageBuilder.prototype.pushNewToken = function (securityToken, derivedKeys) {
     assert(securityToken.hasOwnProperty("tokenId"));
     //xx assert(derivedKeys ); in fact, can be null
 
+    // TODO: make sure this list doesn't grow indefinitly
     this._tokenStack = this._tokenStack || [];
     assert(this._tokenStack.length === 0 || this._tokenStack[0].tokenId !== securityToken.tokenId);
     this._tokenStack.push({securityToken: securityToken, derivedKeys: derivedKeys});

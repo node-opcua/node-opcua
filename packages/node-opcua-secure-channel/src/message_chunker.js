@@ -30,6 +30,15 @@ function MessageChunker(options) {
     this.update(options);
 
 }
+
+MessageChunker.prototype.dispose = function() {
+
+    this.sequenceNumberGenerator = null;
+    this.securityHeader = null;
+    this.derivedKeys = null;
+    this._stream = null;
+};
+
 /** update security information
  * @method update
  * @param options {Object}

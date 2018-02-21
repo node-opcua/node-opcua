@@ -110,7 +110,9 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.equal(SubscriptionState.LATE);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     var add_mock_monitored_item = require("./helper").add_mock_monitored_item;
@@ -177,7 +179,9 @@ describe("Testing the server publish engine", function () {
 
         // send_response_for_request_spy.
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("a server should return BadNoSubscription as a response for a publish Request if there is no subscription available for this session. ", function () {
@@ -200,6 +204,7 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("should be possible to find a subscription by id on a publish_server", function () {
@@ -219,9 +224,11 @@ describe("Testing the server publish engine", function () {
         publish_server.getSubscriptionById(1234).should.equal(subscription);
 
         subscription.terminate();
+        subscription.dispose();
 
         publish_server.shutdown();
         publish_server.subscriptionCount.should.equal(0);
+        publish_server.dispose();
 
     });
 
@@ -242,8 +249,10 @@ describe("Testing the server publish engine", function () {
 
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
         publish_server.subscriptionCount.should.equal(0);
+        publish_server.dispose();
 
     });
 
@@ -306,7 +315,9 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(2).args[1].results.should.eql([]);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("the server shall process the client acknowledge sequence number", function () {
@@ -402,7 +413,9 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(4).args[1].results.should.eql([StatusCodes.Good, StatusCodes.Good]);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("the server shall return BadSequenceNumberInvalid if the client attempts to acknowledge a notification that is not in the queue", function () {
@@ -448,7 +461,9 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([StatusCodes.BadSequenceNumberUnknown]);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("a subscription shall send a keep-alive message at the end of the first publishing interval, if there are no Notifications ready.", function () {
@@ -502,7 +517,9 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.callCount.should.eql(2);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("a Normal subscription that receives a notification shall wait for the next publish interval to send a PublishResponse ", function () {
@@ -550,7 +567,9 @@ describe("Testing the server publish engine", function () {
         send_notification_message_spy.callCount.should.eql(1);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("the subscription state shall be set to LATE, if it cannot process a notification after Publish Interval has been raised, due to a lack of PublishRequest", function () {
@@ -582,7 +601,10 @@ describe("Testing the server publish engine", function () {
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
         subscription.terminate();
+        subscription.dispose();
+
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("a subscription should provide its time to expiration so that publish engine could sort late subscriptions by order of priority", function () {
@@ -608,7 +630,9 @@ describe("Testing the server publish engine", function () {
         subscription.timeToExpiration.should.eql(1000 * 58);
 
         subscription.terminate();
+        subscription.dispose();
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("a publish engine should be able to find out which are the most urgent late subscriptions to serve ", function () {
@@ -660,7 +684,7 @@ describe("Testing the server publish engine", function () {
 
         var subscription3 = new Subscription({
             id: 3,
-            publishingInterval:  50,
+            publishingInterval: 100,
             lifeTimeCount:     1000,
             maxKeepAliveCount:   20,
             publishingEnabled: true,
@@ -718,12 +742,17 @@ describe("Testing the server publish engine", function () {
         publish_server.findLateSubscriptionsSortedByAge().map(_.property("id")).should.eql([1, 3]);
 
         subscription1.terminate();
+        subscription1.dispose();
 
         subscription2.terminate();
+        subscription2.dispose();
 
         subscription3.terminate();
+        subscription3.dispose();
 
         publish_server.shutdown();
+        publish_server.dispose();
+
     });
 
     it("a LATE subscription that receives a notification shall send a PublishResponse immediately, without waiting for next publish interval", function () {
@@ -758,7 +787,10 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.equal(SubscriptionState.NORMAL);
 
         subscription.terminate();
+        subscription.dispose();
+
         publish_server.shutdown();
+        publish_server.dispose();
 
     });
 
@@ -802,7 +834,10 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.eql(SubscriptionState.CLOSED);
 
         subscription.terminate();
+        subscription.dispose();
+
         publish_server.shutdown();
+        publish_server.dispose();
     });
 
     it("LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout ", function () {
@@ -848,6 +883,8 @@ describe("Testing the server publish engine", function () {
 
         publish_server.pendingClosedSubscriptionCount.should.eql(0);
         publish_server.shutdown();
+        publish_server.dispose();
+
     });
 
 
@@ -893,7 +930,10 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
 
         subscription.terminate();
+        subscription.dispose();
+
         publish_server.shutdown();
+        publish_server.dispose();
 
     });
 

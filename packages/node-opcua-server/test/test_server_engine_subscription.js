@@ -69,12 +69,15 @@ describe("ServerEngine Subscriptions service", function () {
         engine.cumulatedSubscriptionCount.should.equal(1);
 
         subscription.terminate();
+        subscription.dispose();
+
     });
 
-    it("session should emit a new_subscription and subscription_terminated event", function () {
+    it("XCX session should emit a new_subscription and subscription_terminated event", function () {
 
         var sinon= require("sinon");
         session = engine.createSession();
+
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(0);
 
@@ -84,7 +87,6 @@ describe("ServerEngine Subscriptions service", function () {
         session.on("new_subscription",spyNew);
         session.on("subscription_terminated",spyTerminated);
 
-
         var subscription = session.createSubscription({
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount: 10,         // Counter
@@ -93,6 +95,9 @@ describe("ServerEngine Subscriptions service", function () {
             publishingEnabled: true,            // Boolean
             priority: 14                        // Byte
         });
+
+        session.currentSubscriptionCount.should.equal(1);
+        session.cumulatedSubscriptionCount.should.equal(1);
 
         spyNew.callCount.should.eql(1);
         spyTerminated.callCount.should.eql(0);
@@ -104,6 +109,10 @@ describe("ServerEngine Subscriptions service", function () {
 
         session.removeListener("new_subscription",spyNew);
         session.removeListener("subscription_terminated",spyTerminated);
+
+        session.currentSubscriptionCount.should.equal(0);
+        session.cumulatedSubscriptionCount.should.equal(1);
+
     });
 
     it("should maintain the correct number of cumulatedSubscriptionCount at the engine level", function () {

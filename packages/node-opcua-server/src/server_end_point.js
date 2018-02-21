@@ -89,18 +89,38 @@ function OPCUAServerEndPoint(options) {
 
     self.objectFactory = options.objectFactory;
 
-    this.bytesWrittenInOldChannels = 0;
-    this.bytesReadInOldChannels = 0;
-    this.transactionsCountOldChannels = 0;
-    this.securityTokenCountOldChannels = 0;
+    self.bytesWrittenInOldChannels = 0;
+    self.bytesReadInOldChannels = 0;
+    self.transactionsCountOldChannels = 0;
+    self.securityTokenCountOldChannels = 0;
 
-    this.serverInfo = options.serverInfo;
-    assert(_.isObject(this.serverInfo));
+    self.serverInfo = options.serverInfo;
+    assert(_.isObject(self.serverInfo));
 
 }
 
 util.inherits(OPCUAServerEndPoint, EventEmitter);
 
+OPCUAServerEndPoint.prototype.dispose = function() {
+
+    var self = this;
+    self._certificateChain = null;
+    self._privateKey = null;
+
+    assert(Object.keys(self._channels).length === 0,"OPCUAServerEndPoint channels must have been deleted");
+    self._channels = {};
+    self.serverInfo = null;
+
+    self._endpoints = [];
+    assert(self._endpoints.length === 0, "endpoints must have been deleted");
+    self._endpoints = null;
+
+    self._server = null;
+    self._listen_callback = null;
+
+    self.removeAllListeners();
+
+};
 OPCUAServerEndPoint.prototype._dump_statistics = function () {
 
     var self = this;
@@ -568,7 +588,6 @@ OPCUAServerEndPoint.prototype._registerChannel = function (channel) {
 
     var self = this;
 
-
     if (self._started) {
 
         debugLog("_registerChannel = ".red, "channel.hashKey = ", channel.hashKey);
@@ -591,6 +610,7 @@ OPCUAServerEndPoint.prototype._registerChannel = function (channel) {
         debugLog("OPCUAServerEndPoint#_registerChannel called when end point is shutdown !");
         debugLog("  -> channel will be forcefully terminated");
         channel.close();
+        channel.dispose();
     }
 };
 
@@ -627,6 +647,8 @@ OPCUAServerEndPoint.prototype._unregisterChannel = function (channel) {
         self._dump_statistics();
         debugLog("un-registering channel  - Count = ", self.currentChannelCount);
     }
+
+    ///channel.dispose();
 };
 
 OPCUAServerEndPoint.prototype._end_listen = function (err) {
@@ -669,10 +691,11 @@ OPCUAServerEndPoint.prototype.killClientSockets = function (callback) {
     var self = this;
     var chnls = _.values(this._channels);
     chnls.forEach(function(channel){
-        if (channel._transport && channel._transport._socket) {
-            channel._transport._socket.close();
-            channel._transport._socket.destroy();
-            channel._transport._socket.emit("error", new Error("EPIPE"));
+        return;
+        if (channel.transport && channel.transport._socket) {
+            channel.transport._socket.close();
+            channel.transport._socket.destroy();
+            channel.transport._socket.emit("error", new Error("EPIPE"));
         }
 
     });

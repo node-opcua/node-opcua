@@ -119,7 +119,6 @@ function ServerSecureChannelLayer(options) {
         self.close(undefined);
     });
 
-
     // at first use a anonymous connection
     self.securityHeader = new AsymmetricAlgorithmSecurityHeader({
         securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None",
@@ -147,6 +146,44 @@ function ServerSecureChannelLayer(options) {
 }
 
 util.inherits(ServerSecureChannelLayer, EventEmitter);
+
+/**
+ *
+ */
+ServerSecureChannelLayer.prototype.dispose = function() {
+
+    var self = this;
+
+    debugLog("ServerSecureChannelLayer#dispose");
+    if (self.timeoutId ) {
+        clearTimeout(self.timeoutId);
+        self.timeoutId = null;
+    }
+    assert(!self.timeoutId,"timeout must have been cleared");
+    assert(!self._securityTokenTimeout,"_securityTokenTimeout must have been cleared");
+
+    self.parent = null;
+    self.serverNonce = null;
+    self.objectFactory =null;
+
+    self.messageBuilder.dispose();
+    self.messageBuilder.privateKey = null;
+    self.messageBuilder = null;
+    self.securityHeader = null;
+
+    self.messageChunker.dispose();
+    self.messageChunker = null;
+
+    self.secureChannelId = 0xDeadBeef   ;
+
+    self.timeoutId= null;
+
+    self.sessionTokens = null;
+
+    self.removeAllListeners();
+
+};
+
 
 var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ServerSecureChannelLayer.registry = new ObjectRegistry();
@@ -344,7 +381,7 @@ ServerSecureChannelLayer.prototype.init = function (socket, callback) {
                 assert(self.messageBuilder);
                 self.messageBuilder.feed(message_chunk);
             });
-            debugLog("ServerSecureChannelLayer : Transport layer has been initialized ");
+            debugLog("ServerSecureChannelLayer : Transport layer has been initialized");
             debugLog("... now waiting for OpenSecureChannelRequest...");
 
             ServerSecureChannelLayer.registry.register(self);
@@ -552,9 +589,15 @@ ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function () {
  */
 ServerSecureChannelLayer.prototype.send_response = function (msgType, response, message, callback) {
 
+
     var request = message.request;
     var requestId = message.requestId;
     var self = this;
+
+    if (self.aborted) {
+        debugLog("channel has been terminated , cannot send responses");
+        return callback &&callback(new Error("Aborted"));
+    }
 
     // istanbul ignore next
     if (doDebug) {
@@ -857,7 +900,12 @@ function _handle_OpenSecureChannelRequest(message, callback) {
 
 }
 
-
+/**
+ *
+ */
+ServerSecureChannelLayer.prototype.__defineGetter__("aborted", function () {
+    return this._abort_has_been_called;
+});
 
 ServerSecureChannelLayer.prototype._abort = function () {
 

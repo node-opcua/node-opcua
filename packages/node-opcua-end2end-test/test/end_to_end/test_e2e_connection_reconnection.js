@@ -44,33 +44,9 @@ var infinite_connectivity_strategy = {
 };
 
 
-var step_count = 0;
 
-function f(func) {
+var f = require("../../test_helpers/display_function_name").f.bind(null,doDebug);
 
-    return function (callback) {
-        if (doDebug) {
-            console.log("FUNC=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold);
-        }
-        try {
-
-            func(function (err) {
-                if (doDebug) {
-                    console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
-                }
-                step_count++;
-                setImmediate(function () {
-                    callback(err);
-                });
-            });
-        } catch(err) {
-            if (doDebug) {
-                console.log("END WITH EXCEPTION=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
-            }
-            callback(err);
-        }
-    };
-}
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("KJH1 testing basic Client-Server communication", function () {
@@ -469,17 +445,19 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             securityMode: _options.securityMode || opcua.MessageSecurityMode.NONE,
             securityPolicy: _options.securityPolicy || opcua.SecurityPolicy.None,
-
             keepSessionAlive: true,
-            requestedSessionTimeout: requestedSessionTimeout,
+            requestedSessionTimeout: _options.requestedSessionTimeout || requestedSessionTimeout,
+            connectionStrategy: connectionStrategy,
 
-            connectionStrategy: connectionStrategy
         };
 
         should.not.exist(client,"Already have a client ");
 
         client = new OPCUAClient(options);
 
+        client.on("keepalive",function() {
+            debugLog("keep alive");
+        });
         client_has_received_close_event = 0;
         client_has_received_start_reconnection_event = 0;
         client.on("close", function (err) {
@@ -884,11 +862,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         clientSocket.destroy();
         clientSocket.emit("error", new Error(socketError));
 
+       /*
         server.endpoints.forEach(function(endpoint){
             endpoint.killClientSockets(function() {
-
             });
         });
+         */
 
         callback();
     }
@@ -910,8 +889,8 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function get_server_side_subscription() {
-        //xx var channels = server.endpoints[0]._channels;
-        //xx console.log("channels keys = ", Object.keys(channels).join(" "));
+        var channels = server.endpoints[0]._channels;
+        debugLog("channels keys = ", Object.keys(channels).join(" "));
 
         //xxx var channelKey = Object.keys(channels)[0];
         //xx var channel = channels[channelKey];
@@ -921,41 +900,41 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         var session = server.engine._sessions[sessionKey];
 
         var subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
-        //xx assert(subscriptionKeys.length === 1);
+        subscriptionKeys.length.should.eql(1);
         return session.publishEngine._subscriptions[subscriptionKeys[0]];
     }
 
 
+    // let make sure it will timeout almost immediately
+    function accelerate_subscription_timeout(subscription, callback) {
+        debugLog("accelerate_subscription_timeout",
+            subscription.id,
+            " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
+        subscription._life_time_counter = subscription.lifeTimeCount - 1;
+
+        subscription.once("terminated", function () {
+            callback();
+        });
+    }
     function wait_until_server_subscription_has_timed_out(callback) {
 
         var server_subscription = get_server_side_subscription();
-
         // let's cheat a little bit => we don't really want to wait until subscriptions times out
-        // let make sure it will timeout almost immediately
-        function accelerate_subscription_timeout(subscription, callback) {
-            //xx console.log("accelerate_subscription_timeout", subscription.id, " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
-            subscription._life_time_counter = subscription.lifeTimeCount - 1;
-
-            subscription.once("terminated", function () {
-                callback();
-            });
-        }
-
         accelerate_subscription_timeout(server_subscription, callback);
     }
 
     function simulate_very_long_connection_break_until_subscription_times_out(socketError, callback) {
 
         async.series([
-            suspend_demo_server,
+            f(suspend_demo_server),
 
-            break_connection.bind(null, socketError),
+            f(break_connection.bind(null, socketError)),
 
-            wait_until_server_subscription_has_timed_out,
+            f(wait_until_server_subscription_has_timed_out),
 
-            wait_for.bind(null, 40 *100),
+            f(wait_for.bind(null, 40 *100)),
 
-            resume_demo_server
+            f(resume_demo_server)
         ], callback);
         // in this case, the server drops all Subscriptions due to max lifetime count exhausted.
     }
@@ -1017,7 +996,6 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(ensure_continuous),
 
             f(terminate_subscription),
-
             f(disconnect_client),
             f(shutdown_server)
         ], function (err) {
@@ -1303,13 +1281,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
 
-        requestedSessionTimeout = 1000;
+        var requestedSessionTimeout = 5000;
 
         async.series([
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {
+                requestedSessionTimeout: requestedSessionTimeout
+            }, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
@@ -1322,8 +1302,8 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(wait_a_little_while),
             f(ensure_continuous),
 
-            // now drop connection  for 3 times requestedSessionTimeout seconds
-            f(simulate_connection_break.bind(null, 3 * requestedSessionTimeout, "EPIPE")),
+            // now drop connection  for 1.5 times requestedSessionTimeout seconds
+            f(simulate_connection_break.bind(null, 1.5   * requestedSessionTimeout, "EPIPE")),
             // make sure that we have received all notifications
             // (thanks to republish )
 

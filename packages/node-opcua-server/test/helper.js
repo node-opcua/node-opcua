@@ -18,6 +18,9 @@ function add_mock_monitored_item(subscription) {
             return tmp;
         },
         terminate: function(){
+        },
+        dispose: function() {
+
         }
     };
     monitoredItem.__defineGetter__("hasMonitoredItemNotifications",function() {

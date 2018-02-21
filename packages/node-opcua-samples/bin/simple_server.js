@@ -395,7 +395,6 @@ server.start(function (err) {
 });
 
 server.on("create_session", function (session) {
-
     console.log(" SESSION CREATED");
     console.log("    client application URI: ".cyan, session.clientDescription.applicationUri);
     console.log("        client product URI: ".cyan, session.clientDescription.productUri);

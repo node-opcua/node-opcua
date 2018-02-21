@@ -200,6 +200,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         var userName = "username";
         var password = "p@ssw0rd";
         var options = {
+            endpoint_must_exist: false,
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };

@@ -12,7 +12,7 @@ var EventNotificationList = subscription_service.EventNotificationList;
 var NotificationMessage = subscription_service.NotificationMessage;
 var StatusChangeNotification = subscription_service.StatusChangeNotification;
 var MonitoringMode = subscription_service.MonitoringMode;
-
+var NodeId = require("node-opcua-nodeid").NodeId;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 var Enum = require("node-opcua-enum");
 var assert = require("node-opcua-assert");
@@ -32,11 +32,13 @@ var DataChangeFilter = require("node-opcua-service-subscription").DataChangeFilt
 var AggregateFilter = require("node-opcua-service-subscription").AggregateFilter;
 
 var UAVariable = require("node-opcua-address-space").UAVariable;
-var validateFilter  = require("./validate_filter").validateFilter;
+var validateFilter = require("./validate_filter").validateFilter;
 var is_valid_dataEncoding = require("node-opcua-data-model").is_valid_dataEncoding;
+
 
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+
 
 var SubscriptionState = new Enum([
     "CLOSED",   // The Subscription has not yet been created or has terminated.
@@ -55,37 +57,35 @@ exports.SubscriptionState = SubscriptionState;
 
 var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
-var minimumPublishingInterval = 100;  // fastest possible
-var defaultPublishingInterval = 1000; // one second
-var maximumPublishingInterval = 1000 * 60 * 60 * 24 * 15; // 15 days
-assert(maximumPublishingInterval < 2147483648 , "maximumPublishingInterval cannot exceed 2*31 ms ");
 
 function _adjust_publishing_interval(publishingInterval) {
-    publishingInterval = publishingInterval || defaultPublishingInterval;
-    publishingInterval = Math.max(publishingInterval, minimumPublishingInterval);
-    publishingInterval = Math.min(publishingInterval, maximumPublishingInterval);
+    publishingInterval = publishingInterval || Subscription.defaultPublishingInterval;
+    publishingInterval = Math.max(publishingInterval, Subscription.minimumPublishingInterval);
+    publishingInterval = Math.min(publishingInterval, Subscription.maximumPublishingInterval);
     return publishingInterval;
 }
 
 var minimumMaxKeepAliveCount = 2;
 var maximumMaxKeepAliveCount = 12000;
+
 function _adjust_maxKeepAliveCount(maxKeepAliveCount/*,publishingInterval*/) {
     maxKeepAliveCount = maxKeepAliveCount || minimumMaxKeepAliveCount;
     maxKeepAliveCount = Math.max(maxKeepAliveCount, minimumMaxKeepAliveCount);
     maxKeepAliveCount = Math.min(maxKeepAliveCount, maximumMaxKeepAliveCount);
     return maxKeepAliveCount;
 }
-function _adjust_lifeTimeCount(lifeTimeCount, maxKeepAliveCount,publishingInterval) {
+
+function _adjust_lifeTimeCount(lifeTimeCount, maxKeepAliveCount, publishingInterval) {
     lifeTimeCount = lifeTimeCount || 1;
 
     // let's make sure that lifeTimeCount is at least three time maxKeepAliveCount
     // Note : the specs say ( part 3  - CreateSubscriptionParameter )
     //        "The lifetime count shall be a minimum of three times the keep keep-alive count."
-    lifeTimeCount = Math.max(lifeTimeCount, maxKeepAliveCount * 3 );
+    lifeTimeCount = Math.max(lifeTimeCount, maxKeepAliveCount * 3);
 
-    var minTicks = Math.ceil(5 *1000 / (publishingInterval)); // we want 5 seconds min
+    var minTicks = Math.ceil(5 * 1000 / (publishingInterval)); // we want 5 seconds min
 
-    lifeTimeCount = Math.max(minTicks,lifeTimeCount);
+    lifeTimeCount = Math.max(minTicks, lifeTimeCount);
     return lifeTimeCount;
 }
 
@@ -98,6 +98,7 @@ function _adjust_maxNotificationsPerPublish(maxNotificationsPerPublish) {
     assert(_.isNumber(maxNotificationsPerPublish));
     return (maxNotificationsPerPublish >= 0) ? maxNotificationsPerPublish : 0;
 }
+
 // verify that the injected publishEngine provides the expected services
 // regarding the Subscription requirements...
 function _assert_valid_publish_engine(publishEngine) {
@@ -111,20 +112,45 @@ function _assert_valid_publish_engine(publishEngine) {
 
 function createSubscriptionDiagnostics(self) {
 
+    assert(self instanceof Subscription);
+
     self.subscriptionDiagnostics = new SubscriptionDiagnostics({});
 
+    self.subscriptionDiagnostics.$subscription = self;
     // "sessionId"
-    self.subscriptionDiagnostics.__defineGetter__("sessionId",                  function() { return self.getSessionId(); });
-    self.subscriptionDiagnostics.__defineGetter__("subscriptionId",             function() { return self.id; });
-    self.subscriptionDiagnostics.__defineGetter__("priority",                   function() { return self.priority; });
-    self.subscriptionDiagnostics.__defineGetter__("publishingInterval",         function() { return self.publishingInterval; });
-    self.subscriptionDiagnostics.__defineGetter__("maxLifetimeCount",           function() { return self.lifeTimeCount; });
-    self.subscriptionDiagnostics.__defineGetter__("maxKeepAliveCount",          function() { return self.maxKeepAliveCount; });
-    self.subscriptionDiagnostics.__defineGetter__("maxNotificationsPerPublish", function() { return self.maxNotificationsPerPublish; });
-    self.subscriptionDiagnostics.__defineGetter__("publishingEnabled",          function() { return self.publishingEnabled; });
-    self.subscriptionDiagnostics.__defineGetter__("monitoredItemCount",         function() { return self.monitoredItemCount; });
-    self.subscriptionDiagnostics.__defineGetter__("nextSequenceNumber",         function() { return self._get_future_sequence_number(); });
-    self.subscriptionDiagnostics.__defineGetter__("disabledMonitoredItemCount", function() { return self.disabledMonitoredItemCount; });
+    self.subscriptionDiagnostics.__defineGetter__("sessionId", function () {
+      return this.$subscription.getSessionId();
+    });
+    self.subscriptionDiagnostics.__defineGetter__("subscriptionId", function () {
+        return this.$subscription.id;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("priority", function () {
+        return this.$subscription.priority;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("publishingInterval", function () {
+        return this.$subscription.publishingInterval;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("maxLifetimeCount", function () {
+        return this.$subscription.lifeTimeCount;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("maxKeepAliveCount", function () {
+        return this.$subscription.maxKeepAliveCount;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("maxNotificationsPerPublish", function () {
+        return this.$subscription.maxNotificationsPerPublish;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("publishingEnabled", function () {
+        return this.$subscription.publishingEnabled;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("monitoredItemCount", function () {
+        return this.$subscription.monitoredItemCount;
+    });
+    self.subscriptionDiagnostics.__defineGetter__("nextSequenceNumber", function () {
+        return this.$subscription._get_future_sequence_number();
+    });
+    self.subscriptionDiagnostics.__defineGetter__("disabledMonitoredItemCount", function () {
+        return this.$subscription.disabledMonitoredItemCount;
+    });
 
     /* those member of self.subscriptionDiagnostics are handled directly
 
@@ -156,6 +182,7 @@ function createSubscriptionDiagnostics(self) {
     // add object in Variable SubscriptionDiagnosticArray (i=2290) ( Array of SubscriptionDiagnostics)
     // add properties in Variable to reflect
 }
+
 /**
  * The Subscription class used in the OPCUA server side.
  * @class Subscription
@@ -175,16 +202,21 @@ function Subscription(options) {
     options = options || {};
 
     EventEmitter.apply(this, arguments);
-    var self = this;
 
-    self._sessionId = options.sessionId;
 
-    self.publishEngine = options.publishEngine;
-    _assert_valid_publish_engine(self.publishEngine);
+    var subscription = this;
 
-    self.id = options.id || "<invalid_id>";
+    Subscription.registry.register(subscription);
 
-    self.priority = options.priority || 0;
+    subscription._sessionId = options.sessionId|| NodeId.NullNodeId;
+    assert(subscription._sessionId instanceof NodeId,"expecting a sessionId NodeId");
+
+    subscription.publishEngine = options.publishEngine;
+    _assert_valid_publish_engine(subscription.publishEngine);
+
+    subscription.id = options.id || "<invalid_id>";
+
+    subscription.priority = options.priority || 0;
 
 
     /**
@@ -193,7 +225,7 @@ function Subscription(options) {
      * @type {number}
      * @default 1000
      */
-    self.publishingInterval = _adjust_publishing_interval(options.publishingInterval);
+    subscription.publishingInterval = _adjust_publishing_interval(options.publishingInterval);
 
     /**
      * The keep alive count defines how many times the publish interval need to
@@ -205,9 +237,9 @@ function Subscription(options) {
      * @default 10
      *
      */
-    self.maxKeepAliveCount = _adjust_maxKeepAliveCount(options.maxKeepAliveCount,self.publishingInterval);
+    subscription.maxKeepAliveCount = _adjust_maxKeepAliveCount(options.maxKeepAliveCount, subscription.publishingInterval);
 
-    self.resetKeepAliveCounter();
+    subscription.resetKeepAliveCounter();
 
     /**
      * The life time count defines how many times the publish interval expires without
@@ -221,7 +253,7 @@ function Subscription(options) {
      * @type {Number}
      * @default 1
      */
-    self.lifeTimeCount = _adjust_lifeTimeCount(options.lifeTimeCount, self.maxKeepAliveCount,self.publishingInterval);
+    subscription.lifeTimeCount = _adjust_lifeTimeCount(options.lifeTimeCount, subscription.maxKeepAliveCount, subscription.publishingInterval);
 
 
     /**
@@ -234,67 +266,78 @@ function Subscription(options) {
      * @type {Number}
      * #default 0
      */
-    self.maxNotificationsPerPublish = _adjust_maxNotificationsPerPublish(options.maxNotificationsPerPublish);
+    subscription.maxNotificationsPerPublish = _adjust_maxNotificationsPerPublish(options.maxNotificationsPerPublish);
 
-    self._life_time_counter = 0;
-    self.resetLifeTimeCounter();
+    subscription._life_time_counter = 0;
+    subscription.resetLifeTimeCounter();
 
     // notification message that are ready to be sent to the client
-    self._pending_notifications = new Dequeue();
+    subscription._pending_notifications = new Dequeue();
 
-    self._sent_notifications = [];
+    subscription._sent_notifications = [];
 
-    self._sequence_number_generator = new SequenceNumberGenerator();
+    subscription._sequence_number_generator = new SequenceNumberGenerator();
 
     // initial state of the subscription
-    self.state = SubscriptionState.CREATING;
+    subscription.state = SubscriptionState.CREATING;
 
-    self.publishIntervalCount = 0;
+    subscription.publishIntervalCount = 0;
 
-    self.monitoredItems = {}; // monitored item map
+    subscription.monitoredItems = {}; // monitored item map
 
     /**
      *  number of monitored Item
      *  @property monitoredItemIdCounter
      *  @type {Number}
      */
-    self.monitoredItemIdCounter = 0;
+    subscription.monitoredItemIdCounter = 0;
 
-    self.publishingEnabled = _adjust_publishinEnable(options.publishingEnabled);
+    subscription.publishingEnabled = _adjust_publishinEnable(options.publishingEnabled);
 
-    createSubscriptionDiagnostics(self);
+    subscription.subscriptionDiagnostics = null;
+    createSubscriptionDiagnostics(subscription);
 
     // A boolean value that is set to TRUE to mean that either a NotificationMessage or a keep-alive Message has been
     // sent on the Subscription. It is a flag that is used to ensure that either a NotificationMessage or a keep-alive
     // Message is sent out the first time the publishing timer expires.
-    self.messageSent = false;
+    subscription.messageSent = false;
 
-    self._unacknowledgedMessageCount = 0;
-    
-    self.timerId = null;
-    self._start_timer();
+    subscription._unacknowledgedMessageCount = 0;
+
+    subscription.timerId = null;
+    subscription._start_timer();
 
 }
 
 util.inherits(Subscription, EventEmitter);
 
+
+Subscription.minimumPublishingInterval = 50;  // fastest possible
+Subscription.defaultPublishingInterval = 1000; // one second
+Subscription.maximumPublishingInterval = 1000 * 60 * 60 * 24 * 15; // 15 days
+assert(Subscription.maximumPublishingInterval < 2147483647, "maximumPublishingInterval cannot exceed (2**31-1) ms ");
+
+
 var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 Subscription.registry = new ObjectRegistry();
 
 Subscription.prototype.getSessionId = function () {
-    var self = this;
-    return self._sessionId;
+    var subscription = this;
+    return subscription._sessionId;
 };
 
 Subscription.prototype.toString = function () {
 
-    var self = this;
-    var str = "";
-    str += "  publishingEnabled  " + self.publishingEnabled + "\n";
-    str += "  maxKeepAliveCount  " + self.maxKeepAliveCount + "\n";
-    str += "  publishingInterval " + self.publishingInterval + "\n";
-    str += "  lifeTimeCount      " + self.lifeTimeCount + "\n";
-    str += "  maxKeepAliveCount  " + self.maxKeepAliveCount + "\n";
+    var subscription = this;
+    var str = "Subscription:\n";
+    str += "  subscriptionId          " + subscription.id + "\n";
+    str += "  sessionId          " + subscription.getSessionId() + "\n";
+
+    str += "  publishingEnabled  " + subscription.publishingEnabled + "\n";
+    str += "  maxKeepAliveCount  " + subscription.maxKeepAliveCount + "\n";
+    str += "  publishingInterval " + subscription.publishingInterval + "\n";
+    str += "  lifeTimeCount      " + subscription.lifeTimeCount + "\n";
+    str += "  maxKeepAliveCount  " + subscription.maxKeepAliveCount + "\n";
     return str;
 };
 
@@ -309,51 +352,50 @@ Subscription.prototype.toString = function () {
  *
  */
 Subscription.prototype.modify = function (param) {
-    var self = this;
+    var subscription = this;
 
     // update diagnostic counter
-    self.subscriptionDiagnostics.modifyCount +=1;
+    subscription.subscriptionDiagnostics.modifyCount += 1;
 
-    var publishingInterval_old = self.publishingInterval;
+    var publishingInterval_old = subscription.publishingInterval;
 
     param.requestedPublishingInterval = param.requestedPublishingInterval || 0;
-    param.requestedMaxKeepAliveCount = param.requestedMaxKeepAliveCount || self.maxKeepAliveCount;
-    param.requestedLifetimeCount = param.requestedLifetimeCount || self.lifeTimeCount;
+    param.requestedMaxKeepAliveCount = param.requestedMaxKeepAliveCount || subscription.maxKeepAliveCount;
+    param.requestedLifetimeCount = param.requestedLifetimeCount || subscription.lifeTimeCount;
 
-    self.publishingInterval = _adjust_publishing_interval(param.requestedPublishingInterval);
-    self.maxKeepAliveCount = _adjust_maxKeepAliveCount(param.requestedMaxKeepAliveCount,self.publishingInterval);
-    self.lifeTimeCount = _adjust_lifeTimeCount(param.requestedLifetimeCount, self.maxKeepAliveCount,self.publishingInterval);
+    subscription.publishingInterval = _adjust_publishing_interval(param.requestedPublishingInterval);
+    subscription.maxKeepAliveCount = _adjust_maxKeepAliveCount(param.requestedMaxKeepAliveCount, subscription.publishingInterval);
+    subscription.lifeTimeCount = _adjust_lifeTimeCount(param.requestedLifetimeCount, subscription.maxKeepAliveCount, subscription.publishingInterval);
 
-    self.maxNotificationsPerPublish = param.maxNotificationsPerPublish;
-    self.priority = param.priority;
+    subscription.maxNotificationsPerPublish = param.maxNotificationsPerPublish;
+    subscription.priority = param.priority;
 
-    self.resetLifeTimeAndKeepAliveCounters();
+    subscription.resetLifeTimeAndKeepAliveCounters();
 
-    if (publishingInterval_old !== self.publishingInterval) {
+    if (publishingInterval_old !== subscription.publishingInterval) {
         // todo
     }
-    self._stop_timer();
-    self._start_timer();
+    subscription._stop_timer();
+    subscription._start_timer();
 
 };
 
 Subscription.prototype._stop_timer = function () {
-    var self = this;
-    if (self.timerId) {
-        debugLog("Subscription#_stop_timer subscriptionId=".bgWhite.blue,self.id);
-        clearInterval(self.timerId);
-        self.timerId = null;
-        Subscription.registry.unregister(self);
+    var subscription = this;
+    if (subscription.timerId) {
+        debugLog("Subscription#_stop_timer subscriptionId=".bgWhite.blue, subscription.id);
+        clearInterval(subscription.timerId);
+        subscription.timerId = null;
     }
 };
 
 
 Subscription.prototype._start_timer = function () {
 
-    var self = this;
-    debugLog("Subscription#_start_timer  subscriptionId=".bgWhite.blue,self.id," publishingInterval = ",self.publishingInterval);
+    var subscription = this;
+    debugLog("Subscription#_start_timer  subscriptionId=".bgWhite.blue, subscription.id, " publishingInterval = ", subscription.publishingInterval);
 
-    assert(self.timerId === null);
+    assert(subscription.timerId === null);
     // from the spec:
     // When a Subscription is created, the first Message is sent at the end of the first publishing cycle to
     // inform the Client that the Subscription is operational. A NotificationMessage is sent if there are
@@ -365,32 +407,26 @@ Subscription.prototype._start_timer = function () {
 
     // make sure that a keep-alive Message will be send at the end of the first publishing cycle
     // if there are no Notifications ready.
-    self._keep_alive_counter = self.maxKeepAliveCount;
+    subscription._keep_alive_counter = subscription.maxKeepAliveCount;
 
-    assert(self.publishingInterval >= minimumPublishingInterval);
-    self.timerId = setInterval(self._tick.bind(self), self.publishingInterval);
-
-    Subscription.registry.register(self);
-
+    assert(subscription.publishingInterval >= Subscription.minimumPublishingInterval);
+    subscription.timerId = setInterval(subscription._tick.bind(subscription), subscription.publishingInterval);
 };
 
 // counter
 Subscription.prototype._get_next_sequence_number = function () {
-    return this._sequence_number_generator.next();
+    return this._sequence_number_generator  ? this._sequence_number_generator.next() : 0;
 };
 
 // counter
 Subscription.prototype._get_future_sequence_number = function () {
-    return this._sequence_number_generator.future();
+    return this._sequence_number_generator ? this._sequence_number_generator.future() : 0;
 };
-
 
 Subscription.prototype.setPublishingMode = function (publishingEnabled) {
 
     this.publishingEnabled = !!publishingEnabled;
-
     // update diagnostics
-
     if (this.publishingEnabled) {
         this.subscriptionDiagnostics.enableCount += 1;
     } else {
@@ -399,7 +435,7 @@ Subscription.prototype.setPublishingMode = function (publishingEnabled) {
 
     this.resetLifeTimeCounter();
 
-    if (!publishingEnabled  && this.state !== SubscriptionState.CLOSED) {
+    if (!publishingEnabled && this.state !== SubscriptionState.CLOSED) {
         this.state = SubscriptionState.NORMAL;
     }
     return StatusCodes.Good;
@@ -415,31 +451,31 @@ Subscription.prototype.setPublishingMode = function (publishingEnabled) {
  */
 Subscription.prototype._publish_pending_notifications = function () {
 
-    var self = this;
-    var publishEngine = self.publishEngine;
-    var subscriptionId = self.id;
+    var subscription = this;
+    var publishEngine = subscription.publishEngine;
+    var subscriptionId = subscription.id;
 
     // preconditions
     assert(publishEngine.pendingPublishRequestCount > 0);
-    assert(self.hasPendingNotifications);
+    assert(subscription.hasPendingNotifications);
 
     function _count_notification_message(notifData) {
 
         if (notifData instanceof DataChangeNotification) {
-            self.subscriptionDiagnostics.dataChangeNotificationsCount += 1;
+            subscription.subscriptionDiagnostics.dataChangeNotificationsCount += 1;
         } else if (notifData instanceof EventNotificationList) {
-            self.subscriptionDiagnostics.eventNotificationsCount += 1;
+            subscription.subscriptionDiagnostics.eventNotificationsCount += 1;
         } else {
             // TODO
         }
     }
 
     // todo : get rid of this....
-    self.emit("notification");
+    subscription.emit("notification");
 
-    var notificationMessage = self._popNotificationToSend().notification;
+    var notificationMessage = subscription._popNotificationToSend().notification;
 
-    self.emit("notificationMessage",notificationMessage);
+    subscription.emit("notificationMessage", notificationMessage);
 
 
     assert(_.isArray(notificationMessage.notificationData));
@@ -450,12 +486,12 @@ Subscription.prototype._publish_pending_notifications = function () {
     assert(notificationMessage.hasOwnProperty("sequenceNumber"));
     assert(notificationMessage.hasOwnProperty("notificationData"));
 
-    var moreNotifications = (self.hasPendingNotifications);
+    var moreNotifications = (subscription.hasPendingNotifications);
 
     // update diagnostics
-    if(self.subscriptionDiagnostics) {
-        self.subscriptionDiagnostics.notificationsCount += 1;
-        self.subscriptionDiagnostics.publishRequestCount += 1;
+    if (subscription.subscriptionDiagnostics) {
+        subscription.subscriptionDiagnostics.notificationsCount += 1;
+        subscription.subscriptionDiagnostics.publishRequestCount += 1;
     }
 
     publishEngine.send_notification_message({
@@ -463,71 +499,70 @@ Subscription.prototype._publish_pending_notifications = function () {
         sequenceNumber: notificationMessage.sequenceNumber,
         notificationData: notificationMessage.notificationData,
         moreNotifications: moreNotifications
-    },false);
-    self.messageSent = true;
-    self._unacknowledgedMessageCount ++;
-    
-    self.resetLifeTimeAndKeepAliveCounters();
+    }, false);
+    subscription.messageSent = true;
+    subscription._unacknowledgedMessageCount++;
+
+    subscription.resetLifeTimeAndKeepAliveCounters();
 
     if (doDebug) {
         debugLog("Subscription sending a notificationMessage subscriptionId=", subscriptionId,
-            "sequenceNumber = ",notificationMessage.sequenceNumber.toString());
+            "sequenceNumber = ", notificationMessage.sequenceNumber.toString());
         // debugLog(notificationMessage.toString());
     }
 
-    if (self.state !== SubscriptionState.CLOSED) {
-        assert(notificationMessage.notificationData.length >0, "We are not expecting a keep-alive message here");
-        self.state = SubscriptionState.NORMAL;
-        debugLog("subscription " + self.id + " set to NORMAL".bgYellow);
+    if (subscription.state !== SubscriptionState.CLOSED) {
+        assert(notificationMessage.notificationData.length > 0, "We are not expecting a keep-alive message here");
+        subscription.state = SubscriptionState.NORMAL;
+        debugLog("subscription " + subscription.id + " set to NORMAL".bgYellow);
     }
 
 };
 
 Subscription.prototype._process_keepAlive = function () {
-    var self = this;
+    var subscription = this;
 
     //xx assert(!self.publishingEnabled || (!self.hasPendingNotifications && !self.hasMonitoredItemNotifications));
 
-    self.increaseKeepAliveCounter();
+    subscription.increaseKeepAliveCounter();
 
-    if (self.keepAliveCounterHasExpired) {
+    if (subscription.keepAliveCounterHasExpired) {
 
-        if (self._sendKeepAliveResponse()) {
+        if (subscription._sendKeepAliveResponse()) {
 
-            self.resetLifeTimeAndKeepAliveCounters();
+            subscription.resetLifeTimeAndKeepAliveCounters();
 
         } else {
             debugLog("     -> subscription.state === LATE , because keepAlive Response cannot be send due to lack of PublishRequest");
-            self.state = SubscriptionState.LATE;
+            subscription.state = SubscriptionState.LATE;
         }
     }
 };
 
 
-
 Subscription.prototype.process_subscription = function () {
 
-    var self = this;
+    var subscription = this;
 
-    assert(self.publishEngine.pendingPublishRequestCount >0);
+    assert(subscription.publishEngine.pendingPublishRequestCount > 0);
 
-    if (!self.publishingEnabled) {
+    if (!subscription.publishingEnabled) {
         // no publish to do, except keep alive
-        self._process_keepAlive();
+        subscription._process_keepAlive();
         return;
     }
 
-    if( !self.hasPendingNotifications && self.hasMonitoredItemNotifications) {
+    if (!subscription.hasPendingNotifications && subscription.hasMonitoredItemNotifications) {
         // collect notification from monitored items
-        self._harvestMonitoredItems();
+        subscription._harvestMonitoredItems();
     }
 
     // let process them first
-    if (self.hasPendingNotifications) {
+    if (subscription.hasPendingNotifications) {
 
-        self._publish_pending_notifications();
+        subscription._publish_pending_notifications();
 
-        if (self.state === SubscriptionState.NORMAL && self.hasPendingNotifications) {
+        if (subscription.state === SubscriptionState.NORMAL && subscription.hasPendingNotifications) {
 
             // istanbul ignore next
             if (doDebug) {
@@ -535,95 +570,114 @@ Subscription.prototype.process_subscription = function () {
             }
 
             // let process an new publish request
-            setImmediate(self._tick.bind(self));
+            setImmediate(subscription._tick.bind(subscription));
         }
 
     } else {
-        self._process_keepAlive();
+        subscription._process_keepAlive();
     }
 };
 
 function w(s, w) {
     return ("000" + s).substr(-w);
 }
+
 function t(d) {
     return w(d.getHours(), 2) + ":" + w(d.getMinutes(), 2) + ":" + w(d.getSeconds(), 2) + ":" + w(d.getMilliseconds(), 3);
 }
+
 /**
  * @method _tick
  * @private
  */
 Subscription.prototype._tick = function () {
 
-    var self = this;
+    var subscription = this;
 
-    self.discardOldSentNotifications();
+    debugLog("Subscription#_tick  aborted=", subscription.aborted, "state=", subscription.state.toString());
+
+    if (subscription.aborted) {
+        //xx  console.log(" Log aborteds")
+        //xx  // underlying channel has been aborted ...
+        //xx self.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
+        //xx // let's still increase lifetime counter to detect timeout
+    }
+
+
+    if (subscription.state === SubscriptionState.CLOSED) {
+        console.log("Warning: Subscription#_tick called while subscription is CLOSED");
+        return;
+    }
+
+    subscription.discardOldSentNotifications();
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog((t(new Date()) + "  " + self._life_time_counter + "/"  + self.lifeTimeCount + "   Subscription#_tick").cyan,"  processing subscriptionId=", self.id, "hasMonitoredItemNotifications = ",self.hasMonitoredItemNotifications," publishingIntervalCount =",self.publishIntervalCount);
+        debugLog((t(new Date()) + "  " + subscription._life_time_counter + "/" + subscription.lifeTimeCount + "   Subscription#_tick").cyan, "  processing subscriptionId=", subscription.id, "hasMonitoredItemNotifications = ", subscription.hasMonitoredItemNotifications, " publishingIntervalCount =", subscription.publishIntervalCount);
     }
-    if (self.publishEngine._on_tick) {
-        self.publishEngine._on_tick();
+    if (subscription.publishEngine._on_tick) {
+        subscription.publishEngine._on_tick();
     }
 
-    self.publishIntervalCount += 1;
+    subscription.publishIntervalCount += 1;
 
-    self.increaseLifeTimeCounter();
+    subscription.increaseLifeTimeCounter();
 
-    if (self.lifeTimeHasExpired) {
+    if (subscription.lifeTimeHasExpired) {
 
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog("Subscription " + self.id + " has expired !!!!! => Terminating".red.bold);
+            debugLog("Subscription " + subscription.id + " has expired !!!!! => Terminating".red.bold);
         }
         /**
          * notify the subscription owner that the subscription has expired by exceeding its life time.
          * @event expired
          *
          */
-        self.emit("expired");
+        subscription.emit("expired");
 
         // notify new terminated status only when subscription has timeout.
-        debugLog("adding StatusChangeNotification notification message for BadTimeout subscription = ", self.id);
-        self._addNotificationMessage([new StatusChangeNotification({statusCode: StatusCodes.BadTimeout})]);
+        debugLog("adding StatusChangeNotification notification message for BadTimeout subscription = ", subscription.id);
+        subscription._addNotificationMessage([new StatusChangeNotification({statusCode: StatusCodes.BadTimeout})]);
 
-        // kill timer and delete monitored items
-        self.terminate();
+        // kill timer and delete monitored items and transfer pending notification messages
+        subscription.terminate();
 
         return;
 
     }
 
-    var publishEngine = self.publishEngine;
+    var publishEngine = subscription.publishEngine;
 
     // istanbul ignore next
-    if(doDebug) { debugLog("Subscription#_tick  self._pending_notifications= ",self._pending_notifications.length);}
+    if (doDebug) {
+        debugLog("Subscription#_tick  self._pending_notifications= ", subscription._pending_notifications.length);
+    }
 
-    if (publishEngine.pendingPublishRequestCount === 0 && ( self.hasPendingNotifications || self.hasMonitoredItemNotifications) ) {
+    if (publishEngine.pendingPublishRequestCount === 0 && (subscription.hasPendingNotifications || subscription.hasMonitoredItemNotifications)) {
 
         // istanbul ignore next
         if (doDebug) {
-            debugLog("subscription set to LATE  hasPendingNotifications = ",self.hasPendingNotifications," hasMonitoredItemNotifications =",self.hasMonitoredItemNotifications);
+            debugLog("subscription set to LATE  hasPendingNotifications = ", subscription.hasPendingNotifications, " hasMonitoredItemNotifications =", subscription.hasMonitoredItemNotifications);
         }
-        self.state = SubscriptionState.LATE;
+        subscription.state = SubscriptionState.LATE;
         return;
     }
 
-    if (publishEngine.pendingPublishRequestCount > 0 ) {
+    if (publishEngine.pendingPublishRequestCount > 0) {
 
-        if (self.hasPendingNotifications) {
+        if (subscription.hasPendingNotifications) {
             // simply pop pending notification and send it
-            self.process_subscription();
+            subscription.process_subscription();
 
-        } else if (self.hasMonitoredItemNotifications) {
-            self.process_subscription();
+        } else if (subscription.hasMonitoredItemNotifications) {
+            subscription.process_subscription();
 
         } else {
-            self._process_keepAlive();
+            subscription._process_keepAlive();
         }
     } else {
-        self._process_keepAlive();
+        subscription._process_keepAlive();
     }
 };
 
@@ -634,22 +688,22 @@ Subscription.prototype._tick = function () {
  */
 Subscription.prototype._sendKeepAliveResponse = function () {
 
-    var self = this;
-    var future_sequence_number = self._get_future_sequence_number();
+    var subscription = this;
+    var future_sequence_number = subscription._get_future_sequence_number();
 
-    debugLog("     -> Subscription#_sendKeepAliveResponse subscriptionId",self.id);
+    debugLog("     -> Subscription#_sendKeepAliveResponse subscriptionId", subscription.id);
 
-    if (self.publishEngine.send_keep_alive_response(self.id, future_sequence_number)) {
+    if (subscription.publishEngine.send_keep_alive_response(subscription.id, future_sequence_number)) {
 
-        self.messageSent = true;
+        subscription.messageSent = true;
 
         /**
          * notify the subscription owner that a keepalive message has to be sent.
          * @event keepalive
          *
          */
-        self.emit("keepalive", future_sequence_number);
-        self.state = SubscriptionState.KEEPALIVE;
+        subscription.emit("keepalive", future_sequence_number);
+        subscription.state = SubscriptionState.KEEPALIVE;
 
         return true;
     }
@@ -664,12 +718,12 @@ Subscription.prototype._sendKeepAliveResponse = function () {
  * the CreateSubscription Service( 5.13.2).
  */
 Subscription.prototype.resetKeepAliveCounter = function () {
-    var self = this;
-    self._keep_alive_counter = 0;
+    var subscription = this;
+    subscription._keep_alive_counter = 0;
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("     -> subscriptionId",self.id," Resetting keepAliveCounter = ",self._keep_alive_counter,self.maxKeepAliveCount);
+        debugLog("     -> subscriptionId", subscription.id, " Resetting keepAliveCounter = ", subscription._keep_alive_counter, subscription.maxKeepAliveCount);
     }
 };
 
@@ -678,12 +732,12 @@ Subscription.prototype.resetKeepAliveCounter = function () {
  * @private
  */
 Subscription.prototype.increaseKeepAliveCounter = function () {
-    var self = this;
-    self._keep_alive_counter += 1;
+    var subscription = this;
+    subscription._keep_alive_counter += 1;
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("     -> subscriptionId",self.id," Increasing keepAliveCounter = ", self._keep_alive_counter, self.maxKeepAliveCount);
+        debugLog("     -> subscriptionId", subscription.id, " Increasing keepAliveCounter = ", subscription._keep_alive_counter, subscription.maxKeepAliveCount);
     }
 };
 
@@ -693,8 +747,8 @@ Subscription.prototype.increaseKeepAliveCounter = function () {
  * @type {Boolean} true if the keep alive counter has reach its limit.
  */
 Subscription.prototype.__defineGetter__("keepAliveCounterHasExpired", function () {
-    var self = this;
-    return self._keep_alive_counter >= self.maxKeepAliveCount;
+    var subscription = this;
+    return subscription._keep_alive_counter >= subscription.maxKeepAliveCount;
 });
 
 
@@ -705,16 +759,16 @@ Subscription.prototype.__defineGetter__("keepAliveCounterHasExpired", function (
  * @private
  */
 Subscription.prototype.resetLifeTimeCounter = function () {
-    var self = this;
-    self._life_time_counter = 0;
+    var subscription = this;
+    subscription._life_time_counter = 0;
 };
 /**
  * @method increaseLifeTimeCounter
  * @private
  */
 Subscription.prototype.increaseLifeTimeCounter = function () {
-    var self = this;
-    self._life_time_counter += 1;
+    var subscription = this;
+    subscription._life_time_counter += 1;
 };
 
 /**
@@ -724,9 +778,9 @@ Subscription.prototype.increaseLifeTimeCounter = function () {
  * @type {boolean} - true if the subscription life time has expired.
  */
 Subscription.prototype.__defineGetter__("lifeTimeHasExpired", function () {
-    var self = this;
-    assert(self.lifeTimeCount > 0);
-    return self._life_time_counter >= self.lifeTimeCount;
+    var subscription = this;
+    assert(subscription.lifeTimeCount > 0);
+    return subscription._life_time_counter >= subscription.lifeTimeCount;
 });
 
 /**
@@ -735,13 +789,13 @@ Subscription.prototype.__defineGetter__("lifeTimeHasExpired", function () {
  * @type {Number}
  */
 Subscription.prototype.__defineGetter__("timeToExpiration", function () {
-    var self = this;
-    return (self.lifeTimeCount - self._life_time_counter ) * self.publishingInterval;
+    var subscription = this;
+    return (subscription.lifeTimeCount - subscription._life_time_counter) * subscription.publishingInterval;
 });
 
 Subscription.prototype.__defineGetter__("timeToKeepAlive", function () {
-    var self = this;
-    return (self.maxKeepAliveCount - self._keep_alive_counter ) * self.publishingInterval;
+    var subscription = this;
+    return (subscription.maxKeepAliveCount - subscription._keep_alive_counter) * subscription.publishingInterval;
 });
 
 /**
@@ -754,9 +808,9 @@ Subscription.prototype.__defineGetter__("timeToKeepAlive", function () {
  *
  */
 Subscription.prototype.resetLifeTimeAndKeepAliveCounters = function () {
-    var self = this;
-    self.resetLifeTimeCounter();
-    self.resetKeepAliveCounter();
+    var subscription = this;
+    subscription.resetLifeTimeCounter();
+    subscription.resetKeepAliveCounter();
 };
 
 /**
@@ -770,45 +824,89 @@ Subscription.prototype.terminate = function () {
 
     assert(arguments.length === 0);
 
-    var self = this;
+    var subscription = this;
+    debugLog("Subscription#terminate status", subscription.state);
 
-    if (self.state === SubscriptionState.CLOSED) {
+    if (subscription.state === SubscriptionState.CLOSED) {
         // todo verify if asserting is required here
         return;
     }
-    assert(self.state !== SubscriptionState.CLOSED, "terminate already called ?");
+    assert(subscription.state !== SubscriptionState.CLOSED, "terminate already called ?");
 
     // stop timer
-    self._stop_timer();
+    subscription._stop_timer();
 
-    debugLog("terminating Subscription  ", self.id, " with ", self.monitoredItemCount, " monitored items");
+    debugLog("terminating Subscription  ", subscription.id, " with ", subscription.monitoredItemCount, " monitored items");
 
     // dispose all monitoredItem
-    var keys = Object.keys(self.monitoredItems);
+    var keys = Object.keys(subscription.monitoredItems);
 
-    keys.forEach(function (key) {
-        var status = self.removeMonitoredItem(key);
+    for (var key of keys) {
+        var status = subscription.removeMonitoredItem(key);
         assert(status === StatusCodes.Good);
-    });
+    }
+    assert(subscription.monitoredItemCount === 0);
 
-    assert(self.monitoredItemCount === 0);
 
-
-    self.state = SubscriptionState.CLOSED;
-
-    self.publishEngine.on_close_subscription(self);
+    if (subscription.$session) {
+        subscription.$session._unexposeSubscriptionDiagnostics(subscription);
+    }
+    subscription.state = SubscriptionState.CLOSED;
 
     /**
      * notify the subscription owner that the subscription has been terminated.
      * @event "terminated"
      */
-    self.emit("terminated");
+    subscription.emit("terminated");
+
+    subscription.publishEngine.on_close_subscription(subscription);
+
 };
+
+Subscription.prototype.dispose = function () {
+
+    var subscription = this;
+
+
+    if (doDebug) {
+        debugLog("Subscription#dispose" ,subscription.id, subscription.monitoredItemCount);
+    }
+
+    assert(subscription.monitoredItemCount === 0, "MonitoredItems haven't been  deleted first !!!");
+    assert(subscription.timerId === null, "Subscription timer haven't been terminated");
+
+    if (subscription.subscriptionDiagnostics) {
+        subscription.subscriptionDiagnostics.$subscription = null;
+        subscription.subscriptionDiagnostics = null;
+    }
+
+    subscription.publishEngine = null;
+    subscription._pending_notifications = null;
+    subscription._sent_notifications = null;
+
+    subscription._sessionId = null;
+    subscription._sequence_number_generator = null;
+
+    subscription.$session = null;
+    subscription.removeAllListeners();
+
+    Subscription.registry.unregister(subscription);
+
+};
+
+Subscription.prototype.__defineGetter__("aborted", function () {
+    var subscription = this;
+    var session = subscription.$session;
+    if (!session) {
+        return true;
+    }
+    return session.aborted;
+});
 
 function assert_validNotificationData(n) {
     assert(
         n instanceof DataChangeNotification ||
-        n instanceof EventNotificationList  ||
+        n instanceof EventNotificationList ||
         n instanceof StatusChangeNotification
     );
 }
@@ -823,10 +921,10 @@ Subscription.prototype._addNotificationMessage = function (notificationData) {
     assert(notificationData.length === 1 || notificationData.length === 2); // as per spec part 3.
 
     // istanbul ignore next
-    if (false && doDebug) {
-        debugLog("Subscription#_addNotificationMessage".yellow,notificationData.toString());
+    if (doDebug) {
+        debugLog("Subscription#_addNotificationMessage".yellow, notificationData.toString());
     }
-    var self = this;
+    var subscription = this;
     assert(_.isObject(notificationData[0]));
 
     assert_validNotificationData(notificationData[0]);
@@ -835,30 +933,31 @@ Subscription.prototype._addNotificationMessage = function (notificationData) {
     }
 
     var notification_message = new NotificationMessage({
-        sequenceNumber: self._get_next_sequence_number(),
+        sequenceNumber: subscription._get_next_sequence_number(),
         publishTime: new Date(),
         notificationData: notificationData
     });
 
-    self._pending_notifications.push({
+    subscription._pending_notifications.push({
         notification: notification_message,
-        start_tick: self.publishIntervalCount,
+        start_tick: subscription.publishIntervalCount,
         publishTime: new Date(),
         sequenceNumber: notification_message.sequenceNumber
     });
+    debugLog("pending notification to send ", subscription._pending_notifications.length);
 
 };
 
 
 Subscription.prototype.getMessageForSequenceNumber = function (sequenceNumber) {
 
-    var self = this;
+    var subscription = this;
 
     function filter_func(e) {
         return e.sequenceNumber === sequenceNumber;
     }
 
-    var notification_message = _.find(self._sent_notifications, filter_func);
+    var notification_message = _.find(subscription._sent_notifications, filter_func);
 
     if (!notification_message) {
         return null;
@@ -873,10 +972,10 @@ Subscription.prototype.getMessageForSequenceNumber = function (sequenceNumber) {
  * @return {NotificationMessage}  the Notification to send._pending_notifications
  */
 Subscription.prototype._popNotificationToSend = function () {
-    var self = this;
-    assert(self._pending_notifications.length >0);
-    var notification_message = self._pending_notifications.shift();
-    self._sent_notifications.push(notification_message);
+    var subscription = this;
+    assert(subscription._pending_notifications.length > 0);
+    var notification_message = subscription._pending_notifications.shift();
+    subscription._sent_notifications.push(notification_message);
     return notification_message;
 };
 
@@ -887,10 +986,10 @@ Subscription.prototype._popNotificationToSend = function () {
  * @return {boolean}
  */
 Subscription.prototype.notificationHasExpired = function (notification) {
-    var self = this;
+    var subscription = this;
     assert(notification.hasOwnProperty("start_tick"));
-    assert(_.isFinite(notification.start_tick + self.maxKeepAliveCount));
-    return (notification.start_tick + self.maxKeepAliveCount) < self.publishIntervalCount;
+    assert(_.isFinite(notification.start_tick + subscription.maxKeepAliveCount));
+    return (notification.start_tick + subscription.maxKeepAliveCount) < subscription.publishIntervalCount;
 };
 
 var maxNotificationMessagesInQueue = 100;
@@ -907,7 +1006,7 @@ var maxNotificationMessagesInQueue = 100;
  */
 Subscription.prototype.discardOldSentNotifications = function () {
 
-    var self = this;
+    var subscription = this;
 
     // Sessions maintain a retransmission queue of sent NotificationMessages. NotificationMessages
     // are retained in this queue until they are acknowledged. The Session shall maintain a
@@ -916,9 +1015,9 @@ Subscription.prototype.discardOldSentNotifications = function () {
     // case of a retransmission queue overflow, the oldest sent NotificationMessage gets deleted. If a
     // Subscription is transferred to another Session, the queued NotificationMessages for this
     // Subscription are moved from the old to the new Session.
-    if (maxNotificationMessagesInQueue <= self._sent_notifications.length) {
-        debugLog("discardOldSentNotifications = ",self._sent_notifications.length);
-        self._sent_notifications.splice(self._sent_notifications.length - maxNotificationMessagesInQueue);
+    if (maxNotificationMessagesInQueue <= subscription._sent_notifications.length) {
+        debugLog("discardOldSentNotifications = ", subscription._sent_notifications.length);
+        subscription._sent_notifications.splice(subscription._sent_notifications.length - maxNotificationMessagesInQueue);
     }
     //
     //var arr = _.filter(self._sent_notifications,function(notification){
@@ -935,6 +1034,7 @@ function getSequenceNumbers(arr) {
         return e.notification.sequenceNumber;
     });
 }
+
 /**
  *  returns in an array the sequence numbers of the notifications that haven't been
  *  acknowledged yet.
@@ -944,8 +1044,8 @@ function getSequenceNumbers(arr) {
  *
  */
 Subscription.prototype.getAvailableSequenceNumbers = function () {
-    var self = this;
-    var availableSequenceNumbers = getSequenceNumbers(self._sent_notifications);
+    var subscription = this;
+    var availableSequenceNumbers = getSequenceNumbers(subscription._sent_notifications);
     return availableSequenceNumbers;
 };
 
@@ -956,10 +1056,10 @@ Subscription.prototype.getAvailableSequenceNumbers = function () {
  * @return {StatusCode}
  */
 Subscription.prototype.acknowledgeNotification = function (sequenceNumber) {
-    var self = this;
+    var subscription = this;
 
     var foundIndex = -1;
-    _.find(self._sent_notifications, function (e, index) {
+    _.find(subscription._sent_notifications, function (e, index) {
         if (e.sequenceNumber === sequenceNumber) {
             foundIndex = index;
         }
@@ -973,8 +1073,8 @@ Subscription.prototype.acknowledgeNotification = function (sequenceNumber) {
         if (doDebug) {
             debugLog("acknowledging sequence ".yellow, sequenceNumber.toString().cyan);
         }
-        self._sent_notifications.splice(foundIndex, 1);
-        self._unacknowledgedMessageCount --;
+        subscription._sent_notifications.splice(foundIndex, 1);
+        subscription._unacknowledgedMessageCount--;
         return StatusCodes.Good;
     }
 };
@@ -986,7 +1086,7 @@ Subscription.prototype.acknowledgeNotification = function (sequenceNumber) {
  * @type {Number}
  */
 Subscription.prototype.__defineGetter__("pendingNotificationsCount", function () {
-    return this._pending_notifications.length;
+    return this._pending_notifications ? this._pending_notifications.length : 0;
 });
 
 /**
@@ -996,8 +1096,8 @@ Subscription.prototype.__defineGetter__("pendingNotificationsCount", function ()
  * @type {Boolean}
  */
 Subscription.prototype.__defineGetter__("hasPendingNotifications", function () {
-    var self = this;
-    return self.pendingNotificationsCount > 0;
+    var subscription = this;
+    return subscription.pendingNotificationsCount > 0;
 });
 
 /**
@@ -1025,9 +1125,9 @@ Subscription.prototype.__defineGetter__("monitoredItemCount", function () {
  */
 Subscription.prototype.__defineGetter__("disabledMonitoredItemCount", function () {
 
-    return  _.reduce(_.values(this.monitoredItems),function(cumul,monitoredItem) {
-        return cumul + ( (monitoredItem.monitoringMode === MonitoringMode.Disabled ) ? 1 : 0 );
-    },0);
+    return _.reduce(_.values(this.monitoredItems), function (cumul, monitoredItem) {
+        return cumul + ((monitoredItem.monitoringMode === MonitoringMode.Disabled) ? 1 : 0);
+    }, 0);
 
 });
 
@@ -1037,10 +1137,9 @@ Subscription.prototype.__defineGetter__("disabledMonitoredItemCount", function (
  * @type {Number}
  */
 Subscription.prototype.__defineGetter__("unacknowledgedMessageCount", function () {
-    var self = this;
-    return self._unacknowledgedMessageCount;
+    var subscription = this;
+    return subscription._unacknowledgedMessageCount;
 });
-
 
 
 var MonitoredItem = require("./monitored_item").MonitoredItem;
@@ -1062,15 +1161,15 @@ var MonitoredItemCreateRequest = require("node-opcua-service-subscription").Moni
  */
 Subscription.prototype.adjustSamplingInterval = function (samplingInterval, node) {
 
-    var self = this;
+    var subscription = this;
 
     if (samplingInterval < 0) {
         // - The value -1 indicates that the default sampling interval defined by the publishing
         //   interval of the Subscription is requested.
         // - Any negative number is interpreted as -1.
-        samplingInterval = self.publishingInterval;
+        samplingInterval = subscription.publishingInterval;
 
-    } else if (samplingInterval === 0 ) {
+    } else if (samplingInterval === 0) {
 
         // OPCUA 1.0.3 Part 4 - 5.12.1.2
         // The value 0 indicates that the Server should use the fastest practical rate.
@@ -1085,7 +1184,7 @@ Subscription.prototype.adjustSamplingInterval = function (samplingInterval, node
         if (dataValueSamplingInterval.statusCode === StatusCodes.Good) {
             // node provides a Minimum sampling interval ...
             samplingInterval = dataValueSamplingInterval.value.value;
-            assert(samplingInterval >=0 && samplingInterval <= MonitoredItem.maximumSamplingInterval);
+            assert(samplingInterval >= 0 && samplingInterval <= MonitoredItem.maximumSamplingInterval);
 
             // note : at this stage, a samplingInterval===0 means that the data item is really exception-based
 
@@ -1124,11 +1223,13 @@ function analyseEventFilterResult(node, eventFilter) {
         whereClauseResult: whereClauseResult
     });
 }
+
 function analyseDataChangeFilterResult(node, dataChangeFilter) {
     assert(dataChangeFilter instanceof subscription_service.DataChangeFilter);
     // the opcua specification doesn't provide dataChangeFilterResult
     return null;
 }
+
 function analyseAggregateFilterResult(node, aggregateFilter) {
     assert(aggregateFilter instanceof subscription_service.AggregateFilter);
     return new subscription_service.AggregateFilterResult({});
@@ -1155,7 +1256,7 @@ function _process_filter(node, filter) {
 
 Subscription.prototype.createMonitoredItem = function (addressSpace, timestampsToReturn, monitoredItemCreateRequest) {
 
-    var self = this;
+    var subscription = this;
     assert(addressSpace.constructor.name === "AddressSpace");
     assert(monitoredItemCreateRequest instanceof MonitoredItemCreateRequest);
 
@@ -1201,35 +1302,37 @@ Subscription.prototype.createMonitoredItem = function (addressSpace, timestampsT
     // filter
     var requestedParameters = monitoredItemCreateRequest.requestedParameters;
     var filter = requestedParameters.filter;
-    var statusCodeFilter = validateFilter(filter, itemToMonitor , node);
+    var statusCodeFilter = validateFilter(filter, itemToMonitor, node);
     if (statusCodeFilter !== StatusCodes.Good) {
         return handle_error(statusCodeFilter);
     }
     //xx var monitoringMode      = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
     //xx var requestedParameters = monitoredItemCreateRequest.requestedParameters;
 
-    var monitoredItemCreateResult = self._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
+    var monitoredItemCreateResult = subscription._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
 
     assert(monitoredItemCreateResult.statusCode === StatusCodes.Good);
 
-    var monitoredItem = self.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+    var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
     assert(monitoredItem);
 
     // TODO: fix old way to set node. !!!!
     monitoredItem.setNode(node);
 
-    self.emit("monitoredItem", monitoredItem, itemToMonitor);
+    subscription.emit("monitoredItem", monitoredItem, itemToMonitor);
 
-    self._createMonitoredItemStep3(monitoredItem,monitoredItemCreateRequest);
+    subscription._createMonitoredItemStep3(monitoredItem, monitoredItemCreateRequest);
 
     return monitoredItemCreateResult;
 
 };
 
-var g_monitoredItemId =1;
+var g_monitoredItemId = 1;
+
 function getNextMonitoredItemId() {
     return g_monitoredItemId++;
 }
+
 /**
  *
  * @method _createMonitoredItemStep2
@@ -1241,7 +1344,7 @@ function getNextMonitoredItemId() {
  */
 Subscription.prototype._createMonitoredItemStep2 = function (timestampsToReturn, monitoredItemCreateRequest, node) {
 
-    var self = this;
+    var subscription = this;
 
     // note : most of the parameter inconsistencies shall have been handled by the caller
     // any error here will raise an assert here
@@ -1252,7 +1355,7 @@ Subscription.prototype._createMonitoredItemStep2 = function (timestampsToReturn,
     //xx check if attribute Id invalid (we only support Value or EventNotifier )
     //xx assert(itemToMonitor.attributeId !== AttributeIds.INVALID);
 
-    self.monitoredItemIdCounter += 1;
+    subscription.monitoredItemIdCounter += 1;
 
 
     var monitoredItemId = getNextMonitoredItemId();
@@ -1260,7 +1363,7 @@ Subscription.prototype._createMonitoredItemStep2 = function (timestampsToReturn,
     var requestedParameters = monitoredItemCreateRequest.requestedParameters;
 
     // adjust requestedParameters.samplingInterval
-    requestedParameters.samplingInterval = self.adjustSamplingInterval(requestedParameters.samplingInterval, node);
+    requestedParameters.samplingInterval = subscription.adjustSamplingInterval(requestedParameters.samplingInterval, node);
 
     // reincorporate monitoredItemId and itemToMonitor into the requestedParameters
     requestedParameters.monitoredItemId = monitoredItemId;
@@ -1269,10 +1372,10 @@ Subscription.prototype._createMonitoredItemStep2 = function (timestampsToReturn,
 
     var monitoredItem = new MonitoredItem(requestedParameters);
     monitoredItem.timestampsToReturn = timestampsToReturn;
-    monitoredItem.$subscription = self;
+    monitoredItem.$subscription = subscription;
 
     assert(monitoredItem.monitoredItemId === monitoredItemId);
-    self.monitoredItems[monitoredItemId] = monitoredItem;
+    subscription.monitoredItems[monitoredItemId] = monitoredItem;
 
     var filterResult = _process_filter(node, requestedParameters.filter);
 
@@ -1288,7 +1391,7 @@ Subscription.prototype._createMonitoredItemStep2 = function (timestampsToReturn,
 };
 
 
-Subscription.prototype._createMonitoredItemStep3 = function (monitoredItem,monitoredItemCreateRequest) {
+Subscription.prototype._createMonitoredItemStep3 = function (monitoredItem, monitoredItemCreateRequest) {
 
     assert(monitoredItem.monitoringMode === MonitoringMode.Invalid);
     assert(_.isFunction(monitoredItem.samplingFunc));
@@ -1305,8 +1408,8 @@ Subscription.prototype._createMonitoredItemStep3 = function (monitoredItem,monit
  */
 Subscription.prototype.getMonitoredItem = function (monitoredItemId) {
     assert(_.isFinite(monitoredItemId));
-    var self = this;
-    return self.monitoredItems[monitoredItemId];
+    var subscription = this;
+    return subscription.monitoredItems[monitoredItemId];
 };
 
 /**
@@ -1344,20 +1447,20 @@ Subscription.prototype.getMonitoredItems = function (/*out*/ result) {
     return result;
 };
 
-MonitoredItem.prototype.resendInitialValues = function() {
+MonitoredItem.prototype.resendInitialValues = function () {
     // tte first Publish response(s) after the TransferSubscriptions call shall contain the current values of all
     // Monitored Items in the Subscription where the Monitoring Mode is set to Reporting.
     // the first Publish response after the TransferSubscriptions call shall contain only the value changes since
     // the last Publish response was sent.
     // This parameter only applies to MonitoredItems used for monitoring Attribute changes.
-    var self = this;
-    self._stop_sampling();
-    self._start_sampling(true);
+    var subscription = this;
+    subscription._stop_sampling();
+    subscription._start_sampling(true);
 };
 
-Subscription.prototype.resendInitialValues = function(){
+Subscription.prototype.resendInitialValues = function () {
     var subscription = this;
-    _.forEach(subscription.monitoredItems,function (monitoredItem/*,monitoredItemId*/) {
+    _.forEach(subscription.monitoredItems, function (monitoredItem/*,monitoredItemId*/) {
         monitoredItem.resendInitialValues();
     });
 };
@@ -1373,14 +1476,16 @@ Subscription.prototype.removeMonitoredItem = function (monitoredItemId) {
     debugLog("Removing monitoredIem ", monitoredItemId);
 
     assert(_.isFinite(monitoredItemId));
-    var self = this;
-    if (!self.monitoredItems.hasOwnProperty(monitoredItemId)) {
+    var subscription = this;
+    if (!subscription.monitoredItems.hasOwnProperty(monitoredItemId)) {
         return StatusCodes.BadMonitoredItemIdInvalid;
     }
 
-    var monitoredItem = self.monitoredItems[monitoredItemId];
+    var monitoredItem = subscription.monitoredItems[monitoredItemId];
 
     monitoredItem.terminate();
+
+    monitoredItem.dispose();
 
     /**
      *
@@ -1388,14 +1493,13 @@ Subscription.prototype.removeMonitoredItem = function (monitoredItemId) {
      * @event removeMonitoredItem
      * @param monitoredItem {MonitoredItem}
      */
-    self.emit("removeMonitoredItem", monitoredItem);
+    subscription.emit("removeMonitoredItem", monitoredItem);
 
-    delete self.monitoredItems[monitoredItemId];
+    delete subscription.monitoredItems[monitoredItemId];
 
     return StatusCodes.Good;
 
 };
-
 
 
 /**
@@ -1403,18 +1507,18 @@ Subscription.prototype.removeMonitoredItem = function (monitoredItemId) {
  * @type {Boolean}
  */
 Subscription.prototype.__defineGetter__("hasMonitoredItemNotifications", function () {
-    var self = this;
-    if (self._hasMonitoredItemNotifications) {
+    var subscription = this;
+    if (subscription._hasMonitoredItemNotifications) {
         return true;
     }
-    var keys = Object.keys(self.monitoredItems);
-    var i,key;
+    var keys = Object.keys(subscription.monitoredItems);
+    var i, key;
     var n = keys.length;
-    for (i=0;i<n;i++) {
+    for (i = 0; i < n; i++) {
         key = keys[i];
-        var monitoredItem = self.monitoredItems[key];
+        var monitoredItem = subscription.monitoredItems[key];
         if (monitoredItem.hasMonitoredItemNotifications) {
-            self._hasMonitoredItemNotifications = true;
+            subscription._hasMonitoredItemNotifications = true;
             return true;
         }
     }
@@ -1444,36 +1548,37 @@ function extract_notifications_chunk(monitoredItems, maxNotificationsPerPublish)
     return chunk_monitoredItems;
 }
 
-function add_all_in(notifications,all_notifications) {
-  for(var i =0;i <notifications.length;i++) {
-      var n = notifications[i];
-      all_notifications.push(n);
-  }
+function add_all_in(notifications, all_notifications) {
+    for (var i = 0; i < notifications.length; i++) {
+        var n = notifications[i];
+        all_notifications.push(n);
+    }
 }
 
-function filter_instanceof(Class,e) {
+function filter_instanceof(Class, e) {
     return (e instanceof Class);
 }
+
 // collect DataChangeNotification
 Subscription.prototype._collectNotificationData = function () {
 
-    var self = this;
+    var subscription = this;
     var notifications = [];
 
     // reset cache ...
-    self._hasMonitoredItemNotifications = false;
+    subscription._hasMonitoredItemNotifications = false;
 
     var all_notifications = new Dequeue();
 
     // visit all monitored items
-    var keys = Object.keys(self.monitoredItems);
-    var i,key;
+    var keys = Object.keys(subscription.monitoredItems);
+    var i, key;
     var n = keys.length;
-    for (i=0;i<n;i++) {
+    for (i = 0; i < n; i++) {
         key = keys[i];
-        var monitoredItem = self.monitoredItems[key];
+        var monitoredItem = subscription.monitoredItems[key];
         notifications = monitoredItem.extractMonitoredItemNotifications();
-        add_all_in(notifications,all_notifications);
+        add_all_in(notifications, all_notifications);
     }
 
     var notificationsMessage = [];
@@ -1482,13 +1587,13 @@ Subscription.prototype._collectNotificationData = function () {
 
         // split into one or multiple dataChangeNotification with no more than
         //  self.maxNotificationsPerPublish monitoredItems
-        var notifications_chunk = extract_notifications_chunk(all_notifications, self.maxNotificationsPerPublish);
+        var notifications_chunk = extract_notifications_chunk(all_notifications, subscription.maxNotificationsPerPublish);
 
         // separate data for DataChangeNotification (MonitoredItemNotification) from data for EventNotificationList(EventFieldList)
-        var dataChangedNotificationData = notifications_chunk.filter(filter_instanceof.bind(null,subscription_service.MonitoredItemNotification));
-        var eventNotificationListData = notifications_chunk.filter(filter_instanceof.bind(null,subscription_service.EventFieldList));
+        var dataChangedNotificationData = notifications_chunk.filter(filter_instanceof.bind(null, subscription_service.MonitoredItemNotification));
+        var eventNotificationListData = notifications_chunk.filter(filter_instanceof.bind(null, subscription_service.EventFieldList));
 
-        assert(notifications_chunk.length === dataChangedNotificationData.length +  eventNotificationListData.length);
+        assert(notifications_chunk.length === dataChangedNotificationData.length + eventNotificationListData.length);
 
         notifications = [];
 
@@ -1520,42 +1625,44 @@ Subscription.prototype._collectNotificationData = function () {
 
 Subscription.prototype._harvestMonitoredItems = function () {
 
-    var self = this;
+    var subscription = this;
 
     // Only collect data change notification for the time being
-    var notificationData = self._collectNotificationData();
+    var notificationData = subscription._collectNotificationData();
     assert(notificationData instanceof Array);
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("Subscription#_harvestMonitoredItems =>",notificationData.length);
+        debugLog("Subscription#_harvestMonitoredItems =>", notificationData.length);
     }
     notificationData.forEach(function (notificationMessage) {
-        self._addNotificationMessage(notificationMessage);
+        subscription._addNotificationMessage(notificationMessage);
     });
-    self._hasMonitoredItemNotifications = false;
+    subscription._hasMonitoredItemNotifications = false;
 
 };
-Subscription.prototype.__defineGetter__("subscriptionId",function(){ return this.id; });
+Subscription.prototype.__defineGetter__("subscriptionId", function () {
+    return this.id;
+});
 
 
-Subscription.prototype.notifyTransfer = function() {
+Subscription.prototype.notifyTransfer = function () {
 
     // OPCUA UA Spec 1.0.3 : part 3 - page 82 - 5.13.7 TransferSubscriptions:
     // If the Server transfers the Subscription to the new Session, the Server shall issue a StatusChangeNotification
     // notificationMessage with the status code Good_SubscriptionTransferred to the old Session.
-    var self = this;
+    var subscription = this;
 
     debugLog(" Subscription => Notifying Transfer                                  ".red);
 
     var notificationData = [new StatusChangeNotification({statusCode: StatusCodes.GoodSubscriptionTransferred})];
 
-    self.publishEngine.send_notification_message({
-        subscriptionId: self.id,
-        sequenceNumber: self._get_next_sequence_number(),
+    subscription.publishEngine.send_notification_message({
+        subscriptionId: subscription.id,
+        sequenceNumber: subscription._get_next_sequence_number(),
         notificationData: notificationData,
         moreNotifications: false
-    },true);
+    }, true);
 
 };
 

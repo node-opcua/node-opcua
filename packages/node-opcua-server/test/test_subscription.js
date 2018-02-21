@@ -14,7 +14,8 @@ var MonitoredItem = require("../src/monitored_item").MonitoredItem;
 var AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 var SessionContext = require("node-opcua-address-space").SessionContext;
-var fake_publish_engine = {};
+var fake_publish_engine = {
+};
 
 
 var fakeNotificationData =[new subscription_service.DataChangeNotification()];
@@ -72,6 +73,7 @@ describe("Subscriptions", function () {
             subscription1.lifeTimeCount.should.eql(60,"lifeTimeCount shall be unchanged because it is at least 3 times maxKeepAliveCount");
 
             subscription1.terminate();
+            subscription1.dispose();
 
         }
         {
@@ -85,6 +87,7 @@ describe("Subscriptions", function () {
             subscription2.maxKeepAliveCount.should.eql(20);
             subscription2.lifeTimeCount.should.eql(60,"lifeTimeCount must be adjusted to be at least 3 times maxKeepAliveCount");
             subscription2.terminate();
+            subscription2.dispose();
         }
 
     });
@@ -141,6 +144,7 @@ describe("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -205,6 +209,7 @@ describe("Subscriptions", function () {
 
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -251,6 +256,7 @@ describe("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -326,6 +332,7 @@ describe("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -415,7 +422,10 @@ describe("Subscriptions", function () {
                 done();
             });
             subscription.terminate();
+            subscription.dispose();
             subscription = null;
+            publish_engine.shutdown();
+            publish_engine.dispose();
         });
 
         it(" - case 1 - publish Request arrives before first publishInterval is over ", function (done) {
@@ -601,6 +611,7 @@ describe("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(1);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -634,6 +645,7 @@ describe("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(1);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -682,6 +694,7 @@ describe("Subscriptions", function () {
         keepalive_event_spy.callCount.should.equal(3);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -723,6 +736,7 @@ describe("Subscriptions", function () {
         subscription.pendingNotificationsCount.should.equal(3);
 
         subscription.terminate();
+        subscription.dispose();
 
 
     });
@@ -758,6 +772,7 @@ describe("Subscriptions", function () {
         subscription.sentNotificationsCount.should.equal(2);
 
         subscription.terminate();
+        subscription.dispose();
 
 
     });
@@ -808,6 +823,7 @@ describe("Subscriptions", function () {
             subscription.sentNotificationsCount.should.equal(0);
 
             subscription.terminate();
+            subscription.dispose();
 
         });
 
@@ -849,6 +865,7 @@ describe("Subscriptions", function () {
             message.sequenceNumber.should.eql(seqNum);
 
             subscription.terminate();
+            subscription.dispose();
 
         });
 
@@ -887,6 +904,7 @@ describe("Subscriptions", function () {
             subscription.sentNotificationsCount.should.equal(0);
 
             subscription.terminate();
+            subscription.dispose();
         });
 
     });
@@ -936,6 +954,7 @@ describe("Subscriptions", function () {
         notification_event_spy.callCount.should.equal(0);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("T14 - a subscription send a first message at the end of the first publishing cycle without waiting for the maximum  count to be reached", function () {
@@ -988,6 +1007,7 @@ describe("Subscriptions", function () {
         notification_event_spy.callCount.should.eql(1);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -1002,6 +1022,7 @@ describe("Subscriptions", function () {
         subscription._get_future_sequence_number().should.equal(4);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("T16 - should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist", function () {
@@ -1012,6 +1033,7 @@ describe("Subscriptions", function () {
         subscription.removeMonitoredItem(26).should.eql(StatusCodes.BadMonitoredItemIdInvalid);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -1092,6 +1114,7 @@ describe("Subscription#setPublishingMode", function () {
         notification_event_spy.callCount.should.be.greaterThan(4);
 
         subscription.terminate();
+        subscription.dispose();
 
         done();
     });
@@ -1143,6 +1166,7 @@ describe("Subscription#setPublishingMode", function () {
         notification_event_spy.callCount.should.eql(0);
 
         subscription.terminate();
+        subscription.dispose();
         done();
     });
 
@@ -1194,6 +1218,7 @@ describe("Subscription#setPublishingMode", function () {
         clearInterval(t);
 
         subscription.terminate();
+        subscription.dispose();
         done();
 
 
@@ -1255,6 +1280,7 @@ describe("Subscription#setPublishingMode", function () {
         clearInterval(t);
 
         subscription.terminate();
+        subscription.dispose();
         done();
 
     })
@@ -1286,6 +1312,7 @@ describe("Subscription#adjustSamplingInterval", function () {
         subscription.adjustSamplingInterval(-1).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     var fake_node = {
@@ -1302,24 +1329,28 @@ describe("Subscription#adjustSamplingInterval", function () {
         subscription.adjustSamplingInterval(-0.02,fake_node).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(0,fake_node).should.eql(0);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should adjust sampling interval to minimum when requested sampling interval === 1", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(1,fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should adjust sampling interval to maximum when requested sampling interval is too high", function () {
         var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(1E10,fake_node).should.eql(MonitoredItem.maximumSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should return an unmodified sampling interval when requested sampling is in valid range", function () {
@@ -1327,6 +1358,7 @@ describe("Subscription#adjustSamplingInterval", function () {
         var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval) / 2.0;
         subscription.adjustSamplingInterval(someValidSamplingInterval,fake_node).should.eql(someValidSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low", function () {
@@ -1334,6 +1366,7 @@ describe("Subscription#adjustSamplingInterval", function () {
         var someVeryLowSamplingInterval = 1;
         subscription.adjustSamplingInterval(someVeryLowSamplingInterval,fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
 });

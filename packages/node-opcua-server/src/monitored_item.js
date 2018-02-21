@@ -129,6 +129,10 @@ function MonitoredItem(options) {
     if (doDebug) {
         debugLog("Monitoring ", options.itemToMonitor.toString());
     }
+
+    self._on_node_disposed = null;
+
+    MonitoredItem.registry.register(self);
 }
 
 util.inherits(MonitoredItem, EventEmitter);
@@ -159,18 +163,32 @@ MonitoredItem.prototype.__defineSetter__("node", function () {
     throw new Error("Unexpected way to set node");
 });
 
+
+
+function _on_node_disposed(monitoredItem) {
+    var node = this;
+    monitoredItem._on_value_changed(new DataValue({sourceTimestamp: new Date(),statusCode: StatusCodes.BadNodeIdInvalid}));
+    monitoredItem._stop_sampling();
+
+}
+
 MonitoredItem.prototype.setNode = function (node) {
     var self = this;
     assert(!self.node || self.node === node, "node already set");
     self._node = node;
     self._semantic_version = node.semantic_version;
+
+
+    assert( self._on_node_disposed ===null,"setNode has been called already ???");
+    self._on_node_disposed = _on_node_disposed.bind(null,self);
+    self._node.on("dispose",self._on_node_disposed);
+
 };
 
 MonitoredItem.prototype._stop_sampling = function () {
 
     var self = this;
-
-    MonitoredItem.registry.unregister(self);
+    debugLog("MonitoredItem#_stop_sampling");
 
     if (self._on_opcua_event_received_callback) {
         assert(_.isFunction(self._on_opcua_event_received_callback));
@@ -184,7 +202,6 @@ MonitoredItem.prototype._stop_sampling = function () {
         var event_name = BaseNode.makeAttributeEventName(self.itemToMonitor.attributeId);
         self.node.removeListener(event_name, self._attribute_changed_callback);
         self._attribute_changed_callback = null;
-
     }
 
     if (self._value_changed_callback) {
@@ -195,8 +212,8 @@ MonitoredItem.prototype._stop_sampling = function () {
 
         self.node.removeListener("value_changed", self._value_changed_callback);
         self._value_changed_callback = null;
-
     }
+
     if (self._semantic_changed_callback) {
         assert(_.isFunction(self._semantic_changed_callback));
         assert(!self._samplingId);
@@ -271,7 +288,6 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
     self._stop_sampling();
 
-    MonitoredItem.registry.register(self);
 
     var context = new SessionContext({session: self._getSession(),server: self.server});
 
@@ -403,6 +419,47 @@ MonitoredItem.prototype.terminate = function () {
     self._stop_sampling();
 };
 
+MonitoredItem.prototype.dispose = function() {
+    var self = this;
+
+    if (doDebug) {
+        debugLog("DISPOSING MONITORED ITEM" , self._node.nodeId.toString());
+    }
+
+    self._stop_sampling();
+
+    MonitoredItem.registry.unregister(self);
+
+    if (self._on_node_disposed) {
+        self._node.removeListener("dispose",self._on_node_disposed);
+        self._on_node_disposed = null;
+    }
+
+    //x assert(self._samplingId === null,"Sampling Id must be null");
+    self.oldDataValue = null;
+    self.queue = null;
+    self.itemToMonitor = null;
+    self.filter = null;
+    self.monitoredItemId = null;
+    self._node = null;
+    self._semantic_version = 0;
+
+    self.$subscription = null;
+
+    self.removeAllListeners();
+
+    assert(!self._samplingId);
+    assert(!self._value_changed_callback);
+    assert(!self._semantic_changed_callback);
+    assert(!self._attribute_changed_callback);
+    assert(!self._on_opcua_event_received_callback);
+    self._on_opcua_event_received_callback = null;
+    self._attribute_changed_callback = null;
+    self._semantic_changed_callback = null;
+    self._on_opcua_event_received_callback = null;
+
+};
+
 /**
  * @method _on_sampling_timer
  * @private
@@ -437,6 +494,11 @@ MonitoredItem.prototype._on_sampling_timer = function () {
 
         self.samplingFunc.call(self, self.oldDataValue, function (err, newDataValue) {
 
+            if(!self._samplingId) {
+                // item has been dispose .... the monitored item has been disposed while the async sampling func
+                // was taking place ... just ignore this
+                return;
+            }
             if (err) {
                 console.log(" SAMPLING ERROR =>", err);
             } else {
@@ -615,7 +677,7 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest , inde
 
     assert(dataValue instanceof DataValue);
     assert(dataValue !== self.oldDataValue,               "recordValue expects different dataValue to be provided");
-    assert(!dataValue.value  || dataValue.value !== self.oldDataValue.value,   "recordValue expects different dataValue.value to be provided");
+    assert(!dataValue.value || dataValue.value !== self.oldDataValue.value,   "recordValue expects different dataValue.value to be provided");
     assert(!dataValue.value  || dataValue.value.isValid(),"expecting a valid variant value");
 
     var hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
@@ -635,6 +697,7 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest , inde
         }
     }
 
+    assert( self.itemToMonitor,"must have a valid itemToMonitor(have this monitoredItem been disposed already ?");
     // extract the range that we are interested with
     dataValue = extractRange(dataValue, self.itemToMonitor.indexRange);
 
@@ -754,6 +817,7 @@ function isGoodish(statusCode) {
     return statusCode.value < 0x10000000;
 }
 
+
 /**
  * @method _enqueue_value
  * @param dataValue {DataValue} the dataValue to enquue
@@ -819,6 +883,7 @@ MonitoredItem.prototype._empty_queue = function () {
     self.overflow = false;
 
 };
+
 
 
 MonitoredItem.prototype.__defineGetter__("hasMonitoredItemNotifications", function () {
@@ -910,13 +975,15 @@ var useCommonTimer = true;
 MonitoredItem.prototype._clear_timer = function () {
 
     var self = this;
+
+    //xx console.log("MonitoredItem#_clear_timer",self._samplingId);
     if (self._samplingId) {
         if (useCommonTimer) {
             removeFromTimer(self);
         } else {
             clearInterval(self._samplingId);
         }
-        self._samplingId = 0;
+        self._samplingId = null;
     }
 };
 
@@ -934,6 +1001,7 @@ MonitoredItem.prototype._set_timer = function () {
             self._on_sampling_timer();
         }, self.samplingInterval);
     }
+    //xx console.log("MonitoredItem#_set_timer",self._samplingId);
 
 };
 

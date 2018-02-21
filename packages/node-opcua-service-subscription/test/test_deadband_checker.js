@@ -56,7 +56,7 @@ describe("test DeadBand Checker",function() {
     var vInt64_1000 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [0, 1000] });
     var vInt64_1010 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [0, 1010] });
 
-    console.log("vInt64_1000",vInt64_1000.toString());
+    //xx console.log("vInt64_1000",vInt64_1000.toString());
     var vInt64_L1000 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [1, 1000] });
     var vInt64_L1010 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [1, 1010] });
 

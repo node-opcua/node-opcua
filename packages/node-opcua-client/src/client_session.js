@@ -1568,9 +1568,9 @@ ClientSession.prototype.toString = function () {
     var now = Date.now();
     var session = this;
     console.log(" name..................... ", session.name);
-    console.log(" sessionId................ ", session.sessionId);
-    console.log(" authenticationToken...... ", session.authenticationToken);
-    console.log(" timeout.................. ", session.timeout);
+    console.log(" sessionId................ ", session.sessionId.toString());
+    console.log(" authenticationToken...... ", session.authenticationToken.toString());
+    console.log(" timeout.................. ", session.timeout , "ms");
     console.log(" serverNonce.............. ", session.serverNonce.toString("hex"));
     console.log(" serverCertificate........ ", session.serverCertificate.toString("base64"));
     console.log(" serverSignature.......... ", session.serverSignature);

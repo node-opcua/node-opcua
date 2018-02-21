@@ -28,6 +28,8 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 var OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
 
 var ClientSecureChannelLayer = require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer;
+var ClientSession = require("./client_session").ClientSession;
+
 
 var defaultConnectionStrategy = {
     maxRetry: 100,
@@ -49,9 +51,12 @@ var defaultConnectionStrategy = {
  * @param [options.connectionStrategy] {Object}
  * @param [options.keepSessionAlive=false]{Boolean}
  * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLiveTime
+ * @param [options.keepPendingSessionsOnDisconnect=false] if set to true, pending session will not be automatically closed *
+ *                                                  when disconnect is called
  * @constructor
  */
 function OPCUAClientBase(options) {
+
 
     options = options || {};
 
@@ -128,6 +133,13 @@ function OPCUAClientBase(options) {
      * @type {options.connectionStrategy|{maxRetry, initialDelay, maxDelay, randomisationFactor}|*|{maxRetry: number, initialDelay: number, maxDelay: number, randomisationFactor: number}}
      */
     this.connectionStrategy = options.connectionStrategy || defaultConnectionStrategy;
+
+
+    /***
+     * @property keepPendingSessionsOnDisconnect²
+     * @type {boolean}
+     */
+    this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
 }
 
 util.inherits(OPCUAClientBase, EventEmitter);
@@ -782,6 +794,7 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
 };
 
 
+
 OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
 
     assert(_.isFunction(callback));
@@ -789,7 +802,7 @@ OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
 
     var sessions = _.clone(self._sessions);
     async.map(sessions, function (session, next) {
-
+        assert(session instanceof ClientSession);
         assert(session._client === self);
         session.close(function (err) {
             // We should not bother if we have an error here
@@ -833,9 +846,11 @@ OPCUAClientBase.prototype._removeSession = function (session) {
     var self = this;
     var index = self._sessions.indexOf(session);
     if (index >= 0) {
-        self._sessions.splice(index, 1);
+        var s = self._sessions.splice(index, 1)[0];
+        assert(s === session);
         assert(!_.contains(self._sessions, session));
-        session.dispose();
+        assert(session._client === self)
+        session._client = null;
     }
     assert(!_.contains(self._sessions, session));
 };
@@ -862,7 +877,8 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
             self.disconnect(callback);
         });
     }
-    if (self._sessions.length) {
+
+    if (self._sessions.length && !self.keepPendingSessionsOnDisconnect) {
         debugLog("warning : disconnection : closing pending sessions");
         // disconnect has been called whereas living session exists
         // we need to close them first ....
@@ -872,6 +888,13 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
         return;
     }
 
+    if (self._sessions.length ) {
+        // transfer active session to  orphan and detach them from channel
+        _.forEach(self._sessions,function(session) {
+            self._removeSession(session)
+        });
+        self._sessions = [];
+    }
     assert(self._sessions.length === 0, " attempt to disconnect a client with live sessions ");
 
     OPCUAClientBase.registry.unregister(self);

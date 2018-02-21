@@ -132,9 +132,9 @@ describe("testing Client - Umbrella ", function () {
                 function (callback) {
 
                     session.readVariableValue(sessionDiagnosticsSummaryNodeId, function (err, dataValue) {
-                        console.log("\n\n-----------------------------------------------------------------------------------------------------------");
-                        console.log(dataValue.value.value.toString());
-                        console.log("-----------------------------------------------------------------------------------------------------------");
+                        //xx console.log("\n\n-----------------------------------------------------------------------------------------------------------");
+                        //xx console.log(dataValue.value.value.toString());
+                        //xx console.log("-----------------------------------------------------------------------------------------------------------");
                         callback(err);
                     });
                 }
@@ -246,5 +246,5 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_433")(test);
     require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./u_test_e2e_sessionDiagnostics")(test);
-
+    require("./u_test_e2e_issue_activate_an_expired_session")(test);
 });

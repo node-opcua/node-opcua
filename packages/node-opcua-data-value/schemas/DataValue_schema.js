@@ -181,7 +181,7 @@ var DataValue_Schema = {
         if (_.isObject(self.value)) {
             assert(self.value);
             assert(self.value instanceof Variant);
-            assert(self.value.isValid());
+            return self.value.isValid();
         } else {
             assert(!self.value);
             // in this case StatusCode shall not be Good

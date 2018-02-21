@@ -21,6 +21,7 @@ var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSe
 
 var utils = require("node-opcua-utils");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+var forceGarbageCollectionOnSessionClose = false;
 
 var ServerEngine = require("./server_engine").ServerEngine;
 
@@ -545,12 +546,26 @@ OPCUAServer.prototype.shutdown = function (timeout, callback) {
         debugLog("OPCUAServer#shutdown: started");
         OPCUABaseServer.prototype.shutdown.call(self, function (err) {
             debugLog("OPCUAServer#shutdown: completed");
-            OPCUAServer.registry.unregister(self);
+
+            self.dispose();
             callback(err);
         });
 
     }, timeout);
 
+};
+
+OPCUAServer.prototype.dispose = function() {
+
+    var self = this;
+
+
+    self.endpoints.forEach(function(endpoint){ endpoint.dispose();  });
+    self.endpoints = [];
+
+    self.removeAllListeners();
+
+    OPCUAServer.registry.unregister(self);
 };
 
 var computeSignature = require("node-opcua-secure-channel").computeSignature;
@@ -596,36 +611,15 @@ function channel_has_session(channel, session) {
     return false;
 }
 
-function channel_unregisterSession(channel, session) {
-    assert(session.nonce && session.nonce instanceof Buffer);
-    var key = session.authenticationToken.toString("hex");
-    assert(channel.sessionTokens.hasOwnProperty(key));
-    assert(session.channel);
-    delete channel.sessionTokens[key];
-    session.channel = null;
-    session.secureChannelId = null;
-}
-
-function channel_registerSession(channel, session) {
-    assert(session.nonce && session.nonce instanceof Buffer);
-    session.channel = channel;
-    session.secureChannelId = channel.secureChannelId;
-    var key = session.authenticationToken.toString("hex");
-    assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
-    channel.sessionTokens[key] = session;
-}
-
 function moveSessionToChannel(session, channel) {
 
+    debugLog("moveSessionToChannel sessionId",session.sessionId," channelId=",channel.secureChannelId   );
     if (session.publishEngine) {
         session.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
     }
 
-    // unregister all session
-    channel_unregisterSession(session.channel, session);
-
-    //
-    channel_registerSession(channel, session);
+    session._detach_channel();
+    session._attach_channel(channel);
 
     assert(session.channel.secureChannelId === channel.secureChannelId);
 
@@ -832,7 +826,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     session.nonce = server.makeServerNonce();
     session.secureChannelId = channel.secureChannelId;
 
-    channel_registerSession(channel, session);
+    session._attach_channel(channel);
 
     var serverCertificateChain = server.getCertificateChain();
 
@@ -1447,8 +1441,8 @@ OPCUAServer.prototype._apply_on_SessionObject = function (ResponseClass, message
     /* istanbul ignore next */
     if (!message.session || message.session_statusCode !== StatusCodes.Good) {
         var errMessage = "INVALID SESSION  !! ";
-        debugLog(errMessage.red.bold);
         response = new ResponseClass({responseHeader: {serviceResult: message.session_statusCode}});
+        debugLog(errMessage.red.bold , message.session_statusCode.toString().yellow,response.constructor.name);
         return sendResponse(response);
     }
 
@@ -1460,7 +1454,6 @@ OPCUAServer.prototype._apply_on_SessionObject = function (ResponseClass, message
     // for the  Client  from its  SessionDiagnostics Array  Variable  and notifies any other  Clients  who were
     // subscribed to this entry.
     if (message.session.status === "closed") {
-
         //note : use StatusCodes.BadSessionClosed , for pending message for this session
         //xx console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx message.session.status ".red.bold,message.session.status.toString().cyan);
         return sendError(StatusCodes.BadSessionIdInvalid);
@@ -1610,7 +1603,20 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
     }
     response = new CloseSessionResponse({});
     sendResponse(response);
-};
+
+
+    if (forceGarbageCollectionOnSessionClose) {
+        if (global.gc) {
+            global.gc(true);
+            try {
+                require("heapdump").writeSnapshot();
+            }
+            catch(err) {
+
+            }
+        }
+    }
+ };
 
 
 // browse services
@@ -1994,7 +2000,7 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
         };
     }
 
-    monitoredItem.setNode(node);
+    /////!!monitoredItem.setNode(node);
 
     if (itemToMonitor.attributeId === AttributeIds.Value) {
 
@@ -2059,8 +2065,6 @@ OPCUAServer.prototype._on_CreateSubscriptionRequest = function (message, channel
         }
 
         var subscription = session.createSubscription(request);
-
-        subscription.$session = session;
 
         subscription.on("monitoredItem", function (monitoredItem) {
             prepareMonitoredItem(context, addressSpace, monitoredItem);

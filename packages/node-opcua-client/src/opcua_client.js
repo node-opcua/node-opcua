@@ -550,7 +550,7 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
         return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
     }
 
-    assert(session._client.endpointUrl === self.endpointUrl, "cannot reactivateSession on a different endpoint");
+    assert(!session._client || session._client.endpointUrl === self.endpointUrl, "cannot reactivateSession on a different endpoint");
     var old_client = session._client;
 
     debugLog("OPCUAClient#reactivateSession");
@@ -560,10 +560,14 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
 
             if (old_client !== self) {
                 // remove session from old client:
-                old_client._removeSession(session);
-                assert(!_.contains(old_client._sessions, session));
+                if (old_client) {
+                    old_client._removeSession(session);
+                    assert(!_.contains(old_client._sessions, session));
+                 }
 
                 self._addSession(session);
+                assert(session._client === self);
+                assert(!session.closed,"session should not vbe closed");
                 assert(_.contains(self._sessions, session));
             }
 
@@ -571,7 +575,7 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
 
             // istanbul ignore next
             if (doDebug) {
-                console.log("reactivateSession has failed !".red.bgWhite, err);
+                console.log("reactivateSession has failed !".red.bgWhite, err.message);
             }
         }
         callback(err);
@@ -710,6 +714,8 @@ OPCUAClient.prototype.closeSession = function (session, deleteSubscriptions, cal
         session.emitCloseEvent();
 
         self._removeSession(session);
+        session.dispose();
+
         assert(!_.contains(self._sessions, session));
         assert(session._closed, "session must indicate it is closed");
 
@@ -722,7 +728,7 @@ OPCUAClient.prototype._ask_for_subscription_republish = function (session, callb
     debugLog("_ask_for_subscription_republish ".bgCyan.yellow.bold);
     //xx assert(session.getPublishEngine().nbPendingPublishRequests === 0, "at this time, publish request queue shall still be empty");
     session.getPublishEngine().republish(function (err) {
-        debugLog("_ask_for_subscription_republish done".bgCyan.yellow.bold);
+        debugLog("_ask_for_subscription_republish done ".bgCyan.bold.green,err ? err.message:"OKs");
         // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
         session.resumePublishEngine();
         callback(err);
@@ -827,13 +833,15 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
         var sessions = self._sessions;
         async.map(sessions, function (session, next) {
 
-            debugLog("OPCUAClient#_on_connection_reestablished TRYING TO REACTIVATE SESSION");
+            if(doDebug) {
+                debugLog("OPCUAClient#_on_connection_reestablished TRYING TO REACTIVATE EXISTING SESSION ",session.sessionId.toString());
+            }
             self._activateSession(session, function (err) {
                 //
                 // Note: current limitation :
                 //  - The reconnection doesn't work if connection break is cause by a server that crashes and restarts yet.
                 //
-                debugLog("ActivateSession : ", err ? err.message : "");
+                debugLog("ActivateSession : ", err ? err.message : " SUCCEESS !!! ");
                 if (err) {
                     if (session.hasBeenClosed()) {
                         debugLog("Aborting reactivation of old session because user requested session to be closed".bgWhite.red);
@@ -907,7 +915,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                     ], next);
 
                 } else {
-                    //      call Republish
+                    // call Republish
                     return self._ask_for_subscription_republish(session, next);
                 }
             });

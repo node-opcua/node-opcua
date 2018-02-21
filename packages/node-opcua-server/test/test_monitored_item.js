@@ -51,6 +51,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.isSampling.should.eql(false);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -80,6 +81,7 @@ describe("Server Side MonitoredItem", function () {
         spy_samplingEventCall.callCount.should.be.greaterThan(6,"we should have been sampling");
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -102,6 +104,7 @@ describe("Server Side MonitoredItem", function () {
 
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
 
     });
@@ -139,6 +142,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.overflow.should.eql(true);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -176,6 +180,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.overflow.should.eql(true);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -204,6 +209,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.sourceTimestamp.should.eql(now);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -241,6 +247,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.sourcePicoseconds.should.eql(picoseconds);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
 
     });
@@ -280,6 +287,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.samplingFunc.callCount.should.eql(4);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
 
     });
@@ -305,10 +313,12 @@ describe("Server Side MonitoredItem", function () {
         var nbCalls = monitoredItem.samplingFunc.callCount;
 
         monitoredItem.terminate();
+
         this.clock.tick(2000);
         monitoredItem.samplingFunc.callCount.should.eql(nbCalls);
 
 
+        monitoredItem.dispose();
         done();
     });
 
@@ -336,6 +346,7 @@ describe("Server Side MonitoredItem", function () {
         result.revisedQueueSize.should.not.eql(0xFFFFF);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -373,6 +384,7 @@ describe("Server Side MonitoredItem", function () {
         result.revisedSamplingInterval.should.not.eql(1);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -428,6 +440,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -482,6 +495,7 @@ describe("Server Side MonitoredItem", function () {
 //xx        monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -544,6 +558,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -575,6 +590,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue.length.should.eql(0);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
     });
 
     it("should set the OverflowBit as specified in the example in specification - Fig 17 Queue overflow handling    ",function() {
@@ -647,7 +663,10 @@ describe("Server Side MonitoredItem", function () {
         f(monitoredItemF).should.eql([o,o,o,X]);
 
         monitoredItemF.terminate();
+        monitoredItemF.dispose();
+
         monitoredItemT.terminate();
+        monitoredItemT.dispose();
 
     });
 
@@ -685,6 +704,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -722,6 +742,7 @@ describe("Server Side MonitoredItem", function () {
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
         done();
     });
 
@@ -781,6 +802,7 @@ describe("MonitoredItem with DataChangeFilter", function () {
         monitoredItem.queue.length.should.eql(3);
         monitoredItem.queue[2].value.should.eql(dataValue4);
         monitoredItem.terminate();
+        monitoredItem.dispose();
     });
 
     it("XXX should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue ", function () {
@@ -823,6 +845,7 @@ describe("MonitoredItem with DataChangeFilter", function () {
         monitoredItem.queue[3].value.should.eql(dataValue4);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
     });
 
     it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8", function () {
@@ -884,6 +907,7 @@ describe("MonitoredItem with DataChangeFilter", function () {
         monitoredItem.queue[4].value.should.eql(dataValue8);
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
     });
 
     it("should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 20%", function () {
@@ -906,5 +930,6 @@ describe("MonitoredItem with DataChangeFilter", function () {
         });
 
         monitoredItem.terminate();
+        monitoredItem.dispose();
     });
 });

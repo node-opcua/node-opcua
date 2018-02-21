@@ -8,8 +8,12 @@ var Mocha = require("mocha"),
 
 require("mocha-clean");
 
-var filterOpts = process.argv[2];
+var filterOpts = process.argv[process.argv.length-1];
 
+if (filterOpts.match(/run_all_mocha/)) {
+    filterOpts= "";
+}
+console.log("filterOpts",filterOpts);
 // Instantiate a Mocha instance.
 var mocha = new Mocha({
     bail: false,

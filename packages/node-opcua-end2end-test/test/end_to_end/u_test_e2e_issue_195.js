@@ -29,8 +29,8 @@ module.exports = function (test) {
                     function (callback) {
                         var parameters = {
                             requestedPublishingInterval: 100000,
-                            requestedLifetimeCount: 10,
-                            requestedMaxKeepAliveCount: 2
+                            requestedLifetimeCount:      60,
+                            requestedMaxKeepAliveCount:  10
                         };
                         the_subscription = new opcua.ClientSubscription(the_session, parameters);
                         the_subscription.on("started",function() {
@@ -129,7 +129,7 @@ module.exports = function (test) {
 
         });
 
-        it("#195-B a client shall detect when the server has closed a session due to timeout and  inactive subscriptions", function (done) {
+        it("NXX1 #195-B a client shall detect when the server has closed a session due to timeout and  inactive subscriptions", function (done) {
 
             var the_session;
 
@@ -145,7 +145,7 @@ module.exports = function (test) {
             if (!server) { return done(); }
 
             var client1 = new OPCUAClient({
-                requestedSessionTimeout: 2500,
+                requestedSessionTimeout: 2500, // very short session timeout ....
                 keepSessionAlive: false
             });
 
@@ -176,14 +176,12 @@ module.exports = function (test) {
                 function (callback) {
                     var parameters = {
                         requestedPublishingInterval: 1000,
-                        requestedLifetimeCount:      100000,
-                        requestedMaxKeepAliveCount:  50
+                        requestedLifetimeCount:      100000,  // very long subscription lifetime
+                        requestedMaxKeepAliveCount:  1000
                     };
                     the_subscription = new opcua.ClientSubscription(the_session, parameters);
                     the_subscription.on("started",function() {
-
                         subscriptionId =the_subscription.subscriptionId;
-
                         callback();
                     }).on("internal_error", function (err) {
                         console.log(" received internal error", err.message);
@@ -235,8 +233,11 @@ module.exports = function (test) {
                 },
 
                 function( callback) {
-                    _.isNumber(subscriptionId).should.eql(true);
+
+                _.isNumber(subscriptionId).should.eql(true);
+
                     console.log("transferring subscription", subscriptionId);
+
                     the_session.transferSubscriptions({
                         subscriptionIds: [ subscriptionId]
                     },function(err,response){
@@ -244,7 +245,8 @@ module.exports = function (test) {
                         response.results[0].statusCode.should.eql(opcua.StatusCodes.Good);
                         callback();
                     });
-                },
+
+                    },
                 function(callback) {
                     the_session.close(callback);
                 },

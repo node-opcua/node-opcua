@@ -151,8 +151,8 @@ module.exports = function (test) {
                         registeredNodeIds[0].toString().should.not.eql(nodesToRegister[0].toString());
                         dataValue1.statusCode.toString().should.eql(dataValue2.statusCode.toString());
 
-                        console.log(dataValue1.toString());
-                        console.log(dataValue2.toString());
+                        //xx console.log(dataValue1.toString());
+                        //xx console.log(dataValue2.toString());
 
                         dataValue1.value.toString().should.eql(dataValue2.value.toString());
                         callback();

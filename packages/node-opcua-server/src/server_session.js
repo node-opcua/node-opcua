@@ -3,26 +3,30 @@
  * @module opcua.server
  */
 
+var _ = require("underscore");
+var crypto = require("crypto");
+
 var NodeId = require("node-opcua-nodeid").NodeId;
 var NodeIdType = require("node-opcua-nodeid").NodeIdType;
 var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var ContinuationPointManager = require("./continuation_point_manager").ContinuationPointManager;
 var NodeClass = require("node-opcua-data-model").NodeClass;
 
 var DataValue = require("node-opcua-data-value").DataValue;
 var VariableIds = require("node-opcua-constants").VariableIds;
 
 var ec = require("node-opcua-basic-types");
-var crypto = require("crypto");
 var assert = require("node-opcua-assert");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
-var _ = require("underscore");
+var eoan = require("node-opcua-address-space");
+var makeNodeId = require("node-opcua-nodeid").makeNodeId;
+var ObjectIds = require("node-opcua-constants").ObjectIds;
 
 var WatchDog = require("node-opcua-utils/src/watchdog").WatchDog;
-
 var theWatchDog = new WatchDog();
+
+var ContinuationPointManager = require("./continuation_point_manager").ContinuationPointManager;
 
 var utils = require("node-opcua-utils");
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
@@ -60,65 +64,96 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  */
 function ServerSession(parent, sessionId, sessionTimeout) {
 
-    var self = this;
-    self.parent = parent; // SessionEngine
+    var session = this;
 
-    EventEmitter.apply(self, arguments);
+    session.parent = parent; // SessionEngine
+
+    EventEmitter.apply(session, arguments);
+
+    ServerSession.registry.register(session);
 
     assert(_.isFinite(sessionId));
     assert(sessionId !== 0, " sessionId is null/empty. this is not allowed");
 
     assert(_.isFinite(sessionTimeout));
     assert(sessionTimeout >= 0, " sessionTimeout");
-    self.sessionTimeout = sessionTimeout;
+    session.sessionTimeout = sessionTimeout;
 
     var authenticationTokenBuf = crypto.randomBytes(16);
-    self.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
+    session.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
 
     // the sessionId
-    self.nodeId = new NodeId(NodeIdType.GUID, ec.randomGuid(), 1);
+    session.nodeId = new NodeId(NodeIdType.GUID, ec.randomGuid(), 1);
 
-    assert(self.authenticationToken instanceof NodeId);
-    assert(self.nodeId instanceof NodeId);
+    assert(session.authenticationToken instanceof NodeId);
+    assert(session.nodeId instanceof NodeId);
 
-    self._cumulatedSubscriptionCount = 0;
+    session._cumulatedSubscriptionCount = 0;
 
-    self.publishEngine = new ServerSidePublishEngine({
+    session.publishEngine = new ServerSidePublishEngine({
         maxPublishRequestInQueue: ServerSession.maxPublishRequestInQueue
     });
 
-    self.publishEngine.setMaxListeners(100);
+    session.publishEngine.setMaxListeners(100);
 
-    theWatchDog.addSubscriber(self, self.sessionTimeout);
+    theWatchDog.addSubscriber(session, session.sessionTimeout);
 
-    self.__status = "new";
+    session.__status = "new";
 
     /**
      * the continuation point manager for this session
      * @property continuationPointManager
      * @type {ContinuationPointManager}
      */
-    self.continuationPointManager = new ContinuationPointManager();
+    session.continuationPointManager = new ContinuationPointManager();
 
     /**
      * @property creationDate
      * @type {Date}
      */
-    self.creationDate = new Date();
+    session.creationDate = new Date();
 
 
-    self._registeredNodesCounter = 0;
-    self._registeredNodes    = {};
-    self._registeredNodesInv = {};
+    session._registeredNodesCounter = 0;
+    session._registeredNodes    = {};
+    session._registeredNodesInv = {};
 }
 
 util.inherits(ServerSession, EventEmitter);
 
+var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+ServerSession.registry = new ObjectRegistry();
+
+ServerSession.prototype.dispose = function() {
+
+    debugLog("ServerSession#dispose()");
+
+    var self = this;
+
+    assert(!self.sessionObject," sessionObject has not been cleared !");
+
+    self.parent = null;
+    self.authenticationToken = null;
+
+    if (self.publishEngine) {
+        self.publishEngine.dispose();
+        self.publishEngine = null;
+    }
+
+    self._sessionDiagnostics = null;
+
+    self._registeredNodesCounter = 0;
+    self._registeredNodes    = null;
+    self._registeredNodesInv = null;
+    self.continuationPointManager = null;
+    self.removeAllListeners();
+    self.__status = "disposed";
+
+    ServerSession.registry.unregister(self);
+
+};
 ServerSession.maxPublishRequestInQueue = 100;
 
-var eoan = require("node-opcua-address-space");
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var ObjectIds = require("node-opcua-constants").ObjectIds;
 
 Object.defineProperty(ServerSession.prototype, "clientConnectionTime", {
     get: function () {
@@ -149,7 +184,7 @@ Object.defineProperty(ServerSession.prototype, "status", {
 });
 
 ServerSession.prototype.__defineGetter__("addressSpace", function () {
-    return this.parent.addressSpace;
+    return this.parent ? this.parent.addressSpace : null;
 });
 
 ServerSession.prototype.__defineGetter__("currentPublishRequestInQueue", function () {
@@ -163,18 +198,14 @@ var ServiceCounter = require("node-opcua-common").ServiceCounter;
 var SessionDiagnostics = require("node-opcua-common").SessionDiagnostics;
 var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
-
 
 ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
-    var self = this;
-    if (self._sessionDiagnostics && self._sessionDiagnostics.clientLastContactTime) {
+    var session = this;
+    if (session._sessionDiagnostics && session._sessionDiagnostics.clientLastContactTime) {
         currentTime = currentTime || new Date();
         // do not record all ticks as this may be overwhelming,
-        if (currentTime.getTime() - 250 >= self._sessionDiagnostics.clientLastContactTime.getTime()) {
-            self._sessionDiagnostics.clientLastContactTime = currentTime;
+        if (currentTime.getTime() - 250 >= session._sessionDiagnostics.clientLastContactTime.getTime()) {
+            session._sessionDiagnostics.clientLastContactTime = currentTime;
         }
     }
 };
@@ -187,81 +218,82 @@ ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
  * @private
  */
 ServerSession.prototype.onClientSeen = function (currentTime) {
-    var self = this;
+    var session = this;
 
-    self.updateClientLastContactTime(currentTime);
+    session.updateClientLastContactTime(currentTime);
 
-    if (self._sessionDiagnostics) {
+    if (session._sessionDiagnostics) {
         // see https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
-        assert(self._sessionDiagnostics.hasOwnProperty("currentMonitoredItemsCount"));
-        assert(self._sessionDiagnostics.hasOwnProperty("currentSubscriptionsCount"));
-        assert(self._sessionDiagnostics.hasOwnProperty("currentPublishRequestsInQueue"));
+        assert(session._sessionDiagnostics.hasOwnProperty("currentMonitoredItemsCount"));
+        assert(session._sessionDiagnostics.hasOwnProperty("currentSubscriptionsCount"));
+        assert(session._sessionDiagnostics.hasOwnProperty("currentPublishRequestsInQueue"));
 
         // note : https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
         // sessionDiagnostics extension object uses a different spelling
         // here with an S !!!!
-        self._sessionDiagnostics.currentMonitoredItemsCount = self.currentMonitoredItemCount;
-        self._sessionDiagnostics.currentSubscriptionsCount = self.currentSubscriptionCount;
-        self._sessionDiagnostics.currentPublishRequestsInQueue = self.currentPublishRequestInQueue;
+        session._sessionDiagnostics.currentMonitoredItemsCount = session.currentMonitoredItemCount;
+        session._sessionDiagnostics.currentSubscriptionsCount = session.currentSubscriptionCount;
+        session._sessionDiagnostics.currentPublishRequestsInQueue = session.currentPublishRequestInQueue;
     }
 };
 
 ServerSession.prototype.incrementTotalRequestCount = function () {
 
-    var self = this;
-    if (self._sessionDiagnostics && self._sessionDiagnostics.totalRequestCount) {
-        self._sessionDiagnostics.totalRequestCount.totalCount += 1;
+    var session = this;
+    if (session._sessionDiagnostics && session._sessionDiagnostics.totalRequestCount) {
+        session._sessionDiagnostics.totalRequestCount.totalCount += 1;
     }
 };
 
 var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
 ServerSession.prototype.incrementRequestTotalCounter = function (counterName) {
-    var self = this;
-    if (self._sessionDiagnostics) {
+    var session = this;
+    if (session._sessionDiagnostics) {
         var propName = lowerFirstLetter(counterName + "Count");
-        if (!self._sessionDiagnostics.hasOwnProperty(propName)) {
+        if (!session._sessionDiagnostics.hasOwnProperty(propName)) {
             console.log(" cannot find", propName);
             //xx return;
         }
         //   console.log(self._sessionDiagnostics.toString());
-        self._sessionDiagnostics[propName].totalCount = self._sessionDiagnostics[propName].totalCount + 1;
+        session._sessionDiagnostics[propName].totalCount = session._sessionDiagnostics[propName].totalCount + 1;
     }
 };
 ServerSession.prototype.incrementRequestErrorCounter = function (counterName) {
-    var self = this;
-    if (self._sessionDiagnostics) {
+    var session = this;
+    if (session._sessionDiagnostics) {
         var propName = lowerFirstLetter(counterName + "Count");
-        if (!self._sessionDiagnostics.hasOwnProperty(propName)) {
+        if (!session._sessionDiagnostics.hasOwnProperty(propName)) {
             console.log(" cannot find", propName);
             //xx  return;
         }
-        self._sessionDiagnostics[propName].errorCount += 1;
+        session._sessionDiagnostics[propName].errorCount += 1;
     }
 };
 
+/**
+ * return rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary
+ * @returns {UAObject}
+ */
 ServerSession.prototype.getSessionDiagnosticsArray = function () {
     var self = this;
     return self.addressSpace.rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
 };
 
-
 ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
-    var self = this;
-    if (self.sessionObject) {
+    var session = this;
+    if (session.sessionObject) {
         return;
     }
+    assert(!session.sessionObject, "ServerSession#_createSessionObjectInAddressSpace already called ?");
 
-
-    assert(!self.sessionObject, "ServerSession#_createSessionObjectInAddressSpace already called ?");
-
-    self.sessionObject = null;
-    if (!self.addressSpace) {
+    session.sessionObject = null;
+    if (!session.addressSpace) {
         debugLog("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
         return; // no addressSpace
     }
-    var root = self.addressSpace.findNode(makeNodeId(ObjectIds.RootFolder));
+    var root = session.addressSpace.findNode(makeNodeId(ObjectIds.RootFolder));
     assert(root, "expecting a root object");
 
     if (!root.objects) {
@@ -281,20 +313,20 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         return false;
     }
 
-    var sessionDiagnosticsDataType = self.addressSpace.findDataType("SessionDiagnosticsDataType");
+    var sessionDiagnosticsDataType = session.addressSpace.findDataType("SessionDiagnosticsDataType");
 
-    var sessionDiagnosticsObjectType = self.addressSpace.findObjectType("SessionDiagnosticsObjectType");
-    var sessionDiagnosticsVariableType = self.addressSpace.findVariableType("SessionDiagnosticsVariableType");
+    var sessionDiagnosticsObjectType = session.addressSpace.findObjectType("SessionDiagnosticsObjectType");
+    var sessionDiagnosticsVariableType = session.addressSpace.findVariableType("SessionDiagnosticsVariableType");
 
     var references = [];
     if (sessionDiagnosticsObjectType) {
         references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: sessionDiagnosticsObjectType});
     }
 
-    self.sessionObject = self.addressSpace.createNode({
-        nodeId: self.nodeId,
+    session.sessionObject = session.addressSpace.createNode({
+        nodeId: session.nodeId,
         nodeClass: NodeClass.Object,
-        browseName: self.sessionName || "Session:" + self.nodeId.toString(),
+        browseName: session.sessionName || "Session:" + session.nodeId.toString(),
         componentOf: serverDiagnosticsNode.sessionsDiagnosticsSummary,
         typeDefinition: sessionDiagnosticsObjectType,
         references: references
@@ -303,126 +335,133 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
     if (sessionDiagnosticsDataType && sessionDiagnosticsVariableType) {
 
         // the extension object
-        self._sessionDiagnostics = self.addressSpace.constructExtensionObject(sessionDiagnosticsDataType, {});
+        session._sessionDiagnostics = session.addressSpace.constructExtensionObject(sessionDiagnosticsDataType, {});
+        session._sessionDiagnostics.session = session;
 
         // install property getter on property that are unlikely to change
-        if (self.parent.clientDescription) {
-            self._sessionDiagnostics.clientDescription = self.parent.clientDescription;
+        if (session.parent.clientDescription) {
+            session._sessionDiagnostics.clientDescription = session.parent.clientDescription;
         }
 
-        Object.defineProperty(self._sessionDiagnostics, "clientConnectionTime", {
+        Object.defineProperty(session._sessionDiagnostics, "clientConnectionTime", {
             get: function () {
-                return self.clientConnectionTime;
+                return this.session.clientConnectionTime;
             }
         });
 
-        Object.defineProperty(self._sessionDiagnostics, "actualSessionTimeout", {
+        Object.defineProperty(session._sessionDiagnostics, "actualSessionTimeout", {
             get: function () {
-                return self.sessionTimeout;
+                return this.session.sessionTimeout;
             }
         });
 
-        Object.defineProperty(self._sessionDiagnostics, "sessionId", {
+        Object.defineProperty(session._sessionDiagnostics, "sessionId", {
             get: function () {
-                return self.nodeId;
-            }
-        });
-        Object.defineProperty(self._sessionDiagnostics, "sessionName", {
-            get: function () {
-                assert(_.isString(self.sessionName));
-                return self.sessionName.toString();
+                return this.session.nodeId;
             }
         });
 
-        self.sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
+        Object.defineProperty(session._sessionDiagnostics, "sessionName", {
+            get: function () {
+                assert(_.isString(session.sessionName));
+                return this.session.sessionName.toString();
+            }
+        });
+
+        session.sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
             browseName: "SessionDiagnostics",
-            componentOf: self.sessionObject,
-            extensionObject: self._sessionDiagnostics,
+            componentOf: session.sessionObject,
+            extensionObject: session._sessionDiagnostics,
             minimumSamplingInterval: 2000 // 2 seconds
         });
 
-        self._sessionDiagnostics = self.sessionDiagnostics.$extensionObject;
+        session._sessionDiagnostics = session.sessionDiagnostics.$extensionObject;
+        assert(session._sessionDiagnostics.session === session);
 
-        var sessionDiagnosticsArray = self.getSessionDiagnosticsArray();
+        var sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
 
         // make sessionDiagnostics
-        eoan.addElement(self._sessionDiagnostics, sessionDiagnosticsArray);
+        eoan.addElement(session._sessionDiagnostics, sessionDiagnosticsArray);
 
     }
-    return self.sessionObject;
+
+    var subscriptionDiagnosticsArrayType = session.addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
+    assert(subscriptionDiagnosticsArrayType.nodeId.toString() === "ns=0;i=2171");
+
+    session.subscriptionDiagnosticsArray=
+        eoan.createExtObjArrayNode(session.sessionObject, {
+            browseName: "SubscriptionDiagnosticsArray",
+            complexVariableType: "SubscriptionDiagnosticsArrayType",
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId",
+            minimumSamplingInterval: 2000 // 2 seconds
+        });
+
+    return session.sessionObject;
 };
 
 ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
 
-    var self = this;
+    var session = this;
 
     // todo : dump session statistics in a file or somewhere for deeper diagnostic analysis on closed session
 
-    if (!self.addressSpace) {
+    if (!session.addressSpace) {
         return;
     }
-    if (self.sessionDiagnostics) {
+    if (session.sessionDiagnostics) {
 
-        var sessionDiagnosticsArray = self.getSessionDiagnosticsArray();
-        eoan.removeElement(sessionDiagnosticsArray, self.sessionDiagnostics.$extensionObject);
+        var sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
+        eoan.removeElement(sessionDiagnosticsArray, session.sessionDiagnostics.$extensionObject);
 
-        self.addressSpace.deleteNode(self.sessionDiagnostics);
-        self._sessionDiagnostics = null;
-        self.sessionDiagnostics = null;
+        session.addressSpace.deleteNode(session.sessionDiagnostics);
+
+        assert(session._sessionDiagnostics.session === session);
+        session._sessionDiagnostics.session = null;
+
+        session._sessionDiagnostics = null;
+        session.sessionDiagnostics = null;
 
     }
-    if (self.sessionObject) {
-        self.addressSpace.deleteNode(self.sessionObject);
-        self.sessionObject = null;
+    if (session.sessionObject) {
+        session.addressSpace.deleteNode(session.sessionObject);
+        session.sessionObject = null;
     }
 };
 
 var Subscription = require("./subscription").Subscription;
 
 
-// note OPCUA 1.03 part 4 page 76
-// The Server-assigned identifier for the Subscription (see 7.14 for IntegerId definition). This identifier shall
-// be unique for the entire Server, not just for the Session, in order to allow the Subscription to be transferred
-// to another Session using the TransferSubscriptions service.
-// After Server start-up the generation of subscriptionIds should start from a random IntegerId or continue from
-// the point before the restart.
-var next_subscriptionId = Math.ceil(Math.random() * 1000000);
 
-function _get_next_subscriptionId() {
-    debugLog(" next_subscriptionId = ", next_subscriptionId);
-    return next_subscriptionId++;
-}
-
-
-var eoan = require("node-opcua-address-space");
 
 ServerSession.prototype._getSubscriptionDiagnosticsArray = function () {
 
-    var self = this;
-    if (!self.addressSpace) {
+    var session = this;
+    if (!session.addressSpace) {
         if (doDebug) {
-            console.warn("ServerSession#_exposeSubscriptionDiagnostics : no addressSpace");
+            console.warn("ServerSession#_getSubscriptionDiagnosticsArray : no addressSpace");
         }
         return null; // no addressSpace
     }
-    var subscriptionDiagnosticsType = self.addressSpace.findVariableType("SubscriptionDiagnosticsType");
-    if (!subscriptionDiagnosticsType) {
-        if (doDebug) {
-            console.warn("ServerSession#_exposeSubscriptionDiagnostics : cannot find SubscriptionDiagnosticsType");
-        }
+
+    var subscriptionDiagnosticsArray = session.subscriptionDiagnosticsArray;
+    if (!subscriptionDiagnosticsArray) {
+        return null; // no subscriptionDiagnosticsArray
     }
-
-    // SubscriptionDiagnosticsArray = i=2290
-    var subscriptionDiagnosticsArray = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray));
-
+    assert(subscriptionDiagnosticsArray.browseName.toString() === "SubscriptionDiagnosticsArray");
     return subscriptionDiagnosticsArray;
 };
-ServerSession.prototype._exposeSubscriptionDiagnostics = function (subscription) {
 
-    var self = this;
-    var subscriptionDiagnosticsArray = self._getSubscriptionDiagnosticsArray();
+ServerSession.prototype._exposeSubscriptionDiagnostics = function (subscription) {
+    var session = this;
+    debugLog("ServerSession#_exposeSubscriptionDiagnostics");
+    assert(subscription.$session === session);
+    var subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
     var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+    assert(subscriptionDiagnostics.$subscription == subscription);
+
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+        //xx console.log("GGGGGGGGGGGGGGGG => ServerSession Exposing subscription diagnostics =>",subscription.id,"on session", session.nodeId.toString());
         eoan.addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
     }
 };
@@ -433,75 +472,55 @@ function compareSessionId(sessionDiagnostics1, sessionDiagnostics2) {
 
 ServerSession.prototype._unexposeSubscriptionDiagnostics = function (subscription) {
 
-    var self = this;
-    var subscriptionDiagnosticsArray = self._getSubscriptionDiagnosticsArray();
+    var session = this;
+    var subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
     var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+        //xx console.log("GGGGGGGGGGGGGGGG => ServerSession **Unexposing** subscription diagnostics =>",subscription.id,"on session", session.nodeId.toString());
         eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
     }
+    debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
 };
-/**
- * create a new subscription
- * @method createSubscription
- * @param request
- * @param request.requestedPublishingInterval {Duration}
- * @param request.requestedLifetimeCount {Counter}
- * @param request.requestedMaxKeepAliveCount {Counter}
- * @param request.maxNotificationsPerPublish {Counter}
- * @param request.publishingEnabled {Boolean}
- * @param request.priority {Byte}
- * @return {Subscription}
- */
-ServerSession.prototype.createSubscription = function (request) {
-
-    assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
-    assert(request.hasOwnProperty("requestedLifetimeCount"));      // Counter
-    assert(request.hasOwnProperty("requestedMaxKeepAliveCount"));  // Counter
-    assert(request.hasOwnProperty("maxNotificationsPerPublish"));  // Counter
-    assert(request.hasOwnProperty("publishingEnabled"));           // Boolean
-    assert(request.hasOwnProperty("priority"));                    // Byte
-
-    var self = this;
-
-    self._cumulatedSubscriptionCount += 1;
-
-    var subscription = new Subscription({
-        publishingInterval: request.requestedPublishingInterval,
-        lifeTimeCount: request.requestedLifetimeCount,
-        maxKeepAliveCount: request.requestedMaxKeepAliveCount,
-        maxNotificationsPerPublish: request.maxNotificationsPerPublish,
-        publishingEnabled: request.publishingEnabled,
-        priority: request.priority,
-        id: _get_next_subscriptionId(),
-        // -------------------
-        publishEngine: self.publishEngine,
-        sessionId: self.nodeId
-    });
 
 
-    self.publishEngine.add_subscription(subscription);
+ServerSession.prototype.assignSubscription = function (subscription) {
+    var session = this;
+    assert(!subscription.$session);
+    assert(session.nodeId instanceof NodeId);
+
+
+    subscription.$session = session;
+
+    subscription.sessionId = session.nodeId;
+
+    session._cumulatedSubscriptionCount += 1;
 
     // Notify the owner that a new subscription has been created
     // @event new_subscription
     // @param {Subscription} subscription
-    +self.emit("new_subscription", subscription);
+    session.emit("new_subscription", subscription);
 
     // add subscription diagnostics to SubscriptionDiagnosticsArray
-    self._exposeSubscriptionDiagnostics(subscription);
+    session._exposeSubscriptionDiagnostics(subscription);
 
     subscription.once("terminated", function () {
-
-        self._unexposeSubscriptionDiagnostics(subscription);
-
+        //Xx session._unexposeSubscriptionDiagnostics(subscription);
         // Notify the owner that a new subscription has been terminated
         // @event subscription_terminated
         // @param {Subscription} subscription
-        self.emit("subscription_terminated", subscription);
-
+        session.emit("subscription_terminated", subscription);
     });
 
 
+};
+ServerSession.prototype.createSubscription = function(parameters) {
+    var session = this;
+    var subscription = session.parent._createSubscriptionOnSession(session,parameters);
+    session.assignSubscription(subscription);
+    assert(subscription.$session === session);
+    assert(subscription._sessionId instanceof NodeId);
+    assert(subscription._sessionId = session.nodeId);
     return subscription;
 };
 
@@ -540,7 +559,7 @@ var SubscriptionState = require("./subscription").SubscriptionState;
 /**
  * retrieve an existing subscription by subscriptionId
  * @method getSubscription
- * @param subscriptionId {Integer}
+ * @param subscriptionId {Number}
  * @return {Subscription}
  */
 ServerSession.prototype.getSubscription = function (subscriptionId) {
@@ -556,13 +575,13 @@ ServerSession.prototype.getSubscription = function (subscriptionId) {
 
 /**
  * @method deleteSubscription
- * @param subscriptionId {Integer}
+ * @param subscriptionId {Number}
  * @return {StatusCode}
  */
 ServerSession.prototype.deleteSubscription = function (subscriptionId) {
 
-    var self = this;
-    var subscription = self.getSubscription(subscriptionId);
+    var session = this;
+    var subscription = session.getSubscription(subscriptionId);
     if (!subscription) {
         return StatusCodes.BadSubscriptionIdInvalid;
     }
@@ -570,10 +589,9 @@ ServerSession.prototype.deleteSubscription = function (subscriptionId) {
     //xx this.publishEngine.remove_subscription(subscription);
     subscription.terminate();
 
+    if (session.currentSubscriptionCount === 0) {
 
-    if (self.currentSubscriptionCount === 0) {
-
-        var local_publishEngine = self.publishEngine;
+        var local_publishEngine = session.publishEngine;
         local_publishEngine.cancelPendingPublishRequest();
     }
     return StatusCodes.Good;
@@ -581,17 +599,16 @@ ServerSession.prototype.deleteSubscription = function (subscriptionId) {
 
 ServerSession.prototype._deleteSubscriptions = function () {
 
-    var self = this;
-    assert(self.publishEngine);
+    var session = this;
+    assert(session.publishEngine);
 
-    var subscriptions = self.publishEngine.subscriptions;
+    var subscriptions = session.publishEngine.subscriptions;
 
     subscriptions.forEach(function (subscription) {
-        self.deleteSubscription(subscription.id);
+        session.deleteSubscription(subscription.id);
     });
 
 };
-
 
 /**
  * close a ServerSession, this will also delete the subscriptions if the flag is set.
@@ -612,17 +629,17 @@ ServerSession.prototype._deleteSubscriptions = function () {
 ServerSession.prototype.close = function (deleteSubscriptions, reason) {
 
     //xx console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxx => ServerSession.close() ");
-    var self = this;
+    var session = this;
 
-    if (self.publishEngine) {
-        self.publishEngine.onSessionClose();
+    if (session.publishEngine) {
+        session.publishEngine.onSessionClose();
     }
 
-    theWatchDog.removeSubscriber(self);
+    theWatchDog.removeSubscriber(session);
     // ---------------  delete associated subscriptions ---------------------
 
 
-    if (!deleteSubscriptions && self.currentSubscriptionCount !== 0) {
+    if (!deleteSubscriptions && session.currentSubscriptionCount !== 0) {
 
         // I don't know what to do yet if deleteSubscriptions is false
         console.log("TO DO : Closing session without deleting subscription not yet implemented");
@@ -630,37 +647,38 @@ ServerSession.prototype.close = function (deleteSubscriptions, reason) {
 
     }
 
-    self._deleteSubscriptions();
+    session._deleteSubscriptions();
 
-    assert(self.currentSubscriptionCount === 0);
+    assert(session.currentSubscriptionCount === 0);
 
-    // ---------------- shut down publish engine
-    if (self.publishEngine) {
-
-
-        // remove subscription
-        self.publishEngine.shutdown();
-
-        assert(self.publishEngine.subscriptionCount === 0);
-        self.publishEngine = null;
-    }
 
     // Post-Conditions
-    assert(self.currentSubscriptionCount === 0);
+    assert(session.currentSubscriptionCount === 0);
 
-    self.status = "closed";
+    session.status = "closed";
     /**
      * @event session_closed
      * @param deleteSubscriptions {Boolean}
      * @param reason {String}
      */
-    self.emit("session_closed", self, deleteSubscriptions, reason);
+    session.emit("session_closed", session, deleteSubscriptions, reason);
 
-    self._removeSessionObjectFromAddressSpace();
 
-    assert(!self.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
-    assert(!self.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+    // ---------------- shut down publish engine
+    if (session.publishEngine) {
 
+        // remove subscription
+        session.publishEngine.shutdown();
+
+        assert(session.publishEngine.subscriptionCount === 0);
+        session.publishEngine.dispose();
+        session.publishEngine = null;
+    }
+
+    session._removeSessionObjectFromAddressSpace();
+
+    assert(!session.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+    assert(!session.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
 
 };
 
@@ -674,7 +692,6 @@ ServerSession.prototype.watchdogReset = function () {
     // the server session has expired and must be removed from the server
     self.emit("timeout");
 };
-
 
 const registeredNodeNameSpace = 9999;
 
@@ -726,10 +743,10 @@ ServerSession.prototype.unRegisterNode = function(aliasNodeId) {
     session._registeredNodes[node.nodeId.toString()] = null;
 
 };
+
 ServerSession.prototype.resolveRegisteredNode = function(aliasNodeId) {
 
     var session = this;
-
     if (aliasNodeId.namespace !== registeredNodeNameSpace) {
         return aliasNodeId; // not a registered Node
     }
@@ -740,5 +757,58 @@ ServerSession.prototype.resolveRegisteredNode = function(aliasNodeId) {
     return node.nodeId;
 };
 
+/**
+ * true if the underlying channel has been closed or aborted...
+ */
+ServerSession.prototype.__defineGetter__("aborted", function () {
+    var session = this;
+    if (!session.channel) {
+        return true;
+    }
+    return session.channel.aborted;
+});
+
+function on_channel_abort()
+{
+    var session = this;
+    debugLog("ON CHANNEL ABORT ON  SESSION!!!");
+    /**
+     * @event channel_aborted
+     */
+    session.emit("channel_aborted");
+}
+
+ServerSession.prototype._attach_channel = function(channel) {
+    var session = this;
+    assert(session.nonce && session.nonce instanceof Buffer);
+    session.channel = channel;
+    session.secureChannelId = channel.secureChannelId;
+    var key = session.authenticationToken.toString("hex");
+    assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
+    channel.sessionTokens[key] = session;
+
+    // when channel is aborting
+    session.channel_abort_event_handler = on_channel_abort.bind(session);
+    channel.on("abort", session.channel_abort_event_handler);
+
+};
+
+ServerSession.prototype._detach_channel = function() {
+
+    var session = this;
+    var channel = session.channel;
+    assert(channel,"expecting a valid channel");
+    assert(session.nonce && session.nonce instanceof Buffer);
+    assert(session.authenticationToken);
+    var key = session.authenticationToken.toString("hex");
+    assert(channel.sessionTokens.hasOwnProperty(key));
+    assert(session.channel);
+    assert(_.isFunction(session.channel_abort_event_handler));
+    channel.removeListener("abort", session.channel_abort_event_handler);
+
+    delete channel.sessionTokens[key];
+    session.channel = null;
+    session.secureChannelId = null;
+};
 
 exports.ServerSession = ServerSession;

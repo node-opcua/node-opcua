@@ -18,6 +18,7 @@ var endpointUrl = "opc.tcp://" + require("os").hostname() + ":" + port;
 console.log("endpointUrl = ",endpointUrl);
 
 var options = {
+    endpoint_must_exist: false,
     requestedSessionTimeout: 101, // very short
     keepSessionAlive: true,
     connectionStrategy: {
