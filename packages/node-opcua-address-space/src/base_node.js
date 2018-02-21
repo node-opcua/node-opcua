@@ -398,8 +398,12 @@ function toString_ReferenceDescription(ref,options) {
 
     var addressSpace = options.addressSpace;
     //xx assert(ref instanceof ReferenceDescription);
+    var refNode = addressSpace.findNode(ref.referenceTypeId);
+    if (!refNode) {
+        return "Unknown Ref : "+ ref;
+    }
     var r = new Reference({
-        referenceType: addressSpace.findNode(ref.referenceTypeId).browseName.toString(),
+        referenceType: refNode.browseName.toString(),
         nodeId:        ref.nodeId,
         isForward:     ref.isForward
     });
@@ -922,6 +926,7 @@ function _remove_HierarchicalReference(node,reference) {
         }
     }
 }
+
 BaseNode.prototype.__addReference = function (reference) {
 
     var self = this;
@@ -973,6 +978,49 @@ BaseNode.prototype.addReference = function (reference) {
     _propagate_ref(self, addressSpace, reference);
     self.install_extra_properties();
     cetools._handle_add_reference_change_event(self,reference.nodeId);
+
+};
+
+/***
+ * @method removeReference
+ * @param reference
+ * @return void
+ */
+BaseNode.prototype.removeReference = function(reference) {
+
+    var self = this;
+
+    assert(reference.hasOwnProperty("referenceType"));
+    //xx isForward is optional : assert(reference.hasOwnProperty("isForward"));
+    assert(reference.hasOwnProperty("nodeId"));
+
+    var addressSpace = self.addressSpace;
+    reference = addressSpace.normalizeReferenceTypes([reference])[0];
+    var h = reference.hash;
+
+    var relatedNode = addressSpace.findNode(reference.nodeId);
+
+    var invReference = new Reference({
+        referenceType: reference.referenceType,
+        isForward: !reference.isForward,
+        nodeId: self.nodeId
+    });
+    if (self._referenceIdx[h]) {
+        delete self._referenceIdx[h];
+        relatedNode._remove_backward_reference(invReference);
+
+    } else if (self._back_referenceIdx[h]) {
+
+        relatedNode.removeReference(invReference);
+    } else {
+        throw new Error("Cannot find reference " + reference);
+    }
+
+    _handle_HierarchicalReference(self,reference);
+
+    self.uninstall_extra_properties(reference);
+
+    self._clear_caches();
 
 };
 
@@ -1597,7 +1645,7 @@ function install_components_as_object_properties(parentObj) {
 
         Object.defineProperty(parentObj, name, {
             enumerable: true,
-            configurable: false,
+            configurable: true, // set to true, so we can undefine later
             //xx writable: false,
             get: function () {
                 return child;
@@ -1630,9 +1678,35 @@ BaseNode.prototype.install_extra_properties = function () {
     components.forEach(install_extra_properties_on_parent);
     subfolders.forEach(install_extra_properties_on_parent);
     properties.forEach(install_extra_properties_on_parent);
-
-
 };
+
+
+BaseNode.prototype.uninstall_extra_properties = function (reference) {
+    var self = this;
+    var addressSpace = self.addressSpace;
+
+    if (addressSpace.isFrugal) {
+        // skipping
+        return;
+    }
+    var childNode =_resolveReferenceNode(addressSpace,reference);
+
+    var name = lowerFirstLetter(childNode.browseName.name.toString());
+    if (reservedNames.hasOwnProperty(name)) {
+        if (doDebug) {console.log(("Ignoring reserved keyword                                               "+ name).bgWhite.red);}
+        return;
+    }
+    /* istanbul ignore next */
+    if (!self.hasOwnProperty(name)) {
+        return;
+    }
+
+    Object.defineProperty(self, name, {
+       value: undefined
+    });
+};
+
+
 
 function _clone_collection_new(newParent,collectionRef,optionalFilter, extraInfo) {
 
