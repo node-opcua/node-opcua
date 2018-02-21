@@ -1,5 +1,6 @@
 "use strict";
 /* global describe,it,before*/
+
 var assert = require("node-opcua-assert");
 var _ = require("underscore");
 
@@ -19,6 +20,7 @@ var AddressSpace = require("./address_space").AddressSpace;
 
 var hasConstructor = require("node-opcua-factory").hasConstructor;
 var getConstructor = require("node-opcua-factory").getConstructor;
+var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 function makeStructure(dataType,bForce) {
 
@@ -171,16 +173,21 @@ function bindExtObjArrayNode(uaArrayVariableNode, variableType, indexPropertyNam
 
     uaArrayVariableNode.$$dataType             = dataType;
     uaArrayVariableNode.$$extensionObjectArray = [];
+    uaArrayVariableNode.$$indexPropertyName    = indexPropertyName;
 
     prepareDataType(dataType);
 
     uaArrayVariableNode.$$getElementBrowseName = function (extObj) {
+
+        var indexPropertyName = this.$$indexPropertyName;
+
         if (!extObj.hasOwnProperty(indexPropertyName)) {
             console.log(" extension object do not have ", indexPropertyName, extObj);
         }
         //assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
         assert(extObj.hasOwnProperty(indexPropertyName));
-        return extObj[indexPropertyName].toString();
+        var browseName = extObj[indexPropertyName].toString();
+        return browseName;
     };
 
     var options = {
@@ -197,18 +204,31 @@ exports.bindExtObjArrayNode = bindExtObjArrayNode;
 
 /**
  * @method addElement
- *         add a new element in a ExtensionObject Array variable
- *
+ * add a new element in a ExtensionObject Array variable
  * @param options {Object}   data used to construct the underlying ExtensionObject
  * @param uaArrayVariableNode {UAVariable}
- * @return {*}
+ * @return {UAVariable}
+ *
+ * @method addElement
+ * add a new element in a ExtensionObject Array variable
+ * @param nodeVariable {UAVariable}   a variable already exposing an extension objects
+ * @param uaArrayVariableNode {UAVariable}
+ * @return {UAVariable}
+ *
+ * @method addElement
+ * add a new element in a ExtensionObject Array variable
+ * @param constructor {Function}  constructor of the extension object to create
+ * @param uaArrayVariableNode {UAVariable}
+ * @return {UAVariable}
  */
+
 function addElement(options, uaArrayVariableNode) {
 
     assert(uaArrayVariableNode," must provide an UAVariable containing the array");
     assert(uaArrayVariableNode instanceof UAVariable,"expecting a UAVariable node here");
     // verify that arr has been created correctly
-    assert(!!uaArrayVariableNode.$$variableType && !!uaArrayVariableNode.$$dataType, "did you create the array Node with createExtObjArrayNode ?");
+    assert(!!uaArrayVariableNode.$$variableType && !!uaArrayVariableNode.$$dataType,
+            "did you create the array Node with createExtObjArrayNode ?");
     assert(uaArrayVariableNode.$$dataType instanceof UADataType);
     assert(uaArrayVariableNode.$$dataType._extensionObjectConstructor instanceof Function);
 
@@ -219,26 +239,37 @@ function addElement(options, uaArrayVariableNode) {
     var addressSpace = uaArrayVariableNode.addressSpace;
 
     var extensionObject = null;
-    if (options instanceof uaArrayVariableNode.$$dataType._extensionObjectConstructor) {
-        // extension object has already been created
-        extensionObject = options;
+    var elVar = null;
+    var browseName;
+
+    if (options instanceof UAVariable) {
+        elVar = options;
+        extensionObject = elVar.$extensionObject; // get shared extension object
+        assert(extensionObject instanceof uaArrayVariableNode.$$dataType._extensionObjectConstructor,
+            "the provided variable must expose a Extension Object of the expected type ");
+        // add a reference
+        uaArrayVariableNode.addReference({referenceType: "HasComponent", isFoward: true, nodeId: elVar.nodeId});
+        //xx elVar.bindExtensionObject();
+
     } else {
-        extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options);
+        if (options instanceof uaArrayVariableNode.$$dataType._extensionObjectConstructor) {
+            // extension object has already been created
+            extensionObject = options;
+        } else {
+            extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options);
+        }
+        browseName = uaArrayVariableNode.$$getElementBrowseName(extensionObject);
+        elVar = uaArrayVariableNode.$$variableType.instantiate({
+            componentOf: uaArrayVariableNode.nodeId,
+            browseName: browseName,
+            value: {dataType: DataType.ExtensionObject, value: extensionObject}
+        });
+        elVar.bindExtensionObject();
+        elVar.$extensionObject = extensionObject;
     }
 
-    var browseName = uaArrayVariableNode.$$getElementBrowseName(extensionObject);
-
-    var elVar = uaArrayVariableNode.$$variableType.instantiate({
-        componentOf: uaArrayVariableNode.nodeId,
-        browseName: browseName,
-        value: {dataType: DataType.ExtensionObject, value: extensionObject}
-    });
-    elVar.bindExtensionObject();
-    elVar.$extensionObject = extensionObject;
-    -
-
-        // also add the value inside
-        uaArrayVariableNode.$$extensionObjectArray.push(extensionObject);
+    // also add the value inside
+    uaArrayVariableNode.$$extensionObjectArray.push(extensionObject);
 
     return elVar;
 }
@@ -259,13 +290,31 @@ function removeElementByIndex(uaArrayVariableNode, elementIndex) {
 
     // remove matching component
     var node = uaArrayVariableNode.getComponentByName(browseName);
-
     if (!node) {
         throw new Error(" cannot find component ");
     }
-    addressSpace.deleteNode(node.nodeId);
+
+    // remove the hasComponent reference toward node
+    uaArrayVariableNode.removeReference({referenceType: "HasComponent", isFoward: true, nodeId: node.nodeId});
+
+    // now check if node has still some parent
+    var parents = node.findReferencesEx("HasChild",BrowseDirection.Inverse);
+    if (parents.length ===0){
+        addressSpace.deleteNode(node.nodeId);
+    }
 }
 
+/**
+ *
+ * @method removeElement
+ * @param uaArrayVariableNode {UAVariable}
+ * @param elementIndex {number}   index of element to remove in array
+ *
+ *
+ * @method removeElement
+ * @param uaArrayVariableNode {UAVariable}
+ * @param element {UAVariable}   node of element to remove in array
+ */
 function removeElement(uaArrayVariableNode, element) {
 
     assert(element,"element must exist");
@@ -282,9 +331,10 @@ function removeElement(uaArrayVariableNode, element) {
         // var browseNameToFind = arr.$$getElementBrowseName(elementIndex);
         var browseNameToFind = element.browseName.toString();
         elementIndex = _array.findIndex(function (obj, i) {
-            var browseName = uaArrayVariableNode.$$getElementBrowseName(obj);
+            var browseName = uaArrayVariableNode.$$getElementBrowseName(obj).toString();
             return (browseName === browseNameToFind);
         });
+
     } else if (_.isFunction(element)) {
         elementIndex = _array.findIndex(element);
     }else{

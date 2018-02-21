@@ -50,6 +50,8 @@ module.exports = {
     bindExtObjArrayNode: require("./src/extension_object_array_node").bindExtObjArrayNode,
     addElement: require("./src/extension_object_array_node").addElement,
     removeElement: require("./src/extension_object_array_node").removeElement,
+    createExtObjArrayNode: require("./src/extension_object_array_node").createExtObjArrayNode,
+
     EventData: require("./src/address_space_add_event_type").EventData,
 
     View: require("./src/view").View,

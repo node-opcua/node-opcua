@@ -66,7 +66,7 @@ describe("testing extension object with client residing on a different process t
 
                         should.not.exist(err);
                         dataValues.length.should.eql(1);
-                        console.log(dataValues[0]);
+                        //xx console.log("dataValue =", dataValues[0]);
 
                         if (!err) {
 

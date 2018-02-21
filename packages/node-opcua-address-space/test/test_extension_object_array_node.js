@@ -136,6 +136,10 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         var elVar4 = eoan.addElement({subscriptionId: 1003}, arr);
         arr.readValue().value.value.length.should.eql(4, "expecting 4 elements in array");
 
+        arr.getComponentByName("1000").should.eql(elVar1);
+        arr.getComponentByName("1001").should.eql(elVar2);
+        arr.getComponentByName("1002").should.eql(elVar3);
+        arr.getComponentByName("1003").should.eql(elVar4);
 
         eoan.removeElement(arr, elVar1);
         arr.readValue().value.value.length.should.eql(3, "expecting 3 elements in array");
@@ -195,6 +199,99 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
         arr.readValue().value.value[0].enableCount.should.eql(36);
         item1.readValue().value.value.enableCount.should.eql(36);
+
+       //xx console.log(arr.toString());
     });
+
+    it("should be possible to add the same extension object into two array Variables",function() {
+
+        var rootFolder = addressSpace.findNode("RootFolder");
+
+        // Given 2 SubscriptionDiagnosticArray ( A & B)
+        var arrA = eoan.createExtObjArrayNode(rootFolder, {
+            browseName: "SubscriptionDiagnosticArray_A",
+            complexVariableType: "SubscriptionDiagnosticsArrayType",
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId"
+        });
+        arrA.readValue().value.value.length.should.eql(0);
+
+
+        var arrB = eoan.createExtObjArrayNode(rootFolder, {
+            browseName: "SubscriptionDiagnosticArray_B",
+            complexVariableType: "SubscriptionDiagnosticsArrayType",
+            variableType: "SubscriptionDiagnosticsType",
+            indexPropertyName: "subscriptionId"
+        });
+        arrB.readValue().value.value.length.should.eql(0);
+
+
+        // Given an extension object variable ( with no parent)
+        var SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
+        should.exist(SubscriptionDiagnosticsType);
+
+        var extObj = new SubscriptionDiagnostics({
+            subscriptionId: 1123455,
+            enableCount: 7
+        });
+
+        var browseName = arrA.$$getElementBrowseName(extObj);
+
+        var item1 = SubscriptionDiagnosticsType.instantiate({
+            browseName:  browseName,
+            extensionObject: extObj
+        });
+
+        should.exist(item1.$extensionObject,"item1 must expose an extension object");
+        should.exist(item1.$extensionObject.enableCount,"item1 must expose an extension object");
+        item1.$extensionObject.enableCount.should.eql(7);
+        item1.$extensionObject.subscriptionId.should.eql(1123455);
+
+        item1.$extensionObject.enableCount = 13;
+
+        // Then I should be able to add it to the first array
+        var elemA = eoan.addElement(item1,arrA);
+        // verify that object has been added to the collection
+        arrA.readValue().value.value.length.should.eql(1);
+
+
+        // Then I should be able to add it to the second array
+        var elemB = eoan.addElement(item1,arrB);
+        // verify that object has been added to the collection
+        arrB.readValue().value.value.length.should.eql(1);
+
+
+        // ---------------------------------------------------------------------
+        // Lets verify that element variable share the same extension object
+        // ---------------------------------------------------------------------
+        item1.$extensionObject.enableCount = 42;
+        item1.readValue().value.value.enableCount.should.eql(42);
+
+        //xx console.log(arrA.toString());
+
+        arrA.readValue().value.value[0].enableCount.should.eql(42);
+        arrB.readValue().value.value[0].enableCount.should.eql(42);
+
+        // ---------------------------------------------------------------------
+        // Now remove elements from array
+        // ---------------------------------------------------------------------
+        elemA.should.eql(elemB);
+
+        arrA.getComponentByName("1123455").browseName.toString().should.eql("1123455");
+        arrB.getComponentByName("1123455").browseName.toString().should.eql("1123455");
+
+        eoan.removeElement(arrA,elemA);
+        arrA.readValue().value.value.length.should.eql(0);
+        arrB.readValue().value.value.length.should.eql(1);
+        should.not.exist(arrA.getComponentByName("1123455"));
+        arrB.getComponentByName("1123455").browseName.toString().should.eql("1123455");
+
+        eoan.removeElement(arrB,elemB);
+        arrA.readValue().value.value.length.should.eql(0);
+        arrB.readValue().value.value.length.should.eql(0);
+        should.not.exist(arrA.getComponentByName("1123455"));
+        should.not.exist(arrB.getComponentByName("1123455"));
+    });
+
 
 });
