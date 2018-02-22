@@ -1254,6 +1254,13 @@ function _process_filter(node, filter) {
 }
 
 
+/**
+ *
+ * @param addressSpace
+ * @param timestampsToReturn
+ * @param monitoredItemCreateRequest
+ * @returns {monitoredItemCreateResult}
+ */
 Subscription.prototype.createMonitoredItem = function (addressSpace, timestampsToReturn, monitoredItemCreateRequest) {
 
     var subscription = this;

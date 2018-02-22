@@ -5,7 +5,11 @@ var sinon = require("sinon");
 var server_engine = require("../src/server_engine");
 var subscription_service = require("node-opcua-service-subscription");
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
+var TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+
 var SubscriptionState = require("../src/subscription").SubscriptionState;
+var MonitoredItemCreateRequest = require("node-opcua-service-subscription").MonitoredItemCreateRequest;
+
 var PublishRequest = subscription_service.PublishRequest;
 
 var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -421,7 +425,7 @@ describe("ServerEngine Subscriptions service", function () {
         });
     });
 
-    it("AZW should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
+    it("AZW1 should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
 
         // given a subscription with monitored Item
         // given that the client doesn't send Publish Request
@@ -466,6 +470,64 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
 
             engine.closeSession(session.authenticationToken,true,"CloseSession");
+            done();
+        });
+    });
+
+    it("AZW2 should terminate a orphan subscription containing monitored items",function(done){
+
+        // given a client session
+        // given a subscription with monitored Item
+        // given that the client close the session without deleting the subscription
+        // When the orphan subscription times out
+        // Then subscription shall be disposed
+
+        with_fake_timer.call(this,function() {
+            var test = this;
+
+            session = engine.createSession({sessionTimeout: 100000000});
+
+            var subscription_parameters = {
+                requestedPublishingInterval:  100,  // Duration
+                requestedLifetimeCount:        60,  // Counter
+                requestedMaxKeepAliveCount:    30,  // Counter
+                maxNotificationsPerPublish:  1000,  // Counter
+                publishingEnabled: true,            // Boolean
+                priority: 14                        // Byte
+            };
+
+            var subscription = session.createSubscription(subscription_parameters);
+            subscription.state.should.eql(SubscriptionState.CREATING);
+
+
+            subscription.on("monitoredItem", function (monitoredItem) {
+                monitoredItem.samplingFunc = function(){
+
+                };
+            });
+
+
+            var monitoredItemCreateRequest =new MonitoredItemCreateRequest({
+                itemToMonitor: {nodeId: "ns=0;i=2258" },
+                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                requestedParameters: {
+                    clientHandle: 123,
+                    queueSize: 10,
+                    samplingInterval: 100
+                }
+            });
+
+            var monitoredItemCreateResult = subscription.createMonitoredItem(engine.addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+
+
+            var deleteSubscriptions= false;
+            engine.closeSession(session.authenticationToken,deleteSubscriptions,"CloseSession");
+
+            // wait until subscription expired by timeout
+            test.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount);
+
+
             done();
         });
     });

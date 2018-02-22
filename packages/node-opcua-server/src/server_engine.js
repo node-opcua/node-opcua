@@ -649,6 +649,8 @@ ServerEngine.prototype.initialize = function (options, callback) {
                 secondsTillShutdown.minimumSamplingInterval = 1000;
             }
 
+            assert(serverStatusNode.$extensionObject);
+
             serverStatusNode.$extensionObject = new Proxy(serverStatusNode.$extensionObject, {
                 get: function (target, prop) {
                     if (prop === "currentTime") {
@@ -1411,8 +1413,11 @@ ServerEngine.prototype._unexposeSubscriptionDiagnostics = function (subscription
     var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+
+        var node = subscriptionDiagnosticsArray[subscription.id];
         /// console.log("GGGGGGGGGGGGGGGG ServerEngine => **Unexposing** subscription diagnostics =>",subscription.id);
         eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+        assert(!subscriptionDiagnosticsArray[subscription.id]," subscription node must have been removed from subscriptionDiagnosticsArray");
     }
     debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
 };
@@ -1562,8 +1567,10 @@ ServerSidePublishEngineForOrphanSubscription.prototype.add_subscription = functi
     subscription._expired_func = function () {
         var subscription = this;
         debugLog(" Removing expired subscription with id=".bgCyan.yellow, subscription.id, " from orphan");
-        publish_engine.detach_subscription(subscription);
-        subscription.dispose();
+        // make sure all monitored item have been deleted
+        //Xx subscription.terminate();
+        //xx publish_engine.detach_subscription(subscription);
+        //Xx subscription.dispose();
     };
     subscription.on("expired", subscription._expired_func);
 };
@@ -1572,6 +1579,7 @@ ServerSidePublishEngineForOrphanSubscription.prototype.detach_subscription = fun
     // un set the event handler
     ServerSidePublishEngine.prototype.detach_subscription.apply(this, arguments);
     subscription.removeListener("expired", subscription._expired_func);
+    subscription._expired_func = null;
     return subscription;
 };
 

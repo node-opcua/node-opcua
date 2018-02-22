@@ -380,7 +380,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
         var sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
 
-        // make sessionDiagnostics
+        // add sessionDiagnostics into sessionDiagnoticsArray
         eoan.addElement(session._sessionDiagnostics, sessionDiagnosticsArray);
 
     }
