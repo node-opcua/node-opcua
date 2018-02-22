@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-generator",
- "version": "0.2.1",
+ "version": "0.2.2",
  "description": "pure nodejs OPCUA SDK - module -generator",
  "main": "index.js",
  "scripts": {
@@ -8,19 +8,19 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.2.0",
-  "node-opcua-basic-types": "^0.2.1",
+  "node-opcua-basic-types": "^0.2.2",
   "node-opcua-constants": "^0.2.0",
-  "node-opcua-debug": "^0.2.0",
-  "node-opcua-factory": "^0.2.1",
-  "node-opcua-nodeid": "^0.2.0",
-  "node-opcua-utils": "^0.2.1",
+  "node-opcua-debug": "^0.2.2",
+  "node-opcua-factory": "^0.2.2",
+  "node-opcua-nodeid": "^0.2.2",
+  "node-opcua-utils": "^0.2.2",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-binary-stream": "^0.2.1",
-  "node-opcua-extension-object": "^0.2.1",
-  "node-opcua-packet-analyzer": "^0.2.1",
-  "node-opcua-status-code": "^0.2.1",
+  "node-opcua-binary-stream": "^0.2.2",
+  "node-opcua-extension-object": "^0.2.2",
+  "node-opcua-packet-analyzer": "^0.2.2",
+  "node-opcua-status-code": "^0.2.2",
   "should": "13.2.1"
  },
  "author": "Etienne Rossignon",
