@@ -92,13 +92,13 @@ function _get_QualifiedBrowseName(browseName) {
 function BaseNode(options) {
 
     var self = this;
+    var _private = BaseNode_initPrivate(self);
+
     assert(this.nodeClass);
     assert(options.addressSpace); // expecting an address space
     options.references = options.references || [];
 
-    // this.__address_space = options.addressSpace;
-    // make address space non enumerable
-    Object.defineProperty(this, "__address_space", {configurable: true,value: options.addressSpace, enumerable: false});
+    _private.__address_space = options.addressSpace;
 
     this.nodeId = resolveNodeId(options.nodeId);
 
@@ -120,10 +120,10 @@ function BaseNode(options) {
     this._setDescription(options.description);
 
 
+    //Xx Object.defineProperty(this, "_cache",             {configurable: true,value:{}, hidden:true,enumerable: false});
+    //xx Object.defineProperty(this, "_referenceIdx",      {configurable: true,value:{}, hidden:true,enumerable: false});
+    //xx Object.defineProperty(this, "_back_referenceIdx", {configurable: true,value:{}, hidden:true,enumerable: false});
 
-    Object.defineProperty(this, "_cache",             {configurable: true,value:{}, hidden:true,enumerable: false});
-    Object.defineProperty(this, "_referenceIdx",      {configurable: true,value:{}, hidden:true,enumerable: false});
-    Object.defineProperty(this, "_back_referenceIdx", {configurable: true,value:{}, hidden:true,enumerable: false});
 
     // user defined filter function for browsing
     var _browseFilter = options.browseFilter || defaultBrowseFilterFunc;
@@ -141,23 +141,18 @@ function BaseNode(options) {
 }
 util.inherits(BaseNode, EventEmitter);
 
+
 var reservedNames = {
     "nodeClass":0,
-    "_cache":0,
+    //Xx "_cache":0,
+    //Xx  "_referenceIdx":0,
+    //Xx  "__back_referenceIdx":0,
     "__displayName":0,
     "displayName":0,
     "description":0,
     "__description":0,
-    "_referenceIdx":0,
-    "__back_referenceIdx":0,
     "typeDefinition":0
 };
-
-Object.defineProperty(BaseNode.prototype, "__address_space", {
-    writable: true,
-    hidden: true,
-    enumerable: false
-});
 
 BaseNode.Reference = Reference;
 
@@ -244,6 +239,27 @@ function _is_valid_BrowseDirection(browseDirection) {
         ;
 }
 
+const g_weakMap = new WeakMap();
+
+function BaseNode_initPrivate(self) {
+    assert(self instanceof BaseNode);
+    var _private = {
+        _referenceIdx : {},
+        _back_referenceIdx: {},
+        __address_space: null,
+        _cache: {}
+    };
+    g_weakMap.set(self,_private);
+    return _private;
+}
+function BaseNode_getPrivate(self) {
+    return g_weakMap.get(self);
+}
+BaseNode._getCache = function(self) {
+    var _private = BaseNode_getPrivate(self);
+    return _private._cache;
+}
+
 
 BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
 
@@ -257,10 +273,12 @@ BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
     }
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
 
     var hash = "_refEx_"+strReference+browseDirection.toString();
-    if (self._cache[hash]) {
-        return self._cache[hash];
+    if (_private._cache[hash]) {
+        return _private._cache[hash];
     }
 
     var addressSpace = this.addressSpace;
@@ -291,8 +309,8 @@ BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
             references.push(ref);
         }
     }
-    _.forEach(self._referenceIdx,check_and_push);
-    _.forEach(self._back_referenceIdx,check_and_push);
+    _.forEach(_private._referenceIdx,check_and_push);
+    _.forEach(_private._back_referenceIdx,check_and_push);
     */
     // faster version of the above without func call
     function process(referenceIdx) {
@@ -305,9 +323,9 @@ BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
             }
         }
     }
-    process(self._referenceIdx);
-    process(self._back_referenceIdx);
-    self._cache[hash] = references;
+    process(_private._referenceIdx);
+    process(_private._back_referenceIdx);
+    _private._cache[hash] = references;
     return references;
 };
 
@@ -331,14 +349,16 @@ BaseNode.prototype.findReferencesExDescription = function (strReference, browseD
 BaseNode.prototype.findReferences = function (strReference, isForward) {
 
     var self  = this;
+    var _private = BaseNode_getPrivate(self);
+
     isForward = utils.isNullOrUndefined(isForward) ? true : !!isForward;
 
     assert(_.isString(strReference));
     assert(_.isBoolean(isForward));
 
     var hash = "_ref_"+strReference+isForward.toString();
-    if (self._cache[hash]) {
-        return self._cache[hash];
+    if (_private._cache[hash]) {
+        return _private._cache[hash];
     }
 
     // istanbul ignore next
@@ -348,7 +368,7 @@ BaseNode.prototype.findReferences = function (strReference, isForward) {
 
 
     var result = [];
-    _.forEach(this._referenceIdx, function (ref) {
+    _.forEach(_private._referenceIdx, function (ref) {
         if (ref.isForward === isForward) {
             if(ref.referenceType === strReference) {
                 result.push(ref);
@@ -356,7 +376,7 @@ BaseNode.prototype.findReferences = function (strReference, isForward) {
         }
     });
 
-    _.forEach(this._back_referenceIdx, function (ref) {
+    _.forEach(_private._back_referenceIdx, function (ref) {
         if (ref.isForward === isForward) {
             if(ref.referenceType === strReference) {
                 result.push(ref);
@@ -364,9 +384,10 @@ BaseNode.prototype.findReferences = function (strReference, isForward) {
         }
     });
 
-    self._cache[hash] = result;
+    _private._cache[hash] = result;
     return result;
 };
+
 
 /**
  * @method findReference
@@ -420,7 +441,9 @@ function _setup_parent_item(references) {
     /* jshint validthis: true */
     assert(this instanceof BaseNode);
     assert(_.isArray(references));
-    assert(!this._cache.parent && "_setup_parent_item has been already called");
+    var  _private = BaseNode_getPrivate(this);
+
+    assert(!_private.parent && "_setup_parent_item has been already called");
 
     var addressSpace = this.addressSpace;
 
@@ -444,7 +467,7 @@ function _setup_parent_item(references) {
                     displayWarning = false;
                 }
             }
-            this._cache.parent = Reference._resolveReferenceNode(addressSpace,references[0]);
+            _private.parent = Reference._resolveReferenceNode(addressSpace,references[0]);
         }
     }
 }
@@ -487,11 +510,13 @@ BaseNode.prototype.findReferencesAsObject = function (strReference, isForward) {
  * @type {NodeId}
  */
 BaseNode.prototype.__defineGetter__("typeDefinition", function () {
-    if (!this._cache.typeDefinition) {
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (! _private._cache.typeDefinition) {
         var has_type_definition_ref = this.findReference("HasTypeDefinition", true);
-        this._cache.typeDefinition = has_type_definition_ref ? has_type_definition_ref.nodeId : null;
+        _private._cache.typeDefinition = has_type_definition_ref ? has_type_definition_ref.nodeId : null;
     }
-    return this._cache.typeDefinition;
+    return _private._cache.typeDefinition;
 });
 
 
@@ -501,11 +526,13 @@ BaseNode.prototype.__defineGetter__("typeDefinition", function () {
  * @type {BaseNode}
  */
 BaseNode.prototype.__defineGetter__("typeDefinitionObj", function () {
-    if (undefined === this._cache.typeDefinitionObj) {
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (undefined === _private._cache.typeDefinitionObj) {
         var nodeId = this.typeDefinition;
-        this._cache.typeDefinitionObj = nodeId ? this.addressSpace.findNode(nodeId) :null;
+        _private._cache.typeDefinitionObj = nodeId ? this.addressSpace.findNode(nodeId) :null;
     }
-    return this._cache.typeDefinitionObj;
+    return _private._cache.typeDefinitionObj;
 });
 
 
@@ -514,10 +541,12 @@ BaseNode.prototype.__defineGetter__("typeDefinitionObj", function () {
  * @return {BaseNode[]} return an array with the Aggregates of this object.
  */
 BaseNode.prototype.getAggregates = function () {
-    if (!this._cache._aggregates) {
-        this._cache._aggregates = this.findReferencesExAsObject("Aggregates",BrowseDirection.Forward);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._aggregates) {
+        _private._cache._aggregates = this.findReferencesExAsObject("Aggregates",BrowseDirection.Forward);
     }
-    return this._cache._aggregates;
+    return _private._cache._aggregates;
 };
 
 /**
@@ -525,11 +554,13 @@ BaseNode.prototype.getAggregates = function () {
  * @return {BaseNode[]} return an array with the components of this object.
  */
 BaseNode.prototype.getComponents = function () {
-    if (!this._cache._components) {
-        this._cache._components = this.findReferencesExAsObject("HasComponent",BrowseDirection.Forward);
-        //xx this._cache._components = this.findReferencesAsObject("HasComponent", true);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._components) {
+        _private._cache._components = this.findReferencesExAsObject("HasComponent",BrowseDirection.Forward);
+        //xx_private._cache._components = this.findReferencesAsObject("HasComponent", true);
     }
-    return this._cache._components;
+    return _private._cache._components;
 };
 
 /**
@@ -537,10 +568,12 @@ BaseNode.prototype.getComponents = function () {
  * @return {BaseNode[]} return a array with the properties of this object.
  */
 BaseNode.prototype.getProperties = function () {
-    if (!this._cache._properties) {
-        this._cache._properties = this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._properties) {
+        _private._cache._properties = this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
     }
-    return this._cache._properties;
+    return _private._cache._properties;
 };
 
 /**
@@ -548,10 +581,12 @@ BaseNode.prototype.getProperties = function () {
  * @return {BaseNode[]} return a array with the notifiers of this object.
  */
 BaseNode.prototype.getNotifiers = function () {
-    if (!this._cache._notifiers) {
-        this._cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._notifiers) {
+        _private._cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
     }
-    return this._cache._notifiers;
+    return _private._cache._notifiers;
 };
 
 /**
@@ -559,10 +594,12 @@ BaseNode.prototype.getNotifiers = function () {
  * @return {BaseNode[]} return a array with the event source of this object.
  */
 BaseNode.prototype.getEventSources = function () {
-    if (!this._cache._eventSources) {
-        this._cache._eventSources = this.findReferencesAsObject("HasEventSource", true);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._eventSources) {
+        _private._cache._eventSources = this.findReferencesAsObject("HasEventSource", true);
     }
-    return this._cache._eventSources;
+    return _private._cache._eventSources;
 };
 
 /**
@@ -570,10 +607,12 @@ BaseNode.prototype.getEventSources = function () {
  * @return {BaseNode[]} return a array of the objects for which this node is an EventSource
  */
 BaseNode.prototype.getEventSourceOfs = function () {
-    if (!this._cache._eventSources) {
-        this._cache._eventSources = this.findReferencesAsObject("HasEventSource", false);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._eventSources) {
+        _private._cache._eventSources = this.findReferencesAsObject("HasEventSource", false);
     }
-    return this._cache._eventSources;
+    return _private._cache._eventSources;
 };
 /**
  * retrieve a component by name
@@ -635,15 +674,16 @@ BaseNode.prototype.getFolderElements = function() {
  * Note: internally, methods are special types of components
  */
 BaseNode.prototype.getMethods = function () {
-
-    if (!this._cache._methods) {
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._methods) {
         var components = this.getComponents();
         var UAMethod = require("./ua_method").UAMethod;
-        this._cache._methods = components.filter(function (obj) {
+        _private._cache._methods = components.filter(function (obj) {
             return obj instanceof UAMethod;
         });
     }
-    return this._cache._methods;
+    return _private._cache._methods;
 };
 
 /**
@@ -692,13 +732,15 @@ BaseNode.prototype.__defineGetter__("subtypeOf", function subtypeOf() {
 });
 
 BaseNode.prototype.__defineGetter__("subtypeOfObj", function subtypeOfObj() {
-    if (!this._cache._subtypeOfObj) {
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache._subtypeOfObj) {
         var is_subtype_of_ref = this.findReference("HasSubtype", false);
         if (is_subtype_of_ref) {
-            this._cache._subtypeOfObj = Reference._resolveReferenceNode(this.addressSpace,is_subtype_of_ref);
+            _private._cache._subtypeOfObj = Reference._resolveReferenceNode(this.addressSpace,is_subtype_of_ref);
         }
     }
-    return this._cache._subtypeOfObj;
+    return _private._cache._subtypeOfObj;
 });
 
 
@@ -727,10 +769,12 @@ BaseNode.prototype.__defineGetter__("namespaceIndex", function () {
  * @type {String}
  */
 BaseNode.prototype.__defineGetter__("namespaceUri", function () {
-    if (!this._cache.namespaceUri) {
-        this._cache.namespaceUri = this.addressSpace.getNamespaceUri(this.namespaceIndex);
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (!_private._cache.namespaceUri) {
+        _private._cache.namespaceUri = this.addressSpace.getNamespaceUri(this.namespaceIndex);
     }
-    return this._cache.namespaceUri;
+    return _private._cache.namespaceUri;
 });
 
 /**
@@ -739,10 +783,13 @@ BaseNode.prototype.__defineGetter__("namespaceUri", function () {
  * @type {BaseNode}
  */
 BaseNode.prototype.__defineGetter__("parent", function () {
-    if (this._cache.parent === undefined) {
-        _setup_parent_item.call(this, this._referenceIdx);
+
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    if (_private.parent === undefined) {
+        _setup_parent_item.call(this, _private._referenceIdx);
     }
-    return this._cache.parent;
+    return _private.parent;
 });
 
 /**
@@ -756,15 +803,18 @@ BaseNode.prototype.resolveNodeId = function (nodeId) {
 
 BaseNode.prototype._remove_backward_reference = function (reference) {
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
     assert(reference instanceof Reference);
 
     _remove_HierarchicalReference(self,reference);
     var h = reference.hash;
-    if (self._back_referenceIdx[h]) {
+
+    if (_private._back_referenceIdx[h]) {
         // note : h may not exist in _back_referenceIdx since we are not indexing
         //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
-        self._back_referenceIdx[h].dispose();
-        delete self._back_referenceIdx[h];
+        _private._back_referenceIdx[h].dispose();
+        delete _private._back_referenceIdx[h];
     }
     reference.dispose();
 };
@@ -772,28 +822,30 @@ BaseNode.prototype._remove_backward_reference = function (reference) {
 BaseNode.prototype._add_backward_reference = function (reference) {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
     assert(reference instanceof Reference);
     //xx assert(Reference.is_valid_reference(reference));
 
     var h = reference.hash; assert(_.isString(h));
     // istanbul ignore next
-    if (self._referenceIdx[h]) {
+    if (_private._referenceIdx[h]) {
         //  the reference exists already in the forward references
         //  this append for instance when the XML NotSetFile has redundant <Reference>
         //  in this case there is nothing to do
         return;
     }
     // istanbul ignore next
-    if (self._back_referenceIdx[h]) {
+    if (_private._back_referenceIdx[h]) {
         var opts = { addressSpace: self.addressSpace};
         console.warn(" Warning !",self.browseName.toString());
         console.warn("    ",reference.toString(opts));
         console.warn(" already found in ===>");
-        console.warn(_.map(self._back_referenceIdx.map(function(c){ return c.toString(opts);})).join("\n"));
+        console.warn(_.map(_private._back_referenceIdx.map(function(c){ return c.toString(opts);})).join("\n"));
         console.warn("===>");
         throw new Error("reference exists already in _back_references");
     }
-    self._back_referenceIdx[h] = reference;
+    _private._back_referenceIdx[h] = reference;
     _handle_HierarchicalReference(self,reference);
     self._clear_caches();
 
@@ -872,6 +924,8 @@ function _propagate_ref(self, addressSpace, reference) {
 BaseNode.prototype.propagate_back_references = function () {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
     if (self.addressSpace.suspendBackReference) {
 
         // this indicates that the base node is constructed from an xml definition
@@ -879,7 +933,7 @@ BaseNode.prototype.propagate_back_references = function () {
         return; 
     }
     var addressSpace = self.addressSpace;
-    _.forEach(self._referenceIdx,function (reference) {
+    _.forEach(_private._referenceIdx,function (reference) {
         _propagate_ref(self, addressSpace, reference);
     });
 };
@@ -890,7 +944,8 @@ var cetools = require("./address_space_change_event_tools");
 
 function _handle_HierarchicalReference(node,reference) {
 
-    if (node._cache._childByNameMap) {
+    var _private = BaseNode_getPrivate(node);
+     if (_private._cache._childByNameMap) {
         var addressSpace = node.addressSpace;
         var referenceType = Reference._resolveReferenceType(addressSpace,reference);
 
@@ -903,15 +958,15 @@ function _handle_HierarchicalReference(node,reference) {
                 assert(reference.isForward);
                 var targetNode = Reference._resolveReferenceNode(addressSpace,reference);
                 //Xx console.log(" adding object to map");
-                node._cache._childByNameMap[targetNode.browseName.toString()] = targetNode;
+                _private._cache._childByNameMap[targetNode.browseName.toString()] = targetNode;
             }
         }
-
     }
 }
 function _remove_HierarchicalReference(node,reference) {
 
-    if (node._cache._childByNameMap) {
+    var _private = BaseNode_getPrivate(node);
+    if (_private._cache._childByNameMap) {
         var addressSpace = node.addressSpace;
         var referenceType = Reference._resolveReferenceType(addressSpace,reference);
 
@@ -921,7 +976,7 @@ function _remove_HierarchicalReference(node,reference) {
                 assert(reference.isForward);
                 var targetNode = Reference._resolveReferenceNode(addressSpace,reference);
                 //Xx console.log(" adding object to map");
-                delete node._cache._childByNameMap[targetNode.browseName.toString()];
+                delete _private._cache._childByNameMap[targetNode.browseName.toString()];
             }
         }
     }
@@ -930,6 +985,7 @@ function _remove_HierarchicalReference(node,reference) {
 BaseNode.prototype.__addReference = function (reference) {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
 
     assert(reference.hasOwnProperty("referenceType"));
     //xx isForward is optional : assert(reference.hasOwnProperty("isForward"));
@@ -939,11 +995,11 @@ BaseNode.prototype.__addReference = function (reference) {
     reference = addressSpace.normalizeReferenceTypes([reference])[0];
 
     var h = reference.hash;
-    assert(!self._back_referenceIdx[h],"reference exists already in _back_references");
-    assert(!self._referenceIdx[h],"reference exists already in _references");
+    assert(!_private._back_referenceIdx[h],"reference exists already in _back_references");
+    assert(!_private._referenceIdx[h],"reference exists already in _references");
 
 ///    self._references.push(reference);
-    self._referenceIdx[h] = reference;
+    _private._referenceIdx[h] = reference;
     _handle_HierarchicalReference(self,reference);
     return reference;
 };
@@ -989,6 +1045,7 @@ BaseNode.prototype.addReference = function (reference) {
 BaseNode.prototype.removeReference = function(reference) {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
 
     assert(reference.hasOwnProperty("referenceType"));
     //xx isForward is optional : assert(reference.hasOwnProperty("isForward"));
@@ -1005,11 +1062,13 @@ BaseNode.prototype.removeReference = function(reference) {
         isForward: !reference.isForward,
         nodeId: self.nodeId
     });
-    if (self._referenceIdx[h]) {
-        delete self._referenceIdx[h];
+
+
+    if (_private._referenceIdx[h]) {
+        delete _private._referenceIdx[h];
         relatedNode._remove_backward_reference(invReference);
 
-    } else if (self._back_referenceIdx[h]) {
+    } else if (_private._back_referenceIdx[h]) {
 
         relatedNode.removeReference(invReference);
     } else {
@@ -1032,9 +1091,11 @@ BaseNode.prototype.removeReference = function(reference) {
 BaseNode.prototype.unpropagate_back_references = function () {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
     var addressSpace = self.addressSpace;
     //xx assert(addressSpace instanceof AddressSpace);
-    _.forEach(self._referenceIdx,function (reference) {
+    _.forEach(_private._referenceIdx,function (reference) {
 
         // filter out non  Hierarchical References
         var referenceType = _resolveReferenceType(addressSpace,reference);
@@ -1059,8 +1120,8 @@ BaseNode.prototype.unpropagate_back_references = function () {
 
 BaseNode.prototype._clear_caches = function() {
     var self = this;
-    // clean caches
-    Object.defineProperty(this, "_cache", { configurable: true,value:{}, hidden:true,enumerable: false});
+    var _private = BaseNode_getPrivate(self);
+    _private._cache = {};
 };
 
 BaseNode.prototype._on_child_added = function(/*obj*/) {
@@ -1181,6 +1242,14 @@ BaseNode.prototype.full_name = function () {
     return this.browseName.toString();
 };
 
+BaseNode.prototype.allReferences = function() {
+
+    var self = this;
+    var _private = BaseNode_getPrivate(self);
+    return [].concat(_.map(_private._referenceIdx),_.map(_private._back_referenceIdx));
+
+};
+
 
 /**
  * @method browseNodeByTargetName
@@ -1198,6 +1267,8 @@ BaseNode.prototype.full_name = function () {
 BaseNode.prototype.browseNodeByTargetName = function (relativePathElement,isLast) {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
 
     relativePathElement.targetName = relativePathElement.targetName || new QualifiedName();
     // part 4.0 v1.03 $7.26 RelativePath
@@ -1222,7 +1293,7 @@ BaseNode.prototype.browseNodeByTargetName = function (relativePathElement,isLast
     assert(relativePathElement.hasOwnProperty("includeSubtypes"));
 
 
-    var references = [].concat(_.map(self._referenceIdx),_.map(self._back_referenceIdx));
+    var references = self.allReferences();
 
     function _check_reference(reference) {
 
@@ -1571,6 +1642,7 @@ BaseNode.prototype.browseNode = function (browseDescription, session) {
     //xx do_debug = ( this.browseName === "Server" );
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
 
     var referenceTypeId = normalize_referenceTypeId(this.addressSpace, browseDescription.referenceTypeId);
     assert(referenceTypeId instanceof NodeId);
@@ -1580,12 +1652,12 @@ BaseNode.prototype.browseNode = function (browseDescription, session) {
     var addressSpace = self.addressSpace;
 
     // get all possible references
-    var references = [].concat(_.map(self._referenceIdx),_.map(self._back_referenceIdx));
+    var references = [].concat(_.map(_private._referenceIdx),_.map(_private._back_referenceIdx));
 
     /* istanbul ignore next */
     if (do_debug) {
         console.log("all references :", self.nodeId.toString(), self.browseName.toString());
-        dumpReferences(addressSpace, _.map(self._referenceIdx));
+        dumpReferences(addressSpace, _.map(_private._referenceIdx));
     }
 
     // filter out references not matching referenceType
@@ -1857,6 +1929,8 @@ BaseNode.prototype._toString = function(str,options)
     var indent = options.indent;
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
 
     function set_as_processed(nodeId) {
         assert(nodeId instanceof NodeId);
@@ -1912,7 +1986,7 @@ BaseNode.prototype._toString = function(str,options)
     }
 
 
-    add(options.padding + "          references    : ".yellow + "  length =" + Object.keys(self._referenceIdx).length);
+    add(options.padding + "          references    : ".yellow + "  length =" + Object.keys(_private._referenceIdx).length);
 
     var dispOptions = {
         addressSpace: self.addressSpace
@@ -1946,9 +2020,9 @@ BaseNode.prototype._toString = function(str,options)
         }
     }
     // direct reference
-    _.forEach(self._referenceIdx,dump_reference.bind(null,true));
+    _.forEach(_private._referenceIdx,dump_reference.bind(null,true));
 
-    var  br = _.map(self._back_referenceIdx);
+    var  br = _.map(_private._back_referenceIdx);
     add(options.padding + "         back_references: ".yellow + "  length =" + br.length + " ( references held by other nodes involving this node)".grey);
     // backward reference
     br.forEach(dump_reference.bind(null,false));
@@ -1965,19 +2039,19 @@ BaseNode.prototype._toString = function(str,options)
 BaseNode.prototype.dispose = function() {
 
     var self = this;
+    var _private = BaseNode_getPrivate(self);
+
     self.emit("dispose");
 
     self.removeAllListeners();
     self._clear_caches();
 
-    _.forEach(self._back_referenceIdx,function(ref){ ref.dispose(); });
-    _.forEach(self._referenceIdx,function(ref){ ref.dispose(); });
-
-    Object.defineProperty(self, "__address_space",       {value: null, hidden: true, enumerable: false});
-    Object.defineProperty(self, "_cache",                {value: null, hidden: true, enumerable: false});
-    Object.defineProperty(self, "_back_referenceIdx",    {value: null, hidden: true, enumerable: false});
-    Object.defineProperty(self, "_referenceIdx",         {value: null, hidden: true, enumerable: false});
-
+    _.forEach(_private._back_referenceIdx,function(ref){ ref.dispose(); });
+    _.forEach(_private._referenceIdx,function(ref){ ref.dispose(); });
+    _private._cache = {};
+    _private.__address_space = null;
+    _private._back_referenceIdx = null;
+    _private._referenceIdx = null;
 
 };
 
@@ -2051,39 +2125,46 @@ BaseNode.prototype.getTrueSubStates = function () {
 BaseNode.prototype.findHierarchicalReferences = function() {
 
     var node  = this;
-    if (!node._cache._HasChildReferences) {
+    var _private = BaseNode_getPrivate(node);
+
+    if (!_private._cache._HasChildReferences) {
         //xx console.log("node ",node.nodeId.toString());
-        //xx node._cache._HasChildReferences =  node.findReferencesEx("HierarchicalReferences",BrowseDirection.Forward);
+        //xx _private._cache._HasChildReferences =  node.findReferencesEx("HierarchicalReferences",BrowseDirection.Forward);
         var r1 = node.findReferencesEx("HasChild",BrowseDirection.Forward);
         var r2 = node.findReferencesEx("Organizes",BrowseDirection.Forward);
-        node._cache._HasChildReferences = r1.concat(r2);
+        _private._cache._HasChildReferences = r1.concat(r2);
     }
-    return node._cache._HasChildReferences;
+    return _private._cache._HasChildReferences;
 };
 
 BaseNode.prototype.getChildByName = function(browseName) {
 
     var node = this;
+    var _private = BaseNode_getPrivate(node);
 
     browseName = browseName.toString();
 
     var addressSpace = node.addressSpace;
 
-    if (!node._cache._childByNameMap) {
-        node._cache._childByNameMap = {};
+    if (!_private._cache._childByNameMap) {
+        _private._cache._childByNameMap = {};
 
         var childrenRef = node.findHierarchicalReferences();
         _.forEach(childrenRef,function(r){
             var child = _resolveReferenceNode(addressSpace,r);
-            node._cache._childByNameMap[child.browseName.toString()] = child;
+            _private._cache._childByNameMap[child.browseName.toString()] = child;
         });
     }
-    var ret = node._cache._childByNameMap[browseName] || null;
+    var ret = _private._cache._childByNameMap[browseName] || null;
     return ret;
 };
 
 
-BaseNode.prototype.__defineGetter__("addressSpace",function(){ return this.__address_space;});
+BaseNode.prototype.__defineGetter__("addressSpace",function(){
+   var self = this;
+   var _private = BaseNode_getPrivate(self);
+   return _private.__address_space;
+});
 
 BaseNode.prototype.installPostInstallFunc = function(f) {
 

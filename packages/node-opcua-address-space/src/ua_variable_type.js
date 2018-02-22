@@ -144,8 +144,7 @@ function MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap) {
     assert(null !== instance);
     self.optionalsMap= optionalsMap;
     self.instance = instance;
-    self.references = [].concat(_.map(
-        instance._referenceIdx), _.map(instance._back_referenceIdx));
+    self.references = instance.allReferences();
 
 }
 

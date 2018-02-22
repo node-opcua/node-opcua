@@ -5,6 +5,7 @@ var _ = require("underscore");
 function _filterSubType(reference) {
     return (reference.referenceType === "HasSubtype" && !reference.isForward);
 }
+
 var _slow_isSupertypeOf = function (self, Class, baseType) {
     //xx console.log(" ",self.browseName, " versus ",baseType.browseName);
     assert(self instanceof Class);
@@ -14,7 +15,9 @@ var _slow_isSupertypeOf = function (self, Class, baseType) {
     if (self.nodeId === baseType.nodeId) {
         return true;
     }
-    var subTypes = _.filter(self._referenceIdx,_filterSubType);
+    var references = self.allReferences();
+
+    var subTypes = _.filter(references,_filterSubType);
     assert(subTypes.length <= 1 && " should have zero or one subtype no more");
 
     for (var i = 0; i < subTypes.length; i++) {

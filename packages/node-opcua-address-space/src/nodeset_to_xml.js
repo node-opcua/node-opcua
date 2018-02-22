@@ -36,7 +36,7 @@ function _dumpDescription(xw, node) {
 function _dumpReferences(xw, node) {
     xw.startElement("References");
 
-    var references = _.map(node._referenceIdx);
+    var references = _.map(node.allReferences());
     references.forEach(function (reference) {
         xw.startElement("Reference");
         xw.writeAttribute("ReferenceType", reference.referenceType);
@@ -389,8 +389,7 @@ function visitUANode(node, options) {
         }
     }
 
-    _.forEach(node._referenceIdx, process_reference);
-    _.forEach(node._back_referenceIdx, process_reference);
+    _.forEach(node.allReferences(), process_reference);
     options.elements.push(node);
     return node;
 }
@@ -459,8 +458,7 @@ function dumpXml(node, options) {
             }
         }
 
-        _.forEach(node._references, inner);
-        _.forEach(node._back_referenceIdx, inner);
+        _.forEach(node.allReferences(), inner);
 
     }
 

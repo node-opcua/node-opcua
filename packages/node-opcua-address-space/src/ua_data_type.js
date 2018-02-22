@@ -89,12 +89,13 @@ UADataType.prototype.getEncodingNodeId = function (encoding_name) {
  */
 UADataType.prototype.__defineGetter__("binaryEncodingNodeId", function () {
 
-    if (!this._cache.binaryEncodingNodeId) {
+    var _cache = BaseNode._getCache(this);
+    if (!_cache.binaryEncodingNodeId) {
 
         var encoding = this.getEncodingNodeId("Default Binary");
-        this._cache.binaryEncodingNodeId = encoding ? encoding.nodeId : null;
+        _cache.binaryEncodingNodeId = encoding ? encoding.nodeId : null;
     }
-    return this._cache.binaryEncodingNodeId;
+    return _cache.binaryEncodingNodeId;
 });
 
 
@@ -141,10 +142,11 @@ UADataType.prototype._toString = function(str,options)
  */
 UADataType.prototype.__defineGetter__("binaryEncoding", function () {
 
-    if (!this._cache.binaryEncodingNode) {
-        this._cache.binaryEncodingNode = this.__findReferenceWithBrowseName("HasEncoding","Default Binary");
+    var _cache = BaseNode._getCache(this);
+    if (!_cache.binaryEncodingNode) {
+        _cache.binaryEncodingNode = this.__findReferenceWithBrowseName("HasEncoding","Default Binary");
     }
-    return this._cache.binaryEncodingNode;
+    return _cache.binaryEncodingNode;
 });
 
 
@@ -167,10 +169,11 @@ UADataType.prototype.__defineGetter__("binaryEncodingDefinition", function () {
  */
 UADataType.prototype.__defineGetter__("xmlEncoding", function () {
 
-    if (!this._cache.xmlEncodingNode) {
-        this._cache.xmlEncodingNode = this.__findReferenceWithBrowseName("HasEncoding","Default XML");
+    var _cache = BaseNode._getCache(this);
+    if (!_cache.xmlEncodingNode) {
+        _cache.xmlEncodingNode = this.__findReferenceWithBrowseName("HasEncoding","Default XML");
     }
-    return this._cache.xmlEncodingNode;
+    return _cache.xmlEncodingNode;
 });
 
 /**

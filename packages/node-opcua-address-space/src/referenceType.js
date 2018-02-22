@@ -20,6 +20,7 @@ var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 var ReferenceTypeCounter=0;
 
+
 /**
  * @class ReferenceType
  * @extends  BaseNode
@@ -28,13 +29,13 @@ var ReferenceTypeCounter=0;
  */
 function ReferenceType(options) {
     BaseNode.apply(this, arguments);
+
     this.isAbstract = (options.isAbstract === null) ? false : options.isAbstract;
     this.symmetric = (options.symmetric === null) ? false : options.symmetric;
     this.inverseName = coerceLocalizedText(options.inverseName);
-
     ReferenceTypeCounter +=1;
-    
 }
+
 util.inherits(ReferenceType, BaseNode);
 ReferenceType.prototype.nodeClass = NodeClass.ReferenceType;
 
@@ -123,15 +124,17 @@ function findAllSubTypes(referenceType) {
  */
 ReferenceType.prototype.getAllSubtypes = function() {
 
-    if (!this._cache._allSubTypesVersion || this._cache._allSubTypesVersion < ReferenceTypeCounter) {
+    var _cache = BaseNode._getCache(this);
 
-        this._cache._allSubTypes = null;
+    if (!_cache._allSubTypesVersion || _cache._allSubTypesVersion < ReferenceTypeCounter) {
+
+        _cache._allSubTypes = null;
     }
-    if (!this._cache._allSubTypes) {
-        this._cache._allSubTypes = findAllSubTypes(this);
-        this._cache._allSubTypesVersion = ReferenceTypeCounter;
+    if (!_cache._allSubTypes) {
+        _cache._allSubTypes = findAllSubTypes(this);
+        _cache._allSubTypesVersion = ReferenceTypeCounter;
     }
-    return this._cache._allSubTypes;
+    return _cache._allSubTypes;
 };
 function _get_idx(referenceType)  {
 
@@ -145,15 +148,18 @@ function _get_idx(referenceType)  {
     return keys;
 }
 ReferenceType.prototype.getSubtypeIndex = function() {
-    if (this._cache._subtype_idxVersion < ReferenceTypeCounter) {
-        this._cache._subtype_idx = null;
+
+    var _cache = BaseNode._getCache(this);
+
+    if (_cache._subtype_idxVersion < ReferenceTypeCounter) {
+        _cache._subtype_idx = null;
     } else {
     }
-    if (!this._cache._subtype_idx) {
-        this._cache._subtype_idx = _get_idx(this);
-        this._cache._subtype_idxVersion = ReferenceTypeCounter;
+    if (!_cache._subtype_idx) {
+        _cache._subtype_idx = _get_idx(this);
+        _cache._subtype_idxVersion = ReferenceTypeCounter;
     }
-    return this._cache._subtype_idx;
+    return _cache._subtype_idx;
 
 };
 
