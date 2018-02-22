@@ -593,7 +593,7 @@ function composeResult(nodes, nodesToRead, dataValues) {
             c++;
             if (dataValue.statusCode === StatusCodes.Good) {
                 k = utils.lowerFirstLetter(keys[i]);
-                data[k] = dataValue.value.value;
+                data[k] = dataValue.value ? dataValue.value.value : null;
                 addedProperty += 1;
             }
         }
