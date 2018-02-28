@@ -1,6 +1,6 @@
 {
   "name": "node-opcua",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "private": true,
   "description": "pure nodejs OPCUA SDK",
   "homepage": "http://node-opcua.github.io/",

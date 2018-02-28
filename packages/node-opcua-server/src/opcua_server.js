@@ -2728,7 +2728,9 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
             var options = {
                 securityMode: MessageSecurityMode.SIGN,
                 securityPolicy: SecurityPolicy.Basic128Rsa15,
-                serverCertificate: discoveryServerCertificateChain
+                serverCertificate: discoveryServerCertificateChain,
+                certificateFile: self.certificateFile,
+                privateKeyFile: self.privateKeyFile
             };
 
 
