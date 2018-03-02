@@ -169,6 +169,14 @@ function ConstantStatusCode(options) {
 
 util.inherits(ConstantStatusCode, StatusCode);
 
+StatusCode.prototype.isNot = function isNot(other) {
+    assert(other instanceof StatusCode);
+    return this.value !== other.value;
+};
+StatusCode.prototype.equals = function equals(other) {
+    assert(other instanceof StatusCode);
+    return this.value === other.value;
+};
 
 var encodeStatusCode = function (statusCode, stream) {
     assert(statusCode instanceof StatusCode || statusCode instanceof ConstantStatusCode);

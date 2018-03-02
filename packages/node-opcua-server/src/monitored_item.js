@@ -747,7 +747,7 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest , inde
 MonitoredItem.prototype._setOverflowBit = function (notification) {
 
     if (notification.hasOwnProperty("value")) {
-        assert(notification.value.statusCode === StatusCodes.Good);
+        assert(notification.value.statusCode.equals(StatusCodes.Good));
         notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
         assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
         assert(notification.value.statusCode.hasOverflowBit);
@@ -1074,7 +1074,7 @@ MonitoredItem.prototype.modify = function (timestampsToReturn, monitoredParamete
 
     if (monitoredParameters.filter) {
         var statusCodeFilter = validateFilter(monitoredParameters.filter, self.itemToMonitor, self.node);
-        if (statusCodeFilter !== StatusCodes.Good) {
+        if (statusCodeFilter.isNot(StatusCodes.Good)) {
             return new MonitoredItemModifyResult({
                 statusCode: statusCodeFilter
             });

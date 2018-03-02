@@ -427,7 +427,7 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
             }
 
             self.session.republish(request,function(err,response){
-                if (!err &&  response.responseHeader.serviceResult === StatusCodes.Good) {
+                if (!err &&  response.responseHeader.serviceResult.equals(StatusCodes.Good)) {
                     // reprocess notification message  and keep going
                     subscription.onNotificationMessage(response.notificationMessage);
                 } else {

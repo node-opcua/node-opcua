@@ -27,7 +27,7 @@ function check_expecting_no_error_and_one_datavalue_with_statusGood(err,dataValu
         if (dataValues.length !== 1) {
             err = new Error(" Expecting 1 value in dataValues but got " + dataValues.length + " instead " + extra_message);
         } else {
-            if (dataValues[0].statusCode !== StatusCodes.Good) {
+            if (dataValues[0].statusCode.isNot(StatusCodes.Good)) {
                 err = new Error(" Expecting statusCode to be Good but  " + dataValues[0].statusCode.toString() + " instead "+ extra_message);
             }
         }

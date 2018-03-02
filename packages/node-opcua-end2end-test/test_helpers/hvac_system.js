@@ -203,7 +203,7 @@ exports.createHVACSystem = function(addressSpace) {
             console.log("instrumentRange=", HVACModuleType.targetTemperature.instrumentRange.readValue().value.toString());
         }
         var s = variable.isValueInRange(targetTemperature);
-        if (s !== StatusCodes.Good) {
+        if (s.isNot(StatusCodes.Good)) {
             console.log(" Invalid Value specified for targetTemperature".red.bold);
             return callback(null, { statusCode: s });
         }

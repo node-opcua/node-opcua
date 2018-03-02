@@ -147,13 +147,13 @@ NodeCrawler.prototype._readOperationalLimits = function (callback) {
     self.transactionCounter++;
     self.session.read(nodesToRead, function (err, dataValues) {
         if (!err) {
-            if (dataValues[0].statusCode === StatusCodes.Good) {
+            if (dataValues[0].statusCode.equals(StatusCodes.Good)) {
                 self.maxNodesPerRead = dataValues[0].value.value;
             }
             // ensure we have a sensible maxNodesPerRead value in case the server doesn't specify one
             self.maxNodesPerRead = self.maxNodesPerRead || 500;
 
-            if (dataValues[1].statusCode === StatusCodes.Good) {
+            if (dataValues[1].statusCode.equals(StatusCodes.Good)) {
                 self.maxNodesPerBrowse = dataValues[1].value.value;
             }
             // ensure we have a sensible maxNodesPerBrowse value in case the server doesn't specify one
@@ -259,7 +259,7 @@ NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
 
                 var dataValue = pair[1];
                 assert(dataValue.hasOwnProperty("statusCode"));
-                if (dataValue.statusCode === StatusCodes.Good) {
+                if (dataValue.statusCode.equals(StatusCodes.Good)) {
                     if (dataValue.value === null) {
                         _nodeToReadEx.action(null);
                     }

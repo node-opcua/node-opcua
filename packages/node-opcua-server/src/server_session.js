@@ -693,17 +693,16 @@ ServerSession.prototype.watchdogReset = function () {
     self.emit("timeout");
 };
 
-const registeredNodeNameSpace = 9999;
+const registeredNodeNameSpace = 9999  ;
 
 ServerSession.prototype.registerNode = function(nodeId) {
 
     assert(nodeId instanceof NodeId);
     var session = this;
 
-    if (nodeId.namespace === 0 && nodeId.identifierType === NodeIdType.NUMERIC) {
+    if (nodeId.namespace === 0 && nodeId.identifierType.value === NodeIdType.NUMERIC.value) {
         return nodeId;
     }
-
 
     var key = nodeId.toString();
 

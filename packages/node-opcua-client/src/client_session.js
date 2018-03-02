@@ -325,7 +325,7 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
         if (err) {
             return callback(err, response);
         }
-        if (response.responseHeader.serviceResult !== StatusCodes.Good) {
+        if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
             return callback(new Error(response.responseHeader.serviceResult.toString()));
         }
         assert(response instanceof read_service.ReadResponse);
@@ -397,7 +397,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
             return callback(err, response);
         }
 
-        if (response.responseHeader.serviceResult !== StatusCodes.Good) {
+        if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
             return callback(new Error(response.responseHeader.serviceResult.toString()));
         }
 
@@ -517,7 +517,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
         if (err) {
             return callback(err, response);
         }
-        if (response.responseHeader.serviceResult !== StatusCodes.Good) {
+        if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
             return callback(new Error(response.responseHeader.serviceResult.toString()));
         }
         assert(response instanceof write_service.WriteResponse);
@@ -591,7 +591,7 @@ function composeResult(nodes, nodesToRead, dataValues) {
             dataValue = dataValues[c];
             nodeToRead = nodesToRead[c];
             c++;
-            if (dataValue.statusCode === StatusCodes.Good) {
+            if (dataValue.statusCode.equals(StatusCodes.Good)) {
                 k = utils.lowerFirstLetter(keys[i]);
                 data[k] = dataValue.value ? dataValue.value.value : null;
                 addedProperty += 1;
@@ -1146,7 +1146,7 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
             return callback(err, response);
         }
 
-        if (response.responseHeader.serviceResult !== StatusCodes.Good) {
+        if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
             err = new Error(" ServiceResult is " + response.responseHeader.serviceResult.toString());
             if (response && response.diagnosticInfo) {
                 err.diagnosticInfo = response.diagnosticInfo;
@@ -1314,7 +1314,7 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
 
             result = result[0];
 
-            if (result.statusCode !== StatusCodes.Good) {
+            if (result.statusCode.isNot(StatusCodes.Good)) {
 
                 callback(new Error(result.statusCode.toString()), result);
 
@@ -1645,7 +1645,7 @@ ClientSession.prototype.getBuiltInDataType = function (nodeId, callback) {
     };
     session.read(nodeToRead, 0, function (err, dataValue) {
         if (err) return callback(err);
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNot(StatusCodes.Good)) {
             return callback(new Error("cannot read DataType Attribute " + dataValue.statusCode.toString()));
         }
         dataTypeId = dataValue.value.value;

@@ -54,7 +54,7 @@ function test_24_on_node(session,nodeId,callback) {
                 callback(new Error("Expecting one value in dataValues"));
                 return;
             }
-            if (dataValues[0].statusCode !== StatusCodes.Good) {
+            if (dataValues[0].statusCode.isNot(StatusCodes.Good)) {
                 callback(new Error("dataValues[0] : Expecting status code Good  got " + dataValues[0].statusCode.toString() + " instead while reading " + nodeId.toString() ));
                 return;
             }

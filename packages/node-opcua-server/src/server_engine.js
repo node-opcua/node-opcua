@@ -112,15 +112,15 @@ function ServerEngine(options) {
     var engine = this;
     ServerEngine.registry.register(engine);
 
-    this._sessions = {};
-    this._closedSessions = {};
-    this._orphanPublishEngine = null; // will be constructed on demand
+    engine._sessions = {};
+    engine._closedSessions = {};
+    engine._orphanPublishEngine = null; // will be constructed on demand
 
-    this.isAuditing = _.isBoolean(options.isAuditing) ? options.isAuditing : false;
+    engine.isAuditing = _.isBoolean(options.isAuditing) ? options.isAuditing : false;
 
     options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
     // ---------------------------------------------------- ServerStatus
-    this.serverStatus = new ServerStatus({
+    engine.serverStatus = new ServerStatus({
         startTime: new Date(),
         currentTime: new Date(),
         state: ServerState.NoConfiguration,
@@ -140,22 +140,18 @@ function ServerEngine(options) {
     ];
     options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
-    this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
-    this.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
+    engine.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
+    engine.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
 
     // --------------------------------------------------- serverDiagnosticsSummary extension Object
-    this.serverDiagnosticsSummary = new ServerDiagnosticsSummary({});
-    assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
-
-    this.serverDiagnosticsSummary.__defineGetter__("currentSessionCount", function () {
-        return Object.keys(engine._sessions).length;
-    });
+    engine.serverDiagnosticsSummary = new ServerDiagnosticsSummary({});
+    assert(engine.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
 
     // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
     //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
-    assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSubscriptionCount"));
+    assert(engine.serverDiagnosticsSummary.hasOwnProperty("currentSubscriptionCount"));
 
-    this.serverDiagnosticsSummary.__defineGetter__("currentSubscriptionCount", function () {
+    engine.serverDiagnosticsSummary.__defineGetter__("currentSubscriptionCount", function () {
         // currentSubscriptionCount returns the total number of subscriptions
         // that are currently active on all sessions
         var counter = 0;
@@ -165,18 +161,18 @@ function ServerEngine(options) {
         return counter;
     });
 
-    this.status = "creating";
+    engine.status = "creating";
 
-    this.setServerState(ServerState.NoConfiguration);
+    engine.setServerState(ServerState.NoConfiguration);
 
-    this.addressSpace = null;
+    engine.addressSpace = null;
 
-    this._shutdownTask = [];
+    engine._shutdownTask = [];
 
-    this._applicationUri = options.applicationUri || "<unset _applicationUri>";
+    engine._applicationUri = options.applicationUri || "<unset _applicationUri>";
 
     options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable") ? coerceoptions.serverDiagnosticsEnabled : true;
-    this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
+    engine.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
 
 }
 
@@ -211,34 +207,38 @@ ServerEngine.prototype.dispose = function () {
     ServerEngine.registry.unregister(engine);
 };
 ServerEngine.prototype.__defineGetter__("startTime", function () {
-    return this.serverStatus.startTime;
+    var engine = this;
+    return engine.serverStatus.startTime;
 });
 
 ServerEngine.prototype.__defineGetter__("currentTime", function () {
-    return this.serverStatus.currentTime;
+    var engine = this;
+    return engine.serverStatus.currentTime;
 });
 
 ServerEngine.prototype.__defineGetter__("buildInfo", function () {
-    return this.serverStatus.buildInfo;
+    var engine = this;
+    return engine.serverStatus.buildInfo;
 });
 /**
  * register a function that will be called when the server will perform its shut down.
  * @method registerShutdownTask
  */
-ServerEngine.prototype.registerShutdownTask = function (task) {
+ServerEngine.prototype.registerShutdownTask = function (task) {    var engine = this;
+    var engine = this;
     assert(_.isFunction(task));
-    this._shutdownTask.push(task);
+    engine._shutdownTask.push(task);
 
 };
 
 function shutdownAndDisposeAddressSpace() {
     /* jshint validthis:true */
-
-    if (this.addressSpace) {
-        assert(this.addressSpace instanceof AddressSpace);
-        this.addressSpace.shutdown();
-        this.addressSpace.dispose();
-        delete this.addressSpace;
+    var engine = this;
+    if (engine.addressSpace) {
+        assert(engine.addressSpace instanceof AddressSpace);
+        engine.addressSpace.shutdown();
+        engine.addressSpace.dispose();
+        delete engine.addressSpace;
     }
 }
 
@@ -296,7 +296,8 @@ ServerEngine.prototype.shutdown = function () {
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("currentSessionCount", function () {
-    return this.serverDiagnosticsSummary.currentSessionCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.currentSessionCount;
 });
 
 /**
@@ -305,7 +306,8 @@ ServerEngine.prototype.__defineGetter__("currentSessionCount", function () {
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("cumulatedSessionCount", function () {
-    return this.serverDiagnosticsSummary.cumulatedSessionCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.cumulatedSessionCount;
 });
 
 /**
@@ -314,7 +316,8 @@ ServerEngine.prototype.__defineGetter__("cumulatedSessionCount", function () {
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("currentSubscriptionCount", function () {
-    return this.serverDiagnosticsSummary.currentSubscriptionCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.currentSubscriptionCount;
 });
 /**
  * the cumulated number of subscriptions that have been created since this object exists
@@ -322,26 +325,32 @@ ServerEngine.prototype.__defineGetter__("currentSubscriptionCount", function () 
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("cumulatedSubscriptionCount", function () {
-    return this.serverDiagnosticsSummary.cumulatedSubscriptionCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.cumulatedSubscriptionCount;
 });
 
 ServerEngine.prototype.__defineGetter__("rejectedSessionCount", function () {
-    return this.serverDiagnosticsSummary.rejectedSessionCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.rejectedSessionCount;
 });
 
 ServerEngine.prototype.__defineGetter__("rejectedRequestsCount", function () {
-    return this.serverDiagnosticsSummary.rejectedRequestsCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.rejectedRequestsCount;
 });
 
 ServerEngine.prototype.__defineGetter__("sessionAbortCount", function () {
-    return this.serverDiagnosticsSummary.sessionAbortCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.sessionAbortCount;
 });
 ServerEngine.prototype.__defineGetter__("sessionTimeoutCount", function () {
-    return this.serverDiagnosticsSummary.sessionTimeoutCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.sessionTimeoutCount;
 });
 
 ServerEngine.prototype.__defineGetter__("publishingIntervalCount", function () {
-    return this.serverDiagnosticsSummary.publishingIntervalCount;
+    var engine = this;
+    return engine.serverDiagnosticsSummary.publishingIntervalCount;
 });
 
 
@@ -407,7 +416,8 @@ function getMonitoredItemsId(inputArguments, context, callback) {
  * @type String
  */
 ServerEngine.prototype.__defineGetter__("serverName", function () {
-    return this.serverStatus.buildInfo.productName;
+    var engine = this;
+    return engine.serverStatus.buildInfo.productName;
 });
 
 /**
@@ -416,7 +426,8 @@ ServerEngine.prototype.__defineGetter__("serverName", function () {
  * @type String
  */
 ServerEngine.prototype.__defineGetter__("serverNameUrn", function () {
-    return this._applicationUri;
+    var engine = this;
+    return engine._applicationUri;
 });
 
 /**
@@ -425,13 +436,15 @@ ServerEngine.prototype.__defineGetter__("serverNameUrn", function () {
  * @type String
  */
 ServerEngine.prototype.__defineGetter__("serverNamespaceUrn", function () {
-    return this._applicationUri; // "urn:" + this.serverName;
+    var engine = this;
+    return engine._applicationUri; // "urn:" + engine.serverName;
 });
 
 
 ServerEngine.prototype.setServerState = function (serverState) {
+    var engine = this;
     assert(serverState !== null && serverState !== undefined);
-    this.serverStatus.state = serverState;
+    engine.serverStatus.state = serverState;
 };
 
 ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
@@ -623,6 +636,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
             var serverDiagnosticsSummary = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary));
             if (serverDiagnosticsSummary) {
                 serverDiagnosticsSummary.bindExtensionObject(engine.serverDiagnosticsSummary);
+                engine.serverDiagnosticsSummary = serverDiagnosticsSummary.$extensionObject;
             }
 
         }
@@ -922,9 +936,10 @@ var UAVariable = require("node-opcua-address-space").UAVariable;
 require("node-opcua-address-space");
 
 ServerEngine.prototype.__findObject = function (nodeId) {
+    var engine = this;
     nodeId = resolveNodeId(nodeId);
     assert(nodeId instanceof NodeId);
-    return this.addressSpace.findNode(nodeId);
+    return engine.addressSpace.findNode(nodeId);
 };
 
 /**
@@ -979,8 +994,9 @@ var apply_timestamps = require("node-opcua-data-value").apply_timestamps;
  * @return {DataValue}
  */
 ServerEngine.prototype.readSingleNode = function (context, nodeId, attributeId, timestampsToReturn) {
+    var engine = this;
 
-    return this._readSingleNode(context,
+    return engine._readSingleNode(context,
         {
             nodeId: nodeId,
             attributeId: attributeId
@@ -1180,9 +1196,10 @@ ServerEngine.prototype.write = function (context, nodesToWrite, callback) {
  * @param callback.results {HistoryReadResult}
  */
 ServerEngine.prototype.historyReadSingleNode = function (context, nodeId, attributeId, historyReadDetails, timestampsToReturn, callback) {
+    var engine = this;
 
     assert(context instanceof SessionContext);
-    this._historyReadSingleNode(context,
+    engine._historyReadSingleNode(context,
         {
             nodeId: nodeId,
             attributeId: attributeId
@@ -1487,6 +1504,7 @@ ServerEngine.prototype.createSession = function (options) {
     var engine = this;
 
     engine.serverDiagnosticsSummary.cumulatedSessionCount += 1;
+    engine.serverDiagnosticsSummary.currentSessionCount += 1;
 
     engine.clientDescription = options.clientDescription || new ApplicationDescription({});
 
@@ -1503,7 +1521,6 @@ ServerEngine.prototype.createSession = function (options) {
     // see spec OPC Unified Architecture,  Part 2 page 26 Release 1.02
     // TODO : When a Session is created, the Server adds an entry for the Client
     //        in its SessionDiagnosticsArray Variable
-
 
     session.on("new_subscription", function (subscription) {
         engine.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
@@ -1630,6 +1647,8 @@ ServerEngine.prototype.closeSession = function (authenticationToken, deleteSubsc
     session.close(deleteSubscriptions, reason);
 
     assert(session.status === "closed");
+
+    engine.serverDiagnosticsSummary.currentSessionCount -= 1;
 
     //xx //TODO make sure _closedSessions gets cleaned at some point
     //xx self._closedSessions[key] = session;
@@ -1777,7 +1796,8 @@ ServerEngine.prototype.getSession = function (authenticationToken, activeOnly) {
  * @return {BrowsePathResult}
  */
 ServerEngine.prototype.browsePath = function (browsePath) {
-    return this.addressSpace.browsePath(browsePath);
+    var engine = this;
+    return engine.addressSpace.browsePath(browsePath);
 };
 
 
