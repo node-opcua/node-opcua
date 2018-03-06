@@ -447,8 +447,18 @@ describe("Variant - Analyser", function () {
         new Variant({dataType: DataType.Double, arrayType: VariantArrayType.Array, value: veryLargeFloatArray}),
 
         // variant Matrix
-        new Variant({dataType: DataType.Int32 , arrayType:VariantArrayType.Matrix, value: [1,2,3,4,5,6], dimensions: [2,3]}),
-        new Variant({dataType: DataType.Int32 , arrayType:VariantArrayType.Matrix, value: [1,2,3,4,5,6], dimensions: [3,2]}),
+        new Variant({
+            dataType: DataType.Int32,
+            arrayType: VariantArrayType.Matrix,
+            value: [1, 2, 3, 4, 5, 6],
+            dimensions: [2, 3]
+        }),
+        new Variant({
+            dataType: DataType.Int32,
+            arrayType: VariantArrayType.Matrix,
+            value: [1, 2, 3, 4, 5, 6],
+            dimensions: [3, 2]
+        }),
     ];
 
     //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
@@ -893,7 +903,7 @@ describe("Variant with Advanced Array", function () {
         var v = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
-            dimensions: [5,4],
+            dimensions: [5, 4],
             value: [
                 0x000, 0x001, 0x002, 0x003,
                 0x100, 0x101, 0x102, 0x103,
@@ -907,14 +917,14 @@ describe("Variant with Advanced Array", function () {
 
         nr.isValid().should.eql(true);
 
-        var results = nr.extract_values(v.value,v.dimensions); // << We must provide dimension here
+        var results = nr.extract_values(v.value, v.dimensions); // << We must provide dimension here
         results.statusCode.should.eql(StatusCodes.Good);
 
-        results.dimensions.should.eql([2,3]);
+        results.dimensions.should.eql([2, 3]);
 
         results.array.should.eql(new Float64Array([
-            0x301,0x302,0x303,
-            0x401,0x402,0x403,
+            0x301, 0x302, 0x303,
+            0x401, 0x402, 0x403,
         ]));
 
     });
@@ -1059,6 +1069,8 @@ describe("testing sameVariant Performance", function () {
             new Variant({dataType: DataType.Float, value: 43.0}),
             new Variant({dataType: DataType.Int32, value: 43}),
             new Variant({dataType: DataType.UInt32, value: 43}),
+            new Variant({dataType: DataType.UInt64, value: [43, 100], arrayType: VariantArrayType.Scalar}),
+            new Variant({dataType: DataType.Int64, value: [43, 1000], arrayType: VariantArrayType.Scalar}),
             new Variant({dataType: DataType.String, arrayType: VariantArrayType.Array, value: ["Hello", "World"]}),
             new Variant({
                 dataType: DataType.Double,
@@ -1110,7 +1122,20 @@ describe("testing sameVariant Performance", function () {
                 arrayType: VariantArrayType.Array,
                 value: new Int32Array([43, 43.0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 11, 12, 16])
             }),
-            new Variant({dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: largeArray1}),
+            new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Array, value: largeArray1
+            }),
+            new Variant({
+                dataType: DataType.UInt64,
+                arrayType: VariantArrayType.Array,
+                value:  [[44,888],[43, 100]]
+            }),
+            new Variant({
+                dataType: DataType.Int64,
+                arrayType: VariantArrayType.Array,
+                value: [[44,888],[43, 100]]
+            }),
             null,
         ];
 

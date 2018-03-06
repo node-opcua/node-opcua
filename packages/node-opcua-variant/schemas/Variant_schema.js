@@ -387,7 +387,9 @@ var Variant_Schema = {
 
         if (!options.arrayType && _.isArray(options.value)) {
             // when using UInt64 ou Int64 arrayType must be specified , as automatic detection cannot be made
-            assert(options.dataType !== DataType.UInt64 && options.dataType !== DataType.Int64 );
+            if(!(options.dataType !== DataType.UInt64 && options.dataType !== DataType.Int64 )) {
+                throw new Error("Variant#constructor : when using UInt64 ou Int64 arrayType must be specified , as automatic detection cannot be made");
+            }
 
             options.arrayType = VariantArrayType.Array;
         }
