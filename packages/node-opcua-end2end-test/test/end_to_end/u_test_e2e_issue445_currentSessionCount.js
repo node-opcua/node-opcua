@@ -126,9 +126,10 @@ module.exports = function (test) {
                                     var new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount);
 
-                                    //xx console.log("new_currentSessionCount=",dataValue.toString());
+                                    var cc = recordedCumulatedSessionCountValues[0];
+                                    recordedCumulatedSessionCountValues.should.eql([cc,cc+1,cc+2]);
+
                                     var c = currentSessionCount-1;
-                                    recordedCumulatedSessionCountValues.should.eql([c+1,c+2,c+3]);
                                     recordedCurrentSessionCountValues.should.eql([c+1,c+2,c+3,c+2,c+1]);
 
                                     callback();
