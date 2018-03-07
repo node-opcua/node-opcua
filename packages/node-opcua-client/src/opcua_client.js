@@ -380,16 +380,21 @@ function createUserNameIdentityToken(session, userName, password) {
     var userIdentityToken = new UserNameIdentityToken({
         userName: userName,
         password: Buffer.from(password, "utf-8"),
-        encryptionAlgorithm: cryptoFactory.asymmetricEncryptionAlgorithm,
+    //encryptionAlgorithm: cryptoFactory.asymmetricEncryptionAlgorithm,
+    encryptionAlgorithm: null,
         policyId: userTokenPolicy.policyId
     });
 
+  if (securityPolicy.key !== 'None') {
+    userIdentityToken.encryptionAlgorithm = cryptoFactory.asymmetricEncryptionAlgorithm;
 
     // now encrypt password as requested
     var lenBuf = createFastUninitializedBuffer(4);
     lenBuf.writeUInt32LE(userIdentityToken.password.length + serverNonce.length, 0);
     var block = Buffer.concat([lenBuf, userIdentityToken.password, serverNonce]);
     userIdentityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
+  }
+  
 
     return userIdentityToken;
 }

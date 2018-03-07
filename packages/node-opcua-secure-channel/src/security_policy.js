@@ -219,6 +219,37 @@ function compute_derived_keys(serverNonce, clientNonce) {
 
 exports.compute_derived_keys = compute_derived_keys;
 
+var _None = {
+  securityPolicy: SecurityPolicy.None,
+  
+  symmetricKeyLength: 16,
+  derivedEncryptionKeyLength: 16,
+  derivedSignatureKeyLength: 16,
+  encryptingBlockSize: 16,
+  signatureLength: 20,
+
+  minimumAsymmetricKeyLength: 128,
+  maximumAsymmetricKeyLength: 512,
+
+  /* asymmetric signature algorithm */
+  asymmetricVerifyChunk: asymmetricVerifyChunk,
+  asymmetricSign: RSAPKCS1V15SHA1_Sign,
+  asymmetricVerify: RSAPKCS1V15SHA1_Verify,
+  asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+
+  /* asymmetric encryption algorithm */
+  asymmetricEncrypt: RSAPKCS1V15_Encrypt,
+  asymmetricDecrypt: RSAPKCS1V15_Decrypt,
+  asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-1_5",
+
+  blockPaddingSize: 11,
+
+  symmetricEncryptionAlgorithm: "aes-128-cbc",
+
+  sha1or256: "SHA1",
+  compute_derived_keys: compute_derived_keys
+}
+
 var _Basic128Rsa15 = {
     securityPolicy: SecurityPolicy.Basic128Rsa15,
 
@@ -317,7 +348,8 @@ function getCryptoFactory(securityPolicy) {
 
     switch (securityPolicy.key) {
         case SecurityPolicy.None.key:
-            return null;
+            //return null;
+			      return _None;
         case SecurityPolicy.Basic128Rsa15.key:
             return _Basic128Rsa15;
         case SecurityPolicy.Basic256.key:
