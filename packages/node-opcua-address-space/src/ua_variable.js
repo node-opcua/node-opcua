@@ -59,10 +59,12 @@ function adjust_accessLevel(accessLevel) {
     return accessLevel;
 }
 
-function adjust_userAccessLevel(accessLevel) {
+function adjust_userAccessLevel(userAccessLevel, accessLevel) {
+    userAccessLevel = utils.isNullOrUndefined(userAccessLevel) ? "CurrentRead | CurrentWrite" : userAccessLevel;
+    userAccessLevel = makeAccessLevel(userAccessLevel);
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevel(accessLevel);
-    return accessLevel;
+    return makeAccessLevel(accessLevel.value & userAccessLevel.value);
 }
 
 function adjust_samplingInterval(minimumSamplingInterval) {
@@ -255,15 +257,21 @@ function UAVariable(options) {
     /**
      * @property accessLevel
      * @type {number}
+     * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed 
+     * (read/write) and if it contains current and/or historic data. The AccessLevel does not take 
+     * any user access rights into account, i.e. although the Variable is writable this may be 
+     * restricted to a certain user / user group. The AccessLevelType is defined in 8.57.
      */
     self.accessLevel = adjust_accessLevel(options.accessLevel);
 
     /**
      * @property userAccessLevel
      * @type {number}
-     *
+     * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed 
+     * (read/write) and if it contains current or historic data taking user access rights into account.
+     * The AccessLevelType is defined in 8.57.
      */
-    self.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel);
+    self.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel, options.accessLevel);
 
     /**
      * The MinimumSamplingInterval Attribute indicates how 'current' the Value of the Variable will
