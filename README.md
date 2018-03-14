@@ -75,7 +75,11 @@ Because nodeJs is a great framework to design asynchronous application.
 ### API Documentation
    
  * check out the [API documentation](http://node-opcua.github.io/api_doc/index.html)
-                                 
+                
+## Minimum nodejs requirement 
+
+  * nodejs version 6.10 or above
+                                  
 ## Contributing
 
     $ git clone git://github.com/node-opcua/node-opcua.git

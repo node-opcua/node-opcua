@@ -7,7 +7,7 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "colors": "^1.1.2",
+  "colors": "^1.2.1",
   "node-opcua-assert": "^0.2.0",
   "node-opcua-buffer-utils": "^0.2.0"
  },

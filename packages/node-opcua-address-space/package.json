@@ -3,6 +3,9 @@
  "version": "0.2.2",
  "description": "pure nodejs OPCUA SDK - module -address-space",
  "main": "index.js",
+ "engines" : {
+  "node" : ">=6.10"
+ },
  "scripts": {
   "test": "mocha test",
   "clean": "node -e \"require('rimraf').sync('_generated_');\"",
@@ -50,7 +53,7 @@
   "node-opcua-packet-analyzer": "^0.2.2",
   "node-opcua-test-fixtures": "^0.2.0",
   "should": "13.2.1",
-  "sinon": "^4.2.2"
+  "sinon": "^4.4.5"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

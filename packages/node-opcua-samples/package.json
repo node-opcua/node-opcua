@@ -15,7 +15,7 @@
  },
  "dependencies": {
   "async": "^2.6.0",
-  "colors": "^1.1.2",
+  "colors": "^1.2.1",
   "easy-table": "^1.1.1",
   "exit": "^0.1.2",
   "hexy": "^0.2.10",
@@ -23,7 +23,7 @@
   "node-opcua-assert": "^0.2.0",
   "readline": "^1.3.0",
   "sprintf": "^0.1.5",
-  "treeify": "^1.0.1",
+  "treeify": "^1.1.0",
   "underscore": "^1.8.3",
   "yargs": "^11.0.0"
  },

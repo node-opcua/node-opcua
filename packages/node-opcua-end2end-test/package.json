@@ -12,7 +12,7 @@
  },
  "devDependencies": {
   "async": "^2.6.0",
-  "colors": "^1.1.2",
+  "colors": "^1.2.1",
   "delayed": "^1.0.1",
   "node-opcua": "^0.2.2",
   "node-opcua-address-space": "^0.2.2",
@@ -33,7 +33,7 @@
   "node-opcua-service-filter": "^0.2.2",
   "node-opcua-service-secure-channel": "^0.2.2",
   "should": "13.2.1",
-  "sinon": "^4.2.2",
+  "sinon": "^4.4.5",
   "underscore": "^1.8.3",
   "yargs": "^11.0.0"
  },

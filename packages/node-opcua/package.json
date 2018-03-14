@@ -4,6 +4,9 @@
  "description": "pure nodejs OPCUA SDK - module ",
  "main": "index.js",
  "scripts": {},
+ "engines" : {
+   "node" : ">=6.10"
+ },
  "typings": "./node-opcua.d.ts",
  "dependencies": {
   "node-opcua-address-space": "^0.2.2",
