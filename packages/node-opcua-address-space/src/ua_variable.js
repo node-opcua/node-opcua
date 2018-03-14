@@ -920,7 +920,7 @@ function _default_writable_timestamped_set_func(dataValue, callback) {
 function turn_sync_to_async(f, numberOfArgs) {
     if (f.length <= numberOfArgs) {
         return function (data, callback) {
-            var r = f(data);
+            var r = f.call(this,data);
             setImmediate(function () {
                 return callback(null, r);
             });
