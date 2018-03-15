@@ -157,11 +157,11 @@ describe("testing ServerSecureChannelLayer ", function () {
         var fake_GetEndpointsRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndPoints
         node.client.write(fake_GetEndpointsRequest);
 
-        server_secure_channel.close(function() {
-            server_secure_channel.dispose();
-            server_secure_channel= null;
-            done();
-        });
+        // server_secure_channel.close(function() {
+        //     server_secure_channel.dispose();
+        //     server_secure_channel= null;
+        //     done();
+        // });
     });
 
     it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", function (done) {
