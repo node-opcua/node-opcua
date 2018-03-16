@@ -4,7 +4,6 @@ node-opcua
 an implementation of a OPC UA stack fully written in javascript and nodejs
 
 
-[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)](https://github.com/node-opcua/node-opcua)
 [![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](http://www.npm-stats.com/~packages/node-opcua)
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
 [![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
@@ -21,7 +20,8 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 [Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
 
-[![Bountysource](https://img.shields.io/bountysource/team/mozilla-core/activity.svg)](https://github.com/node-opcua/node-opcua)
+[![Github All Releases](https://img.shields.io/github/downloads/node-opcua/node-opcua/total.svg)](https://github.com/node-opcua/node-opcua)
+[![Bountysource](https://img.shields.io/bountysource/team/node-opcua/activity.svg)](https://github.com/node-opcua/node-opcua)
 
 [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fgithub.com%2Fnode-opcua%2Fnode-opcua&title=Node-OPCUA&language=nodejs&tags=github&category=software).
 
