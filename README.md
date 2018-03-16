@@ -3,6 +3,8 @@ node-opcua
 
 an implementation of a OPC UA stack fully written in javascript and nodejs
 
+
+[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)](https://github.com/node-opcua/node-opcua)
 [![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](http://www.npm-stats.com/~packages/node-opcua)
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
 [![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
