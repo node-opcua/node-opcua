@@ -646,11 +646,13 @@ function getRequiredEndpointInfo(endpoint) {
     // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
     // other parameters set to null. Only the recommended parameters shall be verified by
     // the client.
+
     var e=  new EndpointDescription({
-        endpointUrl: endpoint.endpointUrl,
+        endpointUrl:      endpoint.endpointUrl,
         securityMode: endpoint.securityMode,
         securityPolicyUri: endpoint.securityPolicyUri,
         userIdentityTokens: endpoint.userIdentityTokens,
+        transportProfileUri: endpoint.transportProfileUri,
         securityLevel: endpoint.securityLevel,
     });
     // reduce even further by explicitly setting unwanted members to null
@@ -2709,13 +2711,16 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
 
                     var endpoint = findSecureEndpoint(endpoints);
                     assert(endpoint);
-                    assert(endpoint.serverCertificate);
-                    discoveryServerCertificateChain = endpoint.serverCertificate;
+                    if (endpoint.serverCertificate) {
+                        assert(endpoint.serverCertificate);
+                        discoveryServerCertificateChain = endpoint.serverCertificate;
+                    } else {
+                        discoveryServerCertificateChain = null;
+                    }
                 }
                 callback(err);
             });
         },
-
 
         function (callback) {
             client.disconnect(callback);
@@ -2723,6 +2728,7 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
 
         function (callback) {
 
+            if (!discoveryServerCertificateChain) { return callback(); }
             //xx var discoveryServerCertificate = split_der(discoveryServerCertificateChain)[0];
 
             var options = {
@@ -2751,6 +2757,7 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
         },
 
         function (callback) {
+            if (!discoveryServerCertificateChain) { return callback(); }
 
             var discoveryUrls = self.getDiscoveryUrls();
 
@@ -2786,6 +2793,7 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
         },
 
         function (callback) {
+            if (!discoveryServerCertificateChain) { return callback(); }
             client.disconnect(callback);
         }
 
