@@ -184,7 +184,9 @@ UAAlarmConditionBase.prototype.getSuppressedOrShelved = function () {
 };
 
 /**
- *
+ * @class UAAlarmConditionBase
+ * @static
+ * @property MaxDuration
  * @type {Duration}
  */
 UAAlarmConditionBase.MaxDuration = Math.pow(2,31);
@@ -517,14 +519,13 @@ UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode
     var alarm = this;
     /**
      *
-     *
      * The InputNode Property provides the NodeId of the Variable the Value of which is used as
      * primary input in the calculation of the Alarm state. If this Variable is not in the AddressSpace,
      * a Null NodeId shall be provided. In some systems, an Alarm may be calculated based on
      * multiple Variables Values; it is up to the system to determine which Variable’s NodeId is used.
+     * dataType is DataType.NodeId
      * @property inputNode
      * @type     UAVariable
-     * dataType is DataType.NodeId
      */
     assert(alarm.inputNode instanceof UAVariable);
 
@@ -794,8 +795,9 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
      * and this Alarm is then typically not displayed by the Client. State transitions associated with the
      * Alarm do occur, but they are not typically displayed by the Clients as long as the Alarm remains in
      * either the Suppressed or Shelved state.
+     * The dataType is Boolean.
      * @property suppressedState
-     * @type UAVariable - DataType Boolean
+     * @type UAVariable
      *
      */
     if (alarmNode.suppressedState) {

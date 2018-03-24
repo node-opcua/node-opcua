@@ -1825,10 +1825,10 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
 
 
     /**
+     * dataType is DataType.NodeId
      * @property eventType
      * @type {UAVariableType}
      *
-     * dataType is DataType.NodeId
      */
     // the constant property of this condition
     conditionNode.eventType.setValueFromSource({
@@ -1839,10 +1839,10 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     data = data || {};
     // install initial branch ID (null NodeId);
     /**
+     * dataType is DataType.NodeId
      * @property branchId
      * @type {UAVariableType}
      *
-     * dataType is DataType.NodeId
      */
     conditionNode.branchId.setValueFromSource({
         dataType: DataType.NodeId,
@@ -1851,30 +1851,30 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
 
     // install 'Comment' condition variable
     /**
+     * dataType is DataType.LocalizedText
      * @property comment
      * @type {UAVariableType}
      *
-     * dataType is DataType.LocalizedText
      */
     _install_condition_variable_type(conditionNode.comment);
 
 
     // install 'Quality' condition variable
     /**
+     * dataType is DataType.StatusCode
      * @property quality
      * @type {UAVariableType}
      *
-     * dataType is DataType.StatusCode
      */
     _install_condition_variable_type(conditionNode.quality);
     //xx conditionNode.quality.setValueFromSource({dataType: DataType.StatusCode,value: StatusCodes.Good });
 
     // install 'LastSeverity' condition variable
     /**
+     * dataType is DataType.StatusCode
      * @property lastSeverity
      * @type {UAVariableType}
      *
-     * dataType is DataType.StatusCode
      */
     _install_condition_variable_type(conditionNode.lastSeverity);
     //xx conditionNode.severity.setValueFromSource({dataType: DataType.UInt16,value: 0 });
@@ -1960,12 +1960,11 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     //    InputNode of the High Alarm would be the value of the temperature sensor that is associated
     //    with the motor.
     /**
+     * dataType is DataType.NodeId
      * @property sourceNode
      * @type {UAVariableType}
      *
-     * dataType is DataType.NodeId
      */
-
     if (options.conditionSource !== null) {
 
         options.conditionSource = addressSpace._coerceNode(options.conditionSource);
@@ -2004,8 +2003,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     // as per spec:
 
     /**
-     *  @property conditionName
-     *  @type {UAVariable}
      *
      *  dataType: DataType.NodeId
      *
@@ -2023,6 +2020,8 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
      *                     |                           |                             |
      *            ProcessConditionClassType  MaintenanceConditionClassType  SystemConditionClassType
      *
+     *  @property conditionName
+     *  @type {UAVariable}
      */
     var baseConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
     //assert(baseConditionClassType,"Expecting BaseConditionClassType to be in addressSpace");
@@ -2055,8 +2054,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
 
     // as per spec:
     /**
-     * @property conditionName
-     * @type {UAVariable}
      *
      * dataType: DataType.String
      *
@@ -2065,6 +2062,8 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
      *   together with the SourceName in a user display to distinguish between different Condition
      *   instances. If a ConditionSource has only one instance of a ConditionType, and the Server has
      *   no instance name, the Server shall supply the ConditionType browse name.
+     * @property conditionName
+     * @type {UAVariable}
      */
     var conditionName = options.conditionName || "Unset Condition Name";
     assert(_.isString(conditionName));

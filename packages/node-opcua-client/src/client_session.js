@@ -86,14 +86,14 @@ function coerceBrowseDescription(data) {
 /**
  * @method browse
  * @async
- * @param nodesToBrowse           {String|BrowseDescription}
+ * @param nodeToBrowse           {String|BrowseDescription}
  * @param callback               {Function}
  * @param callback.err           {Error|null}
  * @param callback.browseResult  {BrowseResult}
  *
  * @example:
  *
- *    ``` javascript
+ *    ```javascript
  *    session.browse("RootFolder",function(err,browseResult) {
  *      if(err) return callback(err);
  *      console.log(browseResult.toString());
@@ -104,7 +104,7 @@ function coerceBrowseDescription(data) {
  *
  * @example
  *
- * ``` javascript
+ *    ``` javascript
  *    var browseDescription = {
  *       nodeId: "ObjectsFolder",
  *       referenceTypeId: "Organizes",
@@ -160,7 +160,7 @@ function coerceBrowseDescription(data) {
  *
  * @method browse
  * @async
- * @param nodesToBrowse                 {String|BrowseDescription}
+ * @param nodeToBrowse                 {String|BrowseDescription}
  * @return {Promise<BrowseResult>}
  *
  */
@@ -223,10 +223,10 @@ ClientSession.prototype.browse = function (nodesToBrowse, callback) {
                 console.log("           continuationPoint ", r.continuationPoint);
             }
         }
+        assert(response.results[0] instanceof BrowseResult);
+        console.log(" isArray = ",isArray);
 
         return callback(null, isArray ? response.results: response.results[0]);
-
-
     });
 };
 
@@ -412,7 +412,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
 /**
  *
  * @method write
- * @param nodesToWrite {Array.<WriteValue>}  - the array of value to write. One or more elements.
+ * @param nodesToWrite {WriteValue[]}  - the array of value to write. One or more elements.
  * @param {Function} callback -   the callback function
  * @param callback.err {object|null} the error if write has failed or null if OK
  * @param callback.statusCodes {StatusCode[]} - an array of status code of each write
@@ -674,8 +674,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 };
 
 /**
- * @method read
- * @async
+ * @method read (form1)
  * @param nodeToRead               {ReadValueId}
  * @param nodeToRead.nodeId        {NodeId|string}
  * @param nodeToRead.attributeId   {AttributeIds}
@@ -683,10 +682,11 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  * @param callback                 {Function}                - the callback function
  * @param callback.err             {Error|null}              - the error or null if the transaction was OK}
  * @param callback.dataValue       {DataValue}
+ * @async
  *
  * @example:
  *
- * form2: reading a single node
+ * form1: reading a single node
  *
  *  ``` javascript
  *    var nodeToRead = {
@@ -702,13 +702,13 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  *    ```
  *
  *
- * @method read
- * @async
+ * @method read (form2)
  * @param nodesToRead               {Array<ReadValueId>} - an array of nodeId to read or a ReadValueId
  * @param [maxAge]                 {Number}
  * @param callback                 {Function}                - the callback function
  * @param callback.err             {Error|null}              - the error or null if the transaction was OK}
  * @param callback.dataValues       {Array<DataValue>}
+ * @async
  *
  * @example
  *
@@ -726,20 +726,22 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  *   });
  *   ```
  *
- * @method read
- * @async
+ * @method read_form3
  * @param nodeToRead               {ReadValueId}
  * @param nodeToRead.nodeId        {NodeId|string}
  * @param nodeToRead.attributeId   {AttributeIds}
  * @param [maxAge]                 {Number}
  * @return {Promise<DataValue>}
+ * @async
  *
  * @example:
- * @method read
- * @async
+ *
+ *
+ * @method read_form4
  * @param nodesToRead               {Array<ReadValueId>}
  * @param [maxAge]                  {Number}
  * @return {Promise<Array<DataValue>>}
+ * @async
  *
  */
 ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {

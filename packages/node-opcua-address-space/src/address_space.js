@@ -882,7 +882,7 @@ AddressSpace.prototype._addVariable = function (options) {
  * @param [options.typeDefinition="BaseDataVariableType"]
  * @param [options.modellingRule=null] the Modelling rule : "Optional" , "Mandatory"
  * @param [options.valueRank= -1]   {Int} the valueRank
- * @param [options.arrayDimensions] {null| Array{Int}}
+ * @param [options.arrayDimensions] {null| Array<Int>}
  * @return {Object}*
  */
 AddressSpace.prototype.addVariable = function (options) {

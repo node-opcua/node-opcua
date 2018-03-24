@@ -19,7 +19,7 @@ var EnumItem = function (key, value) {
 /**
  * Checks if the EnumItem is the same as the passing object.
  * @method is
- * @param  {EnumItem || String || Number} item The object to check with.
+ * @param  {EnumItem | String | Number} item The object to check with.
  * @return {Boolean}                          The check result.
  */
 EnumItem.prototype.is = function (item) {
@@ -35,7 +35,7 @@ EnumItem.prototype.is = function (item) {
 /**
  * Checks if the flagged EnumItem has the passing object.
  * @method has
- * @param  {EnumItem || String || Number} value The object to check with.
+ * @param  {EnumItem | String |Number} value The object to check with.
  * @return {Boolean}                            The check result.
  */
 EnumItem.prototype.has = function (value) {

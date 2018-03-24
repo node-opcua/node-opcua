@@ -12,7 +12,7 @@ var HistoryReadResult = historizing_service.HistoryReadResult;
  * @method historyRead
  * @param context {SessionContext}
  * @param historyReadDetails {HistoryReadDetails}
- * @param indexRange {NumericRange || null}
+ * @param indexRange {NumericRange |null}
  * @param dataEncoding {String}
  * @param continuationPoint {ByteString}
  * @param callback {Function}

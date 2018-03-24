@@ -564,7 +564,7 @@ UAVariable.prototype._readHistorizing = function () {
  * @method readAttribute
  * @param  context      {SessionContext}
  * @param  attributeId {AttributeIds} the attributeId to read
- * @param  indexRange {NumericRange || null}
+ * @param  indexRange {NumericRange | null}
  * @param  dataEncoding {String}
  * @return {DataValue}
  */

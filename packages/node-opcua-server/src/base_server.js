@@ -357,6 +357,7 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
     //   Service.  This can be achieved by preparing the result in advance.   The  Server  should  also add a
     //   short delay before starting processing of a request during high traffic conditions.
 
+
     var shortDelay = 2;
     setTimeout(function () {
 
@@ -365,7 +366,6 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
         assert(request instanceof FindServersRequest);
 
         var servers = server.getServers(channel);
-
         // apply filters
         // TODO /
         if (request.serverUris && request.serverUris.length > 0) {

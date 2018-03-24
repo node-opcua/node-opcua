@@ -212,7 +212,7 @@ ServerTCP_transport.prototype._on_HEL_message = function (data, callback) {
  * @method init
  * @param socket {Socket}
  * @param callback {Function}
- * @param callback.err {Error||null} err = null if init succeeded
+ * @param callback.err {Error|null} err = null if init succeeded
  *
  */
 ServerTCP_transport.prototype.init = function (socket, callback) {

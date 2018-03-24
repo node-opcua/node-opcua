@@ -197,7 +197,7 @@ function canRange(dataValue) {
  * return a deep copy of the dataValue by applying indexRange if necessary on  Array/Matrix
  * @param dataValue {DataValue}
  * @param indexRange {NumericalRange}
- * @returns {DataValue}
+ * @return {DataValue}
  */
 function extractRange(dataValue, indexRange) {
 

@@ -372,6 +372,7 @@ BinaryStream.prototype.writeByteStream = function (buf) {
 
 
 /**
+ * @function calculateByteLength
  * calculate the size in bytes of a utf8 string
  * @param str {String}
  */

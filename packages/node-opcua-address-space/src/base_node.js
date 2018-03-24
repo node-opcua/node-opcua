@@ -1500,7 +1500,7 @@ function dumpBrowseDescription(node, browseDescription) {
 /**
  * @method dumpReferences
  * @param addressSpace    {AddressSpace}
- * @param references  {Array<Reference>||null}
+ * @param references  {Array<Reference>|null}
  * @static
  */
 function dumpReferences(addressSpace, references) {
