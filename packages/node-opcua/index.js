@@ -123,10 +123,12 @@ module.exports.parseEndpointUrl = require("node-opcua-transport").parseEndpointU
 //----------------------------------------------------------------------------------------------------------------------
 // Server services
 //----------------------------------------------------------------------------------------------------------------------
-module.exports.OPCUAServer          = require("node-opcua-server").OPCUAServer;
-module.exports.ServerEngine = require("node-opcua-server").ServerEngine;
-module.exports.MonitoredItem = require("node-opcua-server").MonitoredItem;
-module.exports.ServerSession = require("node-opcua-server").ServerSession;
+module.exports.OPCUAServer    = require("node-opcua-server").OPCUAServer;
+module.exports.ServerEngine   = require("node-opcua-server").ServerEngine;
+module.exports.MonitoredItem  = require("node-opcua-server").MonitoredItem;
+module.exports.ServerSession  = require("node-opcua-server").ServerSession;
+module.exports.Subscription   = require("node-opcua-server").Subscription;
+module.exports.MonitoredItem  = require("node-opcua-server").MonitoredItem;
 
 
 module.exports.generate_address_space = require("node-opcua-address-space").generate_address_space;
