@@ -426,6 +426,7 @@ async.series([
                     table.cell("securityPolicyUri", endpoint.securityPolicyUri);
                     table.cell("Type", endpoint.server.applicationType.key);
                     table.cell("certificate", "..." /*endpoint.serverCertificate*/);
+                    endpoint.server.discoveryUrls = endpoint.server.discoveryUrls || [];
                     table.cell("discoveryUrls",endpoint.server.discoveryUrls.join(" - "));
 
                     serverCertificate = endpoint.serverCertificate;
