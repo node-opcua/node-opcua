@@ -33,7 +33,7 @@
   "node-opcua-service-filter": "^0.2.2",
   "node-opcua-service-secure-channel": "^0.2.2",
   "should": "13.2.1",
-  "sinon": "^4.4.5",
+  "sinon": "^4.4.8",
   "underscore": "^1.8.3",
   "yargs": "^11.0.0"
  },
