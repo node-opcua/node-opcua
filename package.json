@@ -75,7 +75,7 @@
     "webpack": "^4.1.1",
     "webpack-node-externals": "^1.6.0",
     "yuidoc-bootstrap-theme": "*",
-    "yuidocjs": "*"
+    "yuidocjs": "^0.10.2"
   },
   "typings": "./packages/node-opcua/node-opcua.d.ts",
   "dependencies": {
