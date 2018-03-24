@@ -1,5 +1,12 @@
+require("colors");
+var semver =require("semver");
+var version= require("./package").engines.node;
+if (!semver.satisfies(process.version, version)) {
+    console.log(`warning node-opcua: Required nodejs version ${version} not satisfied with current nodejs version ${process.version}.`.cyan);
+}
 
-// ---------------------------------------------------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------------------------------------------------
 // Common
 // ---------------------------------------------------------------------------------------------------------------------
 module.exports.NodeId           = require("node-opcua-nodeid").NodeId;
