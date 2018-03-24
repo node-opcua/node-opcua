@@ -30,9 +30,11 @@ var read_service = require("node-opcua-service-read");
 var historizing_service = require("node-opcua-service-history");
 var browse_service = require("node-opcua-service-browse");
 var write_service = require("node-opcua-service-write");
+var utils = require("node-opcua-utils");
 var call_service = require("node-opcua-service-call");
 
-var utils = require("node-opcua-utils");
+var BrowseResult = require("node-opcua-service-browse").BrowseResult;
+
 var debugLog = require("node-opcua-debug").make_debugLog(__filename);
 var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 var helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
@@ -224,7 +226,6 @@ ClientSession.prototype.browse = function (nodesToBrowse, callback) {
             }
         }
         assert(response.results[0] instanceof BrowseResult);
-        console.log(" isArray = ",isArray);
 
         return callback(null, isArray ? response.results: response.results[0]);
     });
