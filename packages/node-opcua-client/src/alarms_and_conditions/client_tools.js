@@ -51,7 +51,7 @@ function callConditionRefresh(subscription,callback) {
             the_session.translateBrowsePath(browsePath, function (err, results) {
                 if(!err ) {
                     // istanbul ignore else
-                    if (results[0].targets.length > 0){
+                    if (results[0].targets && results[0].targets.length > 0){
                         conditionRefreshId = results[0].targets[0].targetId;
                     } else {
                         // cannot find conditionRefreshId

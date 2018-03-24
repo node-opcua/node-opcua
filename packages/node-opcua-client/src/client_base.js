@@ -123,17 +123,11 @@ function OPCUAClientBase(options) {
     this._transactionsPerformed = 0;
     this._timedOutRequestCount = 0;
 
-    // this.objectFactory = {
-    //     constructObject: function (id) {
-    //         return factories.constructObject(id);
-    //     }
-    // };
     /**
      * @property connectionStrategy
      * @type {options.connectionStrategy|{maxRetry, initialDelay, maxDelay, randomisationFactor}|*|{maxRetry: number, initialDelay: number, maxDelay: number, randomisationFactor: number}}
      */
     this.connectionStrategy = options.connectionStrategy || defaultConnectionStrategy;
-
 
     /***
      * @property keepPendingSessionsOnDisconnect²
@@ -167,10 +161,10 @@ OPCUAClientBase.prototype._destroy_secure_channel = function () {
     var self = this;
     if (self._secureChannel) {
 
+
         if (doDebug) {
             debugLog(" DESTROYING SECURE CHANNEL ", self._secureChannel.isTransactionInProgress());
         }
-
         // keep accumulated statistics
         self._byteWritten += self._secureChannel.bytesWritten;
         self._byteRead += self._secureChannel.bytesRead;
@@ -182,6 +176,11 @@ OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
         self._secureChannel.removeAllListeners();
         self._secureChannel = null;
+
+        if (doDebug) {
+            debugLog("byteWritten  = ",self._byteWritten );
+            debugLog("byteRead     = ",self._byteRead);
+        }
     }
 };
 
@@ -591,6 +590,7 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
 
     if (!self.serverCertificate && self.securityMode !== MessageSecurityMode.NONE) {
 
+        debugLog("OPCUAClient : getting serverCertificate");
         // we have not been given the serverCertificate but this certificate
         // is required as the connection is to be secured.
         //
@@ -615,10 +615,12 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
                 return callback(err);
             }
 
-
             var endpoint = result.selectedEndpoint;
+            if (!endpoint) {
+                // no matching end point can be found ...
+                return callback(new Error("cannot find endpoint"));
+            }
             assert(endpoint);
-
             _verify_serverCertificate(endpoint.serverCertificate, function (err) {
                 if (err) {
                     return callback(err);
