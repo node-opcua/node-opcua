@@ -1,7 +1,7 @@
 {
  "name": "node-opcua-nodeid",
  "main": "./src/nodeid.js",
- "version": "0.2.2",
+ "version": "0.2.3",
  "description": "pure nodejs OPCUA SDK - module -nodeid",
  "scripts": {
   "test": "mocha test"
@@ -9,7 +9,7 @@
  "dependencies": {
   "node-opcua-assert": "^0.2.0",
   "node-opcua-constants": "^0.2.0",
-  "node-opcua-enum": "^0.2.2",
+  "node-opcua-enum": "^0.2.3",
   "node-opcua-guid": "^0.2.0",
   "underscore": "^1.8.3"
  },

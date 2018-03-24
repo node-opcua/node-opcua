@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-object-registry",
- "version": "0.2.2",
+ "version": "0.2.3",
  "description": "pure nodejs OPCUA SDK - module -object-registry",
  "main": "index.js",
  "scripts": {
