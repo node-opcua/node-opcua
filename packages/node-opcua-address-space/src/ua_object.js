@@ -34,6 +34,11 @@ function UAObject(options) {
     BaseNode.apply(this, arguments);
     this.eventNotifier = options.eventNotifier || 0;
     assert(_.isNumber(this.eventNotifier) && ec.isValidByte(this.eventNotifier));
+    if (this.eventNotifier != 0 && options.minimumSamplingInterval)
+    {
+        assert(_.isFinite(options.minimumSamplingInterval));
+        this.minimumSamplingInterval = options.minimumSamplingInterval;
+    }
     this.symbolicName = options.symbolicName || null;
 }
 
@@ -70,7 +75,8 @@ UAObject.prototype.clone = function (options,optionalfilter,extraInfo) {
     options = options || {};
     options = _.extend(_.clone(options),{
         eventNotifier: self.eventNotifier,
-        symbolicName: self.symbolicName
+        symbolicName: self.symbolicName,
+        minimumSamplingInterval: self.minimumSamplingInterval
     });
     return self._clone(UAObject,options, optionalfilter, extraInfo);
 };
