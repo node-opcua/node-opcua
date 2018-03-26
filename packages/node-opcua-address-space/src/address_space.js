@@ -1015,6 +1015,7 @@ AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseT
 
     var objectType = this._createNode({
         browseName:    options.browseName,
+        displayName:   options.displayName || options.browseName,
         nodeClass:     nodeClass,
         isAbstract:    !!options.isAbstract,
         eventNotifier: +options.eventNotifier,
