@@ -37,6 +37,7 @@ exports.install = function (AddressSpace) {
             nodeId: options.nodeId,
             isAbstract: false,
             browseName: options.browseName,
+            displayName: options.displayName || "",
             description: options.description || "",
             eventNotifier: +options.eventNotifier,
             references: references
