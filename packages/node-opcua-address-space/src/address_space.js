@@ -1490,6 +1490,7 @@ AddressSpace.prototype.addObject =function(options) {
     options.references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition});
 
     options.eventNotifier = +options.eventNotifier;
+    options.minimumSamplingInterval = +options.minimumSamplingInterval;
     //xx options.isAbstract = false,
 
     var obj  = this.createNode(options);
