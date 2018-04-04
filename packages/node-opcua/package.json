@@ -9,6 +9,7 @@
  },
  "typings": "./node-opcua.d.ts",
  "dependencies": {
+  "colors": "^1.2.1",
   "node-opcua-address-space": "^0.2.3",
   "node-opcua-address-space-for-conformance-testing": "^0.2.3",
   "node-opcua-assert": "^0.2.0",
