@@ -52,7 +52,8 @@
   "node-opcua-transport": "^0.2.3",
   "node-opcua-utils": "^0.2.3",
   "node-opcua-variant": "^0.2.3",
-  "node-opcua-vendor-diagnostic": "^0.2.3"
+  "node-opcua-vendor-diagnostic": "^0.2.3",
+  "semver": "^5.5.0"
  },
  "devDependencies": {
   "should": "13.2.1"
