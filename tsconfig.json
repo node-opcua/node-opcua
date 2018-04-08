@@ -24,7 +24,7 @@
     }
   },
   "include": [
-    "packages/*/src/**/*.js"
+    "packages/node-opcua-binary-stream/tsource"
   ],
   "exclude": [
     "node_modules/**"

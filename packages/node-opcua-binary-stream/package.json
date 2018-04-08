@@ -2,8 +2,10 @@
  "name": "node-opcua-binary-stream",
  "version": "0.2.3",
  "description": "pure nodejs OPCUA SDK - module -binary-stream",
- "main": "src/binaryStream.js",
+ "main": "dist/binaryStream.js",
+ "types": "dist/binaryStream.d.ts",
  "scripts": {
+  "build": "tsc",
   "test": "mocha test"
  },
  "dependencies": {
@@ -12,6 +14,7 @@
   "node-opcua-buffer-utils": "^0.2.0"
  },
  "devDependencies": {
+  "@types/underscore": "^1.8.8",
   "node-opcua-benchmarker": "^0.2.0",
   "should": "13.2.1"
  },

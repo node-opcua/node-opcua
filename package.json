@@ -11,7 +11,10 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "postinstall": "node  ./node_modules/lerna/bin/lerna.js bootstrap && node  ./node_modules/lerna/bin/lerna.js run generate",
+    "build": "node  ./node_modules/lerna/bin/lerna.js run build",
+    "generate": "node  ./node_modules/lerna/bin/lerna.js run generate",
+    "bootstrap": "node  ./node_modules/lerna/bin/lerna.js bootstrap ",
+    "postinstall": "npm run bootstrap && npm run build && npm run generate",
     "pretest": "node  ./node_modules/lerna/bin/lerna.js run pretest",
     "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
     "test": "cd packages && node --expose-gc --max-old-space-size=1024 run_all_mocha_tests.js",
