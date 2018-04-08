@@ -56,6 +56,7 @@ module.exports = {
 
     View: require("./src/view").View,
 
-    generate_address_space: require("./src/loader/load_nodeset2").generate_address_space
+    generate_address_space: require("./src/loader/load_nodeset2").generate_address_space,
 
+    PseudoSession : require("./src/pseudo_session").PseudoSession
 };
