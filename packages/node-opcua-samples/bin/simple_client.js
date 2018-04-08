@@ -671,7 +671,13 @@ async.series([
 
     },
 
+    function _resd_historyServerCapabilities(callback) {
 
+        opcua.readHistoryServerCapabilities(the_session,function(err,historyServerCapabilities){
+            console.log(historyServerCapabilities);
+            callback(null);
+        });
+    },
     // create Read
     function (callback) {
 
