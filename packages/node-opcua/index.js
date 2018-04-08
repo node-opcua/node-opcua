@@ -1,6 +1,6 @@
 require("colors");
-var semver =require("semver");
-var version= require("./package").engines.node;
+const semver =require("semver");
+const version= require("./package").engines.node;
 if (!semver.satisfies(process.version, version)) {
     console.log(`warning node-opcua: Required nodejs version ${version} not satisfied with current nodejs version ${process.version}.`.cyan);
 }
@@ -36,6 +36,7 @@ module.exports.sameDataValue       = require("node-opcua-data-value").sameDataVa
 module.exports.NumericRange        = require("node-opcua-numeric-range").NumericRange;
 
 module.exports.AccessLevelFlag     = require("node-opcua-data-model").AccessLevelFlag;
+module.exports.makeAccessLevel     = require("node-opcua-data-model").makeAccessLevel;
 module.exports.LocalizedText       = require("node-opcua-data-model").LocalizedText;
 module.exports.coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 module.exports.QualifiedName       = require("node-opcua-data-model").QualifiedName;
@@ -116,6 +117,8 @@ module.exports.ClientSession      = require("node-opcua-client").ClientSession;
 
 module.exports.client_utils = require("node-opcua-client/src/client_utils");
 module.exports.perform_findServersRequest = require("node-opcua-client").perform_findServersRequest;
+module.exports.readHistorySeverCapabilities = require("node-opcua-client").readHistorySeverCapabilities;
+
 module.exports.callConditionRefresh = require("node-opcua-client/src/alarms_and_conditions/client_tools").callConditionRefresh;
 
 module.exports.parseEndpointUrl = require("node-opcua-transport").parseEndpointUrl;
@@ -158,8 +161,6 @@ module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filena
 // an incomplete but sufficient nodeset file used during testing
 module.exports.mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
 module.exports.empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
-var address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
-
 
 module.exports.is_valid_endpointUrl = require("node-opcua-transport").is_valid_endpointUrl;
 
@@ -167,6 +168,7 @@ module.exports.is_valid_endpointUrl = require("node-opcua-transport").is_valid_e
 module.exports.checkSelectClause = require("node-opcua-address-space").checkSelectClause;
 module.exports.constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
+const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 module.exports.build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;
@@ -176,3 +178,4 @@ module.exports.createBoilerType = require("node-opcua-address-space/test_helpers
 module.exports.makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
 
 module.exports.UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
+
