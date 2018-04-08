@@ -8,15 +8,13 @@ var assert = require("node-opcua-assert");
 var util = require("util");
 var EventEmitter = require("events").EventEmitter;
 
-
 var crypto_utils = require("node-opcua-crypto").crypto_utils;
 
 var MessageBuilder = require("../message_builder").MessageBuilder;
 var MessageChunker = require("../message_chunker").MessageChunker;
 
-var securityPolicy_m =require("../security_policy");
+var securityPolicy_m = require("../security_policy");
 var SecurityPolicy = securityPolicy_m.SecurityPolicy;
-
 
 var ServerTCP_transport = require("node-opcua-transport").ServerTCP_transport;
 
@@ -32,11 +30,7 @@ var OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
 var OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
 var SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
 
-
-
 var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
-
-
 
 assert(MessageSecurityMode);
 assert(ChannelSecurityToken);
@@ -45,8 +39,7 @@ assert(OpenSecureChannelResponse);
 assert(SecurityTokenRequestType);
 assert(ServiceFault);
 
-var do_trace_message = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
-
+var do_trace_message = process.env.DEBUG && process.env.DEBUG.indexOf("TRACE") >= 0;
 
 var crypto = require("crypto");
 var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
@@ -76,7 +69,6 @@ var doPerfMonitoring = false;
  * @param [options.objectFactory] an factory that provides a method createObjectId(id) for the message builder
  */
 function ServerSecureChannelLayer(options) {
-
     options = options || {};
 
     var self = this;
@@ -92,15 +84,14 @@ function ServerSecureChannelLayer(options) {
     self.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
 
     // uninitialized securityToken
-    self.securityToken = {secureChannelId: 0, tokenId: 0};
+    self.securityToken = { secureChannelId: 0, tokenId: 0 };
 
     self.serverNonce = null; // will be created when needed
-
 
     options.objectFactory = options.objectFactory || require("node-opcua-factory");
     assert(_.isObject(options.objectFactory));
 
-    self.messageBuilder = new MessageBuilder({objectFactory: options.objectFactory});
+    self.messageBuilder = new MessageBuilder({ objectFactory: options.objectFactory });
 
     self.messageBuilder.privateKey = self.getPrivateKey();
 
@@ -108,11 +99,10 @@ function ServerSecureChannelLayer(options) {
 
     //disabled self.messageBuilder.on("full_message_body", function (full_message_body) { });
 
-    self.messageBuilder.on("error", function (err) {
-
+    self.messageBuilder.on("error", function(err) {
         // istanbul ignore next
         if (doDebug) {
-            debugLog("xxxxx error ".red,err.message.yellow,err.stack);
+            debugLog("xxxxx error ".red, err.message.yellow, err.stack);
             debugLog("xxxxx Server is now closing socket, without further notice".red);
         }
         // close socket immediately
@@ -143,6 +133,8 @@ function ServerSecureChannelLayer(options) {
     self._transactionsCount = 0;
 
     self.sessionTokens = {};
+
+    //xx #422 self.setMaxListeners(200); // increase the number of max listener
 }
 
 util.inherits(ServerSecureChannelLayer, EventEmitter);
@@ -151,39 +143,41 @@ util.inherits(ServerSecureChannelLayer, EventEmitter);
  *
  */
 ServerSecureChannelLayer.prototype.dispose = function() {
-
     var self = this;
 
     debugLog("ServerSecureChannelLayer#dispose");
-    if (self.timeoutId ) {
+    if (self.timeoutId) {
         clearTimeout(self.timeoutId);
         self.timeoutId = null;
     }
-    assert(!self.timeoutId,"timeout must have been cleared");
-    assert(!self._securityTokenTimeout,"_securityTokenTimeout must have been cleared");
+    assert(!self.timeoutId, "timeout must have been cleared");
+    assert(!self._securityTokenTimeout, "_securityTokenTimeout must have been cleared");
+    assert(self.messageBuilder, "dispose already called ?");
 
     self.parent = null;
     self.serverNonce = null;
-    self.objectFactory =null;
+    self.objectFactory = null;
 
-    self.messageBuilder.dispose();
-    self.messageBuilder.privateKey = null;
-    self.messageBuilder = null;
+    if (self.messageBuilder) {
+        self.messageBuilder.dispose();
+        self.messageBuilder.privateKey = null;
+        self.messageBuilder = null;
+    }
     self.securityHeader = null;
 
-    self.messageChunker.dispose();
-    self.messageChunker = null;
+    if (self.messageChunker) {
+        self.messageChunker.dispose();
+        self.messageChunker = null;
+    }
 
-    self.secureChannelId = 0xDeadBeef   ;
+    self.secureChannelId = 0xdeadbeef;
 
-    self.timeoutId= null;
+    self.timeoutId = null;
 
     self.sessionTokens = null;
 
     self.removeAllListeners();
-
 };
-
 
 var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ServerSecureChannelLayer.registry = new ObjectRegistry();
@@ -193,11 +187,11 @@ ServerSecureChannelLayer.registry = new ObjectRegistry();
  * @type {OPCUAServerEndPoint}
  *
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("endpoints", function () {
+ServerSecureChannelLayer.prototype.__defineGetter__("endpoints", function() {
     return this.parent;
 });
 
-ServerSecureChannelLayer.prototype.setSecurity = function (securityMode, securityPolicy) {
+ServerSecureChannelLayer.prototype.setSecurity = function(securityMode, securityPolicy) {
     var self = this;
     // TODO verify that the endpoint really supports this mode
 
@@ -208,7 +202,7 @@ ServerSecureChannelLayer.prototype.setSecurity = function (securityMode, securit
  * @method getCertificate
  * @return {Buffer} the X509 DER form certificate
  */
-ServerSecureChannelLayer.prototype.getCertificateChain = function () {
+ServerSecureChannelLayer.prototype.getCertificateChain = function() {
     assert(this.parent, "expecting a valid parent");
     return this.parent.getCertificateChain();
 };
@@ -217,13 +211,12 @@ ServerSecureChannelLayer.prototype.getCertificateChain = function () {
  * @method getCertificate
  * @return {Buffer} the X509 DER form certificate
  */
-ServerSecureChannelLayer.prototype.getCertificate = function () {
+ServerSecureChannelLayer.prototype.getCertificate = function() {
     assert(this.parent, "expecting a valid parent");
     return this.parent.getCertificate();
 };
 
-ServerSecureChannelLayer.prototype.getSignatureLength = function () {
-
+ServerSecureChannelLayer.prototype.getSignatureLength = function() {
     var self = this;
     var chain = self.getCertificateChain();
     var s = split_der(chain)[0];
@@ -235,18 +228,16 @@ ServerSecureChannelLayer.prototype.getSignatureLength = function () {
  * @method getPrivateKey
  * @return {Buffer} the privateKey
  */
-ServerSecureChannelLayer.prototype.getPrivateKey = function () {
+ServerSecureChannelLayer.prototype.getPrivateKey = function() {
     return this.parent ? this.parent._privateKey : null;
 };
 
-ServerSecureChannelLayer.prototype.__defineGetter__("securityTokenCount", function () {
+ServerSecureChannelLayer.prototype.__defineGetter__("securityTokenCount", function() {
     assert(_.isNumber(this.lastTokenId));
     return this.lastTokenId;
 });
 
-
 function _stop_security_token_watch_dog() {
-
     /* jshint validthis: true */
     var self = this;
 
@@ -257,21 +248,22 @@ function _stop_security_token_watch_dog() {
 }
 
 function _start_security_token_watch_dog() {
-
     /* jshint validthis: true */
     var self = this;
 
     // install securityToken timeout watchdog
-    self._securityTokenTimeout = setTimeout(function () {
-        console.log(" Security token has really expired and shall be discarded !!!! (lifetime is = ",self.securityToken.revisedLifeTime,")");
+    self._securityTokenTimeout = setTimeout(function() {
+        console.log(
+            " Security token has really expired and shall be discarded !!!! (lifetime is = ",
+            self.securityToken.revisedLifeTime,
+            ")"
+        );
         console.log(" Server will now refuse message with token ", self.securityToken.tokenId);
         self._securityTokenTimeout = null;
     }, self.securityToken.revisedLifeTime * 120 / 100);
-
 }
 
-ServerSecureChannelLayer.prototype._add_new_security_token = function () {
-
+ServerSecureChannelLayer.prototype._add_new_security_token = function() {
     // The  Server  has  to accept requests secured with the old SecurityToken  until that  SecurityToken  expires
     // or until it receives a  Message  from the  Client  secured with the new  SecurityToken.
     var self = this;
@@ -297,7 +289,6 @@ ServerSecureChannelLayer.prototype._add_new_security_token = function () {
 };
 
 function _prepare_security_token(openSecureChannelRequest) {
-
     /* jshint validthis: true */
     var self = this;
     assert(openSecureChannelRequest instanceof OpenSecureChannelRequest);
@@ -305,9 +296,7 @@ function _prepare_security_token(openSecureChannelRequest) {
     delete self.securityToken;
 
     if (openSecureChannelRequest.requestType === SecurityTokenRequestType.RENEW) {
-
         _stop_security_token_watch_dog.call(self);
-
     } else if (openSecureChannelRequest.requestType === SecurityTokenRequestType.ISSUE) {
         // TODO
     } else {
@@ -318,12 +307,10 @@ function _prepare_security_token(openSecureChannelRequest) {
 }
 
 function _set_lifetime(requestedLifetime) {
-
     /* jshint validthis: true */
     var self = this;
 
     assert(_.isFinite(requestedLifetime));
-
 
     // revised lifetime
     self.revisedLifeTime = requestedLifetime;
@@ -334,11 +321,9 @@ function _set_lifetime(requestedLifetime) {
     }
 
     ///xx console.log('requestedLifetime,self.defaultSecureTokenLifetime, self.revisedLifeTime',requestedLifetime,self.defaultSecureTokenLifetime, self.revisedLifeTime);
-
 }
 
 function _stop_open_channel_watch_dog() {
-
     /* jshint validthis: true */
     var self = this;
 
@@ -348,9 +333,7 @@ function _stop_open_channel_watch_dog() {
     }
 }
 
-
-ServerSecureChannelLayer.prototype._cleanup_pending_timers = function () {
-
+ServerSecureChannelLayer.prototype._cleanup_pending_timers = function() {
     var self = this;
 
     // there is no need for the security token expiration event to trigger anymore
@@ -365,19 +348,18 @@ ServerSecureChannelLayer.prototype._cleanup_pending_timers = function () {
  * @param socket {Socket}
  * @param callback {Function}
  */
-ServerSecureChannelLayer.prototype.init = function (socket, callback) {
-
+ServerSecureChannelLayer.prototype.init = function(socket, callback) {
     var self = this;
 
     self.transport = new ServerTCP_transport();
     self.transport.timeout = self.timeout;
 
-    self.transport.init(socket, function (err) {
+    self.transport.init(socket, function(err) {
         if (err) {
             callback(err);
         } else {
             // bind low level TCP transport to messageBuilder
-            self.transport.on("message", function (message_chunk) {
+            self.transport.on("message", function(message_chunk) {
                 assert(self.messageBuilder);
                 self.messageBuilder.feed(message_chunk);
             });
@@ -392,11 +374,9 @@ ServerSecureChannelLayer.prototype.init = function (socket, callback) {
 
     // detect transport closure
     self._transport_socket_close_listener = function(err) {
-       self._abort();
+        self._abort();
     };
-    self.transport.on("socket_closed",self._transport_socket_close_listener);
-
-
+    self.transport.on("socket_closed", self._transport_socket_close_listener);
 };
 
 ServerSecureChannelLayer.prototype._rememberClientAddressAndPort = function() {
@@ -406,17 +386,15 @@ ServerSecureChannelLayer.prototype._rememberClientAddressAndPort = function() {
     }
 };
 
-ServerSecureChannelLayer.prototype.__defineGetter__("remoteAddress",function() {
-    return  this._remoteAddress;
+ServerSecureChannelLayer.prototype.__defineGetter__("remoteAddress", function() {
+    return this._remoteAddress;
 });
 
-ServerSecureChannelLayer.prototype.__defineGetter__("remotePort",function() {
-    return  this._remotePort;
+ServerSecureChannelLayer.prototype.__defineGetter__("remotePort", function() {
+    return this._remotePort;
 });
-
 
 function _cancel_wait_for_open_secure_channel_request_timeout() {
-
     /* jshint validthis: true */
     var self = this;
 
@@ -430,7 +408,6 @@ function _cancel_wait_for_open_secure_channel_request_timeout() {
 }
 
 function _install_wait_for_open_secure_channel_request_timeout(callback, timeout) {
-
     /* jshint validthis: true */
     var self = this;
 
@@ -438,23 +415,20 @@ function _install_wait_for_open_secure_channel_request_timeout(callback, timeout
     assert(_.isFunction(callback));
     assert(self);
 
-    self.timeoutId = setTimeout(function () {
-
+    self.timeoutId = setTimeout(function() {
         self.timeoutId = null;
         var err = new Error("Timeout waiting for OpenChannelRequest (timeout was " + timeout + " ms)");
         debugLog(err.message);
-        self.close(function () {
+        self.close(function() {
             callback(err);
         });
     }, timeout);
-
 }
 
 function _on_initial_open_secure_channel_request(callback, request, msgType, requestId, secureChannelId) {
-
     /* istanbul ignore next */
     if (do_trace_message) {
-        dump_request(request,requestId,secureChannelId);
+        dump_request(request, requestId, secureChannelId);
     }
 
     assert(_.isFunction(callback));
@@ -486,11 +460,9 @@ function _on_initial_open_secure_channel_request(callback, request, msgType, req
     self.clientSecurityHeader = message.securityHeader;
 
     _on_initial_OpenSecureChannelRequest.call(self, message, callback);
-
 }
 
 function _wait_for_open_secure_channel_request(callback, timeout) {
-
     /* jshint validthis: true */
     var self = this;
     _install_wait_for_open_secure_channel_request_timeout.call(self, callback, timeout);
@@ -498,14 +470,12 @@ function _wait_for_open_secure_channel_request(callback, timeout) {
 }
 
 function _send_chunk(callback, messageChunk) {
-
     /* jshint validthis: true */
     var self = this;
 
     if (messageChunk) {
         self.transport.write(messageChunk);
     } else {
-
         if (doPerfMonitoring) {
             // record tick 3 : transaction completed.
             self._tick3 = get_clock_tick();
@@ -525,24 +495,20 @@ function _send_chunk(callback, messageChunk) {
             }
         }
         self.emit("transaction_done");
-
     }
 }
 
-
-ServerSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
-
+ServerSecureChannelLayer.prototype._get_security_options_for_OPN = function() {
     var self = this;
     var cryptoFactory = self.messageBuilder.cryptoFactory;
     var options = {};
     // install sign & sign-encrypt behavior
     if (self.securityMode === MessageSecurityMode.SIGN || self.securityMode === MessageSecurityMode.SIGNANDENCRYPT) {
-
         assert(cryptoFactory, "ServerSecureChannelLayer must have a crypto strategy");
 
         options.signatureLength = self.getSignatureLength();
 
-        options.signingFunc = function (chunk) {
+        options.signingFunc = function(chunk) {
             var signed = cryptoFactory.asymmetricSign(chunk, self.getPrivateKey());
             assert(signed.length === options.signatureLength);
             return signed;
@@ -552,15 +518,14 @@ ServerSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
         options.plainBlockSize = self.receiverPublicKeyLength - cryptoFactory.blockPaddingSize;
         options.cipherBlockSize = self.receiverPublicKeyLength;
 
-        options.encrypt_buffer = function (chunk) {
+        options.encrypt_buffer = function(chunk) {
             return cryptoFactory.asymmetricEncrypt(chunk, self.receiverPublicKey);
         };
     }
     return options;
 };
 
-ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function () {
-
+ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function() {
     var self = this;
     if (self.securityMode === MessageSecurityMode.NONE) {
         return null;
@@ -578,7 +543,6 @@ ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function () {
     return securityPolicy_m.getOptionsForSymmetricSignAndEncrypt(self.securityMode, derivedServerKeys);
 };
 
-
 /**
  * @method send_response
  * @async
@@ -587,16 +551,14 @@ ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function () {
  * @param message
  * @param  {Function} [callback] an optional callback function
  */
-ServerSecureChannelLayer.prototype.send_response = function (msgType, response, message, callback) {
-
-
+ServerSecureChannelLayer.prototype.send_response = function(msgType, response, message, callback) {
     var request = message.request;
     var requestId = message.requestId;
     var self = this;
 
     if (self.aborted) {
         debugLog("channel has been terminated , cannot send responses");
-        return callback &&callback(new Error("Aborted"));
+        return callback && callback(new Error("Aborted"));
     }
 
     // istanbul ignore next
@@ -608,7 +570,7 @@ ServerSecureChannelLayer.prototype.send_response = function (msgType, response, 
         if (!self.__verifId) {
             self.__verifId = {};
         }
-        assert(!self.__verifId[requestId]," response for requestId has already been sent !! - Internal Error");
+        assert(!self.__verifId[requestId], " response for requestId has already been sent !! - Internal Error");
         self.__verifId[requestId] = requestId;
     }
 
@@ -627,10 +589,10 @@ ServerSecureChannelLayer.prototype.send_response = function (msgType, response, 
         tokenId: self.securityToken.tokenId,
 
         chunkSize: self.transport.receiveBufferSize
-
     };
 
-    var security_options = (msgType === "OPN") ? self._get_security_options_for_OPN() : self._get_security_options_for_MSG();
+    var security_options =
+        msgType === "OPN" ? self._get_security_options_for_OPN() : self._get_security_options_for_MSG();
     options = _.extend(options, security_options);
 
     //xx assert(_.isFinite(request.requestHeader.requestHandle));
@@ -647,7 +609,11 @@ ServerSecureChannelLayer.prototype.send_response = function (msgType, response, 
 
     /* istanbul ignore next */
     if (do_trace_message) {
-        console.log("xxxx   >>>> ---------------------------------------- ".cyan.bold, response._schema.name.green.bold,requestId);
+        console.log(
+            "xxxx   >>>> ---------------------------------------- ".cyan.bold,
+            response._schema.name.green.bold,
+            requestId
+        );
         console.log(response.toString());
         console.log("xxxx   >>>> ----------------------------------------|\n".cyan.bold);
     }
@@ -660,7 +626,6 @@ ServerSecureChannelLayer.prototype.send_response = function (msgType, response, 
     self.messageChunker.chunkSecureMessage(msgType, options, response, _send_chunk.bind(self, callback));
 };
 
-
 /**
  *
  * send a ServiceFault response
@@ -671,8 +636,7 @@ ServerSecureChannelLayer.prototype.send_response = function (msgType, response, 
  * @param message     {String}
  * @param callback    {Function}
  */
-ServerSecureChannelLayer.prototype.send_error_and_abort = function (statusCode, description, message, callback) {
-
+ServerSecureChannelLayer.prototype.send_error_and_abort = function(statusCode, description, message, callback) {
     var self = this;
 
     assert(statusCode instanceof StatusCode);
@@ -681,16 +645,14 @@ ServerSecureChannelLayer.prototype.send_error_and_abort = function (statusCode, 
     assert(_.isFunction(callback));
 
     var response = new ServiceFault({
-        responseHeader: {serviceResult: statusCode}
+        responseHeader: { serviceResult: statusCode }
     });
 
     response.description = description;
-    self.send_response("MSG", response, message, function () {
+    self.send_response("MSG", response, message, function() {
         self.close(callback);
     });
-
 };
-
 
 /**
  * _process_certificates extracts client public keys from client certificate
@@ -705,8 +667,7 @@ ServerSecureChannelLayer.prototype.send_error_and_abort = function (statusCode, 
  * @private
  * @async
  */
-ServerSecureChannelLayer.prototype._process_certificates = function (message, callback) {
-
+ServerSecureChannelLayer.prototype._process_certificates = function(message, callback) {
     var self = this;
 
     self.receiverPublicKey = null;
@@ -721,7 +682,7 @@ ServerSecureChannelLayer.prototype._process_certificates = function (message, ca
 
     if (self.receiverCertificate) {
         // extract public key
-        crypto_utils.extractPublicKeyFromCertificate(self.receiverCertificate, function (err, key) {
+        crypto_utils.extractPublicKeyFromCertificate(self.receiverCertificate, function(err, key) {
             if (!err) {
                 self.receiverPublicKey = key;
                 self.receiverPublicKeyLength = crypto_utils.rsa_length(key);
@@ -742,7 +703,6 @@ ServerSecureChannelLayer.prototype._process_certificates = function (message, ca
  * @private
  */
 function _prepare_security_header(request, message) {
-
     /* jshint validthis: true */
     var self = this;
     var securityHeader = null;
@@ -758,7 +718,10 @@ function _prepare_security_header(request, message) {
     //   This field shall be null if the message is not encrypted.
     switch (request.securityMode.value) {
         case MessageSecurityMode.NONE.value:
-            assert(!message.securityHeader || message.securityHeader.securityPolicyUri === "http://opcfoundation.org/UA/SecurityPolicy#None");
+            assert(
+                !message.securityHeader ||
+                    message.securityHeader.securityPolicyUri === "http://opcfoundation.org/UA/SecurityPolicy#None"
+            );
             securityHeader = new AsymmetricAlgorithmSecurityHeader({
                 securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None",
                 senderCertificate: null, // message not signed
@@ -768,9 +731,10 @@ function _prepare_security_header(request, message) {
             break;
         case MessageSecurityMode.SIGN.value:
         case MessageSecurityMode.SIGNANDENCRYPT.value:
-
             // get the thumbprint of the client certificate
-            var thumbprint = self.receiverCertificate ? crypto_utils.makeSHA1Thumbprint(self.receiverCertificate) : null;
+            var thumbprint = self.receiverCertificate
+                ? crypto_utils.makeSHA1Thumbprint(self.receiverCertificate)
+                : null;
 
             securityHeader = new AsymmetricAlgorithmSecurityHeader({
                 securityPolicyUri: self.clientSecurityHeader.securityPolicyUri,
@@ -782,9 +746,7 @@ function _prepare_security_header(request, message) {
     return securityHeader;
 }
 
-
 function _handle_OpenSecureChannelRequest(message, callback) {
-
     /* jshint validthis: true */
     var self = this;
 
@@ -799,12 +761,10 @@ function _handle_OpenSecureChannelRequest(message, callback) {
 
     _prepare_security_token.call(self, request);
 
-
     var serviceResult = StatusCodes.Good;
 
     var cryptoFactory = self.messageBuilder.cryptoFactory;
     if (cryptoFactory) {
-
         // serverNonce: A random number that shall not be used in any other request. A new
         //    serverNonce shall be generated for each time a SecureChannel is renewed.
         //    This parameter shall have a length equal to key size used for the symmetric
@@ -812,8 +772,12 @@ function _handle_OpenSecureChannelRequest(message, callback) {
         self.serverNonce = crypto.randomBytes(cryptoFactory.symmetricKeyLength);
 
         if (self.clientNonce.length !== self.serverNonce.length) {
-
-            console.log("warning client Nonce length doesn't match server nonce length".red,self.clientNonce.length ," !== ",self.serverNonce.length);
+            console.log(
+                "warning client Nonce length doesn't match server nonce length".red,
+                self.clientNonce.length,
+                " !== ",
+                self.serverNonce.length
+            );
             // what can we do
             // - just ignore it ?
             // - or adapt serverNonce length to clientNonce Length ?
@@ -823,7 +787,6 @@ function _handle_OpenSecureChannelRequest(message, callback) {
             //
             // - or abort connection ? << LET BE SAFE AND CHOOSE THIS ONE !
             serviceResult = StatusCodes.BadSecurityModeRejected; // ToDo check code
-
         }
         // expose derivedKey to use for symmetric sign&encrypt
         // to help us decrypting and verifying messages received from client
@@ -840,7 +803,6 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     var derivedServerKeys = self.derivedKeys ? self.derivedKeys.derivedServerKeys : null;
 
     self.messageChunker.update({
-
         // for OPN
         securityHeader: self.securityHeader,
 
@@ -867,9 +829,9 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     // If the SecurityMode is not None then the Server shall verify that a SenderCertificate and a
     // ReceiverCertificateThumbprint were specified in the SecurityHeader.
     if (self.securityMode.value !== MessageSecurityMode.NONE.value) {
-
         if (!_check_receiverCertificateThumbprint.call(self, self.clientSecurityHeader)) {
-            description = "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
+            description =
+                "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
             console.log(description.cyan);
             response.responseHeader.serviceResult = StatusCodes.BadCertificateInvalid;
         }
@@ -878,37 +840,35 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     if (self.clientCertificate) {
         var certificate_status = _check_certificate_validity(self.clientCertificate);
         if (StatusCodes.Good !== certificate_status) {
-
             description = "Sender Certificate Error";
             console.log(description.cyan, certificate_status.toString().bgRed.yellow);
             // OPCUA specification v1.02 part 6 page 42 $6.7.4
             // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
             // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
-            response = new ServiceFault({responseHeader: {serviceResult: certificate_status}});
+            response = new ServiceFault({ responseHeader: { serviceResult: certificate_status } });
         }
     }
 
-    self.send_response("OPN", response, message, function (/*err*/) {
+    self.send_response("OPN", response, message, function(/*err*/) {
         if (response.responseHeader.serviceResult !== StatusCodes.Good) {
-
-            console.log("OpenSecureChannelRequest Closing communication ", response.responseHeader.serviceResult.toString());
+            console.log(
+                "OpenSecureChannelRequest Closing communication ",
+                response.responseHeader.serviceResult.toString()
+            );
             self.close();
         }
         callback(null);
-
     });
-
 }
 
 /**
  *
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("aborted", function () {
+ServerSecureChannelLayer.prototype.__defineGetter__("aborted", function() {
     return this._abort_has_been_called;
 });
 
-ServerSecureChannelLayer.prototype._abort = function () {
-
+ServerSecureChannelLayer.prototype._abort = function() {
     var self = this;
     if (self._abort_has_been_called) {
         return;
@@ -929,7 +889,6 @@ ServerSecureChannelLayer.prototype._abort = function () {
      * @event abort
      */
     self.emit("abort");
-
 };
 
 /**
@@ -940,12 +899,11 @@ ServerSecureChannelLayer.prototype._abort = function () {
  * @async
  * @param callback {Function}
  */
-ServerSecureChannelLayer.prototype.close = function (callback) {
-
+ServerSecureChannelLayer.prototype.close = function(callback) {
     var self = this;
     debugLog("ServerSecureChannelLayer#close");
     // close socket
-    self.transport.disconnect(function () {
+    self.transport.disconnect(function() {
         self._abort();
         if (_.isFunction(callback)) {
             callback();
@@ -953,28 +911,26 @@ ServerSecureChannelLayer.prototype.close = function (callback) {
     });
 };
 
-ServerSecureChannelLayer.prototype._record_transaction_statistics = function () {
-
+ServerSecureChannelLayer.prototype._record_transaction_statistics = function() {
     var self = this;
-    self._bytesRead_before   = self._bytesRead_before || 0;
+    self._bytesRead_before = self._bytesRead_before || 0;
     self._byesWritten_before = self._byesWritten_before || 0;
 
     self.last_transaction_stats = {
-        bytesRead:       self.bytesRead - self._bytesRead_before,
-        bytesWritten:    self.bytesWritten - self._bytesWritten_before,
-        lap_reception:   self._tick1 - self._tick0,
-        lap_processing:  self._tick2 - self._tick1,
-        lap_emission:    self._tick3 - self._tick2,
+        bytesRead: self.bytesRead - self._bytesRead_before,
+        bytesWritten: self.bytesWritten - self._bytesWritten_before,
+        lap_reception: self._tick1 - self._tick0,
+        lap_processing: self._tick2 - self._tick1,
+        lap_emission: self._tick3 - self._tick2
         //last_transaction_time: Date.now()
     };
 
     // final operation in statistics
     self._bytesRead_before = self.bytesRead;
     self._bytesWritten_before = self.bytesWritten;
-
 };
 
-ServerSecureChannelLayer.prototype._dump_transaction_statistics = function () {
+ServerSecureChannelLayer.prototype._dump_transaction_statistics = function() {
     var self = this;
     if (self.last_transaction_stats) {
         console.log("                Bytes Read : ", self.last_transaction_stats.bytesRead);
@@ -985,29 +941,35 @@ ServerSecureChannelLayer.prototype._dump_transaction_statistics = function () {
     }
 };
 
-
-ServerSecureChannelLayer.prototype.has_endpoint_for_security_mode_and_policy = function (securityMode, securityPolicy) {
+ServerSecureChannelLayer.prototype.has_endpoint_for_security_mode_and_policy = function(securityMode, securityPolicy) {
     var self = this;
     if (!self.endpoints) {
         return true;
     }
     var endpoint_desc = self.endpoints.getEndpointDescription(securityMode, securityPolicy);
-    return (endpoint_desc !== null);
+    return endpoint_desc !== null;
 };
 
 // istanbul ignore next
-function dump_request(request,requestId,secureChannelId) {
-    console.log("xxxx   <<<< ---------------------------------------- ".cyan, request._schema.name.yellow, "requestId", requestId, "secureChannelId=", secureChannelId);
+function dump_request(request, requestId, secureChannelId) {
+    console.log(
+        "xxxx   <<<< ---------------------------------------- ".cyan,
+        request._schema.name.yellow,
+        "requestId",
+        requestId,
+        "secureChannelId=",
+        secureChannelId
+    );
     console.log(request.toString());
     console.log("xxxx   <<<< ---------------------------------------- \n".cyan);
 }
 
-var _on_common_message = function (request, msgType, requestId, secureChannelId) {
+var _on_common_message = function(request, msgType, requestId, secureChannelId) {
     var self = this;
 
     /* istanbul ignore next */
     if (do_trace_message) {
-        dump_request(request,requestId,secureChannelId);
+        dump_request(request, requestId, secureChannelId);
     }
 
     requestId = self.messageBuilder.sequenceHeader.requestId;
@@ -1019,22 +981,15 @@ var _on_common_message = function (request, msgType, requestId, secureChannelId)
     };
 
     if (msgType === "CLO" && request._schema.name === "CloseSecureChannelRequest") {
-
         self.close();
-
     } else if (msgType === "OPN" && request._schema.name === "OpenSecureChannelRequest") {
         // intercept client request to renew security Token
-        _handle_OpenSecureChannelRequest.call(self, message, function (err) {
-            
-        });
+        _handle_OpenSecureChannelRequest.call(self, message, function(err) {});
     } else {
-
         if (request._schema.name === "CloseSecureChannelRequest") {
             console.log("WARNING : RECEIVED a CloseSecureChannelRequest with MSGTYPE=" + msgType);
             self.close();
-
         } else {
-
             if (doPerfMonitoring) {
                 // record tick 1 : after message has been received, before message processing
                 self._tick1 = get_clock_tick();
@@ -1066,16 +1021,18 @@ function _check_receiverCertificateThumbprint(clientSecurityHeader) {
     var self = this;
     if (clientSecurityHeader.receiverCertificateThumbprint) {
         // check if the receiverCertificateThumbprint is my certificate thumbprint
-        var serverCertificateChain  = self.getCertificateChain();
+        var serverCertificateChain = self.getCertificateChain();
         //xx var serverCertificate = split_der(serverCertificateChain)[0];
         var myCertificateThumbPrint = crypto_utils.makeSHA1Thumbprint(serverCertificateChain);
         //xx console.log("xxxx     my certificate thumbprint",myCertificateThumbPrint.toString("hex") );
         //xx console.log("xxxx receiverCertificateThumbprint",securityHeader.receiverCertificateThumbprint.toString("hex") );
-        return myCertificateThumbPrint.toString("hex") === clientSecurityHeader.receiverCertificateThumbprint.toString("hex");
+        return (
+            myCertificateThumbPrint.toString("hex") ===
+            clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
+        );
     }
     return true;
 }
-
 
 // Bad_CertificateHostNameInvalid            The HostName used to connect to a Server does not match a HostName in the
 //                                           Certificate.
@@ -1096,7 +1053,6 @@ function _check_receiverCertificateThumbprint(clientSecurityHeader) {
 // -  page 100 6.2.3 Validating a Software Certificate
 //
 function _check_certificate_validity(certificate) {
-
     // Is the  signature on the SoftwareCertificate valid .?
     if (!certificate) {
         // missing certificate
@@ -1115,12 +1071,18 @@ function _check_certificate_validity(certificate) {
 
     if (cert.notBefore.getTime() > now.getTime()) {
         // certificate is not active yet
-        console.log(" Sender certificate is invalid : certificate is not active yet !".red + "  not before date =" + cert.notBefore);
+        console.log(
+            " Sender certificate is invalid : certificate is not active yet !".red +
+                "  not before date =" +
+                cert.notBefore
+        );
         return StatusCodes.BadCertificateTimeInvalid;
     }
     if (cert.notAfter.getTime() <= now.getTime()) {
         // certificate is obsolete
-        console.log(" Sender certificate is invalid : certificate has expired !".red + " not after date =" + cert.notAfter);
+        console.log(
+            " Sender certificate is invalid : certificate has expired !".red + " not after date =" + cert.notAfter
+        );
         return StatusCodes.BadCertificateTimeInvalid;
     }
 
@@ -1166,13 +1128,11 @@ function _send_error(statusCode, description, message, callback) {
 
     // unexpected message type ! let close the channel
     var err = new Error(description);
-    self.send_error_and_abort(statusCode, description, message, function () {
+    self.send_error_and_abort(statusCode, description, message, function() {
         callback(err); // OK
     });
-
 }
 function _on_initial_OpenSecureChannelRequest(message, callback) {
-
     assert(_.isFunction(callback));
 
     /* jshint validthis: true */
@@ -1188,7 +1148,10 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
     // expecting a OpenChannelRequest as first communication message
     if (!(request instanceof OpenSecureChannelRequest)) {
         description = "Expecting OpenSecureChannelRequest";
-        console.log("ERROR".red, "BadCommunicationError: expecting a OpenChannelRequest as first communication message");
+        console.log(
+            "ERROR".red,
+            "BadCommunicationError: expecting a OpenChannelRequest as first communication message"
+        );
         return _send_error.call(this, StatusCodes.BadCommunicationError, description, message, callback);
     }
 
@@ -1209,36 +1172,32 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
 
     if (!has_endpoint) {
         // there is no
-        description = " This server doesn't not support  " + securityPolicy.toString() + " " + self.securityMode.toString();
+        description =
+            " This server doesn't not support  " + securityPolicy.toString() + " " + self.securityMode.toString();
         return _send_error.call(self, StatusCodes.BadSecurityPolicyRejected, description, message, callback);
     }
 
     self.endpoint = self.endpoints && self.endpoints.getEndpointDescription(self.securityMode, securityPolicy);
 
-
-    self.messageBuilder
-        .on("message", _on_common_message.bind(self))
-        .on("start_chunk", function () {
-            if (doPerfMonitoring) {
-                //record tick 0: when the first chunk is received
-                self._tick0 = get_clock_tick();
-            }
-        });
-
-    // handle initial OpenSecureChannelRequest
-    self._process_certificates(message, function () {
-        _handle_OpenSecureChannelRequest.call(self, message, callback);
+    self.messageBuilder.on("message", _on_common_message.bind(self)).on("start_chunk", function() {
+        if (doPerfMonitoring) {
+            //record tick 0: when the first chunk is received
+            self._tick0 = get_clock_tick();
+        }
     });
 
+    // handle initial OpenSecureChannelRequest
+    self._process_certificates(message, function() {
+        _handle_OpenSecureChannelRequest.call(self, message, callback);
+    });
 }
-
 
 /**
  * the number of bytes read so far by this channel
  * @property bytesRead
  * @type {Number}
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("bytesRead", function () {
+ServerSecureChannelLayer.prototype.__defineGetter__("bytesRead", function() {
     var self = this;
     return self.transport ? self.transport.bytesRead : 0;
 });
@@ -1248,12 +1207,12 @@ ServerSecureChannelLayer.prototype.__defineGetter__("bytesRead", function () {
  * @property bytesWritten
  * @type {Number}
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("bytesWritten", function () {
+ServerSecureChannelLayer.prototype.__defineGetter__("bytesWritten", function() {
     var self = this;
     return self.transport ? self.transport.bytesWritten : 0;
 });
 
-ServerSecureChannelLayer.prototype.__defineGetter__("transactionsCount", function () {
+ServerSecureChannelLayer.prototype.__defineGetter__("transactionsCount", function() {
     var self = this;
     return self._transactionsCount;
 });
@@ -1264,7 +1223,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("transactionsCount", functio
  * @type {Boolean}
  *
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("isOpened",function() {
+ServerSecureChannelLayer.prototype.__defineGetter__("isOpened", function() {
     var self = this;
     return self.clientCertificate;
 });
@@ -1274,9 +1233,9 @@ ServerSecureChannelLayer.prototype.__defineGetter__("isOpened",function() {
  * @property hasSession
  * @type {Boolean}
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("hasSession",function() {
+ServerSecureChannelLayer.prototype.__defineGetter__("hasSession", function() {
     var self = this;
-    return Object.keys(self.sessionTokens).length>0;
+    return Object.keys(self.sessionTokens).length > 0;
 });
 
 /**
@@ -1284,10 +1243,9 @@ ServerSecureChannelLayer.prototype.__defineGetter__("hasSession",function() {
  * @property hashKey
  * @type {String}
  */
-ServerSecureChannelLayer.prototype.__defineGetter__("hashKey",function() {
+ServerSecureChannelLayer.prototype.__defineGetter__("hashKey", function() {
     var self = this;
     return self.securityToken.secureChannelId.toString();
 });
-
 
 exports.ServerSecureChannelLayer = ServerSecureChannelLayer;
