@@ -16,16 +16,18 @@ const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
 const hasConstructor = require("node-opcua-factory").hasConstructor;
 const getConstructor = require("node-opcua-factory").getConstructor;
-const hasEnumeration  =require("node-opcua-factory").hasEnumeration;
-const getEnumeration  =require("node-opcua-factory").getEnumeration;
+const hasEnumeration = require("node-opcua-factory").hasEnumeration;
+const getEnumeration = require("node-opcua-factory").getEnumeration;
 
 const crypto = require("crypto");
 
 function hashNamespace(namespaceUri) {
-    const hash =  crypto.createHash("sha1").update(namespaceUri).digest("hex");
+    const hash = crypto
+        .createHash("sha1")
+        .update(namespaceUri)
+        .digest("hex");
     return hash;
 }
-
 
 /**
  * returns the location of the  javascript version of the schema  corresponding to schemaName
@@ -37,10 +39,9 @@ function hashNamespace(namespaceUri) {
  * @return {string}
  * @private
  */
-function getSchemaSourceFile(namespace, schemaName, schema_type,schema_folder) {
-
+function getSchemaSourceFile(namespace, schemaName, schema_type, schema_folder) {
     assert(schemaName.match(/[a-zA-Z]+/));
-    if(!fs.existsSync(schema_folder)){
+    if (!fs.existsSync(schema_folder)) {
         throw new Error("Cannot find schema folder  " + schema_folder);
     }
     if (!(schema_type === "enum" || schema_type === "schema" || schema_type === "")) {
@@ -48,10 +49,10 @@ function getSchemaSourceFile(namespace, schemaName, schema_type,schema_folder) {
     }
     const subfolder = hashNamespace(namespace);
 
-    const root = path.join(schema_folder,"schemas");
-    const folder = path.normalize(path.join(root,subfolder));
+    const root = path.join(schema_folder, "schemas");
+    const folder = path.normalize(path.join(root, subfolder));
 
-    if (!fs.existsSync(folder)){
+    if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder);
     }
     if (schema_type === "") {
@@ -74,21 +75,19 @@ function generateEnumerationCode(dataType, filename) {
     const dataTypeName = dataType.browseName.name.toString();
     assert(!hasEnumeration(dataTypeName));
 
-
     // create the enumeration file
     const f = new LineFile();
     f.write("// namespace " + dataType.namespaceUri.toString());
-    f.write("var factories  = require(\"node-opcua-factory\");");
-    f.write("var makeNodeId = require(\"node-opcua-nodeid\").makeNodeId;");
+    f.write('const factories  = require("node-opcua-factory");');
+    f.write('const makeNodeId = require("node-opcua-nodeid").makeNodeId;');
 
-
-    f.write("var " + dataTypeName + "_Schema = {");
+    f.write("const " + dataTypeName + "_Schema = {");
     f.write("  id:  makeNodeId(" + dataType.nodeId.value + "," + dataType.nodeId.namespace + "),");
     f.write("  name: '" + dataTypeName + "',");
     f.write("  namespace: '" + dataType.nodeId.namespace + "',");
 
     f.write("  enumValues: {");
-    dataType.definition.forEach(function (pair) {
+    dataType.definition.forEach(function(pair) {
         f.write("     " + pair.name + ": " + pair.value + ",");
     });
     f.write("  }");
@@ -100,7 +99,7 @@ function generateEnumerationCode(dataType, filename) {
 
 const QualifiedName = require("node-opcua-data-model").QualifiedName;
 /**
- * var dataType = {
+ * const dataType = {
  *    browseName: "Color",
  *    definition: [
  *      { name: "Red",  value: 12},
@@ -115,8 +114,7 @@ const QualifiedName = require("node-opcua-data-model").QualifiedName;
  * @param dataType {Object}
  * @return {*}
  */
-function makeEnumeration(dataType,bForce) {
-
+function makeEnumeration(dataType, bForce) {
     assert(dataType);
     assert(dataType.hasOwnProperty("browseName"));
     assert(dataType.browseName instanceof QualifiedName);
@@ -126,7 +124,7 @@ function makeEnumeration(dataType,bForce) {
     if (hasEnumeration(dataTypeName)) {
         return getEnumeration(dataTypeName).typedEnum;
     }
-    //var Enumeration_Schema = {
+    //const Enumeration_Schema = {
     //    id: dataType.nodeId,
     //    name: dataType.browseName.toString(),
     //    enumValues: {}
@@ -137,8 +135,7 @@ function makeEnumeration(dataType,bForce) {
     //});
 
     const namespace = dataType.namespaceUri;
-    const filename = getSchemaSourceFile(namespace,dataType.browseName.toString(), "enum");
-
+    const filename = getSchemaSourceFile(namespace, dataType.browseName.toString(), "enum");
 
     generateEnumerationCode(dataType, filename);
 
@@ -149,31 +146,27 @@ function makeEnumeration(dataType,bForce) {
 
 exports.makeEnumeration = makeEnumeration;
 
-
-
-
-function generateStructureCode(namespace,schema,schema_folder) {
-
-    assert(fs.existsSync(schema_folder,"schema folder must exist"));
+function generateStructureCode(namespace, schema, schema_folder) {
+    assert(fs.existsSync(schema_folder, "schema folder must exist"));
     const name = schema.name;
 
     const f = new LineFile();
 
-    f.write("var factories  = require(\"node-opcua-factory\");");
-    f.write("var coerceNodeId = require(\"node-opcua-nodeid\").coerceNodeId;");
-    f.write("var " + schema.name + "_Schema = {");
-    f.write("    id:  coerceNodeId(\'" + schema.id.toString() + "\'),");
-    f.write("    name: \"" + name + "\",");
+    f.write('const factories  = require("node-opcua-factory");');
+    f.write('const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;');
+    f.write("const " + schema.name + "_Schema = {");
+    f.write("    id:  coerceNodeId('" + schema.id.toString() + "'),");
+    f.write('    name: "' + name + '",');
     f.write("    fields: [");
-    schema.fields.forEach(function (field) {
+    schema.fields.forEach(function(field) {
         f.write("       {");
-        f.write("           name: \"" + field.name + "\",");
-        f.write("           fieldType: \"" + field.fieldType + "\"");
+        f.write('           name: "' + field.name + '",');
+        f.write('           fieldType: "' + field.fieldType + '"');
         if (field.isArray) {
             f.write("         ,   isArray:" + (field.isArray ? "true" : false));
         }
         if (field.description) {
-            f.write("          , documentation:"  +  " \"" + (field.description) + "\" ");
+            f.write("          , documentation:" + ' "' + field.description + '" ');
         }
         f.write("       },");
     });
@@ -182,42 +175,38 @@ function generateStructureCode(namespace,schema,schema_folder) {
     f.write("exports." + name + "_Schema = " + name + "_Schema;");
     //xx write("exports."+name+" = factories.registerObject(" + name+"_Schema);");
 
-    const filename = getSchemaSourceFile(namespace,name, "schema",schema_folder);
+    const filename = getSchemaSourceFile(namespace, name, "schema", schema_folder);
     f.save(filename);
-
 }
 
-function generateFileCode(namespace,schema,schema_folder) {
-
-    assert(fs.existsSync(schema_folder,"schema folder must exist"));
+function generateFileCode(namespace, schema, schema_folder) {
+    assert(fs.existsSync(schema_folder, "schema folder must exist"));
     assert(typeof namespace === "string");
 
     const f = new LineFile();
 
     const name = schema.name;
-    const hint = "$node-opcua/schemas/"+hashNamespace(namespace);
+    const hint = "$node-opcua/schemas/" + hashNamespace(namespace);
 
     f.write("// namespace " + namespace.toString());
-    f.write("var  registerObject = require(\"node-opcua-factory\").registerObject;");
+    f.write('const  registerObject = require("node-opcua-factory").registerObject;');
     // f.write("registerObject('_generated_schemas|"+ name + "','_generated_schemas');");
-    f.write("registerObject('" + hint + "|" +  name + "');");
+    f.write("registerObject('" + hint + "|" + name + "');");
 
     //
-    f.write("require(\"" + hint + "/" +  name + "_schema\");");
+    f.write('require("' + hint + "/" + name + '_schema");');
 
-    // var filename = "../_generated_schemas/_auto_generated_"+ name;
+    // const filename = "../_generated_schemas/_auto_generated_"+ name;
     let filename = "$node-opcua/generated/_auto_generated_" + name;
-    f.write("var " + name + " = require(\"" + filename + "\")." + name + ";");
+    f.write("const " + name + ' = require("' + filename + '").' + name + ";");
     f.write("exports." + name + " = " + name + ";");
 
-    filename = getSchemaSourceFile(namespace,name, "",schema_folder);
+    filename = getSchemaSourceFile(namespace, name, "", schema_folder);
     f.save(filename);
 }
 
-
-function makeStructure(dataType,bForce,schema_folder) {
-
-    assert(fs.existsSync(schema_folder)," schema_folder must exist");
+function makeStructure(dataType, bForce, schema_folder) {
+    assert(fs.existsSync(schema_folder), " schema_folder must exist");
 
     bForce = !!bForce;
 
@@ -231,23 +220,27 @@ function makeStructure(dataType,bForce,schema_folder) {
 
     // istanbul ignore next
     if (!dataType.binaryEncodingNodeId) {
-        throw new Error("DataType with name " + dataType.browseName.toString() + " has no binaryEncoding node\nplease check your nodeset file");
+        throw new Error(
+            "DataType with name " +
+                dataType.browseName.toString() +
+                " has no binaryEncoding node\nplease check your nodeset file"
+        );
     }
 
     // if binaryEncodingNodeId is in the standard factory => no need to overwrite
 
-    if (!bForce && (hasConstructor(dataType.binaryEncodingNodeId) ||   dataType.binaryEncodingNodeId.namespace === 0)) {
+    if (!bForce && (hasConstructor(dataType.binaryEncodingNodeId) || dataType.binaryEncodingNodeId.namespace === 0)) {
         //xx console.log("Skipping standard constructor".bgYellow ," for dataType" ,dataType.browseName.toString());
         return getConstructor(dataType.binaryEncodingNodeId);
     }
 
     const schema = constructSchema(addressSpace, dataType);
 
-    generateFileCode(namespaceUri,schema, schema_folder);
+    generateFileCode(namespaceUri, schema, schema_folder);
 
-    generateStructureCode(namespaceUri,schema);
+    generateStructureCode(namespaceUri, schema);
 
-    const filename = getSchemaSourceFile(namespaceUri,schema.name, "");
+    const filename = getSchemaSourceFile(namespaceUri, schema.name, "");
 
     const relative_filename = normalize_require_file(__dirname, filename);
 
@@ -265,7 +258,7 @@ exports.makeStructure = makeStructure;
  *
  * @example:
  * @example:
- *    var dataType =  {
+ *    const dataType =  {
  *       browseName: "ServerStatusDataType",
  *       definition: [
  *           { name "timeout", dataType: "UInt32" }
@@ -275,7 +268,6 @@ exports.makeStructure = makeStructure;
  * @return {*}
  */
 function constructSchema(addressSpace, dataType) {
-
     let dataTypeName = dataType.browseName.name.toString();
     // remove DataType to get the name of the class
     dataTypeName = dataTypeName.replace(/DataType/, "");
@@ -289,20 +281,22 @@ function constructSchema(addressSpace, dataType) {
         ]
     };
     const enumeration = addressSpace.findDataType("Enumeration");
-    assert(enumeration,"Enumeration Type not found: please check your nodeset file");
+    assert(enumeration, "Enumeration Type not found: please check your nodeset file");
     const structure = addressSpace.findDataType("Structure");
-    assert(structure,"Structure Type not found: please check your nodeset file");
+    assert(structure, "Structure Type not found: please check your nodeset file");
 
     // construct the fields
-    dataType.definition.forEach(function (pair) {
-
+    dataType.definition.forEach(function(pair) {
         const dataTypeId = resolveNodeId(pair.dataType);
 
         const fieldDataType = addressSpace.findNode(dataTypeId);
 
         if (!fieldDataType) {
-            throw new Error(" cannot find description for object " + dataTypeId +
-                ". Check that this node exists in the nodeset.xml file");
+            throw new Error(
+                " cannot find description for object " +
+                    dataTypeId +
+                    ". Check that this node exists in the nodeset.xml file"
+            );
         }
 
         //xx console.log("xxxxx dataType",dataType.toString());
@@ -322,12 +316,11 @@ function constructSchema(addressSpace, dataType) {
             name: lowerFirstLetter(pair.name),
             fieldType: dataTypeName,
             isArray: false,
-            description: (pair.description ? pair.description.text : "")
+            description: pair.description ? pair.description.text : ""
         });
     });
     return schema;
 }
-
 
 const nodeset = {
     ServerState: null,
@@ -337,17 +330,15 @@ const nodeset = {
 };
 exports.nodeset = nodeset;
 
-function registerDataTypeEnum(addressSpace, dataTypeName,bForce) {
-
+function registerDataTypeEnum(addressSpace, dataTypeName, bForce) {
     const dataType = addressSpace.findDataType(dataTypeName);
     assert(dataType);
     const superType = addressSpace.findNode(dataType.subtypeOf);
     assert(superType.browseName.toString() === "Enumeration");
-    return makeEnumeration(dataType,bForce);
+    return makeEnumeration(dataType, bForce);
 }
 
-function registerDataType(addressSpace, dataTypeName,schema_folder, bForce) {
-
+function registerDataType(addressSpace, dataTypeName, schema_folder, bForce) {
     if (!fs.existsSync(schema_folder)) {
         throw new Error("schema_folder must exist : " + dataTypeName + " " + schema_folder);
     }
@@ -372,17 +363,15 @@ function registerDataType(addressSpace, dataTypeName,schema_folder, bForce) {
     //   <DisplayName>Default Binary</DisplayName>
     //   <References>
     //       <Reference ReferenceType="HasEncoding" IsForward="false">i=862</Reference>
-    return makeStructure(dataType,bForce,schema_folder);
+    return makeStructure(dataType, bForce, schema_folder);
 }
-
 
 /**
  * creates the requested data structure and javascript objects for the OPCUA objects
  * @method createExtensionObjectDefinition
  * @param addressSpace {AddressSpace}
  */
-const createExtensionObjectDefinition = function (addressSpace) {
-
+const createExtensionObjectDefinition = function(addressSpace) {
     assert(addressSpace instanceof AddressSpace);
     const force = true;
     // nodeset.ApplicationDescription = nodeset.ApplicationDescription || registerDataType(addressSpace, "ApplicationDescription",force);

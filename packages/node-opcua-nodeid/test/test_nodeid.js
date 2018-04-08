@@ -206,9 +206,6 @@ describe("#sameNodeId", function() {
                     "should be true  : #sameNodeId('" + nodeId1.toString() + "','" + nodeId2.toString() + "');",
                     function() {
                         sameNodeId(nodeId1, nodeId2).should.eql(true);
-                        sameNodeId(nodeId1, nodeId2.clone()).should.eql(true);
-                        sameNodeId(nodeId1.clone(), nodeId2).should.eql(true);
-
                     }
                 );
             } else {
