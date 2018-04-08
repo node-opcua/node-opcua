@@ -61,6 +61,9 @@ function NodeCrawler(session) {
     var self = this;
 
     self.session = session;
+    // verify that session object provides the expected methods (browse/read)
+    assert(_.isFunction(session.browse));
+    assert(_.isFunction(session.read));
 
     self.browseNameMap = {};
     self._nodesToReadEx = [];
@@ -254,7 +257,7 @@ NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
 
         if (!err) {
 
-            _.zip(_nodesToReadEx, dataValues).forEach(function (pair) {
+            for (const pair of _.zip(_nodesToReadEx, dataValues)) {
                 var _nodeToReadEx = pair[0];
 
                 var dataValue = pair[1];
@@ -270,7 +273,7 @@ NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
                     _nodeToReadEx.action({name: dataValue.statusCode.key});
                 }
 
-            });
+            }
         }
         callback(err);
     });
@@ -384,10 +387,7 @@ var hasTypeDefinitionId = resolveNodeId("HasTypeDefinition");
 function dedup_reference(references) {
     var results = [];
     var dedup = {};
-    for (var i = 0; i < references.length; i++) {
-
-        const reference = references[i];
-
+    for (const reference of  references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
         if (dedup[key]) {
             console.log(" Warning => Duplicated reference found  !!!! please contact the server vendor");
@@ -517,12 +517,12 @@ NodeCrawler.prototype._process_browse_response = function (task, callback) {
     var self = this;
     var objectsToBrowse = task.param.objectsToBrowse;
     var browseResults = task.param.browseResults;
-    _.zip(objectsToBrowse, browseResults).forEach(function (pair) {
+    for (const pair of _.zip(objectsToBrowse, browseResults)) {
         var objectToBrowse = pair[0];
         var browseResult = pair[1];
         assert(browseResult instanceof browse_service.BrowseResult);
         self._process_single_browseResult(objectToBrowse, browseResult);
-    });
+    }
     setImmediate(callback);
 };
 
@@ -608,8 +608,7 @@ NodeCrawler.prototype._push_task = function (name, task) {
 
 
 NodeCrawler.follow = function (crawler, cacheNode, userData) {
-    for (var i = 0; i < cacheNode.references.length; i++) {
-        var reference = cacheNode.references[i];
+    for (const reference of cacheNode.references) {
         crawler.followReference(cacheNode, reference, userData);
     }
 };
