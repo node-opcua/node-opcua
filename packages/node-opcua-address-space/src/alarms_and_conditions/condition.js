@@ -3,7 +3,6 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-
 require("set-prototype-of");
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
@@ -24,7 +23,6 @@ var TimeZone = require("node-opcua-data-model").TimeZone;
 var UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
 var UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
 
-
 var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 var LocalizedText = require("node-opcua-data-model").LocalizedText;
@@ -41,19 +39,18 @@ var SessionContext = require("../session_context").SessionContext;
 var utils = require("node-opcua-utils");
 
 function _visit(self, node, prefix) {
-
     var aggregates = node.getAggregates();
 
-    aggregates.forEach(function (aggregate) {
-
+    aggregates.forEach(function(aggregate) {
         if (aggregate instanceof UAVariable) {
-
             var name = aggregate.browseName.toString();
             name = utils.lowerFirstLetter(name);
 
             var key = prefix + name;
+
+            // istanbul ignore next
             if (doDebug) {
-                debugLog("addingkey =", key)
+                debugLog("adding key =", key);
             }
             self._map[key] = aggregate.readValue().value;
             self._node_index[key] = aggregate;
@@ -62,22 +59,21 @@ function _visit(self, node, prefix) {
     });
 }
 function _installOnChangeEventHandlers(self, node, prefix) {
-
     var aggregates = node.getAggregates();
 
-    aggregates.forEach(function (aggregate) {
-
+    aggregates.forEach(function(aggregate) {
         if (aggregate instanceof UAVariable) {
-
             var name = aggregate.browseName.toString();
             name = utils.lowerFirstLetter(name);
 
             var key = prefix + name;
+
+            // istanbul ignore next
             if (doDebug) {
-                debugLog("addingkey =", key)
+                debugLog("adding key =", key);
             }
 
-            aggregate.on("value_changed",function(newDataValue,oldDataValue){
+            aggregate.on("value_changed", function(newDataValue, oldDataValue) {
                 self._map[key] = newDataValue.value;
                 self._node_index[key] = aggregate;
             });
@@ -86,38 +82,41 @@ function _installOnChangeEventHandlers(self, node, prefix) {
         }
     });
 }
-function _ensure_condition_values_correctness(self, node, prefix,error) {
+function _ensure_condition_values_correctness(self, node, prefix, error) {
+    var displayError = !!error;
+    error = error || [];
 
-        var displayError = !!error;
-        error = error || [];
+    var aggregates = node.getAggregates();
 
-        var aggregates = node.getAggregates();
+    aggregates.forEach(function(aggregate) {
+        if (aggregate instanceof UAVariable) {
+            var name = aggregate.browseName.toString();
+            name = utils.lowerFirstLetter(name);
 
-        aggregates.forEach(function (aggregate) {
+            var key = prefix + name;
 
-            if (aggregate instanceof UAVariable) {
+            var snapshot_value = self._map[key].toString();
+            var condition_value = aggregate.readValue().value.toString();
 
-                var name = aggregate.browseName.toString();
-                name = utils.lowerFirstLetter(name);
-
-                var key = prefix + name;
-
-                var snapshot_value  = self._map[key].toString() ;
-                var condition_value = aggregate.readValue().value.toString() ;
-
-                if (snapshot_value !==  condition_value ) {
-                    error.push(" Condition Branch0 is not in sync with node values for "
-                    + key + "\n v1= " + snapshot_value + "\n v2= "+condition_value);
-                }
-
-                self._node_index[key] = aggregate;
-                _ensure_condition_values_correctness(self, aggregate, prefix + name + ".",error);
+            if (snapshot_value !== condition_value) {
+                error.push(
+                    " Condition Branch0 is not in sync with node values for " +
+                        key +
+                        "\n v1= " +
+                        snapshot_value +
+                        "\n v2= " +
+                        condition_value
+                );
             }
-        });
-        if (displayError && error.length ) {
-            throw new Error(error.join("\n"));
+
+            self._node_index[key] = aggregate;
+            _ensure_condition_values_correctness(self, aggregate, prefix + name + ".", error);
         }
+    });
+    if (displayError && error.length) {
+        throw new Error(error.join("\n"));
     }
+}
 function _record_condition_state(self, condition) {
     self._map = {};
     self._node_index = {};
@@ -147,7 +146,6 @@ function ConditionSnapshot(condition, branchId) {
         }
 
         self._set_var("branchId", DataType.NodeId, branchId);
-
     }
 }
 util.inherits(ConditionSnapshot, EventEmitter);
@@ -171,7 +169,7 @@ var disabledVar = new Variant({
     value: StatusCodes.BadConditionDisabled
 });
 
-ConditionSnapshot.prototype._constructEventData = function () {
+ConditionSnapshot.prototype._constructEventData = function() {
     var self = this;
     var addressSpace = self.condition.addressSpace;
 
@@ -179,10 +177,9 @@ ConditionSnapshot.prototype._constructEventData = function () {
         _ensure_condition_values_correctness(self, self.condition, "");
     }
 
-
     var isDisabled = !self.condition.getEnabledState();
     var eventData = new EventData(self.condition);
-    Object.keys(self._map).forEach(function (key) {
+    Object.keys(self._map).forEach(function(key) {
         var node = self._node_index[key];
         if (isDisabled && !_varTable.hasOwnProperty(key)) {
             eventData.setValue(key, node, disabledVar);
@@ -206,7 +203,7 @@ ConditionSnapshot.prototype._constructEventData = function () {
  * @method resolveSelectClause
  * @param selectClause {SelectClause}
  */
-ConditionSnapshot.prototype.resolveSelectClause = function (selectClause) {
+ConditionSnapshot.prototype.resolveSelectClause = function(selectClause) {
     var self = this;
     return self.eventData.resolveSelectClause(selectClause);
 };
@@ -217,7 +214,7 @@ ConditionSnapshot.prototype.resolveSelectClause = function (selectClause) {
  * @param selectClause {SelectClause}
  * @return {Variant}
  */
-ConditionSnapshot.prototype.readValue = function (nodeId, selectClause) {
+ConditionSnapshot.prototype.readValue = function(nodeId, selectClause) {
     var self = this;
 
     var isDisabled = !self.condition.getEnabledState();
@@ -237,35 +234,35 @@ ConditionSnapshot.prototype.readValue = function (nodeId, selectClause) {
 };
 
 function normalizeName(str) {
-    return str.split(".").map(utils.lowerFirstLetter).join(".");
+    return str
+        .split(".")
+        .map(utils.lowerFirstLetter)
+        .join(".");
 }
 ConditionSnapshot.normalizeName = normalizeName;
-
 
 // list of Condition variables that should not be published as BadConditionDisabled when the condition
 // is in a disabled state.
 var _varTable = {
-    "branchId":1,
-    "eventId": 1,
-    "eventType": 1,
-    "sourceNode": 1,
-    "sourceName": 1,
-    "time": 1,
-    "enabledState": 1,
+    branchId: 1,
+    eventId: 1,
+    eventType: 1,
+    sourceNode: 1,
+    sourceName: 1,
+    time: 1,
+    enabledState: 1,
     "enabledState.id": 1,
-    "enabledState.effectiveDisplayName":1,
-    "enabledState.transitionTime":1,
-    "conditionClassId":1,
-    "conditionClassName":1,
-    "conditionName":1,
-
+    "enabledState.effectiveDisplayName": 1,
+    "enabledState.transitionTime": 1,
+    conditionClassId: 1,
+    conditionClassName: 1,
+    conditionName: 1
 };
-ConditionSnapshot.prototype._get_var = function (varName, dataType) {
-
+ConditionSnapshot.prototype._get_var = function(varName, dataType) {
     var self = this;
 
     if (!self.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
-        console.log("ConditionSnapshot#_get_var condition enabled =",self.condition.getEnabledState());
+        console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
         return disabledVar;
     }
 
@@ -274,8 +271,7 @@ ConditionSnapshot.prototype._get_var = function (varName, dataType) {
     return variant.value;
 };
 
-ConditionSnapshot.prototype._set_var = function (varName, dataType, value) {
-
+ConditionSnapshot.prototype._set_var = function(varName, dataType, value) {
     var self = this;
 
     var key = normalizeName(varName);
@@ -285,7 +281,6 @@ ConditionSnapshot.prototype._set_var = function (varName, dataType, value) {
             debugLog(" cannot find node ".white.bold.bgRed + varName.cyan);
             debugLog("  map=", Object.keys(self._map).join(" "));
         }
-
     }
     self._map[key] = new Variant({
         dataType: dataType,
@@ -303,14 +298,13 @@ ConditionSnapshot.prototype._set_var = function (varName, dataType, value) {
     var node = self._node_index[key];
     assert(node instanceof UAVariable);
     self.emit("value_changed", node, variant);
-
 };
 
 /**
  * @method getBrandId
  * @return {NodeId}
  */
-ConditionSnapshot.prototype.getBranchId = function () {
+ConditionSnapshot.prototype.getBranchId = function() {
     var self = this;
     return self._get_var("branchId", DataType.NodeId);
 };
@@ -319,7 +313,7 @@ ConditionSnapshot.prototype.getBranchId = function () {
  * @method getEventId
  * @return {ByteString}
  */
-ConditionSnapshot.prototype.getEventId = function () {
+ConditionSnapshot.prototype.getEventId = function() {
     var self = this;
     return self._get_var("eventId", DataType.ByteString);
 };
@@ -327,7 +321,7 @@ ConditionSnapshot.prototype.getEventId = function () {
  * @method getRetain
  * @return {Boolean}
  */
-ConditionSnapshot.prototype.getRetain = function () {
+ConditionSnapshot.prototype.getRetain = function() {
     var self = this;
     return self._get_var("retain", DataType.Boolean);
 };
@@ -337,7 +331,7 @@ ConditionSnapshot.prototype.getRetain = function () {
  * @method setRetain
  * @param retainFlag {Boolean}
  */
-ConditionSnapshot.prototype.setRetain = function (retainFlag) {
+ConditionSnapshot.prototype.setRetain = function(retainFlag) {
     var self = this;
     retainFlag = !!retainFlag;
     return self._set_var("retain", DataType.Boolean, retainFlag);
@@ -345,9 +339,9 @@ ConditionSnapshot.prototype.setRetain = function (retainFlag) {
 
 /**
  * @method renewEventId
- * 
+ *
  */
-ConditionSnapshot.prototype.renewEventId = function () {
+ConditionSnapshot.prototype.renewEventId = function() {
     var self = this;
     var addressSpace = self.condition.addressSpace;
     // create a new event  Id for this new condition
@@ -363,7 +357,7 @@ ConditionSnapshot.prototype.renewEventId = function () {
  * @method getEnabledState
  * @return {Boolean}
  */
-ConditionSnapshot.prototype.getEnabledState = function () {
+ConditionSnapshot.prototype.getEnabledState = function() {
     var self = this;
     return self._get_twoStateVariable("enabledState");
 };
@@ -372,15 +366,15 @@ ConditionSnapshot.prototype.getEnabledState = function () {
  * @param value {Boolean}
  * @return void
  */
-ConditionSnapshot.prototype.setEnabledState = function (value) {
+ConditionSnapshot.prototype.setEnabledState = function(value) {
     var self = this;
-    return self._set_twoStateVariable("enabledState",value);
+    return self._set_twoStateVariable("enabledState", value);
 };
 /**
  * @method getEnabledStateAsString
  * @return {String}
  */
-ConditionSnapshot.prototype.getEnabledStateAsString = function () {
+ConditionSnapshot.prototype.getEnabledStateAsString = function() {
     var self = this;
     return self._get_var("enabledState", DataType.LocalizedText).text;
 };
@@ -389,7 +383,7 @@ ConditionSnapshot.prototype.getEnabledStateAsString = function () {
  * @method getComment
  * @return {LocalizedText}
  */
-ConditionSnapshot.prototype.getComment = function () {
+ConditionSnapshot.prototype.getComment = function() {
     var self = this;
     return self._get_var("comment", DataType.LocalizedText);
 };
@@ -406,7 +400,7 @@ ConditionSnapshot.prototype.getComment = function () {
  * @method setComment
  * @param txtMessage {LocalizedText}
  */
-ConditionSnapshot.prototype.setComment = function (txtMessage) {
+ConditionSnapshot.prototype.setComment = function(txtMessage) {
     var self = this;
     assert(txtMessage);
     txtMessage = coerceLocalizedText(txtMessage);
@@ -425,7 +419,7 @@ ConditionSnapshot.prototype.setComment = function (txtMessage) {
  * @method setMessage
  * @param txtMessage {LocalizedText}
  */
-ConditionSnapshot.prototype.setMessage = function (txtMessage) {
+ConditionSnapshot.prototype.setMessage = function(txtMessage) {
     var self = this;
     assert(txtMessage);
     txtMessage = coerceLocalizedText(txtMessage);
@@ -436,7 +430,7 @@ ConditionSnapshot.prototype.setMessage = function (txtMessage) {
  * @method setClientUserId
  * @param userIdentity {String}
  */
-ConditionSnapshot.prototype.setClientUserId = function (userIdentity) {
+ConditionSnapshot.prototype.setClientUserId = function(userIdentity) {
     var self = this;
     return self._set_var("clientUserId", DataType.String, userIdentity.toString());
 };
@@ -471,7 +465,7 @@ ConditionSnapshot.prototype.setClientUserId = function (userIdentity) {
  * @method setQuality
  * @param quality {StatusCode}
  */
-ConditionSnapshot.prototype.setQuality = function (quality) {
+ConditionSnapshot.prototype.setQuality = function(quality) {
     var self = this;
     assert(quality instanceof StatusCode);
     assert(quality.hasOwnProperty("value") || "quality must be a StatusCode");
@@ -483,14 +477,13 @@ ConditionSnapshot.prototype.setQuality = function (quality) {
      *
      */
     self._need_event_raise = true;
-
 };
 
 /**
  * @method getQuality
  * @return {StatusCode}
  */
-ConditionSnapshot.prototype.getQuality = function () {
+ConditionSnapshot.prototype.getQuality = function() {
     var self = this;
     return self._get_var("quality", DataType.StatusCode);
 };
@@ -529,11 +522,9 @@ ConditionSnapshot.prototype.getQuality = function () {
  * @method setSeverity
  * @param severity {UInt16}
  */
-ConditionSnapshot.prototype.setSeverity = function (severity) {
-
-
+ConditionSnapshot.prototype.setSeverity = function(severity) {
     var self = this;
-    assert(_.isFinite(severity),"expecting a UInt16");
+    assert(_.isFinite(severity), "expecting a UInt16");
 
     // record automatically last severity
     var lastSeverity = self.getSeverity();
@@ -546,17 +537,16 @@ ConditionSnapshot.prototype.setSeverity = function (severity) {
      *
      */
     self._need_event_raise = true;
-
 };
 
 /**
  * @method getSeverity
  * @return {UInt16}
  */
-ConditionSnapshot.prototype.getSeverity = function () {
+ConditionSnapshot.prototype.getSeverity = function() {
     var self = this;
-    assert(self.condition.getEnabledState(),"condition must be enabled");
-    var value =  self._get_var("severity", DataType.UInt16);
+    assert(self.condition.getEnabledState(), "condition must be enabled");
+    var value = self._get_var("severity", DataType.UInt16);
     return +value;
 };
 
@@ -571,7 +561,7 @@ ConditionSnapshot.prototype.getSeverity = function () {
  * @method setLastSeverity
  * @param severity {UInt16}
  */
-ConditionSnapshot.prototype.setLastSeverity = function (severity) {
+ConditionSnapshot.prototype.setLastSeverity = function(severity) {
     var self = this;
     severity = +severity;
     return self._set_var("lastSeverity", DataType.UInt16, severity);
@@ -580,7 +570,7 @@ ConditionSnapshot.prototype.setLastSeverity = function (severity) {
  * @method getLastSeverity
  * @return {UInt16}
  */
-ConditionSnapshot.prototype.getLastSeverity = function () {
+ConditionSnapshot.prototype.getLastSeverity = function() {
     var self = this;
     var value = self._get_var("lastSeverity", DataType.UInt16);
     return +value;
@@ -605,7 +595,7 @@ ConditionSnapshot.prototype.getLastSeverity = function () {
  * @method setReceiveTime
  * @param time {Date} : UTCTime
  */
-ConditionSnapshot.prototype.setReceiveTime = function (time) {
+ConditionSnapshot.prototype.setReceiveTime = function(time) {
     assert(time instanceof Date);
     var self = this;
     return self._set_var("receiveTime", DataType.DateTime, time);
@@ -621,7 +611,7 @@ ConditionSnapshot.prototype.setReceiveTime = function (time) {
  * @method setTime
  * @param time {Date}
  */
-ConditionSnapshot.prototype.setTime = function (time) {
+ConditionSnapshot.prototype.setTime = function(time) {
     assert(time instanceof Date);
     var self = this;
     return self._set_var("time", DataType.DateTime, time);
@@ -637,22 +627,21 @@ ConditionSnapshot.prototype.setTime = function (time) {
  * @method setLocalTime
  * @param localTime {TimeZone}
  */
-ConditionSnapshot.prototype.setLocalTime = function (localTime) {
+ConditionSnapshot.prototype.setLocalTime = function(localTime) {
     assert(localTime instanceof TimeZone);
     var self = this;
     return self._set_var("localTime", DataType.ExtensionObject, new TimeZone(localTime));
 };
 // read only !
-ConditionSnapshot.prototype.getSourceName = function () {
+ConditionSnapshot.prototype.getSourceName = function() {
     return this._get_var("sourceName", DataType.LocalizedText);
 };
-
 
 /**
  * @method getSourceNode
  * return {NodeId}
  */
-ConditionSnapshot.prototype.getSourceNode = function () {
+ConditionSnapshot.prototype.getSourceNode = function() {
     return this._get_var("sourceNode", DataType.NodeId);
 };
 
@@ -660,7 +649,7 @@ ConditionSnapshot.prototype.getSourceNode = function () {
  * @method getEventType
  * return {NodeId}
  */
-ConditionSnapshot.prototype.getEventType = function () {
+ConditionSnapshot.prototype.getEventType = function() {
     return this._get_var("eventType", DataType.NodeId);
 };
 
@@ -668,13 +657,11 @@ ConditionSnapshot.prototype.getEventType = function () {
  * @method getMessage
  * return {LocalizedText}
  */
-ConditionSnapshot.prototype.getMessage = function () {
+ConditionSnapshot.prototype.getMessage = function() {
     return this._get_var("message", DataType.LocalizedText);
 };
 
-
-
-ConditionSnapshot.prototype.isCurrentBranch = function(){
+ConditionSnapshot.prototype.isCurrentBranch = function() {
     return this._get_var("branchId") === NodeId.NullNodeId;
 };
 
@@ -684,32 +671,30 @@ ConditionSnapshot.prototype.isCurrentBranch = function(){
  * @param value
  * @private
  */
-ConditionSnapshot.prototype._set_twoStateVariable = function(varName,value) {
-
+ConditionSnapshot.prototype._set_twoStateVariable = function(varName, value) {
     value = !!value;
     var self = this;
 
     var hrKey = ConditionSnapshot.normalizeName(varName);
-    var idKey = ConditionSnapshot.normalizeName(varName)+".id";
+    var idKey = ConditionSnapshot.normalizeName(varName) + ".id";
 
-    var variant = new Variant({ dataType: DataType.Boolean , value: value});
+    var variant = new Variant({ dataType: DataType.Boolean, value: value });
     self._map[idKey] = variant;
 
     // also change varName with human readable text
     var twoStateNode = self._node_index[hrKey];
     if (!twoStateNode) {
-        throw new Error("Cannot find twoState Varaible with name "+varName);
+        throw new Error("Cannot find twoState Varaible with name " + varName);
     }
     if (!(twoStateNode instanceof UATwoStateVariable)) {
-        throw new Error("Cannot find twoState Varaible with name "+varName+" "+twoStateNode);
+        throw new Error("Cannot find twoState Varaible with name " + varName + " " + twoStateNode);
     }
-
 
     var txt = value ? twoStateNode._trueState : twoStateNode._falseState;
 
     var hrValue = new Variant({
         dataType: DataType.LocalizedText,
-        value:  coerceLocalizedText(txt)
+        value: coerceLocalizedText(txt)
     });
     self._map[hrKey] = hrValue;
 
@@ -722,13 +707,12 @@ ConditionSnapshot.prototype._set_twoStateVariable = function(varName,value) {
         //xx console.log("Is current branch", twoStateNode.toString(),variant.toString());
         //xx console.log("  = ",twoStateNode.getValue());
     }
-    self.emit("value_changed",node,variant);
-
+    self.emit("value_changed", node, variant);
 };
 
 ConditionSnapshot.prototype._get_twoStateVariable = function(varName) {
     var self = this;
-    var key = ConditionSnapshot.normalizeName(varName)+".id";
+    var key = ConditionSnapshot.normalizeName(varName) + ".id";
     var variant = self._map[key];
 
     // istanbul ignore next
@@ -739,54 +723,49 @@ ConditionSnapshot.prototype._get_twoStateVariable = function(varName) {
 };
 exports.ConditionSnapshot = ConditionSnapshot;
 
-
 /**
  * @class BaseEventType
  * @class UAObject
  * @constructor
  */
-function BaseEventType() {
-
-}
+function BaseEventType() {}
 util.inherits(BaseEventType, UAObject);
-
 
 /**
  * @method setSourceName
  * @param name
  */
-BaseEventType.prototype.setSourceName = function (name) {
-
-    assert(typeof (name) === "string");
+BaseEventType.prototype.setSourceName = function(name) {
+    assert(typeof name === "string");
     var self = this;
-    self.sourceName.setValueFromSource(new Variant({
-        dataType: DataType.String,
-        value: name
-    }));
+    self.sourceName.setValueFromSource(
+        new Variant({
+            dataType: DataType.String,
+            value: name
+        })
+    );
 };
 
 /**
  * @method setSourceNode
  * @param node {NodeId|UAObject}
  */
-BaseEventType.prototype.setSourceNode = function (node) {
+BaseEventType.prototype.setSourceNode = function(node) {
     var self = this;
-    self.sourceNode.setValueFromSource(new Variant({
-        dataType: DataType.NodeId,
-        value: node.nodeId ? node.nodeId : node
-    }));
-
+    self.sourceNode.setValueFromSource(
+        new Variant({
+            dataType: DataType.NodeId,
+            value: node.nodeId ? node.nodeId : node
+        })
+    );
 };
-
 
 /**
  * @class UAConditionBase
  * @constructor
  * @extends BaseEventType
  */
-function UAConditionBase() {
-
-}
+function UAConditionBase() {}
 util.inherits(UAConditionBase, BaseEventType);
 UAConditionBase.prototype.nodeClass = NodeClass.Object;
 UAConditionBase.typeDefinition = resolveNodeId("ConditionType");
@@ -795,7 +774,7 @@ UAConditionBase.typeDefinition = resolveNodeId("ConditionType");
  * @method initialize
  * @private
  */
-UAConditionBase.prototype.initialize = function () {
+UAConditionBase.prototype.initialize = function() {
     var self = this;
     self._branches = {};
 };
@@ -804,8 +783,7 @@ UAConditionBase.prototype.initialize = function () {
  * @method post_initialize
  * @private
  */
-UAConditionBase.prototype.post_initialize = function () {
-
+UAConditionBase.prototype.post_initialize = function() {
     var self = this;
     assert(!self._branch0);
     self._branch0 = new ConditionSnapshot(self, NodeId.NullNodeId);
@@ -817,7 +795,7 @@ UAConditionBase.prototype.post_initialize = function () {
     // the implication of this convention is that interacting with the condition variable
     // shall be made by using branch0, any value change made
     // using the standard setValueFromSource mechanism will not be work properly.
-    self._branch0.on("value_changed", function (node, variant) {
+    self._branch0.on("value_changed", function(node, variant) {
         assert(node instanceof UAVariable);
         node.setValueFromSource(variant);
     });
@@ -827,17 +805,21 @@ UAConditionBase.prototype.post_initialize = function () {
  * @method getBranchCount
  * @return {Number}
  */
-UAConditionBase.prototype.getBranchCount = function () {
+UAConditionBase.prototype.getBranchCount = function() {
     var self = this;
     return Object.keys(self._branches).length;
 };
-UAConditionBase.prototype.getBranches = function () {
+UAConditionBase.prototype.getBranches = function() {
     var self = this;
-    return Object.keys(self._branches).map(function(x) { return self._branches[x];});
+    return Object.keys(self._branches).map(function(x) {
+        return self._branches[x];
+    });
 };
-UAConditionBase.prototype.getBranchIds = function () {
+UAConditionBase.prototype.getBranchIds = function() {
     var self = this;
-    return self.getBranches().map(function(b) { return b.getBranchId();});
+    return self.getBranches().map(function(b) {
+        return b.getBranchId();
+    });
 };
 var ec = require("node-opcua-basic-types");
 var randomGuid = ec.randomGuid;
@@ -851,7 +833,7 @@ function _create_new_branch_id() {
  * @method createBranch
  * @return {ConditionSnapshot}
  */
-UAConditionBase.prototype.createBranch = function () {
+UAConditionBase.prototype.createBranch = function() {
     var self = this;
     var branchId = _create_new_branch_id();
     var snapshot = new ConditionSnapshot(self, branchId);
@@ -862,15 +844,14 @@ UAConditionBase.prototype.createBranch = function () {
  *  @method deleteBranch
  *  @param branch {ConditionSnapshot}
  */
-UAConditionBase.prototype.deleteBranch = function (branch) {
+UAConditionBase.prototype.deleteBranch = function(branch) {
     var self = this;
     var key = branch.getBranchId().toString();
     assert(branch.getBranchId() !== NodeId.NullNodeId, "cannot delete branch zero");
     assert(self._branches.hasOwnProperty(key));
     delete self._branches[key];
-    self.emit("branch_deleted",key);
+    self.emit("branch_deleted", key);
 };
-
 
 var minDate = new Date(1600, 1, 1);
 
@@ -882,20 +863,17 @@ function prepare_date(sourceTimestamp) {
     return sourceTimestamp;
 }
 
-function _update_sourceTimestamp(dataValue /*, indexRange*/ ) {
-
+function _update_sourceTimestamp(dataValue /*, indexRange*/) {
     var self = this;
     //xx console.log("_update_sourceTimestamp = "+self.nodeId.toString().cyan+ " " + self.browseName.toString(), self.sourceTimestamp.nodeId.toString().cyan + " " + dataValue.sourceTimestamp);
     self.sourceTimestamp.setValueFromSource({
         dataType: DataType.DateTime,
         value: dataValue.sourceTimestamp
     });
-
 }
 var makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
 
 function _install_condition_variable_type(node) {
-
     // from spec 1.03 : 5.3 condition variables
     // However,  a change in their value is considered important and supposed to trigger
     // an Event Notification. These information elements are called ConditionVariables.
@@ -911,14 +889,13 @@ function _install_condition_variable_type(node) {
     assert(node.typeDefinitionObj.browseName.toString() === "ConditionVariableType");
     assert(node.sourceTimestamp.browseName.toString() === "SourceTimestamp");
     node.on("value_changed", _update_sourceTimestamp);
-
 }
 
 /**
  * @method getEnabledState
  * @return {Boolean}
  */
-UAConditionBase.prototype.getEnabledState = function () {
+UAConditionBase.prototype.getEnabledState = function() {
     var conditionNode = this;
     return conditionNode.enabledState.getValue();
 };
@@ -926,14 +903,14 @@ UAConditionBase.prototype.getEnabledState = function () {
  * @method getEnabledStateAsString
  * @return {String}
  */
-UAConditionBase.prototype.getEnabledStateAsString = function () {
+UAConditionBase.prototype.getEnabledStateAsString = function() {
     var conditionNode = this;
     return conditionNode.enabledState.getValueAsString();
 };
 
-UAConditionBase.prototype.evaluateConditionsAfterEnabled = function () {
+UAConditionBase.prototype.evaluateConditionsAfterEnabled = function() {
     assert(this.getEnabledState() === true);
-    throw new Error("Unimplemented , please override")
+    throw new Error("Unimplemented , please override");
 };
 
 /**
@@ -942,13 +919,10 @@ UAConditionBase.prototype.evaluateConditionsAfterEnabled = function () {
  * @return {StatusCode} StatusCodes.Good if successful or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
  * @private
  */
-UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
-
+UAConditionBase.prototype._setEnabledState = function(requestedEnabledState) {
     var conditionNode = this;
 
-
     assert(_.isBoolean(requestedEnabledState));
-
 
     var enabledState = conditionNode.getEnabledState();
     if (enabledState && requestedEnabledState) {
@@ -964,7 +938,6 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
     //xx assert(conditionNode.enabledState.id.readValue().value.value === requestedEnabledState,"sanity check 1");
     //xx assert(conditionNode.currentBranch().getEnabledState() === requestedEnabledState,"sanity check 2");
 
-
     if (!requestedEnabledState) {
         // as per Spec 1.0.3 part 9:
         //* When the Condition instance enters the Disabled state, the Retain Property of this
@@ -979,11 +952,8 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
         // as Null | BadConditionDisabled;
         var statusCode = StatusCodes.BadConditionDisabled;
 
-
         // a notification must be send
         conditionNode.raiseConditionEvent(conditionNode.currentBranch(), true);
-
-
     } else {
         //* When the Condition instance enters the enabled state, the Condition shall be
         //  evaluated and all of its Properties updated to reflect the current values. If this
@@ -1010,7 +980,6 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
             // a notification must be send
             conditionNode.raiseConditionEvent(conditionNode.currentBranch(), true);
         }
-
     }
     return StatusCodes.Good;
 };
@@ -1021,7 +990,7 @@ UAConditionBase.prototype._setEnabledState = function (requestedEnabledState) {
  * @param requestedEnabledState {Boolean}
  * @private
  */
-UAConditionBase.prototype.setEnabledState = function (requestedEnabledState) {
+UAConditionBase.prototype.setEnabledState = function(requestedEnabledState) {
     return this._setEnabledState(requestedEnabledState);
 };
 
@@ -1029,7 +998,7 @@ UAConditionBase.prototype.setEnabledState = function (requestedEnabledState) {
  * @method setReceiveTime
  * @param time {Date}
  */
-UAConditionBase.prototype.setReceiveTime = function (time) {
+UAConditionBase.prototype.setReceiveTime = function(time) {
     var self = this;
     return self._branch0.setReceiveTime(time);
 };
@@ -1038,7 +1007,7 @@ UAConditionBase.prototype.setReceiveTime = function (time) {
  * @method setLocalTime
  * @param time {Date}
  */
-UAConditionBase.prototype.setLocalTime = function (time) {
+UAConditionBase.prototype.setLocalTime = function(time) {
     var self = this;
     return self._branch0.setLocalTime(time);
 };
@@ -1047,13 +1016,12 @@ UAConditionBase.prototype.setLocalTime = function (time) {
  * @method setTime
  * @param time {Date}
  */
-UAConditionBase.prototype.setTime = function (time) {
+UAConditionBase.prototype.setTime = function(time) {
     var self = this;
     return self._branch0.setTime(time);
 };
 
-UAConditionBase.prototype._assert_valid = function () {
-
+UAConditionBase.prototype._assert_valid = function() {
     var self = this;
     assert(self.receiveTime.readValue().value.dataType === DataType.DateTime);
     assert(self.receiveTime.readValue().value.value instanceof Date);
@@ -1070,7 +1038,6 @@ UAConditionBase.prototype._assert_valid = function () {
     assert(self.branchId.readValue().value.dataType === DataType.NodeId);
 };
 
-
 var browse_service = require("node-opcua-service-browse");
 var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
@@ -1078,7 +1045,7 @@ var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
  * @method conditionOfNode
  * @return {UAObject}
  */
-UAConditionBase.prototype.conditionOfNode = function () {
+UAConditionBase.prototype.conditionOfNode = function() {
     var refs = this.findReferencesExAsObject("HasCondition", BrowseDirection.Inverse);
     if (refs.length === 0) {
         return null;
@@ -1086,7 +1053,10 @@ UAConditionBase.prototype.conditionOfNode = function () {
     assert(refs.length !== 0, "UAConditionBase must be the condition of some node");
     assert(refs.length === 1, "expecting only one ConditionOf");
     var node = refs[0];
-    assert(node instanceof UAObject || node instanceof UAVariable, "node for which we are the condition shall be an UAObject or UAVariable");
+    assert(
+        node instanceof UAObject || node instanceof UAVariable,
+        "node for which we are the condition shall be an UAObject or UAVariable"
+    );
     return node;
 };
 
@@ -1096,7 +1066,7 @@ UAConditionBase.prototype.conditionOfNode = function () {
  * (see also UAObject#raiseEvent to raise a transient event)
  * @param branch {ConditionSnapshot}
  */
-UAConditionBase.prototype.raiseConditionEvent = function (branch, renewEventId) {
+UAConditionBase.prototype.raiseConditionEvent = function(branch, renewEventId) {
     assert(arguments.length === 2, "expecting 2 arguments");
     if (renewEventId) {
         branch.renewEventId();
@@ -1163,18 +1133,18 @@ function ConditionInfo(options) {
         assert(_.isBoolean(options.retain));
         this.retain = options.retain;
     }
-
 }
 /**
  * @method isDifferentFrom
  * @param otherConditionInfo {ConditionInfo}
  * @return {Boolean}
  */
-ConditionInfo.prototype.isDifferentFrom = function (otherConditionInfo) {
-    return this.severity !== otherConditionInfo.severity ||
+ConditionInfo.prototype.isDifferentFrom = function(otherConditionInfo) {
+    return (
+        this.severity !== otherConditionInfo.severity ||
         this.quality !== otherConditionInfo.quality ||
-        this.message !== otherConditionInfo.message;
-
+        this.message !== otherConditionInfo.message
+    );
 };
 exports.ConditionInfo = ConditionInfo;
 
@@ -1185,9 +1155,7 @@ UAConditionBase.defaultSeverity = 250;
  * @param conditionInfo {ConditionInfo}
  *
  */
-UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
-
-
+UAConditionBase.prototype.raiseNewCondition = function(conditionInfo) {
     var self = this;
     if (!self.getEnabledState()) {
         throw new Error("UAConditionBase#raiseNewCondition Condition is not enabled");
@@ -1195,11 +1163,12 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
 
     conditionInfo = conditionInfo || {};
 
-    conditionInfo.severity = conditionInfo.hasOwnProperty("severity") ? conditionInfo.severity : UAConditionBase.defaultSeverity;
+    conditionInfo.severity = conditionInfo.hasOwnProperty("severity")
+        ? conditionInfo.severity
+        : UAConditionBase.defaultSeverity;
 
     //only valid for ConditionObjects
     // todo check that object is of type ConditionType
-
 
     var addressSpace = self.addressSpace;
 
@@ -1215,10 +1184,12 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
     // set the received Time
     branch.setTime(now);
     branch.setReceiveTime(now);
-    branch.setLocalTime(new TimeZone({
-        offset: 0,
-        daylightSavingInOffset: false
-    }));
+    branch.setLocalTime(
+        new TimeZone({
+            offset: 0,
+            daylightSavingInOffset: false
+        })
+    );
 
     if (conditionInfo.hasOwnProperty("message") && conditionInfo.message) {
         branch.setMessage(conditionInfo.message);
@@ -1242,7 +1213,7 @@ UAConditionBase.prototype.raiseNewCondition = function (conditionInfo) {
     self.raiseConditionEvent(branch, true);
 };
 
-UAConditionBase.prototype.raiseNewBranchState = function (branch) {
+UAConditionBase.prototype.raiseNewBranchState = function(branch) {
     var self = this;
     self.raiseConditionEvent(branch, true);
 
@@ -1254,7 +1225,6 @@ UAConditionBase.prototype.raiseNewBranchState = function (branch) {
 };
 
 function sameBuffer(b1, b2) {
-
     if (!b1 && !b2) {
         return true;
     }
@@ -1282,12 +1252,12 @@ function sameBuffer(b1, b2) {
     }
     return true;
 }
-UAConditionBase.prototype._findBranchForEventId = function (eventId) {
+UAConditionBase.prototype._findBranchForEventId = function(eventId) {
     var conditionNode = this;
     if (sameBuffer(conditionNode.eventId.readValue().value.value, eventId)) {
         return conditionNode.currentBranch();
     }
-    var e = _.filter(conditionNode._branches, function (branch, key) {
+    var e = _.filter(conditionNode._branches, function(branch, key) {
         return sameBuffer(branch.getEventId(), eventId);
     });
     if (e.length === 1) {
@@ -1297,9 +1267,7 @@ UAConditionBase.prototype._findBranchForEventId = function (eventId) {
     return null; // not found
 };
 
-
 exports.UAConditionBase = UAConditionBase;
-
 
 /**
  * @method _raiseAuditConditionCommentEvent
@@ -1308,8 +1276,7 @@ exports.UAConditionBase = UAConditionBase;
  * @param comment    {LocalizedText}
  * @private
  */
-UAConditionBase.prototype._raiseAuditConditionCommentEvent = function (sourceName, eventId, comment) {
-
+UAConditionBase.prototype._raiseAuditConditionCommentEvent = function(sourceName, eventId, comment) {
     assert(eventId === null || eventId instanceof Buffer);
     assert(comment instanceof LocalizedText);
     var server = this.addressSpace.rootFolder.objects.server;
@@ -1368,12 +1335,11 @@ UAConditionBase.prototype._raiseAuditConditionCommentEvent = function (sourceNam
     //xx }
 };
 
-
 /**
  * @method currentBranch
  * @return {ConditionSnapshot}
  */
-UAConditionBase.prototype.currentBranch = function () {
+UAConditionBase.prototype.currentBranch = function() {
     return this._branch0;
 };
 
@@ -1396,8 +1362,7 @@ UAConditionBase.prototype.currentBranch = function () {
  *
  * @return {void}
  */
-UAConditionBase.with_condition_method = function (inputArguments, context, callback, inner_func) {
-
+UAConditionBase.with_condition_method = function(inputArguments, context, callback, inner_func) {
     var conditionNode = context.object;
 
     //xx console.log(inputArguments.map(function(a){return a.toString()}));
@@ -1445,11 +1410,9 @@ UAConditionBase.with_condition_method = function (inputArguments, context, callb
     callback(null, {
         statusCode: statusCode
     });
-
 };
 
-UAConditionBase.prototype._resend_conditionEvents = function () {
-
+UAConditionBase.prototype._resend_conditionEvents = function() {
     // for the time being , only current branch
     var self = this;
     var currentBranch = self.currentBranch();
@@ -1461,8 +1424,7 @@ UAConditionBase.prototype._resend_conditionEvents = function () {
     return 0;
 };
 
-BaseNode.prototype._conditionRefresh = function (_cache) {
-
+BaseNode.prototype._conditionRefresh = function(_cache) {
     // visit all notifiers recursively
     _cache = _cache || {};
     var self = this;
@@ -1492,9 +1454,7 @@ BaseNode.prototype._conditionRefresh = function (_cache) {
     }
 };
 
-
 function _perform_condition_refresh(addressSpace, inputArguments, context) {
-
     // --- possible StatusCodes:
     //
     // Bad_SubscriptionIdInvalid  See Part 4 for the description of this result code
@@ -1534,7 +1494,6 @@ function _perform_condition_refresh(addressSpace, inputArguments, context) {
     return StatusCodes.Good;
 }
 
-
 function _add_comment_method(inputArguments, context, callback) {
     //
     // The AddComment Method is used to apply a comment to a specific state of a Condition
@@ -1550,8 +1509,12 @@ function _add_comment_method(inputArguments, context, callback) {
     //
     // AlwaysGeneratesEvent  AuditConditionCommentEventType
     //
-    UAConditionBase.with_condition_method(inputArguments, context, callback, function (eventId, comment, branch, conditionNode) {
-
+    UAConditionBase.with_condition_method(inputArguments, context, callback, function(
+        eventId,
+        comment,
+        branch,
+        conditionNode
+    ) {
         assert(inputArguments instanceof Array);
         assert(eventId instanceof Buffer || eventId === null);
         assert(branch instanceof ConditionSnapshot);
@@ -1564,7 +1527,6 @@ function _add_comment_method(inputArguments, context, callback) {
         // raise new event
         conditionNode.raiseConditionEvent(branch, true);
 
-
         /**
          * @event addComment
          * @param  eventId   {Buffer|null}
@@ -1574,11 +1536,9 @@ function _add_comment_method(inputArguments, context, callback) {
          */
         conditionNode.emit("addComment", eventId, comment, branch);
 
-
         return StatusCodes.Good;
     });
 }
-
 
 function _enable_method(inputArguments, context, callback) {
     assert(inputArguments.length === 0);
@@ -1594,11 +1554,9 @@ function _enable_method(inputArguments, context, callback) {
     return callback(null, {
         statusCode: statusCode
     });
-
 }
 
 function _disable_method(inputArguments, context, callback) {
-
     assert(inputArguments.length === 0);
 
     var conditionNode = context.object;
@@ -1615,7 +1573,6 @@ function _disable_method(inputArguments, context, callback) {
     });
 }
 
-
 /**
  * verify that the subscription id belongs to the session that make the call.
  * @method _check_subscription_id_is_valid
@@ -1629,7 +1586,6 @@ function _check_subscription_id_is_valid(subscriptionId, context) {
 }
 
 function _condition_refresh_method(inputArguments, context, callback) {
-
     // arguments : IntegerId SubscriptionId
     assert(inputArguments.length === 1);
 
@@ -1651,7 +1607,6 @@ function _condition_refresh_method(inputArguments, context, callback) {
 }
 
 function _condition_refresh2_method(inputArguments, context, callback) {
-
     // arguments : IntegerId SubscriptionId
     // arguments : IntegerId MonitoredItemId
     assert(inputArguments.length === 2);
@@ -1672,10 +1627,7 @@ function _condition_refresh2_method(inputArguments, context, callback) {
     });
 }
 
-
 UAConditionBase.install_condition_refresh_handle = function _install_condition_refresh_handle(addressSpace) {
-
-
     //
     // install CondititionRefresh
     //
@@ -1703,7 +1655,6 @@ UAConditionBase.install_condition_refresh_handle = function _install_condition_r
 
     // those methods can be call on the ConditionType or on the ConditionInstance itself...
     conditionType.addComment.bindMethod(_add_comment_method);
-
 };
 
 /**
@@ -1719,7 +1670,6 @@ UAConditionBase.install_condition_refresh_handle = function _install_condition_r
  *
  */
 function _getCompositeKey(node, key) {
-
     var cur = node;
     var elements = key.split(".");
     for (var i = 0; i < elements.length; i++) {
@@ -1731,11 +1681,9 @@ function _getCompositeKey(node, key) {
         }
 
         cur = cur[e];
-
     }
     return cur;
 }
-
 
 /**
  * instantiate a Condition.
@@ -1764,7 +1712,7 @@ function _getCompositeKey(node, key) {
 
  * @return node        {UAConditionBase}
  */
-UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, data) {
+UAConditionBase.instantiate = function(addressSpace, conditionTypeId, options, data) {
     /* eslint max-statements: ["error", 100] */
 
     var conditionType = addressSpace.findEventType(conditionTypeId);
@@ -1804,7 +1752,10 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     Object.setPrototypeOf(conditionNode, UAConditionBase.prototype);
     conditionNode.initialize();
 
-    assert(options.hasOwnProperty("conditionSource"), "must specify a condition source either as null or as a UAObject");
+    assert(
+        options.hasOwnProperty("conditionSource"),
+        "must specify a condition source either as null or as a UAObject"
+    );
     if (!options.conditionOf) {
         options.conditionOf = options.conditionSource;
     }
@@ -1822,7 +1773,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
         });
         assert(conditionNode.conditionOfNode().nodeId === options.conditionOf.nodeId);
     }
-
 
     /**
      * dataType is DataType.NodeId
@@ -1858,7 +1808,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
      */
     _install_condition_variable_type(conditionNode.comment);
 
-
     // install 'Quality' condition variable
     /**
      * dataType is DataType.StatusCode
@@ -1879,7 +1828,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     _install_condition_variable_type(conditionNode.lastSeverity);
     //xx conditionNode.severity.setValueFromSource({dataType: DataType.UInt16,value: 0 });
     //xx conditionNode.lastSeverity.setValueFromSource({dataType: DataType.UInt16,value: 0 });
-
 
     // install  'EnabledState' TwoStateVariable
     /**
@@ -1905,8 +1853,7 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     conditionNode.enabledState.setValue(true);
 
     // set properties to in initial values
-    Object.keys(data).forEach(function (key) {
-
+    Object.keys(data).forEach(function(key) {
         var varNode = _getCompositeKey(conditionNode, key);
         assert(varNode instanceof UAVariable);
 
@@ -1923,7 +1870,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
         var value = new Variant(data[key]);
 
         varNode.setValueFromSource(value);
-
     });
 
     // bind condition methods -
@@ -1966,7 +1912,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
      *
      */
     if (options.conditionSource !== null) {
-
         options.conditionSource = addressSpace._coerceNode(options.conditionSource);
         assert(options.conditionSource instanceof BaseNode);
 
@@ -1989,11 +1934,14 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
 
         var context = SessionContext.defaultContext;
         // set source Node (defined in UABaseEventType)
-        conditionNode.sourceNode.setValueFromSource(conditionSourceNode.readAttribute(context, AttributeIds.NodeId).value);
+        conditionNode.sourceNode.setValueFromSource(
+            conditionSourceNode.readAttribute(context, AttributeIds.NodeId).value
+        );
 
         // set source Name (defined in UABaseEventType)
-        conditionNode.sourceName.setValueFromSource(conditionSourceNode.readAttribute(context, AttributeIds.DisplayName).value);
-
+        conditionNode.sourceName.setValueFromSource(
+            conditionSourceNode.readAttribute(context, AttributeIds.DisplayName).value
+        );
     }
 
     conditionNode.eventType.setValueFromSource({
@@ -2037,7 +1985,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
         }
         conditionClassId = conditionClassNode.nodeId;
         conditionClassName = conditionClassNode.displayName[0];
-
     }
     conditionNode.conditionClassId.setValueFromSource({
         dataType: DataType.NodeId,
@@ -2050,7 +1997,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
         dataType: DataType.LocalizedText,
         value: coerceLocalizedText(conditionClassName)
     });
-
 
     // as per spec:
     /**
@@ -2072,7 +2018,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
         value: conditionName
     });
 
-
     // set SourceNode and SourceName based on HasCondition node
     var sourceNodes = conditionNode.findReferencesAsObject("HasCondition", false);
     if (sourceNodes.length) {
@@ -2088,10 +2033,12 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     branch0.setComment("Initialized");
     branch0.setQuality(StatusCodes.Good);
     branch0.setSeverity(0);
-    branch0.setLocalTime(new TimeZone({
-        offset: 0,
-        daylightSavingInOffset: false
-    }));
+    branch0.setLocalTime(
+        new TimeZone({
+            offset: 0,
+            daylightSavingInOffset: false
+        })
+    );
     branch0.setMessage(" ");
 
     branch0.setReceiveTime(minDate);
@@ -2100,7 +2047,6 @@ UAConditionBase.instantiate = function (addressSpace, conditionTypeId, options, 
     // UAConditionBase
     return conditionNode;
 };
-
 
 /*
  As per spec OPCUA 1.03 part 9:

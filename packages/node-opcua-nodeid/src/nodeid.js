@@ -271,13 +271,13 @@ function coerceNodeId(value, namespace) {
 
     } else if (value instanceof Object) {
 
-        console.log( "xxxx VALUE = ",value);
-
+        // it could be a Enum or a NodeId Like object
         var tmp = value;
         value = tmp.value;
         namespace = namespace || tmp.namespace;
-        identifierType = tmp.identifierTypes;
-        return new NodeId(value, namespace);
+        identifierType = tmp.identifierType || identifierType;
+        return new NodeId(identifierType, value, namespace);
+
     }
     return new NodeId(identifierType, value, namespace);
 }
