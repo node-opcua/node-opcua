@@ -8,7 +8,6 @@ export interface PerformanceData {
     ops: number;
     count: number;
     total_time: number;
-    k;
 }
 
 export interface IRunOptions {
