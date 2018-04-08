@@ -1,14 +1,15 @@
 "use strict";
-var should = require("should");
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
-var AddressSpace = require("../src/address_space").AddressSpace;
-var PseudoSession = require("../src/pseudo_session").PseudoSession;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-var makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
-var makeResultMask = require("node-opcua-data-model").makeResultMask;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const should = require("should");
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const AddressSpace = require("../src/address_space").AddressSpace;
+const PseudoSession = require("../src/pseudo_session").PseudoSession;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
+const makeResultMask = require("node-opcua-data-model").makeResultMask;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("PseudoSession", function() {
     let addressSpace;
 
@@ -19,6 +20,11 @@ describe("PseudoSession", function() {
             session = new PseudoSession(addressSpace);
             done(err);
         });
+    });
+    after(function(done) {
+
+        addressSpace.dispose();
+        done();
     });
 
     it("should browse a single node ", function(done) {

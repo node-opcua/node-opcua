@@ -5,46 +5,46 @@
  */
 
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var sameNodeId =require("node-opcua-nodeid").sameNodeId;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const sameNodeId =require("node-opcua-nodeid").sameNodeId;
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var Dequeue = require("dequeue");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const Dequeue = require("dequeue");
 
-var utils = require("node-opcua-utils");
-var dumpIf = require("node-opcua-debug").dumpIf;
+const utils = require("node-opcua-utils");
+const dumpIf = require("node-opcua-debug").dumpIf;
 
 
 
-var BaseNode = require("./base_node").BaseNode;
-var ReferenceType = require("./referenceType").ReferenceType;
-var UAVariable = require("./ua_variable").UAVariable;
-var UAVariableType = require("./ua_variable_type").UAVariableType;
-var UAObjectType = require("./ua_object_type").UAObjectType;
-var UAObject = require("./ua_object").UAObject;
-var UAMethod = require("./ua_method").UAMethod;
-var UADataType = require("./ua_data_type").UADataType;
-var Reference = require("./reference").Reference;
+const BaseNode = require("./base_node").BaseNode;
+const ReferenceType = require("./referenceType").ReferenceType;
+const UAVariable = require("./ua_variable").UAVariable;
+const UAVariableType = require("./ua_variable_type").UAVariableType;
+const UAObjectType = require("./ua_object_type").UAObjectType;
+const UAObject = require("./ua_object").UAObject;
+const UAMethod = require("./ua_method").UAMethod;
+const UADataType = require("./ua_data_type").UADataType;
+const Reference = require("./reference").Reference;
 
-var BrowseResult = require("node-opcua-service-browse").BrowseResult;
+const BrowseResult = require("node-opcua-service-browse").BrowseResult;
 
-var View = require("./view").View;
+const View = require("./view").View;
 
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-var doDebug = false;
-var cetools = require("./address_space_change_event_tools");
-var _handle_model_change_event = cetools._handle_model_change_event;
-var _handle_delete_node_model_change_event = cetools._handle_delete_node_model_change_event;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const doDebug = false;
+const cetools = require("./address_space_change_event_tools");
+const _handle_model_change_event = cetools._handle_model_change_event;
+const _handle_delete_node_model_change_event = cetools._handle_delete_node_model_change_event;
 
-var DataTypeIds = require("node-opcua-constants").DataTypeIds;
-var VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
+const DataTypeIds = require("node-opcua-constants").DataTypeIds;
+const VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
 
 
 
@@ -73,7 +73,7 @@ function AddressSpace() {
     AddressSpace.registry.register(this);
 }
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 AddressSpace.registry  = new ObjectRegistry();
 
 
@@ -90,7 +90,7 @@ AddressSpace.prototype.getNamespaceUri = function (namespaceIndex) {
 };
 
 AddressSpace.prototype.registerNamespace = function (namespaceUri) {
-    var index = this._namespaceArray.indexOf(namespaceUri);
+    const index = this._namespaceArray.indexOf(namespaceUri);
     if (index !== -1) { return index; }
     this._namespaceArray.push(namespaceUri);
     return this._namespaceArray.length - 1;
@@ -128,7 +128,7 @@ AddressSpace.prototype.findNode = function (nodeId) {
 };
 
 AddressSpace.prototype.findMethod = function (nodeId) {
-    var node = this.findNode(nodeId);
+    const node = this.findNode(nodeId);
     assert(node instanceof UAMethod);
     return node;
 };
@@ -147,7 +147,7 @@ Object.defineProperty(AddressSpace.prototype,"rootFolder", {
 
 function _registerObjectType(self, node) {
 
-    var key = node.browseName.toString();
+    const key = node.browseName.toString();
     assert(!self._objectTypeMap[key], " UAObjectType already declared");
     self._objectTypeMap[key] = node;
 
@@ -156,7 +156,7 @@ function _unregisterObjectType() {}
 
 function _registerVariableType(self, node) {
 
-    var key = node.browseName.toString();
+    const key = node.browseName.toString();
     assert(!self._variableTypeMap[key], " UAVariableType already declared");
     self._variableTypeMap[key] = node;
 
@@ -170,7 +170,7 @@ function _registerReferenceType(self, node) {
         //xx console.log("Warning : node has no inverse Name ", node.nodeId.toString(), node.browseName.toString());
         node.inverseName = {text: node.browseName.name};
     }
-    var key = node.browseName.toString();
+    const key = node.browseName.toString();
 
     assert(node.inverseName.text);
     assert(!self._referenceTypeMap[key], " Node already declared");
@@ -180,7 +180,7 @@ function _registerReferenceType(self, node) {
 }
 
 function _registerDataType(self, node) {
-    var key = node.browseName.toString();
+    const key = node.browseName.toString();
     assert(node.browseName instanceof QualifiedName);
     assert(!self._dataTypeMap[key], " DataType already declared");
     self._dataTypeMap[key] = node;
@@ -193,7 +193,7 @@ AddressSpace.prototype._register = function (node) {
     assert(node.nodeId);
     assert(node.hasOwnProperty("browseName"));
 
-    var indexName = node.nodeId.toString();
+    const indexName = node.nodeId.toString();
     if (this._nodeid_index.hasOwnProperty(indexName)) {
         throw new Error("nodeId " + node.nodeId.displayText() + " already registered " + node.nodeId.toString());
     }
@@ -234,9 +234,9 @@ AddressSpace.prototype._register = function (node) {
  */
 AddressSpace.prototype.deleteNode = function (nodeOrNodeId) {
 
-    var self = this;
-    var node =null;
-    var nodeId;
+    const self = this;
+    let node =null;
+    let nodeId;
     if (nodeOrNodeId instanceof NodeId) {
         nodeId = nodeOrNodeId;
         node = this.findNode(nodeId);
@@ -249,37 +249,37 @@ AddressSpace.prototype.deleteNode = function (nodeOrNodeId) {
         nodeId = node.nodeId;
     }
 
-    var addressSpace = self;
+    const addressSpace = self;
 
     addressSpace.modelChangeTransaction(function() {
 
         // notify parent that node is being removed
-        var hierarchicalReferences = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
+        const hierarchicalReferences = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
         hierarchicalReferences.forEach(function (ref) {
-            var parent = self.findNode(ref.nodeId);
+            const parent = self.findNode(ref.nodeId);
             assert(parent);
             parent._on_child_removed(node);
         });
 
         function deleteNodePointedByReference(ref) {
-            var addressSpace = self;
-            var o = addressSpace.findNode(ref.nodeId);
+            const addressSpace = self;
+            const o = addressSpace.findNode(ref.nodeId);
             addressSpace.deleteNode(o.nodeId);
         }
 
         // recursively delete all nodes below in the hierarchy of nodes
         // TODO : a better idea would be to extract any references of type "HasChild"
-        var components = node.findReferences("HasComponent", true);
-        var properties = node.findReferences("HasProperty", true);
+        const components = node.findReferences("HasComponent", true);
+        const properties = node.findReferences("HasProperty", true);
 
         // TODO: shall we delete nodes pointed by "Organizes" links here ?
-        var subfolders = node.findReferences("Organizes", true);
-        var rf = [].concat(components, properties, subfolders);
+        const subfolders = node.findReferences("Organizes", true);
+        const rf = [].concat(components, properties, subfolders);
 
         rf.forEach(deleteNodePointedByReference);
 
         // delete nodes from global index
-        var indexName = node.nodeId.toString();
+        const indexName = node.nodeId.toString();
         // istanbul ignore next
         if (!addressSpace._nodeid_index.hasOwnProperty(indexName)) {
             throw new Error("deleteNode : nodeId " + nodeId.displayText() + " is not registered " + nodeId.toString());
@@ -318,7 +318,7 @@ AddressSpace.prototype.resolveNodeId = function (nodeId) {
 
     if (typeof nodeId === "string") {
         // check if the string is a known alias
-        var alias = this._aliases[nodeId];
+        const alias = this._aliases[nodeId];
         if (alias !== undefined) {
             return alias;
         }
@@ -326,7 +326,7 @@ AddressSpace.prototype.resolveNodeId = function (nodeId) {
     return resolveNodeId(nodeId);
 };
 
-var _constructors_map = {
+const _constructors_map = {
     "Object":        UAObject,
     "ObjectType":    UAObjectType,
     "ReferenceType": ReferenceType,
@@ -355,7 +355,7 @@ AddressSpace.prototype._createNode = function (options) {
 
     assert(typeof options.browseName === "string" || (options.browseName instanceof QualifiedName));
 
-    var self = this;
+    const self = this;
 
     options.description = coerceLocalizedText(options.description);
 
@@ -365,13 +365,13 @@ AddressSpace.prototype._createNode = function (options) {
     assert(options.nodeId instanceof NodeId);
     assert(options.nodeClass);
 
-    var Constructor = _constructors_map[options.nodeClass.key];
+    const Constructor = _constructors_map[options.nodeClass.key];
     if (!Constructor) {
         throw new Error(" missing constructor for NodeClass " + options.nodeClass.key);
     }
 
     options.addressSpace = this;
-    var node = new Constructor(options);
+    const node = new Constructor(options);
     assert(node.nodeId);
     assert(node.nodeId instanceof NodeId);
     this._register(node);
@@ -387,13 +387,13 @@ AddressSpace.prototype._findInBrowseNameIndex = function(CLASS,index,browseNameO
 
     if (browseNameOrNodeId instanceof NodeId) {
         assert(namespace === undefined);
-        var nodeId = browseNameOrNodeId;
-        var obj = this.findNode(nodeId);
+        const nodeId = browseNameOrNodeId;
+        const obj = this.findNode(nodeId);
         assert(!obj || obj instanceof CLASS);
         return obj;
     }
     assert(!namespace || namespace >=0);
-    var browseName  = browseNameOrNodeId;
+    let browseName  = browseNameOrNodeId;
     if (namespace) {
         browseName = namespace.toString() + ":" + browseName;
     }
@@ -416,7 +416,7 @@ AddressSpace.prototype._findInBrowseNameIndex = function(CLASS,index,browseNameO
  */
 AddressSpace.prototype.findDataType = function (dataType,namespace) {
 
-    var self = this;
+    const self = this;
     // startingNode i=24  :
     // BaseDataType
     // +-> Boolean (i=1) {BooleanDataType (ns=2:9898)
@@ -430,7 +430,7 @@ AddressSpace.prototype.findDataType = function (dataType,namespace) {
     return self._findInBrowseNameIndex(UADataType,this._dataTypeMap,dataType,namespace);
 };
 
-var DataType = require("node-opcua-variant").DataType;
+const DataType = require("node-opcua-variant").DataType;
 
 /**
  * @method findCorrespondingBasicDataType
@@ -448,7 +448,7 @@ var DataType = require("node-opcua-variant").DataType;
  */
 AddressSpace.prototype.findCorrespondingBasicDataType = function(dataTypeNode) {
 
-    var self =this;
+    const self =this;
     assert(dataTypeNode,"expecting a dataTypeNode");
 
     if (typeof dataTypeNode === "string") {
@@ -456,7 +456,7 @@ AddressSpace.prototype.findCorrespondingBasicDataType = function(dataTypeNode) {
     }
 
     if (dataTypeNode instanceof NodeId) {
-        var _orig_dataTypeNode = dataTypeNode;
+        const _orig_dataTypeNode = dataTypeNode;
         dataTypeNode = this.findDataType(dataTypeNode);
         if (!dataTypeNode) {
             throw Error("cannot find dataTypeNode " + _orig_dataTypeNode.toString());
@@ -464,9 +464,9 @@ AddressSpace.prototype.findCorrespondingBasicDataType = function(dataTypeNode) {
     }
     assert(dataTypeNode instanceof UADataType);
 
-    var id =  dataTypeNode.nodeId.value;
+    const id =  dataTypeNode.nodeId.value;
 
-    var enumerationType = self.findDataType("Enumeration");
+    const enumerationType = self.findDataType("Enumeration");
     if (enumerationType.nodeId === dataTypeNode.nodeId) {
         return DataType.Int32;
     }
@@ -564,7 +564,7 @@ AddressSpace.prototype.findReferenceType = function (refType,namespace) {
     //                                 +->(hasSubtype) HasSubtype/HasSupertype
     //                  +->(hasSubtype) Organizes/OrganizedBy
     //                  +->(hasSubtype) HasEventSource/EventSourceOf
-    var node;
+    let node;
 
     if (isNodeIdString(refType)) {
         refType = resolveNodeId(refType);
@@ -578,7 +578,7 @@ AddressSpace.prototype.findReferenceType = function (refType,namespace) {
     } else {
         assert(_.isString(refType));
         if(refType.indexOf(":")>=0) {
-            var a = refType.split(":");
+            const a = refType.split(":");
             namespace = a.length === 2 ? parseInt(a[0]) : namespace;
             refType   = a.length === 2 ? a[1] : refType;
         }
@@ -596,7 +596,7 @@ AddressSpace.prototype.findReferenceType = function (refType,namespace) {
  */
 AddressSpace.prototype.findReferenceTypeFromInverseName = function (inverseName) {
 
-    var node = this._referenceTypeMapInv[inverseName];
+    const node = this._referenceTypeMapInv[inverseName];
     assert(!node || (node.nodeClass === NodeClass.ReferenceType && node.inverseName.text === inverseName));
     return node;
 };
@@ -622,7 +622,7 @@ AddressSpace.prototype.normalizeReferenceType = function (params) {
 
     assert((typeof params.referenceType === "string") || (params.referenceType instanceof NodeId));
 
-    var obj = this.findReferenceType(params.referenceType);
+    const obj = this.findReferenceType(params.referenceType);
 
     if (obj) {
         params.referenceType = obj.browseName.toString();
@@ -632,8 +632,8 @@ AddressSpace.prototype.normalizeReferenceType = function (params) {
 
     params.isForward = utils.isNullOrUndefined(params.isForward) ? true : params.isForward;
 
-    var n1 = this.findReferenceType(params.referenceType);
-    var n2 = this.findReferenceTypeFromInverseName(params.referenceType);
+    const n1 = this.findReferenceType(params.referenceType);
+    const n2 = this.findReferenceTypeFromInverseName(params.referenceType);
 
     if (!n1 && !n2) {
         // unknown type, there is nothing we can do about it yet.
@@ -646,7 +646,7 @@ AddressSpace.prototype.normalizeReferenceType = function (params) {
     } else {
         assert(n2);
         // make sure we preserve integrity of object passed as a argument
-        var new_params = _.clone(params);
+        const new_params = _.clone(params);
         new_params.referenceType = n2.browseName.toString();
         new_params.isForward = !params.isForward;
         return new Reference(new_params);
@@ -662,7 +662,7 @@ AddressSpace.prototype.normalizeReferenceTypes = function(arr) {
 
     function resolveReferenceNodeId(reference) {
 
-        var _nodeId = reference.nodeId;
+        let _nodeId = reference.nodeId;
         assert(_nodeId, "missing 'nodeId' in reference");
         if (_nodeId &&  _nodeId.nodeId) {
             _nodeId = _nodeId.nodeId;
@@ -698,8 +698,8 @@ AddressSpace.prototype.inverseReferenceType = function (referenceType) {
 
     assert(typeof referenceType === "string");
 
-    var n1 = this.findReferenceType(referenceType);
-    var n2 = this.findReferenceTypeFromInverseName(referenceType);
+    const n1 = this.findReferenceType(referenceType);
+    const n2 = this.findReferenceTypeFromInverseName(referenceType);
     if (n1) {
         assert(!n2);
         return n1.inverseName.text;
@@ -713,7 +713,7 @@ AddressSpace.prototype.inverseReferenceType = function (referenceType) {
 //----------------------------------------------------------------------------------------------------------------------
 
 AddressSpace.prototype._build_new_NodeId = function () {
-    var nodeId;
+    let nodeId;
     do {
         nodeId = makeNodeId(this._internal_id_counter, this._private_namespace);
     this._internal_id_counter += 1;
@@ -730,8 +730,8 @@ AddressSpace.prototype._coerce_Type = function (dataType, typeMap, typeMapName, 
         dataType = dataType.nodeId;
     }
     assert(_.isObject(typeMap));
-    var self = this;
-    var nodeId;
+    const self = this;
+    let nodeId;
     if (typeof dataType === "string") {
         // resolve dataType
         nodeId = self._aliases[dataType];
@@ -752,11 +752,11 @@ AddressSpace.prototype._coerce_Type = function (dataType, typeMap, typeMapName, 
     }
     assert(nodeId instanceof NodeId);
 
-    var el = finderMethod.call(this,nodeId);
+    const el = finderMethod.call(this,nodeId);
 
     if (!el) {
         // verify that node Id exists in standard type map typeMap
-        var find = _.filter(typeMap, function (a) {
+        const find = _.filter(typeMap, function (a) {
             return a === nodeId.value;
         });
         /* istanbul ignore next */
@@ -768,7 +768,7 @@ AddressSpace.prototype._coerce_Type = function (dataType, typeMap, typeMapName, 
 };
 
 AddressSpace.prototype._coerce_DataType = function (dataType) {
-    var self = this;
+    const self = this;
     if (dataType instanceof NodeId) {
         //xx assert(self.findDataType(dataType));
         return dataType;
@@ -781,7 +781,7 @@ AddressSpace.prototype._coerce_VariableTypeIds = function (dataType) {
 };
 
 AddressSpace.prototype._coerceTypeDefinition = function (typeDefinition) {
-    var self = this;
+    const self = this;
     if (typeof typeDefinition === "string") {
         // coerce parent folder to an node
         typeDefinition = self.findNode(typeDefinition);
@@ -806,7 +806,7 @@ function isValidModellingRule(ruleName) {
 AddressSpace._process_modelling_rule = function (references, modellingRule) {
     if (modellingRule) {
         assert(isValidModellingRule(modellingRule), "expecting a valid modelling rule");
-        var modellingRuleName = "ModellingRule_" + modellingRule;
+        const modellingRuleName = "ModellingRule_" + modellingRule;
         //assert(self.findNode(modellingRuleName),"Modelling rule must exist");
         references.push({referenceType: "HasModellingRule", nodeId: modellingRuleName});
     }
@@ -821,9 +821,9 @@ AddressSpace._process_modelling_rule = function (references, modellingRule) {
  */
 AddressSpace.prototype._addVariable = function (options) {
 
-    var self = this;
+    const self = this;
 
-    var baseDataVariableTypeId = self.findVariableType("BaseDataVariableType").nodeId;
+    const baseDataVariableTypeId = self.findVariableType("BaseDataVariableType").nodeId;
 
     assert(options.hasOwnProperty("browseName"),"options.browseName must be provided");
     assert(options.hasOwnProperty("dataType"),"options.dataType must be provided");
@@ -837,7 +837,7 @@ AddressSpace.prototype._addVariable = function (options) {
         throw new Error("hasTypeDefinition option is invalid. Do you mean typeDefinition instead ?");
     }
     // ------------------------------------------ TypeDefinition
-    var typeDefinition = options.typeDefinition || baseDataVariableTypeId;
+    let typeDefinition = options.typeDefinition || baseDataVariableTypeId;
     typeDefinition = self._coerce_VariableTypeIds(typeDefinition);
     assert(typeDefinition instanceof NodeId);
 
@@ -854,7 +854,7 @@ AddressSpace.prototype._addVariable = function (options) {
 
 
     options.minimumSamplingInterval = +options.minimumSamplingInterval || 0;
-    var references = options.references || [];
+    let references = options.references || [];
 
     references = [].concat(references,[
         {referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition}
@@ -865,7 +865,7 @@ AddressSpace.prototype._addVariable = function (options) {
 
     options.references = references;
 
-    var variable = self.createNode(options);
+    const variable = self.createNode(options);
     assert(variable instanceof UAVariable);
     return variable;
 };
@@ -887,7 +887,7 @@ AddressSpace.prototype._addVariable = function (options) {
  */
 AddressSpace.prototype.addVariable = function (options) {
 
-    var self = this;
+    const self = this;
     assert(arguments.length === 1 ,
         "Invalid arguments AddressSpace#addVariable now takes only one argument. Please update your code");
 
@@ -906,7 +906,7 @@ AddressSpace.prototype.addVariable = function (options) {
 AddressSpace.prototype._identifyParentInReference = function(references) {
     assert(_.isArray(references));
 
-    var candidates = references.filter(function(ref){
+    const candidates = references.filter(function(ref){
         return  (ref.referenceType === "HasComponent" || ref.referenceType === "HasProperty")  &&
                 ref.isForward === false;
     });
@@ -917,9 +917,9 @@ AddressSpace.prototype._identifyParentInReference = function(references) {
 AddressSpace.nodeIdNameSeparator = "-";
 
 function __combineNodeId(parentNodeId,name) {
-    var nodeId =null;
+    let nodeId =null;
     if (parentNodeId.identifierType === NodeId.NodeIdType.STRING) {
-        var childName = parentNodeId.value + AddressSpace.nodeIdNameSeparator + name;
+        const childName = parentNodeId.value + AddressSpace.nodeIdNameSeparator + name;
         nodeId = new NodeId(NodeId.NodeIdType.STRING, childName, parentNodeId.namespace);
     }
     return nodeId;
@@ -927,11 +927,11 @@ function __combineNodeId(parentNodeId,name) {
 
 AddressSpace.prototype._construct_nodeId = function(options) {
 
-    var self = this;
-    var nodeId = options.nodeId;
+    const self = this;
+    let nodeId = options.nodeId;
     if (!nodeId) {
         // find HasComponent, or has Property reverse
-        var parentRef = self._identifyParentInReference(options.references);
+        const parentRef = self._identifyParentInReference(options.references);
         if (parentRef ) {
             assert(parentRef.nodeId instanceof NodeId);
             nodeId = __combineNodeId(parentRef.nodeId,options.browseName);
@@ -948,9 +948,9 @@ AddressSpace.prototype._construct_nodeId = function(options) {
 
 AddressSpace.prototype._coerceType = function (baseType,topMostBaseType,nodeClass) {
 
-    var self = this;
+    const self = this;
     assert(typeof topMostBaseType === "string");
-    var topMostBaseTypeNode = self.findNode(topMostBaseType);
+    const topMostBaseTypeNode = self.findNode(topMostBaseType);
 
     // istanbul ignore next
     if (!topMostBaseTypeNode) {
@@ -964,7 +964,7 @@ AddressSpace.prototype._coerceType = function (baseType,topMostBaseType,nodeClas
     }
 
     assert(typeof baseType === "string" || baseType instanceof BaseNode);
-    var baseTypeNode;
+    let baseTypeNode;
     if ( baseType instanceof BaseNode) {
         baseTypeNode = baseType;
     } else {
@@ -985,7 +985,7 @@ AddressSpace.prototype._coerceType = function (baseType,topMostBaseType,nodeClas
 
 AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseType,nodeClass) {
 
-    var self = this;
+    const self = this;
 
     assert(typeof topMostBaseType === "string");
     assert(nodeClass === NodeClass.ObjectType || nodeClass === NodeClass.VariableType);
@@ -994,7 +994,7 @@ AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseT
     assert(options.browseName);
     assert(typeof options.browseName === "string");
 
-    var references = [];
+    const references = [];
 
     function process_subtypeOf_options(self,options,references) {
 
@@ -1005,7 +1005,7 @@ AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseT
         }
         assert(!options.typeDefinition, " do you mean subtypeOf ?");
 
-        var subtypeOfNodeId = self._coerceType(options.subtypeOf,topMostBaseType,nodeClass);
+        const subtypeOfNodeId = self._coerceType(options.subtypeOf,topMostBaseType,nodeClass);
 
         assert(subtypeOfNodeId);
         references.push({ referenceType: "HasSubtype", isForward: false,  nodeId: subtypeOfNodeId });
@@ -1013,7 +1013,7 @@ AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseT
     process_subtypeOf_options(self,options,references);
 
 
-    var objectType = this._createNode({
+    const objectType = this._createNode({
         browseName:    options.browseName,
         nodeClass:     nodeClass,
         isAbstract:    !!options.isAbstract,
@@ -1046,7 +1046,7 @@ AddressSpace.prototype._addObjectOrVariableType = function (options,topMostBaseT
  *
  */
 AddressSpace.prototype.addObjectType = function (options) {
-    var self = this;
+    const self = this;
     assert(!options.hasOwnProperty("dataType"),"an objectType should not have a dataType");
     assert(!options.hasOwnProperty("valueRank"),"an objectType should not have a valueRank");
     assert(!options.hasOwnProperty("arrayDimensions"),"an objectType should not have a arrayDimensions");
@@ -1071,7 +1071,7 @@ AddressSpace.prototype.addObjectType = function (options) {
 
 AddressSpace.prototype.addVariableType = function (options) {
 
-    var self = this;
+    const self = this;
     assert(!options.hasOwnProperty("arrayDimension"),"Do you mean ArrayDimensions ?");
 
     // dataType
@@ -1087,7 +1087,7 @@ AddressSpace.prototype.addVariableType = function (options) {
     options.arrayDimensions = options.arrayDimensions || null;
     assert(_.isArray(options.arrayDimensions) || options.arrayDimensions === null);
 
-    var variableType =  self._addObjectOrVariableType(options,"BaseVariableType",NodeClass.VariableType);
+    const variableType =  self._addObjectOrVariableType(options,"BaseVariableType",NodeClass.VariableType);
 
     variableType.dataType = options.dataType;
     variableType.valueRank = options.valueRank;
@@ -1100,18 +1100,18 @@ AddressSpace.prototype.addVariableType = function (options) {
 
 AddressSpace.prototype.addView = function (options) {
 
-    var self = this;
+    const self = this;
     assert(arguments.length === 1, "AddressSpace#addView expecting a single argument");
     assert(options);
     assert(options.hasOwnProperty("browseName"));
     assert(options.hasOwnProperty("organizedBy"));
-    var browseName = options.browseName;
+    const browseName = options.browseName;
     assert(typeof browseName === "string");
 
-    var baseDataVariableTypeId = self.findVariableType("BaseDataVariableType").nodeId;
+    const baseDataVariableTypeId = self.findVariableType("BaseDataVariableType").nodeId;
 
     // ------------------------------------------ TypeDefinition
-    var typeDefinition = options.typeDefinition || baseDataVariableTypeId;
+    const typeDefinition = options.typeDefinition || baseDataVariableTypeId;
     options.references = options.references  || [];
 
     options.references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition});
@@ -1121,7 +1121,7 @@ AddressSpace.prototype.addView = function (options) {
     assert(!options.nodeClass);
     options.nodeClass = NodeClass.View;
 
-    var view = self.createNode(options);
+    const view = self.createNode(options);
     assert(view instanceof View);
     assert(view.nodeId instanceof NodeId);
     assert(view.nodeClass === NodeClass.View);
@@ -1138,8 +1138,8 @@ AddressSpace.prototype.addView = function (options) {
  * @private
  */
 function _isFolder(addressSpace,folder) {
-    var self = addressSpace;
-    var folderType = self.findObjectType("FolderType");
+    const self = addressSpace;
+    const folderType = self.findObjectType("FolderType");
     assert(folder instanceof BaseNode);
     assert(folder.typeDefinitionObj);
     return folder.typeDefinitionObj.isSupertypeOf(folderType);
@@ -1154,7 +1154,7 @@ function _isFolder(addressSpace,folder) {
  */
 AddressSpace.prototype._coerceNode = function (node) {
 
-    var self = this;
+    const self = this;
 
     // coerce to BaseNode object
     if (!(node instanceof BaseNode)) {
@@ -1176,7 +1176,7 @@ AddressSpace.prototype._coerceNode = function (node) {
 
 AddressSpace.prototype._coerceFolder = function (folder) {
 
-    var self = this;
+    const self = this;
     folder = self._coerceNode(folder);
     // istanbul ignore next
     if (folder && !_isFolder(self,folder)) {
@@ -1301,25 +1301,25 @@ AddressSpace.prototype._collectModelChange = function(view,modelChange) {
  */
 AddressSpace.prototype.extractRootViews = function(node) {
 
-    var addressSpace = this;
+    const addressSpace = this;
     assert(node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable);
 
-    var visitedMap ={};
+    const visitedMap ={};
 
-    var q = new Dequeue();
+    const q = new Dequeue();
     q.push(node);
 
 
-    var objectsFolder = addressSpace.rootFolder.objects;
+    const objectsFolder = addressSpace.rootFolder.objects;
     assert(objectsFolder instanceof UAObject);
 
-    var results = [];
+    const results = [];
 
     while(q.length) {
         node = q.shift();
 
-        var references = node.findReferencesEx("HierarchicalReferences",BrowseDirection.Inverse);
-        var parentNodes = references.map(function(r){
+        const references = node.findReferencesEx("HierarchicalReferences",BrowseDirection.Inverse);
+        const parentNodes = references.map(function(r){
             return Reference._resolveReferenceNode(addressSpace,r);
         });
 
@@ -1330,7 +1330,7 @@ AddressSpace.prototype.extractRootViews = function(node) {
             if (parent.nodeClass === NodeClass.View) {
                 results.push(parent);
             } else {
-                var key = parent.nodeId.toString();
+                const key = parent.nodeId.toString();
                 if (visitedMap.hasOwnProperty(key)) {
                     return;
                 }
@@ -1344,7 +1344,7 @@ AddressSpace.prototype.extractRootViews = function(node) {
 
 AddressSpace.prototype.modelChangeTransaction = function(func) {
 
-    var addressSpace = this;
+    const addressSpace = this;
 
     this._modelChangeTransactionCounter = this._modelChangeTransactionCounter || 0;
 
@@ -1368,7 +1368,7 @@ AddressSpace.prototype.modelChangeTransaction = function(func) {
             //xx console.log( "xx dealing with ",this._modelChanges.length);
             // increase version number of participating nodes
 
-            var nodes = _.uniq(this._modelChanges.map(function(c) { return c.affected; }));
+            let nodes = _.uniq(this._modelChanges.map(function(c) { return c.affected; }));
 
             nodes = nodes.map(function(nodeId) { return addressSpace.findNode(nodeId); });
 
@@ -1377,7 +1377,7 @@ AddressSpace.prototype.modelChangeTransaction = function(func) {
 
             if (addressSpace.rootFolder.objects.server) {
 
-                var eventTypeNode = addressSpace.findEventType("GeneralModelChangeEventType");
+                const eventTypeNode = addressSpace.findEventType("GeneralModelChangeEventType");
 
                 if (eventTypeNode) {
                     //xx console.log("xx raising event on server object");
@@ -1411,14 +1411,14 @@ function _handle_node_version(node,options) {
     assert(options);
     if (options.nodeVersion) {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
-        var addressSpace = node.addressSpace;
+        const addressSpace = node.addressSpace;
 
-        var nodeVersion = addressSpace.addVariable({
+        const nodeVersion = addressSpace.addVariable({
             propertyOf: node,
             browseName: "NodeVersion",
             dataType: "String"
         });
-        var initialValue = _.isString(options.nodeVersion) ? options.nodeVersion : "0";
+        const initialValue = _.isString(options.nodeVersion) ? options.nodeVersion : "0";
         //xx console.log(" init value =",initialValue);
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }
@@ -1427,7 +1427,7 @@ function _handle_node_version(node,options) {
 function _increase_version_number(node) {
 
     if (node && node.nodeVersion) {
-        var previousValue = parseInt(node.nodeVersion.readValue().value.value);
+        const previousValue = parseInt(node.nodeVersion.readValue().value.value);
         node.nodeVersion.setValueFromSource({ dataType: "String", value: (previousValue+1).toString() });
         //xx console.log("xxx increasing version number of node ", node.browseName.toString(),previousValue);
     }
@@ -1441,9 +1441,9 @@ function _increase_version_number(node) {
  */
 AddressSpace.prototype.createNode = function (options) {
 
-    var self = this;
+    const self = this;
 
-    var node = null;
+    let node = null;
     self.modelChangeTransaction(function() {
 
         assert(isNonEmptyQualifiedName(options.browseName));
@@ -1455,7 +1455,7 @@ AddressSpace.prototype.createNode = function (options) {
 
         options.references = self.normalizeReferenceTypes(options.references);
 
-        var references = _copy_references(options.references);
+        const references = _copy_references(options.references);
 
         _handle_hierarchy_parent(self, references, options);
 
@@ -1485,14 +1485,14 @@ AddressSpace.prototype.addObject =function(options) {
     assert(!options.nodeClass || options.nodeClass === NodeClass.Object);
     options.nodeClass = NodeClass.Object;
 
-    var typeDefinition = options.typeDefinition || "BaseObjectType";
+    const typeDefinition = options.typeDefinition || "BaseObjectType";
     options.references = options.references ||[];
     options.references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition});
 
     options.eventNotifier = +options.eventNotifier;
     //xx options.isAbstract = false,
 
-    var obj  = this.createNode(options);
+    const obj  = this.createNode(options);
     assert(obj instanceof UAObject);
     assert(obj.nodeClass === NodeClass.Object);
     return obj;
@@ -1511,13 +1511,13 @@ AddressSpace.prototype.addObject =function(options) {
  */
 AddressSpace.prototype.addFolder = function (parentFolder, options) {
 
-    var self = this;
+    const self = this;
     if (typeof options === "string") {
         options = {browseName: options};
     }
 
     assert(!options.typeDefinition, "addFolder does not expect typeDefinition to be defined ");
-    var typeDefinition = self._coerceTypeDefinition("FolderType");
+    const typeDefinition = self._coerceTypeDefinition("FolderType");
 
     parentFolder = self._coerceFolder(parentFolder);
 
@@ -1527,7 +1527,7 @@ AddressSpace.prototype.addFolder = function (parentFolder, options) {
         {referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition},
         {referenceType: "Organizes", isForward: false, nodeId: parentFolder.nodeId}
     ];
-    var node = self.createNode(options);
+    const node = self.createNode(options);
     return node;
 };
 
@@ -1566,20 +1566,20 @@ AddressSpace.prototype.dispose = function() {
  */
 AddressSpace.prototype.addReferenceType = function(options) {
 
-    var addressSpace = this;
+    const addressSpace = this;
     options.nodeClass  = NodeClass.ReferenceType;
     options.references = options.references || [];
 
 
     if (options.subtypeOf) {
         assert(options.subtypeOf);
-        var subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf,"References",NodeClass.ReferenceType);
+        const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf,"References",NodeClass.ReferenceType);
         assert(subtypeOfNodeId);
 
         console.log(subtypeOfNodeId.toString().cyan);
         options.references.push({referenceType: "HasSubtype", isForward: false,  nodeId: subtypeOfNodeId});
     }
-    var node =  addressSpace._createNode(options);
+    const node =  addressSpace._createNode(options);
 
     node.propagate_back_references();
 
@@ -1599,7 +1599,7 @@ AddressSpace.prototype.registerShutdownTask = function (task) {
 AddressSpace.prototype.shutdown = function() {
 
     //xxx console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx DO ADDRESSSPACE SHUTDOWN".bgWhite);
-    var self = this;
+    const self = this;
     if (!self._shutdownTask) {
         return;
     }
@@ -1610,7 +1610,7 @@ AddressSpace.prototype.shutdown = function() {
     self._shutdownTask = [];
 };
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 /**
  *
  * @method browseSingleNode
@@ -1622,7 +1622,7 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
  * @return {BrowseResult}
  */
 AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, session) {
-    var addressSpace = this;
+    const addressSpace = this;
     // create default browseDescription
     browseDescription = browseDescription || {};
     browseDescription.browseDirection = browseDescription.browseDirection || BrowseDirection.Forward;
@@ -1633,13 +1633,13 @@ AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, s
     browseDescription = browseDescription || {};
 
     if (typeof nodeId === "string") {
-        var node = addressSpace.findNode(addressSpace.resolveNodeId(nodeId));
+        const node = addressSpace.findNode(addressSpace.resolveNodeId(nodeId));
         if (node) {
             nodeId = node.nodeId;
         }
     }
 
-    var browseResult = {
+    const browseResult = {
         statusCode: StatusCodes.Good,
         continuationPoint: null,
         references: null
@@ -1654,7 +1654,7 @@ AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, s
         if (browseDescription.referenceTypeId.value === 0) {
             browseDescription.referenceTypeId = null;
         } else {
-            var rf = addressSpace.findNode(browseDescription.referenceTypeId);
+            const rf = addressSpace.findNode(browseDescription.referenceTypeId);
             if (!rf || !(rf instanceof ReferenceType)) {
                 browseResult.statusCode = StatusCodes.BadReferenceTypeIdInvalid;
                 return new BrowseResult(browseResult);
@@ -1662,7 +1662,7 @@ AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, s
         }
     }
 
-    var obj = addressSpace.findNode(nodeId);
+    const obj = addressSpace.findNode(nodeId);
     if (!obj) {
         // Object Not Found
         browseResult.statusCode = StatusCodes.BadNodeIdUnknown;
@@ -1689,7 +1689,7 @@ AddressSpace.prototype.createDataType = function(options) {
     assert(options.hasOwnProperty("isAbstract"));
     assert(!options.hasOwnProperty("nodeClass"));
     assert(options.hasOwnProperty("browseName"),"must provide a browseName");
-    var self = this;
+    const self = this;
     options.nodeClass = NodeClass.DataType;
 
     options.references = options.references ||[];
@@ -1701,7 +1701,7 @@ AddressSpace.prototype.createDataType = function(options) {
         });
     }
 
-    var node = self._createNode(options);
+    const node = self._createNode(options);
 
     return node;
 };

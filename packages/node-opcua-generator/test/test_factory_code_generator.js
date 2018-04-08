@@ -1,21 +1,21 @@
 "use strict";
-var should = require("should");
-var path = require("path");
+const should = require("should");
+const path = require("path");
 
-var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 
 describe("Code Generator", function () {
 
-    var schema_file = path.join(__dirname,"./fixture/fixture_dummy_object_schema.js");
+    const schema_file = path.join(__dirname,"./fixture/fixture_dummy_object_schema.js");
 
     it("should produce the javascript for new complex type using template ", function () {
 
         // code should compile
-        var DummyObject = require(schema_file).DummyObject;
-        var SomeEnumeration = require(schema_file).SomeEnumeration;
+        const DummyObject = require(schema_file).DummyObject;
+        const SomeEnumeration = require(schema_file).SomeEnumeration;
 
-        var dummy = new DummyObject({
+        const dummy = new DummyObject({
             viewVersion: 50,
             name: "Paris",
             ArrayInt: [10, 20, 30],
@@ -26,7 +26,7 @@ describe("Code Generator", function () {
         dummy.ArrayInt.should.eql([10, 20, 30]);
         dummy.typeEnum.should.eql(SomeEnumeration.SQUARE);
 
-        var dummy_reloaded = encode_decode_round_trip_test(dummy);
+        const dummy_reloaded = encode_decode_round_trip_test(dummy);
 
         dummy_reloaded.viewVersion.should.eql(dummy.viewVersion);
         dummy_reloaded.name.should.eql(dummy.name);
@@ -40,17 +40,17 @@ describe("Code Generator", function () {
     });
     it("should handle new type with base class ", function () {
 
-        var FooBarDerived = require(schema_file).FooBarDerived;
-        var FooBar = require(schema_file).FooBar;
+        const FooBarDerived = require(schema_file).FooBarDerived;
+        const FooBar = require(schema_file).FooBar;
 
-        var fb = new FooBarDerived({name: "toto", name2: "titi"});
+        const fb = new FooBarDerived({name: "toto", name2: "titi"});
         fb.name.should.eql("toto");
         fb.name2.should.eql("titi");
 
         fb.should.be.instanceOf(FooBarDerived);
         fb.should.be.instanceOf(FooBar);
 
-        var fb_reloaded = encode_decode_round_trip_test(fb);
+        const fb_reloaded = encode_decode_round_trip_test(fb);
         fb_reloaded.name.should.eql(fb.name);
         fb_reloaded.name2.should.eql(fb.name2);
     });
@@ -59,11 +59,11 @@ describe("Code Generator", function () {
     it("should handle Schema with recursion ", function () {
 
         //xx should(function(){
-        var schema_file2 = path.join(__dirname,"./fixture/fixture_foo_object_with_recursion_schema.js");
-        var FooWithRecursion = require(schema_file2).FooWithRecursion;
+        const schema_file2 = path.join(__dirname,"./fixture/fixture_foo_object_with_recursion_schema.js");
+        const FooWithRecursion = require(schema_file2).FooWithRecursion;
         //xx }).not.throwError();
 
-        var foo = new FooWithRecursion({});
+        let foo = new FooWithRecursion({});
 
         should(foo.inner).be.eql(null);
         // var foo_reloaded = encode_decode_round_trip_test(foo);

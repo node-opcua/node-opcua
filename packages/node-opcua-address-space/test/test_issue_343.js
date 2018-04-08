@@ -1,19 +1,19 @@
 "use strict";
 /* global describe,it,before*/
-var nodesets = require("node-opcua-nodesets");
-var generateAddressSpace = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
-var createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
+const nodesets = require("node-opcua-nodesets");
+const generateAddressSpace = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
+const createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic string nodeid assignment", function () {
 
 
-    var nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard_nodeset_file;
 
 
-    var addressSpace = null;
-    var boilerType = null;
+    let addressSpace = null;
+    let boilerType = null;
     before(function (done) {
         addressSpace = new AddressSpace();
         generateAddressSpace(addressSpace, nodesetFilename, function () {
@@ -32,7 +32,7 @@ describe("Testing automatic string nodeid assignment", function () {
     it("should automatically assign string nodeId in same namespace as parent object", function () {
 
 
-        var boiler = boilerType.instantiate({
+        const boiler = boilerType.instantiate({
             browseName: "Boiler#1",
             nodeId: "ns=36;s=MyBoiler"
         });
@@ -49,11 +49,11 @@ describe("Testing automatic string nodeid assignment", function () {
     it("should be possible to specify a custom separator for construction string nodeid during object instantiation", function () {
 
 
-        var old_nodeIdNameSeparator = AddressSpace.nodeIdNameSeparator;
+        const old_nodeIdNameSeparator = AddressSpace.nodeIdNameSeparator;
 
         AddressSpace.nodeIdNameSeparator = "#";
 
-        var boiler = boilerType.instantiate({
+        const boiler = boilerType.instantiate({
             browseName: "Boiler2",
             nodeId: "ns=36;s=MyBoiler2"
         });

@@ -3,8 +3,8 @@
  * @module opcua.utils
  */
 
-var util = require("util");
-var assert = require("node-opcua-assert");
+const util = require("util");
+const assert = require("node-opcua-assert");
 
 /**
  * set a flag
@@ -35,7 +35,7 @@ exports.check_flag = check_flag;
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-var path = require("path");
+const path = require("path");
 /**
  * @method normalize_require_file
  * @param baseFolder
@@ -46,7 +46,7 @@ var path = require("path");
  *    normalize_require_file("/home/bob/folder1/","/home/bob/folder1/folder2/toto.js").should.eql("./folder2/toto");
  */
 function normalize_require_file(baseFolder, full_path_to_file) {
-    var local_file = path.relative(baseFolder, full_path_to_file).replace(/\\/g, "/");
+    let local_file = path.relative(baseFolder, full_path_to_file).replace(/\\/g, "/");
     // append ./ if necessary
     if (local_file.substr(0, 1) !== ".") {
         local_file = "./" + local_file;

@@ -1,25 +1,25 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
+const should = require("should");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var address_space = require("..");
-var UAObjectType = require("..").UAObjectType;
-var SessionContext = require("..").SessionContext;
-var context = SessionContext.defaultContext;
+const address_space = require("..");
+const UAObjectType = require("..").UAObjectType;
+const SessionContext = require("..").SessionContext;
+const context = SessionContext.defaultContext;
 
-var create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing UAObjectType", function () {
 
-    var addressSpace;
+    let addressSpace;
 
         before(function () {
             addressSpace = new address_space.AddressSpace();
@@ -35,13 +35,13 @@ describe("testing UAObjectType", function () {
 
     it("should read Attribute IsAbstract on UAObjectType ", function () {
 
-        var objType = new UAObjectType({
+        const objType = new UAObjectType({
             browseName: "MyObject",
             addressSpace: addressSpace,
             isAbstract: false
         });
 
-        var value;
+        let value;
         value = objType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
@@ -50,13 +50,13 @@ describe("testing UAObjectType", function () {
     });
     it("should read Attribute IsAbstract on Abstract UAObjectType ", function () {
 
-        var objType = new UAObjectType({
+        const objType = new UAObjectType({
             browseName: "MyObject2",
             addressSpace: addressSpace,
             isAbstract: true
         });
 
-        var value;
+        let value;
         value = objType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
@@ -70,13 +70,13 @@ describe("testing UAObjectType", function () {
     it("UAObjectType#instantiate should be possible to instantiate a ObjectType (nodeid not specified)",function() {
 
 
-        var objType = addressSpace.addObjectType({
+        const objType = addressSpace.addObjectType({
             browseName: "MyObject3",
             subtypeOf: "BaseObjectType",
             isAbstract: false
         }); 
 
-        var obj = objType.instantiate({
+        const obj = objType.instantiate({
             browseName: "Instance3"
         });
 
@@ -88,13 +88,13 @@ describe("testing UAObjectType", function () {
 
     it("UAObjectType#instantiate should be possible to instantiate a ObjectType and specify its nodeId)",function() {
 
-        var objType = addressSpace.addObjectType({
+        const objType = addressSpace.addObjectType({
             browseName: "MyObject4",
             subtypeOf: "BaseObjectType",
             isAbstract: false
         });
 
-        var obj = objType.instantiate({
+        const obj = objType.instantiate({
             browseName: "Instance4",
             nodeId: "ns=3;s=HelloWorld"
         });

@@ -3,42 +3,42 @@
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 Error.stackTraceLimit = Infinity;
 
-var should = require("should");
-var sinon = require("sinon");
-var path = require("path");
-var fs = require("fs");
-var _ = require("underscore");
+const should = require("should");
+const sinon = require("sinon");
+const path = require("path");
+const fs = require("fs");
+const _ = require("underscore");
 
-var crypto = require("crypto");
+const crypto = require("crypto");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
 
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var certificate_store = path.join(__dirname, "../../certificates");
+const certificate_store = path.join(__dirname, "../../certificates");
 fs.existsSync(certificate_store).should.eql(true, "expecting certificate store");
 
-var port = 2225;
+const port = 2225;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-
-
-var start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-var g_defaultSecureTokenLifetime = 30 * 1000; // ms
-var g_tokenRenewalInterval = 50; // ms => renew token as fast as possible
-var g_numberOfTokenRenewal = 3;
+const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
+const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
 
-var server, temperatureVariableId, endpointUrl, serverCertificate;
 
-var no_reconnect_connectivity_strategy = {
+const g_defaultSecureTokenLifetime = 30 * 1000; // ms
+const g_tokenRenewalInterval = 50; // ms => renew token as fast as possible
+const g_numberOfTokenRenewal = 3;
+
+let server, temperatureVariableId, endpointUrl, serverCertificate;
+
+const no_reconnect_connectivity_strategy = {
     maxRetry: 0, // NO RETRY !!!
     initialDelay: 100,
     maxDelay: 200,
@@ -56,7 +56,7 @@ function start_inner_server_local(options, callback) {
         if (err) {
             return callback(err);
         }
-        var data = {};
+        const data = {};
         data.endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         data.serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
         data.temperatureVariableId = server.temperatureVariableId;
@@ -68,7 +68,7 @@ function start_inner_server_local(options, callback) {
 function stop_inner_server_local(data, callback) {
     try {
         if (data) {
-            var server = data.server;
+            const server = data.server;
 
             // it is possible that server still have running session in this series of test, as we are testing
             // faulty client that do not renew token properly, causing server to abruptly drop the connection that
@@ -109,9 +109,9 @@ function start_server1(options, callback) {
  * @return {Number}
  */
 function get_server_channel_security_token_change_count(server) {
-    var sessions = _.values(server.engine._sessions);
+    const sessions = _.values(server.engine._sessions);
     sessions.length.should.eql(1, "Expecting only one session on server at address " + server);
-    var count = server.endpoints.reduce(function (accumulated, endpoint) {
+    const count = server.endpoints.reduce(function (accumulated, endpoint) {
         return accumulated + endpoint.securityTokenCount;
     }, 0);
 
@@ -140,35 +140,35 @@ function start_server(options, callback) {
     });
 }
 
-var start_server_with_1024bits_certificate = function (callback) {
-    var options = {};
+const start_server_with_1024bits_certificate = function (callback) {
+    const options = {};
     start_server(options, callback);
 };
 
-var start_server_with_2048bits_certificate = function (callback) {
+const start_server_with_2048bits_certificate = function (callback) {
 
-    var server_certificate256_pem_file = path.join(certificate_store, "server_cert_2048.pem");
-    var server_certificate256_privatekey_file = path.join(certificate_store, "server_key_2048.pem");
+    const server_certificate256_pem_file = path.join(certificate_store, "server_cert_2048.pem");
+    const server_certificate256_privatekey_file = path.join(certificate_store, "server_key_2048.pem");
 
     fs.existsSync(server_certificate256_pem_file).should.eql(true);
     fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
 
-    var options = {
+    const options = {
         certificateFile: server_certificate256_pem_file,
         privateKeyFile: server_certificate256_privatekey_file
     };
     start_server(options, callback);
 };
 
-var start_server_with_4096bits_certificate = function (callback) {
+const start_server_with_4096bits_certificate = function (callback) {
 
-    var server_certificate256_pem_file = path.join(certificate_store, "server_cert_4096.pem");
-    var server_certificate256_privatekey_file = path.join(certificate_store, "server_key_4096.pem");
+    const server_certificate256_pem_file = path.join(certificate_store, "server_cert_4096.pem");
+    const server_certificate256_privatekey_file = path.join(certificate_store, "server_key_4096.pem");
 
     fs.existsSync(server_certificate256_pem_file).should.eql(true);
     fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
 
-    var options = {
+    const options = {
         certificateFile: server_certificate256_pem_file,
         privateKeyFile: server_certificate256_privatekey_file
     };
@@ -184,16 +184,16 @@ function stop_server(data, callback) {
 //xx start_server=start_server1;
 //xx stop_server=stop_server1;
 
-var ClientSession = opcua.ClientSession;
-var ClientSubscription = opcua.ClientSubscription;
+const ClientSession = opcua.ClientSession;
+const ClientSubscription = opcua.ClientSubscription;
 
 
 function keep_monitoring_some_variable(client, session, security_token_renewed_limit, done) {
 
     should(session).be.instanceof(ClientSession);
 
-    var security_token_renewed_counter = 0;
-    var nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
+    let security_token_renewed_counter = 0;
+    const nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
 
 
     client.on("security_token_renewed", function () {
@@ -207,7 +207,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
                 subscription.terminate(function () {
                     debugLog("        subscription terminated ");
                     if (!the_error) {
-                        var nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
+                        const nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
                         nbTokenId.should.be.aboveOrEqual(security_token_renewed_limit-1);
                     }
                     done(the_error);
@@ -263,8 +263,8 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
-    var token_change = 0;
-    var client = new OPCUAClient(options);
+    let token_change = 0;
+    const client = new OPCUAClient(options);
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -277,8 +277,8 @@ function common_test(securityPolicy, securityMode, options, done) {
     client.on("lifetime_75", function (token) {
         // check if we are late!
         //
-        var expectedExpiryTick = token.createdAt.getTime() + token.revisedLifeTime;
-        var delay = (expectedExpiryTick - Date.now());
+        const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifeTime;
+        const delay = (expectedExpiryTick - Date.now());
         if (delay <= 100) {
             console.log("WARNING : token renewal is happening too late !!".red, delay);
         }
@@ -305,7 +305,7 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
         connectionStrategy: no_reconnect_connectivity_strategy
 
     });
-    var client = new OPCUAClient(options);
+    const client = new OPCUAClient(options);
 
     client.on("backoff", function (number, delay) {
         debugLog(" backoff attempt#", number, " retry in ", delay);
@@ -332,13 +332,13 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 
     opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting a valid MessageSecurityMode");
 
-    var fail_fast_connectivity_strategy = {
+    const fail_fast_connectivity_strategy = {
         maxRetry: 1,
         initialDelay: 100,
         maxDelay: 200,
         randomisationFactor: 0
     };
-    var options = {
+    const options = {
         securityMode: opcua.MessageSecurityMode.get(securityMode),
         securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
         serverCertificate: serverCertificate,
@@ -348,11 +348,11 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         connectionStrategy: fail_fast_connectivity_strategy
     };
 
-    var token_change = 0;
-    var client = new OPCUAClient(options);
+    let token_change = 0;
+    const client = new OPCUAClient(options);
 
-    var after_reconnection_spy = new sinon.spy();
-    var start_reconnection_spy = new sinon.spy();
+    const after_reconnection_spy = new sinon.spy();
+    const start_reconnection_spy = new sinon.spy();
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -437,20 +437,20 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
     prefix = prefix || "";
 
     function build_options(keySize) {
-        var client_certificate_pem_file = path.join(certificate_store, "client_cert_" + keySize + ".pem");
-        var client_certificate_privatekey_file = path.join(certificate_store, "client_key_" + keySize + ".pem");
+        const client_certificate_pem_file = path.join(certificate_store, "client_cert_" + keySize + ".pem");
+        const client_certificate_privatekey_file = path.join(certificate_store, "client_key_" + keySize + ".pem");
         fs.existsSync(client_certificate_pem_file).should.eql(true, client_certificate_pem_file + " must exist");
         fs.existsSync(client_certificate_privatekey_file).should.eql(true, client_certificate_privatekey_file + " must exist");
-        var options = {
+        const options = {
             certificateFile: client_certificate_pem_file,
             privateKeyFile: client_certificate_privatekey_file
         };
         return options;
     }
 
-    var options_2048 = build_options(2048);
-    var options_3072 = build_options(3072);
-    var options_4096 = build_options(4096);
+    const options_2048 = build_options(2048);
+    const options_3072 = build_options(3072);
+    const options_4096 = build_options(4096);
 
     perform_collection_of_test_with_client_configuration(prefix + "(3072 bits certificate on client)", options_3072);
     perform_collection_of_test_with_client_configuration(prefix + "(4096 bits certificate on client)", options_4096);
@@ -460,13 +460,13 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 }
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("ZZA- testing Secure Client-Server communication", function () {
 
     this.timeout(Math.max(this._timeout, 20001));
 
-    var serverHandle, client;
+    let serverHandle, client;
     before(function (done) {
         start_server(function (err, handle) {
             serverHandle = handle;
@@ -484,7 +484,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         should.exist(serverCertificate);
         server.currentChannelCount.should.equal(0);
-        var options = {
+        const options = {
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
@@ -503,7 +503,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         should.exist(serverCertificate);
 
-        var options = {
+        const options = {
 
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_1024.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_1024.pem"),
@@ -525,7 +525,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         should.exist(serverCertificate);
 
-        var options = {
+        const options = {
 
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
@@ -547,7 +547,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         should.exist(serverCertificate);
 
-        var options = {
+        const options = {
 
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
@@ -570,7 +570,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         should.exist(serverCertificate);
 
-        var options = {
+        const options = {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
@@ -583,7 +583,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         };
         client = new OPCUAClient(options);
 
-        var old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
+        const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
         ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
 
             // let's alter the client Nonce,
@@ -607,7 +607,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
     it("QQQ5 a token shall be updated on a regular basis", function (done) {
 
-        var options = {
+        const options = {
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
@@ -616,7 +616,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 
-        var token_change = 0;
+        let token_change = 0;
         client = new OPCUAClient(options);
 
         client.on("lifetime_75", function (token) {
@@ -644,9 +644,9 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
     this.timeout(Math.max(this._timeout, 20002));
 
-    var serverHandle;
-    var old_method;
-    var timerId = null;
+    let serverHandle;
+    let old_method;
+    let timerId = null;
     before(function (done) {
 
         ClientSecureChannelLayer.prototype._renew_security_token.should.be.instanceOf(Function);
@@ -658,7 +658,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             if (timerId) {
                 return;
             }
-            var self = this;
+            const self = this;
 
             // delay renewal of security token by a long time (exceeding secureTokenLifeTime)
             timerId = setTimeout(function () {
@@ -688,7 +688,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
     it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", function (done) {
 
-        var options = {
+        const options = {
             keepSessionAlive: true,
             securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
@@ -698,8 +698,8 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 
-        var token_change = 0;
-        var client = new OPCUAClient(options);
+        let token_change = 0;
+        const client = new OPCUAClient(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             client.once("close", function (err) {
                 token_change.should.be.eql(0);
@@ -735,7 +735,7 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
 
     this.timeout(Math.max(this._timeout, 20003));
 
-    var serverHandle;
+    let serverHandle;
 
     before(function (done) {
         start_server_with_1024bits_certificate(function (err, handle) {
@@ -753,8 +753,8 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
-        var securityMode = "SIGN";
-        var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        const securityMode = "SIGN";
+        const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
 
     });
@@ -764,7 +764,7 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
     this.timeout(Math.max(this._timeout, 20004));
 
-    var serverHandle;
+    let serverHandle;
 
     before(function (done) {
         start_server_with_2048bits_certificate(function (err, handle) {
@@ -783,8 +783,8 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
-        var securityMode = "SIGN";
-        var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        const securityMode = "SIGN";
+        const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
 
     });
@@ -794,7 +794,7 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
 
     this.timeout(Math.max(this._timeout, 20004));
 
-    var serverHandle;
+    let serverHandle;
 
     before(function (done) {
         start_server_with_4096bits_certificate(function (err, handle) {
@@ -811,8 +811,8 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
     perform_collection_of_test_with_various_client_configuration(" (4096 bits certificate on server)");
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
-        var securityMode = "SIGN";
-        var securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        const securityMode = "SIGN";
+        const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
     });
 });
@@ -821,7 +821,7 @@ describe("ZZE- testing with various client certificates", function () {
 
     this.timeout(Math.max(this._timeout, 20005));
 
-    var serverHandle;
+    let serverHandle;
 
     before(function (done) {
         start_server_with_1024bits_certificate(function (err, handle) {
@@ -835,16 +835,16 @@ describe("ZZE- testing with various client certificates", function () {
         });
     });
 
-    var client_privatekey_file = path.join(certificate_store, "client_key_1024.pem");
+    const client_privatekey_file = path.join(certificate_store, "client_key_1024.pem");
 
-    var client_certificate_ok = path.join(certificate_store, "client_cert_1024.pem");
-    var client_certificate_out_of_date = path.join(certificate_store, "client_cert_1024_outofdate.pem");
-    var client_certificate_not_active_yet = path.join(certificate_store, "client_cert_1024_not_active_yet.pem");
-    var client_certificate_revoked = path.join(certificate_store, "client_cert_1024_revoked.pem");
+    const client_certificate_ok = path.join(certificate_store, "client_cert_1024.pem");
+    const client_certificate_out_of_date = path.join(certificate_store, "client_cert_1024_outofdate.pem");
+    const client_certificate_not_active_yet = path.join(certificate_store, "client_cert_1024_not_active_yet.pem");
+    const client_certificate_revoked = path.join(certificate_store, "client_cert_1024_revoked.pem");
 
     it("Server should allow a client with a valid certificate to connect", function (done) {
 
-        var options = {
+        const options = {
             certificateFile: client_certificate_ok,
             privateKeyFile: client_privatekey_file
         };
@@ -853,7 +853,7 @@ describe("ZZE- testing with various client certificates", function () {
 
     it("Server should not allow a client with a out of date certificate to connect", function (done) {
 
-        var options = {
+        const options = {
             certificateFile: client_certificate_out_of_date,
             privateKeyFile: client_privatekey_file
         };
@@ -862,7 +862,7 @@ describe("ZZE- testing with various client certificates", function () {
 
     it("Server should not allow a client to connect when the certificate is not active yet", function (done) {
 
-        var options = {
+        const options = {
             certificateFile: client_certificate_not_active_yet,
             privateKeyFile: client_privatekey_file
         };
@@ -871,7 +871,7 @@ describe("ZZE- testing with various client certificates", function () {
 
     xit("Server should not allow a client to connect with a revoked certificate", function (done) {
         // todo : implement a mechanism in server code to check certificate against CRL ( Certificate Revocation List)
-        var options = {
+        const options = {
             certificateFile: client_certificate_revoked,
             privateKeyFile: client_privatekey_file
         };

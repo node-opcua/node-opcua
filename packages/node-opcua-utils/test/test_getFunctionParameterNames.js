@@ -1,4 +1,4 @@
-var getFunctionParameterNames = require("../src/get_function_parameters_name").getFunctionParameterNames;
+const getFunctionParameterNames = require("../src/get_function_parameters_name").getFunctionParameterNames;
 
 describe("testing getFunctionParameterNames",function() {
     it("#getFunctionParameterNames",function() {

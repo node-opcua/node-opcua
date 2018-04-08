@@ -5,16 +5,16 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
 
-var translate_service = require("node-opcua-service-translate-browse-path");
-var BrowsePathResult = translate_service.BrowsePathResult;
-var BrowsePath = translate_service.BrowsePath;
+const translate_service = require("node-opcua-service-translate-browse-path");
+const BrowsePathResult = translate_service.BrowsePathResult;
+const BrowsePath = translate_service.BrowsePath;
 
 exports.install = function (AddressSpace) {
 
@@ -46,11 +46,11 @@ exports.install = function (AddressSpace) {
      */
     AddressSpace.prototype.browsePath = function (browsePath) {
 
-        var self = this;
+        const self = this;
 
         assert(browsePath instanceof translate_service.BrowsePath);
 
-        var startingNode = self.findNode(browsePath.startingNode);
+        const startingNode = self.findNode(browsePath.startingNode);
 
         if (!startingNode) {
             return new BrowsePathResult({statusCode: StatusCodes.BadNodeIdUnknown});
@@ -64,7 +64,7 @@ exports.install = function (AddressSpace) {
         }
 
 
-        var elements_length = browsePath.relativePath.elements.length;
+        const elements_length = browsePath.relativePath.elements.length;
         //-------------------------------------------------------------------------------------------------------
         // verify standard RelativePath construction
         //   from OPCUA 1.03 - PArt 3 - 7.6 RelativePath:
@@ -76,9 +76,9 @@ exports.install = function (AddressSpace) {
         //               BrowseName exist.
         //   Let's detect null targetName which are not in last position and return Bad_BrowseNameInvalid if not
         //
-        var empty_targetName_not_in_lastPos = browsePath.relativePath.elements.reduce(function(prev,e,index) {
-            var is_last = ( (index + 1) === elements_length);
-            var isBad = ( !is_last && ( !e.targetName || e.targetName.isEmpty()));
+        const empty_targetName_not_in_lastPos = browsePath.relativePath.elements.reduce(function(prev,e,index) {
+            const is_last = ( (index + 1) === elements_length);
+            const isBad = ( !is_last && ( !e.targetName || e.targetName.isEmpty()));
             return prev + ( ( !is_last && ( !e.targetName || e.targetName.isEmpty())) ? 1 :0 );
         },0);
         if (empty_targetName_not_in_lastPos) {
@@ -88,23 +88,23 @@ exports.install = function (AddressSpace) {
         // from OPCUA 1.03 - PArt 3 - 5.8.4 TranslateBrowsePathToNodeIds
         // TranslateBrowsePathToNodeIds further restrict RelativePath targetName rules:
         // The last element in the relativePath shall always have a targetName specified.
-        var last_el = browsePath.relativePath.elements[elements_length - 1];
+        const last_el = browsePath.relativePath.elements[elements_length - 1];
         if (!last_el.targetName || !last_el.targetName.name || last_el.targetName.name.length === 0) {
             return new BrowsePathResult({statusCode: StatusCodes.BadBrowseNameInvalid});
         }
 
-        var res = [];
+        const res = [];
 
         function explore_element(curNodeObject, elements, index) {
 
-            var element = elements[index];
+            const element = elements[index];
             assert(element instanceof translate_service.RelativePathElement);
 
-            var is_last = ( (index + 1) === elements.length);
+            const is_last = ( (index + 1) === elements.length);
 
-            var nodeIds = curNodeObject.browseNodeByTargetName(element,is_last);
+            const nodeIds = curNodeObject.browseNodeByTargetName(element,is_last);
 
-            var targets = nodeIds.map(function (nodeId) {
+            const targets = nodeIds.map(function (nodeId) {
                 return {
                     targetId: nodeId,
                     remainingPathIndex: elements.length - index
@@ -114,7 +114,7 @@ exports.install = function (AddressSpace) {
             if (!is_last) {
                 // explorer
                 targets.forEach(function (target) {
-                    var node = self.findNode(target.targetId);
+                    const node = self.findNode(target.targetId);
                     explore_element(node, elements, index + 1);
                 });
             } else {

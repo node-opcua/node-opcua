@@ -3,25 +3,25 @@
  * @module opcua.miscellaneous
  */
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 
-var readMessageHeader = require("./read_message_header").readMessageHeader;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const readMessageHeader = require("./read_message_header").readMessageHeader;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var buffer_utils = require("node-opcua-buffer-utils");
-var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
+const buffer_utils = require("node-opcua-buffer-utils");
+const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
 
-var do_debug = false;
+const do_debug = false;
 
 function verify_message_chunk(message_chunk) {
     assert(message_chunk);
     assert(message_chunk instanceof Buffer);
-    var header = readMessageHeader(new BinaryStream(message_chunk));
+    const header = readMessageHeader(new BinaryStream(message_chunk));
     if (message_chunk.length !== header.length) {
         throw new Error(" chunk length = " + message_chunk.length + " message  length " + header.length);
     }
@@ -63,7 +63,7 @@ exports.verify_message_chunk = verify_message_chunk;
 
 function argsIn(obj, properties) {
 
-    var nbUnwanted = 0;
+    let nbUnwanted = 0;
     /* istanbul ignore next */
     if (do_debug) {
         Object.keys(obj).forEach(function (key) {
@@ -76,7 +76,7 @@ function argsIn(obj, properties) {
     return nbUnwanted === 0;
 }
 
-var ChunkManager_options = [
+const ChunkManager_options = [
     "chunkSize",
     "headerSize",
     "signatureLength",
@@ -181,11 +181,11 @@ ChunkManager.prototype._write_signature = function (chunk) {
         assert(_.isFunction(this.compute_signature));
         assert(this.signatureLength !== 0);
 
-        var signature_start = this.dataEnd;
-        var section_to_sign = chunk.slice(0, signature_start);
+        const signature_start = this.dataEnd;
+        const section_to_sign = chunk.slice(0, signature_start);
 
 
-        var signature = this.compute_signature(section_to_sign);
+        const signature = this.compute_signature(section_to_sign);
         assert(signature.length === this.signatureLength);
 
         signature.copy(chunk, signature_start);
@@ -202,15 +202,15 @@ ChunkManager.prototype._encrypt = function (chunk) {
 
     if (this.plainBlockSize > 0) {
 
-        var startEncryptionPos = this.headerSize;
-        var endEncryptionPos = this.dataEnd + this.signatureLength;
+        const startEncryptionPos = this.headerSize;
+        const endEncryptionPos = this.dataEnd + this.signatureLength;
 
-        var area_to_encrypt = chunk.slice(startEncryptionPos, endEncryptionPos);
+        const area_to_encrypt = chunk.slice(startEncryptionPos, endEncryptionPos);
 
         assert(area_to_encrypt.length % this.plainBlockSize === 0); // padding should have been applied
-        var nbBlock = area_to_encrypt.length / this.plainBlockSize;
+        const nbBlock = area_to_encrypt.length / this.plainBlockSize;
 
-        var encrypted_buf = this.encrypt_buffer(area_to_encrypt);
+        const encrypted_buf = this.encrypt_buffer(area_to_encrypt);
         assert(encrypted_buf.length % this.cipherBlockSize === 0);
         assert(encrypted_buf.length === nbBlock * this.cipherBlockSize);
 
@@ -223,7 +223,7 @@ ChunkManager.prototype._push_pending_chunk = function (isLast) {
 
     if (this.pending_chunk) {
 
-        var expected_length = this.pending_chunk.length;
+        const expected_length = this.pending_chunk.length;
 
         if (this.headerSize > 0) {
             // Release 1.02  39  OPC Unified Architecture, Part 6:
@@ -261,8 +261,8 @@ ChunkManager.prototype.write = function (buffer, length) {
     assert(buffer instanceof Buffer || (buffer === null));
     assert(length > 0);
 
-    var l = length;
-    var input_cursor = 0;
+    let l = length;
+    let input_cursor = 0;
 
     while (l > 0) {
         assert(length - input_cursor !== 0);
@@ -272,9 +272,9 @@ ChunkManager.prototype.write = function (buffer, length) {
         }
 
         // space left in current chunk
-        var space_left = this.maxBodySize - this.cursor;
+        const space_left = this.maxBodySize - this.cursor;
 
-        var nb_to_write = Math.min(length - input_cursor, space_left);
+        const nb_to_write = Math.min(length - input_cursor, space_left);
 
         this.chunk  = this.chunk || createFastUninitializedBuffer(this.chunkSize);
 
@@ -296,8 +296,8 @@ ChunkManager.prototype.write = function (buffer, length) {
 
 ChunkManager.prototype._write_padding_bytes = function(nbPaddingByteTotal) {
 
-    var nbPaddingByte = nbPaddingByteTotal % 256;
-    var extraNbPaddingByte = Math.floor( nbPaddingByteTotal / 256);
+    const nbPaddingByte = nbPaddingByteTotal % 256;
+    const extraNbPaddingByte = Math.floor( nbPaddingByteTotal / 256);
 
     assert(extraNbPaddingByte === 0 || this.plainBlockSize>256 ,"extraNbPaddingByte only requested when key size > 2048" );
 
@@ -305,7 +305,7 @@ ChunkManager.prototype._write_padding_bytes = function(nbPaddingByteTotal) {
     this.chunk.writeUInt8(nbPaddingByte, this.cursor + this.dataOffset);
     this.cursor += 1;
 
-    for (var i = 0; i < nbPaddingByteTotal; i++) {
+    for (let i = 0; i < nbPaddingByteTotal; i++) {
         this.chunk.writeUInt8(nbPaddingByte, this.cursor + this.dataOffset + i);
     }
     this.cursor += nbPaddingByteTotal;
@@ -320,7 +320,7 @@ ChunkManager.prototype._write_padding_bytes = function(nbPaddingByteTotal) {
 
 ChunkManager.prototype._postprocess_current_chunk = function () {
 
-    var extra_encryption_bytes = 0;
+    let extra_encryption_bytes = 0;
     // add padding bytes if needed
     if (this.plainBlockSize > 0) {
         // write padding ( if encryption )
@@ -329,28 +329,28 @@ ChunkManager.prototype._postprocess_current_chunk = function () {
         // +---------------+---------------+-------------+---------+--------------+------------+
         // |SequenceHeader | data          | paddingByte | padding | extraPadding | signature  |
         // +---------------+---------------+-------------+---------+--------------+------------+
-        var curLength = this.sequenceHeaderSize + this.cursor + this.signatureLength;
+        let curLength = this.sequenceHeaderSize + this.cursor + this.signatureLength;
         if (this.plainBlockSize>256) {
             curLength +=2; // account for extraPadding Byte Number;
         } else {
             curLength +=1;
         }
         // let's calculate the required number of padding bytes
-        var n = (curLength % this.plainBlockSize);
-        var nbPaddingByteTotal = (this.plainBlockSize - n) % this.plainBlockSize;
+        const n = (curLength % this.plainBlockSize);
+        const nbPaddingByteTotal = (this.plainBlockSize - n) % this.plainBlockSize;
 
         this._write_padding_bytes(nbPaddingByteTotal);
-        var adjustedLength = this.sequenceHeaderSize + this.cursor + this.signatureLength;
+        const adjustedLength = this.sequenceHeaderSize + this.cursor + this.signatureLength;
 
         assert(adjustedLength % this.plainBlockSize === 0);
-        var nbBlock = adjustedLength / this.plainBlockSize;
+        const nbBlock = adjustedLength / this.plainBlockSize;
         extra_encryption_bytes =  nbBlock * (this.cipherBlockSize - this.plainBlockSize );
     }
 
     this.dataEnd = this.dataOffset + this.cursor;
 
     // calculate the expected length of the chunk, once encrypted if encryption apply
-    var expected_length = this.dataEnd + this.signatureLength + extra_encryption_bytes;
+    const expected_length = this.dataEnd + this.signatureLength + extra_encryption_bytes;
 
     this.pending_chunk = this.chunk.slice(0, expected_length);
     // note :

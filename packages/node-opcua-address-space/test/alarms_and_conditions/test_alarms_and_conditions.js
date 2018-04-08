@@ -1,39 +1,39 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var fs = require("fs");
-var nodesets = require("node-opcua-nodesets");
+const should = require("should");
+const fs = require("fs");
+const nodesets = require("node-opcua-nodesets");
 
-var AddressSpace = require("../..").AddressSpace;
-var generate_address_space = require("../..").generate_address_space;
+const AddressSpace = require("../..").AddressSpace;
+const generate_address_space = require("../..").generate_address_space;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : Conditions ", function () {
 
-    var test = this;
+    const test = this;
 
-    var addressSpace;
+    let addressSpace;
 
     this.timeout(Math.max(this._timeout, 10000));
 
-    var source;
+    let source;
     before(function (done) {
 
         addressSpace = new AddressSpace();
 
-        var xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard_nodeset_file;
 
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
 
-            var FolderTypeId = addressSpace.findNode("FolderType").nodeId;
-            var BaseDataVariableTypeId = addressSpace.findNode("BaseDataVariableType").nodeId;
+            const FolderTypeId = addressSpace.findNode("FolderType").nodeId;
+            const BaseDataVariableTypeId = addressSpace.findNode("BaseDataVariableType").nodeId;
 
             addressSpace.installAlarmsAndConditionsService();
 
-            var green = addressSpace.addObject({
+            const green = addressSpace.addObject({
                 browseName: "Green",
                 organizedBy: addressSpace.rootFolder.objects,
                 notifierOf: addressSpace.rootFolder.objects.server

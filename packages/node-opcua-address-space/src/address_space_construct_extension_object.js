@@ -4,14 +4,14 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
 
-var NodeId = require("node-opcua-nodeid").NodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var UADataType = require("./ua_data_type").UADataType;
-var eoan = require("./extension_object_array_node");
+const UADataType = require("./ua_data_type").UADataType;
+const eoan = require("./extension_object_array_node");
 
 
 exports.install = function (AddressSpace) {
@@ -20,7 +20,7 @@ exports.install = function (AddressSpace) {
     AddressSpace.prototype.getExtensionObjectConstructor = function (dataType) {
         assert(dataType, "expecting a dataType");
         if (dataType instanceof NodeId) {
-            var tmp = this.findNode(dataType);
+            const tmp = this.findNode(dataType);
             if (!tmp) {
                 throw new Error("constructExtensionObject: cannot resolve dataType " + dataType);
             }
@@ -30,7 +30,7 @@ exports.install = function (AddressSpace) {
             throw new Error("constructExtensionObject: dataType has unexpectedtype" + dataType);
         }
         eoan.prepareDataType(dataType);
-        var Constructor = dataType._extensionObjectConstructor;
+        const Constructor = dataType._extensionObjectConstructor;
         return Constructor;
     };
 
@@ -54,7 +54,7 @@ exports.install = function (AddressSpace) {
      */
     AddressSpace.prototype.constructExtensionObject = function(dataType,options){
 
-        var Constructor = this.getExtensionObjectConstructor(dataType);
+        const Constructor = this.getExtensionObjectConstructor(dataType);
         return new Constructor(options);
     };
 };

@@ -1,30 +1,30 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var _ = require("underscore");
+const should = require("should");
+const _ = require("underscore");
 
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var Variant = require("node-opcua-variant").Variant;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const Variant = require("node-opcua-variant").Variant;
 
 
 require("../src/address_space_add_enumeration_type");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("AddressSpace : add event type ", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
-            var eventType = addressSpace.addEventType({
+            const eventType = addressSpace.addEventType({
                 browseName: "MyCustomEvent",
                 //isAbstract:false,
                 subtypeOf: "BaseEventType" // should be implicit
@@ -40,9 +40,9 @@ describe("AddressSpace : add event type ", function () {
 
     it("#generateEventId should generate event id sequentially", function () {
 
-        var id1 = addressSpace.generateEventId();
-        var id2 = addressSpace.generateEventId();
-        var id3 = addressSpace.generateEventId();
+        const id1 = addressSpace.generateEventId();
+        const id2 = addressSpace.generateEventId();
+        const id3 = addressSpace.generateEventId();
         //xx console.log(id1.value.toString("hex"));
         //xx console.log(id2.value.toString("hex"));
         //xx console.log(id3.value.toString("hex"));
@@ -55,21 +55,21 @@ describe("AddressSpace : add event type ", function () {
     });
 
     it("BaseEventType should be abstract ", function () {
-        var baseEventType = addressSpace.findEventType("BaseEventType");
+        const baseEventType = addressSpace.findEventType("BaseEventType");
         baseEventType.nodeId.toString().should.eql("ns=0;i=2041");
         baseEventType.isAbstract.should.eql(true);
     });
 
     it("should find AuditEventType", function () {
-        var auditEventType = addressSpace.findEventType("AuditEventType");
+        const auditEventType = addressSpace.findEventType("AuditEventType");
         auditEventType.nodeId.toString().should.eql("ns=0;i=2052");
         auditEventType.isAbstract.should.eql(true);
     });
 
     it("should verify that AuditEventType is a superType of BaseEventType", function () {
 
-        var baseEventType = addressSpace.findObjectType("BaseEventType");
-        var auditEventType = addressSpace.findObjectType("AuditEventType");
+        const baseEventType = addressSpace.findObjectType("BaseEventType");
+        const auditEventType = addressSpace.findObjectType("AuditEventType");
         auditEventType.isSupertypeOf(baseEventType).should.eql(true);
         baseEventType.isSupertypeOf(auditEventType).should.eql(false);
     });
@@ -78,27 +78,27 @@ describe("AddressSpace : add event type ", function () {
 
         should(addressSpace.findEventType("__EventTypeForTest1")).eql(null);
 
-        var eventType = addressSpace.addEventType({
+        const eventType = addressSpace.addEventType({
             browseName: "__EventTypeForTest1",
             subtypeOf: "BaseEventType" // should be implicit
         });
         eventType.browseName.toString().should.eql("__EventTypeForTest1");
 
-        var reloaded = addressSpace.findEventType("__EventTypeForTest1");
+        const reloaded = addressSpace.findEventType("__EventTypeForTest1");
         should(reloaded).not.eql(null, "cannot findEventType " + "__EventTypeForTest1");
         reloaded.nodeId.should.eql(eventType.nodeId);
 
     });
 
     it("added EventType should be abstract by default", function () {
-        var eventType = addressSpace.findEventType("MyCustomEvent");
+        const eventType = addressSpace.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
         eventType.isAbstract.should.eql(true);
     });
 
     it("should be possible to add a non-abstract event type", function () {
 
-        var eventType = addressSpace.addEventType({
+        const eventType = addressSpace.addEventType({
             browseName: "MyConcreteCustomEvent",
             isAbstract: false
         });
@@ -109,17 +109,17 @@ describe("AddressSpace : add event type ", function () {
 
     it("should select node in a EventType using a SelectClause on BaseEventType", function () {
 
-        var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
-        var checkSelectClause = require("../src/check_event_clause").checkSelectClause;
+        const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
+        const checkSelectClause = require("../src/check_event_clause").checkSelectClause;
 
 
         // browseNodeByTargetName
-        var baseEventType = addressSpace.findEventType("BaseEventType");
+        const baseEventType = addressSpace.findEventType("BaseEventType");
 
-        var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+        const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
         eventFilter.selectClauses.length.should.eql(3);
 
-        var statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[0]);
+        let statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[0]);
         statusCode.should.eql(StatusCodes.Good);
 
         statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[1]);
@@ -131,17 +131,17 @@ describe("AddressSpace : add event type ", function () {
 
     });
     it("should select node in a EventType using a SelectClause  n AuditEventType", function () {
-        var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
-        var checkSelectClause = require("../src/check_event_clause").checkSelectClause;
+        const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
+        const checkSelectClause = require("../src/check_event_clause").checkSelectClause;
 
 
         // browseNodeByTargetName
-        var auditEventType = addressSpace.findEventType("AuditEventType");
+        const auditEventType = addressSpace.findEventType("AuditEventType");
 
-        var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+        const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
         eventFilter.selectClauses.length.should.eql(3);
 
-        var statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[0]);
+        let statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[0]);
         statusCode.should.eql(StatusCodes.Good);
 
         statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[1]);
@@ -155,17 +155,17 @@ describe("AddressSpace : add event type ", function () {
 
     it("should instantiate a condition efficiently ( more than 1000 per second on a decent computer)", function (done) {
 
-        var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
-        var bench = new Benchmarker();
+        const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+        const bench = new Benchmarker();
 
-        var eventType = addressSpace.addEventType({
+        const eventType = addressSpace.addEventType({
             subtypeOf: "ConditionType",
             browseName: "MyConditionType",
             isAbstract: false
         });
 
         bench.add("test", function () {
-            var condition = addressSpace.instantiateCondition(eventType, {
+            const condition = addressSpace.instantiateCondition(eventType, {
                 browseName: "MyCondition",
                 sourceName: {dataType: "String", value: "HelloWorld"},
                 conditionSource: null,
@@ -190,7 +190,7 @@ describe("AddressSpace : add event type ", function () {
 
     it("#constructEventData ", function () {
 
-        var auditEventType = addressSpace.findObjectType("AuditEventType");
+        const auditEventType = addressSpace.findObjectType("AuditEventType");
 
         var data = {
             sourceNode: {dataType: "NodeId", value: resolveNodeId("Server")},
@@ -203,7 +203,7 @@ describe("AddressSpace : add event type ", function () {
 
         var data = addressSpace.constructEventData(auditEventType, data);
 
-        var expected_fields = [
+        const expected_fields = [
             "$eventDataSource",
             "__nodes",
             "actionTimeStamp",
@@ -228,7 +228,7 @@ describe("AddressSpace : add event type ", function () {
 
     xit("#createEventData should add an basic event type", function () {
 
-        var eventType = addressSpace.findEventType("MyCustomEvent");
+        const eventType = addressSpace.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
 
         addressSpace.addVariable({
@@ -238,7 +238,7 @@ describe("AddressSpace : add event type ", function () {
             value: {dataType: DataType.Double, value: 1.0}
         });
 
-        var event = addressSpace.createEventData("MyCustomEvent", {
+        const event = addressSpace.createEventData("MyCustomEvent", {
             sourceName: {dataType: "String", value: "HelloWorld"},
             receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
         });
@@ -279,8 +279,8 @@ describe("AddressSpace : add event type ", function () {
         
             it("it should generate different eventId each time",function() {
                 
-                var eventType1 = addressSpace.generateEventId().value;
-                var eventType2 = addressSpace.generateEventId().value;
+                const eventType1 = addressSpace.generateEventId().value;
+                const eventType2 = addressSpace.generateEventId().value;
 
                 eventType1.toString("hex").should.not.eql(eventType2.toString("hex"));
                 console.log( eventType1.toString("hex"), eventType2.toString("hex"));

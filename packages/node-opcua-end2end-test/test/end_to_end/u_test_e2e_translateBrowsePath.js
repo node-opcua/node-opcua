@@ -1,22 +1,22 @@
 "use strict";
 /*global describe, it, require, beforeEach, afterEach */
 
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var makeBrowsePath = opcua.makeBrowsePath;
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
+const makeBrowsePath = opcua.makeBrowsePath;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 module.exports = function (test) {
 
 
     describe("testing session#translateBrowsePath", function () {
 
-        var server, client, endpointUrl;
+        let server, client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient();
@@ -37,7 +37,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 // find nodeId of Root.Objects.server.status.buildInfo
-                var browsePath = [
+                const browsePath = [
                     makeBrowsePath("RootFolder","/Objects/Server"),
                     makeBrowsePath("RootFolder","/Objects/Server.ServerStatus"),
                     makeBrowsePath("RootFolder","/Objects/Server.ServerStatus.BuildInfo"),
@@ -101,7 +101,7 @@ module.exports = function (test) {
              */
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                var browsePath = new opcua.BrowsePath({
+                const browsePath = new opcua.BrowsePath({
                     startingNode: opcua.resolveNodeId("ObjectsFolder"), ///ec.makeNodeId(opcua.ObjectIds.Server),
                     relativePath: { // RelativePath
                         elements: []

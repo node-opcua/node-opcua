@@ -3,42 +3,42 @@
 /**
  * @module opcua.address_space.AlarmsAndConditions
  */
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 
 
 
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
 
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
-var NodeId = require("node-opcua-nodeid").NodeId;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var AddressSpace = require("../address_space").AddressSpace;
-var UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
+const AddressSpace = require("../address_space").AddressSpace;
+const UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
 
-var conditions =require("./condition");
+const conditions =require("./condition");
 
-var UAConditionBase = conditions.UAConditionBase;
-var ConditionSnapshot = conditions.ConditionSnapshot;
+const UAConditionBase = conditions.UAConditionBase;
+const ConditionSnapshot = conditions.ConditionSnapshot;
 
 function _getValueAsBoolean(node) {
     assert(!node.id);
     return !!node.readValue().value.value;
 }
 
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 
-var _setAckedState = function(self, requestedAckedState,eventId,comment) {
+const _setAckedState = function(self, requestedAckedState,eventId,comment) {
 
     assert(self instanceof ConditionSnapshot);
 
-    var ackedState = self.getAckedState();
+    const ackedState = self.getAckedState();
 
     if (ackedState && requestedAckedState) {
         return StatusCodes.BadConditionBranchAlreadyAcked;
@@ -49,9 +49,9 @@ var _setAckedState = function(self, requestedAckedState,eventId,comment) {
 
 ConditionSnapshot.prototype.getAckedState = function()
 {
-    var self = this;
+    const self = this;
     if (!self.condition.ackedState) {
-        var condition = self.condition;
+        const condition = self.condition;
         throw new Error("Node "+ condition.browseName.toString()+
             " of type "+ condition.typeDefinitionObj.browseName.toString()+
             " has no AckedState");
@@ -61,20 +61,20 @@ ConditionSnapshot.prototype.getAckedState = function()
 
 ConditionSnapshot.prototype.setAckedState = function(ackedState) {
     ackedState = !!ackedState;
-    var self = this;
+    const self = this;
     return _setAckedState(self, ackedState);
 };
 
 ConditionSnapshot.prototype.getConfirmedState = function()
 {
-    var self = this;
+    const self = this;
     assert(self.condition.confirmedState,"Must have a confirmed state");
     return self._get_twoStateVariable("confirmedState");
 };
 
 ConditionSnapshot.prototype.setConfirmedStateIfExists = function(confirmedState) {
     confirmedState = !!confirmedState;
-    var self = this;
+    const self = this;
     if (!self.condition.confirmedState) {
         // no condition node has been defined (this is valid)
         // confirm state cannot be set
@@ -85,7 +85,7 @@ ConditionSnapshot.prototype.setConfirmedStateIfExists = function(confirmedState)
 };
 
 ConditionSnapshot.prototype.setConfirmedState = function(confirmedState) {
-    var self = this;
+    const self = this;
     assert(self.condition.confirmedState,"Must have a confirmed state.  Add ConfirmedState to the optionals");
     return self.setConfirmedStateIfExists(confirmedState);
 };
@@ -102,14 +102,14 @@ util.inherits(UAAcknowledgeableConditionBase,UAConditionBase);
 
 
 UAAcknowledgeableConditionBase.prototype._populate_EventData = function(eventData) {
-    var self = this;
+    const self = this;
     UAConditionBase.prototype._populate_EventData.call(self,eventData);
     self._populate_EventData_with_AcknowledgeableConditionTypeElements(eventData);
 };
 
 UAAcknowledgeableConditionBase.prototype._populate_EventData_with_AcknowledgeableConditionTypeElements = function(eventData) {
-    var self = this;
-    var data = {
+    const self = this;
+    const data = {
         // -----------------------------------------------------------
         // AcknowledgeableConditionType
         // -----------------------------------------------------------
@@ -124,7 +124,7 @@ UAAcknowledgeableConditionBase.prototype._raiseAuditConditionAcknowledgeEvent = 
 
 
     // raise the AuditConditionAcknowledgeEventType
-    var eventData = {
+    const eventData = {
 
         // EventType
         eventId:  { dataType: DataType.ByteString, value: branch.getEventId() },
@@ -146,7 +146,7 @@ UAAcknowledgeableConditionBase.prototype._raiseAuditConditionAcknowledgeEvent = 
 UAAcknowledgeableConditionBase.prototype._raiseAuditConditionConfirmEvent = function(branch) {
 
     // raise the AuditConditionConfirmEventType
-    var eventData = {
+    const eventData = {
 
         // EventType
         eventId:  { dataType: DataType.ByteString, value: branch.getEventId() },
@@ -170,7 +170,7 @@ UAAcknowledgeableConditionBase.prototype._acknowledge_branch = function (eventId
 
     assert(typeof(message) === "string");
 
-    var conditionNode = this;
+    const conditionNode = this;
 
     if(conditionNode.confirmedState) {
         // alarm has a confirmed state !
@@ -181,7 +181,7 @@ UAAcknowledgeableConditionBase.prototype._acknowledge_branch = function (eventId
         branch.setRetain(false);
     }
 
-    var statusCode = _setAckedState(branch,true,eventId,comment);
+    const statusCode = _setAckedState(branch,true,eventId,comment);
     if (statusCode !== StatusCodes.Good) {
         return statusCode;
     }
@@ -233,7 +233,7 @@ UAAcknowledgeableConditionBase.prototype._confirm_branch = function _confirm_bra
     assert(typeof(message) === "string");
     assert(comment instanceof LocalizedText);
 
-    var conditionNode = this;
+    const conditionNode = this;
     //xx var eventId = branch.getEventId();
     assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
     branch.setConfirmedState(true);
@@ -269,8 +269,8 @@ UAAcknowledgeableConditionBase.prototype.autoConfirmBranch = function(branch,com
         return;
     }
     assert(!branch.getConfirmedState(),"already confirmed ?");
-    var conditionNode = this;
-    var eventId = branch.getEventId();
+    const conditionNode = this;
+    const eventId = branch.getEventId();
     console.log("autoConfirmBranch getAckedState ",branch.getAckedState());
     conditionNode._confirm_branch(eventId,comment,branch,"Server/Confirm");
 };
@@ -283,7 +283,7 @@ UAAcknowledgeableConditionBase.prototype.autoConfirmBranch = function(branch,com
 UAAcknowledgeableConditionBase.prototype.acknowledgeAndAutoConfirmBranch = function(branch,comment) {
 
     comment = LocalizedText.coerce(comment);
-    var eventId = branch.getEventId();
+    const eventId = branch.getEventId();
     branch.setRetain(false);
     this._acknowledge_branch(eventId,comment,branch,"Server/Acknowledge");
     this.autoConfirmBranch(branch,comment);
@@ -327,7 +327,7 @@ UAAcknowledgeableConditionBase.instantiate = function (addressSpace,conditionTyp
 
     //xx assert(options.conditionOf,"must provide a conditionOf Node");
 
-    var conditionNode = UAConditionBase.instantiate(addressSpace, conditionTypeId, options, data);
+    const conditionNode = UAConditionBase.instantiate(addressSpace, conditionTypeId, options, data);
     Object.setPrototypeOf(conditionNode,UAAcknowledgeableConditionBase.prototype);
 
     // ----------------------- Install Acknowledge-able Condition stuff
@@ -372,7 +372,7 @@ UAAcknowledgeableConditionBase.instantiate = function (addressSpace,conditionTyp
 };
 
 UAAcknowledgeableConditionBase.install_method_handle_on_type = function _install_condition_refresh_handle(addressSpace) {
-    var acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
+    const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
     assert(acknowledgeableConditionType !== null);
     acknowledgeableConditionType.acknowledge.bindMethod(_acknowledge_method);
     acknowledgeableConditionType.confirm.bindMethod(_confirm_method);

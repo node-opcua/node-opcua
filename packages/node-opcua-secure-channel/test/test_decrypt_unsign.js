@@ -1,11 +1,11 @@
 
-var should = require("should");
-var makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
-var inlineText = require("node-opcua-debug").inlineText;
-var hexDump = require("node-opcua-utils").hexDump;
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const should = require("should");
+const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
+const inlineText = require("node-opcua-debug").inlineText;
+const hexDump = require("node-opcua-utils").hexDump;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var buffer = makebuffer_from_trace(
+let buffer = makebuffer_from_trace(
     function () {
         /*
          00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
@@ -62,7 +62,7 @@ var buffer = makebuffer_from_trace(
          */
     });
 
-var privateKey = inlineText(
+const privateKey = inlineText(
     function () {
         /*
          -----BEGIN RSA PRIVATE KEY-----
@@ -90,14 +90,14 @@ describe("testing message decryption", function () {
 
 
         // extract the client certificate from the unencrypted part
-        var senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
+        const senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
 
         // where the encrypted  part starts
-        var start = buffer.length - ( 128 * 3 );
-        var encrypted_part = buffer.slice(start);
+        const start = buffer.length - ( 128 * 3 );
+        const encrypted_part = buffer.slice(start);
 
         // decrypt the encrypted part
-        var decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
+        const decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
 
         // recompose the buffer
         decrypted_part.copy(buffer, start);
@@ -105,13 +105,13 @@ describe("testing message decryption", function () {
         buffer.length.should.equal(start + 3 * (128 - 11));
 
         // verify signature
-        var publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
-        var options = {
+        const publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
+        const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
             publicKey: publicKey
         };
-        var boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
+        const boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
 
         boolSignatureIsOK.should.eql(true);
     });

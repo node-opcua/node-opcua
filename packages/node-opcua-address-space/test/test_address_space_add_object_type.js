@@ -1,22 +1,22 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
+const should = require("should");
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
-var UAObjectType = require("..").UAObjectType;
-var UAMethod = require("..").UAMethod;
+const UAObjectType = require("..").UAObjectType;
+const UAMethod = require("..").UAMethod;
 
-var DataType = require("node-opcua-variant").DataType;
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const DataType = require("node-opcua-variant").DataType;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var createCameraType = require("./fixture_camera_type").createCameraType;
+const createCameraType = require("./fixture_camera_type").createCameraType;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
@@ -29,20 +29,20 @@ describe("testing add new ObjectType ", function () {
         addressSpace = null;
     });
 
-    var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
+    const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
 
     function createMachineType(addressSpace) {
 
-        var baseObjectType = addressSpace.findObjectType("BaseObjectType");
-        var baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
+        const baseObjectType = addressSpace.findObjectType("BaseObjectType");
+        const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
 
-        var temperatureSensorType = createTemperatureSensorType(addressSpace);
+        const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
         // -------------------------------------------- MachineType
-        var machineTypeNode = addressSpace.addObjectType({browseName: "MachineType"});
+        const machineTypeNode = addressSpace.addObjectType({browseName: "MachineType"});
 
-        var machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
+        const machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
             componentOf: machineTypeNode,
             modellingRule: "Mandatory",
             browseName: "TemperatureSensor"
@@ -51,7 +51,7 @@ describe("testing add new ObjectType ", function () {
         machineTypeTemperatureSensorNode.modellingRule.should.eql("Mandatory");
 
         // MachineType.HeaderSwitch
-        var machineTypeHeaderSwitchNode = addressSpace.addVariable({
+        const machineTypeHeaderSwitchNode = addressSpace.addVariable({
             propertyOf: machineTypeNode,
             modellingRule: "Mandatory",
             browseName: "HeaterSwitch",
@@ -71,43 +71,43 @@ describe("testing add new ObjectType ", function () {
     it("should create a new TemperatureSensorType", function (done) {
 
 
-        var machineTypeNode = createMachineType(addressSpace);
+        const machineTypeNode = createMachineType(addressSpace);
 
         // perform some verification on temperatureSensorType
-        var temperatureSensorType = addressSpace.findObjectType("TemperatureSensorType");
+        const temperatureSensorType = addressSpace.findObjectType("TemperatureSensorType");
         should.exist(temperatureSensorType.temperature);
 
-        var temperatureSensor = temperatureSensorType.instantiate({organizedBy: "RootFolder", browseName: "Test"});
+        const temperatureSensor = temperatureSensorType.instantiate({organizedBy: "RootFolder", browseName: "Test"});
         should.exist(temperatureSensor.temperature);
 
         // perform some verification
-        var baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
+        const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
         temperatureSensor.temperature.typeDefinition.should.eql(baseDataVariableType.nodeId);
 
 
-        var folder = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
+        const folder = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
         assert(folder.nodeId);
 
-        var machine1 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine1"});
+        const machine1 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine1"});
 
         should(machine1.temperatureSensor).be.instanceOf(Object);
         should(machine1.heaterSwitch).be.instanceOf(Object);
 
         //xx console.log(" Machine 1 = ", machine1.toString());
 
-        var machine2 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine2"});
+        const machine2 = machineTypeNode.instantiate({organizedBy: folder, browseName: "Machine2"});
 
 
         function createSpecialTempSensorType(addressSpace) {
 
-            var specialTemperatureSensorTypeNode = addressSpace.addObjectType({
+            const specialTemperatureSensorTypeNode = addressSpace.addObjectType({
                 browseName: "SpecialTemperatureSensorType",
                 subtypeOf: addressSpace.findObjectType("TemperatureSensorType")
             });
             return specialTemperatureSensorTypeNode;
         }
 
-        var specialTemperatureSensorTypeNode = createSpecialTempSensorType(addressSpace);
+        const specialTemperatureSensorTypeNode = createSpecialTempSensorType(addressSpace);
         specialTemperatureSensorTypeNode.should.be.instanceOf(UAObjectType);
 
         //xx console.log(specialTemperatureSensorTypeNode);
@@ -117,7 +117,7 @@ describe("testing add new ObjectType ", function () {
         should(specialTemperatureSensorTypeNode.typeDefinitionObj).eql(null, "ObjectType should not have TypeDefinition");
         specialTemperatureSensorTypeNode.subtypeOfObj.browseName.toString().should.eql("TemperatureSensorType");
 
-        var specialSensor = specialTemperatureSensorTypeNode.instantiate({
+        const specialSensor = specialTemperatureSensorTypeNode.instantiate({
             organizedBy: "RootFolder",
             browseName: "mySpecialSensor"
         });
@@ -134,9 +134,9 @@ describe("testing add new ObjectType ", function () {
 
     it("should create a new CameraType with Method", function (done) {
 
-        var cameraType = createCameraType(addressSpace);
+        const cameraType = createCameraType(addressSpace);
 
-        var camera1 = cameraType.instantiate({
+        const camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",
             browseName: "Camera1"
         });
@@ -144,7 +144,7 @@ describe("testing add new ObjectType ", function () {
         camera1.browseName.toString().should.eql("Camera1");
 
         // camera should have one component
-        var c = camera1.getComponents();
+        const c = camera1.getComponents();
         c.length.should.eql(1, " expecting camera1 to have 1 component => the Method");
 
         c[0].should.be.instanceOf(UAMethod);

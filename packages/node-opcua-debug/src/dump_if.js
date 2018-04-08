@@ -1,6 +1,6 @@
 "use strict";
 
-var util = require("util");
+const util = require("util");
 function dump(obj) {
     console.log("\n", util.inspect(JSON.parse(JSON.stringify(obj)), {colors: true, depth: 10}));
 }

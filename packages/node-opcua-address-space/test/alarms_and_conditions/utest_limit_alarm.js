@@ -1,14 +1,14 @@
 "use strict";
 /* global describe,it,before*/
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const DataType = require("node-opcua-variant").DataType;
 
 const fields = ["eventId", "eventType", "enabledState", "activeState", "ackedState", "lowLowLimit", "comment", "branchId", "quality", "message"];
-var doDebug = false;
+const doDebug = false;
 
 function dumpEvent(addressSpace, eventFields, eventData) {
 
@@ -19,7 +19,7 @@ function dumpEvent(addressSpace, eventFields, eventData) {
     console.log("-----------------------");
     eventFields.map(function (key) {
 
-        var variant = eventData[key];
+        const variant = eventData[key];
         if (!variant || variant.dataType === DataType.Null) {
             return;
         }
@@ -29,7 +29,7 @@ function dumpEvent(addressSpace, eventFields, eventData) {
 
         } else if (variant.dataType === DataType.NodeId) {
 
-            var name = addressSpace.findNode(variant.value);
+            let name = addressSpace.findNode(variant.value);
             name = name ? name.browseName.toString() : variant.value.toString();
 
             console.log(w(name, 20), w(key, 15).yellow,
@@ -43,7 +43,7 @@ function dumpEvent(addressSpace, eventFields, eventData) {
 }
 
 function dumpSpy(spyOnEvent) {
-    for (var i = 0; i < spyOnEvent.getCalls().length; i++) {
+    for (let i = 0; i < spyOnEvent.getCalls().length; i++) {
         console.log("call ", i);
         console.log("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());
         console.log("  eventId   ", spyOnEvent.getCalls()[i].args[0].eventId.toString());
@@ -59,7 +59,7 @@ module.exports = function (test) {
 
     describe("Limit Alarms ", function () {
 
-        var addressSpace, source, engine, variableWithAlarm;
+        let addressSpace, source, engine, variableWithAlarm;
         before(function () {
             addressSpace = test.addressSpace;
             source = test.source;
@@ -73,7 +73,7 @@ module.exports = function (test) {
 
         it("should instantiate a ExclusiveLimitAlarm", function () {
             /* eslint max-statements: ["error", 60] */    
-            var alarm = addressSpace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
+            const alarm = addressSpace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
                 browseName: "MyExclusiveAlarm",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -84,7 +84,7 @@ module.exports = function (test) {
             });
             alarm.constructor.name.should.eql("UAExclusiveLimitAlarm");
 
-            var spyOnEvent = sinon.spy();
+            const spyOnEvent = sinon.spy();
 
             alarm.on("event", spyOnEvent);
 
@@ -113,7 +113,7 @@ module.exports = function (test) {
             spyOnEvent.callCount.should.eql(1);
             spyOnEvent.getCalls()[0].args[0].message.value.text.should.eql("Condition value is -100 and state is LowLow");
             spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.NullNodeId);
-            var call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
+            const call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
 
             // InputNode goes a little bit low - alarm stays active - state changes to low - 1 event raised
             // ----------------------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ module.exports = function (test) {
             // Note: We need to check if in this case we need to create a branch as well
             spyOnEvent.getCalls()[1].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
             spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.NullNodeId);
-            var call1_eventId = spyOnEvent.getCalls()[1].args[0].eventId.toString();
+            const call1_eventId = spyOnEvent.getCalls()[1].args[0].eventId.toString();
 
             call1_eventId.should.not.eql(call0_eventId, "Event Id must be different");
 
@@ -139,8 +139,8 @@ module.exports = function (test) {
             alarm.activeState.getValue().should.eql(false);
             spyOnEvent.callCount.should.eql(4);
 
-            var call2_eventId = spyOnEvent.getCalls()[2].args[0].eventId.toString();
-            var call3_eventId = spyOnEvent.getCalls()[3].args[0].eventId.toString();
+            const call2_eventId = spyOnEvent.getCalls()[2].args[0].eventId.toString();
+            const call3_eventId = spyOnEvent.getCalls()[3].args[0].eventId.toString();
 
             // The state reverts to normal but previous alarms has not been acknowledged, therefore we receive 2 events
             // one for the new branch created with a snapshot version of the current state, and an other one
@@ -190,7 +190,7 @@ module.exports = function (test) {
 
             setVariableValue(0);
 
-            var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -261,7 +261,7 @@ module.exports = function (test) {
 
             setVariableValue(0);
 
-            var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarmDisabledTest",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -277,7 +277,7 @@ module.exports = function (test) {
             alarm.getHighLimit().should.eql(10);
             alarm.getHighHighLimit().should.eql(100);
 
-            var spyOnEvent = sinon.spy();
+            const spyOnEvent = sinon.spy();
             alarm.on("event", spyOnEvent);
 
             setVariableValue(0);
@@ -341,7 +341,7 @@ module.exports = function (test) {
             
             setVariableValue(0);
             
-            var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm2",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -361,7 +361,7 @@ module.exports = function (test) {
             alarm.highState.getValue().should.eql(false);
             alarm.highHighState.getValue().should.eql(false);
 
-            var spyOnEvent = sinon.spy();
+            const spyOnEvent = sinon.spy();
             alarm.on("event", spyOnEvent);
      
 
@@ -394,7 +394,7 @@ module.exports = function (test) {
         it("should not raise an event twice if the value changes without changing the state", function () {
 
             setVariableValue(0);
-            var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm3",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -404,7 +404,7 @@ module.exports = function (test) {
                 highHighLimit: 100.0
             });
 
-            var spyOnEvent = sinon.spy();
+            const spyOnEvent = sinon.spy();
             alarm.on("event", spyOnEvent);
 
             setVariableValue(0);
@@ -434,7 +434,7 @@ module.exports = function (test) {
 
                 setVariableValue(0);
                 
-                var alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+                const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                     browseName: "MyNonExclusiveAlarm3",
                     conditionSource: source,
                     inputNode: variableWithAlarm,

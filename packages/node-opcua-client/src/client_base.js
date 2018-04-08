@@ -3,35 +3,35 @@
  * @module opcua.client
  */
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var fs = require("fs");
-var path = require("path");
-var async = require("async");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var once = require("once");
-var delayed = require("delayed");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const fs = require("fs");
+const path = require("path");
+const async = require("async");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
+const once = require("once");
+const delayed = require("delayed");
 
 
-var endpoints_service = require("node-opcua-service-endpoints");
+const endpoints_service = require("node-opcua-service-endpoints");
 
-var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
-var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
-var toURI = require("node-opcua-secure-channel").toURI;
-var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
+const GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
+const GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const toURI = require("node-opcua-secure-channel").toURI;
+const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
+const OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
 
-var ClientSecureChannelLayer = require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer;
-var ClientSession = require("./client_session").ClientSession;
+const ClientSecureChannelLayer = require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer;
+const ClientSession = require("./client_session").ClientSession;
 
 
-var defaultConnectionStrategy = {
+const defaultConnectionStrategy = {
     maxRetry: 100,
     initialDelay: 1000,
     maxDelay: 20000,
@@ -142,7 +142,7 @@ OPCUAClientBase.prototype.getPrivateKey = OPCUASecureObject.prototype.getPrivate
 OPCUAClientBase.prototype.getCertificate = OPCUASecureObject.prototype.getCertificate;
 OPCUAClientBase.prototype.getCertificateChain = OPCUASecureObject.prototype.getCertificateChain;
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 OPCUAClientBase.registry = new ObjectRegistry();
 
 /**
@@ -151,14 +151,14 @@ OPCUAClientBase.registry = new ObjectRegistry();
  * @type boolean
  */
 OPCUAClientBase.prototype.__defineGetter__("knowsServerEndpoint", function () {
-    var self = this;
+    const self = this;
     return (self._server_endpoints && self._server_endpoints.length > 0);
 });
 
 OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
 
-    var self = this;
+    const self = this;
     if (self._secureChannel) {
 
 
@@ -187,19 +187,19 @@ OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
 function __findEndpoint(endpointUrl, params, callback) {
 
-    var securityMode = params.securityMode;
-    var securityPolicy = params.securityPolicy;
+    const securityMode = params.securityMode;
+    const securityPolicy = params.securityPolicy;
 
-    var options = {
+    const options = {
         connectionStrategy: params.connectionStrategy,
         endpoint_must_exist: false
     };
 
-    var client = new OPCUAClientBase(options);
+    const client = new OPCUAClientBase(options);
 
-    var selected_endpoint = null;
-    var all_endpoints = null;
-    var tasks = [
+    let selected_endpoint = null;
+    const all_endpoints = null;
+    const tasks = [
         function (callback) {
             client.on("backoff", function () {
                 console.log("finding Enpoint => reconnecting ");
@@ -241,7 +241,7 @@ function __findEndpoint(endpointUrl, params, callback) {
                 " policy: " + securityPolicy.toString()));
         }
 
-        var result = {
+        const result = {
             selectedEndpoint: selected_endpoint,
             endpoints: all_endpoints
         };
@@ -256,13 +256,13 @@ function __findEndpoint(endpointUrl, params, callback) {
  */
 OPCUAClientBase.prototype.__defineGetter__("isReconnecting", function () {
 
-    var self = this;
+    const self = this;
     return !!(self._secureChannel && self._secureChannel.isConnecting);
 });
 
 OPCUAClientBase.prototype._cancel_reconnection = function (callback) {
 
-    var self = this;
+    const self = this;
 
     // istanbul ignore next
     if (!self._secureChannel) {
@@ -278,7 +278,7 @@ OPCUAClientBase.prototype._recreate_secure_channel = function (callback) {
 
     debugLog("_recreate_secure_channel...");
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
 
     if (!self.knowsServerEndpoint) {
@@ -330,23 +330,23 @@ OPCUAClientBase.prototype._recreate_secure_channel = function (callback) {
 
 function _verify_serverCertificate(serverCertificate, callback) {
     // check if certificate is trusted or untrusted
-    var crypto_utils = require("node-opcua-crypto").crypto_utils;
+    const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-    var pki_folder = process.cwd() + "/pki";
+    const pki_folder = process.cwd() + "/pki";
 
     // istanbul ignore next
     if (!fs.existsSync(pki_folder)) {
         fs.mkdirSync(pki_folder);
     }
-    var pki_untrusted_folder = path.join(pki_folder, "untrusted");
+    const pki_untrusted_folder = path.join(pki_folder, "untrusted");
 
     // istanbul ignore next
     if (!fs.existsSync(pki_untrusted_folder)) {
         fs.mkdirSync(pki_untrusted_folder);
     }
-    var thumbprint = crypto_utils.makeSHA1Thumbprint(serverCertificate);
+    const thumbprint = crypto_utils.makeSHA1Thumbprint(serverCertificate);
 
-    var certificate_filename = path.join(pki_untrusted_folder, thumbprint.toString("hex") + ".pem");
+    const certificate_filename = path.join(pki_untrusted_folder, thumbprint.toString("hex") + ".pem");
     fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"), function () {
         setImmediate(callback);
     });
@@ -356,8 +356,8 @@ function _verify_serverCertificate(serverCertificate, callback) {
 
 OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) {
 
-    var self = this;
-    var secureChannel;
+    const self = this;
+    let secureChannel;
     assert(self._secureChannel === null);
     assert(_.isString(self.endpointUrl));
 
@@ -440,7 +440,7 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
  * @type {Boolean}
  */
 OPCUAClientBase.prototype.__defineGetter__("reconnectOnFailure", function () {
-    var self = this;
+    const self = this;
     return self.connectionStrategy.maxRetry > 0;
 });
 
@@ -576,7 +576,7 @@ function _install_secure_channel_event_handlers(self, secureChannel) {
 OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
 
     assert(_.isFunction(callback), "expecting a callback");
-    var self = this;
+    const self = this;
 
     self.endpointUrl = endpointUrl;
 
@@ -604,7 +604,7 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
         // if the certificate has been certified by an Certificate Authority we have to
         // verify that the certificates in the chain are valid and not revoked.
         //
-        var params = {
+        const params = {
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
             connectionStrategy: this.connectionStrategy,
@@ -615,7 +615,7 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
                 return callback(err);
             }
 
-            var endpoint = result.selectedEndpoint;
+            const endpoint = result.selectedEndpoint;
             if (!endpoint) {
                 // no matching end point can be found ...
                 return callback(new Error("cannot find endpoint"));
@@ -635,7 +635,7 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
     // [...]
 
     // make sure callback will only be call once regardless of outcome, and will be also deferred.
-    var callback_od = once(delayed.deferred(callback));
+    const callback_od = once(delayed.deferred(callback));
     callback = null;
 
     OPCUAClientBase.registry.register(self);
@@ -652,7 +652,7 @@ OPCUAClientBase.prototype.getClientNonce = function () {
 
 OPCUAClientBase.prototype.performMessageTransaction = function (request, callback) {
 
-    var self = this;
+    const self = this;
     if (!self._secureChannel) {
         // this may happen if the Server has closed the connection abruptly for some unknown reason
         // or if the tcp connection has been broken.
@@ -712,7 +712,7 @@ OPCUAClientBase.prototype.findEndpoint = function (endpointUrl, securityMode, se
  */
 OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
 
-    var self = this;
+    const self = this;
 
     if (!callback) {
         callback = options;
@@ -724,7 +724,7 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
     options.localeIds = options.localeIds || [];
     options.profileUris = options.profileUris || [];
 
-    var request = new GetEndpointsRequest({
+    const request = new GetEndpointsRequest({
         endpointUrl: options.endpointUrl,
         localeIds: options.localeIds,
         profileUris: options.profileUris,
@@ -751,9 +751,9 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
  * @param callback [Function}
  */
 
-var register_server_service = require("node-opcua-service-register-server");
-var FindServersRequest = register_server_service.FindServersRequest;
-var FindServersResponse = register_server_service.FindServersResponse;
+const register_server_service = require("node-opcua-service-register-server");
+const FindServersRequest = register_server_service.FindServersRequest;
+const FindServersResponse = register_server_service.FindServersResponse;
 
 /**
  * @method findServers
@@ -765,7 +765,7 @@ var FindServersResponse = register_server_service.FindServersResponse;
  */
 OPCUAClientBase.prototype.findServers = function (options, callback) {
 
-    var self = this;
+    const self = this;
 
     if (!self._secureChannel) {
         setImmediate(function () {
@@ -779,7 +779,7 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
         options = {};
     }
 
-    var request = new FindServersRequest({
+    const request = new FindServersRequest({
         endpointUrl: options.endpointUrl || this.endpointUrl,
         localeIds: options.localeIds || [],
         serverUris: options.serverUris || []
@@ -800,9 +800,9 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
 OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
 
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
-    var sessions = _.clone(self._sessions);
+    const sessions = _.clone(self._sessions);
     async.map(sessions, function (session, next) {
         assert(session instanceof ClientSession);
         assert(session._client === self);
@@ -832,7 +832,7 @@ OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
 };
 
 OPCUAClientBase.prototype._addSession = function (session) {
-    var self = this;
+    const self = this;
     assert(!session._client || session._client === self);
     assert(!_.contains(self._sessions, session), "session already added");
     session._client = self;
@@ -845,10 +845,10 @@ OPCUAClientBase.prototype._addSession = function (session) {
 };
 
 OPCUAClientBase.prototype._removeSession = function (session) {
-    var self = this;
-    var index = self._sessions.indexOf(session);
+    const self = this;
+    const index = self._sessions.indexOf(session);
     if (index >= 0) {
-        var s = self._sessions.splice(index, 1)[0];
+        const s = self._sessions.splice(index, 1)[0];
         assert(s === session);
         assert(!_.contains(self._sessions, session));
         assert(session._client === self)
@@ -868,7 +868,7 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
 
     assert(_.isFunction(callback), "expecting a callback function here");
 
-    var self = this;
+    const self = this;
     if (self.isReconnecting) {
         debugLog("OPCUAClientBase#disconnect called while reconnection is in progress");
         // let's abort the reconnection process
@@ -903,7 +903,7 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
 
     if (self._secureChannel) {
 
-        var tmp_channel = self._secureChannel;
+        const tmp_channel = self._secureChannel;
 
         self._destroy_secure_channel();
 
@@ -928,7 +928,7 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
  * @type {Number}
  */
 OPCUAClientBase.prototype.__defineGetter__("bytesRead", function () {
-    var self = this;
+    const self = this;
     return self._byteRead + (self._secureChannel ? self._secureChannel.bytesRead : 0);
 });
 
@@ -938,7 +938,7 @@ OPCUAClientBase.prototype.__defineGetter__("bytesRead", function () {
  * @type {Number}
  */
 OPCUAClientBase.prototype.__defineGetter__("bytesWritten", function () {
-    var self = this;
+    const self = this;
     return self._byteWritten + (self._secureChannel ? self._secureChannel.bytesWritten : 0);
 });
 
@@ -948,12 +948,12 @@ OPCUAClientBase.prototype.__defineGetter__("bytesWritten", function () {
  * @type {Number}
  */
 OPCUAClientBase.prototype.__defineGetter__("transactionsPerformed", function () {
-    var self = this;
+    const self = this;
     return self._transactionsPerformed + (self._secureChannel ? self._secureChannel.transactionsPerformed : 0);
 });
 
 OPCUAClientBase.prototype.__defineGetter__("timedOutRequestCount", function () {
-    var self = this;
+    const self = this;
     return self._timedOutRequestCount + (self._secureChannel ? self._secureChannel.timedOutRequestCount : 0);
 });
 

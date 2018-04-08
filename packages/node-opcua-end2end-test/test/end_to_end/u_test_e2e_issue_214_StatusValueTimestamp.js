@@ -1,17 +1,17 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-var debugLog = function () {
+const debugLog = function () {
 };
 
 module.exports = function (test) {
@@ -22,13 +22,13 @@ module.exports = function (test) {
 
             // setup  mechanism to update a Variable value timestamp without changing the value
 
-            var nodeId = "ns=411;s=Scalar_Static_Double";
-            var variable = test.server.engine.addressSpace.findNode(nodeId);
-            var variant = new opcua.Variant({dataType: opcua.DataType.Double, value: 3.14});
+            const nodeId = "ns=411;s=Scalar_Static_Double";
+            const variable = test.server.engine.addressSpace.findNode(nodeId);
+            const variant = new opcua.Variant({dataType: opcua.DataType.Double, value: 3.14});
 
-            var timerId = setInterval(function () {
-                var now = new Date();
-                var dataValue = new opcua.DataValue({
+            const timerId = setInterval(function () {
+                const now = new Date();
+                const dataValue = new opcua.DataValue({
                     sourceTimestamp: now,
                     sourcePicoseconds: 0,
                     serverTimestamp: now,
@@ -39,10 +39,10 @@ module.exports = function (test) {
                 variable._internal_set_dataValue(dataValue, null);
             }, 100);
 
-            var nbChanges = 0;
+            let nbChanges = 0;
 
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
             perform_operation_on_subscription(client, endpointUrl, function (session, the_subscription, inner_done) {
 
@@ -59,24 +59,24 @@ module.exports = function (test) {
                     inner_done();
                 }, 2000);
 
-                var filter = new opcua.subscription_service.DataChangeFilter({
+                const filter = new opcua.subscription_service.DataChangeFilter({
                     trigger: opcua.subscription_service.DataChangeTrigger.StatusValueTimestamp,
                     deadbandType: opcua.subscription_service.DeadbandType.Absolute,
                     deadbandValue: 1.0
                 });
 
-                var itemToMonitor = {
+                const itemToMonitor = {
                     nodeId: nodeId,
                     attributeId: opcua.AttributeIds.Value
                 };
-                var options = {
+                const options = {
                     samplingInterval: 100,
                     discardOldest: false,
                     queueSize: 10000,
                     filter: filter
                 };
                 // install monitored item
-                var monitoredItem = the_subscription.monitor(itemToMonitor,
+                const monitoredItem = the_subscription.monitor(itemToMonitor,
                     options,
                     opcua.read_service.TimestampsToReturn.Both
                     , function (err) {

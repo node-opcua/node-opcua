@@ -1,17 +1,17 @@
 "use strict";
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-var users = [
+const users = [
     {
         username: "user1",
         password: "1",
@@ -25,10 +25,10 @@ var users = [
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
-var userManager = {
+const userManager = {
 
     isValidUser: function (username, password) {
-        var uIndex = users.findIndex(function (u) {
+        const uIndex = users.findIndex(function (u) {
             return u.username === username;
         });
         if (uIndex < 0) {
@@ -41,36 +41,36 @@ var userManager = {
     },
 
     getUserRole: function (username) {
-        var uIndex = users.findIndex(function (x) {
+        const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });
         if (uIndex < 0) {
             return "guest"; // by default were guest! ( i.e anonymous)
         }
-        var userRole = users[uIndex].role;
+        const userRole = users[uIndex].role;
         return userRole;
     }
 
 };
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
 
-    var server, client, endpointUrl;
-    var node1;
+    let server, client, endpointUrl;
+    let node1;
 
-    var port = 2002;
+    const port = 2002;
 
     before(function (done) {
 
-        var options = {
+        const options = {
             port: port,
 //xx            allowAnonymous: false
         };
 
         server = build_server_with_temperature_device(options, function (err) {
 
-            var permissionType1 = {
+            const permissionType1 = {
                 CurrentRead: ["*", "!guest"], // accept all, except guest, so 'operator' should be allowed
                 CurrentWrite: ["!*", "admin"]  // deny all except admin, so 'operator' should be denied
             };
@@ -79,7 +79,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // replace user manager with our custom one
             server.userManager = userManager;
 
-            var addressSpace = server.engine.addressSpace;
+            const addressSpace = server.engine.addressSpace;
 
             // create a variable that can  be read and written by admins
             // and read/nowrite by operators
@@ -113,10 +113,10 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("Operator user should be able to read but not to write V1 node value", function (done) {
 
-        var client = new OPCUAClient({});
+        const client = new OPCUAClient({});
 
         function read(session, callback) {
-            var nodeToRead = {
+            const nodeToRead = {
                 nodeId: node1.nodeId.toString(),
                 attributeId: opcua.AttributeIds.Value,
                 indexRange: null,
@@ -130,12 +130,12 @@ describe("testing Client-Server with UserName/Password identity token", function
             });
         }
 
-        var _the_value = 45;
+        let _the_value = 45;
 
         function write(session, callback) {
             _the_value = _the_value + 1.12;
 
-            var nodeToWrite = {
+            const nodeToWrite = {
                 nodeId: node1.nodeId.toString(),
                 attributeId: opcua.AttributeIds.Value,
                 value: /*new DataValue(*/{
@@ -181,7 +181,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 // ---------------------------------------------------------------------------------
                 function (callback) {
                     console.log("    impersonate user user1 on existing session");
-                    var userIdentity = {userName: "user1", password: "1"};
+                    const userIdentity = {userName: "user1", password: "1"};
 
                     client.changeSessionIdentity(session, userIdentity, function (err) {
                         if (err) {
@@ -216,7 +216,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 // ---------------------------------------------------------------------------------
                 function (callback) {
                     console.log("    impersonate user user2 on existing session (user2 is admin)");
-                    var userIdentity = {userName: "user2", password: "2"};
+                    const userIdentity = {userName: "user2", password: "2"};
                     client.changeSessionIdentity(session, userIdentity, function (err) {
                         if (err) {
                             return callback(err);
@@ -250,7 +250,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 // ---------------------------------------------------------------------------------
                 function (callback) {
                     console.log("    impersonate anonymous user again");
-                    var userIdentity = {};
+                    const userIdentity = {};
 
                     client.changeSessionIdentity(session, userIdentity, function (err) {
                         if (err) {

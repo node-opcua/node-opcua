@@ -1,23 +1,23 @@
 /* global describe,it,before*/
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var UADataType = require("../src/ua_data_type").UADataType;
-var UAVariable = require("../src/ua_variable").UAVariable;
-var Variant = require("node-opcua-variant").Variant;
+const UADataType = require("../src/ua_data_type").UADataType;
+const UAVariable = require("../src/ua_variable").UAVariable;
+const Variant = require("node-opcua-variant").Variant;
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
-var eoan = require("../src/extension_object_array_node");
+const eoan = require("../src/extension_object_array_node");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Extension Object Array Node (or Complex Variable)", function () {
 
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
@@ -38,10 +38,10 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         // given a address space
         // give a DataType
 
-        var rootFolder = addressSpace.findNode("RootFolder");
+        const rootFolder = addressSpace.findNode("RootFolder");
 
 
-        var arr = eoan.createExtObjArrayNode(rootFolder, {
+        const arr = eoan.createExtObjArrayNode(rootFolder, {
             browseName: "SubscriptionDiagnosticArrayForTest1",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
@@ -51,21 +51,21 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
         addressSpace.findNode(arr.dataType).should.be.instanceOf(UADataType);
 
-        var expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
+        const expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
         arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString(),"should have typeDefinition SubscriptionDiagnosticsArrayType");
 
-        var dv = arr.readValue();
+        const dv = arr.readValue();
         should(dv.value.value).eql([]);
         dv.value.value.should.be.instanceOf(Array);
         dv.value.value.length.should.eql(0,"expecting no element in array");
 
-        var counter = 10;
+        const counter = 10;
 
         // now, let's add a new extension  objecct into the array
-        var options = {
+        const options = {
             subscriptionId: counter
         };
-        var elementNode = eoan.addElement(options, arr);
+        const elementNode = eoan.addElement(options, arr);
 
         arr.readValue().value.value.length.should.eql(1, "expecting a new element in array");
 
@@ -78,7 +78,7 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         // and checking that the corresponding node has changed.
 
         // we read a copy of the element at pos [0]
-        var obj = arr.readValue().value.value[0];
+        const obj = arr.readValue().value.value[0];
         obj.maxLifetimeCount = 12345;
 
         // changing this element should not change the underlying value
@@ -99,18 +99,18 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
     it("should be possible to add more than one element in the Extension Object variable node", function () {
 
-        var rootFolder = addressSpace.findNode("RootFolder");
+        const rootFolder = addressSpace.findNode("RootFolder");
 
-        var arr = eoan.createExtObjArrayNode(rootFolder, {
+        const arr = eoan.createExtObjArrayNode(rootFolder, {
             browseName: "SubscriptionDiagnosticArrayForTest2",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
             indexPropertyName: "subscriptionId"
         });
 
-        var elVar1 = eoan.addElement({subscriptionId: 1000}, arr);
-        var elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
-        var elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
+        const elVar1 = eoan.addElement({subscriptionId: 1000}, arr);
+        const elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
+        const elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
 
         elVar1.browseName.toString().should.eql("1000");
         elVar2.browseName.toString().should.eql("1001");
@@ -121,19 +121,19 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
     });
     it("should be possible to remove some element in the Extension Object variable node", function () {
 
-        var rootFolder = addressSpace.findNode("RootFolder");
+        const rootFolder = addressSpace.findNode("RootFolder");
 
-        var arr = eoan.createExtObjArrayNode(rootFolder, {
+        const arr = eoan.createExtObjArrayNode(rootFolder, {
             browseName: "SubscriptionDiagnosticArrayForTest3",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
             indexPropertyName: "subscriptionId"
         });
 
-        var elVar1 = eoan.addElement({subscriptionId: 1000}, arr);
-        var elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
-        var elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
-        var elVar4 = eoan.addElement({subscriptionId: 1003}, arr);
+        const elVar1 = eoan.addElement({subscriptionId: 1000}, arr);
+        const elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
+        const elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
+        const elVar4 = eoan.addElement({subscriptionId: 1003}, arr);
         arr.readValue().value.value.length.should.eql(4, "expecting 4 elements in array");
 
         arr.getComponentByName("1000").should.eql(elVar1);
@@ -162,9 +162,9 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
     it("should be possible to add an element in  the Extension array that already exists ",function() {
 
-        var rootFolder = addressSpace.findNode("RootFolder");
+        const rootFolder = addressSpace.findNode("RootFolder");
 
-        var arr = eoan.createExtObjArrayNode(rootFolder, {
+        const arr = eoan.createExtObjArrayNode(rootFolder, {
             browseName: "SubscriptionDiagnosticArrayForTest",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
@@ -173,11 +173,11 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         arr.readValue().value.value.length.should.eql(0);
         // create an element
 
-        var SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
+        const SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
 
         should.exist(SubscriptionDiagnosticsType);
 
-        var item1 = SubscriptionDiagnosticsType.instantiate({
+        const item1 = SubscriptionDiagnosticsType.instantiate({
             browseName:"testing",
             componentOf: addressSpace.rootFolder
         });
@@ -205,10 +205,10 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
     it("should be possible to add the same extension object into two array Variables",function() {
 
-        var rootFolder = addressSpace.findNode("RootFolder");
+        const rootFolder = addressSpace.findNode("RootFolder");
 
         // Given 2 SubscriptionDiagnosticArray ( A & B)
-        var arrA = eoan.createExtObjArrayNode(rootFolder, {
+        const arrA = eoan.createExtObjArrayNode(rootFolder, {
             browseName: "SubscriptionDiagnosticArray_A",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
@@ -217,7 +217,7 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         arrA.readValue().value.value.length.should.eql(0);
 
 
-        var arrB = eoan.createExtObjArrayNode(rootFolder, {
+        const arrB = eoan.createExtObjArrayNode(rootFolder, {
             browseName: "SubscriptionDiagnosticArray_B",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
@@ -227,17 +227,17 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
 
         // Given an extension object variable ( with no parent)
-        var SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
+        const SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
         should.exist(SubscriptionDiagnosticsType);
 
-        var extObj = new SubscriptionDiagnostics({
+        const extObj = new SubscriptionDiagnostics({
             subscriptionId: 1123455,
             enableCount: 7
         });
 
-        var browseName = arrA.$$getElementBrowseName(extObj);
+        const browseName = arrA.$$getElementBrowseName(extObj);
 
-        var item1 = SubscriptionDiagnosticsType.instantiate({
+        const item1 = SubscriptionDiagnosticsType.instantiate({
             browseName:  browseName,
             extensionObject: extObj
         });
@@ -250,13 +250,13 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         item1.$extensionObject.enableCount = 13;
 
         // Then I should be able to add it to the first array
-        var elemA = eoan.addElement(item1,arrA);
+        const elemA = eoan.addElement(item1,arrA);
         // verify that object has been added to the collection
         arrA.readValue().value.value.length.should.eql(1);
 
 
         // Then I should be able to add it to the second array
-        var elemB = eoan.addElement(item1,arrB);
+        const elemB = eoan.addElement(item1,arrB);
         // verify that object has been added to the collection
         arrB.readValue().value.value.length.should.eql(1);
 

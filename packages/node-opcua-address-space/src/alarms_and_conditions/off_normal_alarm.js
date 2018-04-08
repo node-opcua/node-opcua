@@ -4,18 +4,18 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
 
 /**
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
+const UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
 
 /**
  * The OffNormalAlarmType is a specialization of the DiscreteAlarmType intended to represent a
@@ -47,8 +47,8 @@ util.inherits(UAOffNormalAlarm, UADiscreteAlarm);
  * @return {BaseNode}
  */
 UAOffNormalAlarm.prototype.getNormalStateNode = function () {
-    var nodeId = this.normalState.readValue().value.value;
-    var node = this.addressSpace.findNode(nodeId);
+    const nodeId = this.normalState.readValue().value.value;
+    const node = this.addressSpace.findNode(nodeId);
     assert(node, "getNormalStateNode ");
     return node;
 };
@@ -58,7 +58,7 @@ UAOffNormalAlarm.prototype.getNormalStateNode = function () {
  * @return {Any}
  */
 UAOffNormalAlarm.prototype.getNormalStateValue = function () {
-    var normalStateNode = this.getNormalStateNode();
+    const normalStateNode = this.getNormalStateNode();
     return normalStateNode.readValue().value.value;
 };
 
@@ -67,30 +67,30 @@ UAOffNormalAlarm.prototype.getNormalStateValue = function () {
  * @param value
  */
 UAOffNormalAlarm.prototype.setNormalStateValue = function (value) {
-    var normalStateNode = this.getNormalStateNode();
+    const normalStateNode = this.getNormalStateNode();
     throw new Error("Not Implemented yet");
 };
-var utils = require("node-opcua-utils");
+const utils = require("node-opcua-utils");
 
 function isEqual(value1, value2) {
     return value1 === value2;
 }
 UAOffNormalAlarm.prototype._updateAlarmState = function (normalStateValue, inputValue) {
 
-    var alarm = this;
+    const alarm = this;
 
     if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
         this.activeState.setValue(false);
         return;
     }
-    var isActive = !isEqual(normalStateValue, inputValue);
+    const isActive = !isEqual(normalStateValue, inputValue);
 
     if (isActive === alarm.activeState.getValue()) {
         // no change => ignore !
         return;
     }
 
-    var stateName = isActive ? "Active" : "Inactive";
+    const stateName = isActive ? "Active" : "Inactive";
     // also raise the event
     alarm._signalNewCondition(stateName, isActive, "");
 
@@ -108,8 +108,8 @@ UAOffNormalAlarm.prototype._onInputDataValueChange = function (dataValue) {
         // what shall we do ?
         return;
     }
-    var inputValue = dataValue.value.value;
-    var normalStateValue = this.getNormalStateValue();
+    const inputValue = dataValue.value.value;
+    const normalStateValue = this.getNormalStateValue();
     this._updateAlarmState(normalStateValue, inputValue);
 
 };
@@ -123,8 +123,8 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
         // what shall we do ?
         return;
     }
-    var normalStateValue = dataValue.value.value;
-    var inputValue = this.getInputNodeValue();
+    const normalStateValue = dataValue.value.value;
+    const inputValue = this.getInputNodeValue();
     this._updateAlarmState(normalStateValue, inputValue);
 };
 
@@ -144,7 +144,7 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
 UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
 
 
-    var offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");
+    const offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");
     /* istanbul ignore next */
     if (!offNormalAlarmType) {
         throw new Error("cannot find offNormalAlarmType");
@@ -155,13 +155,13 @@ UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options
     options.optionals = options.optionals || [];
 
     assert(options.hasOwnProperty("inputNode"), "must provide inputNode"); // must provide a inputNode
-    var alarmNode = UADiscreteAlarm.instantiate(addressSpace, limitAlarmTypeId, options, data);
+    const alarmNode = UADiscreteAlarm.instantiate(addressSpace, limitAlarmTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UAOffNormalAlarm.prototype);
 
-    var inputNode = addressSpace._coerceNode(options.inputNode);
+    const inputNode = addressSpace._coerceNode(options.inputNode);
     assert(inputNode, "Expecting a valid input node");
 
-    var normalState = addressSpace._coerceNode(options.normalState);
+    const normalState = addressSpace._coerceNode(options.normalState);
     assert(normalState, "Expecting a valid normalState node");
 
     alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalState.nodeId });

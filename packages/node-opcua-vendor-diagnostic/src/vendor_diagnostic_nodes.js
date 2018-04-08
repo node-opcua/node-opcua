@@ -1,14 +1,14 @@
 "use strict";
 
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
-var ServerEngine = require("node-opcua-server").ServerEngine;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var ObjectIds = require("node-opcua-constants").ObjectIds;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var humanize = require("humanize");
+const ServerEngine = require("node-opcua-server").ServerEngine;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const ObjectIds = require("node-opcua-constants").ObjectIds;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const humanize = require("humanize");
 
 /**
  * @method addVariableWithHumanizeText
@@ -21,7 +21,7 @@ function addVariableWithHumanizeText(engine, options) {
 
     assert(options.componentOf || options.organizedBy);
 
-    var variable = engine.addressSpace.addVariable(options);
+    const variable = engine.addressSpace.addVariable(options);
 
     // add the xxxAsText property
     engine.addressSpace.addVariable({
@@ -34,7 +34,7 @@ function addVariableWithHumanizeText(engine, options) {
         minimumSamplingInterval: options.minimumSamplingInterval,
         value: {
             get: function () {
-                var v = options.value.get();
+                const v = options.value.get();
                 if (v instanceof Variant) {
                     return new Variant({dataType: DataType.String, value: humanize.filesize(v.value)});
                 } else {
@@ -55,10 +55,10 @@ function addVariableWithHumanizeText(engine, options) {
  */
 function install_optional_cpu_and_memory_usage_node(server) {
 
-    var engine = server.engine;
+    const engine = server.engine;
     assert(engine instanceof ServerEngine);
 
-    var usage;
+    let usage;
     try {
         usage = require("usage");
     } catch (err) {
@@ -67,16 +67,16 @@ function install_optional_cpu_and_memory_usage_node(server) {
         //xx return;
     }
 
-    var folder = engine.addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
+    const folder = engine.addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
 
-    var usage_result = {memory: 0, cpu: 100};
+    let usage_result = {memory: 0, cpu: 100};
 
-    var pid = process.pid;
-    var os = require("os");
+    const pid = process.pid;
+    const os = require("os");
 
     if (usage) {
 
-        var options = {keepHistory: true};
+        const options = {keepHistory: true};
         setInterval(function () {
             usage.lookup(pid, options, function (err, result) {
                 usage_result = result;
@@ -136,7 +136,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
         minimumSamplingInterval: 1000,
         value: {
             get: function () {
-                var percent_used = Math.round((os.totalmem() - os.freemem()) / os.totalmem() * 100);
+                const percent_used = Math.round((os.totalmem() - os.freemem()) / os.totalmem() * 100);
                 return new Variant({dataType: DataType.Double, value: percent_used});
             }
         }
@@ -152,7 +152,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
         minimumSamplingInterval: 1000,
         value: {
             get: function () {
-                var memory = os.totalmem();
+                const memory = os.totalmem();
                 return new Variant({dataType: DataType.UInt64, value: memory});
             }
         }
@@ -168,7 +168,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
         minimumSamplingInterval: 1000,
         value: {
             get: function () {
-                var memory = os.freemem();
+                const memory = os.freemem();
                 return new Variant({dataType: DataType.UInt64, value: memory});
             }
         }

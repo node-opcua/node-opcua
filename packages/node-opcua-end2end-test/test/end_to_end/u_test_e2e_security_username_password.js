@@ -1,18 +1,18 @@
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var util = require("util");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const util = require("util");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
 module.exports = function (test) {
 
     describe("testing basic Client-Server communication", function () {
 
-        var server, client, endpointUrl;
+        let server, client, endpointUrl;
         beforeEach(function (done) {
             client = new OPCUAClient();
             server = test.server;
@@ -26,7 +26,7 @@ module.exports = function (test) {
 
         it("C1 - testing with username === null ", function (done) {
 
-            var client1;
+            let client1;
             async.series([
 
                 function (callback) {
@@ -36,7 +36,7 @@ module.exports = function (test) {
 
                 function (callback) {
                     // todo
-                    var options = {
+                    const options = {
                         userName: "",
                         password: "blah"
                     };

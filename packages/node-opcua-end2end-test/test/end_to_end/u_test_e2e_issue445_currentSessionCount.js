@@ -1,10 +1,10 @@
 /*global describe, it, require*/
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
@@ -12,16 +12,16 @@ module.exports = function (test) {
 
         it("test that current SessionCount increments and decrements appropriately", function (done) {
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var client = new opcua.OPCUAClient({});
+            const client = new opcua.OPCUAClient({});
 
-            var currentSessionCountNodeId = opcua.resolveNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
-            var cumulatedSessionCountNodeId = opcua.resolveNodeId((opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CumulatedSessionCount));
+            const currentSessionCountNodeId = opcua.resolveNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
+            const cumulatedSessionCountNodeId = opcua.resolveNodeId((opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CumulatedSessionCount));
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                var currentSessionCountMonitoredItem = subscription.monitor(
+                const currentSessionCountMonitoredItem = subscription.monitor(
                     {nodeId: currentSessionCountNodeId, attributeId: opcua.AttributeIds.Value},
                     {
                         samplingInterval: 0, // reports immediately
@@ -29,7 +29,7 @@ module.exports = function (test) {
                         queueSize: 10
                     });
 
-                var cumulatedSessionCountMonitoredItem = subscription.monitor(
+                const cumulatedSessionCountMonitoredItem = subscription.monitor(
                     {nodeId: cumulatedSessionCountNodeId, attributeId: opcua.AttributeIds.Value},
                     {
                         samplingInterval: 0, // reports immediately
@@ -37,17 +37,17 @@ module.exports = function (test) {
                         queueSize: 10
                     });
 
-                var recordedCumulatedSessionCountValues = [];
+                const recordedCumulatedSessionCountValues = [];
                 cumulatedSessionCountMonitoredItem.on("changed",function(dataValue){
                     recordedCumulatedSessionCountValues.push(dataValue.value.value);
                 });
-                var recordedCurrentSessionCountValues = [];
+                const recordedCurrentSessionCountValues = [];
                 currentSessionCountMonitoredItem.on("changed", function (dataValue) {
                     recordedCurrentSessionCountValues.push(dataValue.value.value);
                 });
 
 
-                var currentSessionCount = 0;
+                let currentSessionCount = 0;
                 currentSessionCountMonitoredItem.once("changed", function (dataValue) {
                     dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
                     currentSessionCount = dataValue.value.value;
@@ -61,9 +61,9 @@ module.exports = function (test) {
 
                     setImmediate(function () {
 
-                        var data1, data2;
+                        let data1, data2;
                         function connect_and_create_session(callback) {
-                            var client = new OPCUAClient({});
+                            const client = new OPCUAClient({});
                             client.connect(endpointUrl, function (err) {
                                 if (err) {
                                     return callback(err);
@@ -80,8 +80,8 @@ module.exports = function (test) {
 
                         function close_session_and_disconnect(data, callback) {
 
-                            var session = data.session;
-                            var client = data.client;
+                            const session = data.session;
+                            const client = data.client;
                             session.close(function () {
                                 client.disconnect(callback);
                             });
@@ -91,7 +91,7 @@ module.exports = function (test) {
                         async.series([
                             function (callback) {
                                 currentSessionCountMonitoredItem.once("changed", function (dataValue) {
-                                    var new_currentSessionCount = dataValue.value.value;
+                                    const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount + 1);
                                     //xx console.log("new_currentSessionCount=",dataValue.toString());
                                     callback();
@@ -102,7 +102,7 @@ module.exports = function (test) {
                             },
                             function (callback) {
                                 currentSessionCountMonitoredItem.once("changed", function (dataValue) {
-                                    var new_currentSessionCount = dataValue.value.value;
+                                    const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount + 2);
                                     //xx console.log("new_currentSessionCount=",dataValue.toString());
                                     callback();
@@ -113,7 +113,7 @@ module.exports = function (test) {
                             },
                             function (callback) {
                                 currentSessionCountMonitoredItem.once("changed", function (dataValue) {
-                                    var new_currentSessionCount = dataValue.value.value;
+                                    const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount + 1);
                                     //xx console.log("new_currentSessionCount=",dataValue.toString());
                                     callback();
@@ -123,13 +123,13 @@ module.exports = function (test) {
                             },
                             function (callback) {
                                 currentSessionCountMonitoredItem.once("changed", function (dataValue) {
-                                    var new_currentSessionCount = dataValue.value.value;
+                                    const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount);
 
-                                    var cc = recordedCumulatedSessionCountValues[0];
+                                    const cc = recordedCumulatedSessionCountValues[0];
                                     recordedCumulatedSessionCountValues.should.eql([cc,cc+1,cc+2]);
 
-                                    var c = currentSessionCount-1;
+                                    const c = currentSessionCount-1;
                                     recordedCurrentSessionCountValues.should.eql([c+1,c+2,c+3,c+2,c+1]);
 
                                     callback();

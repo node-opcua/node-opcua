@@ -1,22 +1,22 @@
 "use strict";
 
 
-var should = require("should");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const should = require("should");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var address_space = require("..");
-var SessionContext = address_space.SessionContext;
-var UADataType = address_space.UADataType;
+const address_space = require("..");
+const SessionContext = address_space.SessionContext;
+const UADataType = address_space.UADataType;
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
-var context = SessionContext.defaultContext;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const context = SessionContext.defaultContext;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UADataype -  Attribute", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, data) {
             addressSpace = data;
@@ -35,13 +35,13 @@ describe("testing UADataype -  Attribute", function () {
 
     it("UADataType#readAttribute", function () {
 
-        var dataType = new UADataType({
+        const dataType = new UADataType({
             browseName: "MyDataType",
             addressSpace: addressSpace,
             isAbstract: true
         });
 
-        var value;
+        let value;
 
         value = dataType.readAttribute(context, AttributeIds.IsAbstract);
         value.statusCode.should.eql(StatusCodes.Good);
@@ -56,8 +56,7 @@ describe("testing UADataype -  Attribute", function () {
     describe("UADataType#isSupertypeOf", function () {
 
 
-        var number_dt, double_dt, float_dt, integer_dt, int16_dt, uint32_dt, duration_dt, uinteger_dt, uint64_dt,
-          int64_dt;
+        let number_dt, double_dt, float_dt, integer_dt, int16_dt, uint32_dt, duration_dt, uinteger_dt, uint64_dt, int64_dt;
         before(function () {
             // see table 120 OPCUA Spec part 5
             // BaseDataType   (i=24)

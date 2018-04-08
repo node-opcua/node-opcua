@@ -1,10 +1,10 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ =require("underscore");
+const assert = require("node-opcua-assert");
+const _ =require("underscore");
 
-var date_time = require("./date_time");
-var bn_dateToHundredNanoSecondFrom1601 = date_time.bn_dateToHundredNanoSecondFrom1601;
-var bn_hundredNanoSecondFrom1601ToDate = date_time.bn_hundredNanoSecondFrom1601ToDate;
+const date_time = require("./date_time");
+const bn_dateToHundredNanoSecondFrom1601 = date_time.bn_dateToHundredNanoSecondFrom1601;
+const bn_hundredNanoSecondFrom1601ToDate = date_time.bn_hundredNanoSecondFrom1601ToDate;
 
 
 
@@ -28,7 +28,7 @@ function getRandomInt(min, max) {
 
 
 exports.randomDateTime = function () {
-    var r = getRandomInt;
+    const r = getRandomInt;
     return new Date(
       1900 + r(0, 200), r(0, 11), r(0, 28),
       r(0, 24), r(0, 59), r(0, 59), r(0, 1000));
@@ -47,8 +47,8 @@ exports.encodeDateTime = function (date, stream) {
     }
     assert(date instanceof Date);
     var hl = bn_dateToHundredNanoSecondFrom1601(date);
-    var hi = hl[0];
-    var lo = hl[1];
+    let hi = hl[0];
+    let lo = hl[1];
 
     // make sure that date are not lower than expected limit
     if (hi<0 || lo<0) {
@@ -64,8 +64,8 @@ exports.encodeDateTime = function (date, stream) {
 };
 
 exports.decodeDateTime = function (stream) {
-    var lo = stream.readUInt32();
-    var hi = stream.readUInt32();
+    const lo = stream.readUInt32();
+    const hi = stream.readUInt32();
     return bn_hundredNanoSecondFrom1601ToDate(hi, lo);
 };
 

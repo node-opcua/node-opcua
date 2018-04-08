@@ -1,21 +1,21 @@
 "use strict";
 /* global describe,it,before*/
 
-var async = require("async");
-var generateAddressSpace = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
+const async = require("async");
+const generateAddressSpace = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
 
-var UAStateMachine = require("..").UAStateMachine;
-var context = require("..").SessionContext.defaultContext;
+const UAStateMachine = require("..").UAStateMachine;
+const context = require("..").SessionContext.defaultContext;
 
-var createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
-var makeBoiler = require("../test_helpers/boiler_system").makeBoiler;
+const createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
+const makeBoiler = require("../test_helpers/boiler_system").makeBoiler;
 
 
-var doDebug = false;
-var nodesets = require("node-opcua-nodesets");
+const doDebug = false;
+const nodesets = require("node-opcua-nodesets");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Boiler System", function () {
 
     function getBrowseName(x) {
@@ -23,9 +23,9 @@ describe("Testing Boiler System", function () {
     }
 
 
-    var nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard_nodeset_file;
 
-    var addressSpace = null;
+    let addressSpace = null;
     before(function (done) {
         addressSpace = new AddressSpace();
         generateAddressSpace(addressSpace, nodesetFilename, function () {
@@ -42,9 +42,9 @@ describe("Testing Boiler System", function () {
 
     it("XX should handle StateMachine derived from ProgramStateMachine", function () {
 
-        var programStateMachine = addressSpace.findObjectType("ProgramStateMachineType");
+        const programStateMachine = addressSpace.findObjectType("ProgramStateMachineType");
 
-        var psm = programStateMachine.instantiate({browseName: "MyStateMachine#2"});
+        const psm = programStateMachine.instantiate({browseName: "MyStateMachine#2"});
 
         UAStateMachine.promote(psm);
 
@@ -56,12 +56,12 @@ describe("Testing Boiler System", function () {
 
     it("XX should handle StateMachine derived from ProgramStateMachine", function () {
 
-        var myProgramStateMachine = addressSpace.addObjectType({
+        const myProgramStateMachine = addressSpace.addObjectType({
             browseName: "MyProgramStateMachine",
             subtypeOf: "ProgramStateMachineType"
         });
 
-        var psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
+        const psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
         UAStateMachine.promote(psm);
 
         psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
@@ -83,11 +83,11 @@ describe("Testing Boiler System", function () {
     it("should create a boiler system", function (done) {
 
 
-        var boilerType = createBoilerType(addressSpace);
+        const boilerType = createBoilerType(addressSpace);
         boilerType.getNotifiers().length.should.eql(3);
         boilerType.getEventSources().length.should.eql(1);
 
-        var boiler = makeBoiler(addressSpace, {
+        const boiler = makeBoiler(addressSpace, {
             browseName: "Boiler#1"
         });
 
@@ -113,10 +113,10 @@ describe("Testing Boiler System", function () {
         //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
 
 
-        var haltMethod = boiler.simulation.getMethodByName("Halt");
-        var resetMethod = boiler.simulation.getMethodByName("Reset");
-        var startMethod = boiler.simulation.getMethodByName("Start");
-        var suspendMethod = boiler.simulation.getMethodByName("Suspend");
+        const haltMethod = boiler.simulation.getMethodByName("Halt");
+        const resetMethod = boiler.simulation.getMethodByName("Reset");
+        const startMethod = boiler.simulation.getMethodByName("Start");
+        const suspendMethod = boiler.simulation.getMethodByName("Suspend");
 
         async.series([
 

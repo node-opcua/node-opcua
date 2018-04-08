@@ -1,7 +1,7 @@
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var SampleBase_Schema = {
+const SampleBase_Schema = {
     name: "SampleBase",
     documentation: "A FOOBAR Object.",
 

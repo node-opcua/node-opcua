@@ -1,35 +1,35 @@
 "use strict";
 /* global describe,it,before*/
-var should = require("should");
-var nodesets = require("node-opcua-nodesets");
-var generateAddressSpace = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
-var SessionContext = require("..").SessionContext;
+const should = require("should");
+const nodesets = require("node-opcua-nodesets");
+const generateAddressSpace = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
+const SessionContext = require("..").SessionContext;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var standardUnits = require("node-opcua-data-access").standardUnits;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var DataValue = require("node-opcua-data-value").DataValue;
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataTypeIds = require("node-opcua-constants").DataTypeIds;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const standardUnits = require("node-opcua-data-access").standardUnits;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const DataValue = require("node-opcua-data-value").DataValue;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataTypeIds = require("node-opcua-constants").DataTypeIds;
 
 describe("AnalogDataItem ValuePrecision issue #410", function () {
 
 
-    var nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard_nodeset_file;
 
 
-    var addressSpace = null;
-    var analogItem;
+    let addressSpace = null;
+    let analogItem;
 
     before(function (done) {
         addressSpace = new AddressSpace();
         generateAddressSpace(addressSpace, nodesetFilename, function () {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
             analogItem = addressSpace.addAnalogDataItem({
                 organizedBy: objectsFolder,
@@ -65,10 +65,10 @@ describe("AnalogDataItem ValuePrecision issue #410", function () {
     });
     it("ValuePrecision should be writable ", function (done) {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({dataType: DataType.Double, value: 0.25})
         });
-        var context = SessionContext.defaultContext;
+        const context = SessionContext.defaultContext;
         analogItem.valuePrecision.writeValue(context, dataValue, null, function (err, statusCode) {
             statusCode.should.eql(StatusCodes.Good);
             done(err);

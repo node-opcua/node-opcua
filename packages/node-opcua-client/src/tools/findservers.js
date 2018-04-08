@@ -1,7 +1,7 @@
 "use strict";
 
 
-var OPCUAClientBase = require("../client_base").OPCUAClientBase;
+const OPCUAClientBase = require("../client_base").OPCUAClientBase;
 /**
  * extract the server endpoints exposed by a discovery server
  * @method perform_findServersRequest
@@ -12,7 +12,7 @@ var OPCUAClientBase = require("../client_base").OPCUAClientBase;
 function perform_findServersRequest(discovery_server_endpointUrl, callback) {
 
 
-    var client = new OPCUAClientBase({});
+    const client = new OPCUAClientBase({});
 
     client.connect(discovery_server_endpointUrl, function (err) {
         if (!err) {

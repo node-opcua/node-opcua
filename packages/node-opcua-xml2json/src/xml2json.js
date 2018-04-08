@@ -7,11 +7,11 @@
  */
 
 
-var ltxParser = require("ltx/lib/parsers/ltx.js");
+const ltxParser = require("ltx/lib/parsers/ltx.js");
 
-var fs = require("fs");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const fs = require("fs");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 /**
  * @static
@@ -22,7 +22,7 @@ var _ = require("underscore");
  */
 function _coerceParser(parser) {
 
-    for (var name in parser) {
+    for (const name in parser) {
         if (parser.hasOwnProperty(name)) {
             if (!(parser[name] instanceof ReaderState)) {
                 parser[name] = new ReaderState(parser[name]);
@@ -47,8 +47,8 @@ function ReaderState(options) {
 
     // ensure options object has only expected properties
     options.parser = options.parser || {};
-    var fields = _.keys(options);
-    var invalid_fields = _.difference(fields, ["parser", "init", "finish", "startElement", "endElement"]);
+    const fields = _.keys(options);
+    const invalid_fields = _.difference(fields, ["parser", "init", "finish", "startElement", "endElement"]);
 
     /* istanbul ignore next*/
     if (invalid_fields.length !== 0) {
@@ -180,7 +180,7 @@ ReaderState.prototype._on_text = function (text) {
  */
 function Xml2Json(options) {
 
-    var state = new ReaderState(options);
+    const state = new ReaderState(options);
 
     state.root = this;
 
@@ -205,9 +205,9 @@ Xml2Json.prototype._demote = function (cur_state) {
     this.current_state = this.state_stack.pop();
 };
 
-var regexp = /(([^:]+):)?(.*)/;
+const regexp = /(([^:]+):)?(.*)/;
 function resolve_namespace(name) {
-  var m = name.match(regexp);
+  const m = name.match(regexp);
 
   return {
     tag: m[3],
@@ -217,18 +217,18 @@ function resolve_namespace(name) {
 
 Xml2Json.prototype._prepareParser = function (callback) {
 
-    var self = this;
-    var parser = new ltxParser();
+    const self = this;
+    const parser = new ltxParser();
 
-    var c =0;
+    let c =0;
     parser.on("startElement", function (name, attrs) {
-        var tag_ns = resolve_namespace(name);
+        const tag_ns = resolve_namespace(name);
         self.current_state._on_startElement(tag_ns.tag, attrs);
         //xxxconsole.log("name  ",name,tag_ns.tag);
         c+=1;
     });
     parser.on("endElement", function (name) {
-        var tag_ns = resolve_namespace(name);
+        const tag_ns = resolve_namespace(name);
         self.current_state._on_endElement(tag_ns.tag);
         c-=1;
         if (c ==0) {
@@ -257,7 +257,7 @@ Xml2Json.prototype._prepareParser = function (callback) {
  * @async
  */
 Xml2Json.prototype.parseString = function (xml_text, callback) {
-    var parser = this._prepareParser(callback);
+    const parser = this._prepareParser(callback);
     parser.write(xml_text);
     parser.end();
 
@@ -271,8 +271,8 @@ Xml2Json.prototype.parseString = function (xml_text, callback) {
  */
 Xml2Json.prototype.parse = function (xmlFile, callback) {
 
-    var  self = this;
-    var readWholeFile = true;
+    const self = this;
+    const readWholeFile = true;
     if (readWholeFile) {
 
         // slightly faster but require more memory ..
@@ -282,7 +282,7 @@ Xml2Json.prototype.parse = function (xmlFile, callback) {
                     data = data.slice(3);
                 }
                 data = data.toString();
-                var parser = self._prepareParser(callback);
+                const parser = self._prepareParser(callback);
                 //xx console.log(data.substr(0,1000).yellow);
                 //xx console.log(data.substr(data.length -1000,1000).cyan);
                 parser.write(data);
@@ -292,8 +292,8 @@ Xml2Json.prototype.parse = function (xmlFile, callback) {
             }
         });
     } else {
-        var Bomstrip = require("bomstrip");
-        var parser = self._prepareParser(callback);
+        const Bomstrip = require("bomstrip");
+        const parser = self._prepareParser(callback);
         fs.createReadStream(xmlFile, {autoClose: true, encoding: "utf8"})
             .pipe(new Bomstrip())
             .pipe(parser);

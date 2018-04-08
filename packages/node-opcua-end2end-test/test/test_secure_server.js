@@ -1,14 +1,14 @@
 "use strict";
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
-var OPCUAServer = opcua.OPCUAServer;
-var OPCUAClient = opcua.OPCUAClient;
-var SecurityPolicy = opcua.SecurityPolicy;
-var MessageSecurityMode = opcua.MessageSecurityMode;
+const opcua = require("node-opcua");
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
+const SecurityPolicy = opcua.SecurityPolicy;
+const MessageSecurityMode = opcua.MessageSecurityMode;
 
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 /*
 Discovery Endpoints shall not require any message security, but it may require transport layer
 security. In production systems, Administrators may disable discovery for security reasons and
@@ -30,10 +30,10 @@ If the Client detects that one of the above requirements is not fulfilled, then 
 the SecureChannel and report an error.
 
  */
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing behavior of secure Server ( server that only accept SIGN or SIGNANDENCRYPT channel", function () {
-    var server, client;
-    var endpointUrl;
+    let server, client;
+    let endpointUrl;
 
     this.timeout(Math.max(20000, this._timeout));
 
@@ -64,7 +64,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
         // ask for a very short session timeout
         client = new OPCUAClient({requestedSessionTimeout: 200});
 
-        var the_session;
+        let the_session;
 
         async.series([
             // assert that server has 0 session
@@ -90,7 +90,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
                 // skip the internal client test for invalid endpoint and get to the server
 
 
-                var unsecure_endpoint = new opcua.EndpointDescription(client._server_endpoints[0]);
+                const unsecure_endpoint = new opcua.EndpointDescription(client._server_endpoints[0]);
                 unsecure_endpoint.securityMode = MessageSecurityMode.NONE;
                 unsecure_endpoint.securityPolicyUri = SecurityPolicy.None.value;
                 client._server_endpoints.push(unsecure_endpoint);
@@ -123,7 +123,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
         // ask for a very short session timeout
         client = new OPCUAClient({requestedSessionTimeout: 200});
 
-        var the_session;
+        let the_session;
 
         async.series([
             // assert that server has 0 session

@@ -4,24 +4,24 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 
 
 exports.install = function (AddressSpace) {
 
-    var NodeClass = require("node-opcua-data-model").NodeClass;
+    const NodeClass = require("node-opcua-data-model").NodeClass;
     //var DataValue =  require("node-opcua-data-value").DataValue;
-    var Variant = require("node-opcua-variant").Variant;
-    var DataType = require("node-opcua-variant").DataType;
-    var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-    var LocalizedText = require("node-opcua-data-model").LocalizedText;
-    var NodeId = require("node-opcua-nodeid").NodeId;
-    var UADataType = require(".//ua_data_type").UADataType;
+    const Variant = require("node-opcua-variant").Variant;
+    const DataType = require("node-opcua-variant").DataType;
+    const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+    const LocalizedText = require("node-opcua-data-model").LocalizedText;
+    const NodeId = require("node-opcua-nodeid").NodeId;
+    const UADataType = require(".//ua_data_type").UADataType;
 
-    var EnumValueType  = require("node-opcua-data-model").EnumValueType;
-    var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+    const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+    const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
     /**
      *
      * @method addEnumerationType
@@ -85,19 +85,19 @@ exports.install = function (AddressSpace) {
         // When it is used to define the string representation of an Enumeration DataType, the value range
         // is limited to Int32, because the Enumeration DataType is a subtype of Int32. Part 8 specifies
         // other usages where the actual value might be between 8 and 64 Bit.
-        var self = this;
+        const self = this;
 
         assert(_.isString(options.browseName));
         assert(_.isArray(options.enumeration));
 
-        var definition;
-        var enumerationType = self.findDataType("Enumeration");
+        let definition;
+        const enumerationType = self.findDataType("Enumeration");
         assert(enumerationType.nodeId instanceof NodeId);
         assert(enumerationType instanceof UADataType)
-        var references = [
+        const references = [
             {referenceType: "HasSubtype", isForward: false, nodeId: enumerationType.nodeId}
         ];
-        var opts = {
+        const opts = {
             browseName: options.browseName,
             references: references,
             nodeClass: NodeClass.DataType,
@@ -107,7 +107,7 @@ exports.install = function (AddressSpace) {
             definition: definition
         };
 
-        var enumType = self._createNode(opts);
+        const enumType = self._createNode(opts);
 
         enumType.propagate_back_references();
 
@@ -125,7 +125,7 @@ exports.install = function (AddressSpace) {
             });
 
 
-            var enumStrings = self.addVariable({
+            const enumStrings = self.addVariable({
                 propertyOf: enumType,
                 browseName: "EnumStrings",
                 modellingRule: "Mandatory",
@@ -153,7 +153,7 @@ exports.install = function (AddressSpace) {
                 value: definition
             });
 
-            var enumValues = self.addVariable({
+            const enumValues = self.addVariable({
                 propertyOf: enumType,
                 browseName: "EnumValues",
                 modellingRule: "Mandatory",

@@ -1,20 +1,20 @@
 "use strict";
 /* global describe,it*/
 
-var DataValue = require("../src/datavalue").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue = require("../src/datavalue").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 require("should");
 
-var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("DataValue", function () {
 
     it("should create a empty DataValue and encode it as a 1-Byte length block", function () {
 
-        var dataValue = new DataValue();
+        const dataValue = new DataValue();
 
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(1);
@@ -23,7 +23,7 @@ describe("DataValue", function () {
 
     it("should create a DataValue with string variant and encode/decode it nicely ", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"})
         });
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
@@ -33,7 +33,7 @@ describe("DataValue", function () {
 
     it("should create a DataValue with string variant and some date and encode/decode it nicely", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             serverTimestamp: new Date(),
             serverPicoseconds: 1000,
@@ -47,7 +47,7 @@ describe("DataValue", function () {
 
     it("should create a DataValue with string variant and all dates and encode/decode it nicely", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: new Date(),
@@ -61,7 +61,7 @@ describe("DataValue", function () {
 
     it("DataValue#toString", function () {
 
-        var dataValue = new DataValue({
+        let dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: new Date(Date.UTC(1789, 6, 14)),
@@ -69,7 +69,7 @@ describe("DataValue", function () {
             sourceTimestamp: new Date(Date.UTC(2089, 6, 14)),
             sourcePicoseconds: 2000
         });
-        var str = dataValue.toString();
+        let str = dataValue.toString();
         str.split(/\n/).should.eql([
             "DataValue:",
             "   value:           Variant(Scalar<String>, value: Hello)",
@@ -97,20 +97,20 @@ describe("DataValue", function () {
     });
 
 
-    var extractRange = require("../src/datavalue").extractRange;
-    var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-    var NumericRange = require("node-opcua-numeric-range").NumericRange;
+    const extractRange = require("../src/datavalue").extractRange;
+    const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+    const NumericRange = require("node-opcua-numeric-range").NumericRange;
 
     it("DataValue - extractRange on a Float Array", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({
                 dataType: DataType.Double,
                 arrayType: VariantArrayType.Array,
                 value: new Float64Array([1, 2, 3, 4, 5, 6, 7])
             })
         });
-        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
         dataValue1.value.value.length.should.eql(2);
         dataValue1.value.value[0].should.eql(3.0);
         dataValue1.value.value[1].should.eql(4.0);
@@ -120,14 +120,14 @@ describe("DataValue", function () {
     });
     it("DataValue - extractRange on a String", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({
                 dataType: DataType.String,
                 arrayType: VariantArrayType.Scalar,
                 value: "1234567890"
             })
         });
-        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
         dataValue1.value.value.length.should.eql(2);
         dataValue1.value.value.should.eql("34");
         dataValue1.value.dataType.should.eql(DataType.String);
@@ -136,14 +136,14 @@ describe("DataValue", function () {
     });
     it("DataValue - extractRange on a ByteString", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({
                 dataType: DataType.ByteString,
                 arrayType: VariantArrayType.Scalar,
                 value: new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
             })
         });
-        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
         dataValue1.value.value.length.should.eql(2);
         dataValue1.value.value[0].should.eql(3.0);
         dataValue1.value.value[1].should.eql(4.0);
@@ -153,14 +153,14 @@ describe("DataValue", function () {
     });
 
     it("DataValue - extractRange on a ByteString (null value)", function () {
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({
                 dataType: DataType.ByteString,
                 arrayType: VariantArrayType.Scalar,
                 value: null
             })
         });
-        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
         dataValue1.value.dataType.should.eql(DataType.ByteString);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
         should.equal(null,dataValue1.value.value);
@@ -168,7 +168,7 @@ describe("DataValue", function () {
 
     it("DataValue - extractRange on a Array of ByteString", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({
                 dataType: DataType.ByteString,
                 arrayType: VariantArrayType.Array,
@@ -181,7 +181,7 @@ describe("DataValue", function () {
                 ]
            })
         });
-        var dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
         dataValue1.value.value.length.should.eql(2);
         dataValue1.value.value[0].toString().should.eql("GHI");
         dataValue1.value.value[1].toString().should.eql("JKL");
@@ -190,7 +190,7 @@ describe("DataValue", function () {
     });
     it("DataValue - extractRange on a Matrix of ByteString", function () {
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value: new Variant({
                 dataType: DataType.ByteString,
                 arrayType: VariantArrayType.Matrix,
@@ -214,7 +214,7 @@ describe("DataValue", function () {
                 ]
             })
         });
-        var dataValue1 = extractRange(dataValue, new NumericRange("2,1:2"));
+        const dataValue1 = extractRange(dataValue, new NumericRange("2,1:2"));
         dataValue1.value.value.length.should.eql(2);
         dataValue1.value.value[0].toString().should.eql("32");
         dataValue1.value.value[1].toString().should.eql("33");
@@ -239,13 +239,13 @@ describe("DataValue", function () {
         function install_test(copy_construct_or_clone, copy_construct_or_clone_func) {
             it("should " + copy_construct_or_clone + " a DataValue with a simple Variant", function () {
 
-                var dv = new DataValue({
+                const dv = new DataValue({
                     value: {
                         dataType: DataType.UInt32,
                         value: 36
                     }
                 });
-                var cloned = copy_construct_or_clone_func(dv);
+                const cloned = copy_construct_or_clone_func(dv);
 
                 cloned.value.dataType.should.eql(dv.value.dataType);
                 cloned.value.value.should.eql(dv.value.value);
@@ -253,14 +253,14 @@ describe("DataValue", function () {
             });
             it("should " + copy_construct_or_clone + " a DataValue with a variant array", function () {
 
-                var dv = new DataValue({
+                const dv = new DataValue({
                     value: {
                         dataType: DataType.UInt32,
                         value: [36, 37]
                     }
                 });
 
-                var cloned = copy_construct_or_clone_func(dv);
+                const cloned = copy_construct_or_clone_func(dv);
 
                 cloned.value.dataType.should.eql(dv.value.dataType);
                 cloned.value.value.should.eql(dv.value.value);
@@ -276,7 +276,7 @@ describe("DataValue", function () {
             });
             it("should " + copy_construct_or_clone + " a DataValue with a variant array of ByteString", function () {
 
-                var dv = new DataValue({
+                const dv = new DataValue({
                     value: new Variant({
                         dataType: DataType.ByteString,
                         arrayType: VariantArrayType.Array,
@@ -290,7 +290,7 @@ describe("DataValue", function () {
                     })
                 });
 
-                var cloned = copy_construct_or_clone_func(dv);
+                const cloned = copy_construct_or_clone_func(dv);
 
                 cloned.value.dataType.should.eql(dv.value.dataType);
                 cloned.value.value.should.eql(dv.value.value);
@@ -311,15 +311,15 @@ describe("DataValue", function () {
 
             it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object", function () {
 
-                var extObj = new SomeExtensionObject({a: 36});
-                var dv = new DataValue({
+                const extObj = new SomeExtensionObject({a: 36});
+                const dv = new DataValue({
                     value: {
                         dataType: DataType.ExtensionObject,
                         value: extObj
                     }
                 });
 
-                var cloned = copy_construct_or_clone_func(dv);
+                const cloned = copy_construct_or_clone_func(dv);
 
                 cloned.value.dataType.should.eql(dv.value.dataType);
                 cloned.value.value.a.should.eql(dv.value.value.a);
@@ -333,9 +333,9 @@ describe("DataValue", function () {
 
             });
             it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object array", function () {
-                var extObj1 = new SomeExtensionObject({a: 36});
-                var extObj2 = new SomeExtensionObject({a: 37});
-                var dv = new DataValue({
+                const extObj1 = new SomeExtensionObject({a: 36});
+                const extObj2 = new SomeExtensionObject({a: 37});
+                const dv = new DataValue({
                     value: {
                         dataType: DataType.ExtensionObject,
                         arrayType: VariantArrayType.Array,
@@ -345,7 +345,7 @@ describe("DataValue", function () {
                 });
 
                 // copy construct;,
-                var cloned = copy_construct_or_clone_func(dv);
+                const cloned = copy_construct_or_clone_func(dv);
 
                 cloned.value.dataType.should.eql(dv.value.dataType);
                 cloned.value.value[0].a.should.eql(36);

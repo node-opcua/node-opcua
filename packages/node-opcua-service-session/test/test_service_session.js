@@ -1,31 +1,31 @@
-var should = require("should");
-var service = require("..");
+const should = require("should");
+const service = require("..");
 
 
-var ApplicationDescription = require("node-opcua-service-endpoints").ApplicationDescription;
-var ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
-var CreateSessionRequest = service.CreateSessionRequest;
+const ApplicationDescription = require("node-opcua-service-endpoints").ApplicationDescription;
+const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
+const CreateSessionRequest = service.CreateSessionRequest;
 
 describe("Session Service",function() {
 
     it("should instantiate a CreateSessionRequest",function() {
-        var obj = new service.CreateSessionRequest();
+        const obj = new service.CreateSessionRequest();
     });
     it("should instantiate a CreateSessionResponse",function() {
-        var obj = new service.CreateSessionResponse();
+        const obj = new service.CreateSessionResponse();
     });
 
     it("should instantiate a ActivateSessionRequest",function() {
-        var obj = new service.ActivateSessionRequest();
+        const obj = new service.ActivateSessionRequest();
     });
     it("should instantiate a ActivateSessionResponse",function() {
-        var obj = new service.ActivateSessionResponse();
+        const obj = new service.ActivateSessionResponse();
     });
 
 
     it("should create a complex type with embedded type", function () {
 
-        var applicationDescription = new ApplicationDescription({
+        const applicationDescription = new ApplicationDescription({
             applicationUri: "application:uri",
             productUri: "uri:product",
             applicationName: {text: "MyApplication"},
@@ -36,7 +36,7 @@ describe("Session Service",function() {
         });
 
 
-        var request = new CreateSessionRequest({
+        const request = new CreateSessionRequest({
             clientDescription: applicationDescription,
             serverUri: "serverUri",
             endpointUrl: "endpointUrl",

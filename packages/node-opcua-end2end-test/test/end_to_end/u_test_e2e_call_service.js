@@ -1,19 +1,19 @@
 /*global describe, it, require*/
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var coerceNodeId = opcua.coerceNodeId;
-var StatusCodes = opcua.StatusCodes;
-var DataType = opcua.DataType;
-var VariantArrayType = opcua.VariantArrayType;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const coerceNodeId = opcua.coerceNodeId;
+const StatusCodes = opcua.StatusCodes;
+const DataType = opcua.DataType;
+const VariantArrayType = opcua.VariantArrayType;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 function exec_safely(func,done) {
     try{
@@ -27,7 +27,7 @@ function exec_safely(func,done) {
 module.exports = function (test) {
     describe("testing CALL SERVICE on a fake server exposing the temperature device", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient({
@@ -48,12 +48,12 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var objectId = coerceNodeId("ns=0;i=2253");// server
-                var methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItem
+                const objectId = coerceNodeId("ns=0;i=2253");// server
+                const methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItem
                 session.getArgumentDefinition(methodId, function (err, args) {
 
-                    var inputArguments  = args.inputArguments;
-                    var outputArguments = args.outputArguments;
+                    const inputArguments  = args.inputArguments;
+                    const outputArguments = args.outputArguments;
 
                     exec_safely(function(){
                         //xx console.log("inputArguments  ",inputArguments.toString());
@@ -96,8 +96,8 @@ module.exports = function (test) {
 
         it("Q3-0 should reports inputArgumentResults GOOD when CallRequest input is good", function (done) {
 
-            var invalidSubscriptionID = 1;
-            var methodToCalls = [];
+            const invalidSubscriptionID = 1;
+            const methodToCalls = [];
             methodToCalls.push({
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
@@ -133,7 +133,7 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
 
-                var methodToCalls = [];
+                const methodToCalls = [];
                 methodToCalls.push({
                     objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                     methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
@@ -167,8 +167,8 @@ module.exports = function (test) {
 
         it("Q3-1 should return BadInvalidArgument /  BadTypeMismatch when CallRequest input argument has the wrong DataType", function (done) {
 
-            var invalidSubscriptionID = 1;
-            var methodToCalls = [];
+            const invalidSubscriptionID = 1;
+            const methodToCalls = [];
             methodToCalls.push({
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
@@ -206,8 +206,8 @@ module.exports = function (test) {
 
             // note : this test causes ProsysOPC Demo server 2.2.0.94 to report a ServiceFault with a internal error
             //        (this issue has been reported to Jouni)
-            var invalidSubscriptionID = 1;
-            var methodToCalls = [];
+            const invalidSubscriptionID = 1;
+            const methodToCalls = [];
             methodToCalls.push({
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
@@ -237,9 +237,9 @@ module.exports = function (test) {
 
         it("Q3-4 should handle multiple calls", function (done) {
 
-            var many_calls = 50;
-            var methodToCalls = [];
-            for (var i = 0; i < many_calls; i++) {
+            const many_calls = 50;
+            const methodToCalls = [];
+            for (let i = 0; i < many_calls; i++) {
                 methodToCalls.push({
                     objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                     methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
@@ -269,9 +269,9 @@ module.exports = function (test) {
 
         it("Q3-5 should return BadTooManyOperations when CallRequest has too many methods to call", function (done) {
 
-            var too_many = 50000;
-            var methodToCalls = [];
-            for (var i = 0; i < too_many; i++) {
+            const too_many = 50000;
+            const methodToCalls = [];
+            for (let i = 0; i < too_many; i++) {
                 methodToCalls.push({
                     objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                     methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
@@ -300,7 +300,7 @@ module.exports = function (test) {
         it("Q4 should succeed and return BadNodeIdInvalid when CallRequest try to address an node that is not an UAObject", function (done) {
 
 
-            var methodToCalls = [{
+            const methodToCalls = [{
                 objectId: coerceNodeId("ns=0;i=864"), //  Default Binary doesn't have methods
                 methodId: coerceNodeId("ns=0;i=11489"),
                 inputArguments: [{dataType: DataType.UInt32, value: [1]}]
@@ -324,7 +324,7 @@ module.exports = function (test) {
 
         it("Q5 should succeed and return BadNodeIdUnknown when CallRequest try to address an unknown object", function (done) {
 
-            var methodToCalls = [{
+            const methodToCalls = [{
                 objectId: coerceNodeId("ns=0;s=UnknownObject"),
                 methodId: coerceNodeId("ns=0;s=UnknownMethod")
             }];
@@ -347,7 +347,7 @@ module.exports = function (test) {
 
         it("Q6 should succeed and return BadMethodInvalid when CallRequest try to address an unknwon method on a valid object", function (done) {
 
-            var methodToCalls = [{
+            const methodToCalls = [{
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;s=unknown_method")
                 // methodId: coerceNodeId("ns=0;s=11489")
@@ -371,7 +371,7 @@ module.exports = function (test) {
 
         it("Q7 should succeed and return BadInvalidArgument when CallRequest has invalid arguments", function (done) {
 
-            var methodToCalls = [{
+            const methodToCalls = [{
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
                 inputArguments: [] // invalid => missing arg !
@@ -396,7 +396,7 @@ module.exports = function (test) {
 
         it("Q8 should succeed and return BadTypeMismatch when CallRequest is GetMonitoredItem and has the argument with a wrong dataType ", function (done) {
 
-            var methodToCalls = [{
+            const methodToCalls = [{
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
                 inputArguments: [
@@ -429,8 +429,8 @@ module.exports = function (test) {
 
             opcua.MethodIds.Server_GetMonitoredItems.should.eql(11492);
 
-            var subscriptionId = 100;
-            var methodToCalls = [{
+            const subscriptionId = 100;
+            const methodToCalls = [{
                 objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
                 methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
 
@@ -463,7 +463,7 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                    var subscriptionId = 1000000; // invalid subscription ID
+                    const subscriptionId = 1000000; // invalid subscription ID
 
                     session.getMonitoredItems(subscriptionId, function (err, monitoredItems) {
 
@@ -482,7 +482,7 @@ module.exports = function (test) {
 
                 perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
-                    var subscriptionId = subscription.subscriptionId;
+                    const subscriptionId = subscription.subscriptionId;
 
                     session.getMonitoredItems(subscriptionId, function (err, result) {
                         exec_safely(function(){
@@ -504,9 +504,9 @@ module.exports = function (test) {
 
                 perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
-                    var subscriptionId = subscription.subscriptionId;
+                    const subscriptionId = subscription.subscriptionId;
 
-                    var monitoredItem = subscription.monitor(
+                    const monitoredItem = subscription.monitor(
                         {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
                         {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
@@ -543,8 +543,8 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                    var getMonitoredItemMethodId = "ns=0;i=11492";
-                    var nodesToRead = [
+                    const getMonitoredItemMethodId = "ns=0;i=11492";
+                    const nodesToRead = [
                         {
                             nodeId: getMonitoredItemMethodId,
                             attributeId: AttributeIds.Executable
@@ -574,11 +574,11 @@ module.exports = function (test) {
         it("should find the OutputArguments and InputArguments Properties with a translate browse path request (like UAExpert)", function (done) {
 
             // note : this is how UAExpert tries to figure out what are the input and output arguments definition
-            var getMonitoredItemMethodId = coerceNodeId("ns=0;i=11492");
+            const getMonitoredItemMethodId = coerceNodeId("ns=0;i=11492");
 
-            var hasPropertyRefId = resolveNodeId("HasProperty");
+            const hasPropertyRefId = resolveNodeId("HasProperty");
             /* NodeId  ns=0;i=46*/
-            var browsePath = [{
+            const browsePath = [{
                 startingNode: /* NodeId  */ getMonitoredItemMethodId,
                 relativePath: /* RelativePath   */  {
                     elements: /* RelativePathElement */ [

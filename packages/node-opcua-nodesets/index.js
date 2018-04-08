@@ -1,14 +1,14 @@
 "use strict";
-var path = require("path");
-var fs = require("fs");
+const path = require("path");
+const fs = require("fs");
 
 function constructNodesetFilename (filename) {
 
-    var dirname = __dirname;
-    var file = path.join(dirname,"nodesets", filename);
+    const dirname = __dirname;
+    let file = path.join(dirname,"nodesets", filename);
     if (!fs.existsSync(file)) {
         // let's find alternate places where to find the nodeset folder
-        var appfolder = path.dirname(process.argv[1]);
+        let appfolder = path.dirname(process.argv[1]);
         file = path.join(appfolder, "nodesets", filename);
         if (!fs.existsSync(file)) {
             appfolder = process.cwd();

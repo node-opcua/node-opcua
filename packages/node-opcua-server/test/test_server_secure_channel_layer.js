@@ -1,19 +1,19 @@
 
-var ServerSecureChannelLayer = require("node-opcua-secure-channel/src/server/server_secure_channel_layer").ServerSecureChannelLayer;
-var should = require("should");
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var DirectTransport = require("node-opcua-transport/test_helpers/fake_socket").DirectTransport;
+const ServerSecureChannelLayer = require("node-opcua-secure-channel/src/server/server_secure_channel_layer").ServerSecureChannelLayer;
+const should = require("should");
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const DirectTransport = require("node-opcua-transport/test_helpers/fake_socket").DirectTransport;
 
-var GetEndpointsRequest = require("node-opcua-service-endpoints").GetEndpointsRequest;
+const GetEndpointsRequest = require("node-opcua-service-endpoints").GetEndpointsRequest;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
 
     this.timeout(1990000);
 
     it("KK1 should create a ServerSecureChannelLayer", function () {
 
-        var server_secure_channel = new ServerSecureChannelLayer();
+        let server_secure_channel = new ServerSecureChannelLayer();
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout.should.be.greaterThan(100);
 
@@ -23,8 +23,8 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     it("KK2 should end with a timeout if no message is received from client", function (done) {
 
-        var node = new DirectTransport();
-        var server_secure_channel = new ServerSecureChannelLayer({});
+        const node = new DirectTransport();
+        const server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
 
@@ -40,11 +40,11 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     it("KK3 should end with a timeout if HEL/ACK is OK but no further message is received from client", function (done) {
 
-        var node = new DirectTransport();
+        const node = new DirectTransport();
 
-        var server_has_emitted_the_abort_message = false;
+        let server_has_emitted_the_abort_message = false;
 
-        var server_secure_channel = new ServerSecureChannelLayer();
+        const server_secure_channel = new ServerSecureChannelLayer();
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
 
@@ -61,17 +61,17 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         // now
-        var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        const fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
     });
 
     it("KK4 should return an error and shutdown if first message is not OpenSecureChannelRequest ", function (done) {
 
-        var node = new DirectTransport();
+        const node = new DirectTransport();
 
-        var server_has_emitted_the_abort_message = false;
-        var server_secure_channel = new ServerSecureChannelLayer({});
+        let server_has_emitted_the_abort_message = false;
+        let server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity("NONE", "None");
 
 
@@ -95,19 +95,19 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
 
-        var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        const fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_NotAOpenSecureChannelMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndpointsRequest
+        const fake_NotAOpenSecureChannelMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndpointsRequest
         node.client.write(fake_NotAOpenSecureChannelMessage);
 
     });
 
     it("KK5 should handle a OpenSecureChannelRequest and pass no err in the init callback ", function (done) {
 
-        var node = new DirectTransport();
+        const node = new DirectTransport();
 
-        var server_secure_channel = new ServerSecureChannelLayer({});
+        let server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server, function (err) {
@@ -116,10 +116,10 @@ describe("testing ServerSecureChannelLayer ", function () {
             server_secure_channel.close(done);
         });
 
-        var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        const fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_OpenSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
+        const fake_OpenSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
         server_secure_channel.close(function() {
@@ -130,9 +130,9 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     it("KK6 should handle a OpenSecureChannelRequest start emitting subsequent messages ", function (done) {
 
-        var node = new DirectTransport();
+        const node = new DirectTransport();
 
-        var server_secure_channel = new ServerSecureChannelLayer();
+        const server_secure_channel = new ServerSecureChannelLayer();
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server, function (err) {
@@ -148,13 +148,13 @@ describe("testing ServerSecureChannelLayer ", function () {
             });
         });
 
-        var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        const fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_OpenSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
+        const fake_OpenSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        var fake_GetEndpointsRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndPoints
+        const fake_GetEndpointsRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GetEndPoints
         node.client.write(fake_GetEndpointsRequest);
 
         // server_secure_channel.close(function() {
@@ -166,16 +166,16 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", function (done) {
 
-        var node = new DirectTransport();
+        const node = new DirectTransport();
 
-        var server_secure_channel = new ServerSecureChannelLayer();
+        let server_secure_channel = new ServerSecureChannelLayer();
         server_secure_channel.setSecurity("NONE", "None");
         server_secure_channel.timeout = 50;
         server_secure_channel.init(node.server, function (err) {
             should(err).eql(null);
         });
 
-        var nb_on_message_calls = 0;
+        let nb_on_message_calls = 0;
         server_secure_channel.on("message", function (message) {
 
             message.request._schema.name.should.not.equal("CloseSecureChannelRequest");
@@ -192,16 +192,16 @@ describe("testing ServerSecureChannelLayer ", function () {
             done();
         });
 
-        var fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
+        const fake_HelloMessage = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_1; // HEL
         node.client.write(fake_HelloMessage);
 
-        var fake_OpenSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
+        const fake_OpenSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        var fake_GetEndpointsRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GEP
+        const fake_GetEndpointsRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_3; // GEP
         node.client.write(fake_GetEndpointsRequest);
 
-        var fake_CloseSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_4; // CLO
+        const fake_CloseSecureChannelRequest = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets").packet_cs_4; // CLO
         node.client.write(fake_CloseSecureChannelRequest);
 
     });

@@ -5,11 +5,11 @@
  * BNF for RelativePath
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
 
 
 /*
@@ -62,10 +62,10 @@ var QualifiedName = require("node-opcua-data-model").QualifiedName;
  *                          omitted then namespace index 0 is used.
  */
 
-var hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
-var aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
+const hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
+const aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
 
-var RelativePath  = require("../_generated_/_auto_generated_RelativePath").RelativePath;
+const RelativePath  = require("../_generated_/_auto_generated_RelativePath").RelativePath;
 
 
 //  The following BNF describes the syntax of the RelativePath text format.
@@ -78,24 +78,24 @@ var RelativePath  = require("../_generated_/_auto_generated_RelativePath").Relat
 //  <reserved-char> ::= '/' | '.' | '<' | '>' | ':' | '#' | '!' | '&'
 //  <name-char> ::= All valid characters for a String (see Part 3) excluding reserved-chars.
 //
-var name_char = /[^/\.<>:#!&]/;
-var reserved_char = /[/\.<>:#!&]/;
-var regName = new RegExp( "(" + name_char.source + "|(\&" + reserved_char.source +"))+");
-var regNamespaceIndex = /[0-9]+/;
-var regBrowseName = new RegExp("("+ regNamespaceIndex.source +":)?(" + regName.source+")");
-var regReferenceType = new RegExp("\/|\\.|(\<(\#)?(\!)?("+ regBrowseName.source +")\>)");
+const name_char = /[^/\.<>:#!&]/;
+const reserved_char = /[/\.<>:#!&]/;
+const regName = new RegExp( "(" + name_char.source + "|(\&" + reserved_char.source +"))+");
+const regNamespaceIndex = /[0-9]+/;
+const regBrowseName = new RegExp("("+ regNamespaceIndex.source +":)?(" + regName.source+")");
+const regReferenceType = new RegExp("\/|\\.|(\<(\#)?(\!)?("+ regBrowseName.source +")\>)");
 
-var regRelativePath = new RegExp("("+regReferenceType.source+")("+regBrowseName.source+")?");
+const regRelativePath = new RegExp("("+regReferenceType.source+")("+regBrowseName.source+")?");
 function unescape(str) {
     return str.replace(/&/g,"");
 }
 function makeQualifiedName(mm) {
-    var strName = mm[10];
+    const strName = mm[10];
     if (!strName || strName.length===0) {
         return new QualifiedName();
     }
-    var namespaceIndex = mm[11] ? parseInt(mm[11]) : 0 ;
-    var name = unescape(mm[12]);
+    const namespaceIndex = mm[11] ? parseInt(mm[11]) : 0;
+    const name = unescape(mm[12]);
     return  new QualifiedName({namespaceIndex: namespaceIndex,name: name});
 }
 
@@ -115,24 +115,24 @@ function makeQualifiedName(mm) {
 function makeRelativePath(str,addressSpace) {
 
 
-    var r ={
+    let r ={
         elements:[]
     };
 
     while (str.length>0) {
 
-        var matches = str.match(regRelativePath);
+        const matches = str.match(regRelativePath);
         if (!matches) {
             throw new Error("Malformed relative path  :'" + str +"'");
         }
         // console.log(mm);
 
-        var referenceTypeId,includeSubtypes,isInverse;
+        let referenceTypeId, includeSubtypes, isInverse;
 
         //
         // ------------ extract reference type
         //
-        var refStr = matches[1];
+        const refStr = matches[1];
         if (refStr === "/" ) {
 
             referenceTypeId= hierarchicalReferenceTypeNodeId;
@@ -154,8 +154,8 @@ function makeRelativePath(str,addressSpace) {
             // match 5
             // namespace match 6 ( ns:)
             // name      match 7
-            var ns = matches[6] ? parseInt(matches[6]) :0;
-            var name = matches[7];
+            const ns = matches[6] ? parseInt(matches[6]) :0;
+            const name = matches[7];
             if ( !matches[6] ) {
                 //xx console.log( mm[6])
                 referenceTypeId = resolveNodeId(name);

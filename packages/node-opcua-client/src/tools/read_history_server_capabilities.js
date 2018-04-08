@@ -1,29 +1,29 @@
 /**
  *
  */
-var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
-var makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
-var ObjectIds = require("node-opcua-constants").ObjectIds;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
+const makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
+const ObjectIds = require("node-opcua-constants").ObjectIds;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 
 function readHistorySeverCapabilities(the_session,callback) {
     // display HistoryCapabilities of server
-    var browsePath = makeBrowsePath(ObjectIds.ObjectsFolder,"/Server/ServerCapabilities.HistoryServerCapabilities");
+    const browsePath = makeBrowsePath(ObjectIds.ObjectsFolder,"/Server/ServerCapabilities.HistoryServerCapabilities");
 
     the_session.translateBrowsePath(browsePath,function(err,result) {
         if (err) { return callback(err); }
         if (result.statusCode !==  StatusCodes.Good) {
             return callback();
         }
-        var historyServerCapabilitiesNodeId = result.targets[0].targetId;
+        const historyServerCapabilitiesNodeId = result.targets[0].targetId;
         // (should be ns=0;i=11192)
         assert(historyServerCapabilitiesNodeId.toString() === "ns=0;i=11192");
 
         // -------------------------
-        var properties = [
+        const properties = [
             "AccessHistoryDataCapability",
             "AccessHistoryEventsCapability",
             "DeleteAtTimeCapability",
@@ -48,7 +48,7 @@ function readHistorySeverCapabilities(the_session,callback) {
             "AggregateFunctions/DurationStateNonZero",
             // etc....
         ];
-        var browsePaths = properties.map(function(prop) {
+        const browsePaths = properties.map(function(prop) {
             return makeBrowsePath(historyServerCapabilitiesNodeId,"." + prop);
         });
 
@@ -56,22 +56,22 @@ function readHistorySeverCapabilities(the_session,callback) {
             if (err) {
                 return callback();
             }
-            var nodeIds = results.map(function(result) {
+            const nodeIds = results.map(function(result) {
                 return (result.statusCode === StatusCodes.Good) ? result.targets[0].targetId : NodeId.NullId;
             });
 
-            var nodesToRead = nodeIds.map(function(nodeId){
+            const nodesToRead = nodeIds.map(function(nodeId){
                 return { nodeId: nodeId, attributeId: AttributeIds.Value };
             });
 
-            var data = {};
+            const data = {};
             the_session.read(nodesToRead,function(err,dataValues){
                 if (err) { return callback(err);}
 
-                for(var i=0;i<dataValues.length; i++ ) {
+                for(let i=0;i<dataValues.length; i++ ) {
                     //xx console.log(properties[i] , "=",
                     //xx     dataValues[i].value ? dataValues[i].value.toString() :"<null>" + dataValues[i].statusCode.toString());
-                    var propName = lowerFirstLetter(properties[i]);
+                    const propName = lowerFirstLetter(properties[i]);
                     data[propName] = dataValues[i].value.value;
                 }
                 callback(null,data);

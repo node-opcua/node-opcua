@@ -1,11 +1,11 @@
 "use strict";
 require("should");
-var replaceBufferWithHexDump = require("../src/replace_buffer_with_hex_dump").replaceBufferWithHexDump;
+const replaceBufferWithHexDump = require("../src/replace_buffer_with_hex_dump").replaceBufferWithHexDump;
 
 describe("replaceBufferWithHexDump",function() {
     it("replaceBufferWithHexDump", function () {
 
-        var obj = {stuff: new Buffer("ABCDEF")};
+        let obj = {stuff: new Buffer("ABCDEF")};
 
         obj = replaceBufferWithHexDump(obj);
 

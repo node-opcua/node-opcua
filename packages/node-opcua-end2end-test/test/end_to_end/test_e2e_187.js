@@ -1,49 +1,49 @@
 "use strict";
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const _ = require("underscore");
 
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var OPCUAServer = opcua.OPCUAServer;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const OPCUAServer = opcua.OPCUAServer;
 
-var context = opcua.SessionContext.defaultContext;
+const context = opcua.SessionContext.defaultContext;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
+const makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
 
 
-var doDebug = false;
+const doDebug = false;
 
-var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
+const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing monitoring Executable flags on methods", function () {
 
 
     this.timeout(Math.max(60000, this._timeout));
 
-    var server, client, endpointUrl;
+    let server, client, endpointUrl;
 
-    var boiler_on_server;
-    var port = 20000;
+    let boiler_on_server;
+    let port = 20000;
     before(function (done) {
         port += 1;
 
-        var options = {port: port};
+        const options = {port: port};
         server = new OPCUAServer(options);
 
         server.on("post_initialize", function () {
             boiler_on_server = makeBoiler(server.engine.addressSpace, {browseName: "Boiler#1"});
 
-            var haltMethod = boiler_on_server.simulation.getMethodByName("Halt");
-            var resetMethod = boiler_on_server.simulation.getMethodByName("Reset");
-            var startMethod = boiler_on_server.simulation.getMethodByName("Start");
-            var suspendMethod = boiler_on_server.simulation.getMethodByName("Suspend");
+            const haltMethod = boiler_on_server.simulation.getMethodByName("Halt");
+            const resetMethod = boiler_on_server.simulation.getMethodByName("Reset");
+            const startMethod = boiler_on_server.simulation.getMethodByName("Start");
+            const suspendMethod = boiler_on_server.simulation.getMethodByName("Suspend");
             haltMethod.getExecutableFlag(context).should.eql(true);
             resetMethod.getExecutableFlag(context).should.eql(false);
             startMethod.getExecutableFlag(context).should.eql(true);
@@ -81,15 +81,15 @@ describe("testing monitoring Executable flags on methods", function () {
 
     it("#187 ...... ", function (done) {
 
-        var proxyManager;
+        let proxyManager;
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager = new UAProxyManager(session);
-            var nodeId = boiler_on_server;
+            const nodeId = boiler_on_server;
 
 
-            var boiler;
+            let boiler;
             async.series([
 
                 function (callback) {
@@ -98,7 +98,7 @@ describe("testing monitoring Executable flags on methods", function () {
 
                 function (callback) {
                     //xx var smType = "BoilerStateMachineType";
-                    var smType = "ProgramStateMachineType";
+                    const smType = "ProgramStateMachineType";
                     proxyManager.getStateMachineType(smType, function (err, obj) {
 
                         if (!err) {

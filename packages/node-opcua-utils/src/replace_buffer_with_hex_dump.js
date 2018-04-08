@@ -1,7 +1,7 @@
 "use strict";
 
 function replaceBufferWithHexDump(obj) {
-    for (var p in obj) {
+    for (const p in obj) {
         if (obj.hasOwnProperty(p)) {
             if (obj[p] instanceof Buffer) {
                 obj[p] = "<BUFFER>" + obj[p].toString("hex") + "</BUFFER>";

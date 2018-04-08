@@ -1,22 +1,22 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var async = require("async");
+const async = require("async");
 
-var build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
+const build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
 
-var VariableIds = require("node-opcua").VariableIds;
-var subscription_service = require("node-opcua").subscription_service;
-var read_service = require("node-opcua").read_service;
-var makeNodeId = require("node-opcua").makeNodeId;
+const VariableIds = require("node-opcua").VariableIds;
+const subscription_service = require("node-opcua").subscription_service;
+const read_service = require("node-opcua").read_service;
+const makeNodeId = require("node-opcua").makeNodeId;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {
 
     this.timeout(20000);
 
-    var g_session;
-    var client_server;
+    let g_session;
+    let client_server;
 
     before(function (done) {
 
@@ -37,10 +37,10 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should create a subscription (CreateSubscriptionRequest)", function (done) {
 
-        var subscriptionId = null;
+        let subscriptionId = null;
 
         // CreateSubscriptionRequest
-        var request = new subscription_service.CreateSubscriptionRequest({
+        const request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100 * 60 * 10,
             requestedMaxKeepAliveCount: 20,
@@ -60,7 +60,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
             //xx console.log(response.toString());
 
             setImmediate(function () {
-                var request = new subscription_service.DeleteSubscriptionsRequest({
+                const request = new subscription_service.DeleteSubscriptionsRequest({
                     subscriptionIds: [ subscriptionId ]
                 });
                 g_session.deleteSubscriptions(request, function (err, result) {
@@ -73,9 +73,9 @@ describe("testing basic Client Server dealing with subscription at low level", f
     it("server should create a monitored item  (CreateMonitoredItems)", function (done) {
 
 
-        var subscriptionId = null;
+        let subscriptionId = null;
         // CreateSubscriptionRequest
-        var request = new subscription_service.CreateSubscriptionRequest({
+        const request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100 * 60 * 10,
             requestedMaxKeepAliveCount: 20,
@@ -92,7 +92,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
 
             // CreateMonitoredItemsRequest
-            var request = new subscription_service.CreateMonitoredItemsRequest({
+            const request = new subscription_service.CreateMonitoredItemsRequest({
                 subscriptionId: subscriptionId,
                 timestampsToReturn: read_service.TimestampsToReturn.Both,
                 itemsToCreate: [
@@ -122,13 +122,13 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle Publish request", function (done) {
 
-        var subscriptionId = null;
+        let subscriptionId = null;
 
         async.series([
             function (callback) {
 
                 // CreateSubscriptionRequest
-                var request = new subscription_service.CreateSubscriptionRequest({
+                const request = new subscription_service.CreateSubscriptionRequest({
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 100 * 60 * 10,
                     requestedMaxKeepAliveCount: 20,
@@ -147,7 +147,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
             function (callback) {
 
                 // publish request now requires a subscriptions
-                var request = new subscription_service.PublishRequest({
+                const request = new subscription_service.PublishRequest({
                     subscriptionAcknowledgements: []
                 });
 
@@ -167,7 +167,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
                 });
             },
             function(callback) {
-                var request = new subscription_service.DeleteSubscriptionsRequest({
+                const request = new subscription_service.DeleteSubscriptionsRequest({
                     subscriptionIds: [ subscriptionId ]
                 });
                 g_session.deleteSubscriptions(request, function (err, result) {
@@ -181,7 +181,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle DeleteMonitoredItems  request", function (done) {
 
-        var request = new subscription_service.DeleteMonitoredItemsRequest({});
+        const request = new subscription_service.DeleteMonitoredItemsRequest({});
         g_session.deleteMonitoredItems(request, function (err, response) {
             err.message.should.match(/BadSubscriptionIdInvalid/);
             done();
@@ -201,7 +201,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle DeleteSubscriptionsRequest", function (done) {
 
-        var request = new subscription_service.DeleteSubscriptionsRequest({
+        const request = new subscription_service.DeleteSubscriptionsRequest({
             subscriptionIds: [1, 2]
         });
         g_session.deleteSubscriptions(request, function (err, response) {

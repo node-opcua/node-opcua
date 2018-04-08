@@ -1,30 +1,30 @@
 /*global it,describe,beforeEach,afterEach,require*/
 "use strict";
 
-var assert = require("node-opcua-assert");
-var should = require("should");
-var async = require("async");
+const assert = require("node-opcua-assert");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var ClientSession = opcua.ClientSession;
-var ClientSubscription = opcua.ClientSubscription;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var Variant = opcua.Variant;
-var DataType =opcua.DataType;
-var makeNodeId = opcua.makeNodeId;
-var VariableIds = opcua.VariableIds;
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSession = opcua.ClientSession;
+const ClientSubscription = opcua.ClientSubscription;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const Variant = opcua.Variant;
+const DataType =opcua.DataType;
+const makeNodeId = opcua.makeNodeId;
+const VariableIds = opcua.VariableIds;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
 module.exports = function (test) {
     describe("Testing bug #119 - Verify that monitored item only reports expected value change notifications :", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient({
@@ -47,7 +47,7 @@ module.exports = function (test) {
 
                 assert(session instanceof ClientSession);
 
-                var subscription = new ClientSubscription(session, {
+                const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount:      6000,// make sure subscription will not timeout
                     requestedMaxKeepAliveCount:  1000,// make sure we won't received spurious KeepAlive PublishResponse
@@ -60,14 +60,14 @@ module.exports = function (test) {
                     inner_done();
                 });
 
-                var nodeId = makeNodeId(VariableIds.Server_ServerStatus_BuildInfo_ProductName); // "ns=0;i=2261";
+                const nodeId = makeNodeId(VariableIds.Server_ServerStatus_BuildInfo_ProductName); // "ns=0;i=2261";
 
-                var monitoredItem = subscription.monitor(
+                const monitoredItem = subscription.monitor(
                     {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                     {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
 
-                var change_count = 0;
+                let change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
                     should.exist(dataValue);
                     change_count += 1;
@@ -93,7 +93,7 @@ module.exports = function (test) {
 
                         function (callback) {
 
-                            var node = test.server.engine.addressSpace.findNode(nodeId);
+                            const node = test.server.engine.addressSpace.findNode(nodeId);
                             should.exist(node);
 
                             //  change server productName ( from the server side)
@@ -125,7 +125,7 @@ module.exports = function (test) {
 
                 assert(session instanceof ClientSession);
 
-                var subscription = new ClientSubscription(session, {
+                const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 250,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 10,
@@ -138,22 +138,22 @@ module.exports = function (test) {
                     inner_done();
                 });
 
-                var nodeId = "ns=411;s=Scalar_Static_Double";
+                const nodeId = "ns=411;s=Scalar_Static_Double";
 
-                var count = 1.0;
+                let count = 1.0;
 
-                var v = test.server.engine.addressSpace.findNode(nodeId);
+                const v = test.server.engine.addressSpace.findNode(nodeId);
                 v.setValueFromSource(new Variant({dataType: DataType.Double, value: count}));
 
 
                 // change the underlying value at a very fast rate (every 20ms)
-                var timerId = setInterval(function () {
+                const timerId = setInterval(function () {
                     count += 1;
                     v.setValueFromSource(new Variant({dataType: DataType.Double, value: count}));
                 }, 20); // high rate !!!
 
 
-                var monitoredItem = subscription.monitor(
+                const monitoredItem = subscription.monitor(
                     {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                     {
                         samplingInterval: 500, // slow rate  (slower than publishing rate)
@@ -162,7 +162,7 @@ module.exports = function (test) {
                     }, opcua.read_service.TimestampsToReturn.Both);
 
 
-                var change_count = 0;
+                let change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
                     should.exist(dataValue);
                     //xx console.log(" data Value = ",dataValue.value.toString());

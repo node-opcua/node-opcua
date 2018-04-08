@@ -1,25 +1,25 @@
 /* global xit,it,describe,beforeEach,afterEach*/
 "use strict";
 
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var StatusCodes = opcua.StatusCodes;
-var MonitoringMode = opcua.subscription_service.MonitoringMode;
-var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
-var constructEventFilter = opcua.constructEventFilter;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const StatusCodes = opcua.StatusCodes;
+const MonitoringMode = opcua.subscription_service.MonitoringMode;
+const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+const constructEventFilter = opcua.constructEventFilter;
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
     describe("Client Subscription with Event monitoring", function () {
-        var client;
+        let client;
 
         beforeEach(function (done) {
             client = new OPCUAClient();
@@ -32,23 +32,23 @@ module.exports = function (test) {
 
         it("ZZ1 CreateMonitoredItemsRequest: server should not accept en Event filter if node attribute to monitor is not EventNotifier", function (done) {
 
-            var filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+            const filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                var itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.read_service.ReadValueId({
                     nodeId: resolveNodeId("Server_ServerStatus"),
                     attributeId: AttributeIds.Value // << we set Value here
                 });
 
-                var parameters = {
+                const parameters = {
                     samplingInterval: 0,
                     discardOldest: false,
                     queueSize: 1,
                     filter: filter   // we use an invalid EventFilter here !=> server should complain
                 };
 
-                var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
 
                     subscriptionId: subscription.subscriptionId,
                     timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
@@ -95,19 +95,19 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                var itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.read_service.ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
                 });
 
-                var parameters = {
+                const parameters = {
                     samplingInterval: 0,
                     discardOldest: false,
                     queueSize: 1,
                     filter: null
                 };
 
-                var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
                     timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
                     itemsToCreate: [{
@@ -146,27 +146,27 @@ module.exports = function (test) {
         // check if nodeID exists
         it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function (done) {
 
-            var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
+            const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
-            var eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
+            const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 
             //xx console.log("filter = ",filter.toString());
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                var itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.read_service.ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
                 });
 
-                var parameters = {
+                const parameters = {
                     samplingInterval: 0,
                     discardOldest: false,
                     queueSize: 1,
                     filter: eventFilter
                 };
 
-                var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
                     timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
                     itemsToCreate: [{
@@ -189,7 +189,7 @@ module.exports = function (test) {
                         should(createMonitoredItemsResponse.results[0].filterResult).not.eql(null, "a filter result is requested");
 
 
-                        var filterResult = createMonitoredItemsResponse.results[0].filterResult;
+                        const filterResult = createMonitoredItemsResponse.results[0].filterResult;
                         filterResult.should.be.instanceof(opcua.subscription_service.EventFilterResult);
 
                         // verify selectClauseResults count
@@ -200,7 +200,7 @@ module.exports = function (test) {
                         filterResult.selectClauseResults[2].should.eql(StatusCodes.Good);
 
                         // verify whereClauseResult
-                        var ContentFilterResult = opcua.subscription_service.ContentFilterResult;
+                        const ContentFilterResult = opcua.subscription_service.ContentFilterResult;
                         filterResult.whereClauseResult.should.be.instanceof(ContentFilterResult);
 
                     }
@@ -221,18 +221,18 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                var readValue = {
+                const readValue = {
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.BrowseName // << NOT (Value or EventNotifier)
                 };
-                var requestedParameters = {
+                const requestedParameters = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1,
 
                     filter: new opcua.subscription_service.DataChangeFilter({}) // FILTER !
                 };
-                var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
                     err.message.should.match(/no filter expected/);
                     //xx console.log(err.message);
@@ -246,11 +246,11 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                var readValue = {
+                const readValue = {
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier // << EventNotifier
                 };
-                var requestedParameters = {
+                const requestedParameters = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1,
@@ -258,7 +258,7 @@ module.exports = function (test) {
                     filter: new opcua.subscription_service.DataChangeFilter({}) // intentionally wrong :not an EventFilter
 
                 };
-                var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
                     err.message.should.match(/Got a DataChangeFilter but a EventFilter/);
                     console.log(err.message);
@@ -273,9 +273,9 @@ module.exports = function (test) {
 
             function callEventGeneratorMethod(session,callback) {
 
-                var eventGeneratorObject = test.server.engine.addressSpace.rootFolder.objects.simulation.eventGeneratorObject;
+                const eventGeneratorObject = test.server.engine.addressSpace.rootFolder.objects.simulation.eventGeneratorObject;
 
-                var methodsToCall = [{
+                const methodsToCall = [{
                     objectId: eventGeneratorObject.nodeId,
                     methodId: eventGeneratorObject.eventGeneratorMethod.nodeId.toString(),
                     inputArguments: [
@@ -294,18 +294,18 @@ module.exports = function (test) {
 
             it("TE1 - should monitored Server Event", function (done) {
 
-                var fields = ["EventType","SourceName", "EventId", "ReceiveTime","Severity","Message"];
-                var eventFilter = constructEventFilter(fields);
+                const fields = ["EventType","SourceName", "EventId", "ReceiveTime","Severity","Message"];
+                const eventFilter = constructEventFilter(fields);
 
                 perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, inner_callback) {
 
 
-                    var eventNotificationCount = 0;
+                    let eventNotificationCount = 0;
 
                     async.series([
 
                         function (callback) {
-                            var monitoredItem2 = subscription.monitor({
+                            const monitoredItem2 = subscription.monitor({
                                 nodeId: resolveNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime),
                                 attributeId: AttributeIds.Value
                             },{
@@ -322,18 +322,18 @@ module.exports = function (test) {
 
                         function (callback) {
 
-                            var readValue = {
+                            const readValue = {
                                 nodeId: resolveNodeId("Server"),
                                 attributeId: AttributeIds.EventNotifier // << EventNotifier
                             };
-                            var requestedParameters = {
+                            const requestedParameters = {
                                 samplingInterval: 50,
                                 discardOldest: true,
                                 queueSize:     10,
                                 filter: eventFilter
                             };
 
-                            var monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                            const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                                 try {
                                     should(err).eql(null);
                                 } catch (err) {

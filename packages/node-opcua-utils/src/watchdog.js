@@ -1,8 +1,8 @@
 "use strict";
-var _ = require("underscore");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert");
 
 function WatchDog() {
     this._subscriber = {};
@@ -23,7 +23,7 @@ WatchDog.prototype.__defineGetter__("subscriberCount", function () {
 });
 
 function has_expired(watchDogData, currentTime) {
-    var elapsed_time = currentTime - watchDogData.last_seen;
+    const elapsed_time = currentTime - watchDogData.last_seen;
     return elapsed_time > watchDogData.timeout;
 }
 
@@ -39,10 +39,10 @@ function _stop_timer() {
 
 WatchDog.prototype._visit_subscriber = function () {
 
-    var self = this;
+    const self = this;
     self._current_time = Date.now();
 
-    var expired_subscribers = _.filter(self._subscriber, function (watchDogData) {
+    const expired_subscribers = _.filter(self._subscriber, function (watchDogData) {
         watchDogData.visitCount += 1;
         return has_expired(watchDogData, self._current_time);
     });
@@ -59,7 +59,7 @@ WatchDog.prototype._visit_subscriber = function () {
 };
 
 function keepAliveFunc() {
-    var self = this;
+    const self = this;
     assert(self._watchDog instanceof WatchDog);
     assert(_.isNumber(self._watchDogData.key));
     self._watchDogData.last_seen = Date.now();
@@ -84,7 +84,7 @@ function keepAliveFunc() {
  */
 WatchDog.prototype.addSubscriber = function (subscriber, timeout) {
 
-    var self = this;
+    const self = this;
 
     self._current_time = Date.now();
 
@@ -94,7 +94,7 @@ WatchDog.prototype.addSubscriber = function (subscriber, timeout) {
     assert(!_.isFunction(subscriber.keepAlive));
 
     self._counter += 1;
-    var key = self._counter;
+    const key = self._counter;
 
     subscriber._watchDog = self;
 

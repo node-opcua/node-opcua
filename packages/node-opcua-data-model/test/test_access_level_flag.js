@@ -1,16 +1,16 @@
-var should = require("should");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var path = require("path");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const path = require("path");
 
-var AccessLevelFlag = require("..").AccessLevelFlag;
-var makeAccessLevel = require("..").makeAccessLevel;
-var findBuiltInType = require("node-opcua-factory").findBuiltInType;
+const AccessLevelFlag = require("..").AccessLevelFlag;
+const makeAccessLevel = require("..").makeAccessLevel;
+const findBuiltInType = require("node-opcua-factory").findBuiltInType;
 
-var generator = require("node-opcua-generator");
+const generator = require("node-opcua-generator");
 
-var tmpfolder  = path.join(__dirname,"../_test_generated");
-var ObjWithAccessLevel = generator.registerObject(path.join(__dirname,"fixture_schemas")+"|ObjWithAccessLevel", tmpfolder);
+const tmpfolder  = path.join(__dirname,"../_test_generated");
+const ObjWithAccessLevel = generator.registerObject(path.join(__dirname,"fixture_schemas")+"|ObjWithAccessLevel", tmpfolder);
 
 assert(_.isFunction(ObjWithAccessLevel));
 
@@ -32,7 +32,7 @@ describe("Testing AccessLevelFlag", function () {
     });
 
     it("should create a flag with no bit set", function () {
-        var accessLevel = makeAccessLevel("");
+        const accessLevel = makeAccessLevel("");
         accessLevel.key.should.eql("NONE");
         accessLevel.value.should.equal(AccessLevelFlag.NONE.value);
         accessLevel.has("CurrentRead").should.eql(false);
@@ -40,7 +40,7 @@ describe("Testing AccessLevelFlag", function () {
 
     });
     it("should create a flag with no bit set -> 0", function () {
-        var accessLevel = makeAccessLevel(0);
+        const accessLevel = makeAccessLevel(0);
         accessLevel.key.should.eql("NONE");
         accessLevel.value.should.equal(AccessLevelFlag.NONE.value);
         accessLevel.has("CurrentRead").should.eql(false);
@@ -52,14 +52,14 @@ describe("Testing AccessLevelFlag", function () {
     });
 
     it("should create an object with access_level", function () {
-        var o = new ObjWithAccessLevel();
+        const o = new ObjWithAccessLevel();
         o.should.have.property("accessLevel");
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
     });
 
     it("should create an object with access_level defined as a 'string'", function () {
 
-        var o = new ObjWithAccessLevel({
+        const o = new ObjWithAccessLevel({
             accessLevel: "HistoryWrite | SemanticChange"
         });
         o.should.have.property("accessLevel");
@@ -69,7 +69,7 @@ describe("Testing AccessLevelFlag", function () {
 
     it("should create an object with access_level defined as a Int8'", function () {
 
-        var o = new ObjWithAccessLevel({
+        const o = new ObjWithAccessLevel({
             accessLevel: 0x5
         });
         o.should.have.property("accessLevel");
@@ -78,10 +78,10 @@ describe("Testing AccessLevelFlag", function () {
 
     it("should persist a accessLevel Flag", function () {
 
-        var o = new ObjWithAccessLevel({});
+        const o = new ObjWithAccessLevel({});
         o.accessLevel.should.eql(AccessLevelFlag.get("CurrentRead | CurrentWrite"));
 
-        var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+        const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
         encode_decode_round_trip_test(o);
 
 
@@ -89,7 +89,7 @@ describe("Testing AccessLevelFlag", function () {
 
     it("should provide a easy way to check if a flag is set or not", function () {
 
-        var accessLevel = makeAccessLevel("CurrentWrite | CurrentRead");
+        const accessLevel = makeAccessLevel("CurrentWrite | CurrentRead");
 
         accessLevel.has("CurrentWrite").should.be.eql(true);
         accessLevel.has("CurrentRead").should.be.eql(true);

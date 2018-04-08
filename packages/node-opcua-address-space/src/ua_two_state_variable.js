@@ -4,20 +4,20 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const util = require("util");
 
 
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var UAVariable = require("./ua_variable").UAVariable;
+const UAVariable = require("./ua_variable").UAVariable;
 
 // Release 1.03 12 OPC Unified Architecture, Part 9
 // Two-state state machines
@@ -66,22 +66,22 @@ function _updateEffectiveTransitionTime(node,subStateNode) {
 
 
 function _getEffectiveDisplayName(node) {
-    var dataValue = node.id.readValue();
+    const dataValue = node.id.readValue();
     if (dataValue.statusCode !== StatusCodes.Good) {
         return dataValue;
     }
     assert(dataValue.value.dataType === DataType.Boolean);
-    var boolValue = dataValue.value.value;
+    const boolValue = dataValue.value.value;
 
-    var humanReadableString = _getHumanReadableString(node);
+    const humanReadableString = _getHumanReadableString(node);
 
-    var subStateNodes;
+    let subStateNodes;
     if (boolValue) {
         subStateNodes = node.findReferencesExAsObject("HasTrueSubState",BrowseDirection.Forward);
     } else {
         subStateNodes = node.findReferencesExAsObject("HasFalseSubState",BrowseDirection.Forward);
     }
-    var states = subStateNodes.forEach(function(n) {
+    const states = subStateNodes.forEach(function(n) {
         // todo happen
     });
 
@@ -89,24 +89,24 @@ function _getEffectiveDisplayName(node) {
 }
 function _getHumanReadableString(node) {
 
-    var dataValue = node.id.readValue();
+    let dataValue = node.id.readValue();
     if (dataValue.statusCode !== StatusCodes.Good) {
         return dataValue;
     }
     assert(dataValue.value.dataType === DataType.Boolean);
-    var boolValue = dataValue.value.value;
+    const boolValue = dataValue.value.value;
 
     // The Value Attribute of a TwoStateVariable contains the current state as a human readable name.
     // The EnabledState for example, might contain the name “Enabled” when TRUE and “Disabled” when FALSE.
 
-    var valueAsLocalizedText;
+    let valueAsLocalizedText;
 
     if (boolValue) {
-        var _trueState = (node._trueState) ? node._trueState: "TRUE";
+        const _trueState = (node._trueState) ? node._trueState: "TRUE";
         valueAsLocalizedText = { dataType: "LocalizedText", value: { text: _trueState}};
 
     } else {
-        var _falseState = (node._falseState) ? node._falseState: "FALSE";
+        const _falseState = (node._falseState) ? node._falseState: "FALSE";
         valueAsLocalizedText = { dataType: "LocalizedText", value: { text: _falseState}};
     }
     dataValue = dataValue.clone();
@@ -148,7 +148,7 @@ util.inherits(UATwoStateVariable,UAVariable);
  */
 UATwoStateVariable.prototype.initialize = function(options) {
 
-    var node = this;
+    const node = this;
 
     if (options.trueState) {
         assert(options.falseState);
@@ -160,7 +160,7 @@ UATwoStateVariable.prototype.initialize = function(options) {
         if (node.falseState) {
             node.falseState.bindVariable({
                 get: function() {
-                    var node = this;
+                    const node = this;
                     return new Variant({
                         dataType: DataType.LocalizedText,
                         value: node._falseState
@@ -172,7 +172,7 @@ UATwoStateVariable.prototype.initialize = function(options) {
         if (node.trueState) {
             node.trueState.bindVariable({
                 get: function () {
-                    var node = this;
+                    const node = this;
                     return new Variant({
                         dataType: DataType.LocalizedText,
                         value: node._trueState
@@ -194,7 +194,7 @@ UATwoStateVariable.prototype.initialize = function(options) {
 
     if(node.effectiveTransitionTime) {
         // install "value_changed" event handler on SubState that are already defined
-        var subStates = [].concat(node.getTrueSubStates(),node.getFalseSubStates());
+        const subStates = [].concat(node.getTrueSubStates(),node.getFalseSubStates());
         subStates.forEach(function(subState) {
             subState.on("value_changed",_updateEffectiveTransitionTime.bind(null,node,subState));
         });
@@ -237,16 +237,16 @@ UATwoStateVariable.prototype.initialize = function(options) {
 // HighHigh, then the TransitionTime stays at the point in time where the Alarm became active whereas the
 // EffectiveTransitionTime changes with each shift of a sub state.
 UATwoStateVariable.prototype._add_backward_reference = function(reference) {
-    var self = this;
-    var _base_add_backward_reference = UAVariable.prototype._add_backward_reference;
+    const self = this;
+    const _base_add_backward_reference = UAVariable.prototype._add_backward_reference;
     // call base method
     _base_add_backward_reference.call(self,reference);
 
     if ( ( reference.referenceType === "HasTrueSubState" ||  reference.referenceType === "HasFalseSubState" ) && reference.isForward) {
 
-        var addressSpace = self.addressSpace;
+        const addressSpace = self.addressSpace;
         // add event handle
-        var subState = addressSpace.findNode(reference.nodeId);
+        const subState = addressSpace.findNode(reference.nodeId);
         subState.on("value_changed",_updateEffectiveTransitionTime.bind(null,self,subState));
     }
 
@@ -258,10 +258,10 @@ UATwoStateVariable.prototype._add_backward_reference = function(reference) {
  */
 UATwoStateVariable.prototype.setValue = function TwoStateVariable_setValue(boolValue) {
 
-    var node = this;
+    const node = this;
     assert(_.isBoolean(boolValue));
-    var dataValue = node.id.readValue();
-    var oldValue = dataValue.value.value;
+    const dataValue = node.id.readValue();
+    const oldValue = dataValue.value.value;
     if (dataValue.statusCode === StatusCodes.Good && boolValue === oldValue) {
         return; // nothing to do
     }
@@ -277,8 +277,8 @@ UATwoStateVariable.prototype.setValue = function TwoStateVariable_setValue(boolV
  */
 UATwoStateVariable.prototype.getValue = function TwoStateVariable_getValue() {
 
-    var node = this;
-    var dataValue = node.id.readValue();
+    const node = this;
+    const dataValue = node.id.readValue();
     assert(dataValue.statusCode === StatusCodes.Good);
     assert(dataValue.value.dataType === DataType.Boolean);
     return dataValue.value.value;
@@ -288,8 +288,8 @@ UATwoStateVariable.prototype.getValue = function TwoStateVariable_getValue() {
  * @return {string}
  */
 UATwoStateVariable.prototype.getValueAsString = function TwoStateVariable_getValue() {
-    var node = this;
-    var dataValue = node.readValue();
+    const node = this;
+    const dataValue = node.readValue();
     assert(dataValue.statusCode === StatusCodes.Good);
     assert(dataValue.value.dataType === DataType.LocalizedText);
     return dataValue.value.value.text.toString();
@@ -325,9 +325,9 @@ exports.install = function (AddressSpace) {
     AddressSpace.prototype.addTwoStateVariable   = function (options) {
 
         assert(options.browseName," a browseName is required");
-        var addressSpace = this;
+        const addressSpace = this;
 
-        var twoStateVariableType = addressSpace.findVariableType("TwoStateVariableType");
+        const twoStateVariableType = addressSpace.findVariableType("TwoStateVariableType");
 
         options.optionals = options.optionals || [];
         if (options.trueState) {
@@ -340,7 +340,7 @@ exports.install = function (AddressSpace) {
         // we want event based change...
         options.minimumSamplingInterval = 0;
 
-        var node = twoStateVariableType.instantiate({
+        const node = twoStateVariableType.instantiate({
             browseName: options.browseName,
 
             nodeId: options.nodeId,

@@ -1,16 +1,16 @@
 "use strict";
-var should = require("should");
-var tbp_service = require("..");
-var makeBrowsePath = tbp_service.makeBrowsePath;
-var BrowsePath = tbp_service.BrowsePath;
+const should = require("should");
+const tbp_service = require("..");
+const makeBrowsePath = tbp_service.makeBrowsePath;
+const BrowsePath = tbp_service.BrowsePath;
 
 describe("#makeBrowsePath", function () {
 
     it("should parse name containing spaces and ( or )", function () {
 
-        var path = makeBrowsePath("RootFolder", "/Objects/2:MatrikonOPC Simulation Server (DA)");
+        const path = makeBrowsePath("RootFolder", "/Objects/2:MatrikonOPC Simulation Server (DA)");
 
-        var expected = new BrowsePath({
+        const expected = new BrowsePath({
             startingNode: "ns=0;i=84",
             relativePath: {
                 elements: [

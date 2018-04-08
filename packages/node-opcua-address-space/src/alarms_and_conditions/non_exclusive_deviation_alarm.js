@@ -3,14 +3,14 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarmHelper;
+const DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarmHelper;
 
-var UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
-var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+const UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
+const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
 /**
  * @class UANonExclusiveDeviationAlarm
  * @extends UANonExclusiveLimitAlarm
@@ -37,7 +37,7 @@ UANonExclusiveDeviationAlarm.prototype._onSetpointDataValueChange = DeviationAla
 UANonExclusiveDeviationAlarm.prototype._install_setpoint= DeviationAlarmHelper._install_setpoint;
 
 UANonExclusiveDeviationAlarm.prototype._setStateBasedOnInputValue = function(value) {
-    var setpointValue = this.getSetpointValue();
+    const setpointValue = this.getSetpointValue();
     assert(_.isFinite(setpointValue),"expecting a valid setpoint value");
     // call base class implementation
     UANonExclusiveLimitAlarm.prototype._setStateBasedOnInputValue.call(this,value-setpointValue);
@@ -55,14 +55,14 @@ exports.UANonExclusiveDeviationAlarm = UANonExclusiveDeviationAlarm;
  */
 UANonExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data ){
 
-    var nonExclusiveDeviationAlarmType = addressSpace.findEventType("NonExclusiveDeviationAlarmType");
+    const nonExclusiveDeviationAlarmType = addressSpace.findEventType("NonExclusiveDeviationAlarmType");
     /* istanbul ignore next */
     if (!nonExclusiveDeviationAlarmType) {
         throw new Error("cannot find ExclusiveDeviationAlarmType");
     }
     assert(type === nonExclusiveDeviationAlarmType.browseName.toString());
 
-    var alarm = UANonExclusiveLimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UANonExclusiveLimitAlarm.instantiate(addressSpace, type, options, data);
     Object.setPrototypeOf(alarm,UANonExclusiveDeviationAlarm.prototype);
 
     assert(alarm instanceof UANonExclusiveDeviationAlarm);

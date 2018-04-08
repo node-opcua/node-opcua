@@ -1,9 +1,9 @@
 "use strict";
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var registerBuiltInType = require("./factories_builtin_types").registerType;
+const registerBuiltInType = require("./factories_builtin_types").registerType;
 
 
 function _self_encode(Type) {
@@ -19,7 +19,7 @@ function _self_decode(Type) {
     assert(_.isFunction(Type));
 
     return function (stream) {
-        var value = new Type();
+        const value = new Type();
         value.decode(stream);
         return value;
     };
@@ -29,7 +29,7 @@ exports.registerSpecialVariantEncoder = function (ConstructorFunc) {
 
     assert(_.isFunction(ConstructorFunc));
 
-    var name = ConstructorFunc.prototype._schema.name;
+    const name = ConstructorFunc.prototype._schema.name;
 
     registerBuiltInType({
         name: name,

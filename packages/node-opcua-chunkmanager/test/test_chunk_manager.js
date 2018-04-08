@@ -1,41 +1,41 @@
 "use strict";
-var should = require("should");
-var ChunkManager = require("..").ChunkManager;
+const should = require("should");
+const ChunkManager = require("..").ChunkManager;
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var hexDump = require("node-opcua-debug").hexDump;
+const hexDump = require("node-opcua-debug").hexDump;
 
 function make_packet(packet_length) {
-    var buf = new Buffer(packet_length);
+    const buf = new Buffer(packet_length);
     buf.length.should.eql(packet_length);
-    for (var i = 0; i < buf.length; i++) {
+    for (let i = 0; i < buf.length; i++) {
         buf.writeUInt8(i, i % 256);
     }
     return buf;
 }
 
-var do_debug = false;
+const do_debug = false;
 
 function compute_fake_signature(section_to_sign) {
 
-    var signature = new Buffer(4);
-    for (var i = 0; i < signature.length; i++) {
+    const signature = new Buffer(4);
+    for (let i = 0; i < signature.length; i++) {
         signature.writeUInt8(0xCC, i);
     }
     return signature;
 }
 
 function write_fake_header(block, isLast, total_length) {
-    for (var i = 0; i < this.headerSize; i++) {
+    for (let i = 0; i < this.headerSize; i++) {
         block.writeUInt8(0xAA, i);
     }
 }
 
 function write_fake_sequence_header(block) {
-    for (var i = 0; i < this.sequenceHeaderSize; i++) {
+    for (let i = 0; i < this.sequenceHeaderSize; i++) {
         block.writeUInt8(0xBB, i);
     }
 }
@@ -45,7 +45,7 @@ function fake_encrypt_block(block) {
     assert(this.plainBlockSize + 2 === this.cipherBlockSize);
     assert(this.plainBlockSize === block.length);
 
-    var encrypted_block = new Buffer(block.length + 2);
+    const encrypted_block = new Buffer(block.length + 2);
     encrypted_block.writeUInt8(0xDE, 0);
     block.copy(encrypted_block, 1, 0, block.length);
     encrypted_block.writeUInt8(0xDF, block.length + 1);
@@ -58,14 +58,14 @@ function fake_encrypt_buffer(buffer) {
 
     assert(_.isFunction(this.encrypt_block));
 
-    var nbBlocks = Math.ceil(buffer.length / (this.plainBlockSize));
+    const nbBlocks = Math.ceil(buffer.length / (this.plainBlockSize));
 
-    var outputBuffer = new Buffer(nbBlocks * this.cipherBlockSize);
+    const outputBuffer = new Buffer(nbBlocks * this.cipherBlockSize);
 
-    for (var i = 0; i < nbBlocks; i++) {
-        var currentBlock = buffer.slice(this.plainBlockSize * i, this.plainBlockSize * (i + 1));
+    for (let i = 0; i < nbBlocks; i++) {
+        const currentBlock = buffer.slice(this.plainBlockSize * i, this.plainBlockSize * (i + 1));
 
-        var encrypted_chunk = this.encrypt_block(currentBlock);
+        const encrypted_chunk = this.encrypt_block(currentBlock);
 
         assert(encrypted_chunk.length === this.cipherBlockSize);
         encrypted_chunk.copy(outputBuffer, i * this.cipherBlockSize);
@@ -87,7 +87,7 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
 
     it("should decompose a large single write in small chunks", function () {
 
-        var chunkManager = new ChunkManager({
+        const chunkManager = new ChunkManager({
             chunkSize: 48,
             sequenceHeaderSize: 0
         });
@@ -95,7 +95,7 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
         chunkManager.sequenceHeaderSize.should.equal(0);
         chunkManager.maxBodySize.should.equal(48);
 
-        var chunk_counter = 0;
+        let chunk_counter = 0;
         chunkManager.on("chunk", function (chunk) {
 
             if (chunk_counter < 2) {
@@ -112,8 +112,8 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
         });
 
         // create a large buffer ( 2.3 time bigger than chunksize)
-        var n = 48 * 2 + 12;
-        var buf = make_packet(n);
+        const n = 48 * 2 + 12;
+        const buf = make_packet(n);
 
         // write this single buffer
         chunkManager.write(buf, buf.length);
@@ -125,14 +125,14 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
 
     it("should decompose many small writes in small chunks", function () {
 
-        var chunkManager = new ChunkManager({
+        const chunkManager = new ChunkManager({
             chunkSize: 48,
             sequenceHeaderSize: 0
         });
         chunkManager.chunkSize.should.equal(48);
         chunkManager.maxBodySize.should.equal(48);
 
-        var chunk_counter = 0;
+        let chunk_counter = 0;
         chunkManager.on("chunk", function (chunk) {
             // console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
             if (chunk_counter < 2) {
@@ -146,9 +146,9 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
         });
 
         // feed chunk-manager on byte at a time
-        var n = 48 * 2 + 12;
-        var buf = new Buffer(1);
-        for (var i = 0; i < n; i += 1) {
+        const n = 48 * 2 + 12;
+        const buf = new Buffer(1);
+        for (let i = 0; i < n; i += 1) {
             buf.writeInt8(i, 0);
             chunkManager.write(buf, 1);
         }
@@ -162,14 +162,14 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
 
 function perform_test(chunkManager, packet_length, expected_chunk_lengths, done) {
 
-    var expected_chunks = null;
+    let expected_chunks = null;
     if (typeof expected_chunk_lengths[0] === "string") {
         expected_chunks = expected_chunk_lengths.map(make_hex_block);
         expected_chunk_lengths = expected_chunks.map(function (b) {
             return b.length;
         });
     }
-    var chunk_counter = 0;
+    let chunk_counter = 0;
 
     chunkManager.on("chunk", function (chunk, is_last) {
 
@@ -200,7 +200,7 @@ function perform_test(chunkManager, packet_length, expected_chunk_lengths, done)
         }
     });
 
-    var buf = make_packet(packet_length);
+    const buf = make_packet(packet_length);
 
     chunkManager.write(buf);
     chunkManager.end();
@@ -210,7 +210,7 @@ function perform_test(chunkManager, packet_length, expected_chunk_lengths, done)
 
 describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes)\n", function () {
 
-    var chunkManager;
+    let chunkManager;
 
     beforeEach(function () {
         chunkManager = new ChunkManager({
@@ -243,7 +243,7 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes)\n", f
 });
 describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signatureLength: 4 )\n", function () {
 
-    var chunkManager;
+    let chunkManager;
 
     beforeEach(function () {
         chunkManager = new ChunkManager({
@@ -282,7 +282,7 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signa
 
 describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 8 bytes ,cipherBlockSize 8 bytes )\n", function () {
 
-    var chunkManager;
+    let chunkManager;
 
     beforeEach(function () {
         chunkManager = new ChunkManager({
@@ -406,7 +406,7 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 8 bytes ,ci
 
 describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,cipherBlockSize 8 bytes )\n", function () {
 
-    var chunkManager;
+    let chunkManager;
 
     beforeEach(function () {
 
@@ -436,7 +436,7 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,ci
         // |   8   |   8           |  1            | 1 +  0      |  4    |=> 8 +  ( 8 + 1 + (1 + 4) + 4 ) = 8 + 3*6
         // |       |               |               |             |       |   8 + 3*8 = 32
         // +-------+---------------+---------------+-------------+-------+
-        var expected = [
+        const expected = [
             //0102030405060708 0910111213141516 17 1819202122 23242526
             //0102030405060708 0102030405060708 01 0102030405 01020304
             //aaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbb dd 0404040404 cccccccc"
@@ -447,44 +447,44 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,ci
 
     });
     it("should transform a 2 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaaDEbbbbbbbbbbbbDFDEbbbb00010303DFDE0303ccccccccDF"
         ];
         perform_test(chunkManager, 2, expected, done);
     });
     it("should transform a 3 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaaDEbbbbbbbbbbbbDFDEbbbb00010202DFDE0202ccccccccDF"
         ];
         perform_test(chunkManager, 3, expected, done);
     });
     it("should transform a 4 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaaDEbbbbbbbbbbbbDFDEbbbb00010203DFDE0101ccccccccDF"
         ];
         perform_test(chunkManager, 4, expected, done);
     });
     it("should transform a 5 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaaDEbbbbbbbbbbbbDFDEbbbb00010203DFDE0400ccccccccDF"
         ];
         perform_test(chunkManager, 5, expected, done);
     });
     it("should transform a 6 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaaDEbbbbbbbbbbbbDFDEbbbb00010203DFDE040505050505DFDE0505ccccccccDF"
         ];
         perform_test(chunkManager, 6, expected, done);
     });
     it("should transform a 29 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaa" + "DEbbbbbbbbbbbbDF" + "DEbbbb00010203DF" + "DE040506070809DF" + "DE0A0B0C0D0E0FDF" +
             "DE101112131415DF" + "DE161718191A1BDF" + "DE1C00ccccccccDF"];
         perform_test(chunkManager, 29, expected, done);
     });
 
     it("should transform a 30 byte message into a single chunk", function (done) {
-        var expected = [
+        const expected = [
             "aaaaaaaaaaaaaaaa" + "DEbbbbbbbbbbbbDF" + "DEbbbb00010203DF" + "DE040506070809DF" + "DE0A0B0C0D0E0FDF" +
             "DE101112131415DF" + "DE161718191A1BDF" + "DE1C00ccccccccDF",
             "aaaaaaaaaaaaaaaa" + "DEbbbbbbbbbbbbDF" + "DEbbbb1d040404DF" + "DE0404ccccccccDF"

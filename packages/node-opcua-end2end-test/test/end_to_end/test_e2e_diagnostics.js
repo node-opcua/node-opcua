@@ -1,20 +1,20 @@
 "use strict";
-var opcua = require("node-opcua");
-var should = require("should");
+const opcua = require("node-opcua");
+const should = require("should");
 
-var OPCUAClient = opcua.OPCUAClient;
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const OPCUAClient = opcua.OPCUAClient;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Testing Server and Client diagnostic facilities", function () {
 
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
-    var port = 2001;
+    let port = 2001;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
@@ -41,9 +41,9 @@ describe("Testing Server and Client diagnostic facilities", function () {
     });
 
     function extract_server_channel() {
-        var cp = server.endpoints[0];
-        var ckey = Object.keys(cp._channels);
-        var channel = cp._channels[ckey[0]];
+        const cp = server.endpoints[0];
+        const ckey = Object.keys(cp._channels);
+        const channel = cp._channels[ckey[0]];
         return channel;
     }
 
@@ -54,11 +54,11 @@ describe("Testing Server and Client diagnostic facilities", function () {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
-                var server_channel = extract_server_channel();
+                const server_channel = extract_server_channel();
 
-                var transaction_done_counter = 0;
+                let transaction_done_counter = 0;
 
-                var transactionCounter = client.transactionsPerformed;
+                let transactionCounter = client.transactionsPerformed;
                 server_channel.on("transaction_done", function () {
                     transaction_done_counter++;
 

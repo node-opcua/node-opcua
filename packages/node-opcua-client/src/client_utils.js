@@ -1,18 +1,18 @@
 "use strict";
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var translate_browse_paths_to_node_ids_service = require("node-opcua-service-translate-browse-path");
-var BrowsePath = translate_browse_paths_to_node_ids_service.BrowsePath;
+const translate_browse_paths_to_node_ids_service = require("node-opcua-service-translate-browse-path");
+const BrowsePath = translate_browse_paths_to_node_ids_service.BrowsePath;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var hasPropertyRefId = resolveNodeId("HasProperty");
+const hasPropertyRefId = resolveNodeId("HasProperty");
 /* NodeId  ns=0;i=46*/
 
 function browsePathPropertyRequest(nodeId, propertyName) {
@@ -43,7 +43,7 @@ function readUAAnalogItem(session, nodeId, callback) {
 
     assert(_.isFunction(callback));
 
-    var browsePath = [
+    const browsePath = [
         browsePathPropertyRequest(nodeId, "EngineeringUnits"),
         browsePathPropertyRequest(nodeId, "EURange"),
         browsePathPropertyRequest(nodeId, "InstrumentRange"),
@@ -51,7 +51,7 @@ function readUAAnalogItem(session, nodeId, callback) {
         browsePathPropertyRequest(nodeId, "Definition")
     ];
 
-    var analogItemData = {
+    const analogItemData = {
         engineeringUnits: null,
         engineeringUnitsRange: null,
         instrumentRange: null,
@@ -67,8 +67,8 @@ function readUAAnalogItem(session, nodeId, callback) {
         }
         //xx console.log("xxxx ",browsePathResults.toString());
 
-        var actions = [];
-        var nodesToRead = [];
+        const actions = [];
+        const nodesToRead = [];
 
         function processProperty(browsePathIndex, propertyName) {
             if (browsePathResults[browsePathIndex].statusCode === StatusCodes.Good) {

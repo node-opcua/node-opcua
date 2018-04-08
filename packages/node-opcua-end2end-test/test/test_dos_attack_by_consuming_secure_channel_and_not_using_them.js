@@ -6,42 +6,42 @@
 
 Error.stackTraceLimit = Infinity;
 
-var sinon  = require("sinon");
-var should = require("should");
-var async = require("async");
-var path = require("path");
-var _ = require("underscore");
-var defer=require("delayed");
+const sinon  = require("sinon");
+const should = require("should");
+const async = require("async");
+const path = require("path");
+const _ = require("underscore");
+const defer=require("delayed");
 
-var doDebug = false;
-var opcua = require("node-opcua");
-var is_valid_endpointUrl = opcua.is_valid_endpointUrl;
-var MessageSecurityMode = opcua.MessageSecurityMode;
-var SecurityPolicy = opcua.SecurityPolicy;
+const doDebug = false;
+const opcua = require("node-opcua");
+const is_valid_endpointUrl = opcua.is_valid_endpointUrl;
+const MessageSecurityMode = opcua.MessageSecurityMode;
+const SecurityPolicy = opcua.SecurityPolicy;
 
-var OPCUAServer = require("node-opcua-server").OPCUAServer;
-var OPCUAClient = require("node-opcua-client").OPCUAClient;
-var ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const OPCUAServer = require("node-opcua-server").OPCUAServer;
+const OPCUAClient = require("node-opcua-client").OPCUAClient;
+const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var fail_fast_connectionStrategy = {
+const fail_fast_connectionStrategy = {
     maxRetry: 0  // << NO RETRY !!
 };
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Server resilience to DOS attacks", function () {
 
-    var server;
-    var endpointUrl;
-    var maxConnectionsPerEndpoint = 3;
-    var maxAllowedSessionNumber = 10000; // almost no limits
+    let server;
+    let endpointUrl;
+    const maxConnectionsPerEndpoint = 3;
+    const maxAllowedSessionNumber = 10000; // almost no limits
 
-    var clients = [];
-    var sessions = [] ;
-    var rejected_connections =0;
+    let clients = [];
+    let sessions = [];
+    let rejected_connections =0;
 
-    var port = 2000;
+    let port = 2000;
 
     this.timeout(Math.max(30000, this._timeout));
 
@@ -79,11 +79,11 @@ describe("testing Server resilience to DOS attacks", function () {
 
     it("ZAA1 should be possible to create many sessions per connection",function(done){
 
-        var client = new OPCUAClient({
+        const client = new OPCUAClient({
             connectionStrategy: fail_fast_connectionStrategy
         });
 
-        var sessions = [];
+        const sessions = [];
 
         function create_session(callback) {
             client.createSession(function(err,session){
@@ -125,22 +125,22 @@ describe("testing Server resilience to DOS attacks", function () {
 
         server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
 
-        var nbExtra = 5;
-        var nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
+        const nbExtra = 5;
+        const nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
 
-        var channels = [];
+        const channels = [];
 
         function step1_construct_many_channels(callback) {
 
-            var tasks = [];
+            const tasks = [];
 
-            for(var i=0;i<nbConnections;i++) { tasks.push({index: i,endpointUrl : endpointUrl});}
+            for(let i=0;i<nbConnections;i++) { tasks.push({index: i,endpointUrl : endpointUrl});}
 
             function createChannel(data,_inner_callback) {
 
 
                 _.isFunction(_inner_callback).should.eql(true);
-                var secureChannel = new ClientSecureChannelLayer({
+                const secureChannel = new ClientSecureChannelLayer({
                     defaultSecureTokenLifetime: 5000000,
                     securityMode:               MessageSecurityMode.NONE,
                     securityPolicy:             SecurityPolicy.None,
@@ -156,14 +156,14 @@ describe("testing Server resilience to DOS attacks", function () {
                 });
             }
 
-            var defer=require("delayed");
+            const defer=require("delayed");
             async.eachLimit( tasks,1 , createChannel,function(err,results){
                 callback(err);
             });
         }
 
-        var results = [];
-        var nbError = 0;
+        const results = [];
+        let nbError = 0;
         function step2_close_all_channels(callback) {
 
             async.eachLimit(channels,1,function(channel,callback) {
@@ -189,7 +189,7 @@ describe("testing Server resilience to DOS attacks", function () {
 
     function createClientAndSession(data,_inner_callback) {
 
-        var client = new OPCUAClient({
+        const client = new OPCUAClient({
             connectionStrategy: fail_fast_connectionStrategy
         });
         client.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
@@ -238,24 +238,24 @@ describe("testing Server resilience to DOS attacks", function () {
         rejected_connections.should.eql(0);
         clients.length.should.eql(0);
         sessions.length.should.eql(0);
-        var nbExtra = 5;
-        var nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
+        const nbExtra = 5;
+        const nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
 
         function step1_construct_many_channels_with_session(callback) {
 
-            var tasks = [];
+            const tasks = [];
 
-            for(var i=0;i<nbConnections;i++) {
+            for(let i=0;i<nbConnections;i++) {
                 tasks.push({index: i,endpointUrl : endpointUrl});
             }
 
-            var defer=require("delayed");
+            const defer=require("delayed");
             async.eachLimit( tasks,1 , defer.deferred(createClientAndSession),function(err,results){
                 callback(err);
             });
         }
 
-        var nbError = 0;
+        let nbError = 0;
 
         function step2_close_all_sessions(callback) {
             async.eachLimit(sessions,2,function(session,callback) {
@@ -307,14 +307,14 @@ describe("testing Server resilience to DOS attacks", function () {
         clients.length.should.eql(0);
         sessions.length.should.eql(0);
 
-        var nbExtra = 5;
-        var nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
+        const nbExtra = 5;
+        const nbConnections = server.maxConnectionsPerEndpoint + nbExtra;
 
         function step1_construct_many_channels_with_session_and_abruptly_terminate_them(callback) {
 
-            var tasks = [];
+            const tasks = [];
 
-            for(var i=0;i<nbConnections;i++) {
+            for(let i=0;i<nbConnections;i++) {
                 tasks.push({index: i,endpointUrl : endpointUrl});
             }
             async.eachLimit( tasks,1 , defer.deferred(createClientAndSession),function(err,results){
@@ -325,7 +325,7 @@ describe("testing Server resilience to DOS attacks", function () {
 
             function terminate_client_abruptly(client,inner_callback) {
                 if (client._secureChannel){
-                    var socket = client._secureChannel._transport._socket;
+                    const socket = client._secureChannel._transport._socket;
                     socket.end();
                     socket.destroy();
                     socket.emit("error", new Error("Terminate"));
@@ -358,24 +358,24 @@ describe("testing Server resilience to DOS attacks", function () {
     it("ZAA5 Server shall not keep channel that have been disconnected abruptly - version 2",function(done) {
 
 
-        var serverEndpoint =server.endpoints[0];
+        const serverEndpoint =server.endpoints[0];
 
-        var spyCloseChannel = new sinon.spy();
-        var spyNewChannel = new sinon.spy();
+        const spyCloseChannel = new sinon.spy();
+        const spyNewChannel = new sinon.spy();
 
         serverEndpoint.on("closeChannel",spyCloseChannel);
         serverEndpoint.on("newChannel",spyNewChannel);
 
 
-        var counter = 0;
+        let counter = 0;
         function create_crashing_client(callback) {
 
             counter ++;
             console.log(" ------------------------------------------------------------ > create_a_faulty_client");
-            var spawn = require("child_process").spawn;
-            var  server_script  = path.join(__dirname,"../test_helpers/crashing_client");
-            var options ={};
-            var server_exec = spawn("node", [server_script,  port], options);
+            const spawn = require("child_process").spawn;
+            const server_script  = path.join(__dirname,"../test_helpers/crashing_client");
+            const options ={};
+            const server_exec = spawn("node", [server_script,  port], options);
 
             server_exec.on("close",function(code){
                 console.log("terminated with ",code);

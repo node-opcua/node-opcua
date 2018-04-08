@@ -1,13 +1,13 @@
 
-var should = require("should");
-var assert = require("node-opcua-assert");
+const should = require("should");
+const assert = require("node-opcua-assert");
 
-var StatusCodes = require("..").StatusCodes;
-var StatusCode = require("..").StatusCode;
-var encodeStatusCode = require("..").encodeStatusCode;
-var decodeStatusCode = require("..").decodeStatusCode;
+const StatusCodes = require("..").StatusCodes;
+const StatusCode = require("..").StatusCode;
+const encodeStatusCode = require("..").encodeStatusCode;
+const decodeStatusCode = require("..").decodeStatusCode;
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 describe("testing status code manipulation", function () {
 
@@ -30,11 +30,11 @@ describe("testing status code manipulation", function () {
 
     it("should encode and decode a status code", function () {
 
-        var stream = new BinaryStream(8);
-        var statusCode = StatusCodes.BadNodeIdExists;
+        const stream = new BinaryStream(8);
+        const statusCode = StatusCodes.BadNodeIdExists;
         encodeStatusCode(statusCode, stream);
         stream.rewind();
-        var statusCode2 = decodeStatusCode(stream);
+        const statusCode2 = decodeStatusCode(stream);
         statusCode2.should.eql(statusCode);
 
     });
@@ -53,13 +53,13 @@ describe("testing status code manipulation", function () {
     });
 
     it("GoodWithOverflowBit",function() {
-        var statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.Good,"Overflow | InfoTypeDataValue");
+        const statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.Good,"Overflow | InfoTypeDataValue");
         statusCode2.should.eql(StatusCodes.GoodWithOverflowBit);
     });
 
     it("should be possible to set SemanticChanged bit on a status code",function() {
 
-        var statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
+        const statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode2.set("SemanticChanged");
         statusCode2.value.should.eql(StatusCodes.BadNodeIdExists + 0x4000);
         statusCode2.name.should.eql("BadNodeIdExists#SemanticChanged");
@@ -67,7 +67,7 @@ describe("testing status code manipulation", function () {
     });
     it("should be possible to set the Overflow bit on a status code",function() {
 
-        var statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
+        const statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode2.set("Overflow");
         statusCode2.value.should.eql(StatusCodes.BadNodeIdExists + 0x80);
         statusCode2.name.should.eql("BadNodeIdExists#Overflow");
@@ -75,7 +75,7 @@ describe("testing status code manipulation", function () {
     });
     it("should be possible to set the Overflow and SemanticChanged bits on a status code",function() {
 
-        var statusCode = StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
+        const statusCode = StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode.set("Overflow | SemanticChanged");
 
 
@@ -88,13 +88,13 @@ describe("testing status code manipulation", function () {
 
     it("should be possible to encode and decode a statusCode that have a extra information bit",function() {
 
-        var statusCode = StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
+        const statusCode = StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode.set("Overflow | SemanticChanged");
 
-        var stream = new BinaryStream(8);
+        const stream = new BinaryStream(8);
         encodeStatusCode(statusCode, stream);
         stream.rewind();
-        var statusCode2 = decodeStatusCode(stream);
+        const statusCode2 = decodeStatusCode(stream);
         statusCode2.should.eql(statusCode);
 
         statusCode2.hasOverflowBit.should.equal(true);
@@ -106,12 +106,12 @@ describe("testing status code manipulation", function () {
 
     it("should be possible to create a modifiable StatusCode from a ModifiableStatusCode",function() {
 
-        var statusCode = StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
+        const statusCode = StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode.set("Overflow");
         statusCode.hasOverflowBit.should.equal(true);
         statusCode.hasSemanticChangedBit.should.equal(false);
 
-        var statusCode2 = StatusCodes.makeStatusCode(statusCode);
+        const statusCode2 = StatusCodes.makeStatusCode(statusCode);
         statusCode2.hasOverflowBit.should.equal(true);
         statusCode2.hasSemanticChangedBit.should.equal(false);
         statusCode2.set("SemanticChanged");
@@ -126,7 +126,7 @@ describe("testing status code manipulation", function () {
     it("should fail to set a extra information bit on a standard StatusCode",function() {
         should(function() {
 
-            var statusCode =StatusCodes.Good;
+            const statusCode =StatusCodes.Good;
 
             statusCode.set("Overflow"); // << set is not defined !!!
 

@@ -1,20 +1,20 @@
 "use strict";
-var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
-var should = require("should");
+const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+const should = require("should");
 
-var DataType = require("..").DataType;
-var Variant = require("..").Variant;
+const DataType = require("..").DataType;
+const Variant = require("..").Variant;
 
-var Variant1 = require("./data_factory_code_generator/_auto_generated_Variant_Gen1").Variant;
-var Variant2 = require("./data_factory_code_generator/_auto_generated_Variant_Gen2").Variant;
-var Variant3 = require("./data_factory_code_generator/_auto_generated_Variant_Gen3").Variant;
+const Variant1 = require("./data_factory_code_generator/_auto_generated_Variant_Gen1").Variant;
+const Variant2 = require("./data_factory_code_generator/_auto_generated_Variant_Gen2").Variant;
+const Variant3 = require("./data_factory_code_generator/_auto_generated_Variant_Gen3").Variant;
 
 describe("Benchmarking Factory Implementation", function (done) {
 
 
     function test_variant(VariantX) {
 
-        var variant = new VariantX({
+        const variant = new VariantX({
             dataType: DataType.Double,
             value: 24
         });
@@ -36,12 +36,12 @@ describe("Benchmarking Factory Implementation", function (done) {
            }
         }).throw();
 
-        var variant2 = new VariantX(variant);
+        const variant2 = new VariantX(variant);
 
         (variant.hasOwnProperty("dataType") ||
         VariantX.prototype.hasOwnProperty("dataType")).should.eql(true);
 
-        var variant3 = new VariantX(variant);
+        const variant3 = new VariantX(variant);
 
         variant3.dataType.should.eql(variant.dataType);
         variant3.arrayType.should.eql(variant.arrayType);
@@ -69,11 +69,11 @@ describe("Benchmarking Factory Implementation", function (done) {
     this.timeout(200000);
     function perform_benchmark(params, checks, done) {
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
 
         function test_iteration(VARIANT) {
-            var variant = new VARIANT({
+            const variant = new VARIANT({
                 dataType: DataType.Double,
                 value: 24
             });

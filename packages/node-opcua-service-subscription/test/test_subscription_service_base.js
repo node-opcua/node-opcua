@@ -1,4 +1,4 @@
-var subscription_service = require("..");
+const subscription_service = require("..");
 
 describe("Subscription Service",function() {
 

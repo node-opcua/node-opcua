@@ -2,19 +2,19 @@
 
 
 
-var should = require("should");
-var DataType = require("node-opcua-variant").DataType;
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
+const should = require("should");
+const DataType = require("node-opcua-variant").DataType;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
 
 exports.createCameraType = function createCameraType(addressSpace) {
 
-    var cameraType = addressSpace.findObjectType("1:CameraType");
+    let cameraType = addressSpace.findObjectType("1:CameraType");
     if (cameraType) { return cameraType; }
 
     cameraType = addressSpace.addObjectType({browseName: "1:CameraType"});
 
     // MachineType.HeaderSwitch
-    var triggerMethod = addressSpace.addMethod(cameraType, {
+    const triggerMethod = addressSpace.addMethod(cameraType, {
 
         modellingRule: "Mandatory",
 

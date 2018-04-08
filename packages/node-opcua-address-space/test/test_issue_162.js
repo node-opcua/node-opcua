@@ -1,28 +1,28 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
+const should = require("should");
 
-var AddressSpace = require("..").AddressSpace;
-var fs = require("fs");
+const AddressSpace = require("..").AddressSpace;
+const fs = require("fs");
 
-var generate_address_space = require("..").generate_address_space;
-var nodesets = require("node-opcua-nodesets");
+const generate_address_space = require("..").generate_address_space;
+const nodesets = require("node-opcua-nodesets");
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 162 : demonstrate how to modify an instantiate object variable", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
         addressSpace = new AddressSpace();
 
-        var xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard_nodeset_file;
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -41,13 +41,13 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
 
     function findOrCreateCustomObjectType(addressSpace) {
 
-        var myCustomObjectType = addressSpace.findObjectType("MyCustomObjectType");
+        let myCustomObjectType = addressSpace.findObjectType("MyCustomObjectType");
 
         if (!myCustomObjectType) {
             myCustomObjectType = addressSpace.addObjectType({
                 browseName: "MyCustomObjectType"
             });
-            var myCustomProperty = addressSpace.addVariable({
+            const myCustomProperty = addressSpace.addVariable({
                 propertyOf: myCustomObjectType,
                 browseName: "CustomProperty",
                 description: "Descr",
@@ -66,9 +66,9 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
 
     it("example from 162 - way 1 : using setValueFromSource", function () {
 
-        var myCustomObjectType = findOrCreateCustomObjectType(addressSpace);
+        const myCustomObjectType = findOrCreateCustomObjectType(addressSpace);
 
-        var myObject = myCustomObjectType.instantiate({
+        const myObject = myCustomObjectType.instantiate({
             organizedBy: "RootFolder",
             browseName: "MyObject"
         });
@@ -86,17 +86,17 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
 
     it("example from 162 - way 2 : rebinding variable ", function () {
 
-        var myCustomObjectType = findOrCreateCustomObjectType(addressSpace);
+        const myCustomObjectType = findOrCreateCustomObjectType(addressSpace);
 
-        var myObject = myCustomObjectType.instantiate({
+        const myObject = myCustomObjectType.instantiate({
             organizedBy: "RootFolder",
             browseName: "MyObject2"
         });
 
         // the  method consist of setting a getter and a setter
-        var value = 3;
+        let value = 3;
 
-        var options = {
+        const options = {
             get: function () {
                 return new Variant({
                     dataType: DataType.Double,

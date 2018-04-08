@@ -3,34 +3,34 @@
  * @module opcua.server
  */
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var MessageBuilder = require("../message_builder").MessageBuilder;
-var MessageChunker = require("../message_chunker").MessageChunker;
+const MessageBuilder = require("../message_builder").MessageBuilder;
+const MessageChunker = require("../message_chunker").MessageChunker;
 
-var securityPolicy_m = require("../security_policy");
-var SecurityPolicy = securityPolicy_m.SecurityPolicy;
+const securityPolicy_m = require("../security_policy");
+const SecurityPolicy = securityPolicy_m.SecurityPolicy;
 
-var ServerTCP_transport = require("node-opcua-transport").ServerTCP_transport;
+const ServerTCP_transport = require("node-opcua-transport").ServerTCP_transport;
 
-var StatusCode = require("node-opcua-status-code").StatusCode;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCode = require("node-opcua-status-code").StatusCode;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var secure_channel_service = require("../services");
-var AsymmetricAlgorithmSecurityHeader = secure_channel_service.AsymmetricAlgorithmSecurityHeader;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
-var ChannelSecurityToken = secure_channel_service.ChannelSecurityToken;
-var ServiceFault = secure_channel_service.ServiceFault;
-var OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
-var OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
-var SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
+const secure_channel_service = require("../services");
+const AsymmetricAlgorithmSecurityHeader = secure_channel_service.AsymmetricAlgorithmSecurityHeader;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const ChannelSecurityToken = secure_channel_service.ChannelSecurityToken;
+const ServiceFault = secure_channel_service.ServiceFault;
+const OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
+const OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
+const SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
 
-var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
 
 assert(MessageSecurityMode);
 assert(ChannelSecurityToken);
@@ -39,22 +39,22 @@ assert(OpenSecureChannelResponse);
 assert(SecurityTokenRequestType);
 assert(ServiceFault);
 
-var do_trace_message = process.env.DEBUG && process.env.DEBUG.indexOf("TRACE") >= 0;
+const do_trace_message = process.env.DEBUG && process.env.DEBUG.indexOf("TRACE") >= 0;
 
-var crypto = require("crypto");
-var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
+const crypto = require("crypto");
+const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var last_channel_id = 0;
+let last_channel_id = 0;
 function getNextChannelId() {
     last_channel_id += 1;
     return last_channel_id;
 }
 
-var get_clock_tick = require("node-opcua-utils").get_clock_tick;
-var doPerfMonitoring = false;
+const get_clock_tick = require("node-opcua-utils").get_clock_tick;
+const doPerfMonitoring = false;
 
 /**
  * @class ServerSecureChannelLayer
@@ -71,7 +71,7 @@ var doPerfMonitoring = false;
 function ServerSecureChannelLayer(options) {
     options = options || {};
 
-    var self = this;
+    const self = this;
 
     self.parent = options.parent;
 
@@ -143,7 +143,7 @@ util.inherits(ServerSecureChannelLayer, EventEmitter);
  *
  */
 ServerSecureChannelLayer.prototype.dispose = function() {
-    var self = this;
+    const self = this;
 
     debugLog("ServerSecureChannelLayer#dispose");
     if (self.timeoutId) {
@@ -179,7 +179,7 @@ ServerSecureChannelLayer.prototype.dispose = function() {
     self.removeAllListeners();
 };
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ServerSecureChannelLayer.registry = new ObjectRegistry();
 /**
  * the endpoint associated with this secure channel
@@ -192,7 +192,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("endpoints", function() {
 });
 
 ServerSecureChannelLayer.prototype.setSecurity = function(securityMode, securityPolicy) {
-    var self = this;
+    const self = this;
     // TODO verify that the endpoint really supports this mode
 
     self.messageBuilder.setSecurity(securityMode, securityPolicy);
@@ -217,10 +217,10 @@ ServerSecureChannelLayer.prototype.getCertificate = function() {
 };
 
 ServerSecureChannelLayer.prototype.getSignatureLength = function() {
-    var self = this;
-    var chain = self.getCertificateChain();
-    var s = split_der(chain)[0];
-    var cert = crypto_utils.exploreCertificate(s);
+    const self = this;
+    const chain = self.getCertificateChain();
+    const s = split_der(chain)[0];
+    const cert = crypto_utils.exploreCertificate(s);
     return cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
 };
 
@@ -239,7 +239,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("securityTokenCount", functi
 
 function _stop_security_token_watch_dog() {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     if (self._securityTokenTimeout) {
         clearTimeout(self._securityTokenTimeout);
@@ -249,7 +249,7 @@ function _stop_security_token_watch_dog() {
 
 function _start_security_token_watch_dog() {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     // install securityToken timeout watchdog
     self._securityTokenTimeout = setTimeout(function() {
@@ -266,12 +266,12 @@ function _start_security_token_watch_dog() {
 ServerSecureChannelLayer.prototype._add_new_security_token = function() {
     // The  Server  has  to accept requests secured with the old SecurityToken  until that  SecurityToken  expires
     // or until it receives a  Message  from the  Client  secured with the new  SecurityToken.
-    var self = this;
+    const self = this;
 
     _stop_security_token_watch_dog.call(self);
     self.lastTokenId += 1;
 
-    var securityToken = new ChannelSecurityToken({
+    const securityToken = new ChannelSecurityToken({
         secureChannelId: self.secureChannelId,
         tokenId: self.lastTokenId, // todo ?
         createdAt: new Date(), // now
@@ -290,7 +290,7 @@ ServerSecureChannelLayer.prototype._add_new_security_token = function() {
 
 function _prepare_security_token(openSecureChannelRequest) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
     assert(openSecureChannelRequest instanceof OpenSecureChannelRequest);
 
     delete self.securityToken;
@@ -308,7 +308,7 @@ function _prepare_security_token(openSecureChannelRequest) {
 
 function _set_lifetime(requestedLifetime) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     assert(_.isFinite(requestedLifetime));
 
@@ -325,7 +325,7 @@ function _set_lifetime(requestedLifetime) {
 
 function _stop_open_channel_watch_dog() {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     if (self.timeoutId) {
         clearTimeout(self.timeoutId);
@@ -334,7 +334,7 @@ function _stop_open_channel_watch_dog() {
 }
 
 ServerSecureChannelLayer.prototype._cleanup_pending_timers = function() {
-    var self = this;
+    const self = this;
 
     // there is no need for the security token expiration event to trigger anymore
     _stop_security_token_watch_dog.call(self);
@@ -349,7 +349,7 @@ ServerSecureChannelLayer.prototype._cleanup_pending_timers = function() {
  * @param callback {Function}
  */
 ServerSecureChannelLayer.prototype.init = function(socket, callback) {
-    var self = this;
+    const self = this;
 
     self.transport = new ServerTCP_transport();
     self.transport.timeout = self.timeout;
@@ -396,7 +396,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("remotePort", function() {
 
 function _cancel_wait_for_open_secure_channel_request_timeout() {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     assert(self);
 
@@ -409,7 +409,7 @@ function _cancel_wait_for_open_secure_channel_request_timeout() {
 
 function _install_wait_for_open_secure_channel_request_timeout(callback, timeout) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     assert(_.isFinite(timeout));
     assert(_.isFunction(callback));
@@ -417,7 +417,7 @@ function _install_wait_for_open_secure_channel_request_timeout(callback, timeout
 
     self.timeoutId = setTimeout(function() {
         self.timeoutId = null;
-        var err = new Error("Timeout waiting for OpenChannelRequest (timeout was " + timeout + " ms)");
+        const err = new Error("Timeout waiting for OpenChannelRequest (timeout was " + timeout + " ms)");
         debugLog(err.message);
         self.close(function() {
             callback(err);
@@ -433,7 +433,7 @@ function _on_initial_open_secure_channel_request(callback, request, msgType, req
 
     assert(_.isFunction(callback));
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     assert(self);
 
@@ -450,7 +450,7 @@ function _on_initial_open_secure_channel_request(callback, request, msgType, req
     requestId = self.messageBuilder.sequenceHeader.requestId;
     assert(requestId > 0);
 
-    var message = {
+    const message = {
         request: request,
         securityHeader: self.messageBuilder.securityHeader,
         requestId: requestId
@@ -464,14 +464,14 @@ function _on_initial_open_secure_channel_request(callback, request, msgType, req
 
 function _wait_for_open_secure_channel_request(callback, timeout) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
     _install_wait_for_open_secure_channel_request_timeout.call(self, callback, timeout);
     self.messageBuilder.once("message", _on_initial_open_secure_channel_request.bind(self, callback));
 }
 
 function _send_chunk(callback, messageChunk) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     if (messageChunk) {
         self.transport.write(messageChunk);
@@ -499,9 +499,9 @@ function _send_chunk(callback, messageChunk) {
 }
 
 ServerSecureChannelLayer.prototype._get_security_options_for_OPN = function() {
-    var self = this;
-    var cryptoFactory = self.messageBuilder.cryptoFactory;
-    var options = {};
+    const self = this;
+    const cryptoFactory = self.messageBuilder.cryptoFactory;
+    const options = {};
     // install sign & sign-encrypt behavior
     if (self.securityMode === MessageSecurityMode.SIGN || self.securityMode === MessageSecurityMode.SIGNANDENCRYPT) {
         assert(cryptoFactory, "ServerSecureChannelLayer must have a crypto strategy");
@@ -509,7 +509,7 @@ ServerSecureChannelLayer.prototype._get_security_options_for_OPN = function() {
         options.signatureLength = self.getSignatureLength();
 
         options.signingFunc = function(chunk) {
-            var signed = cryptoFactory.asymmetricSign(chunk, self.getPrivateKey());
+            const signed = cryptoFactory.asymmetricSign(chunk, self.getPrivateKey());
             assert(signed.length === options.signatureLength);
             return signed;
         };
@@ -526,11 +526,11 @@ ServerSecureChannelLayer.prototype._get_security_options_for_OPN = function() {
 };
 
 ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function() {
-    var self = this;
+    const self = this;
     if (self.securityMode === MessageSecurityMode.NONE) {
         return null;
     }
-    var cryptoFactory = self.messageBuilder.cryptoFactory;
+    const cryptoFactory = self.messageBuilder.cryptoFactory;
 
     /* istanbul ignore next */
     if (!cryptoFactory) {
@@ -539,7 +539,7 @@ ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function() {
 
     assert(cryptoFactory, "ServerSecureChannelLayer must have a crypto strategy");
     assert(self.derivedKeys.derivedServerKeys);
-    var derivedServerKeys = self.derivedKeys.derivedServerKeys;
+    const derivedServerKeys = self.derivedKeys.derivedServerKeys;
     return securityPolicy_m.getOptionsForSymmetricSignAndEncrypt(self.securityMode, derivedServerKeys);
 };
 
@@ -552,9 +552,9 @@ ServerSecureChannelLayer.prototype._get_security_options_for_MSG = function() {
  * @param  {Function} [callback] an optional callback function
  */
 ServerSecureChannelLayer.prototype.send_response = function(msgType, response, message, callback) {
-    var request = message.request;
-    var requestId = message.requestId;
-    var self = this;
+    const request = message.request;
+    const requestId = message.requestId;
+    const self = this;
 
     if (self.aborted) {
         debugLog("channel has been terminated , cannot send responses");
@@ -583,7 +583,7 @@ ServerSecureChannelLayer.prototype.send_response = function(msgType, response, m
 
     assert(self.securityToken);
 
-    var options = {
+    let options = {
         requestId: requestId,
         secureChannelId: self.securityToken.secureChannelId,
         tokenId: self.securityToken.tokenId,
@@ -591,7 +591,7 @@ ServerSecureChannelLayer.prototype.send_response = function(msgType, response, m
         chunkSize: self.transport.receiveBufferSize
     };
 
-    var security_options =
+    const security_options =
         msgType === "OPN" ? self._get_security_options_for_OPN() : self._get_security_options_for_MSG();
     options = _.extend(options, security_options);
 
@@ -637,14 +637,14 @@ ServerSecureChannelLayer.prototype.send_response = function(msgType, response, m
  * @param callback    {Function}
  */
 ServerSecureChannelLayer.prototype.send_error_and_abort = function(statusCode, description, message, callback) {
-    var self = this;
+    const self = this;
 
     assert(statusCode instanceof StatusCode);
     assert(message.request._schema);
     assert(message.requestId && message.requestId > 0);
     assert(_.isFunction(callback));
 
-    var response = new ServiceFault({
+    const response = new ServiceFault({
         responseHeader: { serviceResult: statusCode }
     });
 
@@ -668,7 +668,7 @@ ServerSecureChannelLayer.prototype.send_error_and_abort = function(statusCode, d
  * @async
  */
 ServerSecureChannelLayer.prototype._process_certificates = function(message, callback) {
-    var self = this;
+    const self = this;
 
     self.receiverPublicKey = null;
     self.receiverPublicKeyLength = 0;
@@ -704,8 +704,8 @@ ServerSecureChannelLayer.prototype._process_certificates = function(message, cal
  */
 function _prepare_security_header(request, message) {
     /* jshint validthis: true */
-    var self = this;
-    var securityHeader = null;
+    const self = this;
+    let securityHeader = null;
     // senderCertificate:
     //    The X509v3 certificate assigned to the sending application instance.
     //    This is a DER encoded blob.
@@ -732,7 +732,7 @@ function _prepare_security_header(request, message) {
         case MessageSecurityMode.SIGN.value:
         case MessageSecurityMode.SIGNANDENCRYPT.value:
             // get the thumbprint of the client certificate
-            var thumbprint = self.receiverCertificate
+            const thumbprint = self.receiverCertificate
                 ? crypto_utils.makeSHA1Thumbprint(self.receiverCertificate)
                 : null;
 
@@ -748,10 +748,10 @@ function _prepare_security_header(request, message) {
 
 function _handle_OpenSecureChannelRequest(message, callback) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
-    var request = message.request;
-    var requestId = message.requestId;
+    const request = message.request;
+    const requestId = message.requestId;
     assert(request._schema.name === "OpenSecureChannelRequest");
     assert(requestId && requestId > 0);
 
@@ -761,9 +761,9 @@ function _handle_OpenSecureChannelRequest(message, callback) {
 
     _prepare_security_token.call(self, request);
 
-    var serviceResult = StatusCodes.Good;
+    let serviceResult = StatusCodes.Good;
 
-    var cryptoFactory = self.messageBuilder.cryptoFactory;
+    const cryptoFactory = self.messageBuilder.cryptoFactory;
     if (cryptoFactory) {
         // serverNonce: A random number that shall not be used in any other request. A new
         //    serverNonce shall be generated for each time a SecureChannel is renewed.
@@ -793,14 +793,14 @@ function _handle_OpenSecureChannelRequest(message, callback) {
         self.derivedKeys = cryptoFactory.compute_derived_keys(this.serverNonce, this.clientNonce);
     }
 
-    var derivedClientKeys = this.derivedKeys ? this.derivedKeys.derivedClientKeys : null;
+    const derivedClientKeys = this.derivedKeys ? this.derivedKeys.derivedClientKeys : null;
     this.messageBuilder.pushNewToken(this.securityToken, derivedClientKeys);
 
     // let prepare self.securityHeader;
     self.securityHeader = _prepare_security_header.call(self, request, message);
     assert(self.securityHeader);
 
-    var derivedServerKeys = self.derivedKeys ? self.derivedKeys.derivedServerKeys : null;
+    const derivedServerKeys = self.derivedKeys ? self.derivedKeys.derivedServerKeys : null;
 
     self.messageChunker.update({
         // for OPN
@@ -811,7 +811,7 @@ function _handle_OpenSecureChannelRequest(message, callback) {
         derivedKeys: derivedServerKeys
     });
 
-    var response = new OpenSecureChannelResponse({
+    let response = new OpenSecureChannelResponse({
         responseHeader: {
             serviceResult: serviceResult
         },
@@ -824,7 +824,7 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     // for convenience
     self.clientCertificate = message.securityHeader ? message.securityHeader.senderCertificate : null;
 
-    var description;
+    let description;
 
     // If the SecurityMode is not None then the Server shall verify that a SenderCertificate and a
     // ReceiverCertificateThumbprint were specified in the SecurityHeader.
@@ -838,7 +838,7 @@ function _handle_OpenSecureChannelRequest(message, callback) {
     }
 
     if (self.clientCertificate) {
-        var certificate_status = _check_certificate_validity(self.clientCertificate);
+        const certificate_status = _check_certificate_validity(self.clientCertificate);
         if (StatusCodes.Good !== certificate_status) {
             description = "Sender Certificate Error";
             console.log(description.cyan, certificate_status.toString().bgRed.yellow);
@@ -869,7 +869,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("aborted", function() {
 });
 
 ServerSecureChannelLayer.prototype._abort = function() {
-    var self = this;
+    const self = this;
     if (self._abort_has_been_called) {
         return;
     }
@@ -900,7 +900,7 @@ ServerSecureChannelLayer.prototype._abort = function() {
  * @param callback {Function}
  */
 ServerSecureChannelLayer.prototype.close = function(callback) {
-    var self = this;
+    const self = this;
     debugLog("ServerSecureChannelLayer#close");
     // close socket
     self.transport.disconnect(function() {
@@ -912,7 +912,7 @@ ServerSecureChannelLayer.prototype.close = function(callback) {
 };
 
 ServerSecureChannelLayer.prototype._record_transaction_statistics = function() {
-    var self = this;
+    const self = this;
     self._bytesRead_before = self._bytesRead_before || 0;
     self._byesWritten_before = self._byesWritten_before || 0;
 
@@ -931,7 +931,7 @@ ServerSecureChannelLayer.prototype._record_transaction_statistics = function() {
 };
 
 ServerSecureChannelLayer.prototype._dump_transaction_statistics = function() {
-    var self = this;
+    const self = this;
     if (self.last_transaction_stats) {
         console.log("                Bytes Read : ", self.last_transaction_stats.bytesRead);
         console.log("             Bytes Written : ", self.last_transaction_stats.bytesWritten);
@@ -942,11 +942,11 @@ ServerSecureChannelLayer.prototype._dump_transaction_statistics = function() {
 };
 
 ServerSecureChannelLayer.prototype.has_endpoint_for_security_mode_and_policy = function(securityMode, securityPolicy) {
-    var self = this;
+    const self = this;
     if (!self.endpoints) {
         return true;
     }
-    var endpoint_desc = self.endpoints.getEndpointDescription(securityMode, securityPolicy);
+    const endpoint_desc = self.endpoints.getEndpointDescription(securityMode, securityPolicy);
     return endpoint_desc !== null;
 };
 
@@ -964,8 +964,8 @@ function dump_request(request, requestId, secureChannelId) {
     console.log("xxxx   <<<< ---------------------------------------- \n".cyan);
 }
 
-var _on_common_message = function(request, msgType, requestId, secureChannelId) {
-    var self = this;
+const _on_common_message = function(request, msgType, requestId, secureChannelId) {
+    const self = this;
 
     /* istanbul ignore next */
     if (do_trace_message) {
@@ -974,7 +974,7 @@ var _on_common_message = function(request, msgType, requestId, secureChannelId) 
 
     requestId = self.messageBuilder.sequenceHeader.requestId;
 
-    var message = {
+    const message = {
         request: request,
         requestId: requestId,
         channel: self
@@ -1018,12 +1018,12 @@ var _on_common_message = function(request, msgType, requestId, secureChannelId) 
  */
 function _check_receiverCertificateThumbprint(clientSecurityHeader) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
     if (clientSecurityHeader.receiverCertificateThumbprint) {
         // check if the receiverCertificateThumbprint is my certificate thumbprint
-        var serverCertificateChain = self.getCertificateChain();
+        const serverCertificateChain = self.getCertificateChain();
         //xx var serverCertificate = split_der(serverCertificateChain)[0];
-        var myCertificateThumbPrint = crypto_utils.makeSHA1Thumbprint(serverCertificateChain);
+        const myCertificateThumbPrint = crypto_utils.makeSHA1Thumbprint(serverCertificateChain);
         //xx console.log("xxxx     my certificate thumbprint",myCertificateThumbPrint.toString("hex") );
         //xx console.log("xxxx receiverCertificateThumbprint",securityHeader.receiverCertificateThumbprint.toString("hex") );
         return (
@@ -1065,9 +1065,9 @@ function _check_certificate_validity(certificate) {
 
     // Has SoftwareCertificate passed its issue date and has it not expired ?
     // check dates
-    var cert = crypto_utils.exploreCertificate(certificate);
+    const cert = crypto_utils.exploreCertificate(certificate);
 
-    var now = new Date();
+    const now = new Date();
 
     if (cert.notBefore.getTime() > now.getTime()) {
         // certificate is not active yet
@@ -1121,13 +1121,13 @@ function isValidSecurityPolicy(securityPolicy) {
 
 function _send_error(statusCode, description, message, callback) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     // turn of security mode as we haven't manage to set it to
     self.securityMode = MessageSecurityMode.NONE;
 
     // unexpected message type ! let close the channel
-    var err = new Error(description);
+    const err = new Error(description);
     self.send_error_and_abort(statusCode, description, message, function() {
         callback(err); // OK
     });
@@ -1136,14 +1136,14 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
     assert(_.isFunction(callback));
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
-    var request = message.request;
-    var requestId = message.requestId;
+    const request = message.request;
+    const requestId = message.requestId;
 
     assert(requestId > 0);
     assert(_.isFinite(request.requestHeader.requestHandle));
-    var description;
+    let description;
 
     // expecting a OpenChannelRequest as first communication message
     if (!(request instanceof OpenSecureChannelRequest)) {
@@ -1155,10 +1155,10 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
         return _send_error.call(this, StatusCodes.BadCommunicationError, description, message, callback);
     }
 
-    var securityPolicy = securityPolicy_m.fromURI(message.securityHeader.securityPolicyUri);
+    const securityPolicy = securityPolicy_m.fromURI(message.securityHeader.securityPolicyUri);
 
     // check security header
-    var check_security_policy = isValidSecurityPolicy(securityPolicy);
+    const check_security_policy = isValidSecurityPolicy(securityPolicy);
     if (check_security_policy !== StatusCodes.Good) {
         description = " Unsupported securityPolicyUri " + self.messageBuilder.securityHeader.securityPolicyUri;
         return _send_error.call(this, check_security_policy, description, message, callback);
@@ -1168,7 +1168,7 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
     self.securityMode = request.securityMode;
     self.messageBuilder.securityMode = self.securityMode;
 
-    var has_endpoint = self.has_endpoint_for_security_mode_and_policy(self.securityMode, securityPolicy);
+    const has_endpoint = self.has_endpoint_for_security_mode_and_policy(self.securityMode, securityPolicy);
 
     if (!has_endpoint) {
         // there is no
@@ -1198,7 +1198,7 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
  * @type {Number}
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("bytesRead", function() {
-    var self = this;
+    const self = this;
     return self.transport ? self.transport.bytesRead : 0;
 });
 
@@ -1208,12 +1208,12 @@ ServerSecureChannelLayer.prototype.__defineGetter__("bytesRead", function() {
  * @type {Number}
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("bytesWritten", function() {
-    var self = this;
+    const self = this;
     return self.transport ? self.transport.bytesWritten : 0;
 });
 
 ServerSecureChannelLayer.prototype.__defineGetter__("transactionsCount", function() {
-    var self = this;
+    const self = this;
     return self._transactionsCount;
 });
 
@@ -1224,7 +1224,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("transactionsCount", functio
  *
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("isOpened", function() {
-    var self = this;
+    const self = this;
     return self.clientCertificate;
 });
 
@@ -1234,7 +1234,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("isOpened", function() {
  * @type {Boolean}
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("hasSession", function() {
-    var self = this;
+    const self = this;
     return Object.keys(self.sessionTokens).length > 0;
 });
 
@@ -1244,7 +1244,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("hasSession", function() {
  * @type {String}
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("hashKey", function() {
-    var self = this;
+    const self = this;
     return self.securityToken.secureChannelId.toString();
 });
 

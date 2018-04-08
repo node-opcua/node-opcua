@@ -1,32 +1,32 @@
 "use strict";
 
-var should = require("should");
-var fs = require("fs");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const fs = require("fs");
+const async = require("async");
+const _ = require("underscore");
 
 
-var AddressSpace = require("../..").AddressSpace;
-var SessionContext = require("../..").SessionContext;
-var context = SessionContext.defaultContext;
+const AddressSpace = require("../..").AddressSpace;
+const SessionContext = require("../..").SessionContext;
+const context = SessionContext.defaultContext;
 
-var generate_address_space = require("../..").generate_address_space;
+const generate_address_space = require("../..").generate_address_space;
 
-var nodesets = require("node-opcua-nodesets");
+const nodesets = require("node-opcua-nodesets");
 
-var historizing_service = require("node-opcua-service-history");
+const historizing_service = require("node-opcua-service-history");
 require("date-utils");
 
 // make sure extra error checking is made on object constructions
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Historical Data Node Enumeration", function () {
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
 
         addressSpace = new AddressSpace();
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
@@ -34,14 +34,14 @@ describe("Testing Historical Data Node Enumeration", function () {
 
             // create historical data nodes ...
 
-            var node1 = addressSpace.addVariable({
+            const node1 = addressSpace.addVariable({
                 browseName: "MyVar1",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
             });
             addressSpace.installHistoricalDataNode(node1);
 
-            var node2 = addressSpace.addVariable({
+            const node2 = addressSpace.addVariable({
                 browseName: "MyVar2",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -49,7 +49,7 @@ describe("Testing Historical Data Node Enumeration", function () {
             addressSpace.installHistoricalDataNode(node2);
 
 
-            var node3 = addressSpace.addVariable({
+            const node3 = addressSpace.addVariable({
                 browseName: "MyVar3",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -72,7 +72,7 @@ describe("Testing Historical Data Node Enumeration", function () {
 
         Object.keys(addressSpace.historizingNodes).length.should.eql(3);
 
-        var historizingNode = _.map(addressSpace.historizingNodes);
+        const historizingNode = _.map(addressSpace.historizingNodes);
         historizingNode.map(x=>x.browseName.toString()).should.eql(["MyVar1","MyVar2","MyVar3"]);
 
     });

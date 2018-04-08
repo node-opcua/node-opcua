@@ -3,55 +3,55 @@
 /**
  * @module opcua.client
  */
-var crypto = require("crypto");
-var _ = require("underscore");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
+const crypto = require("crypto");
+const _ = require("underscore");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert");
 require("colors");
 
 
-var utils = require("node-opcua-utils");
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const utils = require("node-opcua-utils");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var ClientTCP_transport = require("node-opcua-transport").ClientTCP_transport;
+const ClientTCP_transport = require("node-opcua-transport").ClientTCP_transport;
 
-var hexDump = require("node-opcua-debug").hexDump;
+const hexDump = require("node-opcua-debug").hexDump;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var verify_message_chunk = require("node-opcua-chunkmanager").verify_message_chunk;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const verify_message_chunk = require("node-opcua-chunkmanager").verify_message_chunk;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var backoff = require("backoff");
+const backoff = require("backoff");
 
-var debug = require("node-opcua-debug");
-var debugLog = debug.make_debugLog(__filename);
-var doDebug = debug.checkDebugFlag(__filename);
+const debug = require("node-opcua-debug");
+const debugLog = debug.make_debugLog(__filename);
+const doDebug = debug.checkDebugFlag(__filename);
 
-var get_clock_tick = require("node-opcua-utils").get_clock_tick;
+const get_clock_tick = require("node-opcua-utils").get_clock_tick;
 
-var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
-var MessageBuilder = require("../message_builder").MessageBuilder;
-var messageHeaderToString = require("../message_header_to_string").messageHeaderToString;
-var MessageChunker = require("../message_chunker").MessageChunker;
-var secure_channel_service = require("../services");
-var securityPolicy_m = require("../security_policy");
-var SecurityPolicy = securityPolicy_m.SecurityPolicy;
+const MessageBuilder = require("../message_builder").MessageBuilder;
+const messageHeaderToString = require("../message_header_to_string").messageHeaderToString;
+const MessageChunker = require("../message_chunker").MessageChunker;
+const secure_channel_service = require("../services");
+const securityPolicy_m = require("../security_policy");
+const SecurityPolicy = securityPolicy_m.SecurityPolicy;
 
-var OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
-var CloseSecureChannelRequest = secure_channel_service.CloseSecureChannelRequest;
-var OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
-var AsymmetricAlgorithmSecurityHeader = secure_channel_service.AsymmetricAlgorithmSecurityHeader;
-var ServiceFault = secure_channel_service.ServiceFault;
-var SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
+const OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
+const CloseSecureChannelRequest = secure_channel_service.CloseSecureChannelRequest;
+const OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
+const AsymmetricAlgorithmSecurityHeader = secure_channel_service.AsymmetricAlgorithmSecurityHeader;
+const ServiceFault = secure_channel_service.ServiceFault;
+const SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
 
-var do_trace_message = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
-var do_trace_statistics = process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
+const do_trace_message = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
+const do_trace_statistics = process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
 
-var doPerfMonitoring = false;
+const doPerfMonitoring = false;
 
 function process_request_callback(request_data, err, response) {
 
@@ -73,7 +73,7 @@ function process_request_callback(request_data, err, response) {
 
     assert((request_data.msgType === "CLO") || ((err && !response) || (!err && response)));
 
-    var the_callback_func = request_data.callback;
+    const the_callback_func = request_data.callback;
     request_data.callback = null;
     the_callback_func(err, response);
 }
@@ -81,7 +81,7 @@ function process_request_callback(request_data, err, response) {
 function _on_message_received(response, msgType, requestId) {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
     assert(msgType !== "ERR");
 
     /* istanbul ignore next */
@@ -89,7 +89,7 @@ function _on_message_received(response, msgType, requestId) {
         console.log("xxxxx  <<<<<< _on_message_received ".cyan.bold, requestId, response._schema.name);
     }
 
-    var request_data = self._request_data[requestId];
+    const request_data = self._request_data[requestId];
     if (!request_data) {
         console.log("xxxxx  <<<<<< _on_message_received ".cyan.bold, requestId, response._schema.name);
         throw new Error(" =>  invalid requestId =" + requestId);
@@ -100,9 +100,9 @@ function _on_message_received(response, msgType, requestId) {
 
     /* istanbul ignore next */
     if (response.responseHeader.requestHandle !== request_data.request.requestHeader.requestHandle) {
-        var expected = request_data.request.requestHeader.requestHandle;
-        var actual = response.responseHeader.requestHandle;
-        var moreinfo = "Class = " + response._schema.name;
+        const expected = request_data.request.requestHeader.requestHandle;
+        const actual = response.responseHeader.requestHandle;
+        const moreinfo = "Class = " + response._schema.name;
         console.log((" WARNING SERVER responseHeader.requestHandle is invalid" +
             ": expecting 0x" + expected.toString(16) +
             "  but got 0x" + actual.toString(16) + " ").red.bold, moreinfo.yellow);
@@ -140,7 +140,7 @@ function _on_message_received(response, msgType, requestId) {
 
 }
 
-var g_channelId = 0;
+let g_channelId = 0;
 
 
 /**
@@ -175,7 +175,7 @@ function ClientSecureChannelLayer(options) {
     EventEmitter.call(this);
     assert(this instanceof ClientSecureChannelLayer);
 
-    var self = this;
+    const self = this;
 
 
     self._lastRequestId = 0;
@@ -219,7 +219,7 @@ function ClientSecureChannelLayer(options) {
         }).on("error", function (err, requestId) {
             //
             debugLog("request id = ", requestId, err);
-            var request_data = self._request_data[requestId];
+            let request_data = self._request_data[requestId];
             console.log(" message was ");
             console.log(request_data);
             if (!request_data) {
@@ -247,7 +247,7 @@ function ClientSecureChannelLayer(options) {
     self.connectionStrategy.initialDelay = options.connectionStrategy.initialDelay || 10;
     self.connectionStrategy.maxDelay = options.connectionStrategy.maxDelay || 10000;
 
-    var r = options.connectionStrategy.randomisationFactor;
+    const r = options.connectionStrategy.randomisationFactor;
     self.connectionStrategy.randomisationFactor = (r === undefined) ? 0 : r;
 
 }
@@ -271,7 +271,7 @@ ClientSecureChannelLayer.prototype.getCertificateChain = function () {
 
 function _dump_transaction_statistics() {
     /* jshint validthis: true */
-    var transaction_stats = this;
+    const transaction_stats = this;
 
     function w(str) {
         return ("                  " + str).substr(-12);
@@ -295,7 +295,7 @@ function _dump_transaction_statistics() {
 }
 
 ClientSecureChannelLayer.prototype.on_transaction_completed = function (transaction_stats) {
-    var self = this;
+    const self = this;
     /* istanbul ignore next */
     if (doDebug) {
         // dump some statistics about transaction ( time and sizes )
@@ -306,7 +306,7 @@ ClientSecureChannelLayer.prototype.on_transaction_completed = function (transact
 
 ClientSecureChannelLayer.prototype._record_transaction_statistics = function (request_data) {
 
-    var self = this;
+    const self = this;
 
     //---------------------------------------------------------------------------------------------------------|-
     //      _tick0                _tick1                         _tick2                       _tick3          _tick4
@@ -336,19 +336,19 @@ ClientSecureChannelLayer.prototype._record_transaction_statistics = function (re
 
 
 ClientSecureChannelLayer.prototype.isTransactionInProgress = function () {
-    var self = this;
+    const self = this;
     return Object.keys(self._request_data).length > 0;
 };
 
 function _cancel_pending_transactions(err) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     debugLog("_cancel_pending_transactions  ", Object.keys(self._request_data), self._transport ? self._transport.name : "no transport");
 
     assert(err === null || _.isObject(err), "expecting valid error");
     Object.keys(self._request_data).forEach(function (key) {
-        var request_data = self._request_data[key];
+        const request_data = self._request_data[key];
         debugLog("xxxx Cancelling pending transaction ", request_data.key, request_data.msgType, request_data.request._schema.name);
         process_request_callback(request_data, err, null);
     });
@@ -361,7 +361,7 @@ function _on_transport_closed(error) {
 
     debugLog(" =>ClientSecureChannelLayer#_on_transport_closed");
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     if (self.__in_normal_close_operation) {
         error = null;
@@ -385,7 +385,7 @@ function _on_transport_closed(error) {
 function _on_security_token_about_to_expire() {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     debugLog(" client: Security Token ", self.securityToken.tokenId, " is about to expired, let's raise lifetime_75 event ");
 
@@ -406,7 +406,7 @@ function _on_security_token_about_to_expire() {
 function _cancel_security_token_watchdog() {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     if (self._securityTokenTimeoutId) {
         clearTimeout(self._securityTokenTimeoutId);
@@ -418,7 +418,7 @@ function _cancel_security_token_watchdog() {
 function _install_security_token_watchdog() {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     //
     // install timer event to raise a 'lifetime_75' when security token is about to expired
@@ -426,9 +426,9 @@ function _install_security_token_watchdog() {
     // note that, for speedup in test,
     // it is possible to tweak this interval for test by specifying a tokenRenewalInterval value
     //
-    var liveTime = self.securityToken.revisedLifeTime;
+    const liveTime = self.securityToken.revisedLifeTime;
     assert(liveTime && liveTime > 20);
-    var timeout = self.tokenRenewalInterval || liveTime * 75 / 100;
+    let timeout = self.tokenRenewalInterval || liveTime * 75 / 100;
     timeout = Math.min(timeout, liveTime * 75 / 100);
 
     if (doDebug) {
@@ -445,7 +445,7 @@ function _install_security_token_watchdog() {
 function _build_client_nonce() {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     if (self.securityMode === MessageSecurityMode.NONE) {
         return null;
@@ -456,7 +456,7 @@ function _build_client_nonce() {
     // "This parameter shall have a length equal to key size used for the symmetric
     //  encryption algorithm that is identified by the securityPolicyUri"
 
-    var cryptoFactory = securityPolicy_m.getCryptoFactory(self.securityPolicy);
+    const cryptoFactory = securityPolicy_m.getCryptoFactory(self.securityPolicy);
     if (!cryptoFactory) {
         // this securityPolicy may not be support yet ... let's return null
         return null;
@@ -471,7 +471,7 @@ function _build_client_nonce() {
 function _open_secure_channel_request(is_initial, callback) {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     assert(self.securityMode !== MessageSecurityMode.INVALID, "invalid security mode");
     // from the specs:
@@ -480,15 +480,15 @@ function _open_secure_channel_request(is_initial, callback) {
     // assigned but no security is applied to Messages exchanged via the channel.
 
 
-    var msgType = "OPN";
-    var requestType = (is_initial) ? SecurityTokenRequestType.ISSUE : SecurityTokenRequestType.RENEW;
+    const msgType = "OPN";
+    const requestType = (is_initial) ? SecurityTokenRequestType.ISSUE : SecurityTokenRequestType.RENEW;
 
     self.clientNonce = _build_client_nonce.call(self);
 
     self._isOpened = !is_initial;
 
     // OpenSecureChannel
-    var msg = new OpenSecureChannelRequest({
+    const msg = new OpenSecureChannelRequest({
         clientProtocolVersion: self.protocolVersion,
         requestType: requestType,
         securityMode: self.securityMode,
@@ -541,13 +541,13 @@ function _open_secure_channel_request(is_initial, callback) {
             }
 
 
-            var cryptoFactory = self.messageBuilder.cryptoFactory;
+            const cryptoFactory = self.messageBuilder.cryptoFactory;
             if (cryptoFactory) {
                 assert(self.serverNonce instanceof Buffer);
                 self.derivedKeys = cryptoFactory.compute_derived_keys(self.serverNonce, self.clientNonce);
             }
 
-            var derivedServerKeys = self.derivedKeys ? self.derivedKeys.derivedServerKeys : null;
+            const derivedServerKeys = self.derivedKeys ? self.derivedKeys.derivedServerKeys : null;
             self.messageBuilder.pushNewToken(self.securityToken, derivedServerKeys);
 
             _install_security_token_watchdog.call(self);
@@ -562,7 +562,7 @@ function _open_secure_channel_request(is_initial, callback) {
 function _on_connection(transport, callback, err) {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
 
     /* istanbul ignore next */
     if (err) {
@@ -597,7 +597,7 @@ function _on_connection(transport, callback, err) {
         });
 
 
-        var is_initial = true;
+        const is_initial = true;
         _open_secure_channel_request.call(self, is_initial, callback);
     }
 
@@ -638,7 +638,7 @@ function _on_connection(transport, callback, err) {
 ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
 
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
     if (self.securityMode !== MessageSecurityMode.NONE) {
 
@@ -666,7 +666,7 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
 
 
     self.endpointUrl = endpointUrl;
-    var transport = new ClientTCP_transport();
+    const transport = new ClientTCP_transport();
     transport.timeout = self.transportTimeout;
     transport.protocolVersion = self.protocolVersion;
 
@@ -674,10 +674,10 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
     // -------------------------------------------------------------------------
     // Handle reconnection
     // --------------------------------------------------------------------------
-    var _establish_connection = function (transport, endpointUrl, callback) {
+    const _establish_connection = function (transport, endpointUrl, callback) {
 
 
-        var last_err = null;
+        let last_err = null;
 
         function _connect(_i_callback) {
 
@@ -697,7 +697,7 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
                 //   - server shielding itself from a DOS attack
                 if (err) {
 
-                    var should_abort = false;
+                    let should_abort = false;
 
                     if (err.message.match(/ECONNRESET/)) {
                         should_abort = true;
@@ -800,7 +800,7 @@ ClientSecureChannelLayer.prototype.__defineGetter__("isConnecting", function () 
 
 
 ClientSecureChannelLayer.prototype.dispose = function () {
-    var self = this;
+    const self = this;
     _cancel_security_token_watchdog.call(self);
     if (self.__call) {
         self.__call.abort();
@@ -810,7 +810,7 @@ ClientSecureChannelLayer.prototype.dispose = function () {
 
 ClientSecureChannelLayer.prototype.abortConnection = function (callback) {
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
     if (self.__call) {
         self.__call.once("abort", function () {
             setTimeout(callback, 20);
@@ -827,7 +827,7 @@ ClientSecureChannelLayer.prototype.abortConnection = function (callback) {
 
 ClientSecureChannelLayer.prototype._renew_security_token = function () {
 
-    var self = this;
+    const self = this;
     debugLog("ClientSecureChannelLayer#_renew_security_token");
 
     if (!self.isValid()) {
@@ -836,7 +836,7 @@ ClientSecureChannelLayer.prototype._renew_security_token = function () {
         return;
     }
 
-    var is_initial = false;
+    const is_initial = false;
     _open_secure_channel_request.call(self, is_initial, function (err) {
 
         /* istanbul ignore else */
@@ -856,12 +856,12 @@ ClientSecureChannelLayer.prototype._renew_security_token = function () {
 
 ClientSecureChannelLayer.prototype._on_receive_message_chunk = function (message_chunk) {
 
-    var self = this;
+    const self = this;
 
     /* istanbul ignore next */
     if (doDebug) {
-        var _stream = new BinaryStream(message_chunk);
-        var messageHeader = readMessageHeader(_stream);
+        const _stream = new BinaryStream(message_chunk);
+        const messageHeader = readMessageHeader(_stream);
         debugLog("CLIENT RECEIVED " + (JSON.stringify(messageHeader) + "").yellow);
         debugLog("\n" + hexDump(message_chunk).blue);
         debugLog(messageHeaderToString(message_chunk));
@@ -915,17 +915,17 @@ ClientSecureChannelLayer.prototype.performMessageTransaction = function (request
 };
 
 ClientSecureChannelLayer.prototype.isValid = function () {
-    var self = this;
+    const self = this;
     return self._transport && self._transport.isValid();
 };
 ClientSecureChannelLayer.prototype.isOpened = function () {
-    var self = this;
+    const self = this;
     return self.isValid() && self._isOpened;
 };
 
-var minTransactionTimeout = 30 * 1000;    // 30 sec
+const minTransactionTimeout = 30 * 1000;    // 30 sec
 
-var defaultTransactionTimeout = 60 * 1000; // 1 minute
+const defaultTransactionTimeout = 60 * 1000; // 1 minute
 /**
  * internal version of _performMessageTransaction.
  *
@@ -951,21 +951,21 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     /* jshint validthis: true */
 
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
     if (!self.isValid()) {
         return callback(new Error("ClientSecureChannelLayer => Socket is closed !"));
     }
 
 
-    var local_callback = callback;
+    let local_callback = callback;
 
-    var timeout = requestMessage.requestHeader.timeoutHint || defaultTransactionTimeout;
+    let timeout = requestMessage.requestHeader.timeoutHint || defaultTransactionTimeout;
     timeout = Math.max(minTransactionTimeout, timeout);
 
-    var timerId = null;
+    let timerId = null;
 
-    var hasTimedOut = false;
+    let hasTimedOut = false;
 
     function modified_callback(err, response) {
 
@@ -1029,7 +1029,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
 
     }, timeout);
 
-    var transaction_data = {msgType: msgType, request: requestMessage, callback: modified_callback};
+    const transaction_data = {msgType: msgType, request: requestMessage, callback: modified_callback};
 
 //xx    self._pending_callback = callback;
 
@@ -1046,7 +1046,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
  */
 ClientSecureChannelLayer.prototype._internal_perform_transaction = function (transaction_data) {
 
-    var self = this;
+    const self = this;
 
     assert(_.isFunction(transaction_data.callback));
 
@@ -1058,14 +1058,14 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
     }
     assert(self._transport, " must have a valid transport");
 
-    var msgType = transaction_data.msgType;
-    var requestMessage = transaction_data.request;
+    const msgType = transaction_data.msgType;
+    const requestMessage = transaction_data.request;
     assert(msgType.length === 3);
 
     assert(requestMessage instanceof Object);
 
     // get a new requestId
-    var requestId = self.makeRequestId();
+    const requestId = self.makeRequestId();
 
     /* istanbul ignore next */
     if (do_trace_message) {
@@ -1103,8 +1103,8 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
 
 ClientSecureChannelLayer.prototype._send_chunk = function (requestId, messageChunk) {
 
-    var self = this;
-    var request_data = self._request_data[requestId];
+    const self = this;
+    const request_data = self._request_data[requestId];
 
     if (messageChunk) {
 
@@ -1145,20 +1145,20 @@ ClientSecureChannelLayer.prototype._send_chunk = function (requestId, messageChu
 
 ClientSecureChannelLayer.prototype._construct_security_header = function () {
 
-    var self = this;
+    const self = this;
     assert(self.hasOwnProperty("securityMode"));
     assert(self.hasOwnProperty("securityPolicy"));
 
 
     self.receiverCertificate = self.serverCertificate;
 
-    var securityHeader = null;
+    let securityHeader = null;
     switch (self.securityMode.value) {
         case MessageSecurityMode.SIGN.value:
         case MessageSecurityMode.SIGNANDENCRYPT.value:
             assert(self.securityPolicy !== SecurityPolicy.None);
             // get the thumbprint of the client certificate
-            var thumbprint = self.receiverCertificate ? crypto_utils.makeSHA1Thumbprint(self.receiverCertificate) : null;
+            const thumbprint = self.receiverCertificate ? crypto_utils.makeSHA1Thumbprint(self.receiverCertificate) : null;
             securityHeader = new AsymmetricAlgorithmSecurityHeader({
                 securityPolicyUri: securityPolicy_m.toURI(self.securityPolicy),
                 senderCertificate: self.getCertificateChain(),  // certificate of the private key used to sign the message
@@ -1176,7 +1176,7 @@ ClientSecureChannelLayer.prototype._construct_security_header = function () {
 
 ClientSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
 
-    var self = this;
+    const self = this;
     if (self.securityMode === MessageSecurityMode.NONE) {
         return null;
     }
@@ -1184,13 +1184,13 @@ ClientSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
     self._construct_security_header();
     this.messageChunker.securityHeader = self.securityHeader;
 
-    var senderPrivateKey = self.getPrivateKey();
+    const senderPrivateKey = self.getPrivateKey();
 
 
     assert(self.receiverPublicKey);
     assert(typeof self.receiverPublicKey === "string", "expecting a valid public key");
 
-    var cryptoFactory = securityPolicy_m.getCryptoFactory(self.securityPolicy);
+    const cryptoFactory = securityPolicy_m.getCryptoFactory(self.securityPolicy);
 
     if (!cryptoFactory) {
         return null; // may be a not yet supported security Policy
@@ -1199,17 +1199,17 @@ ClientSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
     assert(cryptoFactory, "expecting a cryptoFactory");
     assert(_.isFunction(cryptoFactory.asymmetricSign));
 
-    var options = {};
+    const options = {};
 
     options.signatureLength = crypto_utils.rsa_length(senderPrivateKey);
     options.signingFunc = function (chunk) {
-        var s = cryptoFactory.asymmetricSign(chunk, senderPrivateKey);
+        const s = cryptoFactory.asymmetricSign(chunk, senderPrivateKey);
         assert(s.length === options.signatureLength);
         return s;
     };
 
     assert(self.receiverPublicKey);
-    var keyLength = crypto_utils.rsa_length(self.receiverPublicKey);
+    const keyLength = crypto_utils.rsa_length(self.receiverPublicKey);
     options.plainBlockSize = keyLength - cryptoFactory.blockPaddingSize;
     options.cipherBlockSize = keyLength;
 
@@ -1222,12 +1222,12 @@ ClientSecureChannelLayer.prototype._get_security_options_for_OPN = function () {
 
 ClientSecureChannelLayer.prototype._get_security_options_for_MSG = function () {
 
-    var self = this;
+    const self = this;
     if (self.securityMode === MessageSecurityMode.NONE) {
         return null;
     }
 
-    var derivedClientKeys = self.derivedKeys.derivedClientKeys;
+    const derivedClientKeys = self.derivedKeys.derivedClientKeys;
     assert(derivedClientKeys, "expecting valid derivedClientKeys");
     return securityPolicy_m.getOptionsForSymmetricSignAndEncrypt(self.securityMode, derivedClientKeys);
 
@@ -1235,9 +1235,9 @@ ClientSecureChannelLayer.prototype._get_security_options_for_MSG = function () {
 
 ClientSecureChannelLayer.prototype._sendSecureOpcUARequest = function (msgType, requestMessage, requestId) {
 
-    var self = this;
+    const self = this;
 
-    var options = {
+    const options = {
         requestId: requestId,
         secureChannelId: self.securityToken ? self.securityToken.secureChannelId : 0,
         tokenId: self.securityToken ? self.securityToken.tokenId : 0,
@@ -1260,7 +1260,7 @@ ClientSecureChannelLayer.prototype._sendSecureOpcUARequest = function (msgType, 
     }
 
 
-    var security_options = (msgType === "OPN") ? self._get_security_options_for_OPN() : self._get_security_options_for_MSG();
+    const security_options = (msgType === "OPN") ? self._get_security_options_for_OPN() : self._get_security_options_for_MSG();
     _.extend(options, security_options);
 
     /**
@@ -1294,7 +1294,7 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
     //   allocated for the channel. The server does not send a CloseSecureChannel response
     //
     // ( Note : some servers do  send a CloseSecureChannel though !)
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
 
     // there is no need for the security token expiration event to trigger anymore
@@ -1302,7 +1302,7 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
 
     debugLog("Sending CloseSecureChannelRequest to server");
     //xx console.log("xxxx Sending CloseSecureChannelRequest to server");
-    var request = new CloseSecureChannelRequest();
+    const request = new CloseSecureChannelRequest();
 
     self.__in_normal_close_operation = true;
 
@@ -1320,22 +1320,22 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
 };
 
 ClientSecureChannelLayer.prototype.__defineGetter__("bytesRead", function () {
-    var self = this;
+    const self = this;
     return self._transport ? self._transport.bytesRead : 0;
 });
 
 ClientSecureChannelLayer.prototype.__defineGetter__("bytesWritten", function () {
-    var self = this;
+    const self = this;
     return self._transport ? self._transport.bytesWritten : 0;
 });
 
 ClientSecureChannelLayer.prototype.__defineGetter__("transactionsPerformed", function () {
-    var self = this;
+    const self = this;
     return self._lastRequestId;
 });
 
 ClientSecureChannelLayer.prototype.__defineGetter__("timedOutRequestCount", function () {
-    var self = this;
+    const self = this;
     return self._timedout_request_count;
 });
 

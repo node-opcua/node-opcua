@@ -1,15 +1,15 @@
-var should = require("should");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAServer = opcua.OPCUAServer;
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 
 /**
@@ -34,8 +34,8 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
  */
 function build_client_server_session(options,done) {
 
-    var server, client;
-    var endpointUrl;
+    let server, client;
+    let endpointUrl;
 
     if (_.isFunction(options)) {
         done = options;

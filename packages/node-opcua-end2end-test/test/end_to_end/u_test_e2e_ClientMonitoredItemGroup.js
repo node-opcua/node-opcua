@@ -1,31 +1,31 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
-var assert = require("node-opcua-assert");
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
 var opcua = require("node-opcua");
 
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 var opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var doDebug = false;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const doDebug = false;
 
 
 module.exports = function (test) {
 
     describe("Testing ClientMonitoredItemGroup", function () {
 
-        var server, client, endpointUrl;
+        let server, client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient();
@@ -43,20 +43,20 @@ module.exports = function (test) {
         it("AA11 should create a ClientMonitoredItem and get notified", function (done) {
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                var itemToMonitor = {
+                const itemToMonitor = {
                     nodeId: resolveNodeId("ns=0;i=2258"), // Server_ServerStatus_CurrentTime
                     attributeId: AttributeIds.Value
                 };
 
-                var options = {
+                const options = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1
                 };
 
-                var monitoredItem = subscription.monitor(itemToMonitor, options);
+                const monitoredItem = subscription.monitor(itemToMonitor, options);
 
-                var count = 0;
+                let count = 0;
                 monitoredItem.on("changed", function (dataValue) {
 
                     if (doDebug) {
@@ -88,7 +88,7 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                var itemsToMonitor = [
+                const itemsToMonitor = [
                     {
                         nodeId: resolveNodeId("ns=0;i=2258"),
                         attributeId: AttributeIds.Value
@@ -99,13 +99,13 @@ module.exports = function (test) {
                         attributeId: AttributeIds.Value
                     }
                 ];
-                var options = {
+                const options = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1
                 };
 
-                var monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItemGroup.on("initialized", function () {
@@ -129,7 +129,7 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                var itemsToMonitor = [
+                const itemsToMonitor = [
                     {
                         nodeId: resolveNodeId("ns=0;i=2258"), // Server_ServerStatus_CurrentTime
                         attributeId: AttributeIds.Value
@@ -140,15 +140,15 @@ module.exports = function (test) {
                         attributeId: AttributeIds.Value
                     }
                 ];
-                var options = {
+                const options = {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1
                 };
 
-                var monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
 
-                var count = 0;
+                let count = 0;
                 monitoredItemGroup.on("changed", function (item, dataValue, index) {
 
                     count++;

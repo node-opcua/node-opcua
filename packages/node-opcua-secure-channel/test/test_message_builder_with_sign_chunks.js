@@ -1,34 +1,34 @@
 "use strict";
-var should = require("should");
-var colors = require("colors");
+const should = require("should");
+const colors = require("colors");
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var hexDump = require("node-opcua-debug").hexDump;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const hexDump = require("node-opcua-debug").hexDump;
 
-var make_lorem_ipsum_buffer = require("node-opcua-test-helpers").make_lorem_ipsum_buffer;
-var fake_message_chunk_factory = require("../test_helpers/fake_message_chunk_factory");
+const make_lorem_ipsum_buffer = require("node-opcua-test-helpers").make_lorem_ipsum_buffer;
+const fake_message_chunk_factory = require("../test_helpers/fake_message_chunk_factory");
 
-var MessageBuilder = require("../src/message_builder").MessageBuilder;
-var SecurityPolicy = require("../src/security_policy").SecurityPolicy;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const MessageBuilder = require("../src/message_builder").MessageBuilder;
+const SecurityPolicy = require("../src/security_policy").SecurityPolicy;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var getFixture = require("node-opcua-test-fixtures").getFixture;
+const getFixture = require("node-opcua-test-fixtures").getFixture;
 
 
-var private_key_filename = getFixture("certs/server_key_1024.pem");
+const private_key_filename = getFixture("certs/server_key_1024.pem");
 
 
 describe("MessageBuilder with SIGN support", function () {
 
-    var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
+    const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
 
     it("should not emit an error event if chunks have valid signature", function (done) {
 
-        var options = {};
+        const options = {};
 
-        var messageBuilder = new MessageBuilder(options);
+        const messageBuilder = new MessageBuilder(options);
         messageBuilder.privateKey = crypto_utils.read_private_rsa_key(private_key_filename);
         messageBuilder._decode_message_body = false;
 
@@ -53,9 +53,9 @@ describe("MessageBuilder with SIGN support", function () {
 
     it("should reconstruct a full message made of many signed chunks", function (done) {
 
-        var options = {};
+        const options = {};
 
-        var messageBuilder = new MessageBuilder(options);
+        const messageBuilder = new MessageBuilder(options);
         messageBuilder.setSecurity('SIGN', 'Basic128Rsa15');
 
         messageBuilder._decode_message_body = false;
@@ -88,9 +88,9 @@ describe("MessageBuilder with SIGN support", function () {
     });
     it("should emit an bad_signature event if chunk has been tempered", function (done) {
 
-        var options = {};
+        const options = {};
 
-        var messageBuilder = new MessageBuilder(options);
+        const messageBuilder = new MessageBuilder(options);
         messageBuilder._decode_message_body = false;
 
         messageBuilder
@@ -125,13 +125,13 @@ describe("MessageBuilder with SIGN support", function () {
 
 describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
 
-    var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
+    const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
 
     it("should not emit an error event with valid SIGN & ENCRYPT chunks", function (done) {
 
-        var options = {};
+        const options = {};
 
-        var messageBuilder = new MessageBuilder(options);
+        const messageBuilder = new MessageBuilder(options);
         messageBuilder.privateKey = crypto_utils.read_private_rsa_key(private_key_filename);
         messageBuilder._decode_message_body = false;
 
@@ -160,11 +160,11 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
 
 describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
 
-    var lorem_ipsum_buffer = make_lorem_ipsum_buffer();
+    const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
 
     it("should process a signed and encrypted message", function (done) {
-        var options = {};
-        var messageBuilder = new MessageBuilder(options);
+        const options = {};
+        const messageBuilder = new MessageBuilder(options);
         messageBuilder._decode_message_body = false;
 
         messageBuilder.securityPolicy = SecurityPolicy.Basic128Rsa15;

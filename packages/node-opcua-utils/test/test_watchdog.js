@@ -1,14 +1,14 @@
 
 "use strict";
 
-var sinon = require("sinon");
-var _ = require("underscore");
-var EventEmitter = require("events").EventEmitter;
-var util = require("util");
-var should = require("should");
+const sinon = require("sinon");
+const _ = require("underscore");
+const EventEmitter = require("events").EventEmitter;
+const util = require("util");
+const should = require("should");
 
 
-var WatchDog = require("../src/watchdog").WatchDog;
+const WatchDog = require("../src/watchdog").WatchDog;
 
 function MyObject() {
 }
@@ -26,7 +26,7 @@ describe("watch dog", function () {
 
 
     this.timeout(10000);
-    var watchDog = null;
+    let watchDog = null;
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
         watchDog = new WatchDog();
@@ -43,7 +43,7 @@ describe("watch dog", function () {
 
         watchDog.subscriberCount.should.eql(0);
 
-        var obj1 = new MyObject();
+        const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 
         watchDog.subscriberCount.should.eql(1);
@@ -63,7 +63,7 @@ describe("watch dog", function () {
 
         should(watchDog._timer).equal(null);
 
-        var obj1 = new MyObject();
+        const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 
         should.exist(watchDog._timer);
@@ -75,7 +75,7 @@ describe("watch dog", function () {
 
         should(watchDog._timer).equal(null);
 
-        var obj1 = new MyObject();
+        const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
         watchDog.removeSubscriber(obj1);
 
@@ -95,7 +95,7 @@ describe("watch dog", function () {
 
     it("should install a 'keepAlive' method on  the subscribing object during addSubscriber and remove it during removeSubscriber", function (done) {
 
-        var obj = new MyObject();
+        const obj = new MyObject();
         should(_.isFunction(obj.keepAlive)).eql(false);
 
         watchDog.addSubscriber(obj, 100);
@@ -110,7 +110,7 @@ describe("watch dog", function () {
 
     it("should call the watchdogReset method of a subscriber when timeout has expired", function (done) {
 
-        var obj = new MyObject();
+        const obj = new MyObject();
         watchDog.addSubscriber(obj, 100);
 
         setTimeout(function () {
@@ -124,16 +124,16 @@ describe("watch dog", function () {
 
     it("should visit subscribers on a regular basis", function (done) {
 
-        var obj1 = new MyObject();
-        var obj2 = new MyObject();
+        const obj1 = new MyObject();
+        const obj2 = new MyObject();
 
         watchDog.addSubscriber(obj1, 1000);
         watchDog.addSubscriber(obj2, 1000);
 
-        var timer1 = setInterval(function () {
+        const timer1 = setInterval(function () {
             obj1.keepAlive();
         }, 200);
-        var timer2 = setInterval(function () {
+        const timer2 = setInterval(function () {
             obj2.keepAlive();
         }, 200);
 
@@ -163,7 +163,7 @@ describe("watch dog", function () {
     });
     it("should emit an event when it finds that some subscriber has reached the timeout period without sending a keepAlive signal", function (done) {
 
-        var obj1 = new MyObject();
+        const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 
         watchDog.on("timeout", function (subscribers) {

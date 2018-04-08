@@ -1,14 +1,14 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var ClientSubscription = opcua.ClientSubscription;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const ClientSubscription = opcua.ClientSubscription;
 
 
 
@@ -27,14 +27,14 @@ module.exports = function (test) {
 
         it("test", function (done) {
 
-            var server = test.server;
+            const server = test.server;
 
-            var refreshRate = 500;
+            const refreshRate = 500;
 
-            var variable2 = 16.0;
-            var addressSpace = server.engine.addressSpace;
+            let variable2 = 16.0;
+            const addressSpace = server.engine.addressSpace;
 
-            var the_Variable = addressSpace.addVariable({
+            const the_Variable = addressSpace.addVariable({
                 organizes: addressSpace.rootFolder.objects,
                 nodeId: "ns=1;b=1020FFAA",
                 browseName: "MyVariable2",
@@ -58,10 +58,10 @@ module.exports = function (test) {
             });
 
 
-            var client1 = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
             async.series([
 
@@ -83,7 +83,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    var subscription = new ClientSubscription(the_session, {
+                    const subscription = new ClientSubscription(the_session, {
                         requestedPublishingInterval: 150,
                         requestedLifetimeCount: 10 * 60 * 10,
                         requestedMaxKeepAliveCount: 10,
@@ -99,7 +99,7 @@ module.exports = function (test) {
                         //xx console.log("publishingInterval", subscription.publishingInterval);
                     });
 
-                    var monitoredItem = subscription.monitor(
+                    const monitoredItem = subscription.monitor(
                         {nodeId: the_Variable.nodeId, attributeId: AttributeIds.Value},
                         {
                             samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate

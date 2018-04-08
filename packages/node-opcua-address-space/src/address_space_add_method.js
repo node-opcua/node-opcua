@@ -4,35 +4,35 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var Argument = require("node-opcua-service-call").Argument;
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const Argument = require("node-opcua-service-call").Argument;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 exports.install = function (AddressSpace) {
 
-    var isNonEmptyQualifiedName = AddressSpace.isNonEmptyQualifiedName;
-    var _handle_hierarchy_parent = AddressSpace._handle_hierarchy_parent;
+    const isNonEmptyQualifiedName = AddressSpace.isNonEmptyQualifiedName;
+    const _handle_hierarchy_parent = AddressSpace._handle_hierarchy_parent;
 
     AddressSpace.prototype._addMethod = function(options) {
 
-        var self = this;
+        const self = this;
 
         assert(isNonEmptyQualifiedName(options.browseName));
 
-        var references = [];
+        const references = [];
         assert(isNonEmptyQualifiedName(options.browseName));
 
         _handle_hierarchy_parent(self, references, options);
 
         AddressSpace._process_modelling_rule(references, options.modellingRule);
 
-        var method = self._createNode({
+        const method = self._createNode({
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
             isAbstract: false,
@@ -60,7 +60,7 @@ exports.install = function (AddressSpace) {
      * @return {Object}
      */
     AddressSpace.prototype.addMethod = function (parentObject, options) {
-        var self = this;
+        const self = this;
 
         assert(_.isObject(parentObject));
 
@@ -72,14 +72,14 @@ exports.install = function (AddressSpace) {
 
         options.componentOf = parentObject;
 
-        var method = self._addMethod(options);
+        const method = self._addMethod(options);
 
-        var propertyTypeId = self._coerce_VariableTypeIds("PropertyType");
+        const propertyTypeId = self._coerce_VariableTypeIds("PropertyType");
 
-        var nodeId_ArgumentDataType = "Argument"; // makeNodeId(DataTypeIds.Argument);
+        const nodeId_ArgumentDataType = "Argument"; // makeNodeId(DataTypeIds.Argument);
 
         if (options.inputArguments) {
-            var _inputArgs = new Variant({
+            const _inputArgs = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: options.inputArguments.map(function (opt) {
@@ -87,7 +87,7 @@ exports.install = function (AddressSpace) {
                 })
             });
 
-            var inputArguments = self.addVariable({
+            const inputArguments = self.addVariable({
                 modellingRule: "Mandatory",
                 propertyOf: method,
                 typeDefinition: "PropertyType",
@@ -109,7 +109,7 @@ exports.install = function (AddressSpace) {
 
 
         if (options.outputArguments) {
-            var _ouputArgs = new Variant({
+            const _ouputArgs = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: options.outputArguments.map(function (opts) {
@@ -117,7 +117,7 @@ exports.install = function (AddressSpace) {
                 })
             });
 
-            var outputArguments = self.addVariable({
+            const outputArguments = self.addVariable({
                 modellingRule: "Mandatory",
                 propertyOf: method,
                 typeDefinition: "PropertyType",

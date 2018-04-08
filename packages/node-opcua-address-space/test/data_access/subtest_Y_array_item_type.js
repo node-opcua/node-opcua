@@ -1,28 +1,28 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
-var standardUnits = require("node-opcua-data-access").standardUnits;
+const standardUnits = require("node-opcua-data-access").standardUnits;
 
-var AddressSpace = require("../../").AddressSpace;
+const AddressSpace = require("../../").AddressSpace;
 
 
 module.exports = function(maintest) {
 
     describe("YArrayItemType", function () {
 
-        var addressSpace;
+        let addressSpace;
         before(function() {
             addressSpace = maintest.addressSpace;
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
-        var objectsFolder;
+        let objectsFolder;
         before(function() {
             objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
@@ -30,13 +30,13 @@ module.exports = function(maintest) {
 
         it("YArrayItemType should not be abstract",function() {
 
-            var YArrayItemType = addressSpace.findVariableType("YArrayItemType");
+            const YArrayItemType = addressSpace.findVariableType("YArrayItemType");
             YArrayItemType.isAbstract.should.eql(false);
 
         });
         it("should add a YArrayItem",function() {
 
-            var yArrayItem = addressSpace.addYArrayItem({
+            const yArrayItem = addressSpace.addYArrayItem({
 
                 organizedBy: objectsFolder,
 
@@ -86,7 +86,7 @@ module.exports = function(maintest) {
 
 
             // access xAxisDefinition from extension object
-            var x = yArrayItem.xAxisDefinition.readValue().value.value;
+            const x = yArrayItem.xAxisDefinition.readValue().value.value;
 
             x.engineeringUnits.should.eql(standardUnits.second);
             x.title.text.should.eql("the X axis legend");
@@ -101,7 +101,7 @@ module.exports = function(maintest) {
         });
         it("should add a YArrayItem with optional instrument range",function() {
 
-            var prop = addressSpace.addYArrayItem({
+            const prop = addressSpace.addYArrayItem({
 
                 organizedBy: objectsFolder,
 

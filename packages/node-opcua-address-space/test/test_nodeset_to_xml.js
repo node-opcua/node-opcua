@@ -1,21 +1,21 @@
 "use strict";
 /*global describe,it,before*/
 
-var should = require("should");
+const should = require("should");
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
-var _ = require("underscore");
+const _ = require("underscore");
 
-var dumpXml = require("../src/nodeset_to_xml").dumpXml;
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const dumpXml = require("../src/nodeset_to_xml").dumpXml;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var doDebug = false;
+const doDebug = false;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing nodeset to xml", function () {
-    var addressSpace;
+    let addressSpace;
     beforeEach(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
@@ -30,15 +30,15 @@ describe("testing nodeset to xml", function () {
         }
         done();
     });
-    var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
+    const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
     it("should output a standard extension object datatype to xml (Argument)", function () {
 
-        var argumentDataType = addressSpace.findDataType("Argument");
+        const argumentDataType = addressSpace.findDataType("Argument");
         if (doDebug) {
             console.log(argumentDataType.toString());
         }
-        var str = dumpXml(argumentDataType, {});
+        const str = dumpXml(argumentDataType, {});
         if (doDebug) {
             console.log(str);
         }
@@ -47,8 +47,8 @@ describe("testing nodeset to xml", function () {
 
     it("should output a standard Enum node to xml (ServerState)", function () {
         // TemperatureSensorType
-        var serverStateType = addressSpace.findDataType("ServerState");
-        var str = dumpXml(serverStateType, {});
+        const serverStateType = addressSpace.findDataType("ServerState");
+        const str = dumpXml(serverStateType, {});
         if (doDebug) {
             console.log(str);
         }
@@ -57,13 +57,13 @@ describe("testing nodeset to xml", function () {
 
     it("€€€ should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", function () {
 
-        var myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumTypeForm1",
             enumeration: ["RUNNING", "STOPPED"]
         });
 
         myEnumType.browseName.toString().should.eql("MyEnumTypeForm1");
-        var str = dumpXml(myEnumType, {});
+        const str = dumpXml(myEnumType, {});
         if (doDebug) {
             console.log(str);
         }
@@ -75,7 +75,7 @@ describe("testing nodeset to xml", function () {
     it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", function () {
 
 
-        var myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
                 {displayName: "RUNNING", value: 10, description: "the device is running"},
@@ -84,7 +84,7 @@ describe("testing nodeset to xml", function () {
         });
 
         myEnumType.browseName.toString().should.eql("MyEnumType");
-        var str = dumpXml(myEnumType, {});
+        const str = dumpXml(myEnumType, {});
         if (doDebug) {
             console.log(str);
         }
@@ -96,9 +96,9 @@ describe("testing nodeset to xml", function () {
 
     it("should output a simple objectType node to xml", function () {
         // TemperatureSensorType
-        var temperatureSensorType = createTemperatureSensorType(addressSpace);
+        const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
-        var str = dumpXml(temperatureSensorType, {});
+        const str = dumpXml(temperatureSensorType, {});
         //xx console.log(str);
         str.should.match(/UAObjectType/);
     });
@@ -107,7 +107,7 @@ describe("testing nodeset to xml", function () {
     it("should output a instance of a new ObjectType  to xml", function () {
 
         // TemperatureSensorType
-        var temperatureSensorType = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
+        const temperatureSensorType = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
         addressSpace.addVariable({
             componentOf: temperatureSensorType,
             browseName: "Temperature",
@@ -117,23 +117,23 @@ describe("testing nodeset to xml", function () {
             value: new Variant({dataType: DataType.Double, value: 19.5})
         });
 
-        var parentFolder = addressSpace.findNode("RootFolder");
+        const parentFolder = addressSpace.findNode("RootFolder");
         parentFolder.browseName.toString().should.eql("Root");
 
         // variation 1
-        var temperatureSensor = temperatureSensorType.instantiate({
+        const temperatureSensor = temperatureSensorType.instantiate({
             organizedBy: parentFolder,
             browseName: "MyTemperatureSensor"
         });
 
         // variation 2
-        var temperatureSensor2 = temperatureSensorType.instantiate({
+        const temperatureSensor2 = temperatureSensorType.instantiate({
             organizedBy: "RootFolder",
             browseName: "MyTemperatureSensor"
         });
 
 
-        var str = dumpXml(temperatureSensor, {});
+        const str = dumpXml(temperatureSensor, {});
         if (doDebug) {
             //xx console.log(str);
         }
@@ -142,15 +142,15 @@ describe("testing nodeset to xml", function () {
     });
     it("should output a instance of object with method  to xml", function () {
 
-        var createCameraType = require("./fixture_camera_type").createCameraType;
+        const createCameraType = require("./fixture_camera_type").createCameraType;
 
-        var cameraType = createCameraType(addressSpace);
+        const cameraType = createCameraType(addressSpace);
 
-        var camera1 = cameraType.instantiate({
+        const camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",
             browseName: "Camera1"
         });
-        var str = dumpXml(camera1, {});
+        const str = dumpXml(camera1, {});
         if (doDebug) {
             console.log(str);
         }
@@ -160,9 +160,9 @@ describe("testing nodeset to xml", function () {
 
     it("should output an instance of variable type to xml", function () {
 
-        var variableType = addressSpace.addVariableType({browseName: 'MyCustomVariableType'});
+        const variableType = addressSpace.addVariableType({browseName: 'MyCustomVariableType'});
 
-        var str = dumpXml(variableType, {});
+        const str = dumpXml(variableType, {});
         if (doDebug) {
             console.log(str);
         }

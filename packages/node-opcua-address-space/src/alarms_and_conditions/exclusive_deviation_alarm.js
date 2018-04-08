@@ -3,16 +3,16 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarmHelper;
+const DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarmHelper;
 
-var UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
-var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
+const UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
+const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
 /**
  * @class UAExclusiveDeviationAlarm
  * @extends UAExclusiveLimitAlarm
@@ -28,7 +28,7 @@ UAExclusiveDeviationAlarm.prototype._onSetpointDataValueChange = DeviationAlarmH
 UAExclusiveDeviationAlarm.prototype._install_setpoint= DeviationAlarmHelper._install_setpoint;
 
 UAExclusiveDeviationAlarm.prototype._setStateBasedOnInputValue = function(value) {
-    var setpointValue = this.getSetpointValue();
+    const setpointValue = this.getSetpointValue();
     assert(_.isFinite(setpointValue));
     // call base class implementation
     UAExclusiveLimitAlarm.prototype._setStateBasedOnInputValue.call(this,value - setpointValue);
@@ -47,7 +47,7 @@ exports.UAExclusiveDeviationAlarm = UAExclusiveDeviationAlarm;
  */
 UAExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data ){
 
-    var exclusiveDeviationAlarmType = addressSpace.findEventType("ExclusiveDeviationAlarmType");
+    const exclusiveDeviationAlarmType = addressSpace.findEventType("ExclusiveDeviationAlarmType");
     /* istanbul ignore next */
     if (!exclusiveDeviationAlarmType) {
         throw new Error("cannot find ExclusiveDeviationAlarmType");
@@ -55,7 +55,7 @@ UAExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data
 
     assert(type === exclusiveDeviationAlarmType.browseName.toString());
 
-    var alarm = UAExclusiveLimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UAExclusiveLimitAlarm.instantiate(addressSpace, type, options, data);
     Object.setPrototypeOf(alarm,UAExclusiveDeviationAlarm.prototype);
 
     assert(alarm instanceof UAExclusiveDeviationAlarm);

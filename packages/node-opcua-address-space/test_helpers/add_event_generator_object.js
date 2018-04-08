@@ -1,23 +1,23 @@
 "use strict";
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 function add_eventGeneratorObject(addressSpace, parentFolder) {
 
 
-    var myEvtType = addressSpace.addEventType({
+    const myEvtType = addressSpace.addEventType({
         browseName: "MyEventType",
         subtypeOf: "BaseEventType" // should be implicit
     });
 
-    var myObject = addressSpace.addObject({
+    const myObject = addressSpace.addObject({
         organizedBy: parentFolder,
         browseName: "EventGeneratorObject"
     });
 
     myObject.addReference({referenceType: "AlwaysGeneratesEvent", nodeId: myEvtType});
 
-    var method = addressSpace.addMethod(myObject, {
+    const method = addressSpace.addMethod(myObject, {
         browseName: "EventGeneratorMethod",
         inputArguments: [
             {
@@ -42,8 +42,8 @@ function add_eventGeneratorObject(addressSpace, parentFolder) {
 
         //xx console.log("inputArguments ", inputArguments[0].toString());
 
-        var message = inputArguments[0].value || "Hello from Event Generator Object";
-        var severity = inputArguments[1].value || 0;
+        const message = inputArguments[0].value || "Hello from Event Generator Object";
+        const severity = inputArguments[1].value || 0;
 
         context.object.raiseEvent("MyEventType", {
             message: {
@@ -57,7 +57,7 @@ function add_eventGeneratorObject(addressSpace, parentFolder) {
 
         });
         // console.log(require("util").inspect(context).toString());
-        var callMethodResult = {
+        const callMethodResult = {
             statusCode: StatusCodes.Good,
             outputArguments: []
         };

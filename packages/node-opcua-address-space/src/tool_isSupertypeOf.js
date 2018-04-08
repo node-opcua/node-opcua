@@ -1,12 +1,12 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 function _filterSubType(reference) {
     return (reference.referenceType === "HasSubtype" && !reference.isForward);
 }
 
-var _slow_isSupertypeOf = function (self, Class, baseType) {
+const _slow_isSupertypeOf = function (self, Class, baseType) {
     //xx console.log(" ",self.browseName, " versus ",baseType.browseName);
     assert(self instanceof Class);
     assert(baseType instanceof Class, " Object must have same type");
@@ -15,14 +15,14 @@ var _slow_isSupertypeOf = function (self, Class, baseType) {
     if (self.nodeId === baseType.nodeId) {
         return true;
     }
-    var references = self.allReferences();
+    const references = self.allReferences();
 
-    var subTypes = _.filter(references,_filterSubType);
+    const subTypes = _.filter(references,_filterSubType);
     assert(subTypes.length <= 1 && " should have zero or one subtype no more");
 
-    for (var i = 0; i < subTypes.length; i++) {
-        var subTypeId = subTypes[i].nodeId;
-        var subType = self.addressSpace.findNode(subTypeId);
+    for (let i = 0; i < subTypes.length; i++) {
+        const subTypeId = subTypes[i].nodeId;
+        const subType = self.addressSpace.findNode(subTypeId);
         // istanbul ignore next
         if (!subType) {
             throw new Error("Cannot find object with nodeId " + subTypeId.toString());
@@ -52,8 +52,8 @@ function wrap_memoize(func, hasher) {
         if (!this.__cache) {
             this.__cache = {};
         }
-        var hash = hasher.call(this, param);
-        var cache_value = this.__cache[hash];
+        const hash = hasher.call(this, param);
+        let cache_value = this.__cache[hash];
         if (cache_value === undefined) {
             cache_value = func.call(this, param); //custom function
             this.__cache[hash] = cache_value;

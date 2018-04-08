@@ -1,40 +1,40 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var SecureMessageChunkManager = require("../src/secure_message_chunk_manager").SecureMessageChunkManager;
-var SequenceNumberGenerator = require("../src/sequence_number_generator").SequenceNumberGenerator;
-var SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
+const SecureMessageChunkManager = require("../src/secure_message_chunk_manager").SecureMessageChunkManager;
+const SequenceNumberGenerator = require("../src/sequence_number_generator").SequenceNumberGenerator;
+const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
 
 
 function performMessageChunkManagerTest(options) {
 
     options = options || {};
-    var securityHeader = new SymmetricAlgorithmSecurityHeader();
+    const securityHeader = new SymmetricAlgorithmSecurityHeader();
 
-    var bodySize = 32;
-    var headerSize = 12 + securityHeader.binaryStoreSize();
+    const bodySize = 32;
+    const headerSize = 12 + securityHeader.binaryStoreSize();
 
     options.signatureLength = options.signatureLength || 0;   // 128 bytes for signature
     options.chunkSize = bodySize + options.signatureLength + headerSize + 8;    // bodySize useful bytes
 
     options.requestId = 1;
 
-    var sequenceNumberGenerator = new SequenceNumberGenerator();
+    const sequenceNumberGenerator = new SequenceNumberGenerator();
 
 
-    var msgChunkManager = new SecureMessageChunkManager(
+    const msgChunkManager = new SecureMessageChunkManager(
         "HEL", options, securityHeader, sequenceNumberGenerator
     );
 
     //xxoptions.chunkManager.maxBodySize;
     // new MessageChunkManager(body_size,"HEL",0xDEADBEEF,options);
 
-    var chunks = [];
+    const chunks = [];
 
-    var chunk_counter = 0;
+    let chunk_counter = 0;
 
     function collect_chunk(chunk) {
-        var copy_chunk = new Buffer(chunk.length);
+        const copy_chunk = new Buffer(chunk.length);
         chunk.copy(copy_chunk, 0, 0, chunk.length);
 
         // append the copy to our chunk collection
@@ -59,10 +59,10 @@ function performMessageChunkManagerTest(options) {
     });
 
     // feed chunk-manager on byte at a time
-    var n = (bodySize) * 4 + 12;
+    const n = (bodySize) * 4 + 12;
 
-    var buf = new Buffer(1);
-    for (var i = 0; i < n; i += 1) {
+    const buf = new Buffer(1);
+    for (let i = 0; i < n; i += 1) {
         buf.writeUInt8(i % 256, 0);
         msgChunkManager.write(buf, 1);
     }
@@ -110,10 +110,10 @@ describe("MessageChunkManager", function () {
     it("should split a message in chunk and produce a header (  SIGN & NO ENCRYPT).", function () {
 
 
-        var makeMessageChunkSignatureForTest = require("../test_helpers/signature_helpers").makeMessageChunkSignatureForTest;
-        var verifyMessageChunkSignatureForTest = require("../test_helpers/signature_helpers").verifyMessageChunkSignatureForTest;
+        const makeMessageChunkSignatureForTest = require("../test_helpers/signature_helpers").makeMessageChunkSignatureForTest;
+        const verifyMessageChunkSignatureForTest = require("../test_helpers/signature_helpers").verifyMessageChunkSignatureForTest;
 
-        var options = {
+        const options = {
             signatureLength: 128,
             signingFunc: makeMessageChunkSignatureForTest,
             verifyChunk: verifyMessageChunkSignatureForTest

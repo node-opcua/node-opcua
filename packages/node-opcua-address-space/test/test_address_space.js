@@ -1,25 +1,25 @@
 "use strict";
 
-var should = require("should");
-var assert = require("node-opcua-assert");
+const should = require("should");
+const assert = require("node-opcua-assert");
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 
-var context = require("..").SessionContext.defaultContext;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var DataTypeIds = require("node-opcua-constants").DataTypeIds;
-var DataType = require("node-opcua-variant").DataType;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const context = require("..").SessionContext.defaultContext;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const DataTypeIds = require("node-opcua-constants").DataTypeIds;
+const DataType = require("node-opcua-variant").DataType;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing address space", function () {
 
-    var addressSpace = null, rootFolder;
+    let addressSpace = null, rootFolder;
 
 
     before(function (done) {
@@ -48,7 +48,7 @@ describe("testing address space", function () {
 
     it("BaseNode#findReferencesEx - should find HierarchicalReferences", function () {
 
-        var object = addressSpace.addObject({
+        const object = addressSpace.addObject({
             organizedBy: "RootFolder",
             browseName: "ChildObject"
         });
@@ -56,7 +56,7 @@ describe("testing address space", function () {
         object.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse).length.should.eql(1, "Object must be child of one parent");
         object.findReferencesEx("HierarchicalReferences", BrowseDirection.Forward).length.should.eql(0, "Object must not have children yet");
 
-        var comp1 = addressSpace.addVariable({componentOf: object, browseName: "Component1", dataType: "String"});
+        const comp1 = addressSpace.addVariable({componentOf: object, browseName: "Component1", dataType: "String"});
         object.findReferencesEx("HierarchicalReferences", BrowseDirection.Forward).length.should.eql(1, "Object must now have one child");
 
         object.findReferencesEx("HasChild", BrowseDirection.Forward).length.should.eql(1, "Object must now have one child");
@@ -72,18 +72,18 @@ describe("testing address space", function () {
 
     it("AddressSpace#deleteNode - should remove an object from the address space", function () {
 
-        var options = {
+        const options = {
             organizedBy: "ObjectsFolder",
             browseName: "SomeObject"
         };
 
-        var object = addressSpace.addObject(options);
+        const object = addressSpace.addObject(options);
 
         // object shall be found with a global nodeId search
         addressSpace.findNode(object.nodeId).should.eql(object);
 
         // object shall be found in parent folder
-        var references = rootFolder.objects.findReferences("Organizes", true);
+        let references = rootFolder.objects.findReferences("Organizes", true);
         findReference(references, object.nodeId).length.should.eql(1);
 
 
@@ -107,18 +107,18 @@ describe("testing address space", function () {
 
     it("AddressSpace#deleteNode - should remove an object and its children from the address space", function () {
 
-        var options = {
+        const options = {
             organizedBy: "ObjectsFolder",
             browseName: "SomeObject"
         };
-        var object = addressSpace.addObject(options);
-        var innerVar = addressSpace.addVariable({componentOf: object, browseName: "Hello", dataType: "String"});
+        const object = addressSpace.addObject(options);
+        const innerVar = addressSpace.addVariable({componentOf: object, browseName: "Hello", dataType: "String"});
 
         // objects shall  be found with a global nodeId search
         addressSpace.findNode(object.nodeId).should.eql(object);
         addressSpace.findNode(innerVar.nodeId).should.eql(innerVar);
 
-        var references = object.findReferences("HasComponent", true);
+        let references = object.findReferences("HasComponent", true);
         findReference(references, innerVar.nodeId).length.should.eql(1);
 
         references = rootFolder.objects.findReferences("Organizes", true);
@@ -140,12 +140,12 @@ describe("testing address space", function () {
     it("AddressSpace#deleteNode - should remove a component of a existing object", function () {
 
         // give an object
-        var object = addressSpace.addObject({organizedBy: "ObjectsFolder", browseName: "MyObject1"});
+        const object = addressSpace.addObject({organizedBy: "ObjectsFolder", browseName: "MyObject1"});
 
         // let's construct some properties and some components gradually, and verify that the caches
         // work as expected.
-        var comp1 = addressSpace.addVariable({componentOf: object, browseName: "Component1", dataType: "String"});
-        var prop1 = addressSpace.addVariable({propertyOf: object, browseName: "Property1", dataType: "String"});
+        const comp1 = addressSpace.addVariable({componentOf: object, browseName: "Component1", dataType: "String"});
+        const prop1 = addressSpace.addVariable({propertyOf: object, browseName: "Property1", dataType: "String"});
 
         object.getComponents().length.should.eql(1);
         object.getComponents()[0].browseName.toString().should.eql("Component1");
@@ -157,8 +157,8 @@ describe("testing address space", function () {
         object.getChildByName("Property1").browseName.toString().should.eql("Property1");
         should(object.getChildByName("Component2")).eql(null);
 
-        var comp2 = addressSpace.addVariable({componentOf: object, browseName: "Component2", dataType: "String"});
-        var prop2 = addressSpace.addVariable({propertyOf: object, browseName: "Property2", dataType: "String"});
+        const comp2 = addressSpace.addVariable({componentOf: object, browseName: "Component2", dataType: "String"});
+        const prop2 = addressSpace.addVariable({propertyOf: object, browseName: "Property2", dataType: "String"});
 
         object.getComponents().length.should.eql(2);
         object.getComponents()[0].browseName.toString().should.eql("Component1");
@@ -194,14 +194,14 @@ describe("testing address space", function () {
     });
 
 
-    var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-    var DataTypeIds = require("node-opcua-constants").DataTypeIds;
-    var DataType = require("node-opcua-variant").DataType;
-    var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+    const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+    const DataTypeIds = require("node-opcua-constants").DataTypeIds;
+    const DataType = require("node-opcua-variant").DataType;
+    const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
     it("AddressSpace#findCorrespondingBasicDataType i=13 => DataType.String", function () {
 
-        var dataType = addressSpace.findDataType(resolveNodeId("i=12"));
+        const dataType = addressSpace.findDataType(resolveNodeId("i=12"));
         dataType.browseName.toString().should.eql("String");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.String);
 
@@ -209,7 +209,7 @@ describe("testing address space", function () {
 
     it("AddressSpace#findCorrespondingBasicDataType i=338 => BuildInfo => DataType.ExtensionObject", function () {
 
-        var dataType = addressSpace.findDataType(makeNodeId(DataTypeIds.BuildInfo)); // ServerStatus
+        const dataType = addressSpace.findDataType(makeNodeId(DataTypeIds.BuildInfo)); // ServerStatus
         dataType.browseName.toString().should.eql("BuildInfo");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.ExtensionObject);
     });
@@ -232,7 +232,7 @@ describe("testing address space", function () {
 
     it(" AddressSpace#findCorrespondingBasicDataType  i=13 => DataType.String", function () {
 
-        var dataType = addressSpace.findDataType(resolveNodeId("i=12"));
+        const dataType = addressSpace.findDataType(resolveNodeId("i=12"));
         dataType.browseName.toString().should.eql("String");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.String);
 
@@ -240,7 +240,7 @@ describe("testing address space", function () {
 
     it("AddressSpace#findCorrespondingBasicDataType i=338 => BuildInfo => DataType.ExtensionObject", function () {
 
-        var dataType = addressSpace.findDataType(makeNodeId(DataTypeIds.BuildInfo)); // ServerStatus
+        const dataType = addressSpace.findDataType(makeNodeId(DataTypeIds.BuildInfo)); // ServerStatus
         dataType.browseName.toString().should.eql("BuildInfo");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.ExtensionObject);
     });
@@ -285,35 +285,35 @@ describe("testing address space", function () {
         // by walking up the hierarchy of node until we reach either the root.objects folder => primary view is server
         // or the views folder
 
-        var objects = addressSpace.rootFolder.objects;
+        const objects = addressSpace.rootFolder.objects;
 
-        var view1 = addressSpace.addView({
+        const view1 = addressSpace.addView({
             organizedBy: addressSpace.rootFolder.views,
             browseName: "View1"
         });
 
-        var view2 = addressSpace.addView({
+        const view2 = addressSpace.addView({
             organizedBy: addressSpace.rootFolder.views,
             browseName: "View2"
         });
 
-        var view3 = addressSpace.addView({
+        const view3 = addressSpace.addView({
             organizedBy: addressSpace.rootFolder.views,
             browseName: "View3"
         });
 
-        var folder = addressSpace.addObject({
+        const folder = addressSpace.addObject({
             typeDefinition: addressSpace.findObjectType("FolderObjectType"),
             organizedBy: addressSpace.rootFolder.views,
             browseName: "EngineeringViews"
         });
 
-        var view4 = addressSpace.addView({
+        const view4 = addressSpace.addView({
             organizedBy: folder,
             browseName: "View4"
         });
 
-        var node = addressSpace.addObject({
+        const node = addressSpace.addObject({
             organizedBy: objects,
             browseName: "ParentNodeXXX"
         });
@@ -322,13 +322,13 @@ describe("testing address space", function () {
 
         node.addReference({referenceType: "OrganizedBy", nodeId: view4});
 
-        var views = addressSpace.extractRootViews(node);
+        const views = addressSpace.extractRootViews(node);
 
         views.length.should.eql(2);
         views[0].should.eql(view1);
         views[1].should.eql(view4);
 
-        var AttributeIds = require("node-opcua-data-model").AttributeIds;
+        const AttributeIds = require("node-opcua-data-model").AttributeIds;
         view1.readAttribute(context, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
         view1.readAttribute(context, AttributeIds.ContainsNoLoops).value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
         view1.readAttribute(context, AttributeIds.BrowseName).value.value.toString().should.eql("View1");

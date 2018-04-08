@@ -1,11 +1,11 @@
 "use strict";
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var trace_from_this_projet_only = require("node-opcua-debug").trace_from_this_projet_only;
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
+const trace_from_this_projet_only = require("node-opcua-debug").trace_from_this_projet_only;
 
-var g_registries = [];
+const g_registries = [];
 
-var hashCounter = 1;
+let hashCounter = 1;
 function ObjectRegistry(objectType) {
 
     this._objectType = objectType;
@@ -52,9 +52,9 @@ ObjectRegistry.prototype.count = function () {
 // istanbul ignore next
 ObjectRegistry.prototype.toString = function () {
 
-    var className = this.getClassName();
-    var self = this;
-    var str = " className :" + className +  " found => " + this.count() +  " object leaking\n";
+    const className = this.getClassName();
+    const self = this;
+    let str = " className :" + className +  " found => " + this.count() +  " object leaking\n";
 
     _.forEach(self._cache,function(obj/*,key*/) {
         str += obj.constructor.name + " " + obj.toString()+ "\n";
@@ -62,7 +62,7 @@ ObjectRegistry.prototype.toString = function () {
 
     if (ObjectRegistry.doDebug) {
         _.forEach(self._cache,function(obj,key){
-            var cachedObject = self._cache[key];
+            const cachedObject = self._cache[key];
             assert(cachedObject.hasOwnProperty("_____trace"));
             str += "   " + key + cachedObject._____trace + "\n";
         });

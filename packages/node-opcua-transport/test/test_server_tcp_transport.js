@@ -1,33 +1,33 @@
 "use strict";
-var should = require("should");
-var assert = require("node-opcua-assert");
+const should = require("should");
+const assert = require("node-opcua-assert");
 
-var DirectTransport = require("../test_helpers/fake_socket").DirectTransport;
+const DirectTransport = require("../test_helpers/fake_socket").DirectTransport;
 
-var utils = require("node-opcua-utils");
-var debug = require("node-opcua-debug");
-var debugLog = debug.make_debugLog(__filename);
+const utils = require("node-opcua-utils");
+const debug = require("node-opcua-debug");
+const debugLog = debug.make_debugLog(__filename);
 
-var color = require("colors");
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const color = require("colors");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
-var decodeMessage = require("../src/tools").decodeMessage;
-var packTcpMessage = require("../src/tools").packTcpMessage;
-var ServerTCP_transport = require("../src/server_tcp_transport").ServerTCP_transport;
+const decodeMessage = require("../src/tools").decodeMessage;
+const packTcpMessage = require("../src/tools").packTcpMessage;
+const ServerTCP_transport = require("../src/server_tcp_transport").ServerTCP_transport;
 
-var HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
-var AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
-var TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
+const HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
+const AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
+const TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
 
 
 describe("testing ServerTCP_transport", function () {
 
-    var helloMessage = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_1;
-    var openChannelRequest = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_2;
+    const helloMessage = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_1;
+    const openChannelRequest = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_2;
 
 
-    var fake_socket;
+    let fake_socket;
     beforeEach(function (done) {
         fake_socket = new DirectTransport(done);
     });
@@ -38,21 +38,21 @@ describe("testing ServerTCP_transport", function () {
 
     it("should close the communication if the client initiates the communication with a message which is not HEL", function (done) {
 
-        var transport = new ServerTCP_transport();
+        const transport = new ServerTCP_transport();
 
         transport.init(fake_socket.server, function (err) {
             assert(err);
             err.message.should.match(/Expecting \'HEL\' message/);
         });
 
-        var not_an_helloMessage = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_3;
+        const not_an_helloMessage = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_3;
 
         fake_socket.client.on("data", function (data) {
-            var stream = new BinaryStream(data);
-            var messageHeader = readMessageHeader(stream);
+            const stream = new BinaryStream(data);
+            const messageHeader = readMessageHeader(stream);
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
-            var response = decodeMessage(stream, TCPErrorMessage);
+            const response = decodeMessage(stream, TCPErrorMessage);
             response._schema.name.should.equal("TCPErrorMessage");
             done();
         });
@@ -63,21 +63,21 @@ describe("testing ServerTCP_transport", function () {
 
     it("should bind a socket and process the HEL message by returning ACK", function (done) {
 
-        var transport = new ServerTCP_transport();
+        const transport = new ServerTCP_transport();
         transport.init(fake_socket.server, function (err) {
             assert(!err);
         });
 
         // simulate client send HEL
 
-        var helloMessage = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_1;
+        const helloMessage = require("../test-fixtures/fixture_full_tcp_packets").packet_cs_1;
 
         fake_socket.client.on("data", function (data) {
-            var stream = new BinaryStream(data);
-            var messageHeader = readMessageHeader(stream);
+            const stream = new BinaryStream(data);
+            const messageHeader = readMessageHeader(stream);
             messageHeader.msgType.should.equal("ACK");
             stream.rewind();
-            var response = decodeMessage(stream, AcknowledgeMessage);
+            const response = decodeMessage(stream, AcknowledgeMessage);
             response._schema.name.should.equal("AcknowledgeMessage");
             done();
         });
@@ -88,7 +88,7 @@ describe("testing ServerTCP_transport", function () {
 
     it("should bind a socket and process the HEL message by returning ERR if protocol version is not OK", function (done) {
 
-        var transport = new ServerTCP_transport();
+        const transport = new ServerTCP_transport();
         transport.protocolVersion.should.eql(0);
         transport.protocolVersion = 10;
         transport.init(fake_socket.server, function (err) {
@@ -99,7 +99,7 @@ describe("testing ServerTCP_transport", function () {
         // simulate client send HEL
         // note: client.protocolVersion=5 is lower than server protocolVersion(=10)
         // => server should raise an error
-        var helloMessage = new HelloMessage({
+        const helloMessage = new HelloMessage({
             protocolVersion:   5,
             receiveBufferSize: 1000,
             sendBufferSize: 1000,
@@ -109,11 +109,11 @@ describe("testing ServerTCP_transport", function () {
         });
 
         fake_socket.client.on("data", function (data) {
-            var stream = new BinaryStream(data);
-            var messageHeader = readMessageHeader(stream);
+            const stream = new BinaryStream(data);
+            const messageHeader = readMessageHeader(stream);
             messageHeader.msgType.should.equal("ERR");
             stream.rewind();
-            var response = decodeMessage(stream, AcknowledgeMessage);
+            const response = decodeMessage(stream, AcknowledgeMessage);
             response._schema.name.should.equal("TCPErrorMessage");
 
             response.statusCode.name.should.eql("BadProtocolVersionUnsupported");
@@ -126,7 +126,7 @@ describe("testing ServerTCP_transport", function () {
 
     function perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done) {
 
-        var transport = new ServerTCP_transport();
+        const transport = new ServerTCP_transport();
 
         transport.init(fake_socket.server, function (err) {
             assert(!err);
@@ -144,7 +144,7 @@ describe("testing ServerTCP_transport", function () {
             done();
         });
 
-        var counter = 1;
+        let counter = 1;
         fake_socket.client.on("data", function (data) {
             counter++;
 
@@ -169,8 +169,8 @@ describe("testing ServerTCP_transport", function () {
 
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
-        var helloMessage_part1 = helloMessage.slice(0, 10);
-        var helloMessage_part2 = helloMessage.slice(10);
+        const helloMessage_part1 = helloMessage.slice(0, 10);
+        const helloMessage_part2 = helloMessage.slice(10);
 
         fake_socket.client.write(helloMessage_part1);
         fake_socket.client.write(helloMessage_part2);
@@ -183,9 +183,9 @@ describe("testing ServerTCP_transport", function () {
 
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
 
-        var helloMessage_part1 = helloMessage.slice(0, 10);
-        var helloMessage_part2 = helloMessage.slice(10, 25);
-        var helloMessage_part3 = helloMessage.slice(25);
+        const helloMessage_part1 = helloMessage.slice(0, 10);
+        const helloMessage_part2 = helloMessage.slice(10, 25);
+        const helloMessage_part3 = helloMessage.slice(25);
 
         fake_socket.client.write(helloMessage_part1);
         fake_socket.client.write(helloMessage_part2);
@@ -198,8 +198,8 @@ describe("testing ServerTCP_transport", function () {
     it("should handle broken HEL message in many small chunks (bug#36)", function (done) {
 
         perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done);
-        for (var i = 0; i < helloMessage.length; i++) {
-            var single_byte_chunk = helloMessage.slice(i, i + 1);
+        for (let i = 0; i < helloMessage.length; i++) {
+            const single_byte_chunk = helloMessage.slice(i, i + 1);
             fake_socket.client.write(single_byte_chunk);
         }
         fake_socket.client.write(openChannelRequest);

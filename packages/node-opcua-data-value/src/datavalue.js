@@ -1,28 +1,28 @@
 "use strict";
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 
-var DataValue = exports.DataValue = require("../_generated_/_auto_generated_DataValue").DataValue;
+const DataValue = exports.DataValue = require("../_generated_/_auto_generated_DataValue").DataValue;
 
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-
-
-var TimestampsToReturn = require("../schemas/TimestampsToReturn_enum").TimestampsToReturn;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 
-var registerSpecialVariantEncoder = require("node-opcua-factory").registerSpecialVariantEncoder;
+const TimestampsToReturn = require("../schemas/TimestampsToReturn_enum").TimestampsToReturn;
+
+
+const registerSpecialVariantEncoder = require("node-opcua-factory").registerSpecialVariantEncoder;
 registerSpecialVariantEncoder(exports.DataValue);
 
-var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
+const getCurrentClock = require("node-opcua-date-time").getCurrentClock;
 
-var Variant = require("node-opcua-variant").Variant;
-var sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
+const Variant = require("node-opcua-variant").Variant;
+const sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
 
 DataValue.prototype.toString = function () {
-    var str = "DataValue:";
+    let str = "DataValue:";
     if (this.value) {
         str += "\n   value:           " + Variant.prototype.toString.apply(this.value);//this.value.toString();
     } else {
@@ -35,8 +35,8 @@ DataValue.prototype.toString = function () {
 };
 
 DataValue.prototype.clone = function () {
-    var self = this;
-    var tmp = new DataValue({
+    const self = this;
+    const tmp = new DataValue({
         serverTimestamp: self.serverTimestamp,
         sourceTimestamp: self.sourceTimestamp,
         serverPicoseconds: self.serverPicoseconds,
@@ -50,7 +50,7 @@ DataValue.prototype.clone = function () {
 
 
 function _partial_clone(dataValue) {
-    var cloneDataValue = new DataValue(null);
+    const cloneDataValue = new DataValue(null);
     cloneDataValue.value = dataValue.value;
     cloneDataValue.statusCode = dataValue.statusCode;
     return cloneDataValue;
@@ -64,8 +64,8 @@ function apply_timestamps(dataValue, timestampsToReturn, attributeId) {
     assert(dataValue.hasOwnProperty("serverTimestamp"));
     assert(dataValue.hasOwnProperty("sourceTimestamp"));
 
-    var cloneDataValue = null;
-    var now = null;
+    let cloneDataValue = null;
+    let now = null;
     // apply timestamps
     switch (timestampsToReturn) {
         case TimestampsToReturn.Neither:
@@ -118,11 +118,11 @@ function apply_timestamps2(dataValue, timestampsToReturn, attributeId) {
     assert(dataValue.hasOwnProperty("serverTimestamp"));
     assert(dataValue.hasOwnProperty("sourceTimestamp"));
 
-    var cloneDataValue = new DataValue({});
+    const cloneDataValue = new DataValue({});
     cloneDataValue.value = dataValue.value;
     cloneDataValue.statusCode = dataValue.statusCode;
 
-    var now = getCurrentClock();
+    const now = getCurrentClock();
     // apply timestamps
     switch (timestampsToReturn) {
         case TimestampsToReturn.Server:
@@ -169,7 +169,7 @@ exports.apply_timestamps = apply_timestamps;
  */
 function _clone_with_array_replacement(dataValue, result) {
 
-    var clonedDataValue = new DataValue({
+    const clonedDataValue = new DataValue({
         statusCode: result.statusCode,
         serverTimestamp: dataValue.serverTimestamp,
         serverPicoseconds: dataValue.serverPicoseconds,
@@ -201,10 +201,10 @@ function canRange(dataValue) {
  */
 function extractRange(dataValue, indexRange) {
 
-    var variant = dataValue.value;
+    const variant = dataValue.value;
     if (indexRange && canRange(dataValue)) {
         // let's extract an array of elements corresponding to the indexRange
-        var result = indexRange.extract_values(variant.value, variant.dimensions);
+        const result = indexRange.extract_values(variant.value, variant.dimensions);
         dataValue = _clone_with_array_replacement(dataValue, result);
         //xx console.log("         dataValue =",dataValue.toString());
     } else {
@@ -235,7 +235,7 @@ function sourceTimestampHasChanged(dataValue1, dataValue2) {
 
     assert(dataValue1, "expecting valid dataValue1");
     assert(dataValue2, "expecting valid dataValue2");
-    var hasChanged =
+    const hasChanged =
         !sameDate(dataValue1.sourceTimestamp, dataValue2.sourceTimestamp) ||
         (dataValue1.sourcePicoseconds !== dataValue2.sourcePicoseconds);
     return hasChanged;
@@ -246,7 +246,7 @@ exports.sourceTimestampHasChanged = sourceTimestampHasChanged;
 function serverTimestampHasChanged(dataValue1, dataValue2) {
     assert(dataValue1, "expecting valid dataValue1");
     assert(dataValue2, "expecting valid dataValue2");
-    var hasChanged =
+    const hasChanged =
         !sameDate(dataValue1.serverTimestamp, dataValue2.serverTimestamp) ||
         (dataValue1.serverPicoseconds !== dataValue2.serverPicoseconds);
     return hasChanged;

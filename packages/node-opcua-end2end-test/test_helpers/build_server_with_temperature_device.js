@@ -1,21 +1,21 @@
 "use strict";
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAServer = opcua.OPCUAServer;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var is_valid_endpointUrl = opcua.is_valid_endpointUrl;
+const OPCUAServer = opcua.OPCUAServer;
+const StatusCodes = opcua.StatusCodes;
+const Variant = opcua.Variant;
+const DataType = opcua.DataType;
+const DataValue = opcua.DataValue;
+const is_valid_endpointUrl = opcua.is_valid_endpointUrl;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
-var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
+const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
+const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
 
@@ -30,7 +30,7 @@ function addTestUAAnalogItem(parentNode) {
 
 //xx    assert(parentNode instanceof opcua.BaseNode);
 
-    var addressSpace = parentNode.addressSpace;
+    const addressSpace = parentNode.addressSpace;
 
     // add a UAAnalogItem
     /* var node = */ addressSpace.addAnalogDataItem({
@@ -53,7 +53,7 @@ function addTestUAAnalogItem(parentNode) {
 }
 
 
-var userManager = {
+const userManager = {
     isValidUser: function (userName, password) {
 
         if (userName === "user1" && password === "password1") {
@@ -98,7 +98,7 @@ function build_server_with_temperature_device(options, done) {
 
     options.userManager = userManager;
 
-    var server = new OPCUAServer(options);
+    const server = new OPCUAServer(options);
     // we will connect to first server end point
 
     server.on("session_closed", function (session, reason) {
@@ -108,12 +108,12 @@ function build_server_with_temperature_device(options, done) {
 
     server.on("post_initialize", function () {
 
-        var addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace;
 
-        var myDevices = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
+        const myDevices = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
         assert(myDevices.browseName.toString() === "MyDevices");
 
-        var variable0 = addressSpace.addVariable({
+        const variable0 = addressSpace.addVariable({
             componentOf: myDevices,
             browseName: "FanSpeed",
             nodeId: "ns=2;s=FanSpeed",
@@ -121,7 +121,7 @@ function build_server_with_temperature_device(options, done) {
             value: new Variant({dataType: DataType.Double, value: 1000.0})
         });
 
-        var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+        const setPointTemperatureId = "ns=4;s=SetPointTemperature";
         // install a Read/Write variable representing a temperature set point of a temperature controller.
         server.temperatureVariableId = addressSpace.addVariable({
             componentOf: myDevices,
@@ -141,7 +141,7 @@ function build_server_with_temperature_device(options, done) {
         });
 
         // install a Read-Only variable defined with a fancy Opaque nodeid
-        var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+        const pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
 
         server.pumpSpeed = addressSpace.addVariable({
             componentOf: myDevices,
@@ -150,7 +150,7 @@ function build_server_with_temperature_device(options, done) {
             dataType: "Double",
             value: {
                 get: function () {
-                    var pump_speed = 200 + Math.random();
+                    const pump_speed = 200 + Math.random();
                     return new Variant({dataType: DataType.Double, value: pump_speed});
                 },
                 set: function (variant) {
@@ -160,7 +160,7 @@ function build_server_with_temperature_device(options, done) {
         });
         assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
 
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         debugLog("endpointUrl", endpointUrl);
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
@@ -173,8 +173,8 @@ function build_server_with_temperature_device(options, done) {
 
 
         // add a variable that can be written asynchronously
-        var asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
-        var asyncValue = 46;
+        const asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
+        let asyncValue = 46;
 
         server.asyncWriteNode = addressSpace.addVariable({
             componentOf: myDevices,
@@ -186,7 +186,7 @@ function build_server_with_temperature_device(options, done) {
                 // asynchronous read
                 refreshFunc: function (callback) {
 
-                    var dataValue = new DataValue({
+                    const dataValue = new DataValue({
                         value: {
                             dataType: DataType.Double,
                             value: asyncValue
@@ -210,8 +210,8 @@ function build_server_with_temperature_device(options, done) {
 
 
         // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
-        var asyncWriteFullNodeId = "ns=4;s=AsynchronousFullVariable";
-        var asyncWriteFull_dataValue = {
+        const asyncWriteFullNodeId = "ns=4;s=AsynchronousFullVariable";
+        let asyncWriteFull_dataValue = {
             statusCode: StatusCodes.BadWaitingForInitialData
         };
 

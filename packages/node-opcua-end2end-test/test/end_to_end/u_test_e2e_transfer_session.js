@@ -1,25 +1,25 @@
 "use strict";
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
-var path = require("path");
-var fs = require("fs");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
+const path = require("path");
+const fs = require("fs");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
 
 function sendPublishRequest(session, callback) {
-    var publishRequest = new opcua.subscription_service.PublishRequest({});
+    const publishRequest = new opcua.subscription_service.PublishRequest({});
     session.performMessageTransaction(publishRequest, function (err, response) {
         callback(err, response);
     });
 }
 
 function createSubscription(session, callback) {
-    var publishingInterval = 1000;
-    var createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+    const publishingInterval = 1000;
+    const createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
         requestedPublishingInterval: publishingInterval,
         requestedLifetimeCount: 60,
         requestedMaxKeepAliveCount: 10,
@@ -39,8 +39,8 @@ module.exports = function (test) {
     describe("testing session  transfer to different channel", function () {
 
         it("RQC1 - It should be possible to close a session that has not be activated yet", function (done) {
-            var client1;
-            var session1;
+            let client1;
+            let session1;
             async.series([
 
                 function (callback) {
@@ -89,8 +89,8 @@ module.exports = function (test) {
         });
 
         it("RQB1 - calling CreateSession and CloseSession &  CloseSession again should return BadSessionIdInvalid", function (done) {
-            var client1;
-            var session1;
+            let client1;
+            let session1;
             async.series([
 
                 function (callback) {
@@ -130,7 +130,7 @@ module.exports = function (test) {
         });
 
         it("RQB2 - calling CloseSession without calling CreateSession first", function (done) {
-            var client1;
+            let client1;
 
             async.series([
 
@@ -139,7 +139,7 @@ module.exports = function (test) {
                     client1.connect(test.endpointUrl, callback);
                 },
                 function (callback) {
-                    var request = new opcua.session_service.CloseSessionRequest({
+                    const request = new opcua.session_service.CloseSessionRequest({
                         deleteSubscriptions: true
                     });
                     client1.performMessageTransaction(request, function (err, response) {
@@ -161,8 +161,8 @@ module.exports = function (test) {
         });
 
         it("RQB3 - calling CreateSession,  CloseSession  and CloseSession again", function (done) {
-            var client1;
-            var session1;
+            let client1;
+            let session1;
             async.series([
 
                 function (callback) {
@@ -189,7 +189,7 @@ module.exports = function (test) {
 
                 // second call to close session should raise an error
                 function (callback) {
-                    var request = new opcua.session_service.CloseSessionRequest({
+                    const request = new opcua.session_service.CloseSessionRequest({
                         deleteSubscriptions: true
                     });
                     client1.performMessageTransaction(request, function (err, response) {
@@ -223,8 +223,8 @@ module.exports = function (test) {
             // Once a  Client  has established a  Session  it may wish to access the  Session  from a different
             // SecureChannel. The Client can do this by validating the new  SecureChannel  with the
             // ActivateSession  Service  described in 5.6.3.
-            var client1, client2;
-            var session1;
+            let client1, client2;
+            let session1;
             async.series([
 
                 // create a first channel (client1)
@@ -252,7 +252,7 @@ module.exports = function (test) {
                 // let verify that it is now possible to send a request on client1's session
                 function (callback) {
                     // coerce nodeIds
-                    var request = new opcua.read_service.ReadRequest({
+                    const request = new opcua.read_service.ReadRequest({
                         nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
                         maxAge: 0,
                         timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
@@ -282,7 +282,7 @@ module.exports = function (test) {
                 // server shall refuse any requests on channel1
                 function (callback) {
                     // coerce nodeIds
-                    var request = new opcua.read_service.ReadRequest({
+                    const request = new opcua.read_service.ReadRequest({
                         nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
                         maxAge: 0,
                         timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
@@ -298,7 +298,7 @@ module.exports = function (test) {
                 // but server shall access request on new channel
                 function (callback) {
                     // coerce nodeIds
-                    var request = new opcua.read_service.ReadRequest({
+                    const request = new opcua.read_service.ReadRequest({
                         nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
                         maxAge: 0,
                         timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
@@ -333,10 +333,10 @@ module.exports = function (test) {
         // if the  SecureChannel  is not same as the one associated with the CreateSession  request.
         it("RQ1 - should reject if the channel used to activate the session for the first time is not the same as the channel used to create the session", function (done) {
 
-            var client1, client2;
-            var session1;
+            let client1, client2;
+            let session1;
 
-            var initialChannelCount = 0;
+            let initialChannelCount = 0;
             async.series([
 
                 // create a first channel (client1)
@@ -408,7 +408,7 @@ module.exports = function (test) {
 
         function m(file) {
             //var p = constructFilename(file);
-            var p = path.join(__dirname, "../..", file);
+            const p = path.join(__dirname, "../..", file);
             if (!fs.existsSync(p)) {
                 console.error(" cannot find ", p);
             }
@@ -421,17 +421,17 @@ module.exports = function (test) {
         // SecureChannel  is the same as the  Certificate  used to create the original  SecureChannel.
         it("RQ2 -server should raise an error if a existing session is reactivated from a channel that have different certificate than the original channel", function (done) {
 
-            var serverCertificate = test.server.getCertificateChain();
+            const serverCertificate = test.server.getCertificateChain();
 
-            var client1, client2;
-            var session1;
+            let client1, client2;
+            let session1;
             async.series([
 
                 // create a first channel (client1)
                 function (callback) {
                     //xx console.log(" creating initial channel with some certificate");
-                    var certificateFile1 = m("certificates/client_cert_1024.pem");
-                    var privateKeyFile1 = m("certificates/client_key_1024.pem");
+                    const certificateFile1 = m("certificates/client_cert_1024.pem");
+                    const privateKeyFile1 = m("certificates/client_key_1024.pem");
                     client1 = new OPCUAClient({
                         certificateFile: certificateFile1,
                         privateKeyFile: privateKeyFile1,
@@ -466,8 +466,8 @@ module.exports = function (test) {
 
                     // creating second channel with different credential
                     //xx console.log(" creating second channel with different certificate");
-                    var certificateFile2 = m("certificates/client_cert_2048.pem");
-                    var privateKeyFile2 = m("certificates/client_key_2048.pem");
+                    const certificateFile2 = m("certificates/client_cert_2048.pem");
+                    const privateKeyFile2 = m("certificates/client_key_2048.pem");
                     client2 = new OPCUAClient({
                         certificateFile: certificateFile2,
                         privateKeyFile: privateKeyFile2,
@@ -513,13 +513,13 @@ module.exports = function (test) {
         // In addition,the Server shall verify that the  Client  supplied a  UserIdentityToken  that is   identical to the token
         // currently associated with the  Session.
         it("RQ3 - server should raise an error if a session is reactivated with different user identity tokens", function (done) {
-            var client1, client2;
-            var session1;
+            let client1, client2;
+            let session1;
 
-            var user1 = {
+            const user1 = {
                 userName: "user1", password: "password1"
             };
-            var user2 = new opcua.UserNameIdentityToken({
+            const user2 = new opcua.UserNameIdentityToken({
                 userName: "user1", password: "password1"
             });
             //xx console.log(" user1 ", user1.toString());
@@ -585,12 +585,12 @@ module.exports = function (test) {
         // Once the Server accepts the new  SecureChannel  it shall reject requests sent via the old  SecureChannel
         it("RQ5 - server should reject pending requests send to old channel when session has been transferred to new channel", function (done) {
 
-            var sinon = require("sinon");
+            const sinon = require("sinon");
 
-            var collectPublishResponse = sinon.spy();
+            const collectPublishResponse = sinon.spy();
 
-            var client1, client2;
-            var session1;
+            let client1, client2;
+            let session1;
             async.series([
 
                 // given a established session with a subscription and some publish request

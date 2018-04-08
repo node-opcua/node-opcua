@@ -1,17 +1,17 @@
 "use strict";
-var path = require("path");
-var _ = require("underscore");
+const path = require("path");
+const _ = require("underscore");
 
-var debug_flags = {};
+const debug_flags = {};
 
 function w(str,l) {
     return (str+"                                    ").substr(0,l);
 }
 
 function setDebugFlag(script_fullpath, flag) {
-    var filename = path.basename(script_fullpath, ".js");
+    const filename = path.basename(script_fullpath, ".js");
     if (process.env.DEBUG) {
-        var decorated_filename = w(filename,30).yellow;
+        const decorated_filename = w(filename,30).yellow;
         console.log(" Setting debug for ",decorated_filename, " to ", flag.toString()[flag ? "cyan" : "red"]);
     }
     debug_flags[filename] = flag;
@@ -19,8 +19,8 @@ function setDebugFlag(script_fullpath, flag) {
 
 function checkDebugFlag(script_fullpath) {
 
-    var filename = path.basename(script_fullpath, ".js");
-    var doDebug = debug_flags[filename] ? true : false;
+    const filename = path.basename(script_fullpath, ".js");
+    let doDebug = debug_flags[filename] ? true : false;
     if (process.env.DEBUG && !debug_flags.hasOwnProperty(filename) ) {
         doDebug = process.env.DEBUG.indexOf(filename) >= 0 || process.env.DEBUG.indexOf("ALL") >= 0;
         setDebugFlag(filename,doDebug);
@@ -39,15 +39,15 @@ function make_debugLog(script_fullpath) {
     function file_line(filename,caller_line) {
         return (w(filename,30)+ ":" + w(caller_line,5)).bgWhite.cyan;
     }
-    var doDebug = checkDebugFlag(script_fullpath);
-    var filename = path.basename(script_fullpath, ".js");
+    const doDebug = checkDebugFlag(script_fullpath);
+    const filename = path.basename(script_fullpath, ".js");
     function debugLogFunc() {
         if (debug_flags[filename] ) {
 
             // caller line number
-            var l = (new Error()).stack.split("\n")[2].split(":");
-            var caller_line = l[l.length-2];
-            var args = [].concat([file_line(filename,caller_line)]  ,_.values(arguments)           );
+            const l = (new Error()).stack.split("\n")[2].split(":");
+            const caller_line = l[l.length-2];
+            const args = [].concat([file_line(filename,caller_line)]  ,_.values(arguments)           );
             console.log.apply(console, args);
         }
     }

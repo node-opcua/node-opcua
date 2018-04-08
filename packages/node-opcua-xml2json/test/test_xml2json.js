@@ -1,13 +1,13 @@
-var Xml2Json = require("..").Xml2Json;
-var should = require("should");
+const Xml2Json = require("..").Xml2Json;
+const should = require("should");
 
 describe("XMLToJSON", function () {
 
     it("should parse a simple xml data string", function (done) {
 
-        var init_called = false;
-        var finish_called = false;
-        var parser = new Xml2Json({
+        let init_called = false;
+        let finish_called = false;
+        const parser = new Xml2Json({
 
             parser: {
                 'person': {
@@ -55,15 +55,15 @@ describe("XMLToJSON", function () {
     });
     xit("should parse a UTF8 encoded xml file with a BOM", function (done) {
 
-        var nodesets = require("node-opcua-nodesets");
+        const nodesets = require("node-opcua-nodesets");
 
         // accommodate for slow RPI
         if (process.arch === "arm") {
             this.timeout(40000);
             this.slow(20000);
         }
-        var xml_file = nodesets.standard_nodeset_file;
-        var parser = new Xml2Json({});
+        const xml_file = nodesets.standard_nodeset_file;
+        const parser = new Xml2Json({});
         parser.parse(xml_file, function (err) {
             done(err);
         });
@@ -71,8 +71,8 @@ describe("XMLToJSON", function () {
 
     it("should parse a escaped string",function (done) {
 
-        var displayName = null;
-        var parser = new Xml2Json({
+        let displayName = null;
+        const parser = new Xml2Json({
             parser: {
                 'DisplayName': {
                     finish: function () {

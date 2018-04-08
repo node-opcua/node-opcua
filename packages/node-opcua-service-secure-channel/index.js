@@ -2,7 +2,7 @@
 /**
  * @module services.secure-channel
  */
-var ChannelSecurityToken =require("./_generated_/_auto_generated_ChannelSecurityToken").ChannelSecurityToken;
+const ChannelSecurityToken =require("./_generated_/_auto_generated_ChannelSecurityToken").ChannelSecurityToken;
 /**
  * @property expired
  * @type {Boolean} - True if the security token has expired.

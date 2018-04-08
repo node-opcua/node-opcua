@@ -1,15 +1,15 @@
 "use strict";
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var Range = require("node-opcua-data-access").Range;
+const Range = require("node-opcua-data-access").Range;
 
 
-var UAVariable = require("../ua_variable").UAVariable;
+const UAVariable = require("../ua_variable").UAVariable;
 
 function validate_value_range(range, variant) {
     assert(range instanceof Range);
@@ -23,7 +23,7 @@ function validate_value_range(range, variant) {
 UAVariable.prototype.isValueInRange = function (value) {
 
     assert(value instanceof Variant);
-    var self = this;
+    const self = this;
     // test dataType
     if (!self._validate_DataType(value.dataType)) {
         return  StatusCodes.BadTypeMismatch;
@@ -38,7 +38,7 @@ UAVariable.prototype.isValueInRange = function (value) {
 
     // MultiStateDiscreteType
     if (self.enumStrings) {
-        var arrayEnumStrings = self.enumStrings.readValue().value.value;
+        const arrayEnumStrings = self.enumStrings.readValue().value.value;
         // MultiStateDiscreteType
         assert(value.dataType === DataType.UInt32);
         if(value.value >= arrayEnumStrings.length) {
@@ -49,7 +49,7 @@ UAVariable.prototype.isValueInRange = function (value) {
     // MultiStateValueDiscreteType
     if (self.enumValues && self.enumValues._index) {
 
-        var e = self.enumValues._index[value.value];
+        const e = self.enumValues._index[value.value];
         if (!e) {
             return StatusCodes.BadOutOfRange;
         }

@@ -3,43 +3,43 @@
  * @module opcua.client
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var async = require("async");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const async = require("async");
 //
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 assert(_.isFunction(coerceNodeId));
 
-var ClientSession = require("../client_session").ClientSession;
+const ClientSession = require("../client_session").ClientSession;
 
-var makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
+const makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
 
-var call_service = require("node-opcua-service-call");
-var CallMethodRequest = call_service.CallMethodRequest;
+const call_service = require("node-opcua-service-call");
+const CallMethodRequest = call_service.CallMethodRequest;
 
 
 
 function callConditionRefresh(subscription,callback) {
 
-    var the_session    = subscription.publish_engine.session;
-    var subscriptionId = subscription.subscriptionId;
+    const the_session    = subscription.publish_engine.session;
+    const subscriptionId = subscription.subscriptionId;
 
     assert(_.isFinite(subscriptionId),"May be subscription is not yet initialized");
     assert(_.isFunction(callback));
 
-    var conditionTypeNodeId = resolveNodeId("ConditionType");
+    const conditionTypeNodeId = resolveNodeId("ConditionType");
 
-    var browsePath = [
+    const browsePath = [
         makeBrowsePath(conditionTypeNodeId,".ConditionRefresh")
     ];
-    var conditionRefreshId  = resolveNodeId("ConditionType_ConditionRefresh");
+    let conditionRefreshId  = resolveNodeId("ConditionType_ConditionRefresh");
 
     //xx console.log("browsePath ", browsePath[0].toString({addressSpace: server.engine.addressSpace}));
 
@@ -64,7 +64,7 @@ function callConditionRefresh(subscription,callback) {
         },
         function (callback) {
 
-            var methodsToCall = [{
+            const methodsToCall = [{
                 objectId: conditionTypeNodeId,
                 methodId: conditionRefreshId,
                 inputArguments: [
@@ -131,9 +131,9 @@ ClientSession.prototype.addCommentCondition = function(conditionId,eventId,comme
  */
 ClientSession.prototype.findMethodId = function(nodeId,methodName,callback) {
 
-    var session =this;
-    var browsePath = makeBrowsePath(nodeId, "/"+methodName);
-    var methodId;
+    const session =this;
+    const browsePath = makeBrowsePath(nodeId, "/"+methodName);
+    let methodId;
     session.translateBrowsePath(browsePath, function (err, results) {
 
         // istanbul ignore else
@@ -153,7 +153,7 @@ ClientSession.prototype.findMethodId = function(nodeId,methodName,callback) {
 
 
 ClientSession.prototype._callMethodCondition = function(methodName,conditionId,eventId,comment,callback) {
-    var session = this;
+    const session = this;
     conditionId = coerceNodeId(conditionId);
     assert(conditionId instanceof NodeId);
     assert(eventId instanceof Buffer);
@@ -161,7 +161,7 @@ ClientSession.prototype._callMethodCondition = function(methodName,conditionId,e
 
     comment = LocalizedText.coerce(comment);
 
-    var methodId;
+    let methodId;
 
     async.series([
         function (callback) {
@@ -173,7 +173,7 @@ ClientSession.prototype._callMethodCondition = function(methodName,conditionId,e
             });
         },
         function (callback) {
-            var methodToCalls = [];
+            const methodToCalls = [];
             methodToCalls.push(new CallMethodRequest({
                 objectId: conditionId,
                 methodId: methodId,
@@ -194,7 +194,7 @@ ClientSession.prototype._callMethodCondition = function(methodName,conditionId,e
         if (err) {
             return callback(err);
         }
-        var call_results = results[1];
+        const call_results = results[1];
         callback(err, call_results.statusCode);
     });
 };

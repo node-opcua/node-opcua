@@ -2,18 +2,18 @@
 /**
  * @module opcua.address_space.types
  */
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const util = require("util");
 
-var BinaryStreamSizeCalculator = require("node-opcua-binary-stream").BinaryStreamSizeCalculator;
-var hexDump = require("node-opcua-debug").hexDump;
-var utils = require("node-opcua-utils");
+const BinaryStreamSizeCalculator = require("node-opcua-binary-stream").BinaryStreamSizeCalculator;
+const hexDump = require("node-opcua-debug").hexDump;
+const utils = require("node-opcua-utils");
 
 
-var getFactory = require("./factories_factories").getFactory;
-var _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
-var get_base_schema = require("./factories_schema_helpers").get_base_schema;
+const getFactory = require("./factories_factories").getFactory;
+const _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
+const get_base_schema = require("./factories_schema_helpers").get_base_schema;
 
 
 /**
@@ -53,7 +53,7 @@ BaseUAObject.prototype.decode = function (/*stream,options*/) {
  */
 BaseUAObject.prototype.binaryStoreSize = function (options) {
 
-    var stream = new BinaryStreamSizeCalculator();
+    const stream = new BinaryStreamSizeCalculator();
     this.encode(stream, options);
     return stream.length;
 };
@@ -64,17 +64,19 @@ BaseUAObject.prototype.binaryStoreSize = function (options) {
  */
 BaseUAObject.prototype.toString = function () {
 
-    var self = this;
+    const self = this;
 
     if (self._schema && self._schema.hasOwnProperty("toString")) {
 
         return self._schema.toString.apply(self, arguments);
 
     } else {
+
         if (!self.explore) {
             console.log(util.inspect(self));
             return Object.prototype.toString.apply(self,arguments);
         }
+
         return self.explore.apply(self,arguments);
     }
 };
@@ -98,9 +100,9 @@ BaseUAObject.prototype.isValid = function () {
 
 function _decode_member_(value, field, stream, options) {
 
-    var tracer = options.tracer;
-    var cursor_before = stream.length;
-    var fieldType = field.fieldType;
+    const tracer = options.tracer;
+    const cursor_before = stream.length;
+    const fieldType = field.fieldType;
 
     if (field.category === "basic") {
 
@@ -115,7 +117,7 @@ function _decode_member_(value, field, stream, options) {
     } else {
         assert(field.category === "complex");
         assert(_.isFunction(field.schema));
-        var Constructor = field.schema;
+        const Constructor = field.schema;
         value = new Constructor();
         value.decode_debug(stream, options);
 
@@ -129,27 +131,27 @@ function _decode_member_(value, field, stream, options) {
  */
 BaseUAObject.prototype.decode_debug = function (stream, options) {
 
-    var tracer = options.tracer;
-    var schema = this._schema;
+    const tracer = options.tracer;
+    const schema = this._schema;
 
     tracer.trace("start", options.name + "(" + schema.name + ")", stream.length, stream.length);
-    var self = this;
+    const self = this;
 
     for (const field of schema.fields)  {
 
-        var value = self[field.name];
+        const value = self[field.name];
 
         if (field.isArray) {
 
-            var cursor_before = stream.length;
-            var nb = stream.readUInt32();
+            const cursor_before = stream.length;
+            let nb = stream.readUInt32();
             if (nb === 0xFFFFFFFF) {
                 nb = 0;
             }
             options.name = field.name + [];
 
             tracer.trace("start_array", field.name, nb, cursor_before, stream.length);
-            for (var i = 0; i < nb; i++) {
+            for (let i = 0; i < nb; i++) {
                 tracer.trace("start_element", field.name, i);
                 options.name = "element #" + i;
 
@@ -176,18 +178,19 @@ function r(str) {
     return (str + "                                ").substr(0, 30);
 }
 
-function apply_on_all_schema_fields(self, schema, data, callback , args) {
-
+function apply_on_all_schema_fields(self, schema, data, functor , args) {
     assert(schema);
-    var fields = schema.fields;
-    var field, i, n = fields.length;
+    const fields = schema.fields;
+    let field;
+    let i;
+    const n = fields.length;
     for (i = 0; i < n; i++) {
         field = fields[i];
-        callback(self, field, data , args);
+        functor(self, field, data , args);
     }
 }
 
-var _nb_elements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH) : 10;
+const _nb_elements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH) : 10;
 
 function _array_ellypsis(value,field) {
 
@@ -199,10 +202,10 @@ function _array_ellypsis(value,field) {
             return "[ /* empty*/ ]";
         }
         assert(_.isArray(value));
-        var v = [];
-        var m = Math.min(_nb_elements, value.length);
-        for (var i = 0; i < m; i++) {
-            var element = value[i];
+        const v = [];
+        const m = Math.min(_nb_elements, value.length);
+        for (let i = 0; i < m; i++) {
+            const element = value[i];
             v.push( !utils.isNullOrUndefined(element) ? element.toString() : null);
         }
         return "[ " + v.join(",") + ( value.length > 10 ? " ... " : "") + "] (l=" + value.length + ")";
@@ -217,18 +220,19 @@ function _exploreObject(self, field, data, args) {
     }
     assert(self);
 
-    var fieldType = field.fieldType;
-    var fieldName = field.name;
-    var category = field.category;
+    let fieldType = field.fieldType;
 
-    var padding = data.padding;
+    const fieldName = field.name;
+    const category = field.category;
 
-    var value = self[fieldName];
+    const padding = data.padding;
 
-    var str;
+    let value = self[fieldName];
 
-    var fieldName_f = r(padding + fieldName, 30).yellow;
-    var fieldType_f = ("/* " + r(fieldType, 10) + ( field.isArray ? "[]" : "  ") + " */").cyan;
+    let str;
+
+    const fieldName_f = r(padding + fieldName, 30).yellow;
+    const fieldType_f = ("/* " + r(fieldType, 10) + ( field.isArray ? "[]" : "  ") + " */").cyan;
 
 
     // compact version of very usual objects
@@ -247,12 +251,12 @@ function _exploreObject(self, field, data, args) {
     }
 
 
-    var _dump_simple_value = function (self, field, data, value, fieldType) {
+    const _dump_simple_value = function _dump_simple_value(self, field, data, value, fieldType) {
 
-        var str = "";
+        let str = "";
         if (value instanceof Buffer) {
 
-            var _hexDump = hexDump(value);
+            const _hexDump = hexDump(value);
             data.lines.push(fieldName_f + " " + fieldType_f);
             data.lines.push("BUFFER{" + _hexDump + "}");
 
@@ -301,7 +305,11 @@ function _exploreObject(self, field, data, args) {
                 _dump_simple_value(self, field, data, value, fieldType);
 
             } else {
-                var _new_desc = getFactory(fieldType).prototype._schema;
+
+                field.fieldTypeConstructor = field.fieldTypeConstructor ||  getFactory(fieldType);
+                const fieldTypeConstructor = field.fieldTypeConstructor;
+
+                const _new_desc = fieldTypeConstructor.prototype._schema;
 
                 if (field.isArray) {
                     if (value === null) {
@@ -311,12 +319,12 @@ function _exploreObject(self, field, data, args) {
                     } else {
                         data.lines.push(fieldName_f + " " + fieldType_f + ": [");
 
-                        var i = 0;
+                        let i = 0;
 
-                        var m = Math.min(_nb_elements, value.length);
+                        const m = Math.min(_nb_elements, value.length);
 
                         for (i = 0; i < m; i++) {
-                            var element = value[i];
+                            const element = value[i];
                             data.lines.push(padding + "  { " + ("/*" + i + "*/").cyan);
 
                             var data1 = {padding: padding + "    ", lines: []};
@@ -346,15 +354,15 @@ function _exploreObject(self, field, data, args) {
 
             break;
         default:
-            throw new Error("internal error: unknown kind_of_field");
+            throw new Error("internal error: unknown kind_of_field " + category);
     }
 }
 
 
 BaseUAObject.prototype.explore = function () {
 
-    var self = this;
-    var data = {padding: " ", lines: []};
+    const self = this;
+    const data = {padding: " ", lines: []};
     data.lines.push("{" + (" /*" + this._schema.name + "*/").cyan);
     apply_on_all_schema_fields(self, self._schema, data, _exploreObject,arguments);
     data.lines.push("};");
@@ -365,7 +373,7 @@ function _visit_schema_chain(self, schema, options, func, extra_data) {
     assert(_.isFunction(func));
 
     // apply also construct to baseType schema first
-    var base_schema = get_base_schema(schema);
+    const base_schema = get_base_schema(schema);
     if (base_schema) {
         _visit_schema_chain(self, base_schema, options, func, extra_data);
     }
@@ -389,14 +397,14 @@ function jsonify(t,f,field,value) {
 function _JSONify(schema, options) {
 
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
     for (const field of schema.fields) {
-        var f = self[field.name];
+        const f = self[field.name];
         if (f === null || f === undefined) {
             continue;
         }
 
-        var t = _defaultTypeMap[field.fieldType];
+        const t = _defaultTypeMap[field.fieldType];
 
         if (field.isArray) {
             options[field.name] = f.map(value => jsonify(t,f,field,value));
@@ -408,7 +416,7 @@ function _JSONify(schema, options) {
 
 BaseUAObject.prototype.toJSON = function () {
 
-    var self = this;
+    const self = this;
 
     assert(this._schema);
     if (this._schema.toJSON) {
@@ -416,24 +424,24 @@ BaseUAObject.prototype.toJSON = function () {
     } else {
         //xx return Object.toJSON.apply(this,arguments);
         assert(self._schema);
-        var schema = self._schema;
-        var options = {};
+        const schema = self._schema;
+        const options = {};
         _visit_schema_chain(self, schema, options, _JSONify);
         return options;
     }
 };
 
 BaseUAObject.prototype.clone = function (/*options,optionalfilter,extraInfo*/) {
-    var self = this;
+    const self = this;
 
-    var params = {};
+    const params = {};
     function construct_param(schema, options) {
         /* jshint validthis: true */
-        var self = this;
+        const self = this;
 
         for (const field of schema.fields) {
 
-            var f = self[field.name];
+            const f = self[field.name];
             if (f === null || f === undefined) {
                 continue;
             }

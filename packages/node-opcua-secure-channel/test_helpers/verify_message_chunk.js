@@ -1,16 +1,16 @@
 "use strict";
 
-var sprintf = require("sprintf");
-var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
-var MessageBuilder = require("../src/message_builder").MessageBuilder;
-var messageHeaderToString = require("../src/message_header_to_string").messageHeaderToString;
+const sprintf = require("sprintf");
+const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+const MessageBuilder = require("../src/message_builder").MessageBuilder;
+const messageHeaderToString = require("../src/message_header_to_string").messageHeaderToString;
 /**
  *
  * @param packets
  */
 function verify_multi_chunk_message(packets) {
 
-    var messageBuilder = new MessageBuilder();
+    const messageBuilder = new MessageBuilder();
     messageBuilder.setSecurity('NONE', 'None');
 
     messageBuilder.on("full_message_body", function (full_message_body) {
@@ -25,7 +25,7 @@ function verify_multi_chunk_message(packets) {
         console.log(messageHeaderToString(messageChunk));
     });
 
-    var total_length = 0;
+    let total_length = 0;
     packets.forEach(function (packet) {
         if (packet instanceof Array) {
             packet = new Buffer(packet);

@@ -1,17 +1,16 @@
-"use strict"
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var async = require("async");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+"use strict";
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const async = require("async");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 
-var Benchmarker = function () {
+const Benchmarker = function() {
     this._suite = {};
 };
 util.inherits(Benchmarker, EventEmitter);
 
-Benchmarker.prototype.add = function (name, func) {
-
+Benchmarker.prototype.add = function(name, func) {
     assert(_.isFunction(func));
 
     this._suite[name] = {
@@ -22,26 +21,24 @@ Benchmarker.prototype.add = function (name, func) {
 };
 
 function measure_cycle(func) {
-
-    var start = process.hrtime(); // tuple [second, nanosecond]
+    const start = process.hrtime(); // tuple [second, nanosecond]
     func.call();
-    var elapsed = process.hrtime(start);
+    const elapsed = process.hrtime(start);
     return elapsed[0] + elapsed[1] / 1000000000;
 }
 
-Benchmarker.prototype.measure_perf = function (name, func, options) {
-
+Benchmarker.prototype.measure_perf = function(name, func, options) {
     assert(_.isFunction(func));
-    var total_time = 0;
-    var count = 0;
-    var max_time = (!options.max_time ? 0.5 : options.max_time);
-    var min_count = options.min_count || 5;
+    let total_time = 0;
+    let count = 0;
+    const max_time = !options.max_time ? 0.5 : options.max_time;
+    const min_count = options.min_count || 5;
     while (total_time < max_time || count < min_count) {
         total_time += measure_cycle(func);
         count += 1;
     }
-    var ops = ( ( count ) / total_time );
-    var message = " CYCLE " + name + " op/s " + (( ( count ) / total_time).toPrecision(7) + " count = " + count);
+    const ops = count / total_time;
+    const message = " CYCLE " + name + " op/s " + ((count / total_time).toPrecision(7) + " count = " + count);
     this.emit("cycle", message);
 
     return {
@@ -52,23 +49,21 @@ Benchmarker.prototype.measure_perf = function (name, func, options) {
     };
 };
 
-Benchmarker.prototype.run = function (options) {
-
+Benchmarker.prototype.run = function(options) {
     options = options || {};
-    options.max_time = (!options.max_time ? 0.5 : options.max_time);
+    options.max_time = !options.max_time ? 0.5 : options.max_time;
     options.min_count |= 5;
 
-
-    var self = this;
-    _.each(this._suite, function (test) {
+    const self = this;
+    _.each(this._suite, function(test) {
         test.result = self.measure_perf(test.name, test.functor, options);
     });
 
     // find fastest
-    this.fastest = _.max(this._suite, function (bench) {
+    this.fastest = _.max(this._suite, function(bench) {
         return bench.result.ops;
     });
-    this.slowest = _.min(this._suite, function (bench) {
+    this.slowest = _.min(this._suite, function(bench) {
         return bench.result.ops;
     });
 

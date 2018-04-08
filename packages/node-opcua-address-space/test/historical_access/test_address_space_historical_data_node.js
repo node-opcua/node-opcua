@@ -1,35 +1,35 @@
 "use strict";
 
-var should = require("should");
-var fs = require("fs");
-var async = require("async");
+const should = require("should");
+const fs = require("fs");
+const async = require("async");
 
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var AddressSpace = require("../..").AddressSpace;
-var SessionContext = require("../..").SessionContext;
-var context = SessionContext.defaultContext;
+const AddressSpace = require("../..").AddressSpace;
+const SessionContext = require("../..").SessionContext;
+const context = SessionContext.defaultContext;
 
-var generate_address_space = require("../..").generate_address_space;
+const generate_address_space = require("../..").generate_address_space;
 
-var nodesets = require("node-opcua-nodesets");
-var WriteValue = require("node-opcua-service-write").WriteValue;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var DataType = require("node-opcua-variant").DataType;
+const nodesets = require("node-opcua-nodesets");
+const WriteValue = require("node-opcua-service-write").WriteValue;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const DataType = require("node-opcua-variant").DataType;
 var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var historizing_service = require("node-opcua-service-history");
+const historizing_service = require("node-opcua-service-history");
 require("date-utils");
 
 // make sure extra error checking is made on object constructions
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Historical Data Node", function () {
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
 
         addressSpace = new AddressSpace();
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
@@ -47,7 +47,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should create a 'HA Configuration' node", function () {
 
-        var node = addressSpace.addVariable({
+        const node = addressSpace.addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -57,7 +57,7 @@ describe("Testing Historical Data Node", function () {
     });
 
     function date_add(date, options) {
-        var tmp = new Date(date);
+        const tmp = new Date(date);
 
         tmp.add(options);
         return tmp;
@@ -65,7 +65,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should keep values in memory to provide historical reads", function (done) {
 
-        var node = addressSpace.addVariable({
+        const node = addressSpace.addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -74,7 +74,7 @@ describe("Testing Historical Data Node", function () {
         node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
         // let's injects some values into the history
-        var today = new Date();
+        const today = new Date();
 
         node.setValueFromSource({dataType: "Double", value: 0}, StatusCodes.Good, date_add(today, {seconds: 0}));
         node.setValueFromSource({dataType: "Double", value: 1}, StatusCodes.Good, date_add(today, {seconds: 1}));
@@ -87,23 +87,23 @@ describe("Testing Historical Data Node", function () {
         node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(today);
 
 
-        var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
+        const historyReadDetails = new historizing_service.ReadRawModifiedDetails({
             isReadModified: false,
             startTime: date_add(today, {seconds: -10}),
             endTime: date_add(today, {seconds: 10}),
             numValuesPerNode: 1000,
             returnBounds: true
         });
-        var indexRange = null;
-        var dataEncoding = null;
-        var continuationPoint = null;
+        const indexRange = null;
+        const dataEncoding = null;
+        const continuationPoint = null;
 
 
         node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
             should.not.exist(historyReadResult.continuationPoint);
             historyReadResult.statusCode.should.eql(StatusCodes.Good);
-            var dataValues = historyReadResult.historyData.dataValues;
+            const dataValues = historyReadResult.historyData.dataValues;
             //xx console.log(dataValues);
             dataValues.length.should.eql(7);
             dataValues[0].value.value.should.eql(0);
@@ -121,7 +121,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should keep values up to options.maxOnlineValues to provide historical reads", function (done) {
 
-        var node = addressSpace.addVariable({
+        const node = addressSpace.addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -132,18 +132,18 @@ describe("Testing Historical Data Node", function () {
         node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
         // let's injects some values into the history
-        var today = new Date();
+        const today = new Date();
 
-        var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
+        const historyReadDetails = new historizing_service.ReadRawModifiedDetails({
             isReadModified: false,
             startTime: date_add(today, {seconds: -10}),
             endTime: date_add(today, {seconds: 10}),
             numValuesPerNode: 1000,
             returnBounds: true
         });
-        var indexRange = null;
-        var dataEncoding = null;
-        var continuationPoint = null;
+        const indexRange = null;
+        const dataEncoding = null;
+        const continuationPoint = null;
 
         async.series([
 
@@ -159,7 +159,7 @@ describe("Testing Historical Data Node", function () {
             function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(1);
                     dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
                     callback();
@@ -177,7 +177,7 @@ describe("Testing Historical Data Node", function () {
             function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(2);
                     dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
                     dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 1}));
@@ -197,7 +197,7 @@ describe("Testing Historical Data Node", function () {
             function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
                     dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));
                     dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 1}));
@@ -220,7 +220,7 @@ describe("Testing Historical Data Node", function () {
             function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
                     dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 1}));
                     dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 2}));
@@ -242,7 +242,7 @@ describe("Testing Historical Data Node", function () {
             function (callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(3);
                     dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 2}));
                     dataValues[1].sourceTimestamp.should.eql(date_add(today, {seconds: 3}));
@@ -255,24 +255,24 @@ describe("Testing Historical Data Node", function () {
     });
     it("should store initial dataValue when historical stuff is set", function (done) {
 
-        var node = addressSpace.addVariable({
+        const node = addressSpace.addVariable({
             browseName: "MyVar42",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
         // let's injects some values into the history
-        var today = new Date();
+        const today = new Date();
 
-        var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
+        const historyReadDetails = new historizing_service.ReadRawModifiedDetails({
             isReadModified: false,
             startTime: date_add(today, {seconds: -10}),
             endTime: date_add(today, {seconds: 10}),
             numValuesPerNode: 1000,
             returnBounds: true
         });
-        var indexRange = null;
-        var dataEncoding = null;
-        var continuationPoint = null;
+        const indexRange = null;
+        const dataEncoding = null;
+        const continuationPoint = null;
 
 
         node.setValueFromSource({dataType: "Double", value: 3.14});
@@ -286,7 +286,7 @@ describe("Testing Historical Data Node", function () {
             function read_history1(callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(1);
                     dataValues[0].value.value.should.eql(3.14);
                     callback();
@@ -301,7 +301,7 @@ describe("Testing Historical Data Node", function () {
             },
             function read_history2(callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(2);
                     dataValues[0].value.value.should.eql(3.14);
                     dataValues[1].value.value.should.eql(6.28);
@@ -316,7 +316,7 @@ describe("Testing Historical Data Node", function () {
 
         // unseting the historizing flag shall suspend value being collected
 
-        var node = addressSpace.addVariable({
+        const node = addressSpace.addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -326,14 +326,14 @@ describe("Testing Historical Data Node", function () {
         });
         node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
-        var today = new Date();
+        const today = new Date();
 
         node.setValueFromSource({dataType: "Double", value: 0}, StatusCodes.Good, date_add(today, {seconds: 0}));
 
         async.series([
 
             function turn_historizing_attribrute_to_false(callback) {
-                var v = new WriteValue({
+                const v = new WriteValue({
                     attributeId: AttributeIds.Historizing,
                     value: {value: {dataType: DataType.Boolean, value: false}}
                 });
@@ -351,7 +351,7 @@ describe("Testing Historical Data Node", function () {
 
             },
             function turn_historizing_attribrute_to_true(callback) {
-                var v = new WriteValue({
+                const v = new WriteValue({
                     attributeId: AttributeIds.Historizing,
                     value: {value: {dataType: DataType.Boolean, value: true}}
                 });
@@ -370,21 +370,21 @@ describe("Testing Historical Data Node", function () {
 
             function (callback) {
 
-                var historyReadDetails = new historizing_service.ReadRawModifiedDetails({
+                const historyReadDetails = new historizing_service.ReadRawModifiedDetails({
                     isReadModified: false,
                     startTime: date_add(today, {seconds: -10}),
                     endTime: date_add(today, {seconds: 10}),
                     numValuesPerNode: 1000,
                     returnBounds: true
                 });
-                var indexRange = null;
-                var dataEncoding = null;
-                var continuationPoint = null;
+                const indexRange = null;
+                const dataEncoding = null;
+                const continuationPoint = null;
 
 
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
-                    var dataValues = historyReadResult.historyData.dataValues;
+                    const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(4);
 
                     dataValues[0].sourceTimestamp.should.eql(date_add(today, {seconds: 0}));

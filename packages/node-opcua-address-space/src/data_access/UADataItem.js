@@ -27,15 +27,15 @@
 //     a  Client  may encounter cases where the value read back from a  Server  differs from the value that it
 //     wrote to the Server. This   difference shall be no more than the difference suggested by this  Property
 
-var assert = require("node-opcua-assert");
-var address_space = require("../address_space");
-var AddressSpace = address_space.AddressSpace;
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const address_space = require("../address_space");
+const AddressSpace = address_space.AddressSpace;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const _ = require("underscore");
 
-var definition_Description = "Definition  is a vendor - specific, human readable string that specifies how the value of this  DataItem  is calculated.";
-var valuePrecision_Description = "";
+const definition_Description = "Definition  is a vendor - specific, human readable string that specifies how the value of this  DataItem  is calculated.";
+const valuePrecision_Description = "";
 
 
 /**
@@ -49,7 +49,7 @@ var valuePrecision_Description = "";
  */
 function add_dataItem_stuff(variable, options) {
 
-    var addressSpace = variable.addressSpace;
+    const addressSpace = variable.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     if (options.hasOwnProperty("definition")) {

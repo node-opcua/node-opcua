@@ -4,30 +4,30 @@
  * @module opcua.miscellaneous
  */
 
-var assert = require("node-opcua-assert");
-var fs = require("fs");
-var path = require("path");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const fs = require("fs");
+const path = require("path");
+const _ = require("underscore");
 
-var getFactory = require("node-opcua-factory/src/factories_factories").getFactory;
+const getFactory = require("node-opcua-factory/src/factories_factories").getFactory;
 
-var schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
-var extract_all_fields = schema_helpers.extract_all_fields;
-var resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
-var check_schema_correctness = schema_helpers.check_schema_correctness;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
+const extract_all_fields = schema_helpers.extract_all_fields;
+const resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
+const check_schema_correctness = schema_helpers.check_schema_correctness;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-var objectNodeIds = require("node-opcua-constants").ObjectIds;
-var ec = require("node-opcua-basic-types");
+const objectNodeIds = require("node-opcua-constants").ObjectIds;
+const ec = require("node-opcua-basic-types");
 
-var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
+const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 //xx var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var utils = require("node-opcua-utils");
-var normalize_require_file = utils.normalize_require_file;
-var LineFile = require("node-opcua-utils/src/linefile").LineFile;
+const utils = require("node-opcua-utils");
+const normalize_require_file = utils.normalize_require_file;
+const LineFile = require("node-opcua-utils/src/linefile").LineFile;
 
 
 //xx exports.folder_for_generated_file = path.normalize(path.join(__dirname,"../../node-opcua/generated"));
@@ -36,7 +36,7 @@ var LineFile = require("node-opcua-utils/src/linefile").LineFile;
 //xx }
 
 function get_class_javascript_filename(schema_name, optional_folder) {
-    var folder;
+    let folder;
     if (optional_folder) {
         if(!(fs.existsSync(optional_folder))) {
 
@@ -61,16 +61,16 @@ exports.get_class_javascript_filename = get_class_javascript_filename;
 
 function get_class_javascript_filename_local(schema_name) {
 
-    var generate_source = getFactory(schema_name).prototype._schema.generate_source;
+    let generate_source = getFactory(schema_name).prototype._schema.generate_source;
     if (!generate_source) {
-        var folder =".";// exports.folder_for_generated_file;
+        const folder =".";// exports.folder_for_generated_file;
         generate_source = path.join(folder, "_auto_generated_" + schema_name + ".js");
     }
     return generate_source;
 
 }
 
-var RUNTIME_GENERATED_ID =+ -1;
+const RUNTIME_GENERATED_ID =+ -1;
 
 
 function write_enumeration_setter(f, schema, field, member, i) {
@@ -78,8 +78,8 @@ function write_enumeration_setter(f, schema, field, member, i) {
     function write() {
         f.write.apply(f, arguments);
     }
-    var className = schema.name;
-    var capMember = utils.capitalizeFirstLetter(member);
+    const className = schema.name;
+    const capMember = utils.capitalizeFirstLetter(member);
     write(className + ".prototype.set"+capMember +" = function(value) {");
     write("   var coercedValue = _enumerations." + field.fieldType + ".typedEnum.get(value);");
     write("   /* istanbul ignore next */");
@@ -100,7 +100,7 @@ function write_enumeration(f, schema, field, member, i) {
 
     assert(!field.isArray); // would not work in this case
 
-    var capMember = utils.capitalizeFirstLetter(member);
+    const capMember = utils.capitalizeFirstLetter(member);
     write("    self.set" + capMember + "(initialize_field(schema.fields[" + i + "]" + ", options." + field.name + "));");
 
 }
@@ -166,12 +166,12 @@ function write_basic(f, schema, field, member, i) {
 /* eslint complexity:[0,50],  max-statements: [1, 254]*/
 function produce_code(schema_file, schema_name, source_file) {
 
-    var is_complex_type;
-    var i, field, fieldType, member, __member;
+    let is_complex_type;
+    let i, field, fieldType, member, __member;
 
     schema_file = schema_file.replace(/\\/g, "/");
 
-    var full_path_to_schema ;
+    let full_path_to_schema;
     if (schema_file.match(/^\$node-opcua/)) {
         full_path_to_schema = path.resolve(path.join(__dirname,"../../../node_modules",schema_file));
     } else {
@@ -180,24 +180,24 @@ function produce_code(schema_file, schema_name, source_file) {
 
     debugLog("\nfull_path_to_schema    ".red, full_path_to_schema);
 
-    var relative_path_to_schema = normalize_require_file(__dirname, full_path_to_schema);
+    const relative_path_to_schema = normalize_require_file(__dirname, full_path_to_schema);
     debugLog("relative_path_to_schema".red, relative_path_to_schema);
 
-    var local_schema_file = normalize_require_file(path.dirname(source_file), full_path_to_schema);
+    const local_schema_file = normalize_require_file(path.dirname(source_file), full_path_to_schema);
     debugLog("local_schema_file      ".red, local_schema_file);
 
-    var schema = require(relative_path_to_schema)[schema_name];
+    const schema = require(relative_path_to_schema)[schema_name];
 
     check_schema_correctness(schema);
 
     if (!schema) {
         throw new Error(" Cannot find schema " + schema_name + " in " + relative_path_to_schema);
     }
-    var name = schema.name;
+    const name = schema.name;
 
     // check the id of the object binary encoding
-    var encoding_BinaryId = schema.id;
-    var encoding_XmlId;
+    let encoding_BinaryId = schema.id;
+    let encoding_XmlId;
     if (encoding_BinaryId === undefined) {
         encoding_BinaryId = objectNodeIds[name + "_Encoding_DefaultBinary"];
         encoding_XmlId = objectNodeIds[name + "_Encoding_DefaultXml"];
@@ -216,30 +216,30 @@ function produce_code(schema_file, schema_name, source_file) {
     }
 
 
-    var encodingBinaryNodeId = (encoding_BinaryId === RUNTIME_GENERATED_ID ) ? encoding_BinaryId : makeExpandedNodeId(encoding_BinaryId);
-    var encodingXmlNodeId = (encoding_XmlId ) ? makeExpandedNodeId(encoding_XmlId) : null;
+    const encodingBinaryNodeId = (encoding_BinaryId === RUNTIME_GENERATED_ID ) ? encoding_BinaryId : makeExpandedNodeId(encoding_BinaryId);
+    const encodingXmlNodeId = (encoding_XmlId ) ? makeExpandedNodeId(encoding_XmlId) : null;
 
 
     schema.baseType = schema.baseType || "BaseUAObject";
 
-    var baseclass = schema.baseType;
+    const baseclass = schema.baseType;
 
 
-    var classname = schema.name;
+    const classname = schema.name;
 
 
-    var f = new LineFile();
+    const f = new LineFile();
 
     function write() {
         f.write.apply(f, arguments);
     }
 
     resolve_schema_field_types(schema);
-    var complexTypes = schema.fields.filter(function (field) {
+    const complexTypes = schema.fields.filter(function (field) {
         return field.category === "complex" && field.fieldType !== schema.name;
     });
 
-    var folder_for_source_file = path.dirname(source_file);
+    const folder_for_source_file = path.dirname(source_file);
 
 // -------------------------------------------------------------------------
 // - insert common require's
@@ -279,7 +279,7 @@ function produce_code(schema_file, schema_name, source_file) {
 // -------------------------------------------------------------------------
 
     write("var getFactory = require(\"node-opcua-factory/src/factories_factories\").getFactory;");
-    var tmp_map = {};
+    const tmp_map = {};
     complexTypes.forEach(function (field) {
 
         if (tmp_map.hasOwnProperty( field.fieldType )) {
@@ -287,8 +287,8 @@ function produce_code(schema_file, schema_name, source_file) {
         }
         tmp_map[ field.fieldType ] = 1;
 
-        var filename = get_class_javascript_filename_local(field.fieldType);
-        var local_filename = normalize_require_file(folder_for_source_file, filename);
+        const filename = get_class_javascript_filename_local(field.fieldType);
+        const local_filename = normalize_require_file(folder_for_source_file, filename);
 
         if( fs.existsSync(filename)) {
             write("var " + field.fieldType + " = require(\"" + local_filename + "\")." + field.fieldType + ";");
@@ -307,8 +307,8 @@ function produce_code(schema_file, schema_name, source_file) {
     write("var BaseUAObject = require(\"node-opcua-factory/src/factories_baseobject\").BaseUAObject;");
     if (baseclass !== "BaseUAObject") {
 
-        var filename = get_class_javascript_filename_local(baseclass);
-        var local_filename = normalize_require_file(folder_for_source_file, filename);
+        const filename = get_class_javascript_filename_local(baseclass);
+        const local_filename = normalize_require_file(folder_for_source_file, filename);
 
         if( fs.existsSync(filename)) {
             write("var " + baseclass + " = require(\"" + local_filename + "\")." + baseclass + ";");
@@ -324,8 +324,8 @@ function produce_code(schema_file, schema_name, source_file) {
 // -------------------------------------------------------------------------
 // - insert class enumeration properties
 // -------------------------------------------------------------------------
-    var has_enumeration = false;
-    var n = schema.fields.length;
+    let has_enumeration = false;
+    let n = schema.fields.length;
     for (i = 0; i < n; i++) {
         if (schema.fields[i].category === "enumeration") {
             has_enumeration = true;
@@ -350,7 +350,7 @@ function produce_code(schema_file, schema_name, source_file) {
     // dump parameters
 
     write(" * @param  options {Object}");
-    var def = "";
+    let def = "";
     for (i = 0; i < n; i++) {
         field = schema.fields[i];
         fieldType = field.fieldType;
@@ -363,7 +363,7 @@ function produce_code(schema_file, schema_name, source_file) {
                 def = " = " + field.defaultValue;
             }
         }
-        var ft = makeFieldType(field);
+        const ft = makeFieldType(field);
         write(" * @param  [options." + field.name + def + "] " + ft + " " + documentation);
     }
 
@@ -505,7 +505,7 @@ function produce_code(schema_file, schema_name, source_file) {
 //  --------------------------------------------------------------
     write("");
     n = schema.fields.length;
-    var done = {};
+    const done = {};
     for (i = 0; i < n; i++) {
         field = schema.fields[i];
         fieldType = field.fieldType;
@@ -678,7 +678,7 @@ function produce_code(schema_file, schema_name, source_file) {
         return "\"" + str + "\"";
     }
 
-    var possible_fields = extract_all_fields(schema);
+    const possible_fields = extract_all_fields(schema);
 
     write(classname + ".possibleFields = [");
     write("  " + possible_fields.map(quotify).join(",\n         "));

@@ -1,13 +1,13 @@
 "use strict";
 
-var _ = require("underscore");
-var subscription_service = require("node-opcua-service-subscription");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const subscription_service = require("node-opcua-service-subscription");
+const assert = require("node-opcua-assert");
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 //xx var debugLog = console.log;
 
@@ -91,7 +91,7 @@ ClientSidePublishEngine.prototype.cleanup_acknowledgment_for_subscription = func
  * @method send_publish_request
  */
 ClientSidePublishEngine.prototype.send_publish_request = function () {
-    var self = this;
+    const self = this;
 
     if (self.isSuspended) {
         return;
@@ -123,7 +123,7 @@ ClientSidePublishEngine.prototype.send_publish_request = function () {
 
 ClientSidePublishEngine.prototype._send_publish_request = function () {
 
-    var self = this;
+    const self = this;
     assert(self.session, "ClientSidePublishEngine terminated ?");
     assert(!self.isSuspended,"should not be suspended");
 
@@ -131,7 +131,7 @@ ClientSidePublishEngine.prototype._send_publish_request = function () {
 
     debugLog("sending publish request ".yellow,self.nbPendingPublishRequests);
 
-    var subscriptionAcknowledgements = self.subscriptionAcknowledgements;
+    const subscriptionAcknowledgements = self.subscriptionAcknowledgements;
     self.subscriptionAcknowledgements = [];
 
     // as started in the spec (Spec 1.02 part 4 page 81 5.13.2.2 Function DequeuePublishReq())
@@ -164,14 +164,14 @@ ClientSidePublishEngine.prototype._send_publish_request = function () {
     // in our case:
 
     assert( self.nbPendingPublishRequests >0);
-    var calculatedTimeout = self.nbPendingPublishRequests * self.timeoutHint;
+    const calculatedTimeout = self.nbPendingPublishRequests * self.timeoutHint;
 
-    var publish_request = new subscription_service.PublishRequest({
+    const publish_request = new subscription_service.PublishRequest({
         requestHeader: {timeoutHint: calculatedTimeout}, // see note
         subscriptionAcknowledgements: subscriptionAcknowledgements
     });
 
-    var active = true;
+    let active = true;
 
     self.session.publish(publish_request, function (err, response) {
 
@@ -252,7 +252,7 @@ ClientSidePublishEngine.prototype.terminate = function () {
  * @type {Number}
  */
 ClientSidePublishEngine.prototype.__defineGetter__("subscriptionCount", function () {
-    var self = this;
+    const self = this;
     return Object.keys(self.subscriptionMap).length;
 });
 
@@ -270,7 +270,7 @@ ClientSidePublishEngine.prototype.registerSubscription = function (subscription)
     debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
     assert(arguments.length === 1);
-    var self = this;
+    const self = this;
     assert(_.isFinite(subscription.subscriptionId));
     assert(!self.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
     assert(_.isFunction(subscription.onNotificationMessage));
@@ -287,7 +287,7 @@ ClientSidePublishEngine.prototype.registerSubscription = function (subscription)
 
 ClientSidePublishEngine.prototype.replenish_publish_request_queue = function() {
 
-    var self = this;
+    const self = this;
     // Spec 1.03 part 4 5.13.5 Publish
     // [..] in high latency networks, the Client may wish to pipeline Publish requests
     // to ensure cyclic reporting from the Server. Pipelining involves sending more than one Publish
@@ -297,7 +297,7 @@ ClientSidePublishEngine.prototype.replenish_publish_request_queue = function() {
     // a response to be received before sending the next request.
     self.send_publish_request();
     // send more than one publish request to server to cope with latency
-    for (var i = 0; i < ClientSidePublishEngine.publishRequestCountInPipeline - 1; i++) {
+    for (let i = 0; i < ClientSidePublishEngine.publishRequestCountInPipeline - 1; i++) {
         self.send_publish_request();
     }
 };
@@ -312,14 +312,14 @@ ClientSidePublishEngine.prototype.unregisterSubscription = function (subscriptio
     debugLog("ClientSidePublishEngine#unregisterSubscription ",subscriptionId);
 
     assert(_.isFinite(subscriptionId) && subscriptionId >0);
-    var self = this;
+    const self = this;
     self.activeSubscriptionCount -= 1;
     assert(self.subscriptionMap.hasOwnProperty(subscriptionId));
     delete self.subscriptionMap[subscriptionId];
 };
 
 ClientSidePublishEngine.prototype.getSubscriptionIds = function() {
-    var self = this;
+    const self = this;
     return Object.keys(self.subscriptionMap).map(parseInt);
 };
 
@@ -331,7 +331,7 @@ ClientSidePublishEngine.prototype.getSubscriptionIds = function() {
  * @return {Subscription|null}
  */
 ClientSidePublishEngine.prototype.getSubscription = function (subscriptionId) {
-    var self = this;
+    const self = this;
     assert(_.isFinite(subscriptionId) && subscriptionId >0);
     assert(self.subscriptionMap.hasOwnProperty(subscriptionId));
     return self.subscriptionMap[subscriptionId];
@@ -340,10 +340,10 @@ ClientSidePublishEngine.prototype.getSubscription = function (subscriptionId) {
 ClientSidePublishEngine.prototype._receive_publish_response = function (response) {
 
     debugLog("receive publish response".yellow.bold);
-    var self = this;
+    const self = this;
 
     // the id of the subscription sending the notification message
-    var subscriptionId = response.subscriptionId;
+    const subscriptionId = response.subscriptionId;
 
     // the sequence numbers available in this subscription
     // for retransmission and not acknowledged by the client
@@ -352,7 +352,7 @@ ClientSidePublishEngine.prototype._receive_publish_response = function (response
     // has the server more notification for us ?
     // -- var moreNotifications = response.moreNotifications;
 
-    var notificationMessage = response.notificationMessage;
+    const notificationMessage = response.notificationMessage;
     //  notificationMessage.sequenceNumber
     //  notificationMessage.publishTime
     //  notificationMessage.notificationData[]
@@ -368,7 +368,7 @@ ClientSidePublishEngine.prototype._receive_publish_response = function (response
     // which is only an information of what will be the future sequenceNumber.
     //}
 
-    var subscription = self.subscriptionMap[subscriptionId];
+    const subscription = self.subscriptionMap[subscriptionId];
 
     if (subscription && self.session !== null) {
       
@@ -390,11 +390,11 @@ ClientSidePublishEngine.prototype._receive_publish_response = function (response
     }
 };
 
-var async = require("async");
+const async = require("async");
 
 ClientSidePublishEngine.prototype.republish = function(callback) {
 
-    var self = this;
+    const self = this;
 
     // After re-establishing the connection the Client shall call Republish in a loop, starting with the next expected
     // sequence number and incrementing the sequence number until the Server returns the status Bad_MessageNotAvailable.
@@ -412,10 +412,10 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
 
         assert(subscription.subscriptionId === +subscriptionId);
 
-        var is_done = false;
+        let is_done = false;
 
         function _send_republish(_b_callback) {
-            var request = new subscription_service.RepublishRequest({
+            const request = new subscription_service.RepublishRequest({
                 subscriptionId: subscription.subscriptionId,
                 retransmitSequenceNumber: subscription.lastSequenceNumber+1
             });

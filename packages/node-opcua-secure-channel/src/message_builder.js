@@ -4,38 +4,38 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var MessageBuilderBase = require("node-opcua-transport/src/message_builder_base").MessageBuilderBase;
-
-
-var chooseSecurityHeader = require("./secure_channel_service").chooseSecurityHeader;
+const MessageBuilderBase = require("node-opcua-transport/src/message_builder_base").MessageBuilderBase;
 
 
-var SymmetricAlgorithmSecurityHeader = require("./secure_channel_service").SymmetricAlgorithmSecurityHeader;
-var SequenceHeader = require("./secure_channel_service").SequenceHeader;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const chooseSecurityHeader = require("./secure_channel_service").chooseSecurityHeader;
 
-var ec = require("node-opcua-basic-types");
-var decodeString = ec.decodeString;
 
-var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
-var hexDump = require("node-opcua-debug").hexDump;
+const SymmetricAlgorithmSecurityHeader = require("./secure_channel_service").SymmetricAlgorithmSecurityHeader;
+const SequenceHeader = require("./secure_channel_service").SequenceHeader;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+
+const ec = require("node-opcua-basic-types");
+const decodeString = ec.decodeString;
+
+const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+const hexDump = require("node-opcua-debug").hexDump;
 
 //xx require("./utils").setDebugFlag(__filename,true);
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var securityPolicy_m = require("./security_policy");
-var SecurityPolicy = securityPolicy_m.SecurityPolicy;
+const securityPolicy_m = require("./security_policy");
+const SecurityPolicy = securityPolicy_m.SecurityPolicy;
 
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var decodeStatusCode = require("node-opcua-status-code").decodeStatusCode;
+const decodeStatusCode = require("node-opcua-status-code").decodeStatusCode;
 
 /**
  * @class MessageBuilder
@@ -75,12 +75,12 @@ MessageBuilder.prototype.setSecurity = function (securityMode, securityPolicy) {
 
 
 MessageBuilderBase.prototype.dispose = function() {
-    var self = this;
+    const self = this;
     self.removeAllListeners();
 };
 
 MessageBuilder.prototype.dispose = function() {
-    var self = this;
+    const self = this;
     MessageBuilderBase.prototype.dispose.call(this);
     self.securityPolicy = null;
     self.securityMode = null;
@@ -96,13 +96,13 @@ MessageBuilder.prototype._validateSequenceNumber = function (sequenceNumber) {
     assert(_.isFinite(this.previous_sequenceNumber));
     assert(_.isFinite(sequenceNumber) && sequenceNumber >= 0);
 
-    var expectedSequenceNumber;
+    let expectedSequenceNumber;
     if (this.previous_sequenceNumber !== -1) {
 
         expectedSequenceNumber = this.previous_sequenceNumber + 1;
 
         if (expectedSequenceNumber !== sequenceNumber) {
-            var errMessage = "Invalid Sequence Number found ( expected " + expectedSequenceNumber + ", got " + sequenceNumber + ")";
+            const errMessage = "Invalid Sequence Number found ( expected " + expectedSequenceNumber + ", got " + sequenceNumber + ")";
             debugLog(errMessage.red.bold);
             /**
              * notify the observers that a message with an invalid sequence number has been received.
@@ -160,13 +160,13 @@ MessageBuilder.prototype._decrypt_OPN = function (binaryStream) {
 
     // The message has been signed  with sender private key and has been encrypted with receiver public key.
     // We shall decrypt it with the receiver private key.
-    var buf = binaryStream._buffer.slice(binaryStream.length);
+    const buf = binaryStream._buffer.slice(binaryStream.length);
 
     if (this.securityHeader.receiverCertificateThumbprint) { // this mean that the message has been encrypted ....
 
         assert(typeof this.privateKey === "string", "expecting valid key");
 
-        var decryptedBuffer = this.cryptoFactory.asymmetricDecrypt(buf, this.privateKey);
+        const decryptedBuffer = this.cryptoFactory.asymmetricDecrypt(buf, this.privateKey);
 
         // replace decrypted buffer in initial buffer
         decryptedBuffer.copy(binaryStream._buffer, binaryStream.length);
@@ -183,14 +183,14 @@ MessageBuilder.prototype._decrypt_OPN = function (binaryStream) {
         }
     }
 
-    var cert = crypto_utils.exploreCertificate(this.securityHeader.senderCertificate);
+    const cert = crypto_utils.exploreCertificate(this.securityHeader.senderCertificate);
     // then verify the signature
-    var signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
+    const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
     assert(signatureLength === 128 || signatureLength === 256 || signatureLength === 384 || signatureLength === 512 );
 
-    var chunk = binaryStream._buffer;
+    const chunk = binaryStream._buffer;
 
-    var signatureIsOK = this.cryptoFactory.asymmetricVerifyChunk(chunk, this.securityHeader.senderCertificate);
+    const signatureIsOK = this.cryptoFactory.asymmetricVerifyChunk(chunk, this.securityHeader.senderCertificate);
 
     if (!signatureIsOK) {
         console.log(hexDump(binaryStream._buffer));
@@ -223,7 +223,7 @@ MessageBuilder.prototype.pushNewToken = function (securityToken, derivedKeys) {
 
 MessageBuilder.prototype._select_matching_token = function (tokenId) {
 
-    var got_new_token = false;
+    let got_new_token = false;
     this._tokenStack = this._tokenStack || [];
     while (this._tokenStack.length) {
         if (this._tokenStack.length === 0) {
@@ -253,7 +253,7 @@ MessageBuilder.prototype._decrypt_MSG = function (binaryStream) {
 
     // Check  security token
     // securityToken may have been renewed
-    var securityTokenData = this._select_matching_token(this.securityHeader.tokenId);
+    const securityTokenData = this._select_matching_token(this.securityHeader.tokenId);
     if (!securityTokenData) {
         this._report_error("Security token data for token " + this.securityHeader.tokenId + " doesn't exist");
         return false;
@@ -268,16 +268,16 @@ MessageBuilder.prototype._decrypt_MSG = function (binaryStream) {
     }
 
     // We shall decrypt it with the receiver private key.
-    var buf = binaryStream._buffer.slice(binaryStream.length);
+    const buf = binaryStream._buffer.slice(binaryStream.length);
 
-    var derivedKeys = securityTokenData.derivedKeys;
+    const derivedKeys = securityTokenData.derivedKeys;
 
     assert(derivedKeys !== null);
     assert(derivedKeys.signatureLength, " must provide a signature length");
 
     if (this.securityMode === MessageSecurityMode.SIGNANDENCRYPT) {
 
-        var decryptedBuffer = crypto_utils.decryptBufferWithDerivedKeys(buf, derivedKeys);
+        const decryptedBuffer = crypto_utils.decryptBufferWithDerivedKeys(buf, derivedKeys);
 
         // replace decrypted buffer in initial buffer
         decryptedBuffer.copy(binaryStream._buffer, binaryStream.length);
@@ -294,9 +294,9 @@ MessageBuilder.prototype._decrypt_MSG = function (binaryStream) {
     }
 
     // now check signature ....
-    var chunk = binaryStream._buffer;
+    const chunk = binaryStream._buffer;
 
-    var signatureIsOK = crypto_utils.verifyChunkSignatureWithDerivedKeys(chunk, derivedKeys);
+    const signatureIsOK = crypto_utils.verifyChunkSignatureWithDerivedKeys(chunk, derivedKeys);
     if (!signatureIsOK) {
         this._report_error("SIGN and ENCRYPT : Invalid packet signature");
         return false;
@@ -321,7 +321,7 @@ MessageBuilder.prototype._decrypt = function (binaryStream) {
         return true;
     }
 
-    var msgType = this.messageHeader.msgType;
+    const msgType = this.messageHeader.msgType;
 
     // check if security is active or not
     if (this.securityPolicy === SecurityPolicy.None) {
@@ -352,7 +352,7 @@ MessageBuilder.prototype._read_headers = function (binaryStream) {
     MessageBuilderBase.prototype._read_headers.apply(this, arguments);
     assert(binaryStream.length === 12);
 
-    var msgType = this.messageHeader.msgType;
+    const msgType = this.messageHeader.msgType;
 
     if (msgType === "HEL" || msgType === "ACK") {
 
@@ -361,8 +361,8 @@ MessageBuilder.prototype._read_headers = function (binaryStream) {
 
         // extract Error StatusCode and additional message
         binaryStream.length = 8;
-        var errorCode = decodeStatusCode(binaryStream);
-        var message = decodeString(binaryStream);
+        const errorCode = decodeStatusCode(binaryStream);
+        const message = decodeString(binaryStream);
 
         console.log(" ERROR RECEIVED FROM SENDER".red.bold, errorCode.toString().cyan, message);
         console.log(hexDump(binaryStream._buffer));
@@ -399,7 +399,7 @@ MessageBuilder.prototype._read_headers = function (binaryStream) {
 MessageBuilder.prototype._safe_decode_message_body = function (full_message_body, objMessage, binaryStream) {
     try {
         // de-serialize the object from the binary stream
-        var options = this.objectFactory;
+        const options = this.objectFactory;
         objMessage.decode(binaryStream, options);
     }
     catch (err) {
@@ -419,8 +419,8 @@ MessageBuilder.prototype._safe_decode_message_body = function (full_message_body
 
 MessageBuilder.prototype._decode_message_body = function (full_message_body) {
 
-    var binaryStream = new BinaryStream(full_message_body);
-    var msgType = this.messageHeader.msgType;
+    const binaryStream = new BinaryStream(full_message_body);
+    const msgType = this.messageHeader.msgType;
 
     if (msgType === "ERR") {
         // invalid message type
@@ -434,10 +434,10 @@ MessageBuilder.prototype._decode_message_body = function (full_message_body) {
     }
 
     // read expandedNodeId:
-    var id = ec.decodeExpandedNodeId(binaryStream);
+    const id = ec.decodeExpandedNodeId(binaryStream);
 
     // construct the object
-    var objMessage = this.objectFactory.constructObject(id);
+    const objMessage = this.objectFactory.constructObject(id);
 
     if (!objMessage) {
         this._report_error("cannot construct object with nodeID " + id);
@@ -467,7 +467,7 @@ MessageBuilder.prototype._decode_message_body = function (full_message_body) {
                 console.log(err.stack);
             }
         } else {
-            var message = "cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name;
+            const message = "cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name;
             console.log(message);
             this._report_error(message);
             return false;

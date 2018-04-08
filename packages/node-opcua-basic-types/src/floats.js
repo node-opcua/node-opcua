@@ -1,9 +1,8 @@
 "use strict";
-var _ = require("underscore");
+const _ = require("underscore");
 
-var minFloat = -3.40 * Math.pow(10, 38);
-var maxFloat = 3.40 * Math.pow(10, 38);
-
+const minFloat = -3.4 * Math.pow(10, 38);
+const maxFloat = 3.4 * Math.pow(10, 38);
 
 /**
  * return a random float value in the range of  min inclusive and  max exclusive
@@ -14,10 +13,10 @@ var maxFloat = 3.40 * Math.pow(10, 38);
  * @private
  */
 function getRandomDouble(min, max) {
-    return Math.random() * (max - min ) + min;
+    return Math.random() * (max - min) + min;
 }
 
-exports.isValidFloat = function (value) {
+exports.isValidFloat = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
@@ -42,48 +41,48 @@ function roundToFloat2(float) {
     //   (though this is not guaranteed). This is a binary format that occupies 64 bits (8 bytes) and its
     //   significand has a precision of 53 bits (about 16 decimal digits).
     //
-    var nbDigits = Math.ceil(Math.log(Math.abs(float)) / Math.log(10));
-    var r = Math.pow(10, -nbDigits + 2);
+    const nbDigits = Math.ceil(Math.log(Math.abs(float)) / Math.log(10));
+    const r = Math.pow(10, -nbDigits + 2);
     return Math.round(float * r) / r;
 }
 
-var r = new Float32Array(1);
+const r = new Float32Array(1);
 function roundToFloat(float) {
     r[0] = float;
-    var float_r = r[0];
+    const float_r = r[0];
     return float_r;
 }
 
-exports.randomFloat = function () {
+exports.randomFloat = function() {
     return roundToFloat(getRandomDouble(-1000, 1000));
 };
 
-exports.encodeFloat = function (value, stream) {
+exports.encodeFloat = function(value, stream) {
     stream.writeFloat(value);
 };
 
-exports.decodeFloat = function (stream) {
-    var float = stream.readFloat();
+exports.decodeFloat = function(stream) {
+    const float = stream.readFloat();
     return float;
     //xx return roundToFloat(float);
 };
 
-exports.isValidDouble = function (value) {
+exports.isValidDouble = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
     return true;
 };
 
-exports.randomDouble = function () {
+exports.randomDouble = function() {
     return getRandomDouble(-1000000, 1000000);
 };
 
-exports.encodeDouble = function (value, stream) {
+exports.encodeDouble = function(value, stream) {
     stream.writeDouble(value);
 };
 
-exports.decodeDouble = function (stream) {
+exports.decodeDouble = function(stream) {
     return stream.readDouble();
 };
 
@@ -99,4 +98,3 @@ exports.coerceDouble = function coerceDouble(value) {
     }
     return parseFloat(value);
 };
-

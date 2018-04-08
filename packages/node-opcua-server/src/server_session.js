@@ -3,34 +3,34 @@
  * @module opcua.server
  */
 
-var _ = require("underscore");
-var crypto = require("crypto");
+const _ = require("underscore");
+const crypto = require("crypto");
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var NodeIdType = require("node-opcua-nodeid").NodeIdType;
-var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var NodeClass = require("node-opcua-data-model").NodeClass;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const NodeIdType = require("node-opcua-nodeid").NodeIdType;
+const ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
-var DataValue = require("node-opcua-data-value").DataValue;
-var VariableIds = require("node-opcua-constants").VariableIds;
+const DataValue = require("node-opcua-data-value").DataValue;
+const VariableIds = require("node-opcua-constants").VariableIds;
 
-var ec = require("node-opcua-basic-types");
-var assert = require("node-opcua-assert");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var eoan = require("node-opcua-address-space");
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var ObjectIds = require("node-opcua-constants").ObjectIds;
+const ec = require("node-opcua-basic-types");
+const assert = require("node-opcua-assert");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const eoan = require("node-opcua-address-space");
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const ObjectIds = require("node-opcua-constants").ObjectIds;
 
-var WatchDog = require("node-opcua-utils/src/watchdog").WatchDog;
-var theWatchDog = new WatchDog();
+const WatchDog = require("node-opcua-utils/src/watchdog").WatchDog;
+const theWatchDog = new WatchDog();
 
-var ContinuationPointManager = require("./continuation_point_manager").ContinuationPointManager;
+const ContinuationPointManager = require("./continuation_point_manager").ContinuationPointManager;
 
-var utils = require("node-opcua-utils");
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const utils = require("node-opcua-utils");
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 /**
  *
@@ -64,7 +64,7 @@ var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  */
 function ServerSession(parent, sessionId, sessionTimeout) {
 
-    var session = this;
+    const session = this;
 
     session.parent = parent; // SessionEngine
 
@@ -79,7 +79,7 @@ function ServerSession(parent, sessionId, sessionTimeout) {
     assert(sessionTimeout >= 0, " sessionTimeout");
     session.sessionTimeout = sessionTimeout;
 
-    var authenticationTokenBuf = crypto.randomBytes(16);
+    const authenticationTokenBuf = crypto.randomBytes(16);
     session.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
 
     // the sessionId
@@ -121,14 +121,14 @@ function ServerSession(parent, sessionId, sessionTimeout) {
 
 util.inherits(ServerSession, EventEmitter);
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ServerSession.registry = new ObjectRegistry();
 
 ServerSession.prototype.dispose = function() {
 
     debugLog("ServerSession#dispose()");
 
-    var self = this;
+    const self = this;
 
     assert(!self.sessionObject," sessionObject has not been cleared !");
 
@@ -157,14 +157,14 @@ ServerSession.maxPublishRequestInQueue = 100;
 
 Object.defineProperty(ServerSession.prototype, "clientConnectionTime", {
     get: function () {
-        var self = this;
+        const self = this;
         return self.creationDate;
     }
 });
 
 Object.defineProperty(ServerSession.prototype, "clientLastContactTime", {
     get: function () {
-        var self = this;
+        const self = this;
         return self._watchDogData.last_seen;
     }
 });
@@ -188,19 +188,19 @@ ServerSession.prototype.__defineGetter__("addressSpace", function () {
 });
 
 ServerSession.prototype.__defineGetter__("currentPublishRequestInQueue", function () {
-    var self = this;
+    const self = this;
     return self.publishEngine ? self.publishEngine.pendingPublishRequestCount : 0;
 });
 
 //xx ServerSession.prototype.__defineGetter__("serverDiagnostics")
 
-var ServiceCounter = require("node-opcua-common").ServiceCounter;
-var SessionDiagnostics = require("node-opcua-common").SessionDiagnostics;
-var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const ServiceCounter = require("node-opcua-common").ServiceCounter;
+const SessionDiagnostics = require("node-opcua-common").SessionDiagnostics;
+const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
 
 
 ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
-    var session = this;
+    const session = this;
     if (session._sessionDiagnostics && session._sessionDiagnostics.clientLastContactTime) {
         currentTime = currentTime || new Date();
         // do not record all ticks as this may be overwhelming,
@@ -218,7 +218,7 @@ ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
  * @private
  */
 ServerSession.prototype.onClientSeen = function (currentTime) {
-    var session = this;
+    const session = this;
 
     session.updateClientLastContactTime(currentTime);
 
@@ -239,18 +239,18 @@ ServerSession.prototype.onClientSeen = function (currentTime) {
 
 ServerSession.prototype.incrementTotalRequestCount = function () {
 
-    var session = this;
+    const session = this;
     if (session._sessionDiagnostics && session._sessionDiagnostics.totalRequestCount) {
         session._sessionDiagnostics.totalRequestCount.totalCount += 1;
     }
 };
 
-var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
+const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
 ServerSession.prototype.incrementRequestTotalCounter = function (counterName) {
-    var session = this;
+    const session = this;
     if (session._sessionDiagnostics) {
-        var propName = lowerFirstLetter(counterName + "Count");
+        const propName = lowerFirstLetter(counterName + "Count");
         if (!session._sessionDiagnostics.hasOwnProperty(propName)) {
             console.log(" cannot find", propName);
             //xx return;
@@ -260,9 +260,9 @@ ServerSession.prototype.incrementRequestTotalCounter = function (counterName) {
     }
 };
 ServerSession.prototype.incrementRequestErrorCounter = function (counterName) {
-    var session = this;
+    const session = this;
     if (session._sessionDiagnostics) {
-        var propName = lowerFirstLetter(counterName + "Count");
+        const propName = lowerFirstLetter(counterName + "Count");
         if (!session._sessionDiagnostics.hasOwnProperty(propName)) {
             console.log(" cannot find", propName);
             //xx  return;
@@ -276,13 +276,13 @@ ServerSession.prototype.incrementRequestErrorCounter = function (counterName) {
  * @returns {UAObject}
  */
 ServerSession.prototype.getSessionDiagnosticsArray = function () {
-    var self = this;
+    const self = this;
     return self.addressSpace.rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
 };
 
 ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
-    var session = this;
+    const session = this;
     if (session.sessionObject) {
         return;
     }
@@ -293,7 +293,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         debugLog("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
         return; // no addressSpace
     }
-    var root = session.addressSpace.findNode(makeNodeId(ObjectIds.RootFolder));
+    const root = session.addressSpace.findNode(makeNodeId(ObjectIds.RootFolder));
     assert(root, "expecting a root object");
 
     if (!root.objects) {
@@ -306,19 +306,19 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
     }
 
     // self.addressSpace.findNode(makeNodeId(ObjectIds.Server_ServerDiagnostics));
-    var serverDiagnosticsNode = root.objects.server.serverDiagnostics;
+    const serverDiagnosticsNode = root.objects.server.serverDiagnostics;
 
     if (!serverDiagnosticsNode || !serverDiagnosticsNode.sessionsDiagnosticsSummary) {
         debugLog("ServerSession#_createSessionObjectInAddressSpace : no serverDiagnostics.sessionsDiagnosticsSummary");
         return false;
     }
 
-    var sessionDiagnosticsDataType = session.addressSpace.findDataType("SessionDiagnosticsDataType");
+    const sessionDiagnosticsDataType = session.addressSpace.findDataType("SessionDiagnosticsDataType");
 
-    var sessionDiagnosticsObjectType = session.addressSpace.findObjectType("SessionDiagnosticsObjectType");
-    var sessionDiagnosticsVariableType = session.addressSpace.findVariableType("SessionDiagnosticsVariableType");
+    const sessionDiagnosticsObjectType = session.addressSpace.findObjectType("SessionDiagnosticsObjectType");
+    const sessionDiagnosticsVariableType = session.addressSpace.findVariableType("SessionDiagnosticsVariableType");
 
-    var references = [];
+    const references = [];
     if (sessionDiagnosticsObjectType) {
         references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: sessionDiagnosticsObjectType});
     }
@@ -378,14 +378,14 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         session._sessionDiagnostics = session.sessionDiagnostics.$extensionObject;
         assert(session._sessionDiagnostics.session === session);
 
-        var sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
+        const sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
 
         // add sessionDiagnostics into sessionDiagnoticsArray
         eoan.addElement(session._sessionDiagnostics, sessionDiagnosticsArray);
 
     }
 
-    var subscriptionDiagnosticsArrayType = session.addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
+    const subscriptionDiagnosticsArrayType = session.addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
     assert(subscriptionDiagnosticsArrayType.nodeId.toString() === "ns=0;i=2171");
 
     session.subscriptionDiagnosticsArray=
@@ -402,7 +402,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
 ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
 
-    var session = this;
+    const session = this;
 
     // todo : dump session statistics in a file or somewhere for deeper diagnostic analysis on closed session
 
@@ -411,7 +411,7 @@ ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
     }
     if (session.sessionDiagnostics) {
 
-        var sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
+        const sessionDiagnosticsArray = session.getSessionDiagnosticsArray();
         eoan.removeElement(sessionDiagnosticsArray, session.sessionDiagnostics.$extensionObject);
 
         session.addressSpace.deleteNode(session.sessionDiagnostics);
@@ -429,14 +429,14 @@ ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
     }
 };
 
-var Subscription = require("./subscription").Subscription;
+const Subscription = require("./subscription").Subscription;
 
 
 
 
 ServerSession.prototype._getSubscriptionDiagnosticsArray = function () {
 
-    var session = this;
+    const session = this;
     if (!session.addressSpace) {
         if (doDebug) {
             console.warn("ServerSession#_getSubscriptionDiagnosticsArray : no addressSpace");
@@ -444,7 +444,7 @@ ServerSession.prototype._getSubscriptionDiagnosticsArray = function () {
         return null; // no addressSpace
     }
 
-    var subscriptionDiagnosticsArray = session.subscriptionDiagnosticsArray;
+    const subscriptionDiagnosticsArray = session.subscriptionDiagnosticsArray;
     if (!subscriptionDiagnosticsArray) {
         return null; // no subscriptionDiagnosticsArray
     }
@@ -453,11 +453,11 @@ ServerSession.prototype._getSubscriptionDiagnosticsArray = function () {
 };
 
 ServerSession.prototype._exposeSubscriptionDiagnostics = function (subscription) {
-    var session = this;
+    const session = this;
     debugLog("ServerSession#_exposeSubscriptionDiagnostics");
     assert(subscription.$session === session);
-    var subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
-    var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+    const subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
+    const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics.$subscription == subscription);
 
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
@@ -472,9 +472,9 @@ function compareSessionId(sessionDiagnostics1, sessionDiagnostics2) {
 
 ServerSession.prototype._unexposeSubscriptionDiagnostics = function (subscription) {
 
-    var session = this;
-    var subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
-    var subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+    const session = this;
+    const subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
+    const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
         //xx console.log("GGGGGGGGGGGGGGGG => ServerSession **Unexposing** subscription diagnostics =>",subscription.id,"on session", session.nodeId.toString());
@@ -485,7 +485,7 @@ ServerSession.prototype._unexposeSubscriptionDiagnostics = function (subscriptio
 
 
 ServerSession.prototype.assignSubscription = function (subscription) {
-    var session = this;
+    const session = this;
     assert(!subscription.$session);
     assert(session.nodeId instanceof NodeId);
 
@@ -515,8 +515,8 @@ ServerSession.prototype.assignSubscription = function (subscription) {
 
 };
 ServerSession.prototype.createSubscription = function(parameters) {
-    var session = this;
-    var subscription = session.parent._createSubscriptionOnSession(session,parameters);
+    const session = this;
+    const subscription = session.parent._createSubscriptionOnSession(session,parameters);
     session.assignSubscription(subscription);
     assert(subscription.$session === session);
     assert(subscription._sessionId instanceof NodeId);
@@ -531,7 +531,7 @@ ServerSession.prototype.createSubscription = function(parameters) {
  * @type {Number}
  */
 ServerSession.prototype.__defineGetter__("currentSubscriptionCount", function () {
-    var self = this;
+    const self = this;
     return self.publishEngine ? self.publishEngine.subscriptionCount : 0;
 });
 
@@ -550,12 +550,12 @@ ServerSession.prototype.__defineGetter__("cumulatedSubscriptionCount", function 
  * @type {Number}
  */
 ServerSession.prototype.__defineGetter__("currentMonitoredItemCount", function () {
-    var self = this;
+    const self = this;
     return self.publishEngine ? self.publishEngine.currentMonitoredItemCount : 0;
 });
 
 
-var SubscriptionState = require("./subscription").SubscriptionState;
+const SubscriptionState = require("./subscription").SubscriptionState;
 /**
  * retrieve an existing subscription by subscriptionId
  * @method getSubscription
@@ -563,7 +563,7 @@ var SubscriptionState = require("./subscription").SubscriptionState;
  * @return {Subscription}
  */
 ServerSession.prototype.getSubscription = function (subscriptionId) {
-    var subscription = this.publishEngine.getSubscriptionById(subscriptionId);
+    const subscription = this.publishEngine.getSubscriptionById(subscriptionId);
     if (subscription && subscription.state === SubscriptionState.CLOSED) {
         // subscription is CLOSED but has not been notified yet
         // it should be considered as excluded
@@ -580,8 +580,8 @@ ServerSession.prototype.getSubscription = function (subscriptionId) {
  */
 ServerSession.prototype.deleteSubscription = function (subscriptionId) {
 
-    var session = this;
-    var subscription = session.getSubscription(subscriptionId);
+    const session = this;
+    const subscription = session.getSubscription(subscriptionId);
     if (!subscription) {
         return StatusCodes.BadSubscriptionIdInvalid;
     }
@@ -591,7 +591,7 @@ ServerSession.prototype.deleteSubscription = function (subscriptionId) {
 
     if (session.currentSubscriptionCount === 0) {
 
-        var local_publishEngine = session.publishEngine;
+        const local_publishEngine = session.publishEngine;
         local_publishEngine.cancelPendingPublishRequest();
     }
     return StatusCodes.Good;
@@ -599,10 +599,10 @@ ServerSession.prototype.deleteSubscription = function (subscriptionId) {
 
 ServerSession.prototype._deleteSubscriptions = function () {
 
-    var session = this;
+    const session = this;
     assert(session.publishEngine);
 
-    var subscriptions = session.publishEngine.subscriptions;
+    const subscriptions = session.publishEngine.subscriptions;
 
     subscriptions.forEach(function (subscription) {
         session.deleteSubscription(subscription.id);
@@ -629,7 +629,7 @@ ServerSession.prototype._deleteSubscriptions = function () {
 ServerSession.prototype.close = function (deleteSubscriptions, reason) {
 
     //xx console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxx => ServerSession.close() ");
-    var session = this;
+    const session = this;
 
     if (session.publishEngine) {
         session.publishEngine.onSessionClose();
@@ -688,7 +688,7 @@ ServerSession.prototype.close = function (deleteSubscriptions, reason) {
  * @private
  */
 ServerSession.prototype.watchdogReset = function () {
-    var self = this;
+    const self = this;
     // the server session has expired and must be removed from the server
     self.emit("timeout");
 };
@@ -698,28 +698,28 @@ const registeredNodeNameSpace = 9999  ;
 ServerSession.prototype.registerNode = function(nodeId) {
 
     assert(nodeId instanceof NodeId);
-    var session = this;
+    const session = this;
 
     if (nodeId.namespace === 0 && nodeId.identifierType.value === NodeIdType.NUMERIC.value) {
         return nodeId;
     }
 
-    var key = nodeId.toString();
+    const key = nodeId.toString();
 
-    var registeredNode = session._registeredNodes[key];
+    const registeredNode = session._registeredNodes[key];
     if (registeredNode) {
         // already registered
         return registeredNode;
     }
 
-    var node = session.addressSpace.findNode(nodeId);
+    const node = session.addressSpace.findNode(nodeId);
     if (!node) {
         return nodeId;
     }
 
     session._registeredNodesCounter +=1;
 
-    var aliasNodeId = makeNodeId(session._registeredNodesCounter,registeredNodeNameSpace);
+    const aliasNodeId = makeNodeId(session._registeredNodesCounter,registeredNodeNameSpace);
     session._registeredNodes[key] = aliasNodeId;
     session._registeredNodesInv[aliasNodeId.toString()] = node;
     return aliasNodeId;
@@ -731,10 +731,10 @@ ServerSession.prototype.unRegisterNode = function(aliasNodeId) {
     if (aliasNodeId.namespace !== registeredNodeNameSpace) {
         return aliasNodeId; // not a registered Node
     }
-    var session = this;
+    const session = this;
 
 
-    var node = session._registeredNodesInv[aliasNodeId.toString()];
+    const node = session._registeredNodesInv[aliasNodeId.toString()];
     if (!node) {
         return ;
     }
@@ -745,11 +745,11 @@ ServerSession.prototype.unRegisterNode = function(aliasNodeId) {
 
 ServerSession.prototype.resolveRegisteredNode = function(aliasNodeId) {
 
-    var session = this;
+    const session = this;
     if (aliasNodeId.namespace !== registeredNodeNameSpace) {
         return aliasNodeId; // not a registered Node
     }
-    var node = session._registeredNodesInv[aliasNodeId.toString()];
+    const node = session._registeredNodesInv[aliasNodeId.toString()];
     if (!node) {
         return aliasNodeId;
     }
@@ -760,7 +760,7 @@ ServerSession.prototype.resolveRegisteredNode = function(aliasNodeId) {
  * true if the underlying channel has been closed or aborted...
  */
 ServerSession.prototype.__defineGetter__("aborted", function () {
-    var session = this;
+    const session = this;
     if (!session.channel) {
         return true;
     }
@@ -769,7 +769,7 @@ ServerSession.prototype.__defineGetter__("aborted", function () {
 
 function on_channel_abort()
 {
-    var session = this;
+    const session = this;
     debugLog("ON CHANNEL ABORT ON  SESSION!!!");
     /**
      * @event channel_aborted
@@ -778,11 +778,11 @@ function on_channel_abort()
 }
 
 ServerSession.prototype._attach_channel = function(channel) {
-    var session = this;
+    const session = this;
     assert(session.nonce && session.nonce instanceof Buffer);
     session.channel = channel;
     session.secureChannelId = channel.secureChannelId;
-    var key = session.authenticationToken.toString("hex");
+    const key = session.authenticationToken.toString("hex");
     assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
     channel.sessionTokens[key] = session;
 
@@ -794,12 +794,12 @@ ServerSession.prototype._attach_channel = function(channel) {
 
 ServerSession.prototype._detach_channel = function() {
 
-    var session = this;
-    var channel = session.channel;
+    const session = this;
+    const channel = session.channel;
     assert(channel,"expecting a valid channel");
     assert(session.nonce && session.nonce instanceof Buffer);
     assert(session.authenticationToken);
-    var key = session.authenticationToken.toString("hex");
+    const key = session.authenticationToken.toString("hex");
     assert(channel.sessionTokens.hasOwnProperty(key));
     assert(session.channel);
     assert(_.isFunction(session.channel_abort_event_handler));

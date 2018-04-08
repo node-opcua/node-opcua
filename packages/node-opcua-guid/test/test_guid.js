@@ -1,7 +1,7 @@
 
-var should = require("should");
-var isValidGuid = require("..").isValidGuid;
-var emptyGuid = require("..").emptyGuid;
+const should = require("should");
+const isValidGuid = require("..").isValidGuid;
+const emptyGuid = require("..").emptyGuid;
 
 describe("GUID", function () {
 

@@ -3,9 +3,9 @@
  * @module opcua.transport
  */
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert");
 
 function HalfComChannel() {
     this._has_ended = false;
@@ -18,12 +18,12 @@ HalfComChannel.prototype.write = function (data) {
         data = new Buffer(data);
     }
     assert(data instanceof  Buffer, "HalfComChannel.write expecting a buffer");
-    var self = this;
-    var copy = Buffer.concat([data]);
+    const self = this;
+    const copy = Buffer.concat([data]);
     self.emit("send_data", copy);
 };
 HalfComChannel.prototype.end = function () {
-    var self = this;
+    const self = this;
     if (!self._has_ended) {
         assert(!self._has_ended, "half communication channel has already ended !");
         self._has_ended = true;
@@ -40,7 +40,7 @@ HalfComChannel.prototype.setTimeout = function(){
 
 function DirectTransport(done) {
 
-    var self = this;
+    const self = this;
 
     self.client = new HalfComChannel();
     self.server = new HalfComChannel();
@@ -67,7 +67,7 @@ function DirectTransport(done) {
     });
 
     self.server.on("data",function server_socket_received_data_from_client_socket(data){
-        var func = self.popResponse();
+        const func = self.popResponse();
         if (func) {
             func(self.server,data);
         }
@@ -85,7 +85,7 @@ util.inherits(DirectTransport, EventEmitter);
 
 
 DirectTransport.prototype.shutdown = function (done) {
-    var self = this;
+    const self = this;
     self.client.end();
     self.server.end();
     if (done) {
@@ -94,16 +94,16 @@ DirectTransport.prototype.shutdown = function (done) {
 };
 
 DirectTransport.prototype.popResponse = function() {
-    var self = this;
+    const self = this;
     if (!self._responses ) {
         return null;
     }
-    var func = self._responses.shift();
+    const func = self._responses.shift();
     return func;
 };
 
 DirectTransport.prototype.pushResponse = function(func) {
-    var self = this;
+    const self = this;
     self._responses = self._responses || [];
     self._responses.push(func);
 };
@@ -111,12 +111,12 @@ DirectTransport.prototype.pushResponse = function(func) {
 
 exports.DirectTransport = DirectTransport;
 
-var net = require("net");
+const net = require("net");
 
 function FakeServer(done) {
-    var self = this;
+    const self = this;
 
-    var port = 5678;
+    const port = 5678;
     self.port = port;
 
     self.url = "opc.tcp://localhost:" + port;
@@ -137,7 +137,7 @@ function FakeServer(done) {
         self.__server_socket = socket;
 
         self.__server_socket.on("data",function(data) {
-            var func = self.popResponse();
+            const func = self.popResponse();
             if(func) {
                 func(self.__server_socket,data);
             }
@@ -157,21 +157,21 @@ function FakeServer(done) {
 util.inherits(FakeServer, EventEmitter);
 
 FakeServer.prototype.shutdown = function(callback) {
-    var self = this;
+    const self = this;
         self.tcp_server.close(callback);
 };
 
 FakeServer.prototype.popResponse = function() {
-    var self = this;
+    const self = this;
     if (!self._responses) {
         return null;
     }
-    var func = self._responses.shift();
+    const func = self._responses.shift();
     return func;
 };
 
 FakeServer.prototype.pushResponse = function(func) {
-    var self = this;
+    const self = this;
     self._responses = self._responses || [];
     self._responses.push(func);
 };
@@ -183,7 +183,7 @@ exports.FakeServer = FakeServer;
 function SocketTransport(done) {
 
 
-    var self = this;
+    const self = this;
     FakeServer.call(this,function() {
 
         self.client = new net.Socket();
@@ -199,7 +199,7 @@ function SocketTransport(done) {
 util.inherits(SocketTransport, FakeServer);
 
 SocketTransport.prototype.shutdown = function (done) {
-    var self = this;
+    const self = this;
     self.client.end();
     //xxself.server.end();
     FakeServer.prototype.shutdown.call(self,function(err) {

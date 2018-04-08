@@ -1,5 +1,5 @@
-var opcua = require("..");
-var should = require("should");
+const opcua = require("..");
+const should = require("should");
 describe("OPCUA",function(){
 
     it("should not export null properties",function() {

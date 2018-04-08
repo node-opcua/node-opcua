@@ -1,23 +1,23 @@
 "use strict";
-var HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
-var packTcpMessage = require("../src/tools").packTcpMessage;
-var decodeMessage = require("../src/tools").decodeMessage;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
+const packTcpMessage = require("../src/tools").packTcpMessage;
+const decodeMessage = require("../src/tools").decodeMessage;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 describe("testing message encoding and decoding", function () {
 
     it("should encode and decode HelloMessage ", function () {
 
-        var helloMessage1 = new HelloMessage();
+        const helloMessage1 = new HelloMessage();
         //xx console.log(Object.getPrototypeOf(helloMessage1),opcua.HelloMessage);
 
 
-        var message = packTcpMessage("HEL", helloMessage1);
+        const message = packTcpMessage("HEL", helloMessage1);
 
 
-        var stream = new BinaryStream(message);
+        const stream = new BinaryStream(message);
 
-        var helloMessage2 = decodeMessage(stream, HelloMessage);
+        const helloMessage2 = decodeMessage(stream, HelloMessage);
         //xx console.log(helloMessage2);
 
         helloMessage1.should.eql(helloMessage2);

@@ -4,23 +4,23 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
+const assert = require("node-opcua-assert");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
 
-var DeviationAlarmHelper = {};
+const DeviationAlarmHelper = {};
 DeviationAlarmHelper.getSetpointNodeNode = function() {
 
     assert(this.setpointNode.readValue().value.dataType === DataType.NodeId);
-    var nodeId = this.setpointNode.readValue().value.value;
-    var node = this.addressSpace.findNode(nodeId);
+    const nodeId = this.setpointNode.readValue().value.value;
+    const node = this.addressSpace.findNode(nodeId);
     assert(node === this.setpointNodeNode);
     return this.setpointNodeNode;
 };
 DeviationAlarmHelper.getSetpointValue = function() {
     assert(this.hasOwnProperty("setpointNode"));
     assert(this.hasOwnProperty("setpointNodeNode"));
-    var setpointDataValue=this.setpointNodeNode.readValue();
+    const setpointDataValue=this.setpointNodeNode.readValue();
     if (setpointDataValue.statusCode !== StatusCodes.Good) {
         return null;
     }
@@ -35,8 +35,8 @@ DeviationAlarmHelper._install_setpoint = function(alarm,options) {
     // must provide a set point property
     assert(options.hasOwnProperty("setpointNode"),"must provide a setpointNode");
 
-    var addressSpace = alarm.addressSpace;
-    var setpointNodeNode = addressSpace._coerceNode(options.setpointNode);
+    const addressSpace = alarm.addressSpace;
+    const setpointNodeNode = addressSpace._coerceNode(options.setpointNode);
     assert(setpointNodeNode, "Expecting a valid setpoint node");
 
     assert(alarm.setpointNode.browseName.toString() === "SetpointNode");

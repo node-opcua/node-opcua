@@ -1,22 +1,22 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var SessionContext = require("../..").SessionContext;
-var context = SessionContext.defaultContext;
+const SessionContext = require("../..").SessionContext;
+const context = SessionContext.defaultContext;
 
-var AddressSpace = require("../../").AddressSpace;
+const AddressSpace = require("../../").AddressSpace;
 
 module.exports = function(maintest) {
 
     describe("MultiStateDiscreteType", function () {
 
-        var addressSpace;
+        let addressSpace;
         before(function() {
             addressSpace = maintest.addressSpace;
             should(addressSpace).be.instanceof(AddressSpace);
@@ -24,17 +24,17 @@ module.exports = function(maintest) {
 
         it("MultiStateDiscreteType should not be abstract",function() {
 
-            var multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
+            const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
             multiStateDiscreteType.isAbstract.should.eql(false);
 
         });
 
         it("should add a MultiStateDiscreteType variable",function() {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addMultiStateDiscrete({
+            const prop = addressSpace.addMultiStateDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateVariable",
                 enumStrings: [ "Red","Orange","Green"],
@@ -55,9 +55,9 @@ module.exports = function(maintest) {
 
         describe("edge case tests",function() {
 
-            var multiState;
+            let multiState;
             before(function() {
-                var objectsFolder = addressSpace.findNode("ObjectsFolder");
+                const objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");
                 multiState = addressSpace.addMultiStateDiscrete({
                     organizedBy: objectsFolder,
@@ -72,7 +72,7 @@ module.exports = function(maintest) {
             });
             it("writing a value exceeding EnumString length shall return BadOutOfRange",function(done) {
 
-                var dataValue = new DataValue({
+                const dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 100})// out of range
                 });
                 multiState.writeValue(context, dataValue, null, function (err, statusCode) {
@@ -83,7 +83,7 @@ module.exports = function(maintest) {
             });
             it("writing a value within EnumString length shall return Good",function(done) {
 
-                var dataValue = new DataValue({
+                const dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 2})// OK
                 });
                 multiState.writeValue(context, dataValue, null, function (err, statusCode) {

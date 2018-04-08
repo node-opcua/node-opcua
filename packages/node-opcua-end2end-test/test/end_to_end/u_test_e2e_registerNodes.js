@@ -1,23 +1,23 @@
 "use strict";
 /* global require,describe,it,beforeEach,afterEach*/
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var opcua = require("node-opcua");
-var StatusCodes = opcua.StatusCodes;
-var OPCUAClient = opcua.OPCUAClient;
-var UnregisterNodesRequest = opcua.register_node_service.UnregisterNodesRequest;
-var RegisterNodesRequest = opcua.register_node_service.RegisterNodesRequest;
-var AttributeIds = opcua.AttributeIds;
-var DataType = opcua.DataType;
+const opcua = require("node-opcua");
+const StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const UnregisterNodesRequest = opcua.register_node_service.UnregisterNodesRequest;
+const RegisterNodesRequest = opcua.register_node_service.RegisterNodesRequest;
+const AttributeIds = opcua.AttributeIds;
+const DataType = opcua.DataType;
 
 module.exports = function (test) {
 
     describe("end-to-end testing registerNodes", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient({});
@@ -34,7 +34,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var request = new RegisterNodesRequest({
+                const request = new RegisterNodesRequest({
                     nodesToRegister: []
                 });
                 session.performMessageTransaction(request, function (err/*, response*/) {
@@ -49,7 +49,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var request = new RegisterNodesRequest({
+                const request = new RegisterNodesRequest({
                     nodesToRegister: [
                         "ns=0;i=1"
                     ]
@@ -66,7 +66,7 @@ module.exports = function (test) {
         it("should unregister nodes - BadNothingToDo", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var request = new UnregisterNodesRequest({
+                const request = new UnregisterNodesRequest({
                     nodesToUnregister: []
                 });
                 session.performMessageTransaction(request, function (err, response) {
@@ -81,7 +81,7 @@ module.exports = function (test) {
         it("should unregister nodes - Good", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var request = new UnregisterNodesRequest({
+                const request = new UnregisterNodesRequest({
                     nodesToUnregister: [
                         "ns=0;i=1"
                     ]
@@ -99,9 +99,9 @@ module.exports = function (test) {
         it("should register nodes and provide a alias that can be used on all operations", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var nodesToRegister = ["ns=411;s=Scalar_Static_Double"];
-                var registeredNodeIds = [];
-                var dataValue1, dataValue2;
+                const nodesToRegister = ["ns=411;s=Scalar_Static_Double"];
+                let registeredNodeIds = [];
+                let dataValue1, dataValue2;
                 async.series([
                     function register_some_node(callback) {
 
@@ -115,7 +115,7 @@ module.exports = function (test) {
                     },
                     function (callback) {
 
-                        var nodeToWrite = {
+                        const nodeToWrite = {
                             nodeId: registeredNodeIds[0],
                             attributeId: AttributeIds.Value,
                             value: {value: {dataType: DataType.Double, value: 1000}}
@@ -126,7 +126,7 @@ module.exports = function (test) {
                         });
                     },
                     function (callback) {
-                        var nodeToRead = {nodeId: nodesToRegister[0], attributeId: 13};
+                        const nodeToRead = {nodeId: nodesToRegister[0], attributeId: 13};
                         session.read(nodeToRead, function (err, dataValue) {
                             if (err) {
                                 return callback(err);
@@ -137,7 +137,7 @@ module.exports = function (test) {
                         });
                     },
                     function (callback) {
-                        var nodeToRead = {nodeId: registeredNodeIds[0], attributeId: 13};
+                        const nodeToRead = {nodeId: registeredNodeIds[0], attributeId: 13};
                         session.read(nodeToRead, function (err, dataValue) {
                             if (err) {
                                 return callback(err);

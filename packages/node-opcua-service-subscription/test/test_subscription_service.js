@@ -1,27 +1,27 @@
 "use strict";
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var read_service = require("node-opcua-service-read");
+const read_service = require("node-opcua-service-read");
 
-var subscription_service = require("..");
+const subscription_service = require("..");
 
-var filter_service = require("node-opcua-service-filter");
+const filter_service = require("node-opcua-service-filter");
 
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
 
-var verify_multi_chunk_message = require("node-opcua-secure-channel/test_helpers/verify_message_chunk").verify_multi_chunk_message;
+const verify_multi_chunk_message = require("node-opcua-secure-channel/test_helpers/verify_message_chunk").verify_multi_chunk_message;
 
-var makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
 describe("testing subscription objects", function () {
-    var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+    const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
     it("should encode and decode a CreateSubscriptionRequest", function (done) {
-        var request = new subscription_service.CreateSubscriptionRequest({
+        const request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 1000,
             requestedLifetimeCount: 1000 * 60 * 10,// 10 minutes
             requestedMaxKeepAliveCount: 10,
@@ -34,13 +34,13 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a CreateSubscriptionResponse", function (done) {
-        var response = new subscription_service.CreateSubscriptionResponse({});
+        const response = new subscription_service.CreateSubscriptionResponse({});
         encode_decode_round_trip_test(response);
         done();
     });
 
     it("should encode and decode a CreateMonitoredItemsRequest", function (done) {
-        var request = new subscription_service.CreateMonitoredItemsRequest({
+        const request = new subscription_service.CreateMonitoredItemsRequest({
             subscriptionId: 1,
             timestampsToReturn: read_service.TimestampsToReturn.Both,
             itemsToCreate: [
@@ -69,7 +69,7 @@ describe("testing subscription objects", function () {
         it("should decode a real CreateMonitoredItemsRequest ", function (done) {
 
             // a real OpenSecureChannelRequest message chunk
-            var ws_CreateMonitoredItemsRequest = makeBuffer(
+            const ws_CreateMonitoredItemsRequest = makeBuffer(
                 "4d 53 47 46 84 00 00 00 01 00 00 00 01 00 00 00 5f 00 00 00 2d 00 00 00 01 00 ef 02 05 00 00 10 " +
                 "00 00 00 ce 74 00 ff 1f 61 a5 2f a9 ac b1 52 43 30 d4 c1 9b 0f cd 7b 09 4a cf 01 02 05 00 00 00 " +
                 "00 00 00 ff ff ff ff 10 27 00 00 00 00 00 03 00 00 00 02 00 00 00 01 00 00 00 01 00 d5 08 0d 00 " +
@@ -83,7 +83,7 @@ describe("testing subscription objects", function () {
 
         });
         it("should decode a real CreateMonitoredItemResponse", function (done) {
-            var ws_CreateMonitoredItemsResponse = makeBuffer(
+            const ws_CreateMonitoredItemsResponse = makeBuffer(
                 "4d 53 47 46 53 00 00 00 fb 58 70 00 01 00 00 00 3a 00 00 00 08 00 00 00 01 00 f2 02 d0 21 53 68 " + //   MSGFS...{Xp.....:.........r.P!Sh
                 "17 51 cf 01 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 39 80 00 00 00 00 " + //     .QO.......................9.....
                 "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
@@ -99,22 +99,22 @@ describe("testing subscription objects", function () {
 
 
     it("should encode and decode a CreateMonitoredItemsResponse", function (done) {
-        var response = new subscription_service.CreateMonitoredItemsResponse({});
+        const response = new subscription_service.CreateMonitoredItemsResponse({});
         encode_decode_round_trip_test(response);
         done();
     });
 
     it("should encode and decode a MonitoringParameters", function (done) {
-        var obj = new subscription_service.MonitoringParameters({});
+        const obj = new subscription_service.MonitoringParameters({});
         encode_decode_round_trip_test(obj);
         done();
     });
 
     it("should encode and decode a MonitoringParameters with EventFilter filter", function (done) {
 
-        var AttributeIds = require("node-opcua-data-model").AttributeIds;
-        var NumericRange = require("node-opcua-numeric-range").NumericRange;
-        var obj = new subscription_service.MonitoringParameters({
+        const AttributeIds = require("node-opcua-data-model").AttributeIds;
+        const NumericRange = require("node-opcua-numeric-range").NumericRange;
+        const obj = new subscription_service.MonitoringParameters({
             samplingInterval: 10,
             discardOldest: true,
             queueSize: 10,
@@ -161,7 +161,7 @@ describe("testing subscription objects", function () {
                 }
             })
         });
-        var obj_reloaded = encode_decode_round_trip_test(obj);
+        const obj_reloaded = encode_decode_round_trip_test(obj);
 
         obj_reloaded.filter.selectClauses.length.should.eql(3);
         obj_reloaded.filter.whereClause.elements.length.should.eql(1);
@@ -172,7 +172,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a DeleteMonitoredItemsRequest", function (done) {
-        var obj = new subscription_service.DeleteMonitoredItemsRequest({
+        const obj = new subscription_service.DeleteMonitoredItemsRequest({
             subscriptionId: 100,
             monitoredItemIds: [1, 2, 3, 4]
         });
@@ -181,7 +181,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a DeleteMonitoredItemsResponse", function (done) {
-        var obj = new subscription_service.DeleteMonitoredItemsResponse({
+        const obj = new subscription_service.DeleteMonitoredItemsResponse({
             responseHeader: {serviceResult: StatusCodes.Good},
             results: [
                 StatusCodes.BadApplicationSignatureInvalid,
@@ -193,7 +193,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a SetPublishingModeRequest", function (done) {
-        var obj = new subscription_service.SetPublishingModeRequest({
+        const obj = new subscription_service.SetPublishingModeRequest({
             publishingEnabled: true,
             subscriptionIds: [1, 2, 3, 4]
         });
@@ -202,7 +202,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a SetPublishingModeResponse", function (done) {
-        var obj = new subscription_service.SetPublishingModeResponse({
+        const obj = new subscription_service.SetPublishingModeResponse({
             results: [
                 StatusCodes.BadApplicationSignatureInvalid,
                 StatusCodes.Good
@@ -214,7 +214,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a PublishRequest", function (done) {
-        var obj = new subscription_service.PublishRequest({
+        const obj = new subscription_service.PublishRequest({
             subscriptionAcknowledgements: [
                 {
                     subscriptionId: 1,
@@ -231,7 +231,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a PublishResponse", function (done) {
-        var obj = new subscription_service.PublishResponse({
+        const obj = new subscription_service.PublishResponse({
             subscriptionId: 1,
             availableSequenceNumbers: [1, 2, 3],
             moreNotifications: true,
@@ -250,7 +250,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a RepublishRequest", function (done) {
-        var obj = new subscription_service.RepublishRequest({
+        const obj = new subscription_service.RepublishRequest({
             subscriptionId: 1,
             retransmitSequenceNumber: 20
         });
@@ -259,7 +259,7 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a RepublishResponse", function (done) {
-        var obj = new subscription_service.RepublishResponse({
+        const obj = new subscription_service.RepublishResponse({
             notificationMessage: {
                 sequenceNumber: 1,
                 publishTime: new Date(),
@@ -271,25 +271,25 @@ describe("testing subscription objects", function () {
     });
 
     it("should encode and decode a DeleteSubscriptionsRequest", function (done) {
-        var obj = new subscription_service.DeleteSubscriptionsRequest({});
+        const obj = new subscription_service.DeleteSubscriptionsRequest({});
         encode_decode_round_trip_test(obj);
         done();
     });
 
     it("should encode and decode a DeleteSubscriptionsResponse", function (done) {
-        var obj = new subscription_service.DeleteSubscriptionsResponse({});
+        const obj = new subscription_service.DeleteSubscriptionsResponse({});
         encode_decode_round_trip_test(obj);
         done();
     });
 
     it("should encode and decode a ModifyMonitoredItemsRequest", function (done) {
-        var obj = new subscription_service.ModifyMonitoredItemsRequest({});
+        const obj = new subscription_service.ModifyMonitoredItemsRequest({});
         encode_decode_round_trip_test(obj);
         done();
     });
 
     it("should encode and decode a ModifyMonitoredItemsResponse", function (done) {
-        var obj = new subscription_service.ModifyMonitoredItemsResponse({});
+        const obj = new subscription_service.ModifyMonitoredItemsResponse({});
         encode_decode_round_trip_test(obj);
         done();
     });
@@ -301,7 +301,7 @@ describe("CreateMonitoredItemsRequest with EventFilter parameters", function () 
 
     it("should decode this packet from PROSYS ANDROID app", function (done) {
 
-        var ws_CreateMonitoredItemsRequest = makebuffer_from_trace(function () {
+        const ws_CreateMonitoredItemsRequest = makebuffer_from_trace(function () {
             /*
              00000000: 4d 53 47 46 97 01 00 00 09 00 00 00 01 00 00 00 04 00 00 00 04 00 00 00 01 00 ef 02 05 00 00 10    MSGF......................o.....
              00000020: 00 00 00 0a 97 3a d3 aa ac 03 3c ef 5c dc 98 46 af 26 b3 f0 bf 9e 52 02 26 d0 01 94 00 00 00 00    .....:S*,.<o\\.F/&3p?.R.&P......

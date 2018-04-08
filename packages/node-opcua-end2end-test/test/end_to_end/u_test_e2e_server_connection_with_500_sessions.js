@@ -1,33 +1,33 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var doDebug = false;
+const doDebug = false;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 module.exports = function (test) {
 
 
-    var MAXSESSIONS = 50;
+    const MAXSESSIONS = 50;
 
     function getTick() {
         return Date.now()/1000.0;
     }
 
-    var connectivity_strategy = {
+    const connectivity_strategy = {
         maxRetry: 100,
         initialDelay: 100,
         maxDelay: 200,
         randomisationFactor: 0.5
     };
 
-    var client = null;
+    let client = null;
 
     function client_session(data,done) {
 
@@ -41,7 +41,7 @@ module.exports = function (test) {
         function perform(msg,func,callback) {
             setTimeout(function() {
                 if (doDebug) { console.log(msg); }
-                var t = getTick();
+                const t = getTick();
                 func(function(err) {
                     if (doDebug) {
                         if (err) {
@@ -59,7 +59,7 @@ module.exports = function (test) {
             setTimeout(callback,Math.ceil(Math.random()*10+10));
         }
 
-        var the_session;
+        let the_session;
 
 
         async.series([
@@ -93,12 +93,12 @@ module.exports = function (test) {
     describe("AAAY Testing " + MAXSESSIONS + " sessions on the same  connection ", function () {
 
         before(function(done){
-            var options = {
+            const options = {
                 connectionStrategy: connectivity_strategy,
                 requestedSessionTimeout: 100000
             };
             client = new opcua.OPCUAClient(options);
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
             client.on("send_request",function(req) {
                 if(doDebug) { console.log(req.constructor.name); }
             });
@@ -134,10 +134,10 @@ module.exports = function (test) {
                 test.server.maxAllowedSessionNumber = MAXSESSIONS;
             }
 
-            var nb = MAXSESSIONS + 10;
-            var q = async.queue(client_session, nb);
+            const nb = MAXSESSIONS + 10;
+            const q = async.queue(client_session, nb);
 
-            for (var i = 0; i < nb; i++) {
+            for (let i = 0; i < nb; i++) {
                 q.push({index: i});
             }
             q.drain = function () {

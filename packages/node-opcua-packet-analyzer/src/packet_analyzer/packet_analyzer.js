@@ -2,32 +2,32 @@
 /**
  * @module opcua.miscellaneous
  */
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
 
-var colors = require("colors");
+const colors = require("colors");
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var Enum = require("node-opcua-enum");
-var hexDump = require("node-opcua-debug").hexDump;
-var buffer_ellipsis = require("node-opcua-utils").buffer_ellipsis;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const Enum = require("node-opcua-enum");
+const hexDump = require("node-opcua-debug").hexDump;
+const buffer_ellipsis = require("node-opcua-utils").buffer_ellipsis;
 
-var ec = require("node-opcua-basic-types");
+const ec = require("node-opcua-basic-types");
 
 
-var spaces = "                                                                                                                                                                             ";
+const spaces = "                                                                                                                                                                             ";
 function f(n, width) {
-    var s = n.toString();
+    const s = n.toString();
     return (s + "      ").substr(0, Math.max(s.length, width));
 }
 
 function display_encoding_mask(padding, encoding_mask, encoding_info) {
     assert(encoding_info instanceof Enum);
-    var bits = [];
+    let bits = [];
     encoding_info.enums.forEach(function (enumValue) {
-        var mask = enumValue.value;
-        var bit = Math.log(mask) / Math.log(2);
+        const mask = enumValue.value;
+        const bit = Math.log(mask) / Math.log(2);
         bits = [".", ".", ".", ".", ".", ".", ".", ".", "."];
         bits[bit] = ((encoding_mask & mask) === mask) ? "Y" : "n";
 
@@ -37,8 +37,8 @@ function display_encoding_mask(padding, encoding_mask, encoding_info) {
 }
 
 function hex_block(start, end, buffer) {
-    var n = end - start;
-    var strBuf = buffer_ellipsis(buffer);
+    const n = end - start;
+    const strBuf = buffer_ellipsis(buffer);
     return "s:".cyan + f(start, 4) + " e:".cyan + f(end, 4) + " n:".cyan + f(n, 4) + " " + strBuf.yellow;
 }
 
@@ -48,7 +48,7 @@ function make_tracer(buffer, padding, offset) {
     padding = padding || 0;
     offset = offset || 0;
 
-    var pad = function () {
+    const pad = function () {
         return "                                                       ".substr(0, padding);
     };
 
@@ -56,19 +56,19 @@ function make_tracer(buffer, padding, offset) {
         hex_info = hex_info || "";
 
         // account for ESC codes for colors
-        var nbColorAttributes = _.filter(str, function (c) {
+        const nbColorAttributes = _.filter(str, function (c) {
             return c === "\u001b";
         }).length;
-        var extra = nbColorAttributes * 5;
+        const extra = nbColorAttributes * 5;
         console.log((pad() + str + spaces).substr(0, 132 + extra) + "|" + hex_info);
     }
 
     function display_encodeable(value, buffer, start, end) {
-        var ext_buf = buffer.slice(start, end);
-        var stream = new BinaryStream(ext_buf);
-        var nodeId = ec.decodeNodeId(stream);
-        var encodingMask = ec.decodeByte(stream); // 1 bin 2: xml
-        var length = ec.decodeUInt32(stream);
+        const ext_buf = buffer.slice(start, end);
+        const stream = new BinaryStream(ext_buf);
+        const nodeId = ec.decodeNodeId(stream);
+        const encodingMask = ec.decodeByte(stream); // 1 bin 2: xml
+        const length = ec.decodeUInt32(stream);
 
         display("     ExpandedNodId =".green + " " + nodeId);
         display("     encoding mask =".green + " " + encodingMask);
@@ -77,7 +77,7 @@ function make_tracer(buffer, padding, offset) {
 
     }
 
-    var options = {
+    const options = {
 
         tracer: {
 
@@ -86,14 +86,14 @@ function make_tracer(buffer, padding, offset) {
             },
 
             encoding_byte: function (encoding_mask, valueEnum, start, end) {
-                var b = buffer.slice(start, end);
+                const b = buffer.slice(start, end);
                 display("  012345678", hex_block(start, end, b));
                 display_encoding_mask(pad(), encoding_mask, valueEnum);
             },
 
             trace: function (operation, name, value, start, end, fieldType) {
 
-                var b = buffer.slice(start, end);
+                const b = buffer.slice(start, end);
                 var str = "";
 
                 switch (operation) {
@@ -131,7 +131,7 @@ function make_tracer(buffer, padding, offset) {
                     case "member":
                         display("." + name + " : " + fieldType);
 
-                        var _hexDump = "";
+                        let _hexDump = "";
                         if (value instanceof Buffer) {
                             _hexDump = hexDump(value);
                             console.log(_hexDump);
@@ -156,7 +156,7 @@ function make_tracer(buffer, padding, offset) {
     return options;
 }
 
-var factories =require("node-opcua-factory");
+const factories =require("node-opcua-factory");
 /**
  * @method packet_analyzer
  * @param {Buffer} buffer
@@ -171,9 +171,9 @@ function packet_analyzer(buffer, id, padding, offset, custom_options) {
 
    //xx var factories = custom_options.factory;
 
-    var stream = new BinaryStream(buffer);
+    const stream = new BinaryStream(buffer);
 
-    var objMessage;
+    let objMessage;
     if (!id) {
 
         id = ec.decodeExpandedNodeId(stream);
@@ -191,7 +191,7 @@ function packet_analyzer(buffer, id, padding, offset, custom_options) {
         console.log("Cannot read decodeExpandedNodeId  on stream " + stream._buffer.toString("hex"));
     }
 
-    var options = make_tracer(buffer, padding, offset);
+    let options = make_tracer(buffer, padding, offset);
     options.name = "message";
 
     options = _.extend(options, custom_options);
@@ -210,10 +210,10 @@ function analyze_object_binary_encoding(obj,options) {
 
     assert(obj);
 
-    var size = obj.binaryStoreSize();
+    const size = obj.binaryStoreSize();
     console.log("-------------------------------------------------");
     console.log(" size = ", size);
-    var stream = new BinaryStream(size);
+    const stream = new BinaryStream(size);
     obj.encode(stream);
     stream.rewind();
     console.log("-------------------------------------------------");

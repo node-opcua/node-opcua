@@ -1,7 +1,7 @@
-var OPCUAClient = require("./opcua_client").OPCUAClient;
-var ClientSubscription = require("./client_subscription").ClientSubscription;
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const OPCUAClient = require("./opcua_client").OPCUAClient;
+const ClientSubscription = require("./client_subscription").ClientSubscription;
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 /**
  * @method withSessionAsync

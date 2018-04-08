@@ -1,9 +1,9 @@
 "use strict";
-var _ = require("underscore");
-var should = require("should");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
 
-var Range = require("..").Range;
+const Range = require("..").Range;
 // DeadbandType = PercentDeadband
 // For this type of deadband the  deadbandValue  is defined  as the percentage of the  EURange.   That is,
 // it applies only to  AnalogItems   with  an  EURange  Property  that define s  the   typical value   range for
@@ -33,20 +33,20 @@ function check_change_deadband(euRange, deadBandValue, delta) {
 describe("PercentDeadband with EURange", function () {
 
     it("detect a change when range is [0,100], deadband 10% ", function () {
-        var range = new Range({low: 0, high: 100});
+        const range = new Range({low: 0, high: 100});
         get_deadband_percent(range, 10).should.eql(10);
 
         check_change_deadband(range, 10 /*%*/, 5).should.eql(false);
         check_change_deadband(range, 10 /*%*/, 11).should.eql(true);
     });
     it("detect a change when range is [-100,100], deadband 10% ", function () {
-        var range = new Range({low: -100, high: 100});
+        const range = new Range({low: -100, high: 100});
         check_change_deadband(range, 10 /*%*/, 5).should.eql(false);
         check_change_deadband(range, 10 /*%*/, 11).should.eql(false);
         check_change_deadband(range, 10 /*%*/, 21).should.eql(true);
     });
     it("detect a change when range is [-100,100], deadband 50% ", function () {
-        var range = new Range({low: -100, high: 100});
+        const range = new Range({low: -100, high: 100});
         check_change_deadband(range, 50 /*%*/, 5).should.eql(false);
         check_change_deadband(range, 50 /*%*/, 11).should.eql(false);
         check_change_deadband(range, 50 /*%*/, 51).should.eql(false);

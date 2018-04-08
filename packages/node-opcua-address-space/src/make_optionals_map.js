@@ -1,4 +1,4 @@
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
 
 /**
@@ -10,14 +10,14 @@ var assert = require("node-opcua-assert");
 function makeOptionalsMap(optionals){
 
 
-    var map = {};
+    const map = {};
     if (!optionals) {
         return map;
     }
     assert(optionals instanceof Array);
 
     function insertInMap(map,s){
-        var key = s[0];
+        const key = s[0];
 
         if(!map[key]) {
             map[key] = {};
@@ -27,11 +27,11 @@ function makeOptionalsMap(optionals){
         }
 
     }
-    for(var i =0 ; i<  optionals.length; i++) {
+    for(let i =0 ; i<  optionals.length; i++) {
 
-        var opt = optionals[i];
+        const opt = optionals[i];
 
-        var s = opt.split(".");
+        const s = opt.split(".");
 
         insertInMap(map,s);
 

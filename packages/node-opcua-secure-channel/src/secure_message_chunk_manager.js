@@ -4,22 +4,22 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var EventEmitter = require("events").EventEmitter;
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const EventEmitter = require("events").EventEmitter;
 
-var ChunkManager = require("node-opcua-chunkmanager").ChunkManager;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const ChunkManager = require("node-opcua-chunkmanager").ChunkManager;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
-var SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
-var SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
+const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
+const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
+const SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
 
 
 function chooseSecurityHeader(msgType) {
 
-    var securityHeader = (msgType === "OPN") ?
+    const securityHeader = (msgType === "OPN") ?
         new AsymmetricAlgorithmSecurityHeader() :
         new SymmetricAlgorithmSecurityHeader();
     return securityHeader;
@@ -43,9 +43,9 @@ exports.chooseSecurityHeader = chooseSecurityHeader;
  * @param sequenceNumberGenerator
  * @constructor
  */
-var SecureMessageChunkManager = function (msgType, options, securityHeader, sequenceNumberGenerator) {
+const SecureMessageChunkManager = function (msgType, options, securityHeader, sequenceNumberGenerator) {
 
-    var self = this;
+    const self = this;
     self.aborted = false;
 
     msgType = msgType || "OPN";
@@ -63,7 +63,7 @@ var SecureMessageChunkManager = function (msgType, options, securityHeader, sequ
     assert(_.isFinite(options.secureChannelId));
     self.secureChannelId = options.secureChannelId;
 
-    var requestId = options.requestId;
+    const requestId = options.requestId;
 
     self.sequenceNumberGenerator = sequenceNumberGenerator;
 
@@ -73,19 +73,19 @@ var SecureMessageChunkManager = function (msgType, options, securityHeader, sequ
 
     self.sequenceHeader = new SequenceHeader({requestId: requestId, sequenceNumber: -1});
 
-    var securityHeaderSize = self.securityHeader.binaryStoreSize();
-    var sequenceHeaderSize = self.sequenceHeader.binaryStoreSize();
+    const securityHeaderSize = self.securityHeader.binaryStoreSize();
+    const sequenceHeaderSize = self.sequenceHeader.binaryStoreSize();
     assert(sequenceHeaderSize === 8);
 
     self.headerSize = 12 + securityHeaderSize;
 
-    var params = {
+    const params = {
         chunkSize: self.chunkSize,
 
         headerSize: self.headerSize,
         writeHeaderFunc: function (block, isLast, totalLength) {
 
-            var finalC = isLast ? "F" : "C";
+            let finalC = isLast ? "F" : "C";
             finalC = this.aborted ? "A" : finalC;
             self.write_header(finalC, block, totalLength);
         },
@@ -126,10 +126,10 @@ SecureMessageChunkManager.prototype.write_header = function (finalC, buf, length
     assert(finalC.length === 1);
     assert(buf instanceof Buffer);
 
-    var bs = new BinaryStream(buf);
+    const bs = new BinaryStream(buf);
 
     // message header --------------------------
-    var self = this;
+    const self = this;
     // ---------------------------------------------------------------
     // OPC UA Secure Conversation Message Header : Part 6 page 36
     // MessageType     Byte[3]
@@ -154,7 +154,7 @@ SecureMessageChunkManager.prototype.write_header = function (finalC, buf, length
 };
 
 SecureMessageChunkManager.prototype.writeSequenceHeader = function (block) {
-    var bs = new BinaryStream(block);
+    const bs = new BinaryStream(block);
     // write Sequence Header -----------------
     this.sequenceHeader.sequenceNumber = this.sequenceNumberGenerator.next();
     this.sequenceHeader.encode(bs);

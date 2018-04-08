@@ -1,24 +1,24 @@
 "use strict";
 /* global require, process, __filename, it, before, beforeEach, after, afterEach */
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
 
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var makeNodeId = opcua.makeNodeId;
-var ReferenceTypeIds = opcua.ReferenceTypeIds;
-var VariableIds = opcua.VariableIds;
-var VariantArrayType = opcua.VariantArrayType;
+const StatusCodes = opcua.StatusCodes;
+const Variant = opcua.Variant;
+const DataType = opcua.DataType;
+const DataValue = opcua.DataValue;
+const makeNodeId = opcua.makeNodeId;
+const ReferenceTypeIds = opcua.ReferenceTypeIds;
+const VariableIds = opcua.VariableIds;
+const VariantArrayType = opcua.VariantArrayType;
 
-var BrowseDirection = opcua.BrowseDirection;
+const BrowseDirection = opcua.BrowseDirection;
 
-var fail_fast_connectivity_strategy = {
+const fail_fast_connectivity_strategy = {
     maxRetry: 1,
     initialDelay: 10,
     maxDelay: 20,
@@ -30,14 +30,14 @@ module.exports = function (test) {
 
     describe("Browse-Read-Write Services", function () {
 
-        var g_session = null;
+        let g_session = null;
 
          // use fail fast connectionStrategy
-        var options = {connectionStrategy: fail_fast_connectivity_strategy};
+        const options = {connectionStrategy: fail_fast_connectivity_strategy};
 
-        var client;
-        var endpointUrl;
-        var temperatureVariableId;
+        let client;
+        let endpointUrl;
+        let temperatureVariableId;
         beforeEach(function (done) {
              endpointUrl = test.endpointUrl;
             temperatureVariableId = test.server.temperatureVariableId;
@@ -82,8 +82,8 @@ module.exports = function (test) {
 
         it("T8-2 - browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid", function (done) {
 
-            var bad_referenceid_node = "ns=3;i=3500";
-            var nodeToBrowse = {
+            const bad_referenceid_node = "ns=3;i=3500";
+            const nodeToBrowse = {
                 nodeId: "ObjectsFolder",
                 referenceTypeId: bad_referenceid_node,
                 browseDirection: BrowseDirection.Forward
@@ -108,7 +108,7 @@ module.exports = function (test) {
 
         it("T8-11 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty", function (done) {
 
-            var request = new opcua.read_service.ReadRequest({
+            const request = new opcua.read_service.ReadRequest({
                 nodesToRead: [], //<< EMPTY
                 maxAge: 0,
                 timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
@@ -124,7 +124,7 @@ module.exports = function (test) {
 
         it("T8-12 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid", function (done) {
 
-            var request = new opcua.read_service.ReadRequest({
+            const request = new opcua.read_service.ReadRequest({
                 nodesToRead: [
                     {nodeId: opcua.coerceNodeId("ns=0;i=2456")}
                 ],
@@ -179,11 +179,11 @@ module.exports = function (test) {
         });
         it("T8-15 - #read should return BadNothingToDo when reading an empty nodeToRead array", function (done) {
 
-            var nodesToRead = [];
+            const nodesToRead = [];
 
             g_session.read(nodesToRead, function (err, dataValues) {
                 if (err) {
-                    var response = dataValues;
+                    const response = dataValues;
                     //dataValues.length.should.be(1);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                     done();
@@ -196,7 +196,7 @@ module.exports = function (test) {
         it("T8-15b - #read :should return BadNothingToDo if nodesToRead is empty", function (done) {
 
             // CTT : Attribute ERR-011.js
-            var readRequest = new opcua.read_service.ReadRequest({
+            const readRequest = new opcua.read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
                 nodesToRead: []
@@ -217,7 +217,7 @@ module.exports = function (test) {
         it("T8-15c - #read :should return BadNothingToDo if nodesToRead is null", function (done) {
 
             // CTT : Attribute ERR-011.js
-            var readRequest = new opcua.read_service.ReadRequest({
+            const readRequest = new opcua.read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
                 nodesToRead: null
@@ -240,7 +240,7 @@ module.exports = function (test) {
 
         it("T8-16 - #read should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function (done) {
 
-            var nodesToRead = {
+            const nodesToRead = {
                     nodeId: "RootFolder",
                     attributeId: 13
             };
@@ -287,8 +287,8 @@ module.exports = function (test) {
 
         it("T9-1 - Server should expose a 'Server' object in the 'Objects' folder", function (done) {
 
-            var Organizes = makeNodeId(ReferenceTypeIds.Organizes); // "ns=0;i=35";
-            var nodesToBrowse = [{
+            const Organizes = makeNodeId(ReferenceTypeIds.Organizes); // "ns=0;i=35";
+            const nodesToBrowse = [{
                 nodeId: "ObjectsFolder",
                 referenceTypeId: Organizes,
                 browseDirection: BrowseDirection.Forward,
@@ -302,7 +302,7 @@ module.exports = function (test) {
 
                     //xx console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
 
-                    var foundNode = _.filter(browseResults[0].references, function (result) {
+                    const foundNode = _.filter(browseResults[0].references, function (result) {
                         return result.browseName.name === "Server";
                     });
                     foundNode.length.should.equal(1);
@@ -315,7 +315,7 @@ module.exports = function (test) {
 
         it("T9-2 - Server should expose 'Server_NamespaceArray' variable ", function (done) {
 
-            var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+            const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
             g_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue/*, diagnosticsInfo*/) {
                 if (err) {
                     return done(err);
@@ -335,7 +335,7 @@ module.exports = function (test) {
 
         it("T9-3 - ServerStatus object shall be accessible as a ExtensionObject", function (done) {
 
-            var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
+            const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
             g_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue/*, diagnosticsInfo*/) {
                 if (err) {
                     return done(err);

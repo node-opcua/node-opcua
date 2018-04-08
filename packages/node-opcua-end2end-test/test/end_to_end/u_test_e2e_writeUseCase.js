@@ -2,20 +2,20 @@
 /* global describe,it,before,after,beforeEach,afterEach*/
 
 
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var opcua        = require("node-opcua");
-var makeNodeId   = opcua.makeNodeId;
-var DataType     = opcua.DataType;
-var AttributeIds = opcua.AttributeIds;
-var OPCUAClient  = opcua.OPCUAClient;
+const opcua        = require("node-opcua");
+const makeNodeId   = opcua.makeNodeId;
+const DataType     = opcua.DataType;
+const AttributeIds = opcua.AttributeIds;
+const OPCUAClient  = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 module.exports = function (test) {
 
-    var client;
+    let client;
     describe("end-to-end testing of a write operation between a client and a server (session#write)", function () {
 
         beforeEach(function (done) {
@@ -31,8 +31,8 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var unknown_nodeid = makeNodeId(7777, 8788);
-                var nodesToWrite = [
+                const unknown_nodeid = makeNodeId(7777, 8788);
+                const nodesToWrite = [
                     {
                         nodeId: unknown_nodeid,
                         attributeId: AttributeIds.Value,
@@ -57,9 +57,9 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+                const pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
 
-                var nodesToWrite = [
+                const nodesToWrite = [
                     {
                         nodeId: pumpSpeedId,
                         attributeId: AttributeIds.Value,
@@ -85,9 +85,9 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+                const setPointTemperatureId = "ns=4;s=SetPointTemperature";
 
-                var nodesToWrite = [
+                const nodesToWrite = [
                     {
                         nodeId: setPointTemperatureId,
                         attributeId: AttributeIds.Value,
@@ -113,9 +113,9 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+                const setPointTemperatureId = "ns=4;s=SetPointTemperature";
 
-                var nodesToWrite = [
+                const nodesToWrite = [
                     {
                         nodeId: setPointTemperatureId,
                         attributeId: AttributeIds.Value,
@@ -145,9 +145,9 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var float_Node = "ns=411;s=Scalar_Simulation_Float";
+                const float_Node = "ns=411;s=Scalar_Simulation_Float";
 
-                var nodesToWrite = [
+                const nodesToWrite = [
                     {
                         nodeId: float_Node,
                         attributeId: AttributeIds.Value,
@@ -177,9 +177,9 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var asyncNodeId = "ns=4;s=AsynchronousVariable";
+                const asyncNodeId = "ns=4;s=AsynchronousVariable";
 
-                var nodesToWrite = [
+                const nodesToWrite = [
                     {
                         nodeId: asyncNodeId,
                         attributeId: AttributeIds.Value,
@@ -203,7 +203,7 @@ module.exports = function (test) {
         it("should return BadNothingToDo if writeRequest is empty", function (done) {
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var nodesToWrite = [];
+                const nodesToWrite = [];
 
                 session.write(nodesToWrite, function (err, statusCodes) {
                     err.message.should.match(/BadNothingToDo/);
@@ -217,7 +217,7 @@ module.exports = function (test) {
         it("should return BadNothingToDo if writeRequest is null", function (done) {
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var request = new opcua.write_service.WriteRequest({nodesToWrite: []});
+                const request = new opcua.write_service.WriteRequest({nodesToWrite: []});
                 request.nodesToWrite = null;
                 session.performMessageTransaction(request, function (err, response) {
                     err.message.should.match(/BadNothingToDo/);
@@ -235,14 +235,14 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var nodeToWrite  = {
+                const nodeToWrite  = {
                     nodeId: null,
                     attributeId: AttributeIds.Value,
                     value: /*new DataValue(*/{
                         value: {/* Variant */dataType: DataType.Double, value: 23.0}
                     }
                 };
-                var nodesToWrite = [
+                const nodesToWrite = [
                     nodeToWrite,
                     nodeToWrite,
                     nodeToWrite,
@@ -260,7 +260,7 @@ module.exports = function (test) {
 
 
 
-                var request = new opcua.write_service.WriteRequest({nodesToWrite: nodesToWrite});
+                const request = new opcua.write_service.WriteRequest({nodesToWrite: nodesToWrite});
                 session.performMessageTransaction(request, function (err, response) {
                     err.message.should.match(/BadTooManyOperations/);
 
@@ -276,14 +276,14 @@ module.exports = function (test) {
 
         it("VQT should write Value Quality Timestamp - on basic variable", function (done) {
 
-            var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+            const setPointTemperatureId = "ns=4;s=SetPointTemperature";
             // Value, Quality, sourceTimestamp
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                var date = new Date();
+                const date = new Date();
                 date.setTime(date.getTime() + 3);
 
-                var nodesToWrite = [{
+                const nodesToWrite = [{
                     nodeId: setPointTemperatureId,
                     attributeId: AttributeIds.Value,
                     value: new opcua.DataValue({
@@ -306,7 +306,7 @@ module.exports = function (test) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.Good);
 
-                    var nodesToRead = {
+                    const nodesToRead = {
                         nodeId: setPointTemperatureId,
                         attributeId: AttributeIds.Value
                     };
@@ -328,16 +328,16 @@ module.exports = function (test) {
 
         it("VQT should write Value Quality Timestamp - on async variable that support fullblow dataValue write", function (done) {
 
-            var asyncNodeId = "ns=4;s=AsynchronousFullVariable";
+            const asyncNodeId = "ns=4;s=AsynchronousFullVariable";
 
             // Value, Quality, sourceTimestamp
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
 
-                var date = new Date();
+                const date = new Date();
                 date.setTime(date.getTime() + 3);
 
-                var nodesToWrite = [{
+                const nodesToWrite = [{
                     nodeId: asyncNodeId,
                     attributeId: AttributeIds.Value,
                     value: new opcua.DataValue({
@@ -359,7 +359,7 @@ module.exports = function (test) {
                     statusCodes.length.should.equal(nodesToWrite.length);
                     statusCodes[0].should.eql(opcua.StatusCodes.Good);
 
-                    var nodeToRead = {
+                    const nodeToRead = {
                         nodeId: asyncNodeId,
                         attributeId: AttributeIds.Value
                     };

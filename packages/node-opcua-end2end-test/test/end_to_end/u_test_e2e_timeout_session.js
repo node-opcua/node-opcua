@@ -1,12 +1,12 @@
 /*global describe, it, require*/
 
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
-var sinon = require("sinon");
+const sinon = require("sinon");
 
 module.exports = function (test) {
 
@@ -15,16 +15,16 @@ module.exports = function (test) {
 
         it("An opened session will eventually time out on server side if the client doesn't make transactions", function (done) {
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
             // Given  client connect to a server a
             // Given that the client open a session.
             // Given that the client does nothing
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 keepSessionAlive: false
             });
 
-            var the_session;
+            let the_session;
 
             async.series([
                 function (callback) {
@@ -75,15 +75,15 @@ module.exports = function (test) {
 
         it("A open session will not time out on server side if the client has keepSessionAlive = true", function (done) {
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 keepSessionAlive: true
             });
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
-            var keepalive_spy = sinon.spy();
+            const keepalive_spy = sinon.spy();
 
             async.series([
                 function (callback) {
@@ -129,17 +129,17 @@ module.exports = function (test) {
         it("An opened session will not time-out on server side if the client has keepSessionAlive = true", function (done) {
 
 
-            var timerId;
+            let timerId;
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 keepSessionAlive: true
             });
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
-            var keepalive_spy = sinon.spy();
+            const keepalive_spy = sinon.spy();
 
             async.series([
                 function (callback) {

@@ -5,14 +5,14 @@
  */
 
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var Enum = require("node-opcua-enum");
-var verbFlags = new Enum({
+const Enum = require("node-opcua-enum");
+const verbFlags = new Enum({
     //                         NodeAdded        0         Indicates the affected Node has been added.
     NodeAdded:      0x01,
     //                         NodeDeleted      1         Indicates the affected Node has been deleted.
@@ -32,7 +32,7 @@ var verbFlags = new Enum({
 
 function makeVerb(verbs) {
 
-    var e = verbFlags.get(verbs);
+    const e = verbFlags.get(verbs);
     assert(e !== null);
     return e.value;
 }
@@ -40,8 +40,8 @@ function makeVerb(verbs) {
 function _handle_add_reference_change_event(node1,node2id) {
 
 
-    var addressSpace = node1.addressSpace;
-    var node2 = addressSpace.findNode(node2id);
+    const addressSpace = node1.addressSpace;
+    const node2 = addressSpace.findNode(node2id);
 
     if (node1.nodeVersion || (node2 && node2.nodeVersion)) {
         // a event has to be send
@@ -54,7 +54,7 @@ function _handle_add_reference_change_event(node1,node2id) {
                 return null;
             }
 
-            var modelChangeTgt = new ModelChangeStructure({
+            let modelChangeTgt = new ModelChangeStructure({
                 affected:     node1.nodeId,
                 affectedType: _getTypeDef(node1),
                 verb: makeVerb("ReferenceAdded")
@@ -82,15 +82,15 @@ try {
         if (!options) {
             return "";
         }
-        var addressSpace  = options.addressSpace;
+        const addressSpace  = options.addressSpace;
         function n(nodeId) {
             if (!nodeId || nodeId.isEmpty() ) {
                 return "";
             }
-            var n = addressSpace.findNode(nodeId);
+            const n = addressSpace.findNode(nodeId);
             return "\"" + nodeId.toString()  + "\""+ (" /* " + (n ? n.browseName.toString() : "???") + " */").yellow;
         }
-        var str =  "{ verb:" + verbFlags.get(this.verb).key + ",";
+        let str =  "{ verb:" + verbFlags.get(this.verb).key + ",";
         str += " affected: " + n(this.affected) + ",";
         str += " type: " + n(this.affectedType) + " }";
         return str;
@@ -103,26 +103,26 @@ catch(err) {
 
 function _handle_model_change_event(node) {
 
-    var addressSpace = node.addressSpace;
+    const addressSpace = node.addressSpace;
     //
-    var parent = node.parent;
+    const parent = node.parent;
     if (parent && parent.nodeVersion ) {
         addressSpace.modelChangeTransaction(function() {
 
-            var typeDefinitionNodeId = null;
+            let typeDefinitionNodeId = null;
 
             if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
                 typeDefinitionNodeId = node.typeDefinition.nodeId;
             }
 
-            var modelChange1 = new ModelChangeStructure({
+            const modelChange1 = new ModelChangeStructure({
                 affected:     node.nodeId,
                 affectedType: typeDefinitionNodeId,
                 verb: makeVerb("NodeAdded")
             });
             addressSpace._collectModelChange(null,modelChange1);
 
-            var modelChangeSrc = new ModelChangeStructure({
+            const modelChangeSrc = new ModelChangeStructure({
                 affected:     parent.nodeId,
                 affectedType: null,
                 verb: makeVerb("ReferenceAdded")
@@ -131,7 +131,7 @@ function _handle_model_change_event(node) {
 
             // bidirectional
             if (node.nodeVersion) {
-                var modelChangeTgt = new ModelChangeStructure({
+                const modelChangeTgt = new ModelChangeStructure({
                     affected:     node.nodeId,
                     affectedType: typeDefinitionNodeId,
                     verb: makeVerb("ReferenceAdded")
@@ -145,13 +145,13 @@ exports._handle_model_change_event = _handle_model_change_event;
 
 function _handle_delete_node_model_change_event(node) {
 
-    var addressSpace = node.addressSpace;
+    const addressSpace = node.addressSpace;
 
     // get backward references
-    var references = node.findReferencesEx("HierarchicalReferences",BrowseDirection.Inverse);
+    const references = node.findReferencesEx("HierarchicalReferences",BrowseDirection.Inverse);
 
-    var parentNodes = references.map(function(r){ return addressSpace.findNode(r.nodeId); });
-    var versionableNodes = parentNodes.filter(function(node) { return (node.nodeVersion !== null); });
+    const parentNodes = references.map(function(r){ return addressSpace.findNode(r.nodeId); });
+    const versionableNodes = parentNodes.filter(function(node) { return (node.nodeVersion !== null); });
 
     if (versionableNodes.length >= 1 || node.nodeVersion !== null )  {
 
@@ -159,15 +159,15 @@ function _handle_delete_node_model_change_event(node) {
             // ...
             references.forEach(function(r){
 
-                var target = addressSpace.findNode(r.nodeId);
-                var modelChangeSrc = new ModelChangeStructure({
+                const target = addressSpace.findNode(r.nodeId);
+                const modelChangeSrc = new ModelChangeStructure({
                     affected:     target.nodeId,
                     affectedType: null,
                     verb: makeVerb("ReferenceDeleted")
                 });
                 addressSpace._collectModelChange(null,modelChangeSrc);
             });
-            var modelChangeSrc = new ModelChangeStructure({
+            const modelChangeSrc = new ModelChangeStructure({
                 affected:     node.nodeId,
                 affectedType: node.typeDefinition,
                 verb: makeVerb("NodeDeleted")

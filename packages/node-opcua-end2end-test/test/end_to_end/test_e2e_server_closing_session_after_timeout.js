@@ -1,25 +1,25 @@
 "use strict";
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
-var OPCUAServer = opcua.OPCUAServer;
-var OPCUAClient = opcua.OPCUAClient;
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const opcua = require("node-opcua");
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-var port = 2000;
+const port = 2000;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server dropping session after timeout if no activity has been recorded", function () {
 
 
     this.timeout(Math.max(200000, this._timeout));
 
-    var server;
+    let server;
 
-    var nodeId = opcua.resolveNodeId("ns=0;i=2258");
+    const nodeId = opcua.resolveNodeId("ns=0;i=2258");
 
-    var readRequest = new opcua.read_service.ReadRequest({
+    const readRequest = new opcua.read_service.ReadRequest({
         maxAge: 0,
         timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
         nodesToRead: [
@@ -30,9 +30,9 @@ describe("testing server dropping session after timeout if no activity has been 
         ]
     });
 
-    var endpointUrl,serverCertificateChain;
+    let endpointUrl, serverCertificateChain;
 
-    var options = {
+    const options = {
         //xx securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
         //xx securityPolicy: opcua.SecurityPolicy.Basic256,
         serverCertificate: serverCertificateChain,
@@ -70,7 +70,7 @@ describe("testing server dropping session after timeout if no activity has been 
 
     it("should not be able to read a node if no session has been opened ", function (done) {
 
-        var client = new OPCUAClient(options);
+        const client = new OPCUAClient(options);
 
         async.series([
             // given that client1 is connected, and have a session
@@ -95,9 +95,9 @@ describe("testing server dropping session after timeout if no activity has been 
 
     it("should denied service call with BadSessionClosed on a timed out session", function (done) {
 
-        var client = new OPCUAClient(options);
+        const client = new OPCUAClient(options);
 
-        var l_session = null;
+        let l_session = null;
         async.series([
             // given that client1 is connected, and have a session
             function (callback) {

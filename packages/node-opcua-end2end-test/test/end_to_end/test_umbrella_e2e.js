@@ -1,26 +1,26 @@
 "use strict";
 /* global: describe, require */
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
 
-var port = 2002;
+const port = 2002;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
-var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
-
-
-var start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-var stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
+const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
+const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
+const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
+
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client - Umbrella ", function () {
 
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
@@ -29,10 +29,10 @@ describe("testing Client - Umbrella ", function () {
     this.timeout((process.arch === "arm") ? 400000 : 30000);
     this.timeout(Math.max(200000, this._timeout));
 
-    var test = this;
+    const test = this;
     test.nb_backgroundsession = 0;
 
-    var options = {
+    const options = {
         port: port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
@@ -102,18 +102,18 @@ describe("testing Client - Umbrella ", function () {
     });
 
     function dumpStatistics(endpointUrl, done) {
-        var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+        const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-        var client = new OPCUAClient();
+        const client = new OPCUAClient();
         var endpointUrl = test.endpointUrl;
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            var relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
-            var browsePath = [
+            const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
+            const browsePath = [
                 opcua.makeBrowsePath("RootFolder", relativePath),
             ];
 
-            var sessionDiagnosticsSummaryNodeId;
+            let sessionDiagnosticsSummaryNodeId;
             async.series([
 
                 function (callback) {
@@ -145,7 +145,7 @@ describe("testing Client - Umbrella ", function () {
 
     afterEach(function (done) {
 
-        var extra_session = (test.server.engine.currentSessionCount !== test.nb_backgroundsession);
+        const extra_session = (test.server.engine.currentSessionCount !== test.nb_backgroundsession);
 
 
         if (extra_session && test.server) {
@@ -162,8 +162,8 @@ describe("testing Client - Umbrella ", function () {
             test.server.currentSubscriptionCount.should.eql(0, " verify test clean up : dangling  subscriptions found");
             test.server.currentSessionCount.should.eql(0, " verify test clean up : dangling  session found");
             // test must not add exta nodes in root => "organizes" ref count => 3
-            var addressSpace = test.server.engine.addressSpace;
-            var rootFolder = addressSpace.findNode("RootFolder");
+            const addressSpace = test.server.engine.addressSpace;
+            const rootFolder = addressSpace.findNode("RootFolder");
             rootFolder.getFolderElements().length.should.eql(3, "Test should not pollute the root folder: expecting 3 folders in RootFolder only");
 
 

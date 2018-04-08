@@ -1,27 +1,27 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var fs = require("fs");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const fs = require("fs");
 
-var AddressSpace = require("..").AddressSpace;
+const AddressSpace = require("..").AddressSpace;
 
-var generate_address_space = require("..").generate_address_space;
-var nodesets = require("node-opcua-nodesets");
+const generate_address_space = require("..").generate_address_space;
+const nodesets = require("node-opcua-nodesets");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing add new DataType ", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
         addressSpace = new AddressSpace();
 
-        var xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard_nodeset_file;
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
@@ -38,18 +38,18 @@ describe("testing add new DataType ", function () {
         done();
     });
 
-    var createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
+    const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
 
     function createCustomeType(addressSpace) {
 
-        var baseObjectType = addressSpace.findObjectType("BaseObjectType");
-        var baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
+        const baseObjectType = addressSpace.findObjectType("BaseObjectType");
+        const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
 
         // -------------------------------------------- MachineType
-        var customTypeNode = addressSpace.addObjectType({browseName: "CustomType"});
+        const customTypeNode = addressSpace.addObjectType({browseName: "CustomType"});
 
-        var standardUnits = require("node-opcua-data-access").standardUnits;
+        const standardUnits = require("node-opcua-data-access").standardUnits;
 
         addressSpace.addAnalogDataItem({
 
@@ -74,7 +74,7 @@ describe("testing add new DataType ", function () {
 
     it("should instantiate an object whose type defines an analog item", function (done) {
 
-        var customType = createCustomeType(addressSpace);
+        const customType = createCustomeType(addressSpace);
         customType.temperature.browseName.toString().should.eql("Temperature");
         customType.temperature.valuePrecision.browseName.toString().should.eql("ValuePrecision");
         customType.temperature.instrumentRange.browseName.toString().should.eql("InstrumentRange");
@@ -82,7 +82,7 @@ describe("testing add new DataType ", function () {
         customType.temperature.instrumentRange.readValue().value.value.high.should.eql(120);
 
 
-        var customNode1 = customType.instantiate({
+        const customNode1 = customType.instantiate({
             browseName: "TestNode",
             organizedBy: "RootFolder"
         });
@@ -100,9 +100,9 @@ describe("testing add new DataType ", function () {
     it("should verify that UAObjectType.instantiate works for complex ObjectTypes like DI and ADI (issue 108)", function (done) {
 
 
-        var addressSpace = new AddressSpace();
+        const addressSpace = new AddressSpace();
 
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file,
             nodesets.constructNodesetFilename("1.02/Opc.Ua.Di.NodeSet2.xml"),
             nodesets.constructNodesetFilename("1.02/Opc.Ua.Adi.NodeSet2.xml"),
@@ -119,16 +119,16 @@ describe("testing add new DataType ", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
 
-            var deviceSet = addressSpace.findNode("RootFolder");
+            const deviceSet = addressSpace.findNode("RootFolder");
 
             //xx Object.keys(addressSpace._objectTypeMap).forEach(function(a) { console.log(a); });
 
-            var ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType");
+            const ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType");
 
             //xx console.log(" ftnirType = ",ftnirType.toString());
             should.exist(ftnirType);
 
-            var ftnirInstance = ftnirType.instantiate({browseName: "MyFTNIR", organizedBy: deviceSet});
+            const ftnirInstance = ftnirType.instantiate({browseName: "MyFTNIR", organizedBy: deviceSet});
 
             addressSpace.dispose();
 

@@ -1,27 +1,27 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var _ = require("underscore");
-var fs = require("fs");
-var path = require("path");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const should = require("should");
+const _ = require("underscore");
+const fs = require("fs");
+const path = require("path");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var generate_address_space = require("..").generate_address_space;
+const generate_address_space = require("..").generate_address_space;
 
-var sinon = require("sinon");
-var AddressSpace = require("..").AddressSpace;
+const sinon = require("sinon");
+const AddressSpace = require("..").AddressSpace;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add TwoStateVariable ", function () {
 
     this.timeout(Math.max(this._timeout, 10000));
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
         addressSpace = new AddressSpace();
-        var xml_file = require("node-opcua-nodesets").standard_nodeset_file;
+        const xml_file = require("node-opcua-nodesets").standard_nodeset_file;
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
@@ -42,7 +42,7 @@ describe("testing add TwoStateVariable ", function () {
 
     it("should had a TwoStateVariableType", function () {
 
-        var node = addressSpace.addTwoStateVariable({
+        const node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable1"
         });
 
@@ -65,7 +65,7 @@ describe("testing add TwoStateVariable ", function () {
 
     it("TwoStateVariableType should had an uncertain value after creation", function () {
 
-        var node = addressSpace.addTwoStateVariable({
+        const node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable1"
         });
 
@@ -80,7 +80,7 @@ describe("testing add TwoStateVariable ", function () {
     });
 
     it("should had a TwoStateVariableType with trueState and falseState as String", function () {
-        var node = addressSpace.addTwoStateVariable({
+        const node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable1",
             trueState: "Enabled",
             falseState: "Disabled"
@@ -102,7 +102,7 @@ describe("testing add TwoStateVariable ", function () {
 
     it("should had a TwoStateVariableType with transitionTime", function () {
 
-        var node = addressSpace.addTwoStateVariable({
+        const node = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
             optionals: ["TransitionTime"]
         });
@@ -124,11 +124,11 @@ describe("testing add TwoStateVariable ", function () {
 
     it("SubState => IsFalseSubStateOf", function () {
 
-        var mainState = addressSpace.addTwoStateVariable({
+        const mainState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableMain",
             optionals: ["TransitionTime", "EffectiveDisplayName"]
         });
-        var subState = addressSpace.addTwoStateVariable({
+        const subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",
             optionals: ["TransitionTime"],
             isFalseSubStateOf: mainState
@@ -152,11 +152,11 @@ describe("testing add TwoStateVariable ", function () {
             return n.browseName.toString();
         }
 
-        var mainState = addressSpace.addTwoStateVariable({
+        const mainState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableMain",
             optionals: ["TransitionTime", "EffectiveDisplayName"]
         });
-        var subState = addressSpace.addTwoStateVariable({
+        const subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",
             optionals: ["TransitionTime"],
             isTrueSubStateOf: mainState
@@ -177,13 +177,13 @@ describe("testing add TwoStateVariable ", function () {
 
     it("should had a TwoStateVariableType with effectiveTransitionTime", function () {
 
-        var mainState = addressSpace.addTwoStateVariable({
+        const mainState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
             optionals: ["EffectiveTransitionTime", "TransitionTime", "EffectiveDisplayName"]
         });
         should.exist(mainState.effectiveTransitionTime);
 
-        var subState = addressSpace.addTwoStateVariable({
+        const subState = addressSpace.addTwoStateVariable({
             browseName: "TwoStateVariableSub",
             optionals: ["TransitionTime"],
             isTrueSubStateOf: mainState,

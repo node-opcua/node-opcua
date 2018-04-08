@@ -1,20 +1,20 @@
-var assert = require("node-opcua-assert");
-var fs = require("fs");
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const assert = require("node-opcua-assert");
+const fs = require("fs");
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var getFixture = require("node-opcua-test-fixtures").getFixture;
+const getFixture = require("node-opcua-test-fixtures").getFixture;
 
 function construct_makeMessageChunkSignatureForTest() {
 
-    var privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("ascii");
+    const privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("ascii");
 
     return function (chunk) {
-        var options = {
+        const options = {
             algorithm: "RSA-SHA256",
             signatureLength: 128,
             privateKey: privateKey
         };
-        var buf = crypto_utils.makeMessageChunkSignature(chunk, options); // Buffer
+        const buf = crypto_utils.makeMessageChunkSignature(chunk, options); // Buffer
         assert(buf instanceof Buffer, "expecting a Buffer");
         return buf;
     };
@@ -24,11 +24,11 @@ exports.makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureFo
 
 function construct_verifyMessageChunkSignatureForTest() {
 
-    var publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("ascii");
+    const publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("ascii");
 
     return function (chunk) {
         assert(chunk instanceof Buffer);
-        var options = {
+        const options = {
             algorithm: "RSA-SHA256",
             signatureLength: 128,
             publicKey: publicKey

@@ -5,25 +5,25 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var AttributeIds =  require("node-opcua-data-model").AttributeIds;
-
-
-var DataValue =  require("node-opcua-data-value").DataValue;
-
-var DataType = require("node-opcua-variant").DataType;
-
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-
-var NumericRange = require("node-opcua-numeric-range").NumericRange;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const AttributeIds =  require("node-opcua-data-model").AttributeIds;
 
 
-var BaseNode = require("./base_node").BaseNode;
-var SessionContext = require("./session_context").SessionContext;
+const DataValue =  require("node-opcua-data-value").DataValue;
+
+const DataType = require("node-opcua-variant").DataType;
+
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
+
+
+const BaseNode = require("./base_node").BaseNode;
+const SessionContext = require("./session_context").SessionContext;
 
 
 /**
@@ -52,7 +52,7 @@ UADataType.prototype.readAttribute = function (context, attributeId) {
 
     assert(context instanceof SessionContext);
 
-    var options = {};
+    const options = {};
     switch (attributeId) {
         case AttributeIds.IsAbstract:
             options.value = {dataType: DataType.Boolean, value: this.isAbstract ? true : false};
@@ -68,11 +68,11 @@ UADataType.prototype.getEncodingNodeId = function (encoding_name) {
 
     assert(encoding_name === "Default Binary" || encoding_name === "Default XML");
     // could be binary or xml
-    var refs = this.findReferences("HasEncoding", true);
+    const refs = this.findReferences("HasEncoding", true);
 
-    var addressSpace = this.addressSpace;
+    const addressSpace = this.addressSpace;
 
-    var encoding = refs.map(function (ref) {
+    const encoding = refs.map(function (ref) {
         return addressSpace.findNode(ref.nodeId);
     }).
         filter(function (obj) {
@@ -89,17 +89,17 @@ UADataType.prototype.getEncodingNodeId = function (encoding_name) {
  */
 UADataType.prototype.__defineGetter__("binaryEncodingNodeId", function () {
 
-    var _cache = BaseNode._getCache(this);
+    const _cache = BaseNode._getCache(this);
     if (!_cache.binaryEncodingNodeId) {
 
-        var encoding = this.getEncodingNodeId("Default Binary");
+        const encoding = this.getEncodingNodeId("Default Binary");
         _cache.binaryEncodingNodeId = encoding ? encoding.nodeId : null;
     }
     return _cache.binaryEncodingNodeId;
 });
 
 
-var tools = require("./tool_isSupertypeOf");
+const tools = require("./tool_isSupertypeOf");
 /**
  * returns true if self is a super type of baseType
  * @method isSupertypeOf
@@ -123,7 +123,7 @@ UADataType.prototype.nodeClass = NodeClass.DataType;
 
 UADataType.prototype._toString = function(str,options)
 {
-    var self = this;
+    const self = this;
     BaseNode.prototype._toString.call(self,str,options);
     options.add(options.padding + "          binaryEncodingNodeId: ".yellow +
         (self.binaryEncodingNodeId ? self.binaryEncodingNodeId.toString() : "" ));
@@ -142,7 +142,7 @@ UADataType.prototype._toString = function(str,options)
  */
 UADataType.prototype.__defineGetter__("binaryEncoding", function () {
 
-    var _cache = BaseNode._getCache(this);
+    const _cache = BaseNode._getCache(this);
     if (!_cache.binaryEncodingNode) {
         _cache.binaryEncodingNode = this.__findReferenceWithBrowseName("HasEncoding","Default Binary");
     }
@@ -155,10 +155,10 @@ UADataType.prototype.__defineGetter__("binaryEncoding", function () {
  * @type {String}
  */
 UADataType.prototype.__defineGetter__("binaryEncodingDefinition", function () {
-    var indexRange = new NumericRange();
-    var descriptionNode = this.binaryEncoding.findReferencesAsObject("HasDescription")[0];
-    var structureVar    = descriptionNode.findReferencesAsObject("HasComponent",false)[0];
-    var dataValue = structureVar.readValue(SessionContext.defaultContext, indexRange);
+    const indexRange = new NumericRange();
+    const descriptionNode = this.binaryEncoding.findReferencesAsObject("HasDescription")[0];
+    const structureVar    = descriptionNode.findReferencesAsObject("HasComponent",false)[0];
+    const dataValue = structureVar.readValue(SessionContext.defaultContext, indexRange);
     //xx if (!dataValue || !dataValue.value || !dataValue.value.value) { return "empty";}
     return dataValue.value.value.toString();
 });
@@ -169,7 +169,7 @@ UADataType.prototype.__defineGetter__("binaryEncodingDefinition", function () {
  */
 UADataType.prototype.__defineGetter__("xmlEncoding", function () {
 
-    var _cache = BaseNode._getCache(this);
+    const _cache = BaseNode._getCache(this);
     if (!_cache.xmlEncodingNode) {
         _cache.xmlEncodingNode = this.__findReferenceWithBrowseName("HasEncoding","Default XML");
     }
@@ -181,10 +181,10 @@ UADataType.prototype.__defineGetter__("xmlEncoding", function () {
  * @type {String}
  */
 UADataType.prototype.__defineGetter__("xmlEncodingDefinition", function () {
-    var indexRange = new NumericRange();
-    var descriptionNode = this.xmlEncoding.findReferencesAsObject("HasDescription")[0];
-    var structureVar    = descriptionNode.findReferencesAsObject("HasComponent",false)[0];
-    var dataValue = structureVar.readValue(SessionContext.defaultContext, indexRange);
+    const indexRange = new NumericRange();
+    const descriptionNode = this.xmlEncoding.findReferencesAsObject("HasDescription")[0];
+    const structureVar    = descriptionNode.findReferencesAsObject("HasComponent",false)[0];
+    const dataValue = structureVar.readValue(SessionContext.defaultContext, indexRange);
     if (!dataValue || !dataValue.value || !dataValue.value.value) {
         return "empty";
     }
@@ -194,10 +194,10 @@ UADataType.prototype.__defineGetter__("xmlEncodingDefinition", function () {
 
 UADataType.prototype._getDefinition = function () {
 
-    var self = this;
-    var definition = [];
+    const self = this;
+    let definition = [];
     if (self.enumStrings) {
-        var enumStrings = self.enumStrings.readValue().value.value;
+        const enumStrings = self.enumStrings.readValue().value.value;
         assert(_.isArray(enumStrings));
         definition = enumStrings.map(function(e,index){
             return {
@@ -207,7 +207,7 @@ UADataType.prototype._getDefinition = function () {
         });
     } else if (self.enumValues) {
         assert(self.enumValues,"must have a enumValues property");
-        var enumValues = self.enumValues.readValue().value.value;
+        const enumValues = self.enumValues.readValue().value.value;
         assert(_.isArray(enumValues));
         definition = _.map(enumValues,function(e) {
             return { name: e.displayName.text, value: e.value[1]};
@@ -215,7 +215,7 @@ UADataType.prototype._getDefinition = function () {
     }
 
     // construct nameIndex and valueIndex
-    var indexes = {
+    const indexes = {
         nameIndex: {},
         valueIndex: {}
     };

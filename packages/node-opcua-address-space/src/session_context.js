@@ -1,6 +1,6 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 function getUserName(userIdentityToken) {
     if (userIdentityToken.policyId === "anonymous") {
@@ -38,9 +38,9 @@ SessionContext.prototype.getCurrentUserRole = function () {
     assert(this.session!=null,"expecting a session");
     assert(this.server !=null,"expecting a server");
 
-    var userIdentityToken = this.session.userIdentityToken;
+    const userIdentityToken = this.session.userIdentityToken;
 
-    var username = getUserName(userIdentityToken);
+    const username = getUserName(userIdentityToken);
 
     if (username === "anonymous") {
         return "guest";
@@ -68,13 +68,13 @@ SessionContext.prototype.checkPermission = function (node, action) {
         return node.userAccessLevel.has(action);
     }
 
-    var permission = node._permissions[action];
+    const permission = node._permissions[action];
 
     if (!permission) {
         return node.userAccessLevel.has(action);
     }
 
-    var userRole = this.getCurrentUserRole();
+    const userRole = this.getCurrentUserRole();
 
     if (userRole === "default") {
         return node.userAccessLevel.has(action);
@@ -82,7 +82,7 @@ SessionContext.prototype.checkPermission = function (node, action) {
 
     if (permission[0] === "*") {
         // accept all except...
-        var str = "!" + userRole;
+        const str = "!" + userRole;
         if (permission.findIndex(function (x) {
               return x === str;
           }) >= 0) {

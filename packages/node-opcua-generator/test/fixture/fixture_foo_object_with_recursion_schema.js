@@ -1,11 +1,11 @@
 
-var generator = require("../..");
-var factories = require("node-opcua-factory");
-var path = require("path");
-var temporary_folder = path.join(__dirname,"../..","_test_generated");
+const generator = require("../..");
+const factories = require("node-opcua-factory");
+const path = require("path");
+const temporary_folder = path.join(__dirname,"../..","_test_generated");
 
 
-var FooWithRecursion_Schema = {
+const FooWithRecursion_Schema = {
     name: "FooWithRecursion",
     documentation: "A dummy Object.",
     id: factories.next_available_id(),

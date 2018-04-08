@@ -1,19 +1,19 @@
 "use strict";
 
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var subscription_service = require("node-opcua-service-subscription");
-var SubscriptionState = require("../src/subscription").SubscriptionState;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const subscription_service = require("node-opcua-service-subscription");
+const SubscriptionState = require("../src/subscription").SubscriptionState;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
 function add_mock_monitored_item(subscription) {
     // pretend we have a monitored item
-    var monitoredItem = {
+    const monitoredItem = {
         queue:[],
         extractMonitoredItemNotifications: function() {
-            var tmp = this.queue;
+            const tmp = this.queue;
             this.queue = [];
             return tmp;
         },
@@ -29,7 +29,7 @@ function add_mock_monitored_item(subscription) {
 
     subscription.monitoredItems[1] = monitoredItem;
 
-    var counter =1;
+    let counter =1;
 
     monitoredItem.simulateMonitoredItemAddingNotification =  function simulateMonitoredItemAddingNotification()  {
 

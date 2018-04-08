@@ -13,29 +13,29 @@
  -    * compare the published NotificationMessage to the republished NotificationMessage (should equal).
  */
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
-var sinon = require("sinon");
-var opcua = require("node-opcua");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const should = require("should");
+const sinon = require("sinon");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
     describe("Testing ctt  ", function () {
 
 
-        var ClientSubscription = opcua.ClientSubscription;
-        var subscription = null;
+        const ClientSubscription = opcua.ClientSubscription;
+        let subscription = null;
 
-        var nodeId = "ns=411;s=Scalar_Static_Int32";
-        var monitoredItem1;
-        var subscription_raw_notification_event;
-        var spy_publish;
+        const nodeId = "ns=411;s=Scalar_Static_Int32";
+        let monitoredItem1;
+        let subscription_raw_notification_event;
+        let spy_publish;
 
         function create_subscription_and_monitor_item(the_session, callback) {
 
@@ -86,13 +86,13 @@ module.exports = function (test) {
 
         }
 
-        var _the_value = 10001;
+        let _the_value = 10001;
 
         function write_value(session, callback) {
 
             _the_value += 1;
 
-            var nodesToWrite = [
+            const nodesToWrite = [
                 {
                     nodeId: nodeId,
                     attributeId: opcua.AttributeIds.Value,
@@ -119,17 +119,17 @@ module.exports = function (test) {
 
         it("verifying that RepublishRequest service is working as expected", function (done) {
 
-            var client = new OPCUAClient({
+            const client = new OPCUAClient({
 
             });
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var expected_values = [];
-            var sequenceNumbers = [];
+            const expected_values = [];
+            let sequenceNumbers = [];
 
             function verify_republish(session,index, callback) {
                 // index  => used to identify sequenceNumbers to retransmit
-                var request = new opcua.subscription_service.RepublishRequest({
+                const request = new opcua.subscription_service.RepublishRequest({
                     subscriptionId: subscription.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
                 });
@@ -160,7 +160,7 @@ module.exports = function (test) {
 
                         subscription_raw_notification_event.callCount.should.eql(4);
 
-                        var seqNumber1 = subscription_raw_notification_event.getCall(0).args[0].sequenceNumber;
+                        const seqNumber1 = subscription_raw_notification_event.getCall(0).args[0].sequenceNumber;
                         subscription_raw_notification_event.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
                         subscription_raw_notification_event.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
                         subscription_raw_notification_event.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);

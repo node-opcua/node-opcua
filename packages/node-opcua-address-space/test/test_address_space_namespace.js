@@ -1,16 +1,16 @@
 "use strict";
 
-var should = require("should");
-var path = require("path");
-var AddressSpace = require("..").AddressSpace;
-var getFixture = require("node-opcua-test-fixtures").getFixture;
-var nodesets = require("node-opcua-nodesets");
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const should = require("should");
+const path = require("path");
+const AddressSpace = require("..").AddressSpace;
+const getFixture = require("node-opcua-test-fixtures").getFixture;
+const nodesets = require("node-opcua-nodesets");
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace", function () {
 
     it("#getNamespaceUri : should have namespace 0", function () {
 
-        var addressSpace = new AddressSpace();
+        const addressSpace = new AddressSpace();
 
         addressSpace.getNamespaceUri(0).should.eql("http://opcfoundation.org/UA/");
 
@@ -18,11 +18,11 @@ describe("testing address space namespace", function () {
     });
     it("#registerNamespace should register new namespace", function () {
 
-        var addressSpace = new AddressSpace();
+        const addressSpace = new AddressSpace();
 
-        var namespaceUri = "http://MyNEWNameSpace";
+        const namespaceUri = "http://MyNEWNameSpace";
         addressSpace.getNamespaceIndex(namespaceUri).should.eql(-1);
-        var index = addressSpace.registerNamespace(namespaceUri);
+        const index = addressSpace.registerNamespace(namespaceUri);
         addressSpace.getNamespaceIndex(namespaceUri).should.eql(index);
 
         addressSpace.dispose();
@@ -31,15 +31,15 @@ describe("testing address space namespace", function () {
 
 });
 
-var fs = require("fs");
-var generate_address_space = require("..").generate_address_space;
+const fs = require("fs");
+const generate_address_space = require("..").generate_address_space;
 
 describe("testing  address space namespace loading", function () {
 
     it("should process namespaces and translate namespace index when loading node set xml files", function (done) {
 
-        var addressSpace = new AddressSpace();
-        var xml_files = [
+        const addressSpace = new AddressSpace();
+        const xml_files = [
             path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml"),
             getFixture("fixture_custom_nodeset.xml")
         ];
@@ -71,8 +71,8 @@ describe("testing  address space namespace loading", function () {
     });
 
     it("should process multiple xml files that reference each other", function (done) {
-        var addressSpace = new AddressSpace();
-        var xml_files = [
+        const addressSpace = new AddressSpace();
+        const xml_files = [
             path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml"),
             getFixture("fixture_custom_nodeset.xml"),
             getFixture("fixture_custom_nodeset_extension.xml")
@@ -115,8 +115,8 @@ describe("testing  address space namespace loading", function () {
 
     it("should process namespaces with DI", function (done) {
 
-        var addressSpace = new AddressSpace();
-        var xml_files = [
+        const addressSpace = new AddressSpace();
+        const xml_files = [
             nodesets.standard_nodeset_file,
             nodesets.di_nodeset_filename
         ];
@@ -138,30 +138,30 @@ describe("testing  address space namespace loading", function () {
                 "http://opcfoundation.org/UA/DI/",// 2
             ]);
 
-            var di_ns = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+            const di_ns = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
             di_ns.should.eql(2);
 
             // now try to retrieve some VariableType from DI namespace
-            var UIElementType = addressSpace.findVariableType("UIElementType",di_ns);
+            const UIElementType = addressSpace.findVariableType("UIElementType",di_ns);
             UIElementType.browseName.toString().should.eql("2:UIElementType");
             should(addressSpace.findVariableType("UIElementType")).eql(undefined,"namespace is not provided");
             should(addressSpace.findVariableType("2:UIElementType")).eql(UIElementType);
 
 
             // now extract some ObjectType From DI namespace
-            var TransferServicesType = addressSpace.findObjectType("TransferServicesType",di_ns);
+            const TransferServicesType = addressSpace.findObjectType("TransferServicesType",di_ns);
             TransferServicesType.browseName.toString().should.eql("2:TransferServicesType");
             should(addressSpace.findObjectType("TransferServicesType")).eql(undefined,"namespace is not provided");
             should(addressSpace.findObjectType("2:TransferServicesType")).eql(TransferServicesType);
 
             // now extract some ReferenceType
-            var ConnectsToRefType = addressSpace.findReferenceType("ConnectsTo",di_ns);
+            const ConnectsToRefType = addressSpace.findReferenceType("ConnectsTo",di_ns);
             ConnectsToRefType.browseName.toString().should.eql("2:ConnectsTo");
             should(addressSpace.findReferenceType("ConnectsTo")).eql(undefined,"namespace is not provided");
             should(addressSpace.findReferenceType("2:ConnectsTo")).eql(ConnectsToRefType);
 
             // now extract some DataType
-            var ParameterResultDataType = addressSpace.findDataType("ParameterResultDataType",di_ns);
+            const ParameterResultDataType = addressSpace.findDataType("ParameterResultDataType",di_ns);
             ParameterResultDataType.browseName.toString().should.eql("2:ParameterResultDataType");
             should(addressSpace.findDataType("ParameterResultDataType")).eql(undefined,"namespace is not provided");
             should(addressSpace.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);

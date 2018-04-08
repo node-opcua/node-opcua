@@ -4,15 +4,15 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var AddressSpace =require("../address_space").AddressSpace;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const AddressSpace =require("../address_space").AddressSpace;
 
-var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
+const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
 
 /*=
  *      +----------------------+
@@ -54,13 +54,13 @@ UADiscreteAlarm.instantiate = function(addressSpace, discreteAlarmTypeId, option
 
     assert(addressSpace instanceof AddressSpace);
 
-    var discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);
+    const discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);
     /* istanbul ignore next */
     if (!discreteAlarmType) {
         throw new Error(" cannot find Condition Type for " + discreteAlarmType);
     }
 
-    var discreteAlarmTypeBase = addressSpace.findObjectType("DiscreteAlarmType");
+    const discreteAlarmTypeBase = addressSpace.findObjectType("DiscreteAlarmType");
     assert(discreteAlarmTypeBase,"expecting DiscreteAlarmType - please check you nodeset xml file!");
 
     /* eventTypeNode should be subtypeOf("DiscreteAlarmType"); */
@@ -69,7 +69,7 @@ UADiscreteAlarm.instantiate = function(addressSpace, discreteAlarmTypeId, option
         throw new Error("UADiscreteAlarm.instantiate : event found is not subType of DiscreteAlarmType");
     }
 
-    var alarmNode = UAAlarmConditionBase.instantiate(addressSpace, discreteAlarmType, options, data);
+    const alarmNode = UAAlarmConditionBase.instantiate(addressSpace, discreteAlarmType, options, data);
     Object.setPrototypeOf(alarmNode, UADiscreteAlarm.prototype);
 
     return alarmNode;

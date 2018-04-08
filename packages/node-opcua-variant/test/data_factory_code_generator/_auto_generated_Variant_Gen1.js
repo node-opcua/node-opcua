@@ -3,20 +3,20 @@
 /**
  * @module opcua.address_space.types
  */
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
-var schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
-var resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
-var initialize_field = schema_helpers.initialize_field;
-var check_options_correctness_against_schema = schema_helpers.check_options_correctness_against_schema;
-var _defaultTypeMap = require("node-opcua-factory/src/factories_builtin_types")._defaultTypeMap;
-var ec = require("node-opcua-basic-types");
-var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
-var generate_new_id = require("node-opcua-factory").generate_new_id;
-var _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
-var schema = require("../../schemas/Variant_schema").Variant_Schema;
-var BaseUAObject = require("node-opcua-factory/src/factories_baseobject").BaseUAObject;
+const assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
+const schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
+const resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
+const initialize_field = schema_helpers.initialize_field;
+const check_options_correctness_against_schema = schema_helpers.check_options_correctness_against_schema;
+const _defaultTypeMap = require("node-opcua-factory/src/factories_builtin_types")._defaultTypeMap;
+const ec = require("node-opcua-basic-types");
+const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
+const generate_new_id = require("node-opcua-factory").generate_new_id;
+const _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
+const schema = require("../../schemas/Variant_schema").Variant_Schema;
+const BaseUAObject = require("node-opcua-factory/src/factories_baseobject").BaseUAObject;
 
 /**
  * @class Variant
@@ -26,7 +26,7 @@ var BaseUAObject = require("node-opcua-factory/src/factories_baseobject").BaseUA
 function Variant(options) {
     options = options || {};
     check_options_correctness_against_schema(this, schema, options);
-    var self = this;
+    const self = this;
     assert(this instanceof BaseUAObject); //  ' keyword "new" is required for constructor call')
     resolve_schema_field_types(schema);
 
@@ -50,7 +50,7 @@ function Variant(options) {
                 return this.__dataType;
             },
             set: function (value) {
-                var coercedValue = _enumerations.DataType.typedEnum.get(value);
+                const coercedValue = _enumerations.DataType.typedEnum.get(value);
                 if (coercedValue === undefined || coercedValue === null) {
                     throw new Error("value cannot be coerced to DataType: " + value);
                 }
@@ -80,7 +80,7 @@ function Variant(options) {
                 return this.__arrayType;
             },
             set: function (value) {
-                var coercedValue = _enumerations.VariantArrayType.typedEnum.get(value);
+                const coercedValue = _enumerations.VariantArrayType.typedEnum.get(value);
                 if (coercedValue === undefined || coercedValue === null) {
                     throw new Error("value cannot be coerced to VariantArrayType: " + value);
                 }
@@ -109,12 +109,12 @@ schema.id = generate_new_id();
 Variant.prototype.encodingDefaultBinary = makeExpandedNodeId(schema.id);
 Variant.prototype._schema = schema;
 
-var encode_DataType = _enumerations.DataType.encode;
-var decode_DataType = _enumerations.DataType.decode;
-var encode_VariantArrayType = _enumerations.VariantArrayType.encode;
-var decode_VariantArrayType = _enumerations.VariantArrayType.decode;
-var encode_Any = _defaultTypeMap.Any.encode;
-var decode_Any = _defaultTypeMap.Any.decode;
+const encode_DataType = _enumerations.DataType.encode;
+const decode_DataType = _enumerations.DataType.decode;
+const encode_VariantArrayType = _enumerations.VariantArrayType.encode;
+const decode_VariantArrayType = _enumerations.VariantArrayType.decode;
+const encode_Any = _defaultTypeMap.Any.encode;
+const decode_Any = _defaultTypeMap.Any.decode;
 Variant.prototype.encode = function (stream, options) {
     schema.encode(this, stream, options);
 };

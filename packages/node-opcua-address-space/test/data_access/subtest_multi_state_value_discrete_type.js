@@ -1,23 +1,23 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var SessionContext = require("../..").SessionContext;
-var context = SessionContext.defaultContext;
+const SessionContext = require("../..").SessionContext;
+const context = SessionContext.defaultContext;
 
 
-var AddressSpace = require("../../").AddressSpace;
+const AddressSpace = require("../../").AddressSpace;
 
 module.exports = function(maintest) {
 
     describe("MultiStateValueDiscreteType", function () {
 
-        var addressSpace;
+        let addressSpace;
         before(function() {
             addressSpace = maintest.addressSpace;
             should(addressSpace).be.instanceof(AddressSpace);
@@ -25,17 +25,17 @@ module.exports = function(maintest) {
 
         it("MultiStateValueDiscreteType should not be abstract",function() {
 
-            var multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
+            const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
             multiStateValueDiscreteType.isAbstract.should.eql(false);
 
         });
 
         it("should add a MultiStateValueDiscreteType variable - form 1",function() {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addMultiStateValueDiscrete({
+            const prop = addressSpace.addMultiStateValueDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
@@ -45,7 +45,7 @@ module.exports = function(maintest) {
 
             prop.valueRank.should.eql(-1); //ValueRank=Scalar
 
-            var v = prop.getPropertyByName("EnumValues").readValue().value;
+            const v = prop.getPropertyByName("EnumValues").readValue().value;
             v.dataType.should.eql(DataType.ExtensionObject);
             v.arrayType.should.eql(VariantArrayType.Array);
             v.value.length.should.eql(4);
@@ -61,10 +61,10 @@ module.exports = function(maintest) {
         });
         it("should add a MultiStateValueDiscreteType variable - form 2",function() {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addMultiStateValueDiscrete({
+            const prop = addressSpace.addMultiStateValueDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: [
@@ -78,9 +78,9 @@ module.exports = function(maintest) {
         });
         describe("edge case tests",function() {
 
-            var multiStateValue;
+            let multiStateValue;
             before(function() {
-                var objectsFolder = addressSpace.findNode("ObjectsFolder");
+                const objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");
                 multiStateValue = addressSpace.addMultiStateValueDiscrete({
                     organizedBy: objectsFolder,
@@ -96,7 +96,7 @@ module.exports = function(maintest) {
 
             it("writing a value not in the EnumValues mapshall return BadOutOfRange",function(done) {
 
-                var dataValue = new DataValue({
+                const dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 100})// out of range
                 });
                 multiStateValue.writeValue(context, dataValue, null, function (err, statusCode) {
@@ -107,7 +107,7 @@ module.exports = function(maintest) {
 
             it("writing a value within EnumValues shall return Good",function(done) {
 
-                var dataValue = new DataValue({
+                const dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 0x0000FF})// OK
                 });
 
@@ -124,7 +124,7 @@ module.exports = function(maintest) {
             });
 
             it("changing  MultiStateVariable value shall change valueAsText accordingly",function(done) {
-                var dataValue = new DataValue({
+                const dataValue = new DataValue({
                     value: new Variant({dataType: DataType.UInt32, value: 0x00FF00})// OK
                 });
                 multiStateValue.writeValue(context, dataValue, null, function (err, statusCode) {
@@ -140,10 +140,10 @@ module.exports = function(maintest) {
         it("ZZ2 should instantiate a DataType containing a MultiStateValueDiscreteType",function(done) {
 
             // create a new DataType
-            var myObjectType = addressSpace.addObjectType({
+            const myObjectType = addressSpace.addObjectType({
                 browseName: "MyObjectWithMultiStateValueDiscreteType"
             });
-            var multiStateValue = addressSpace.addMultiStateValueDiscrete({
+            const multiStateValue = addressSpace.addMultiStateValueDiscrete({
                 componentOf: myObjectType,
                 browseName:  "Color",
                 enumValues:  { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
@@ -158,7 +158,7 @@ module.exports = function(maintest) {
 
 
             // instanciate  the type
-            var obj = myObjectType.instantiate({
+            const obj = myObjectType.instantiate({
                 browseName: "MyObject"
             });
 
@@ -173,9 +173,9 @@ module.exports = function(maintest) {
             obj.color.enumValues.readValue().value.value[3].displayName.text.should.eql("Blue");
 
 
-            var greenValue = obj.color.enumValues.readValue().value.value[2].value[1];
+            const greenValue = obj.color.enumValues.readValue().value.value[2].value[1];
             // now change the value => verify that valueAsText will change accordingly
-            var dataValue = new DataValue({
+            const dataValue = new DataValue({
                 value: new Variant({dataType: DataType.UInt32, value: greenValue})// OK
             });
 

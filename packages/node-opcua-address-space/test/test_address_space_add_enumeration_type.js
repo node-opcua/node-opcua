@@ -1,21 +1,21 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var _ = require("underscore");
+const should = require("should");
+const _ = require("underscore");
 
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var DataType = require("node-opcua-variant").DataType;
-var BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const DataType = require("node-opcua-variant").DataType;
+const BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 require("../src/address_space_add_enumeration_type");
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : testing add enumeration type", function () {
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
@@ -31,24 +31,24 @@ describe("AddressSpace : testing add enumeration type", function () {
 
     it("should add a new Enumeration type into an address space - Form 1", function () {
 
-        var myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType2",
             enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
         myEnumType.browseName.toString().should.eql("MyEnumType2");
 
-        var enumerationType = addressSpace.findDataType("Enumeration");
+        const enumerationType = addressSpace.findDataType("Enumeration");
 
         // verify that myEnumType can be found in the HasSubtype references enumeration Type
 
-        var browseDescription = new BrowseDescription({
+        const browseDescription = new BrowseDescription({
             referenceTypeId: null,
             browseDirection: BrowseDirection.Forward,
             resultMask: 0x3F
         });
-        var r = enumerationType.browseNode(browseDescription, null);
-        var names = r.map(function (x) {
+        const r = enumerationType.browseNode(browseDescription, null);
+        const names = r.map(function (x) {
             return x.browseName.toString();
         });
 
@@ -58,7 +58,7 @@ describe("AddressSpace : testing add enumeration type", function () {
 
 
         // now instantiate a variable that have this type.
-        var e = addressSpace.addVariable({
+        const e = addressSpace.addVariable({
             propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
             dataType: myEnumType,
             browseName: "RunningState",
@@ -110,7 +110,7 @@ describe("AddressSpace : testing add enumeration type", function () {
 
     it("should add a new Enumeration type into an address space - Form 2", function () {
 
-        var myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = addressSpace.addEnumerationType({
             browseName: "MyEnumType3",
             enumeration: [
                 {displayName: "VALUE01", value: 0x01},
@@ -122,17 +122,17 @@ describe("AddressSpace : testing add enumeration type", function () {
 
         myEnumType.browseName.toString().should.eql("MyEnumType3");
 
-        var enumerationType = addressSpace.findDataType("Enumeration");
+        const enumerationType = addressSpace.findDataType("Enumeration");
 
         // verify that myEnumType can be found in the HasSubtype references enumeration Type
 
-        var browseDescription = new BrowseDescription({
+        const browseDescription = new BrowseDescription({
             referenceTypeId: null,
             browseDirection: BrowseDirection.Forward,
             resultMask: 0x3F
         });
-        var r = enumerationType.browseNode(browseDescription, null);
-        var names = r.map(function (x) {
+        const r = enumerationType.browseNode(browseDescription, null);
+        const names = r.map(function (x) {
             return x.browseName.toString();
         });
 
@@ -142,7 +142,7 @@ describe("AddressSpace : testing add enumeration type", function () {
 
 
         // now instantiate a variable that have this type.
-        var e = addressSpace.addVariable({
+        const e = addressSpace.addVariable({
             propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
             dataType: myEnumType,
             browseName: "RunningState",

@@ -1,23 +1,23 @@
 "use strict";
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var server_engine = require("../src/server_engine");
-var subscription_service = require("node-opcua-service-subscription");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+const server_engine = require("../src/server_engine");
+const subscription_service = require("node-opcua-service-subscription");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
 
-var SubscriptionState = require("../src/subscription").SubscriptionState;
-var MonitoredItemCreateRequest = require("node-opcua-service-subscription").MonitoredItemCreateRequest;
+const SubscriptionState = require("../src/subscription").SubscriptionState;
+const MonitoredItemCreateRequest = require("node-opcua-service-subscription").MonitoredItemCreateRequest;
 
-var PublishRequest = subscription_service.PublishRequest;
+const PublishRequest = subscription_service.PublishRequest;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("ServerEngine Subscriptions service", function () {
 
 
-    var engine, session, FolderTypeId, BaseDataVariableTypeId;
+    let engine, session, FolderTypeId, BaseDataVariableTypeId;
 
     beforeEach(function (done) {
 
@@ -48,7 +48,7 @@ describe("ServerEngine Subscriptions service", function () {
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(0);
 
-        var subscription = session.createSubscription({
+        const subscription = session.createSubscription({
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount: 10,         // Counter
             requestedMaxKeepAliveCount: 10,     // Counter
@@ -63,7 +63,7 @@ describe("ServerEngine Subscriptions service", function () {
 
         session.getSubscription(subscription.id).should.equal(subscription);
 
-        var statusCode = session.deleteSubscription(subscription.id);
+        const statusCode = session.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
 
         session.currentSubscriptionCount.should.equal(0);
@@ -79,19 +79,19 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("XCX session should emit a new_subscription and subscription_terminated event", function () {
 
-        var sinon= require("sinon");
+        const sinon= require("sinon");
         session = engine.createSession();
 
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(0);
 
-        var spyNew = sinon.spy();
-        var spyTerminated = sinon.spy();
+        const spyNew = sinon.spy();
+        const spyTerminated = sinon.spy();
 
         session.on("new_subscription",spyNew);
         session.on("subscription_terminated",spyTerminated);
 
-        var subscription = session.createSubscription({
+        const subscription = session.createSubscription({
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount: 10,         // Counter
             requestedMaxKeepAliveCount: 10,     // Counter
@@ -106,7 +106,7 @@ describe("ServerEngine Subscriptions service", function () {
         spyNew.callCount.should.eql(1);
         spyTerminated.callCount.should.eql(0);
 
-        var statusCode = session.deleteSubscription(subscription.id);
+        const statusCode = session.deleteSubscription(subscription.id);
 
         spyNew.callCount.should.eql(1);
         spyTerminated.callCount.should.eql(1);
@@ -122,7 +122,7 @@ describe("ServerEngine Subscriptions service", function () {
     it("should maintain the correct number of cumulatedSubscriptionCount at the engine level", function () {
 
         session = engine.createSession();
-        var subscription_parameters = {
+        const subscription_parameters = {
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount: 10,         // Counter
             requestedMaxKeepAliveCount: 10,     // Counter
@@ -137,12 +137,12 @@ describe("ServerEngine Subscriptions service", function () {
         engine.currentSessionCount.should.equal(1);
         engine.cumulatedSessionCount.should.equal(1);
 
-        var subscription1 = session.createSubscription(subscription_parameters);
+        const subscription1 = session.createSubscription(subscription_parameters);
 
         engine.currentSubscriptionCount.should.equal(1);
         engine.cumulatedSubscriptionCount.should.equal(1);
 
-        var subscription2 = session.createSubscription(subscription_parameters);
+        const subscription2 = session.createSubscription(subscription_parameters);
         engine.currentSubscriptionCount.should.equal(2);
         engine.cumulatedSubscriptionCount.should.equal(2);
 
@@ -152,14 +152,14 @@ describe("ServerEngine Subscriptions service", function () {
 
 
         // Create a new session
-        var session2 = engine.createSession();
+        const session2 = engine.createSession();
         engine.currentSessionCount.should.equal(2);
         engine.cumulatedSessionCount.should.equal(2);
         engine.currentSubscriptionCount.should.equal(1);
 
-        var subscription1_2 = session2.createSubscription(subscription_parameters);
-        var subscription2_2 = session2.createSubscription(subscription_parameters);
-        var subscription3_2 = session2.createSubscription(subscription_parameters);
+        const subscription1_2 = session2.createSubscription(subscription_parameters);
+        const subscription2_2 = session2.createSubscription(subscription_parameters);
+        const subscription3_2 = session2.createSubscription(subscription_parameters);
 
         engine.currentSubscriptionCount.should.equal(4);
         engine.cumulatedSubscriptionCount.should.equal(5);
@@ -186,7 +186,7 @@ describe("ServerEngine Subscriptions service", function () {
         session = engine.createSession();
 
         // CTT : deleteSub5106004
-        var subscription_parameters = {
+        const subscription_parameters = {
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount:      10,    // Counter
             requestedMaxKeepAliveCount:  10,    // Counter
@@ -195,12 +195,12 @@ describe("ServerEngine Subscriptions service", function () {
             priority: 14                        // Byte
         };
 
-        var subscription1 = session.createSubscription(subscription_parameters);
+        const subscription1 = session.createSubscription(subscription_parameters);
 
-        var publishSpy = sinon.spy();
-        var o1 = {requestHeader:{ requestHandle: 100}};
+        const publishSpy = sinon.spy();
+        const o1 = {requestHeader:{ requestHandle: 100}};
         session.publishEngine._on_PublishRequest(new PublishRequest(o1),publishSpy );
-        var o2 = {requestHeader:{ requestHandle: 101}};
+        const o2 = {requestHeader:{ requestHandle: 101}};
         session.publishEngine._on_PublishRequest(new PublishRequest(o2),publishSpy );
 
 
@@ -222,9 +222,9 @@ describe("ServerEngine Subscriptions service", function () {
 
     function with_fake_timer(workerFunc) {
 
-        var test = this;
+        const test = this;
         test.clock = sinon.useFakeTimers();
-        var the_err;
+        let the_err;
         try{
             workerFunc.call(this);
         }
@@ -243,12 +243,12 @@ describe("ServerEngine Subscriptions service", function () {
 
             session = engine.createSession({sessionTimeout: 100000000 });
 
-            var test = this;
+            const test = this;
 
-            var SubscriptionState = require("../src/subscription").SubscriptionState;
+            const SubscriptionState = require("../src/subscription").SubscriptionState;
 
             // CTT : deleteSub5106004
-            var subscription_parameters = {
+            const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
                 requestedLifetimeCount:      60,    // Counter
                 requestedMaxKeepAliveCount:  10,    // Counter
@@ -257,7 +257,7 @@ describe("ServerEngine Subscriptions service", function () {
                 priority: 14                        // Byte
             };
 
-            var subscription1 = session.createSubscription(subscription_parameters);
+            const subscription1 = session.createSubscription(subscription_parameters);
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription1.publishingInterval);
@@ -266,14 +266,14 @@ describe("ServerEngine Subscriptions service", function () {
             session.deleteSubscription(subscription1.id);
             subscription1.state.should.eql(SubscriptionState.CLOSED);
 
-            var subscription2 = session.createSubscription(subscription_parameters);
+            const subscription2 = session.createSubscription(subscription_parameters);
             subscription2.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription2.publishingInterval);
             subscription2.state.should.eql(SubscriptionState.LATE);
 
 
-            var publishSpy = sinon.spy();
+            const publishSpy = sinon.spy();
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 100}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
@@ -305,12 +305,12 @@ describe("ServerEngine Subscriptions service", function () {
     it("ZDZ LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout - with 2 subscriptions", function () {
 
         with_fake_timer.call(this,function() {
-            var test = this;
+            const test = this;
 
             session = engine.createSession({sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
-            var subscription_parameters = {
+            const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
                 requestedLifetimeCount:      60,    // Counter
                 requestedMaxKeepAliveCount:  10,    // Counter
@@ -319,7 +319,7 @@ describe("ServerEngine Subscriptions service", function () {
                 priority: 14                        // Byte
             };
 
-            var subscription1 = session.createSubscription(subscription_parameters);
+            const subscription1 = session.createSubscription(subscription_parameters);
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription1.publishingInterval);
@@ -328,14 +328,14 @@ describe("ServerEngine Subscriptions service", function () {
             test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
             subscription1.state.should.eql(SubscriptionState.CLOSED);
 
-            var subscription2 = session.createSubscription(subscription_parameters);
+            const subscription2 = session.createSubscription(subscription_parameters);
             subscription2.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription2.publishingInterval);
             subscription2.state.should.eql(SubscriptionState.LATE);
 
 
-            var publishSpy = sinon.spy();
+            const publishSpy = sinon.spy();
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
@@ -370,12 +370,12 @@ describe("ServerEngine Subscriptions service", function () {
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
         with_fake_timer.call(this,function() {
-            var test = this;
+            const test = this;
 
             session = engine.createSession({sessionTimeout: 100000000});
 
             // CTT : deleteSub5106004
-            var subscription_parameters = {
+            const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
                 requestedLifetimeCount:        60,    // Counter
                 requestedMaxKeepAliveCount:    10,    // Counter
@@ -384,13 +384,13 @@ describe("ServerEngine Subscriptions service", function () {
                 priority: 14                        // Byte
             };
 
-            var subscription1 = session.createSubscription(subscription_parameters);
+            const subscription1 = session.createSubscription(subscription_parameters);
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
             // wait until session expired by timeout
             test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
 
-            var publishSpy = sinon.spy();
+            const publishSpy = sinon.spy();
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
@@ -433,12 +433,12 @@ describe("ServerEngine Subscriptions service", function () {
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
         with_fake_timer.call(this,function() {
-            var test = this;
+            const test = this;
 
             session = engine.createSession({sessionTimeout: 100000000});
 
             // CTT : deleteSub5106004
-            var subscription_parameters = {
+            const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
                 requestedLifetimeCount:        60,    // Counter
                 requestedMaxKeepAliveCount:    10,    // Counter
@@ -447,17 +447,17 @@ describe("ServerEngine Subscriptions service", function () {
                 priority: 14                        // Byte
             };
 
-            var subscription1 = session.createSubscription(subscription_parameters);
+            const subscription1 = session.createSubscription(subscription_parameters);
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
             // wait until session expired by timeout
             test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
 
 
-            var subscription2 = session.createSubscription(subscription_parameters);
+            const subscription2 = session.createSubscription(subscription_parameters);
             subscription2.state.should.eql(SubscriptionState.CREATING);
 
-            var publishSpy = sinon.spy();
+            const publishSpy = sinon.spy();
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
             session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
@@ -483,11 +483,11 @@ describe("ServerEngine Subscriptions service", function () {
         // Then subscription shall be disposed
 
         with_fake_timer.call(this,function() {
-            var test = this;
+            const test = this;
 
             session = engine.createSession({sessionTimeout: 100000000});
 
-            var subscription_parameters = {
+            const subscription_parameters = {
                 requestedPublishingInterval:  100,  // Duration
                 requestedLifetimeCount:        60,  // Counter
                 requestedMaxKeepAliveCount:    30,  // Counter
@@ -496,7 +496,7 @@ describe("ServerEngine Subscriptions service", function () {
                 priority: 14                        // Byte
             };
 
-            var subscription = session.createSubscription(subscription_parameters);
+            const subscription = session.createSubscription(subscription_parameters);
             subscription.state.should.eql(SubscriptionState.CREATING);
 
 
@@ -507,7 +507,7 @@ describe("ServerEngine Subscriptions service", function () {
             });
 
 
-            var monitoredItemCreateRequest =new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest =new MonitoredItemCreateRequest({
                 itemToMonitor: {nodeId: "ns=0;i=2258" },
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
@@ -517,11 +517,11 @@ describe("ServerEngine Subscriptions service", function () {
                 }
             });
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(engine.addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(engine.addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
 
-            var deleteSubscriptions= false;
+            const deleteSubscriptions= false;
             engine.closeSession(session.authenticationToken,deleteSubscriptions,"CloseSession");
 
             // wait until subscription expired by timeout

@@ -1,34 +1,34 @@
     /*global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
-var sinon = require("sinon");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const should = require("should");
+const sinon = require("sinon");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var StatusCodes = opcua.StatusCodes;
-var DataType = opcua.DataType;
-var TimestampsToReturn = opcua.read_service.TimestampsToReturn;
-var NodeId = opcua.NodeId;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const StatusCodes = opcua.StatusCodes;
+const DataType = opcua.DataType;
+const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+const NodeId = opcua.NodeId;
 
-var conditionTypeId = opcua.resolveNodeId("ConditionType");
+const conditionTypeId = opcua.resolveNodeId("ConditionType");
 
-var perform_operation_on_subscription = require("../../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-var constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
+const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
-var callConditionRefresh = opcua.callConditionRefresh;
+const callConditionRefresh = opcua.callConditionRefresh;
 
 function debugLog() {
 }
 
-var construct_demo_alarm_in_address_space = require("node-opcua-address-space/test_helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
+const construct_demo_alarm_in_address_space = require("node-opcua-address-space/test_helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
 
 
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
@@ -40,14 +40,14 @@ module.exports = function (test) {
 
     describe("A&C monitoring conditions", function () {
 
-        var client;
+        let client;
 
         beforeEach(function (done) {
 
             // add a condition to the server
             // Server - HasNotifier -> Tank -> HasEventSource -> TankLevel -> HasCondition -> TankLevelCondition
 
-            var addressSpace = test.server.engine.addressSpace;
+            const addressSpace = test.server.engine.addressSpace;
 
             construct_demo_alarm_in_address_space(test, addressSpace);
 
@@ -61,12 +61,12 @@ module.exports = function (test) {
 
         function dump_field_values(fields, values) {
             _.zip(fields, values).forEach(function (a) {
-                var e = a[0];
-                var v = a[1] || "null";
+                const e = a[0];
+                const v = a[1] || "null";
 
-                var str = "";
+                let str = "";
                 if (v.dataType === DataType.NodeId) {
-                    var node = test.server.engine.addressSpace.findNode(v.value);
+                    const node = test.server.engine.addressSpace.findNode(v.value);
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }
                 console.log((e + "                             ").substr(0, 25).cyan, v.toString() + " " + str.white.bold);
@@ -81,7 +81,7 @@ module.exports = function (test) {
 
         function extract_value_for_field(fieldName, result) {
             should.exist(result);
-            var index = fields.indexOf(fieldName);
+            const index = fields.indexOf(fieldName);
             should(index >= 0, " cannot find fieldName in list  : fiedName =" + fieldName + " list: " + fields.join(" "));
             return result[index];
         }
@@ -121,20 +121,20 @@ module.exports = function (test) {
             "ActiveState",
             "ActiveState.Id"
         ];
-        var eventFilter = constructEventFilter(fields, conditionTypeId);
+        const eventFilter = constructEventFilter(fields, conditionTypeId);
 
         function given_and_install_event_monitored_item(subscription, callback) {
-            var test = this;
+            const test = this;
             // A spy to detect event when they are raised by the sever
             test.spy_monitored_item1_changes = sinon.spy();
             // let create a monitored item to monitor events emitted by the Tank and
             // transmitted by the Server Object.
 
-            var readValue = {
+            const readValue = {
                 nodeId: resolveNodeId("Server"),
                 attributeId: AttributeIds.EventNotifier // << EventNotifier
             };
-            var requestedParameters = {
+            const requestedParameters = {
                 samplingInterval: 10,
                 discardOldest: true,
                 queueSize: 10,
@@ -234,7 +234,7 @@ module.exports = function (test) {
 
                     function then_we_should_check_that_event_is_raised_after_client_calling_ConditionRefresh(callback) {
 
-                        var values = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        let values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
                         // dump_field_values(fields,values);
 
@@ -259,7 +259,7 @@ module.exports = function (test) {
                         });
                         // ---------------------------
                         // create a retain condition
-                        var tankLevelCondition = test.tankLevelCondition;
+                        const tankLevelCondition = test.tankLevelCondition;
                         tankLevelCondition.currentBranch().setRetain(true);
                         tankLevelCondition.raiseNewCondition({
                             message: "Tank almost 80% full",
@@ -273,7 +273,7 @@ module.exports = function (test) {
                     },
                     function (callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(1);
-                        var values = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        const values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=9341");//ExclusiveLimitAlarmType
                         //xx dump_field_values(fields,values);
                         test.spy_monitored_item1_changes.resetHistory();
@@ -299,7 +299,7 @@ module.exports = function (test) {
                     function then_we_should_check_that_event_is_raised_after_client_calling_ConditionRefresh_again(callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(3);
 
-                        var values = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        let values = test.spy_monitored_item1_changes.getCall(0).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
                         //xx dump_field_values(fields,values);
 
@@ -355,7 +355,7 @@ module.exports = function (test) {
                         function when_the_condition_is_disabled_by_the_client(callback) {
                             //xx test.tankLevelCondition.enabledState.setValue(false);
                             //xx test.tankLevelCondition.enabledState.getValue().should.eql(false);
-                            var methodToCalls = [];
+                            const methodToCalls = [];
                             methodToCalls.push({
                                 objectId: test.tankLevelCondition.nodeId,
                                 methodId: opcua.coerceNodeId("ns=0;i=9028"), // ConditionType#Disable Method nodeID
@@ -378,10 +378,10 @@ module.exports = function (test) {
 
                             // The Event that reports the Disabled state
                             // should report the properties as NULL or with a status of Bad_ConditionDisabled.
-                            var results = test.spy_monitored_item1_changes.getCall(0).args[0];
+                            const results = test.spy_monitored_item1_changes.getCall(0).args[0];
                             //xx dump_field_values(fields, results);
 
-                            var conditionDisabledVar = new opcua.Variant({
+                            const conditionDisabledVar = new opcua.Variant({
                                 dataType: opcua.DataType.StatusCode,
                                 value: StatusCodes.BadConditionDisabled
                             });
@@ -390,7 +390,7 @@ module.exports = function (test) {
 
                             // other shall be invalid
 
-                            var value_severity = extract_value_for_field("Severity", results);
+                            const value_severity = extract_value_for_field("Severity", results);
                             debugLog("value_severity ", extract_value_for_field("Severity", results).toString());
                             value_severity.should.eql(conditionDisabledVar);
 
@@ -441,8 +441,8 @@ module.exports = function (test) {
 
         it("should raise an (OPCUA) event when commenting a Condition ", function (done) {
 
-            var levelNode = test.tankLevel;
-            var alarmNode = test.tankLevelCondition;
+            const levelNode = test.tankLevel;
+            const alarmNode = test.tankLevelCondition;
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
@@ -470,9 +470,9 @@ module.exports = function (test) {
                     function when_we_set_a_comment(callback) {
 
                         // The EventId is identifying a particular Event Notification where a state was reported for a Condition.
-                        var eventId = alarmNode.eventId.readValue().value.value;
+                        const eventId = alarmNode.eventId.readValue().value.value;
 
-                        var alarmNodeId = alarmNode.nodeId;
+                        const alarmNodeId = alarmNode.nodeId;
                         session.addCommentCondition(alarmNodeId, eventId, "SomeComment!!!", function (err) {
                             callback(err);
                         });
@@ -481,7 +481,7 @@ module.exports = function (test) {
 
                     function we_should_verify_that_an_event_has_been_raised(callback) {
 
-                        var dataValues;
+                        let dataValues;
                         // we are expecting 2 events here :
                         // * a new event for the main branch because spec says:
                         //     Comment, severity and quality are important elements of Conditions and any change to them
@@ -493,16 +493,16 @@ module.exports = function (test) {
                         // we can find in on firt event notificiation
                         dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
-                        var eventId = extract_value_for_field("EventId", dataValues).value;
+                        const eventId = extract_value_for_field("EventId", dataValues).value;
                         eventId.should.be.instanceOf(Buffer);
 
 
                         // let verify the AuditConditionCommentEventType data
                         dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //xx dump_field_values(fields,dataValues);
-                        var eventType = extract_value_for_field("EventType", dataValues).value.toString();
+                        const eventType = extract_value_for_field("EventType", dataValues).value.toString();
                         eventType.should.eql("ns=0;i=2829");// AuditConditionCommentEventType
-                        var eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
+                        const eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
                         should(eventId_Step0).be.instanceOf(Buffer);
                         eventId_Step0.toString("hex").should.eql(eventId.toString("hex"));
 
@@ -514,7 +514,7 @@ module.exports = function (test) {
                         extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
                         extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
-                        var eventId_New = extract_value_for_field("EventId", dataValues).value;
+                        const eventId_New = extract_value_for_field("EventId", dataValues).value;
                         eventId_New.toString("hex").should.not.eql(eventId.toString("hex"));
 
 
@@ -530,12 +530,12 @@ module.exports = function (test) {
 
         it("should raise an (INTERNAL) event when client is commenting", function (done) {
 
-            var levelNode = test.tankLevel;
-            var alarmNode = test.tankLevelCondition;
+            const levelNode = test.tankLevel;
+            const alarmNode = test.tankLevelCondition;
 
-            var addCommentSpy = sinon.spy();
+            const addCommentSpy = sinon.spy();
             alarmNode.on("addComment", addCommentSpy);
-            var the_new_comment = " The NEW COMMENT !!!";
+            const the_new_comment = " The NEW COMMENT !!!";
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
@@ -555,10 +555,10 @@ module.exports = function (test) {
                         callback();
                     },
                     function when_we_set_a_comment(callback) {
-                        var eventId = alarmNode.eventId.readValue().value.value;
+                        const eventId = alarmNode.eventId.readValue().value.value;
                         should.exist(eventId, "alarm must have raised an event");
 
-                        var alarmNodeId = alarmNode.nodeId;
+                        const alarmNodeId = alarmNode.nodeId;
                         session.addCommentCondition(alarmNodeId, eventId, the_new_comment, function (err) {
 
                             callback(err);
@@ -666,14 +666,14 @@ module.exports = function (test) {
             //       A single Condition can have many branch states active (Events #11)
             // b/ It is recommended as in this table to leave Retain=True as long as there exist previous states (branches)
 
-            var eventId_Step0 = null;
-            var eventId_Step2 = null; // after acknowledge
-            var branch1_NodeId = null;
-            var branch1_EventId = null;
+            let eventId_Step0 = null;
+            let eventId_Step2 = null; // after acknowledge
+            let branch1_NodeId = null;
+            let branch1_EventId = null;
 
-            var branch2_NodeId = null;
-            var branch2_EventId = null;
-            var dataValues;
+            let branch2_NodeId = null;
+            let branch2_EventId = null;
+            let dataValues;
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
@@ -721,8 +721,8 @@ module.exports = function (test) {
 
                     should(alarmNode.nodeId).be.instanceOf(opcua.NodeId);
 
-                    var conditionId = alarmNode.nodeId;
-                    var eventId = eventId_Step0;
+                    const conditionId = alarmNode.nodeId;
+                    const eventId = eventId_Step0;
                     session.acknowledgeCondition(conditionId, eventId, "Some comment", function (err, result) {
                         should.not.exist(err);
                         result.should.eql(StatusCodes.Good);
@@ -733,8 +733,8 @@ module.exports = function (test) {
 
                 function condition_is_confirmed(callback) {
 
-                    var conditionId = alarmNode.nodeId;
-                    var eventId = eventId_Step0;
+                    const conditionId = alarmNode.nodeId;
+                    const eventId = eventId_Step0;
                     session.confirmCondition(conditionId, eventId, "Some comment", function (err, result) {
                         should.not.exist(err);
                         result.should.eql(StatusCodes.Good);
@@ -750,7 +750,7 @@ module.exports = function (test) {
 
                 function branch_two_acknowledged_and_auto_confirmed_by_system_verify_branch_two_is_deleted(callback) {
 
-                    var branch = alarmNode._findBranchForEventId(branch2_EventId);
+                    const branch = alarmNode._findBranchForEventId(branch2_EventId);
 
                     alarmNode.acknowledgeAndAutoConfirmBranch(branch, "AutoConfirm");
 
@@ -970,7 +970,7 @@ module.exports = function (test) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(2);
 
-                        var dataValues7 = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        const dataValues7 = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues7);
 
                         // event value for branch #1 -----------------------------------------------------
@@ -992,7 +992,7 @@ module.exports = function (test) {
                         extract_node_id_value_for_condition_type_field(dataValues7).value.toString().should.eql(alarmNode.nodeId.toString());
 
 
-                        var dataValues8 = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        const dataValues8 = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //xx dump_field_values(fields, dataValues8);
 
                         //  i=9341 => ExclusiveLimitAlarmType
@@ -1027,7 +1027,7 @@ module.exports = function (test) {
                     function we_should_verify_that_a_new_event_is_raised(callback) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(1);
-                        var dataValues9 = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        const dataValues9 = test.spy_monitored_item1_changes.getCall(0).args[0];
                         // dump_field_values(fields,dataValues);
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues9).value.toString().should.eql(eventTypeNodeId);
@@ -1057,8 +1057,8 @@ module.exports = function (test) {
                         alarmNode.getBranchCount().should.eql(1, " Expecting one extra branch apart from current branch");
 
                         debugLog("9. Prior state acknowledged, Confirm required.");
-                        var conditionId = alarmNode.nodeId;
-                        var eventId = branch1_EventId;
+                        const conditionId = alarmNode.nodeId;
+                        const eventId = branch1_EventId;
                         debugLog("EventId = ", eventId);
 
                         // console.log(" EventID ", eventId.toString("hex"));
@@ -1078,14 +1078,14 @@ module.exports = function (test) {
                     function we_should_verify_that_an_event_is_raised_for_branch_and_that_confirm_is_false(callback) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(2);
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        const dataValuesA = test.spy_monitored_item1_changes.getCall(1).args[0];
                         // dump_field_values(fields, dataValuesA);
 
                         // ns=0;i=8944 AuditConditionAcknowledgeEventType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8944");
                         // xx should(extract_value_for_field("BranchId",   dataValuesA).value).eql(branch1_NodeId);
 
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        const dataValuesB = test.spy_monitored_item1_changes.getCall(0).args[0];
 
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch1_NodeId);
@@ -1119,7 +1119,7 @@ module.exports = function (test) {
                         test.spy_monitored_item1_changes.callCount.should.eql(2);
 
                         // -----------------------------  Event on a second  Branch !
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        const dataValuesA = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(NodeId.NullNodeId);
@@ -1143,7 +1143,7 @@ module.exports = function (test) {
 
 
                         // -----------------------------  Event on main branch !
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        const dataValuesB = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(NodeId.NullNodeId);
@@ -1183,10 +1183,10 @@ module.exports = function (test) {
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql("ns=0;i=2829");
 
                         // ns=0;i=8961 AuditConditionConfirmEventType
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        const dataValuesA = test.spy_monitored_item1_changes.getCall(1).args[0];
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8961");
 
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(2).args[0];
+                        const dataValuesB = test.spy_monitored_item1_changes.getCall(2).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch1_NodeId);
@@ -1211,17 +1211,17 @@ module.exports = function (test) {
 
                         test.spy_monitored_item1_changes.callCount.should.eql(5);
 
-                        var dataValues0 = test.spy_monitored_item1_changes.getCall(0).args[0];
-                        var dataValues1 = test.spy_monitored_item1_changes.getCall(1).args[0];
-                        var dataValues2 = test.spy_monitored_item1_changes.getCall(2).args[0];
+                        const dataValues0 = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        const dataValues1 = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        const dataValues2 = test.spy_monitored_item1_changes.getCall(2).args[0];
 
 
-                        var dataValuesA = test.spy_monitored_item1_changes.getCall(3).args[0];
+                        const dataValuesA = test.spy_monitored_item1_changes.getCall(3).args[0];
 
                         // ns=0;i=8961 AuditConditionConfirmEventType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql("ns=0;i=8961");
 
-                        var dataValuesB = test.spy_monitored_item1_changes.getCall(4).args[0];
+                        const dataValuesB = test.spy_monitored_item1_changes.getCall(4).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
                         extract_value_for_field("BranchId", dataValuesB).value.should.eql(branch2_NodeId);

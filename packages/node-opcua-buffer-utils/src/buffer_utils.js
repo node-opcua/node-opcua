@@ -29,9 +29,9 @@ if (!Buffer.from) {
  * @return {Buffer}
  */
 function makeBuffer(listOfBytes) {
-    var l = listOfBytes.split(" ");
-    var b = exports.createFastUninitializedBuffer(l.length);
-    var i = 0;
+    const l = listOfBytes.split(" ");
+    const b = exports.createFastUninitializedBuffer(l.length);
+    let i = 0;
     l.forEach(function (value) {
         b.writeUInt8(parseInt(value, 16), i);
         i += 1;
@@ -41,7 +41,7 @@ function makeBuffer(listOfBytes) {
 exports.makeBuffer = makeBuffer;
 
 function clone_buffer(buffer) {
-    var clone = exports.createFastUninitializedBuffer(buffer.length);
+    const clone = exports.createFastUninitializedBuffer(buffer.length);
     buffer.copy(clone, 0, 0);
     return clone;
 }

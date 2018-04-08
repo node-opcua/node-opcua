@@ -1,5 +1,5 @@
 "use strict";
-var fs = require("fs");
+const fs = require("fs");
 
 function LineFile() {
     this.__line = [];
@@ -8,8 +8,8 @@ function LineFile() {
 }
 
 LineFile.prototype.write = function () {
-    var str = "";
-    for (var i = 0; i < arguments.length; i++) {
+    let str = "";
+    for (let i = 0; i < arguments.length; i++) {
         str += arguments[i];
     }
     this.__line.push(str);

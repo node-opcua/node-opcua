@@ -1,11 +1,11 @@
 "use strict";
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
 function construct_demo_alarm_in_address_space(test,addressSpace) {
 
     addressSpace.installAlarmsAndConditionsService();
 
-    var tank =  addressSpace.addObject({
+    const tank =  addressSpace.addObject({
         browseName: "Tank",
         description: "The Object representing the Tank",
         organizedBy: addressSpace.rootFolder.objects,
@@ -13,7 +13,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     });
 
 
-    var tankLevel = addressSpace.addVariable({
+    const tankLevel = addressSpace.addVariable({
         browseName: "TankLevel",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         propertyOf: tank,
@@ -26,10 +26,10 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     // when the tank level is out of limit
     //---------------------------------------------------------------------------------
 
-    var exclusiveLimitAlarmType = addressSpace.findEventType("ExclusiveLimitAlarmType");
+    const exclusiveLimitAlarmType = addressSpace.findEventType("ExclusiveLimitAlarmType");
     assert(exclusiveLimitAlarmType !== null);
 
-    var tankLevelCondition = addressSpace.instantiateExclusiveLimitAlarm(exclusiveLimitAlarmType,{
+    const tankLevelCondition = addressSpace.instantiateExclusiveLimitAlarm(exclusiveLimitAlarmType,{
         componentOf:     tank,
         conditionSource: tankLevel,
         browseName:      "TankLevelCondition",
@@ -45,9 +45,9 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
 
     // ----------------------------------------------------------------
     // tripAlarm that signals that the "Tank lid" is opened
-    var tripAlarmType = addressSpace.findEventType("TripAlarmType");
+    const tripAlarmType = addressSpace.findEventType("TripAlarmType");
 
-    var tankTripCondition = null;
+    const tankTripCondition = null;
     // to
     // ---------------------------
     // create a retain condition
@@ -59,7 +59,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     //--------------------------------------------------------------
     // Let's create a second variable with no Exclusive alarm
     //--------------------------------------------------------------
-    var tankLevel2 = addressSpace.addVariable({
+    const tankLevel2 = addressSpace.addVariable({
         browseName: "tankLevel2",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         propertyOf: tank,
@@ -67,10 +67,10 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
         eventSourceOf: tank
     });
 
-    var nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
+    const nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
     assert(nonExclusiveLimitAlarmType !== null);
 
-    var tankLevelCondition2 = addressSpace.instantiateNonExclusiveLimitAlarm(nonExclusiveLimitAlarmType,{
+    const tankLevelCondition2 = addressSpace.instantiateNonExclusiveLimitAlarm(nonExclusiveLimitAlarmType,{
         componentOf:     tank,
         conditionSource: tankLevel2,
         browseName:      "TankLevelCondition2",

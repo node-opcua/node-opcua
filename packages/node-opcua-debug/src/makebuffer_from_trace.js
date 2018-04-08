@@ -1,23 +1,23 @@
 "use strict";
 
-var deprecated_trim = function (str) {
+const deprecated_trim = function (str) {
     return str.replace(/^\s+|\s+$/g, "");
 };
 
 function inlineText(f) {
 
-    var k = f.toString().
+    let k = f.toString().
         replace(/^[^\/]+\/\*!?/, '').
         replace(/\*\/[^\/]+$/, '');
     k = k.split("\n").map(function(t){  t = t.trim(); return t; }).join("\n");
     return k;
 }
-var makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
+const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
 
-var hexString = function (str) {
+const hexString = function (str) {
 
-    var hexline = "";
-    var lines = str.split("\n");
+    let hexline = "";
+    const lines = str.split("\n");
     lines.forEach(function (line) {
 
         line = line.trim();

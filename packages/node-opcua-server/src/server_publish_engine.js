@@ -3,30 +3,30 @@
  * @module opcua.server
  */
 
-var Subscription = require("./subscription").Subscription;
-var SubscriptionState = require("./subscription").SubscriptionState;
+const Subscription = require("./subscription").Subscription;
+const SubscriptionState = require("./subscription").SubscriptionState;
 
-var subscription_service = require("node-opcua-service-subscription");
-var NotificationMessage = subscription_service.NotificationMessage;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const subscription_service = require("node-opcua-service-subscription");
+const NotificationMessage = subscription_service.NotificationMessage;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 
-var EventEmitter = require("events").EventEmitter;
-var util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const util = require("util");
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var colors = require("colors");
+const colors = require("colors");
 
 function traceLog() {
     if (!doDebug) {
         return;
     }
-    var a = _.map(arguments);
+    const a = _.map(arguments);
     // console.log(a);
     a.unshift(" TRACE ".yellow);
     console.log.apply(this, a);
@@ -43,7 +43,7 @@ function ServerSidePublishEngine(options) {
 
     options = options || {};
 
-    var self = this;
+    const self = this;
 
     ServerSidePublishEngine.registry.register(self);
 
@@ -69,14 +69,14 @@ function ServerSidePublishEngine(options) {
 }
 
 util.inherits(ServerSidePublishEngine, EventEmitter);
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ServerSidePublishEngine.registry = new ObjectRegistry();
 
 
 ServerSidePublishEngine.prototype.dispose = function () {
 
     debugLog("ServerSidePublishEngine#dispose");
-    var self = this;
+    const self = this;
 
     // force deletion of publish response not sent
     self._publish_response_queue = [];
@@ -97,12 +97,12 @@ ServerSidePublishEngine.prototype.dispose = function () {
 
 ServerSidePublishEngine.prototype.process_subscriptionAcknowledgements = function (subscriptionAcknowledgements) {
     // process acknowledgements
-    var self = this;
+    const self = this;
     subscriptionAcknowledgements = subscriptionAcknowledgements || [];
 
-    var results = subscriptionAcknowledgements.map(function (subscriptionAcknowledgement) {
+    const results = subscriptionAcknowledgements.map(function (subscriptionAcknowledgement) {
 
-        var subscription = self.getSubscriptionById(subscriptionAcknowledgement.subscriptionId);
+        const subscription = self.getSubscriptionById(subscriptionAcknowledgement.subscriptionId);
         if (!subscription) {
             return StatusCodes.BadSubscriptionIdInvalid;
         }
@@ -122,11 +122,11 @@ ServerSidePublishEngine.prototype.__defineGetter__("subscriptions", function () 
 
 ServerSidePublishEngine.prototype._feed_late_subscription = function () {
 
-    var self = this;
+    const self = this;
     if (!self.pendingPublishRequestCount) {
         return;
     }
-    var starving_subscription = self.findSubscriptionWaitingForFirstPublish() || self.findLateSubscriptionSortedByPriority();
+    const starving_subscription = self.findSubscriptionWaitingForFirstPublish() || self.findLateSubscriptionSortedByPriority();
 
     if (starving_subscription) {
         debugLog("feeding most late subscription subscriptionId  = ".bgWhite.red, starving_subscription.id);
@@ -136,13 +136,13 @@ ServerSidePublishEngine.prototype._feed_late_subscription = function () {
 
 ServerSidePublishEngine.prototype._feed_closed_subscription = function () {
 
-    var self = this;
+    const self = this;
     if (!self.pendingPublishRequestCount) {
         return false;
     }
 
     debugLog("ServerSidePublishEngine#_feed_closed_subscription");
-    var closed_subscription = self._closed_subscriptions.shift();
+    const closed_subscription = self._closed_subscriptions.shift();
     if (closed_subscription) {
 
         traceLog("_feed_closed_subscription for closed_subscription ", closed_subscription.id);
@@ -166,7 +166,7 @@ function _assertValidPublishData(publishData) {
 }
 
 ServerSidePublishEngine.prototype.send_error_for_request = function (publishData, statusCode) {
-    var self = this;
+    const self = this;
     _assertValidPublishData(publishData);
     self.send_response_for_request(publishData, new subscription_service.PublishResponse({
         responseHeader: {serviceResult: statusCode}
@@ -175,7 +175,7 @@ ServerSidePublishEngine.prototype.send_error_for_request = function (publishData
 
 ServerSidePublishEngine.prototype._cancelPendingPublishRequest = function (statusCode) {
 
-    var self = this;
+    const self = this;
     debugLog("Cancelling pending PublishRequest with statusCode  ".red, statusCode.toString(), " length =", self._publish_request_queue.length);
 
     self._publish_request_queue.forEach(function (publishData) {
@@ -190,14 +190,14 @@ ServerSidePublishEngine.prototype.cancelPendingPublishRequestBeforeChannelChange
 };
 
 ServerSidePublishEngine.prototype.cancelPendingPublishRequest = function () {
-    var self = this;
+    const self = this;
     assert(self.subscriptionCount === 0);
     this._cancelPendingPublishRequest(StatusCodes.BadNoSubscription);
 };
 
 ServerSidePublishEngine.prototype.onSessionClose = function () {
 
-    var self = this;
+    const self = this;
     self.isSessionClosed = true;
     self._cancelPendingPublishRequest(StatusCodes.BadSessionClosed);
 
@@ -216,7 +216,7 @@ function prepare_timeout_info(request) {
 
 ServerSidePublishEngine.prototype._handle_too_many_requests = function () {
 
-    var self = this;
+    const self = this;
 
     if (self.pendingPublishRequestCount > self.maxPublishRequestInQueue) {
 
@@ -226,7 +226,7 @@ ServerSidePublishEngine.prototype._handle_too_many_requests = function () {
         // request and return a response with the result set to Bad_TooManyPublishRequests.
 
         // dequeue oldest request
-        var publishData = self._publish_request_queue.shift();
+        const publishData = self._publish_request_queue.shift();
         self.send_error_for_request(publishData, StatusCodes.BadTooManyPublishRequests);
     }
 
@@ -235,7 +235,7 @@ ServerSidePublishEngine.prototype._handle_too_many_requests = function () {
 
 ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callback) {
 
-    var self = this;
+    const self = this;
     //xx console.log("#_on_PublishRequest self._publish_request_queue.length before ",self._publish_request_queue.length);
 
     callback = callback || dummy_function;
@@ -243,8 +243,8 @@ ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callba
 
     assert(_.isFunction(callback));
 
-    var subscriptionAckResults = self.process_subscriptionAcknowledgements(request.subscriptionAcknowledgements);
-    var publishData = {request: request, results: subscriptionAckResults, callback: callback};
+    const subscriptionAckResults = self.process_subscriptionAcknowledgements(request.subscriptionAcknowledgements);
+    const publishData = {request: request, results: subscriptionAckResults, callback: callback};
 
     if (self._process_pending_publish_response(publishData)) {
         console.log(" PENDING RESPONSE HAS BEEN PROCESSED !");
@@ -260,11 +260,11 @@ ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callba
 
         if (self._closed_subscriptions.length > 0 && self._closed_subscriptions[0].hasPendingNotifications) {
 
-            var verif = self._publish_request_queue.length;
+            const verif = self._publish_request_queue.length;
             // add the publish request to the queue for later processing
             self._publish_request_queue.push(publishData);
 
-            var processed = self._feed_closed_subscription();
+            const processed = self._feed_closed_subscription();
             assert(verif === self._publish_request_queue.length);
             assert(processed);
             return;
@@ -306,9 +306,9 @@ ServerSidePublishEngine.prototype.send_keep_alive_response = function (subscript
     //  Each keep-alive Message is a response to a Publish request in which the  notification Message
     //  parameter does not contain any Notifications and that contains the sequence number of the next
     //  Notification Message that is to be sent.
-    var self = this;
+    const self = this;
 
-    var subscription = self.getSubscriptionById(subscriptionId);
+    const subscription = self.getSubscriptionById(subscriptionId);
     /* istanbul ignore next */
     if (!subscription) {
         traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
@@ -319,7 +319,7 @@ ServerSidePublishEngine.prototype.send_keep_alive_response = function (subscript
         return false;
     }
 
-    var sequenceNumber = future_sequence_number;
+    const sequenceNumber = future_sequence_number;
     self.send_notification_message({
         subscriptionId: subscriptionId,
         sequenceNumber: sequenceNumber,
@@ -337,17 +337,17 @@ ServerSidePublishEngine.prototype._on_tick = function () {
 
 ServerSidePublishEngine.prototype._cancelTimeoutRequests = function () {
 
-    var self = this;
+    const self = this;
 
     if (self._publish_request_queue.length === 0) {
         return;
     }
 
-    var current_time = (new Date()).getTime(); // ms
+    const current_time = (new Date()).getTime(); // ms
 
     function timeout_filter(data) {
-        var request = data.request;
-        var results = data.results;
+        const request = data.request;
+        const results = data.results;
         if (!request.timeout_time) {
             // no limits
             return false;
@@ -356,14 +356,14 @@ ServerSidePublishEngine.prototype._cancelTimeoutRequests = function () {
     }
 
     // filter out timeout requests
-    var partition = _.partition(self._publish_request_queue, timeout_filter);
+    const partition = _.partition(self._publish_request_queue, timeout_filter);
 
     self._publish_request_queue = partition[1]; // still valid
 
-    var invalid_published_request = partition[0];
+    const invalid_published_request = partition[0];
     invalid_published_request.forEach(function (publishData) {
         console.log(" CANCELING TIMEOUT PUBLISH REQUEST ".cyan);
-        var response = new subscription_service.PublishResponse({
+        const response = new subscription_service.PublishResponse({
             responseHeader: {serviceResult: StatusCodes.BadTimeout}
         });
         self.send_response_for_request(publishData, response);
@@ -384,7 +384,7 @@ ServerSidePublishEngine.prototype._cancelTimeoutRequests = function () {
  */
 ServerSidePublishEngine.prototype.send_notification_message = function (param, force) {
 
-    var self = this;
+    const self = this;
     assert(self.pendingPublishRequestCount > 0 || force);
 
     assert(!param.hasOwnProperty("availableSequenceNumbers"));
@@ -393,17 +393,17 @@ ServerSidePublishEngine.prototype.send_notification_message = function (param, f
     assert(param.hasOwnProperty("notificationData"));
     assert(param.hasOwnProperty("moreNotifications"));
 
-    var subscription = self.getSubscriptionById(param.subscriptionId);
+    const subscription = self.getSubscriptionById(param.subscriptionId);
 
 
-    var subscriptionId = param.subscriptionId;
-    var sequenceNumber = param.sequenceNumber;
-    var notificationData = param.notificationData;
-    var moreNotifications = param.moreNotifications;
+    const subscriptionId = param.subscriptionId;
+    const sequenceNumber = param.sequenceNumber;
+    const notificationData = param.notificationData;
+    const moreNotifications = param.moreNotifications;
 
-    var availableSequenceNumbers = subscription ? subscription.getAvailableSequenceNumbers() : [];
+    const availableSequenceNumbers = subscription ? subscription.getAvailableSequenceNumbers() : [];
 
-    var response = new subscription_service.PublishResponse({
+    const response = new subscription_service.PublishResponse({
         subscriptionId: subscriptionId,
         availableSequenceNumbers: availableSequenceNumbers,
         moreNotifications: moreNotifications,
@@ -418,7 +418,7 @@ ServerSidePublishEngine.prototype.send_notification_message = function (param, f
         console.log(" ---------------------------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANWSER !".bgRed.white.bold);
         self._publish_response_queue.push(response);
     } else {
-        var publishData = self._publish_request_queue.shift();
+        const publishData = self._publish_request_queue.shift();
         self.send_response_for_request(publishData, response);
     }
 
@@ -427,13 +427,13 @@ ServerSidePublishEngine.prototype.send_notification_message = function (param, f
 ServerSidePublishEngine.prototype._process_pending_publish_response = function (publishData) {
 
     _assertValidPublishData(publishData);
-    var self = this;
+    const self = this;
     if (self._publish_response_queue.length === 0) {
         // no pending response to send
         return false;
     }
     assert(self._publish_request_queue.length === 0);
-    var response = self._publish_response_queue.shift();
+    const response = self._publish_response_queue.shift();
 
     self.send_response_for_request(publishData, response);
     return true;
@@ -453,7 +453,7 @@ ServerSidePublishEngine.prototype.send_response_for_request = function (publishD
  */
 ServerSidePublishEngine.prototype.add_subscription = function (subscription) {
 
-    var self = this;
+    const self = this;
 
     assert(subscription instanceof Subscription);
     assert(_.isFinite(subscription.id));
@@ -468,7 +468,7 @@ ServerSidePublishEngine.prototype.add_subscription = function (subscription) {
 };
 
 ServerSidePublishEngine.prototype.detach_subscription = function (subscription) {
-    var self = this;
+    const self = this;
     assert(subscription instanceof Subscription);
     assert(_.isFinite(subscription.id));
     assert(subscription.publishEngine === self);
@@ -488,7 +488,7 @@ ServerSidePublishEngine.prototype.detach_subscription = function (subscription) 
 ServerSidePublishEngine.prototype.shutdown = function () {
 
 
-    var self = this;
+    const self = this;
     assert(self.subscriptionCount === 0, "subscription shall be removed first before you can shutdown a publish engine");
 
     debugLog("ServerSidePublishEngine#shutdown");
@@ -529,7 +529,7 @@ ServerSidePublishEngine.prototype.__defineGetter__("pendingClosedSubscriptionCou
 
 ServerSidePublishEngine.prototype.__defineGetter__("currentMonitoredItemCount", function () {
 
-    var result = _.reduce(this._subscriptions, function (cumul, subscription) {
+    const result = _.reduce(this._subscriptions, function (cumul, subscription) {
         return cumul + subscription.monitoredItemCount;
     }, 0);
     assert(_.isFinite(result));
@@ -537,7 +537,7 @@ ServerSidePublishEngine.prototype.__defineGetter__("currentMonitoredItemCount", 
 });
 
 ServerSidePublishEngine.prototype.on_close_subscription = function (subscription) {
-    var self = this;
+    const self = this;
     debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
     assert(self._subscriptions.hasOwnProperty(subscription.id));
     assert(subscription.publishEngine === self,"subscription must belong to this ServerSidePublishEngine");
@@ -574,7 +574,7 @@ ServerSidePublishEngine.prototype.getSubscriptionById = function (subscriptionId
 
 ServerSidePublishEngine.prototype.findSubscriptionWaitingForFirstPublish = function () {
     // find all subscriptions that are late and sort them by urgency
-    var subscriptions_waiting_for_first_reply = _.filter(this._subscriptions, function (subscription) {
+    let subscriptions_waiting_for_first_reply = _.filter(this._subscriptions, function (subscription) {
         return !subscription.messageSent && subscription.state === SubscriptionState.LATE;
     });
 
@@ -607,7 +607,7 @@ ServerSidePublishEngine.prototype.__defineGetter__("hasLateSubscriptions", funct
 
 ServerSidePublishEngine.prototype.findLateSubscriptionSortedByPriority = function () {
 
-    var late_subscriptions = this.findLateSubscriptions();
+    const late_subscriptions = this.findLateSubscriptions();
     if (late_subscriptions.length === 0) {
         return null;
     }
@@ -628,7 +628,7 @@ ServerSidePublishEngine.prototype.findLateSubscriptionSortedByPriority = functio
 
 ServerSidePublishEngine.prototype.findLateSubscriptionsSortedByAge = function () {
 
-    var late_subscriptions = this.findLateSubscriptions();
+    let late_subscriptions = this.findLateSubscriptions();
     late_subscriptions = _(late_subscriptions).sortBy("timeToExpiration");
 
     return late_subscriptions;
@@ -645,7 +645,7 @@ ServerSidePublishEngine.prototype.findLateSubscriptionsSortedByAge = function ()
  */
 ServerSidePublishEngine.transferSubscription= function (subscription, destPublishEngine, sendInitialValues) {
 
-    var srcPublishEngine = subscription.publishEngine;
+    const srcPublishEngine = subscription.publishEngine;
 
     assert(!destPublishEngine.getSubscriptionById(subscription.id));
     assert(srcPublishEngine.getSubscriptionById(subscription.id));
@@ -677,7 +677,7 @@ ServerSidePublishEngine.transferSubscription= function (subscription, destPublis
 ServerSidePublishEngine.transferSubscriptionsToOrphan = function (srcPublishEngine, destPublishEngine) {
 
     debugLog("ServerSidePublishEngine#transferSubscriptionsToOrphan! start transferring long live subscriptions to orphan".yellow);
-    var tmp = srcPublishEngine._subscriptions;
+    const tmp = srcPublishEngine._subscriptions;
     _.forEach(tmp, function (subscription) {
         assert(subscription.publishEngine === srcPublishEngine);
 

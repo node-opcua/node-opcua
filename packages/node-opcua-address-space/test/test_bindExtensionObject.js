@@ -1,27 +1,27 @@
 /* global describe,it,before*/
 
 "use strict";
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var UADataType = require("../src/ua_data_type").UADataType;
-var UAVariable = require("../src/ua_variable").UAVariable;
-var Variant = require("node-opcua-variant").Variant;
-var DataValue = require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
-var SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
-var ServerState = require("node-opcua-common").ServerState;
+const UADataType = require("../src/ua_data_type").UADataType;
+const UAVariable = require("../src/ua_variable").UAVariable;
+const Variant = require("node-opcua-variant").Variant;
+const DataValue = require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const ServerState = require("node-opcua-common").ServerState;
 
-var eoan = require("../src/extension_object_array_node");
+const eoan = require("../src/extension_object_array_node");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
 describe("Extension Object binding and sub  components\n", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
@@ -41,15 +41,15 @@ describe("Extension Object binding and sub  components\n", function () {
 
         it("ZZ1 - should handle a Variable containing a ServiceCounter", function () {
 
-            var rootFolder = addressSpace.findNode("RootFolder");
+            const rootFolder = addressSpace.findNode("RootFolder");
 
-            var serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType");
+            const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType");
             serviceCounterDataType.browseName.toString().should.eql("ServiceCounterDataType");
-            var baseVariableType = addressSpace.findVariableType("BaseVariableType");
+            const baseVariableType = addressSpace.findVariableType("BaseVariableType");
             baseVariableType.browseName.toString().should.eql("BaseVariableType");
 
-            var counter = 1;
-            var extensionObjectVar = baseVariableType.instantiate({
+            const counter = 1;
+            const extensionObjectVar = baseVariableType.instantiate({
                 browseName: "VariableWithExtensionObject" + counter,
                 dataType: serviceCounterDataType.nodeId,
                 organizedBy: rootFolder.objects,
@@ -66,7 +66,7 @@ describe("Extension Object binding and sub  components\n", function () {
             extensionObjectVar.totalCount.readValue().value.dataType.should.eql(DataType.UInt32);
             extensionObjectVar.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
 
-            var extensionObject = extensionObjectVar.bindExtensionObject();
+            const extensionObject = extensionObjectVar.bindExtensionObject();
             extensionObject.constructor.name.should.eql("ServiceCounter");
 
             // ------------------ Changing extension object value should reflects in node Value
@@ -80,8 +80,8 @@ describe("Extension Object binding and sub  components\n", function () {
             extensionObjectVar.totalCount.readValue().value.value.should.eql(3);
             extensionObject.totalCount = 0;
 
-            var spy_on_ServerCounter_value_changed = sinon.spy();
-            var spy_on_ServerCounter_TotalCount_value_changed = sinon.spy();
+            const spy_on_ServerCounter_value_changed = sinon.spy();
+            const spy_on_ServerCounter_TotalCount_value_changed = sinon.spy();
 
             extensionObjectVar.on("value_changed", spy_on_ServerCounter_value_changed);
             extensionObjectVar.totalCount.on("value_changed", spy_on_ServerCounter_TotalCount_value_changed);
@@ -94,16 +94,16 @@ describe("Extension Object binding and sub  components\n", function () {
 
         it("ZZ2 - should handle a Variable containing a ServerStatus", function () {
 
-            var rootFolder = addressSpace.findNode("RootFolder");
+            const rootFolder = addressSpace.findNode("RootFolder");
 
-            var serverStatusDataType = addressSpace.findDataType("ServerStatusDataType");
+            const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType");
             serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
 
-            var serverStatusType = addressSpace.findVariableType("ServerStatusType");
+            const serverStatusType = addressSpace.findVariableType("ServerStatusType");
             serverStatusType.browseName.toString().should.eql("ServerStatusType");
 
-            var counter = 1;
-            var extensionObjectVar = serverStatusType.instantiate({
+            const counter = 1;
+            const extensionObjectVar = serverStatusType.instantiate({
                 browseName: "ServerStatusType" + counter,
                 dataType: serverStatusDataType.nodeId,
                 organizedBy: rootFolder.objects,
@@ -112,13 +112,13 @@ describe("Extension Object binding and sub  components\n", function () {
 
             extensionObjectVar.minimumSamplingInterval.should.eql(0);
 
-            var extensionObject = extensionObjectVar.bindExtensionObject();
+            const extensionObject = extensionObjectVar.bindExtensionObject();
             extensionObject.constructor.name.should.eql("ServerStatus");
 
-            var spy_on_ServerStatus_value_changed = sinon.spy();
-            var spy_on_ServerStatus_BuildInfo_value_changed = sinon.spy();
-            var spy_on_ServerStatus_StartTime_value_changed = sinon.spy();
-            var spy_on_ServerStatus_State_value_changed = sinon.spy();
+            const spy_on_ServerStatus_value_changed = sinon.spy();
+            const spy_on_ServerStatus_BuildInfo_value_changed = sinon.spy();
+            const spy_on_ServerStatus_StartTime_value_changed = sinon.spy();
+            const spy_on_ServerStatus_State_value_changed = sinon.spy();
 
             extensionObjectVar.on("value_changed", spy_on_ServerStatus_value_changed);
             extensionObjectVar.buildInfo.on("value_changed", spy_on_ServerStatus_BuildInfo_value_changed);
@@ -149,16 +149,16 @@ describe("Extension Object binding and sub  components\n", function () {
 
         it("ZZ3 - should handle a Variable containing a SessionDiagnostic", function () {
 
-            var rootFolder = addressSpace.findNode("RootFolder");
+            const rootFolder = addressSpace.findNode("RootFolder");
 
-            var sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType");
+            const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType");
             sessionDiagnosticsDataType.browseName.toString().should.eql("SessionDiagnosticsDataType");
 
-            var sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType");
+            const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType");
             sessionDiagnosticsVariableType.browseName.toString().should.eql("SessionDiagnosticsVariableType");
 
-            var counter = 1;
-            var extensionObjectVar = sessionDiagnosticsVariableType.instantiate({
+            const counter = 1;
+            const extensionObjectVar = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics" + counter,
                 dataType: sessionDiagnosticsDataType.nodeId,
                 organizedBy: rootFolder.objects,
@@ -175,12 +175,12 @@ describe("Extension Object binding and sub  components\n", function () {
             extensionObjectVar.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
 
 
-            var extensionObject = extensionObjectVar.bindExtensionObject();
+            const extensionObject = extensionObjectVar.bindExtensionObject();
             extensionObject.constructor.name.should.eql("SessionDiagnostics");
 
-            var spy_on_SessionDiagnostics_value_changed = sinon.spy();
-            var spy_on_SessionDiagnostics_TotalRequestCount_value_changed = sinon.spy();
-            var spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed = sinon.spy();
+            const spy_on_SessionDiagnostics_value_changed = sinon.spy();
+            const spy_on_SessionDiagnostics_TotalRequestCount_value_changed = sinon.spy();
+            const spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed = sinon.spy();
 
             extensionObjectVar.on("value_changed", spy_on_SessionDiagnostics_value_changed);
             extensionObjectVar.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
@@ -214,21 +214,17 @@ describe("Extension Object binding and sub  components\n", function () {
 
     describe("should be possible to bind an Extension Object properties with variable node properties", function () {
 
-        var _sessionDiagnostics, sessionDiagnostics;
+        let _sessionDiagnostics, sessionDiagnostics;
 
-        var spy_on_sessionDiagnostics_value_changed,
-            spy_on_sessionDiagnostics_totalRequestCount_value_changed,
-            spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed,
-            spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed,
-            spy_on_sessionDiagnostics_clientDescription_value_changed;
+        let spy_on_sessionDiagnostics_value_changed, spy_on_sessionDiagnostics_totalRequestCount_value_changed, spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed, spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed, spy_on_sessionDiagnostics_clientDescription_value_changed;
 
-        var counter = 0;
+        let counter = 0;
 
         beforeEach(function () {
-            var rootFolder = addressSpace.findNode("RootFolder");
+            const rootFolder = addressSpace.findNode("RootFolder");
 
-            var sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType");
-            var sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType");
+            const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType");
+            const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType");
 
             // the extension object
             //xx _sessionDiagnostics = addressSpace.constructExtensionObject(sessionDiagnosticsDataType, {});
@@ -272,10 +268,10 @@ describe("Extension Object binding and sub  components\n", function () {
         });
 
         it("ZA1- a ExtensionObject variable should have the expected dataType node", function () {
-            var dataTypeNode = sessionDiagnostics.getDataTypeNode();
+            const dataTypeNode = sessionDiagnostics.getDataTypeNode();
 
             dataTypeNode.browseName.toString().should.eql("SessionDiagnosticsDataType");
-            var structure = addressSpace.findDataType("Structure");
+            const structure = addressSpace.findDataType("Structure");
             dataTypeNode.isSupertypeOf(structure).should.eql(true);
             dataTypeNode.definition.map(function (x) {
                 return x.name
@@ -335,7 +331,7 @@ describe("Extension Object binding and sub  components\n", function () {
 
             spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
-            var someClientDescription = /* new ApplicationDescription( */{
+            const someClientDescription = /* new ApplicationDescription( */{
                 /* ApplicationDescription */
                 applicationUri: "applicationUri-1"
             }/*)*/;
@@ -355,7 +351,7 @@ describe("Extension Object binding and sub  components\n", function () {
             spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
             spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-            var eo = sessionDiagnostics.constructExtensionObjectFromComponents();
+            const eo = sessionDiagnostics.constructExtensionObjectFromComponents();
             eo.clientDescription.applicationUri.should.eql("applicationUri-1");
 
             //xx console.log(eo.toString());
@@ -374,7 +370,7 @@ describe("Extension Object binding and sub  components\n", function () {
             _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
 
-            var totalRequestCount = /* new Counter( */{
+            const totalRequestCount = /* new Counter( */{
                 totalCount: 130,
                 errorCount: 25
             };

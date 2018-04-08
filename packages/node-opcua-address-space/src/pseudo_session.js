@@ -1,12 +1,12 @@
 "use strict";
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
-var SessionContext = require("./session_context").SessionContext;
-var DataValue = require("node-opcua-data-value").DataValue;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
+const SessionContext = require("./session_context").SessionContext;
+const DataValue = require("node-opcua-data-value").DataValue;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var _ = require("underscore");
+const _ = require("underscore");
 
 /**
  * Pseudo session is an helper object that exposes the same async methods
@@ -26,17 +26,17 @@ function PseudoSession(addressSpace) {
 
 PseudoSession.prototype.browse = function (nodesToBrowse, callback) {
 
-    var isArray = _.isArray(nodesToBrowse);
+    const isArray = _.isArray(nodesToBrowse);
     if (!isArray) {
         nodesToBrowse = [nodesToBrowse];
     }
-    var self = this;
-    var results = [];
+    const self = this;
+    const results = [];
     nodesToBrowse.forEach(function (browseDescription) {
         browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId);
         browseDescription = new BrowseDescription(browseDescription);
-        var nodeId = resolveNodeId(browseDescription.nodeId);
-        var r = self.addressSpace.browseSingleNode(nodeId, browseDescription);
+        const nodeId = resolveNodeId(browseDescription.nodeId);
+        const r = self.addressSpace.browseSingleNode(nodeId, browseDescription);
         results.push(r);
     });
     callback(null, isArray ? results : results[0]);
@@ -45,23 +45,23 @@ PseudoSession.prototype.browse = function (nodesToBrowse, callback) {
 
 PseudoSession.prototype.read = function (nodesToRead, callback) {
 
-    var isArray =_.isArray(nodesToRead);
+    const isArray =_.isArray(nodesToRead);
     if (!isArray) {
         nodesToRead = [nodesToRead];
     }
-    var self = this;
-    var context = new SessionContext({session: null});
-    var dataValues = nodesToRead.map(function (nodeToRead) {
+    const self = this;
+    const context = new SessionContext({session: null});
+    const dataValues = nodesToRead.map(function (nodeToRead) {
 
-        var nodeId = nodeToRead.nodeId;
-        var attributeId = nodeToRead.attributeId;
-        var indexRange = nodeToRead.indexRange;
-        var dataEncoding = nodeToRead.dataEncoding;
-        var obj = self.addressSpace.findNode(nodeId);
+        const nodeId = nodeToRead.nodeId;
+        const attributeId = nodeToRead.attributeId;
+        const indexRange = nodeToRead.indexRange;
+        const dataEncoding = nodeToRead.dataEncoding;
+        const obj = self.addressSpace.findNode(nodeId);
         if (!obj) {
             return new DataValue({statusCode: StatusCodes.BadNodeIdUnknown});
         }
-        var dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+        const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
         return dataValue;
     });
     callback(null, isArray ? dataValues : dataValues[0]);

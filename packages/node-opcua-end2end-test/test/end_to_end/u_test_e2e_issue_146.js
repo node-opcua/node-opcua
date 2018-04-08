@@ -1,18 +1,18 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var StatusCodes = opcua.StatusCodes;
-var DataType = opcua.DataType;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const StatusCodes = opcua.StatusCodes;
+const DataType = opcua.DataType;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 module.exports = function (test) {
@@ -22,10 +22,10 @@ module.exports = function (test) {
 
         it("should reopen a Anonymous Session with UserName password ",function(done) {
 
-            var client1 = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
             async.series([
 
                 function (callback) {
@@ -48,7 +48,7 @@ module.exports = function (test) {
                 function (callback) {
 
                     console.log("    impersonate user user2 on existing session");
-                    var userIdentity = {userName: "user2", password:"password2"};
+                    const userIdentity = {userName: "user2", password:"password2"};
 
                     client1.changeSessionIdentity(the_session,userIdentity,function (err) {
                         if (err) {

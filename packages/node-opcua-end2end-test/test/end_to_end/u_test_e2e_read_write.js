@@ -1,22 +1,22 @@
 "use strict";
 /*global describe, it, beforeEach, afterEach */
 
-var async = require("async");
-var should = require("should");
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const async = require("async");
+const should = require("should");
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var opcua = require("node-opcua");
-var makeNodeId = opcua.makeNodeId;
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const makeNodeId = opcua.makeNodeId;
+const OPCUAClient = opcua.OPCUAClient;
 
-var sameDataValue = opcua.sameDataValue;
+const sameDataValue = opcua.sameDataValue;
 
 module.exports = function (test) {
 
     describe("JHJ1 end-to-end testing of read and write operation on a Variable", function () {
 
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient();
@@ -29,16 +29,16 @@ module.exports = function (test) {
             done();
         });
 
-        var namespaceIndex = 411;
+        const namespaceIndex = 411;
 
 
         function test_write_read_cycle(client, dataValue, done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var nodeId = makeNodeId("Scalar_Static_Float", namespaceIndex);
+                const nodeId = makeNodeId("Scalar_Static_Float", namespaceIndex);
 
-                var nodesToWrite = [
+                const nodesToWrite = [
                     {
                         nodeId: nodeId,
                         attributeId: opcua.AttributeIds.Value,
@@ -54,7 +54,7 @@ module.exports = function (test) {
                     results.length.should.eql(1);
                     results[0].should.eql(opcua.StatusCodes.Good);
 
-                    var nodesToRead = [
+                    const nodesToRead = [
                         {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.Value,
@@ -109,7 +109,7 @@ module.exports = function (test) {
 
         it("writing dataValue case 1 - both serverTimestamp and sourceTimestamp are specified ", function (done) {
 
-            var dataValue = new opcua.DataValue({
+            const dataValue = new opcua.DataValue({
 
                 serverTimestamp: new Date(2015, 5, 2),
                 serverPicoseconds: 20,
@@ -127,7 +127,7 @@ module.exports = function (test) {
         });
         it("writing dataValue case 2 - serverTimestamp is null & sourceTimestamp is specified", function (done) {
 
-            var dataValue = new opcua.DataValue({
+            const dataValue = new opcua.DataValue({
 
                 serverTimestamp: null,
                 serverPicoseconds: 0,
@@ -146,7 +146,7 @@ module.exports = function (test) {
         });
         it("writing dataValue case 3 - serverTimestamp is null & sourceTimestamp is null ", function (done) {
 
-            var dataValue = new opcua.DataValue({
+            const dataValue = new opcua.DataValue({
                 serverTimestamp: null,
                 serverPicoseconds: 0,
                 sourceTimestamp: null,
@@ -162,9 +162,9 @@ module.exports = function (test) {
 
         it("ZZZ reading ns=411;s=Scalar_Static_Int16 ", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                var nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
+                const nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
 
-                var nodesToRead = [
+                const nodesToRead = [
                     {
                         nodeId: nodeId,
                         attributeId: opcua.AttributeIds.Value,
@@ -173,11 +173,11 @@ module.exports = function (test) {
                     }
                 ];
 
-                var maxAge = 10;
+                const maxAge = 10;
 
                 async.series([
                     function (callback) {
-                        var request = new opcua.read_service.ReadRequest({
+                        const request = new opcua.read_service.ReadRequest({
                             nodesToRead: nodesToRead,
                             maxAge: maxAge,
                             timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
@@ -190,7 +190,7 @@ module.exports = function (test) {
 
                     },
                     function (callback) {
-                        var request = new opcua.read_service.ReadRequest({
+                        const request = new opcua.read_service.ReadRequest({
                             nodesToRead: nodesToRead,
                             maxAge: maxAge,
                             timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
@@ -204,7 +204,7 @@ module.exports = function (test) {
                     },
                     function (callback) {
 
-                        var request = new opcua.read_service.ReadRequest({
+                        const request = new opcua.read_service.ReadRequest({
                             nodesToRead: nodesToRead,
                             maxAge: maxAge,
                             timestampsToReturn: opcua.read_service.TimestampsToReturn.Server
@@ -229,9 +229,9 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                    var nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
+                    const nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
 
-                    var nodeToRead =  {
+                    const nodeToRead =  {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.Value,
                             indexRange: null,
@@ -250,8 +250,8 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                    var nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
-                    var nodeToRead = {
+                    const nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
+                    const nodeToRead = {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.Value,
                             indexRange: null,
@@ -265,12 +265,12 @@ module.exports = function (test) {
 
                         //xx console.log(results[0].toString());
 
-                        var variant = dataValue.value;
+                        const variant = dataValue.value;
                         variant.value[1] = 2;
                         variant.value[3] = 2;
                         variant.value[4] = 2;
                         //xx console.log(results[0].toString());
-                        var nodesToWrite = [
+                        const nodesToWrite = [
                             {
                                 nodeId: nodeId,
                                 attributeId: opcua.AttributeIds.Value,

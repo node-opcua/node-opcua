@@ -2,12 +2,12 @@
  * @module opcua.server
  */
 
-var crypto = require("crypto");
-var assert = require("node-opcua-assert");
+const crypto = require("crypto");
+const assert = require("node-opcua-assert");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var counter = 0;
+let counter = 0;
 function make_key() {
     // return crypto.randomBytes(32);
     counter += 1;
@@ -28,20 +28,20 @@ ContinuationPointManager.prototype.register = function (maxElements, values) {
         };
     }
 
-    var key = make_key();
-    var keyHash = key.toString("ascii");
+    const key = make_key();
+    const keyHash = key.toString("ascii");
 
     // split the array in two ( values)
-    var current_block = values.splice(0, maxElements);
+    const current_block = values.splice(0, maxElements);
 
-    var result = {
+    const result = {
         statusCode: StatusCodes.Good,
         continuationPoint: key,
         references: current_block
     };
 
     // create
-    var data = {
+    const data = {
         maxElements: maxElements,
         remainingElements: values
     };
@@ -55,17 +55,17 @@ ContinuationPointManager.prototype.getNext = function (continuationPoint) {
     if (!continuationPoint) {
         return {statusCode: StatusCodes.BadContinuationPointInvalid};
     }
-    var keyHash = continuationPoint.toString("ascii");
+    const keyHash = continuationPoint.toString("ascii");
 
-    var data = this._map[keyHash];
+    const data = this._map[keyHash];
     if (!data) {
         return {statusCode: StatusCodes.BadContinuationPointInvalid};
     }
     assert(data.maxElements > 0);
     // split the array in two ( values)
-    var current_block = data.remainingElements.splice(0, data.maxElements);
+    const current_block = data.remainingElements.splice(0, data.maxElements);
 
-    var result = {
+    const result = {
         statusCode: StatusCodes.Good,
         continuationPoint: data.remainingElements.length ? continuationPoint : null,
         references: current_block
@@ -77,7 +77,7 @@ ContinuationPointManager.prototype.getNext = function (continuationPoint) {
     return result;
 };
 
-var nullBuffer = new Buffer(0);
+const nullBuffer = new Buffer(0);
 
 ContinuationPointManager.prototype.cancel = function (continuationPoint) {
 
@@ -85,9 +85,9 @@ ContinuationPointManager.prototype.cancel = function (continuationPoint) {
         return {statusCode: StatusCodes.BadContinuationPointInvalid};
     }
 
-    var keyHash = continuationPoint.toString("ascii");
+    const keyHash = continuationPoint.toString("ascii");
 
-    var data = this._map[keyHash];
+    const data = this._map[keyHash];
     if (!data) {
         return {
             statusCode: StatusCodes.BadContinuationPointInvalid,

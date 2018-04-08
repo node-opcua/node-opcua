@@ -3,19 +3,19 @@
  * @module opcua.miscellaneous
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var ec = require("node-opcua-basic-types");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const ec = require("node-opcua-basic-types");
 
-var SequenceNumberGenerator = require("./sequence_number_generator").SequenceNumberGenerator;
+const SequenceNumberGenerator = require("./sequence_number_generator").SequenceNumberGenerator;
 
 
-var AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
-var SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
+const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
+const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
 
-var SecureMessageChunkManager = require("./secure_message_chunk_manager").SecureMessageChunkManager;
+const SecureMessageChunkManager = require("./secure_message_chunk_manager").SecureMessageChunkManager;
 
 /**
  * @class MessageChunker
@@ -77,22 +77,22 @@ MessageChunker.prototype.chunkSecureMessage = function (msgType, options, messag
     assert(_.isFunction(messageChunkCallback));
 
     // calculate message size ( with its  encodingDefaultBinary)
-    var binSize = message.binaryStoreSize() + 4;
+    const binSize = message.binaryStoreSize() + 4;
     
-    var stream = new BinaryStream(binSize);
+    const stream = new BinaryStream(binSize);
     this._stream = stream;
 
     ec.encodeExpandedNodeId(message.encodingDefaultBinary, stream);
     message.encode(stream);
 
-    var securityHeader;
+    let securityHeader;
     if (msgType === "OPN") {
         securityHeader = this.securityHeader;
     } else {
         securityHeader = new SymmetricAlgorithmSecurityHeader({tokenId: options.tokenId});
     }
 
-    var secure_chunker = new SecureMessageChunkManager(
+    const secure_chunker = new SecureMessageChunkManager(
         msgType, options, securityHeader, this.sequenceNumberGenerator
     )
         .on("chunk", function (messageChunk) {

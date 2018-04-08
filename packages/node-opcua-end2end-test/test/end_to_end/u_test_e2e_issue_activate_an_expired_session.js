@@ -1,12 +1,12 @@
 /*global describe, it, require*/
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
 
-var sessionLiveTime = 3 *1000;
-var doDebug = false;
+const sessionLiveTime = 3 *1000;
+const doDebug = false;
 
 /**
  * open a opcua connect, create a session , and disconnet, without closing the session
@@ -17,8 +17,8 @@ var doDebug = false;
  * @param callback.session
  */
 function create_a_pending_session(endpointUrl, callback) {
-    var the_session = null;
-    var client1 = new OPCUAClient({
+    let the_session = null;
+    const client1 = new OPCUAClient({
         requestedSessionTimeout: sessionLiveTime,
         keepPendingSessionsOnDisconnect: true,
     });
@@ -55,8 +55,8 @@ function create_a_pending_session(endpointUrl, callback) {
 }
 
 function reactivate_existing_session(endpointUrl, session, callback) {
-    var client1 = new OPCUAClient({});
-    var the_session;
+    const client1 = new OPCUAClient({});
+    let the_session;
     async.series([
         function (callback) {
             client1.connect(endpointUrl, callback);
@@ -90,9 +90,9 @@ module.exports = function (test) {
         it("XKL1 should be possible to re activate a active session not closed by a previous connection", function (done) {
 
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
             async.series([
 
                 function (callback) {
@@ -114,9 +114,9 @@ module.exports = function (test) {
         it("XKL2 should NOT be possible to re activate a  session not closed by a previous connection that has expired", function (done) {
 
 
-            var endpointUrl = test.endpointUrl;
-            var the_session;
-            var client1 = new OPCUAClient({});
+            const endpointUrl = test.endpointUrl;
+            let the_session;
+            const client1 = new OPCUAClient({});
 
             async.series([
 

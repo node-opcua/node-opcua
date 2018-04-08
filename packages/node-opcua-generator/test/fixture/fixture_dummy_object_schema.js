@@ -1,10 +1,10 @@
 require("node-opcua-basic-types");
-var registerObject = require("../..").registerObject;
-var registerEnumeration = require("node-opcua-factory").registerEnumeration;
-var next_available_id = require("node-opcua-factory").next_available_id;
+const registerObject = require("../..").registerObject;
+const registerEnumeration = require("node-opcua-factory").registerEnumeration;
+const next_available_id = require("node-opcua-factory").next_available_id;
 
 
-var SomeEnumeration = registerEnumeration({
+const SomeEnumeration = registerEnumeration({
     name: "SomeEnumeration",
     enumValues: {
         CIRCLE: 1,
@@ -16,7 +16,7 @@ var SomeEnumeration = registerEnumeration({
 exports.SomeEnumeration = SomeEnumeration;
 
 // -----------------------------------------------------
-var FooBar_Schema = {
+const FooBar_Schema = {
     name: "FooBar",
     documentation: "A FOOBAR Object.",
 
@@ -26,13 +26,13 @@ var FooBar_Schema = {
     ]
 };
 
-var path = require("path");
-var temporary_folder = path.join(__dirname,"../..","_test_generated");
+const path = require("path");
+const temporary_folder = path.join(__dirname,"../..","_test_generated");
 
 exports.FooBar_Schema = FooBar_Schema;
 exports.FooBar = registerObject(FooBar_Schema, temporary_folder);
 
-var FooBarDerived_Schema = {
+const FooBarDerived_Schema = {
     name: "FooBarDerived",
     documentation: "A FOOBAR Derived Object.",
     baseType: "FooBar",
@@ -45,7 +45,7 @@ exports.FooBarDerived_Schema = FooBarDerived_Schema;
 exports.FooBarDerived = registerObject(FooBarDerived_Schema, temporary_folder);
 
 
-var DummyObject_Schema = {
+const DummyObject_Schema = {
     name: "DummyObject",
     documentation: "A dummy Object.",
 

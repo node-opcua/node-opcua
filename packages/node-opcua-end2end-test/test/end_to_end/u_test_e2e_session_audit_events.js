@@ -1,12 +1,12 @@
 "use strict";
 /*global describe, it, require*/
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
-var sinon = require("sinon");
+const sinon = require("sinon");
 
 module.exports = function (test) {
     
@@ -45,36 +45,36 @@ module.exports = function (test) {
         // For Clients, that support auditing, accessing the services in the Session Service Set shall generate
         // audit entries for both successful and failed invocations of the Service. These audit entries should be
         // setup prior to the actual Service invocation, allowing the invocation to contain the correct audit record id.
-        var AuditSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditSessionEventType").toString();
-        var AuditCreateSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditCreateSessionEventType").toString();
-        var AuditActivateSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditActivateSessionEventType").toString();
-        var AuditChannelEventTypeNodeIdString = opcua.resolveNodeId("AuditChannelEventType").toString();
-        var GeneralModelChangeEventTypeNodeIdString = opcua.resolveNodeId("GeneralModelChangeEventType").toString();
+        const AuditSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditSessionEventType").toString();
+        const AuditCreateSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditCreateSessionEventType").toString();
+        const AuditActivateSessionEventTypeNodeIdString = opcua.resolveNodeId("AuditActivateSessionEventType").toString();
+        const AuditChannelEventTypeNodeIdString = opcua.resolveNodeId("AuditChannelEventType").toString();
+        const GeneralModelChangeEventTypeNodeIdString = opcua.resolveNodeId("GeneralModelChangeEventType").toString();
 
-        var auditing_client = null;
-        var auditing_session = null;
-        var auditing_subscription = null;
-        var auditing_monitoredItem = null;
-        var isAuditing = false;
+        let auditing_client = null;
+        let auditing_session = null;
+        let auditing_subscription = null;
+        let auditing_monitoredItem = null;
+        let isAuditing = false;
 
-        var events_received = [];
+        let events_received = [];
         function resetEventLog() {
             events_received = [];
         }
-        var fields = ["EventType",  "SourceName", "EventId", "ReceiveTime", "Severity", "Message" , "SessionId"];
+        const fields = ["EventType",  "SourceName", "EventId", "ReceiveTime", "Severity", "Message" , "SessionId"];
         function w(str,l) {
             return (str+ Array(30).join(" ")).substr(0,l);
         }
 
         function recordEvent(eventFields) {
 
-            var e = {}
+            const e = {};
             eventFields.forEach(function(eventField,index) {
                 e[fields[index]] = eventField;
             });
 
             Object.keys(e).forEach(function(key)  {
-                var value = e[key];
+                const value = e[key];
                 //xx console.log(w(key,20).yellow,value.toString());
                 //,w(eventField.dataType.toString(),15).cyan,eventField.value.toString());
             });
@@ -82,7 +82,7 @@ module.exports = function (test) {
 
             events_received.push(e);
         }
-        var previous_isAuditing;
+        let previous_isAuditing;
 
         beforeEach(function() {resetEventLog();});
 
@@ -98,7 +98,7 @@ module.exports = function (test) {
                 test.nb_backgroundsession+=1;
             }
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
             auditing_client = new OPCUAClient({keepSessionAlive: true});
 
@@ -129,14 +129,14 @@ module.exports = function (test) {
                 // monitor
                 function (callback) {
 
-                    var eventFilter = opcua.constructEventFilter(fields);
+                    const eventFilter = opcua.constructEventFilter(fields);
 
-                    var itemToMonitor = {
+                    const itemToMonitor = {
                         nodeId: opcua.resolveNodeId("Server"),
                         attributeId: opcua.AttributeIds.EventNotifier // << EventNotifier
                     };
 
-                    var requestedParameters = {
+                    const requestedParameters = {
                         samplingInterval: 50,
                         discardOldest: true,
                         queueSize: 10,
@@ -151,7 +151,7 @@ module.exports = function (test) {
                 },
                 // attempt to set auditing flag
                 function (callback) {
-                    var nodesToWrite = [
+                    const nodesToWrite = [
                         {
                             nodeId: opcua.VariableIds.Server_Auditing,
                             attributeId: opcua.AttributeIds.Value,
@@ -172,7 +172,7 @@ module.exports = function (test) {
                 },
                 // read auditing Flag
                 function(callback){
-                    var nodeToRead = {
+                    const nodeToRead = {
                         nodeId: opcua.VariableIds.Server_Auditing,
                         attributeId: opcua.AttributeIds.Value
                     };
@@ -216,12 +216,12 @@ module.exports = function (test) {
 
         it("EdgeCase Session Timeout: server should raise a Session/CreateSession, Session/ActivateSession , Session/Timeout", function (done) {
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 keepSessionAlive: false
             });
 
-            var endpointUrl = test.endpointUrl;
-            var the_session;
+            const endpointUrl = test.endpointUrl;
+            let the_session;
 
             async.series([
                 function (callback) {
@@ -305,15 +305,15 @@ module.exports = function (test) {
         });
         it("NominalCase: server should raise a Session/CreateSession, Session/ActivateSession , Session/CloseSession", function (done) {
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 keepSessionAlive: true
             });
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
-            var keepalive_spy = sinon.spy();
+            const keepalive_spy = sinon.spy();
 
             async.series([
                 function (callback) {

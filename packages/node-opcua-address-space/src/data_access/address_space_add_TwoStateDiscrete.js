@@ -1,12 +1,12 @@
 
-var assert = require("node-opcua-assert");
-var address_space = require("../address_space");
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const assert = require("node-opcua-assert");
+const address_space = require("../address_space");
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
-var add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
+const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
 
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 module.exports.install = function(AddressSpace) {
 
@@ -22,17 +22,17 @@ module.exports.install = function(AddressSpace) {
      */
     AddressSpace.prototype.addTwoStateDiscrete = function(options) {
 
-        var addressSpace = this;
+        const addressSpace = this;
 
         assert(!options.hasOwnProperty("ValuePrecision"));
 
-        var twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
+        const twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
         assert(twoStateDiscreteType, "expecting TwoStateDiscreteType to be defined , check nodeset xml file");
 
 
         // todo : if options.typeDefinition is specified,
 
-        var variable = addressSpace.addVariable({
+        const variable = addressSpace.addVariable({
             componentOf:     options.componentOf,
             browseName:      options.browseName,
             nodeId:          options.nodeId,
@@ -43,11 +43,11 @@ module.exports.install = function(AddressSpace) {
             value: new Variant({dataType: DataType.Boolean, value: !!options.value})
         });
 
-        var handler = variable.handle_semantic_changed.bind(variable);
+        const handler = variable.handle_semantic_changed.bind(variable);
 
         add_dataItem_stuff(variable, options);
 
-        var trueStateNode = addressSpace.addVariable({
+        const trueStateNode = addressSpace.addVariable({
             propertyOf:        variable,
             typeDefinition:   "PropertyType",
             browseName:       "TrueState",
@@ -60,7 +60,7 @@ module.exports.install = function(AddressSpace) {
 
         trueStateNode.on("value_changed",handler);
 
-        var falseStateNode = addressSpace.addVariable({
+        const falseStateNode = addressSpace.addVariable({
             propertyOf:       variable,
             typeDefinition:   "PropertyType",
             browseName:       "FalseState",

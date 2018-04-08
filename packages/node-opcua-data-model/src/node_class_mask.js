@@ -1,4 +1,4 @@
-var Enum = require("node-opcua-enum");
+const Enum = require("node-opcua-enum");
 
 // Specifies the NodeClasses of the TargetNodes. Only TargetNodes with the
 // selected NodeClasses are returned. The NodeClasses are assigned the
@@ -8,7 +8,7 @@ var Enum = require("node-opcua-enum");
 //    var mask = NodeClassMask.get("Object |  ObjectType");
 //    mask.value.should.eql(1 + (1<<3));
 
-var NodeClassMask = new Enum({
+const NodeClassMask = new Enum({
     "Object": (1 << 0),
     "Variable": (1 << 1),
     "Method": (1 << 2),
@@ -22,7 +22,7 @@ exports.NodeClassMask = NodeClassMask;
 // @example
 //      makeNodeClassMask("Method | Object").should.eql(5);
 exports.makeNodeClassMask = function (str) {
-    var classMask = NodeClassMask.get(str);
+    const classMask = NodeClassMask.get(str);
     /* istanbul ignore next */
     if (!classMask) {
         throw new Error(" cannot find class mask for " + str);

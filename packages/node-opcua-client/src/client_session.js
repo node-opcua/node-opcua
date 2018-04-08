@@ -4,49 +4,49 @@
  * @module opcua.client
  */
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var DataValue = require("node-opcua-data-value").DataValue;
+const DataValue = require("node-opcua-data-value").DataValue;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var makeResultMask = require("node-opcua-data-model").makeResultMask;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-var makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const makeResultMask = require("node-opcua-data-model").makeResultMask;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
 
-var subscription_service = require("node-opcua-service-subscription");
-var read_service = require("node-opcua-service-read");
-var historizing_service = require("node-opcua-service-history");
-var browse_service = require("node-opcua-service-browse");
-var write_service = require("node-opcua-service-write");
-var utils = require("node-opcua-utils");
-var call_service = require("node-opcua-service-call");
+const subscription_service = require("node-opcua-service-subscription");
+const read_service = require("node-opcua-service-read");
+const historizing_service = require("node-opcua-service-history");
+const browse_service = require("node-opcua-service-browse");
+const write_service = require("node-opcua-service-write");
+const utils = require("node-opcua-utils");
+const call_service = require("node-opcua-service-call");
 
-var BrowseResult = require("node-opcua-service-browse").BrowseResult;
+const BrowseResult = require("node-opcua-service-browse").BrowseResult;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
-var helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 
-var getFunctionParameterNames = require("node-opcua-utils").getFunctionParameterNames;
+const getFunctionParameterNames = require("node-opcua-utils").getFunctionParameterNames;
 
 /**
  * @class ClientSession
  * @param client {OPCUAClient}
  * @constructor
  */
-var ClientSession = function (client) {
+const ClientSession = function (client) {
     this._closeEventHasBeenEmmitted = false;
     this._client = client;
     this._publishEngine = null;
@@ -62,7 +62,7 @@ ClientSession.prototype.getPublishEngine = function () {
 
     if (!this._publishEngine) {
 
-        var ClientSidePublishEngine = require("../src/client_publish_engine").ClientSidePublishEngine;
+        const ClientSidePublishEngine = require("../src/client_publish_engine").ClientSidePublishEngine;
         this._publishEngine = new ClientSidePublishEngine(this);
     }
 
@@ -168,27 +168,27 @@ function coerceBrowseDescription(data) {
  */
 ClientSession.prototype.browse = function (nodesToBrowse, callback) {
 
-    var self = this;
+    const self = this;
 
     self.requestedMaxReferencesPerNode = self.requestedMaxReferencesPerNode || 10000;
     assert(_.isFinite(self.requestedMaxReferencesPerNode));
     assert(_.isFunction(callback));
 
-    var isArray = _.isArray(nodesToBrowse);
+    const isArray = _.isArray(nodesToBrowse);
     if (!isArray) {
         nodesToBrowse = [nodesToBrowse];
      }
 
     var nodesToBrowse = nodesToBrowse.map(coerceBrowseDescription);
 
-    var request = new browse_service.BrowseRequest({
+    const request = new browse_service.BrowseRequest({
         nodesToBrowse: nodesToBrowse,
         requestedMaxReferencesPerNode: self.requestedMaxReferencesPerNode
     });
 
     self.performMessageTransaction(request, function (err, response) {
 
-        var i, r;
+        let i, r;
 
         if (err) {
             return callback(err, response);
@@ -285,12 +285,12 @@ ClientSession.prototype.browse = function (nodesToBrowse, callback) {
  */
 ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
-    var self = this;
+    const self = this;
 
     assert(_.isFunction(callback));
 
 
-    var isArray = _.isArray(nodes);
+    const isArray = _.isArray(nodes);
     if (!isArray) {
         nodes = [nodes];
     }
@@ -311,9 +311,9 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
         }
     }
 
-    var nodesToRead = nodes.map(coerceReadValueId);
+    const nodesToRead = nodes.map(coerceReadValueId);
 
-    var request = new read_service.ReadRequest({
+    const request = new read_service.ReadRequest({
         nodesToRead: nodesToRead,
         timestampsToReturn: read_service.TimestampsToReturn.Neither
     });
@@ -334,7 +334,7 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
         response.results = response.results || [];
 
-        var results         = isArray ? response.results : response.results[0];
+        const results         = isArray ? response.results : response.results[0];
         callback(null, results);
 
     });
@@ -358,15 +358,15 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
  */
 ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
-    var isArray = _.isArray(nodes);
+    const isArray = _.isArray(nodes);
     if (!isArray) {
         nodes = [nodes];
     }
 
-    var nodesToRead = [];
-    var historyReadDetails = [];
+    const nodesToRead = [];
+    const historyReadDetails = [];
     for( const node of nodes) {
         nodesToRead.push({
             nodeId: resolveNodeId(node),
@@ -376,7 +376,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
         });
     }
 
-    var ReadRawModifiedDetails = new historizing_service.ReadRawModifiedDetails({
+    const ReadRawModifiedDetails = new historizing_service.ReadRawModifiedDetails({
         isReadModified: false,
         startTime: start,
         endTime: end,
@@ -384,7 +384,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
         returnBounds: true
     });
 
-    var request = new historizing_service.HistoryReadRequest({
+    const request = new historizing_service.HistoryReadRequest({
         nodesToRead: nodesToRead,
         historyReadDetails: ReadRawModifiedDetails,
         timestampsToReturn: read_service.TimestampsToReturn.Both,
@@ -500,9 +500,9 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  */
 ClientSession.prototype.write = function (nodesToWrite, callback) {
 
-    var self = this;
+    const self = this;
 
-    var isArray = _.isArray(nodesToWrite);
+    const isArray = _.isArray(nodesToWrite);
     if (!isArray) {
         nodesToWrite = [nodesToWrite];
     }
@@ -510,7 +510,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
     assert(_.isFunction(callback));
     assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
 
-    var request = new write_service.WriteRequest({nodesToWrite: nodesToWrite});
+    const request = new write_service.WriteRequest({nodesToWrite: nodesToWrite});
 
     self.performMessageTransaction(request, function (err, response) {
 
@@ -549,7 +549,7 @@ ClientSession.prototype.writeSingleNode = function (nodeId, value, callback) {
 
     assert(_.isFunction(callback));
 
-    var nodeToWrite = {
+    const nodeToWrite = {
         nodeId: resolveNodeId(nodeId),
         attributeId: read_service.AttributeIds.Value,
         indexRange: null,
@@ -568,25 +568,25 @@ ClientSession.prototype.writeSingleNode = function (nodeId, value, callback) {
 };
 
 
-var keys = Object.keys(read_service.AttributeIds).filter(function (k) {
+const keys = Object.keys(read_service.AttributeIds).filter(function (k) {
     return k !== "INVALID";
 });
 
 function composeResult(nodes, nodesToRead, dataValues) {
 
     assert(nodesToRead.length === dataValues.length);
-    var i = 0, c = 0;
-    var results = [];
-    var dataValue, k, nodeToRead;
+    let i = 0, c = 0;
+    const results = [];
+    let dataValue, k, nodeToRead;
 
-    for (var n = 0; n < nodes.length; n++) {
+    for (let n = 0; n < nodes.length; n++) {
 
-        var node = nodes[n];
+        const node = nodes[n];
 
 
-        var data = {};
+        const data = {};
         data.node = node;
-        var addedProperty = 0;
+        let addedProperty = 0;
 
         for (i = 0; i < keys.length; i++) {
             dataValue = dataValues[c];
@@ -643,20 +643,20 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 
     assert(_.isFunction(callback));
 
-    var isArray = _.isArray(nodes);
+    const isArray = _.isArray(nodes);
     if (!isArray) {
         nodes = [nodes];
     }
 
-    var nodesToRead = [];
+    const nodesToRead = [];
 
     for (const node of nodes) {
-        var nodeId = resolveNodeId(node);
+        const nodeId = resolveNodeId(node);
         if (!nodeId) {
             throw new Error("cannot coerce " + node + " to a valid NodeId");
         }
-        for (var i = 0; i < keys.length; i++) {
-            var attributeId = read_service.AttributeIds[keys[i]];
+        for (let i = 0; i < keys.length; i++) {
+            const attributeId = read_service.AttributeIds[keys[i]];
             nodesToRead.push({
                 nodeId: nodeId,
                 attributeId: attributeId,
@@ -668,7 +668,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 
     this.read(nodesToRead, function (err, dataValues) {
         if (err) return callback(err);
-        var results = composeResult(nodes, nodesToRead, dataValues);
+        const results = composeResult(nodes, nodesToRead, dataValues);
         callback(err, isArray ? results : results[0]);
     });
 
@@ -747,13 +747,13 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  */
 ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
 
-    var self = this;
+    const self = this;
 
     if (!callback) {
         callback = maxAge;
         maxAge = 0;
     }
-    var isArray = _.isArray(nodesToRead);
+    const isArray = _.isArray(nodesToRead);
     if (!isArray) {
         nodesToRead = [nodesToRead];
     }
@@ -780,7 +780,7 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
         node.nodeId = resolveNodeId(node.nodeId);
     }
 
-    var request = new read_service.ReadRequest({
+    const request = new read_service.ReadRequest({
         nodesToRead: nodesToRead,
         maxAge: maxAge,
         timestampsToReturn: read_service.TimestampsToReturn.Both
@@ -812,7 +812,7 @@ ClientSession.prototype.readDeprecated = function (nodesToRead, maxAge, callback
 ClientSession.prototype.emitCloseEvent = function (statusCode) {
 
 
-    var self = this;
+    const self = this;
     if (!self._closeEventHasBeenEmmitted) {
         debugLog("ClientSession#emitCloseEvent");
         self._closeEventHasBeenEmmitted = true;
@@ -822,11 +822,11 @@ ClientSession.prototype.emitCloseEvent = function (statusCode) {
 
 ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, options, callback) {
 
-    var self = this;
+    const self = this;
 
     assert(_.isFunction(callback));
 
-    var request = new SomeRequest(options);
+    const request = new SomeRequest(options);
 
     /* istanbul ignore next */
     if (doDebug) {
@@ -842,7 +842,7 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
                 // the session has been closed by Server
                 // probably due to timeout issue
                 // let's print some statistics
-                var now = new Date();
+                const now = new Date();
                 debugLog(" server send BadSessionClosed !".bgWhite.red);
                 debugLog(" timeout.................. ", self.timeout);
                 debugLog(" lastRequestSentTime...... ", new Date(self.lastRequestSentTime).toISOString(), now - self.lastRequestSentTime);
@@ -888,10 +888,10 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
  */
 ClientSession.prototype.createSubscription = function (options, callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
 
-    var request = new subscription_service.CreateSubscriptionRequest(options);
+    const request = new subscription_service.CreateSubscriptionRequest(options);
 
     self.performMessageTransaction(request, function (err, response) {
 
@@ -1052,7 +1052,7 @@ ClientSession.prototype.deleteMonitoredItems = function (options, callback) {
  */
 ClientSession.prototype.setPublishingMode = function (publishingEnabled, subscriptionIds, callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
     assert(publishingEnabled === true || publishingEnabled === false);
     if (!_.isArray(subscriptionIds)) {
@@ -1060,7 +1060,7 @@ ClientSession.prototype.setPublishingMode = function (publishingEnabled, subscri
         subscriptionIds = [subscriptionIds];
     }
 
-    var request = new subscription_service.SetPublishingModeRequest({
+    const request = new subscription_service.SetPublishingModeRequest({
         publishingEnabled: publishingEnabled,
         subscriptionIds: subscriptionIds
     });
@@ -1091,14 +1091,14 @@ ClientSession.prototype.setPublishingMode = function (publishingEnabled, subscri
  */
 ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
-    var translate_service = require("node-opcua-service-translate-browse-path");
+    const translate_service = require("node-opcua-service-translate-browse-path");
 
-    var  isArray = _.isArray(browsePath);
+    const isArray = _.isArray(browsePath);
     browsePath = isArray ?  browsePath :[browsePath];
 
-    var request = new translate_service.TranslateBrowsePathsToNodeIdsRequest({
+    const request = new translate_service.TranslateBrowsePathsToNodeIdsRequest({
         browsePath: browsePath
     });
 
@@ -1116,14 +1116,14 @@ ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
 };
 
 ClientSession.prototype.isChannelValid = function () {
-    var self = this;
+    const self = this;
     assert(self._client);
     return self._client._secureChannel && self._client._secureChannel.isOpened();
 };
 
 ClientSession.prototype.performMessageTransaction = function (request, callback) {
 
-    var self = this;
+    const self = this;
 
     assert(_.isFunction(callback));
     assert(self._client);
@@ -1254,9 +1254,9 @@ ClientSession.prototype.hasBeenClosed = function () {
  */
 ClientSession.prototype.call = function (methodsToCall, callback) {
 
-    var self = this;
+    const self = this;
 
-    var isArray = _.isArray(methodsToCall);
+    const isArray = _.isArray(methodsToCall);
     if (!isArray) { methodsToCall = [methodsToCall]; }
 
     assert(_.isArray(methodsToCall));
@@ -1267,7 +1267,7 @@ ClientSession.prototype.call = function (methodsToCall, callback) {
     //           - get the object definition by querying the server
     //           - load a fake address space to have some thing to query on our end
     // var request = self._client.factory.constructObjectId("CallRequest",{ methodsToCall: methodsToCall});
-    var request = new call_service.CallRequest({methodsToCall: methodsToCall});
+    const request = new call_service.CallRequest({methodsToCall: methodsToCall});
 
     self.performMessageTransaction(request, function (err, response) {
 
@@ -1282,7 +1282,7 @@ ClientSession.prototype.call = function (methodsToCall, callback) {
 
 };
 
-var emptyUint32Array = new Uint32Array(0);
+const emptyUint32Array = new Uint32Array(0);
 
 /**
  * @method getMonitoredItems
@@ -1297,8 +1297,8 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
     // <UAObject NodeId="i=2253"  BrowseName="Server">
     // <UAMethod NodeId="i=11492" BrowseName="GetMonitoredItems" ParentNodeId="i=2253" MethodDeclarationId="i=11489">
     // <UAMethod NodeId="i=11489" BrowseName="GetMonitoredItems" ParentNodeId="i=2004">
-    var self = this;
-    var methodsToCall =
+    const self = this;
+    const methodsToCall =
         new call_service.CallMethodRequest({
             objectId: coerceNodeId("ns=0;i=2253"),  // ObjectId.Server
             methodId: coerceNodeId("ns=0;i=11492"), // MethodIds.Server_GetMonitoredItems;
@@ -1324,7 +1324,7 @@ ClientSession.prototype.getMonitoredItems = function (subscriptionId, callback) 
             } else {
 
                 assert(result.outputArguments.length === 2);
-                var data = {
+                const data = {
                     serverHandles: result.outputArguments[0].value, //
                     clientHandles: result.outputArguments[1].value
                 };
@@ -1364,9 +1364,9 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
 
     assert(_.isFunction(callback));
     assert(methodId instanceof NodeId);
-    var session = this;
+    const session = this;
 
-    var browseDescription = new browse_service.BrowseDescription({
+    const browseDescription = new browse_service.BrowseDescription({
         nodeId: methodId,
         referenceTypeId: resolveNodeId("HasProperty"),
         browseDirection: BrowseDirection.Forward,
@@ -1385,14 +1385,14 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
         browseResult.references = browseResult.references || [];
 
         //xx console.log("xxxx results", util.inspect(results, {colors: true, depth: 10}));
-        var inputArgumentRef = browseResult.references.filter(function (r) {
+        let inputArgumentRef = browseResult.references.filter(function (r) {
             return r.browseName.name === "InputArguments";
         });
 
         // note : InputArguments property is optional thus may be missing
         inputArgumentRef = (inputArgumentRef.length === 1) ? inputArgumentRef[0] : null;
 
-        var outputArgumentRef = browseResult.references.filter(function (r) {
+        let outputArgumentRef = browseResult.references.filter(function (r) {
             return r.browseName.name === "OutputArguments";
         });
 
@@ -1402,10 +1402,10 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
         //xx console.log("xxxx argument", util.inspect(argument, {colors: true, depth: 10}));
         //xx console.log("xxxx argument nodeId", argument.nodeId.toString());
 
-        var inputArguments = [], outputArguments = [];
+        let inputArguments = [], outputArguments = [];
 
-        var nodesToRead = [];
-        var actions = [];
+        const nodesToRead = [];
+        const actions = [];
 
         if (inputArgumentRef) {
             nodesToRead.push({
@@ -1457,16 +1457,16 @@ ClientSession.prototype.__defineGetter__("endpoint", function () {
     return this._client.endpoint;
 });
 
-var register_node_service = require("node-opcua-service-register-node");
+const register_node_service = require("node-opcua-service-register-node");
 /**
  *
  */
 ClientSession.prototype.registerNodes = function(nodesToRegister,callback) {
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
     assert(_.isArray(nodesToRegister));
 
-    var request = new register_node_service.RegisterNodesRequest({
+    const request = new register_node_service.RegisterNodesRequest({
         nodesToRegister: nodesToRegister.map(resolveNodeId)
     });
 
@@ -1482,11 +1482,11 @@ ClientSession.prototype.registerNodes = function(nodesToRegister,callback) {
 };
 
 ClientSession.prototype.unregisterNodes = function(nodesToRegister,callback) {
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
     assert(_.isArray(nodesToUnregister));
 
-    var request = new register_node_service.UnregisterNodesRequest({
+    const request = new register_node_service.UnregisterNodesRequest({
         nodesToUnregister: nodesToUnregister.map(resolveNodeId)
     });
 
@@ -1500,7 +1500,7 @@ ClientSession.prototype.unregisterNodes = function(nodesToRegister,callback) {
     });
 };
 
-var query_service = require("node-opcua-service-query");
+const query_service = require("node-opcua-service-query");
 /**
  * @method queryFirst
  * @param queryFirstRequest {queryFirstRequest}
@@ -1510,10 +1510,10 @@ var query_service = require("node-opcua-service-query");
  *
  */
 ClientSession.prototype.queryFirst = function (queryFirstRequest, callback) {
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
 
-    var request = new query_service.QueryFirstRequest(queryFirstRequest);
+    const request = new query_service.QueryFirstRequest(queryFirstRequest);
 
     self.performMessageTransaction(request, function (err, response) {
         /* istanbul ignore next */
@@ -1525,10 +1525,10 @@ ClientSession.prototype.queryFirst = function (queryFirstRequest, callback) {
     });
 };
 
-var ClientSessionKeepAliveManager = require("./client_session_keepalive_manager").ClientSessionKeepAliveManager;
+const ClientSessionKeepAliveManager = require("./client_session_keepalive_manager").ClientSessionKeepAliveManager;
 
 ClientSession.prototype.startKeepAliveManager = function () {
-    var self = this;
+    const self = this;
     assert(!self._keepAliveManager, "keepAliveManger already started");
     self._keepAliveManager = new ClientSessionKeepAliveManager(this);
 
@@ -1552,7 +1552,7 @@ ClientSession.prototype.startKeepAliveManager = function () {
 };
 
 ClientSession.prototype.stopKeepAliveManager = function () {
-    var self = this;
+    const self = this;
     if (self._keepAliveManager) {
         self._keepAliveManager.stop();
         self._keepAliveManager = null;
@@ -1568,8 +1568,8 @@ ClientSession.prototype.dispose = function () {
 
 ClientSession.prototype.toString = function () {
 
-    var now = Date.now();
-    var session = this;
+    const now = Date.now();
+    const session = this;
     console.log(" name..................... ", session.name);
     console.log(" sessionId................ ", session.sessionId.toString());
     console.log(" authenticationToken...... ", session.authenticationToken.toString());
@@ -1582,10 +1582,10 @@ ClientSession.prototype.toString = function () {
 };
 
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var resultMask = makeResultMask("ReferenceType");
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const resultMask = makeResultMask("ReferenceType");
 
 function __findBasicDataType(session, dataTypeId, callback) {
 
@@ -1593,12 +1593,12 @@ function __findBasicDataType(session, dataTypeId, callback) {
 
     if (dataTypeId.value <= 25) {
         // we have a well-known DataType
-        var dataType = DataType.get(dataTypeId.value);
+        const dataType = DataType.get(dataTypeId.value);
         callback(null, dataType);
     } else {
 
         // let's browse for the SuperType of this object
-        var nodeToBrowse = new browse_service.BrowseDescription({
+        const nodeToBrowse = new browse_service.BrowseDescription({
             referenceTypeId: makeNodeId(ReferenceTypeIds.HasSubtype),
             includeSubtypes: false,
             browseDirection: BrowseDirection.Inverse,
@@ -1608,7 +1608,7 @@ function __findBasicDataType(session, dataTypeId, callback) {
 
         session.browse(nodeToBrowse, function (err, browseResult) {
             if (err) return callback(err);
-            var baseDataType = browseResult.references[0].nodeId;
+            const baseDataType = browseResult.references[0].nodeId;
             return __findBasicDataType(session, baseDataType, callback);
         });
     }
@@ -1640,9 +1640,9 @@ function __findBasicDataType(session, dataTypeId, callback) {
  */
 ClientSession.prototype.getBuiltInDataType = function (nodeId, callback) {
 
-    var dataTypeId = null;
-    var session = this;
-    var nodeToRead = {
+    let dataTypeId = null;
+    const session = this;
+    const nodeToRead = {
         nodeId: nodeId,
         attributeId: AttributeIds.DataType
     };
@@ -1659,7 +1659,7 @@ ClientSession.prototype.getBuiltInDataType = function (nodeId, callback) {
 };
 
 ClientSession.prototype.resumePublishEngine = function () {
-    var self = this;
+    const self = this;
 
     if (self._publishEngine.subscriptionCount > 0) {
         self._publishEngine.replenish_publish_request_queue();
@@ -1670,8 +1670,8 @@ exports.ClientSession = ClientSession;
 
 
 
-var thenify = require("thenify");
-var opts = { multiArgs : false };
+const thenify = require("thenify");
+const opts = { multiArgs : false };
 ClientSession.prototype.browse                = thenify.withCallback(ClientSession.prototype.browse,opts);
 ClientSession.prototype.readVariableValue     = thenify.withCallback(ClientSession.prototype.readVariableValue,opts);
 ClientSession.prototype.readHistoryValue      = thenify.withCallback(ClientSession.prototype.readHistoryValue,opts);

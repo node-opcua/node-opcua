@@ -1,45 +1,45 @@
 "use strict";
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var os = require("os");
-var OPCUAClient = opcua.OPCUAClient;
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const os = require("os");
+const OPCUAClient = opcua.OPCUAClient;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
-var userManager = {
+const userManager = {
 
     isValidUser: function (userName, password) {
         return ( userName === "username" && password === "p@ssw0rd" );
     }
 };
 
-var userManagerAsync = {
+const userManagerAsync = {
 
     isValidUserAsync: function (userName, password, callback) {
         async.setImmediate(function () {
-            var authorized = ( userName === "username" && password === "p@ssw0rd_@sync" );
+            const authorized = ( userName === "username" && password === "p@ssw0rd_@sync" );
             callback(null, authorized);
         });
     }
 };
 
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
 
-    var server, client, endpointUrl;
+    let server, client, endpointUrl;
 
-    var port = 2002;
+    let port = 2002;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
 
-        var options = {
+        const options = {
             port: port,
             allowAnonymous: false
         };
@@ -73,7 +73,7 @@ describe("testing Client-Server with UserName/Password identity token", function
 
         connectionOption.securityMode = connectionOption.securityMode || opcua.MessageSecurityMode.NONE;
         connectionOption.securityPolicy = connectionOption.securityPolicy || opcua.SecurityPolicy.None;
-        var the_session;
+        let the_session;
 
         client = new OPCUAClient(connectionOption);
 
@@ -133,8 +133,8 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("should not connect to a server using username/password authentication and invalid credentials ", function (done) {
 
-        var userName = "username";
-        var password = "***invalid password***";
+        const userName = "username";
+        const password = "***invalid password***";
         perform_simple_connection(endpointUrl, {}, {userName: userName, password: password}, function (err) {
             should(err).be.instanceOf(Error);
             err.message.should.match(/BadUserAccessDenied/);
@@ -146,8 +146,8 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("should connect to a server using username/password authentication and valid credentials - anonymous connection ", function (done) {
 
-        var userName = "username";
-        var password = "p@ssw0rd";
+        const userName = "username";
+        const password = "p@ssw0rd";
         perform_simple_connection(endpointUrl, {}, {userName: userName, password: password}, done);
 
     });
@@ -155,9 +155,9 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("should fail connect to a server using username/password authentication and invalid credentials - secure connection  - 128 bits", function (done) {
 
-        var userName = "username";
-        var password = "***invalid password***";
-        var options = {
+        const userName = "username";
+        const password = "***invalid password***";
+        const options = {
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
         };
@@ -170,9 +170,9 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("should connect to a server using username/password authentication and valid credentials - secure connection  - 128 bits", function (done) {
 
-        var userName = "username";
-        var password = "p@ssw0rd";
-        var options = {
+        const userName = "username";
+        const password = "p@ssw0rd";
+        const options = {
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };
@@ -183,11 +183,11 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("should connect to a server using username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
 
-        var options = {
+        const options = {
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic256,
         };
-        var userIdentity = {
+        const userIdentity = {
             userName: "username",
             password: "p@ssw0rd"
         };
@@ -197,14 +197,14 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("#158 should connect to a server using LOCALHOST url & username/password authentication and valid credentials - secure connection  - 128 bits", function (done) {
 
-        var userName = "username";
-        var password = "p@ssw0rd";
-        var options = {
+        const userName = "username";
+        const password = "p@ssw0rd";
+        const options = {
             endpoint_must_exist: false,
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };
-        var endpointUrl_truncated = "opc.tcp://" + os.hostname() + ":" + port.toString();
+        const endpointUrl_truncated = "opc.tcp://" + os.hostname() + ":" + port.toString();
 
         perform_simple_connection(endpointUrl_truncated, options, {userName: userName, password: password}, done);
 
@@ -214,11 +214,11 @@ describe("testing Client-Server with UserName/Password identity token", function
 
         server.userManager = userManagerAsync;  //use asynchronous checks
 
-        var options = {
+        const options = {
             securityMode: opcua.MessageSecurityMode.SIGN,
             securityPolicy: opcua.SecurityPolicy.Basic256
         };
-        var userIdentity = {
+        const userIdentity = {
             userName: "username",
             password: "p@ssw0rd_@sync"
         };

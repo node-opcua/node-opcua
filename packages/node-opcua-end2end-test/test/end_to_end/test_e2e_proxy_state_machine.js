@@ -1,29 +1,29 @@
 "use strict";
 
-var async = require("async");
+const async = require("async");
 require("should");
 
-var build_client_server_session = require("../../test_helpers/build_client_server_session").build_client_server_session;
+const build_client_server_session = require("../../test_helpers/build_client_server_session").build_client_server_session;
 
 
-var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
+const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy State Machine", function () {
 
     this.timeout(Math.max(200000, this._timeout));
 
-    var server_options = {
+    const server_options = {
         port: 2000,
         nodeset_filename: [
             opcua.getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml"),
         ]
     };
 
-    var g_session;
-    var client_server;
+    let g_session;
+    let client_server;
 
     before(function (done) {
 
@@ -38,7 +38,7 @@ describe("testing client Proxy State Machine", function () {
     });
 
     function dumpStats() {
-        var client = client_server.g_session._client;
+        const client = client_server.g_session._client;
         console.log("            bytesRead  ", client.bytesRead, " bytes");
         console.log("            bytesRead  ", client.bytesRead, " bytes");
         console.log("transactionsPerformed  ", client.transactionsPerformed, " ");
@@ -68,14 +68,14 @@ describe("testing client Proxy State Machine", function () {
 
         dumpStats();
 
-        var proxyManager = new UAProxyManager(g_session);
+        const proxyManager = new UAProxyManager(g_session);
 
         async.series([
             function (callback) {
                 proxyManager.start(callback);
             },
             function (callback) {
-                var exclusiveLimitStateMachineType = "ExclusiveLimitStateMachineType";
+                const exclusiveLimitStateMachineType = "ExclusiveLimitStateMachineType";
 
                 proxyManager.getStateMachineType(exclusiveLimitStateMachineType, function (err, obj) {
 
@@ -104,14 +104,14 @@ describe("testing client Proxy State Machine", function () {
     it("Z1b should read a state machine", function (done) {
 
 
-        var proxyManager = new UAProxyManager(g_session);
+        const proxyManager = new UAProxyManager(g_session);
 
         async.series([
             function (callback) {
                 proxyManager.start(callback);
             },
             function (callback) {
-                var ShelvedStateMachineType = "ShelvedStateMachineType";
+                const ShelvedStateMachineType = "ShelvedStateMachineType";
 
                 proxyManager.getStateMachineType(ShelvedStateMachineType, function (err, obj) {
 

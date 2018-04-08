@@ -1,25 +1,25 @@
 "use strict";
 
-var should = require("should");
-var async = require("async");
-var sinon = require("sinon");
+const should = require("should");
+const async = require("async");
+const sinon = require("sinon");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var OPCUAServer = opcua.OPCUAServer;
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const OPCUAClient = opcua.OPCUAClient;
+const OPCUAServer = opcua.OPCUAServer;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server - Event", function () {
 
     this.timeout(Math.max(600000, this._timeout));
 
-    var port = 2225;
-    var server;
-    var endpointUrl;
+    const port = 2225;
+    let server;
+    let endpointUrl;
 
     function start_server(done) {
         server = new OPCUAServer({
@@ -48,9 +48,9 @@ describe("testing Client-Server - Event", function () {
 
     it("TSC-1 should raise a close event once on normal disconnection", function (done) {
 
-        var close_counter = 0;
+        let close_counter = 0;
 
-        var client = new OPCUAClient();
+        const client = new OPCUAClient();
         client.on("close", function (err) {
 
             //xx console.log(" client.on('close') Stack ", (new Error()).stack);
@@ -90,7 +90,7 @@ describe("testing Client-Server - Event", function () {
     it("TSC-2 client (not reconnecting) should raise a close event with an error when server initiates disconnection", function (done) {
 
         // note : client is not trying to reconnect
-        var options = {
+        const options = {
             connectionStrategy: {
                 maxRetry: 0,  // <= no retry
                 initialDelay: 10,
@@ -98,10 +98,10 @@ describe("testing Client-Server - Event", function () {
                 randomisationFactor: 0
             }
         };
-        var client = new OPCUAClient(options);
+        const client = new OPCUAClient(options);
 
 
-        var _client_received_close_event = sinon.spy();
+        const _client_received_close_event = sinon.spy();
         client.on("close", _client_received_close_event);
 
         async.series([
@@ -143,7 +143,7 @@ describe("testing Client-Server - Event", function () {
     it("TSC-3 client (reconnecting)  should raise a close event with an error when server initiates disconnection (after reconnecting has failed)", function (done) {
 
         // note : client will  try to reconnect and eventually fail ..s
-        var options = {
+        const options = {
             connectionStrategy: {
                 maxRetry: 1,  // <= RETRY
                 initialDelay: 10,
@@ -151,10 +151,10 @@ describe("testing Client-Server - Event", function () {
                 randomisationFactor: 0
             }
         };
-        var client = new OPCUAClient(options);
+        const client = new OPCUAClient(options);
 
 
-        var _client_received_close_event = sinon.spy();
+        const _client_received_close_event = sinon.spy();
         client.on("close", _client_received_close_event);
 
         async.series([

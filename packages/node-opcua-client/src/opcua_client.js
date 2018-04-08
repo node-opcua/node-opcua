@@ -4,50 +4,50 @@
  */
 
 
-var util = require("util");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var crypto = require("crypto");
-var async = require("async");
+const util = require("util");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
+const crypto = require("crypto");
+const async = require("async");
 
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var session_service = require("node-opcua-service-session");
-var AnonymousIdentityToken = session_service.AnonymousIdentityToken;
-var CreateSessionRequest = session_service.CreateSessionRequest;
-var CreateSessionResponse = session_service.CreateSessionResponse;
-var ActivateSessionRequest = session_service.ActivateSessionRequest;
-var ActivateSessionResponse = session_service.ActivateSessionResponse;
-var CloseSessionRequest = session_service.CloseSessionRequest;
+const session_service = require("node-opcua-service-session");
+const AnonymousIdentityToken = session_service.AnonymousIdentityToken;
+const CreateSessionRequest = session_service.CreateSessionRequest;
+const CreateSessionResponse = session_service.CreateSessionResponse;
+const ActivateSessionRequest = session_service.ActivateSessionRequest;
+const ActivateSessionResponse = session_service.ActivateSessionResponse;
+const CloseSessionRequest = session_service.CloseSessionRequest;
 
-var endpoints_service = require("node-opcua-service-endpoints");
-var ApplicationDescription = endpoints_service.ApplicationDescription;
-var ApplicationType = endpoints_service.ApplicationType;
-var EndpointDescription = endpoints_service.EndpointDescription;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const endpoints_service = require("node-opcua-service-endpoints");
+const ApplicationDescription = endpoints_service.ApplicationDescription;
+const ApplicationType = endpoints_service.ApplicationType;
+const EndpointDescription = endpoints_service.EndpointDescription;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
-var getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
-var fromURI = require("node-opcua-secure-channel").fromURI;
+const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
+const getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
+const fromURI = require("node-opcua-secure-channel").fromURI;
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
-var UserNameIdentityToken = session_service.UserNameIdentityToken;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const UserNameIdentityToken = session_service.UserNameIdentityToken;
 
 
-var buffer_utils = require("node-opcua-buffer-utils");
-var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
+const buffer_utils = require("node-opcua-buffer-utils");
+const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-var UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+const UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
 
-var ClientSession = require("./client_session").ClientSession;
+const ClientSession = require("./client_session").ClientSession;
 
-var utils = require("node-opcua-utils");
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const utils = require("node-opcua-utils");
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var OPCUAClientBase = require("./client_base").OPCUAClientBase;
-var isNullOrUndefined = require("node-opcua-utils").isNullOrUndefined;
+const OPCUAClientBase = require("./client_base").OPCUAClientBase;
+const isNullOrUndefined = require("node-opcua-utils").isNullOrUndefined;
 
 function validateServerNonce(serverNonce) {
     return (serverNonce && serverNonce.length < 32) ? false : true;
@@ -98,20 +98,20 @@ OPCUAClient.prototype._nextSessionName = function () {
     return this.clientName + this.___sessionName_counter;
 };
 
-var makeApplicationUrn = require("node-opcua-common").makeApplicationUrn;
+const makeApplicationUrn = require("node-opcua-common").makeApplicationUrn;
 
 OPCUAClient.prototype._getApplicationUri = function () {
 
     // get applicationURI from certificate
-    var exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
+    const exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
 
-    var certificate = this.getCertificate();
-    var applicationUri;
+    const certificate = this.getCertificate();
+    let applicationUri;
     if (certificate) {
-        var e = exploreCertificate(certificate);
+        const e = exploreCertificate(certificate);
         applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
     } else {
-        var hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
+        const hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
         applicationUri = makeApplicationUrn(hostname, this.applicationName);
     }
     return applicationUri;
@@ -123,7 +123,7 @@ OPCUAClient.prototype.__resolveEndPoint = function () {
 
     this.securityPolicy = this.securityPolicy || SecurityPolicy.None;
 
-    var endpoint = this.findEndpoint(this._secureChannel.endpointUrl, this.securityMode, this.securityPolicy);
+    let endpoint = this.findEndpoint(this._secureChannel.endpointUrl, this.securityMode, this.securityPolicy);
     this.endpoint = endpoint;
 
 
@@ -154,7 +154,7 @@ OPCUAClient.prototype.__resolveEndPoint = function () {
 
 OPCUAClient.prototype._createSession = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(typeof callback === "function");
     assert(self._secureChannel);
     if (!self.__resolveEndPoint() || !self.endpoint) {
@@ -166,7 +166,7 @@ OPCUAClient.prototype._createSession = function (callback) {
     self.serverUri = self.endpoint.server.applicationUri;
     self.endpointUrl = self._secureChannel.endpointUrl;
 
-    var session = new ClientSession(self);
+    const session = new ClientSession(self);
     this.__createSession_step2(session, callback);
 };
 
@@ -191,7 +191,7 @@ function verifyEndpointDescriptionMatches(client,responseServerEndpoints) {
 
 OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
 
-    var self = this;
+    const self = this;
 
     assert(typeof callback === "function");
     assert(self._secureChannel);
@@ -200,9 +200,9 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
     assert(self.endpoint);
 
 
-    var applicationUri = self._getApplicationUri();
+    const applicationUri = self._getApplicationUri();
 
-    var applicationDescription = new ApplicationDescription({
+    const applicationDescription = new ApplicationDescription({
         applicationUri: applicationUri,
         productUri: "NodeOPCUA-Client",
         applicationName: {text: self.applicationName},
@@ -216,7 +216,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
     //        which are two different nonce, with different size (although they share the same name )
     self.clientNonce = crypto.randomBytes(32);
 
-    var request = new CreateSessionRequest({
+    const request = new CreateSessionRequest({
         clientDescription: applicationDescription,
         serverUri: self.serverUri,
         endpointUrl: self.endpointUrl,
@@ -285,9 +285,9 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
 };
 
 
-var computeSignature = require("node-opcua-secure-channel").computeSignature;
+const computeSignature = require("node-opcua-secure-channel").computeSignature;
 OPCUAClient.prototype.computeClientSignature = function (channel, serverCertificate, serverNonce) {
-    var self = this;
+    const self = this;
     return computeSignature(serverCertificate, serverNonce, self.getPrivateKey(), channel.messageBuilder.securityPolicy);
 };
 
@@ -296,13 +296,13 @@ function isAnonymous(userIdentityInfo) {
 }
 
 function isUserNamePassword(userIdentityInfo) {
-    var res = (userIdentityInfo.userName !== undefined) && (userIdentityInfo.password !== undefined);
+    const res = (userIdentityInfo.userName !== undefined) && (userIdentityInfo.password !== undefined);
     return res;
 }
 
 function findUserTokenPolicy(endpoint_description, userTokenType) {
     assert(endpoint_description instanceof EndpointDescription);
-    var r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
+    const r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
         // assert(userIdentity instanceof UserTokenPolicy)
         assert(userIdentity.tokenType);
         return userIdentity.tokenType === userTokenType;
@@ -312,10 +312,10 @@ function findUserTokenPolicy(endpoint_description, userTokenType) {
 
 function createAnonymousIdentityToken(session) {
 
-    var endpoint_desc = session.endpoint;
+    const endpoint_desc = session.endpoint;
     assert(endpoint_desc instanceof EndpointDescription);
 
-    var userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.ANONYMOUS);
+    const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.ANONYMOUS);
     if (!userTokenPolicy) {
         throw new Error("Cannot find ANONYMOUS user token policy in end point description");
     }
@@ -327,17 +327,17 @@ function createUserNameIdentityToken(session, userName, password) {
     // assert(endpoint instanceof EndpointDescription);
     assert(userName === null || typeof userName === "string");
     assert(password === null || typeof password === "string");
-    var endpoint_desc = session.endpoint;
+    const endpoint_desc = session.endpoint;
     assert(endpoint_desc instanceof EndpointDescription);
 
-    var userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.USERNAME);
+    const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.USERNAME);
 
     // istanbul ignore next
     if (!userTokenPolicy) {
         throw new Error("Cannot find USERNAME user token policy in end point description");
     }
 
-    var securityPolicy = fromURI(userTokenPolicy.securityPolicyUri);
+    let securityPolicy = fromURI(userTokenPolicy.securityPolicyUri);
 
     // if the security policy is not specified we use the session security policy
     if (securityPolicy === SecurityPolicy.Invalid) {
@@ -345,7 +345,7 @@ function createUserNameIdentityToken(session, userName, password) {
         assert(securityPolicy);
     }
 
-    var serverCertificate = session.serverCertificate;
+    let serverCertificate = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
     if (serverCertificate === null) {
         var userIdentityToken = new UserNameIdentityToken({
@@ -360,9 +360,9 @@ function createUserNameIdentityToken(session, userName, password) {
     assert(serverCertificate instanceof Buffer);
 
     serverCertificate = crypto_utils.toPem(serverCertificate, "CERTIFICATE");
-    var publicKey = crypto_utils.extractPublicKeyFromCertificateSync(serverCertificate);
+    const publicKey = crypto_utils.extractPublicKeyFromCertificateSync(serverCertificate);
 
-    var serverNonce = session.serverNonce;
+    let serverNonce = session.serverNonce;
     // if serverNonce not specified by server
     if (serverNonce === null) {
         serverNonce = Buffer.alloc(0);
@@ -370,7 +370,7 @@ function createUserNameIdentityToken(session, userName, password) {
     assert(serverNonce instanceof Buffer);
 
     // see Release 1.02 155 OPC Unified Architecture, Part 4
-    var cryptoFactory = getCryptoFactory(securityPolicy);
+    const cryptoFactory = getCryptoFactory(securityPolicy);
 
     // istanbul ignore next
     if (!cryptoFactory) {
@@ -386,9 +386,9 @@ function createUserNameIdentityToken(session, userName, password) {
 
 
     // now encrypt password as requested
-    var lenBuf = createFastUninitializedBuffer(4);
+    const lenBuf = createFastUninitializedBuffer(4);
     lenBuf.writeUInt32LE(userIdentityToken.password.length + serverNonce.length, 0);
-    var block = Buffer.concat([lenBuf, userIdentityToken.password, serverNonce]);
+    const block = Buffer.concat([lenBuf, userIdentityToken.password, serverNonce]);
     userIdentityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
 
     return userIdentityToken;
@@ -396,7 +396,7 @@ function createUserNameIdentityToken(session, userName, password) {
 
 OPCUAClient.prototype.createUserIdentityToken = function (session, userIdentityToken, callback) {
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
     if (null === self.userIdentityInfo) {
         return callback(null,null);
@@ -413,8 +413,8 @@ OPCUAClient.prototype.createUserIdentityToken = function (session, userIdentityT
 
     } else if (isUserNamePassword(self.userIdentityInfo)) {
 
-        var userName = self.userIdentityInfo.userName;
-        var password = self.userIdentityInfo.password;
+        const userName = self.userIdentityInfo.userName;
+        const password = self.userIdentityInfo.password;
 
         try {
             userIdentityToken = createUserNameIdentityToken(session, userName, password);
@@ -435,23 +435,23 @@ OPCUAClient.prototype.createUserIdentityToken = function (session, userIdentityT
 OPCUAClient.prototype._activateSession = function (session, callback) {
 
     assert(typeof callback === "function");
-    var self = this;
+    const self = this;
 
     // istanbul ignore next
     if (!self._secureChannel) {
         return callback(new Error(" No secure channel"));
     }
 
-    var serverCertificate = session.serverCertificate;
+    const serverCertificate = session.serverCertificate;
     // If the securityPolicyUri is NONE and none of the UserTokenPolicies requires encryption,
     // the Client shall ignore the ApplicationInstanceCertificate (serverCertificate)
     assert(serverCertificate === null || serverCertificate instanceof Buffer);
 
-    var serverNonce = session.serverNonce;
+    const serverNonce = session.serverNonce;
     assert(!serverNonce || serverNonce instanceof Buffer);
 
     // make sure session is attached to this client
-    var _old_client = session._client;
+    const _old_client = session._client;
     session._client = self;
 
     self.createUserIdentityToken(session, self.userIdentityInfo, function (err, userIdentityToken) {
@@ -463,7 +463,7 @@ OPCUAClient.prototype._activateSession = function (session, callback) {
 
         // TODO. fill the ActivateSessionRequest
         // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
-        var request = new ActivateSessionRequest({
+        const request = new ActivateSessionRequest({
 
             // This is a signature generated with the private key associated with the
             // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
@@ -541,7 +541,7 @@ OPCUAClient.prototype._activateSession = function (session, callback) {
  */
 OPCUAClient.prototype.reactivateSession = function (session, callback) {
 
-    var self = this;
+    const self = this;
     assert(typeof callback === "function");
     assert(this._secureChannel, " client must be connected first");
 
@@ -551,7 +551,7 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
     }
 
     assert(!session._client || session._client.endpointUrl === self.endpointUrl, "cannot reactivateSession on a different endpoint");
-    var old_client = session._client;
+    const old_client = session._client;
 
     debugLog("OPCUAClient#reactivateSession");
 
@@ -610,7 +610,7 @@ OPCUAClient.prototype.reactivateSession = function (session, callback) {
  */
 OPCUAClient.prototype.createSession = function (userIdentityInfo, callback) {
 
-    var self = this;
+    const self = this;
     if (_.isFunction(userIdentityInfo)) {
         callback = userIdentityInfo;
         userIdentityInfo = {};
@@ -644,10 +644,10 @@ OPCUAClient.prototype.createSession = function (userIdentityInfo, callback) {
  */
 OPCUAClient.prototype.changeSessionIdentity = function (session, userIdentityInfo, callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
 
-    var old_userIdentity = self.userIdentityInfo;
+    const old_userIdentity = self.userIdentityInfo;
     self.userIdentityInfo = userIdentityInfo;
 
     self._activateSession(session, function (err) {
@@ -660,7 +660,7 @@ OPCUAClient.prototype.changeSessionIdentity = function (session, userIdentityInf
 
 OPCUAClient.prototype._closeSession = function (session, deleteSubscriptions, callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
     assert(_.isBoolean(deleteSubscriptions));
 
@@ -670,7 +670,7 @@ OPCUAClient.prototype._closeSession = function (session, deleteSubscriptions, ca
     }
     assert(self._secureChannel);
 
-    var request = new CloseSessionRequest({
+    const request = new CloseSessionRequest({
         deleteSubscriptions: deleteSubscriptions
     });
 
@@ -702,7 +702,7 @@ OPCUAClient.prototype._closeSession = function (session, deleteSubscriptions, ca
  */
 OPCUAClient.prototype.closeSession = function (session, deleteSubscriptions, callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isBoolean(deleteSubscriptions));
     assert(_.isFunction(callback));
     assert(session);
@@ -737,7 +737,7 @@ OPCUAClient.prototype._ask_for_subscription_republish = function (session, callb
 
 OPCUAClient.prototype._on_connection_reestablished = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
 
     // call base class implementation first
@@ -830,7 +830,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
 
         debugLog(" Starting Session reactivation".red.bgWhite);
         // repair session
-        var sessions = self._sessions;
+        const sessions = self._sessions;
         async.map(sessions, function (session, next) {
 
             if(doDebug) {
@@ -849,7 +849,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                     }
 
                     //   if failed => recreate a new Channel and transfer the subscription
-                    var new_session = null;
+                    let new_session = null;
                     async.series([
                         function (callback) {
 
@@ -879,7 +879,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                         function (callback) {
 
                             // get the old subscriptions id from the old session
-                            var subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
+                            const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
 
                             debugLog("  session subscriptionCount = ", new_session.getPublishEngine().subscriptionCount);
                             if (subscriptionsIds.length === 0) {
@@ -888,7 +888,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
                             }
                             debugLog(" asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
                             // Transfer subscriptions
-                            var options = {
+                            const options = {
                                 subscriptionIds: subscriptionsIds,
                                 sendInitialValues: false
                             };
@@ -951,11 +951,11 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
     assert(_.isFunction(inner_func), "expecting inner function");
     assert(_.isFunction(callback), "expecting callback function");
 
-    var client = this;
+    const client = this;
 
-    var the_session;
-    var the_error;
-    var need_disconnect = false;
+    let the_session;
+    let the_error;
+    let need_disconnect = false;
     async.series([
 
         // step 1 : connect to
@@ -1025,7 +1025,7 @@ OPCUAClient.prototype.withSession = function (endpointUrl, inner_func, callback)
 };
 
 
-var thenify = require("thenify");
+const thenify = require("thenify");
 /**
  * @method connect
  * @param endpointUrl {string}
@@ -1106,7 +1106,7 @@ OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionPara
     }, callback);
 };
 //xx OPCUAClient.prototype.withSubscription = thenify(OPCUAClient.prototype.withSubscription);
-var nodeVersion = parseInt(process.version.match(/v([0-9]*)\./)[1]);
+const nodeVersion = parseInt(process.version.match(/v([0-9]*)\./)[1]);
 
 if (nodeVersion >= 8) {
     require("./opcua_client_es2017_extensions");

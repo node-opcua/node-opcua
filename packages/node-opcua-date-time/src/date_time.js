@@ -1,21 +1,21 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var offset_factor_1601 = (function () {
+const offset_factor_1601 = (function () {
 
-    var utc1600 = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-    var t1600 = utc1600.getTime();
+    const utc1600 = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+    const t1600 = utc1600.getTime();
 
-    var utc1600_plus_one_day = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
-    var t1600_1d = utc1600_plus_one_day.getTime();
+    const utc1600_plus_one_day = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
+    const t1600_1d = utc1600_plus_one_day.getTime();
 
-    var factor = (24 * 60 * 60 * 1000) * 10000 / (t1600_1d - t1600);
+    const factor = (24 * 60 * 60 * 1000) * 10000 / (t1600_1d - t1600);
 
-    var utc1970 = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
-    var t1970 = utc1970.getTime();
+    const utc1970 = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
+    const t1970 = utc1970.getTime();
 
-    var offsetToGregorianCalendarZero = -t1600 + t1970;
+    const offsetToGregorianCalendarZero = -t1600 + t1970;
 
     assert(factor === 10000);
     assert(offsetToGregorianCalendarZero === 11644473600000);
@@ -25,16 +25,16 @@ var offset_factor_1601 = (function () {
 
 exports.offset_factor_1601 = offset_factor_1601;
 
-var offset = offset_factor_1601[0];
-var factor = offset_factor_1601[1];
+const offset = offset_factor_1601[0];
+const factor = offset_factor_1601[1];
 
-var F = 0x100000000;
-var A = factor / F;
-var B = offset * A;
-var oh = Math.floor(offset / F);
-var ol = offset % F;
-var fl = factor % F;
-var F_div_factor = (F / factor);
+const F = 0x100000000;
+const A = factor / F;
+const B = offset * A;
+const oh = Math.floor(offset / F);
+const ol = offset % F;
+const fl = factor % F;
+const F_div_factor = (F / factor);
 
 // Extracted from OpcUA Spec v1.02 : part 6:
 //
@@ -84,7 +84,7 @@ function bn_dateToHundredNanoSecondFrom1601_fast(date) {
     // note : The value returned by the getTime method is the number
     //        of milliseconds since 1 January 1970 00:00:00 UTC.
     //
-    var t = date.getTime(); // number of milliseconds since since 1 January 1970 00:00:00 UTC.
+    const t = date.getTime(); // number of milliseconds since since 1 January 1970 00:00:00 UTC.
 
     //Note:
     // The number of 100-nano since 1 Jan 1601 is given by the formula :
@@ -107,10 +107,10 @@ function bn_dateToHundredNanoSecondFrom1601_fast(date) {
     //  value_l = ((t % F + offset % F) * (factor % F) )% F
     //  value_l = ((t % F + ol        ) * fl           )% F
 
-    var value_h = Math.floor(t * A + B);
-    var value_l = ((t % F + ol) * fl) % F;
+    const value_h = Math.floor(t * A + B);
+    let value_l = ((t % F + ol) * fl) % F;
     value_l = (value_l + F) % F;
-    var high_low = [value_h, value_l];
+    const high_low = [value_h, value_l];
     date.high_low = high_low;
     return high_low;
 }
@@ -127,8 +127,8 @@ function bn_hundredNanoSecondFrom1601ToDate_fast(high, low) {
     //    h/f =     (h div f)   + (h % f) /f
     //    h/f * F = (h div f)*F + (h % f) * F/f
     //    o = oh * F + ol
-    var value1 = (Math.floor(high / factor) - oh) * F + Math.floor((high % factor) * F_div_factor + low / factor) - ol;
-    var date = new Date(value1);
+    const value1 = (Math.floor(high / factor) - oh) * F + Math.floor((high % factor) * F_div_factor + low / factor) - ol;
+    const date = new Date(value1);
 
     // enrich the date
     date.high_low = [high,low];
@@ -144,11 +144,11 @@ function bn_hundredNanoSecondFrom1601ToDate_fast(high, low) {
 exports.bn_hundredNanoSecondFrom1601ToDate = bn_hundredNanoSecondFrom1601ToDate_fast;
 
 
-var last_now_date = null;
-var last_picoseconds = 0;
+let last_now_date = null;
+let last_picoseconds = 0;
 
 function getCurrentClock() {
-    var now = new Date();
+    const now = new Date();
     if (last_now_date && now.getTime() === last_now_date.getTime()) {
         last_picoseconds += 1;
     } else {

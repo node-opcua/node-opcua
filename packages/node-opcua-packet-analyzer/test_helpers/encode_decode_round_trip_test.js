@@ -1,17 +1,17 @@
 "use strict";
 
-var should = require("should");
-var _ = require("underscore");
+const should = require("should");
+const _ = require("underscore");
 
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var hexDump = require("node-opcua-debug").hexDump;
-var factories = require("node-opcua-factory");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const hexDump = require("node-opcua-debug").hexDump;
+const factories = require("node-opcua-factory");
 
-var assert_arrays_are_equal = require("node-opcua-test-helpers/src/typedarray_helpers").assert_arrays_are_equal;
+const assert_arrays_are_equal = require("node-opcua-test-helpers/src/typedarray_helpers").assert_arrays_are_equal;
 
-var packet_analyzer = require("..").packet_analyzer;
-var analyze_object_binary_encoding = require("..").analyze_object_binary_encoding;
+const packet_analyzer = require("..").packet_analyzer;
+const analyze_object_binary_encoding = require("..").analyze_object_binary_encoding;
 
 function dump_block_in_debug_mode(buffer, id, options) {
     if (process.env.DEBUG) {
@@ -70,11 +70,11 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     should.exist(obj);
 
-    var expandedNodeId = obj.encodingDefaultBinary;
+    const expandedNodeId = obj.encodingDefaultBinary;
 
-    var size = obj.binaryStoreSize(options);
+    const size = obj.binaryStoreSize(options);
 
-    var stream = new BinaryStream(new Buffer(size));
+    const stream = new BinaryStream(new Buffer(size));
 
     obj.encode(stream, options);
 
@@ -82,11 +82,11 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     stream.rewind();
 
-    var obj_reloaded = factories.constructObject(expandedNodeId);
+    const obj_reloaded = factories.constructObject(expandedNodeId);
     obj_reloaded.decode(stream, options);
 
     function redirectToNull(functor) {
-        var old = console.log;
+        const old = console.log;
 
         console.log = function () { };
 
@@ -122,9 +122,9 @@ function json_encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     should.exist(obj);
 
-    var json =    JSON.stringify(obj);
+    const json =    JSON.stringify(obj);
 
-    var obj_reloaded = JSON.parse(json);
+    const obj_reloaded = JSON.parse(json);
 
     //xx console.log(json);
 

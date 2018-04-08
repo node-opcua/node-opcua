@@ -1,12 +1,12 @@
 "use strict";
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var createFastUninitializedBuffer = require("node-opcua-buffer-utils").createFastUninitializedBuffer;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const createFastUninitializedBuffer = require("node-opcua-buffer-utils").createFastUninitializedBuffer;
 
 
-var TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
-var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
+const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
 
 
@@ -23,10 +23,10 @@ function decodeMessage(stream, ClassName) {
     assert(stream instanceof BinaryStream);
     assert(ClassName instanceof Function, " expecting a function for " + ClassName);
 
-    var header = readMessageHeader(stream);
+    const header = readMessageHeader(stream);
     assert(stream.length === 8);
 
-    var obj;
+    let obj;
     if (header.msgType === "ERR") {
         //xx console.log(" received an error");
         obj = new TCPErrorMessage();
@@ -45,9 +45,9 @@ function packTcpMessage(msgType, encodableObject) {
 
     assert(is_valid_msg_type(msgType));
 
-    var messageChunk = createFastUninitializedBuffer(encodableObject.binaryStoreSize() + 8);
+    const messageChunk = createFastUninitializedBuffer(encodableObject.binaryStoreSize() + 8);
     // encode encodeableObject in a packet
-    var stream = new BinaryStream(messageChunk);
+    const stream = new BinaryStream(messageChunk);
     encodeMessage(msgType, encodableObject, stream);
 
     return messageChunk;
@@ -57,9 +57,9 @@ function packTcpMessage(msgType, encodableObject) {
 // opc.tcp://xleuri11022:51210/UA/SampleServer
 function parseEndpointUrl(endpointUrl) {
 
-    var r = /^([a-z.]*):\/\/([a-zA-Z\_\-\.\-0-9]*):([0-9]*)(\/.*){0,1}/;
+    const r = /^([a-z.]*):\/\/([a-zA-Z\_\-\.\-0-9]*):([0-9]*)(\/.*){0,1}/;
 
-    var matches = r.exec(endpointUrl);
+    const matches = r.exec(endpointUrl);
 
     if(!matches) {
         throw new Error("Invalid endpoint url ",endpointUrl);
@@ -72,7 +72,7 @@ function parseEndpointUrl(endpointUrl) {
     };
 }
 function is_valid_endpointUrl(endpointUrl) {
-    var e = parseEndpointUrl(endpointUrl);
+    const e = parseEndpointUrl(endpointUrl);
     return e.hasOwnProperty("hostname");
 }
 
@@ -106,7 +106,7 @@ function writeTCPMessageHeader(msgType, chunkType, total_length, stream) {
 var encodeMessage = function (msgType, messageContent, stream) {
 
     //the length of the message, in bytes. (includes the 8 bytes of the message header)
-    var total_length = messageContent.binaryStoreSize() + 8;
+    const total_length = messageContent.binaryStoreSize() + 8;
 
     writeTCPMessageHeader(msgType, "F", total_length, stream);
     messageContent.encode(stream);

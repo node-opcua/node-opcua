@@ -4,23 +4,23 @@
  * @module opcua.address_space
  */
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 
-var _ = require("underscore");
+const _ = require("underscore");
 
-var util = require("util");
-var utils = require("node-opcua-utils");
+const util = require("util");
+const utils = require("node-opcua-utils");
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
-var BaseNode = require("./base_node").BaseNode;
-var SessionContext = require("./session_context").SessionContext;
+const BaseNode = require("./base_node").BaseNode;
+const SessionContext = require("./session_context").SessionContext;
 /**
  * @class UAObjectType
  * @param options
@@ -36,7 +36,7 @@ UAObjectType.prototype.nodeClass = NodeClass.ObjectType;
 
 UAObjectType.prototype.readAttribute = function (context, attributeId) {
     assert(context instanceof SessionContext);
-    var options = {};
+    const options = {};
     switch (attributeId) {
         case AttributeIds.IsAbstract:
             options.value = {dataType: DataType.Boolean, value: this.isAbstract ? true : false};
@@ -48,13 +48,13 @@ UAObjectType.prototype.readAttribute = function (context, attributeId) {
     return new DataValue(options);
 };
 
-var tools = require("./tool_isSupertypeOf");
+const tools = require("./tool_isSupertypeOf");
 UAObjectType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAObjectType);
 
 
 
-var initialize_properties_and_components = require("./ua_variable_type").initialize_properties_and_components;
-var assertUnusedChildBrowseName = require("./ua_variable_type").assertUnusedChildBrowseName;
+const initialize_properties_and_components = require("./ua_variable_type").initialize_properties_and_components;
+const assertUnusedChildBrowseName = require("./ua_variable_type").assertUnusedChildBrowseName;
 /**
  * instantiate an object of this UAObjectType
  * The instantiation takes care of object type inheritance when constructing inner properties and components.
@@ -83,8 +83,8 @@ var assertUnusedChildBrowseName = require("./ua_variable_type").assertUnusedChil
 UAObjectType.prototype.instantiate = function (options) {
 
 
-    var self = this;
-    var addressSpace = self.addressSpace;
+    const self = this;
+    const addressSpace = self.addressSpace;
     assert(!self.isAbstract, "cannot instantiate abstract UAObjectType");
 
     assert(options, "missing option object");
@@ -95,13 +95,13 @@ UAObjectType.prototype.instantiate = function (options) {
 
     assertUnusedChildBrowseName(addressSpace,options);
 
-    var baseObjectType = addressSpace.findObjectType("BaseObjectType");
+    const baseObjectType = addressSpace.findObjectType("BaseObjectType");
     assert(baseObjectType, "BaseObjectType must be defined in the address space");
 
 
-    var references = [];
+    const references = [];
 
-    var opts = {
+    const opts = {
         browseName:     options.browseName,
         description:    options.description || self.description,
         references:     references,
@@ -116,7 +116,7 @@ UAObjectType.prototype.instantiate = function (options) {
         modellingRule : options.modellingRule
     };
 
-    var instance = addressSpace.addObject(opts);
+    const instance = addressSpace.addObject(opts);
 
     initialize_properties_and_components(instance, baseObjectType,self, options.optionals);
 

@@ -1,1 +1,1 @@
-var a = require("..");
+const a = require("..");

@@ -1,36 +1,36 @@
 "use strict";
 
-var _ = require("underscore");
-var should = require("should");
+const _ = require("underscore");
+const should = require("should");
 
-var async = require("async");
-var path = require("path");
+const async = require("async");
+const path = require("path");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var DataValue = require("node-opcua-data-value").DataValue;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const DataValue = require("node-opcua-data-value").DataValue;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
-var nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
 
-var address_space = require("..");
-var UAVariable = address_space.UAVariable;
-var SessionContext = address_space.SessionContext;
-var generate_address_space = address_space.generate_address_space;
-var context = SessionContext.defaultContext;
+const address_space = require("..");
+const UAVariable = address_space.UAVariable;
+const SessionContext = address_space.SessionContext;
+const generate_address_space = address_space.generate_address_space;
+const context = SessionContext.defaultContext;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Variables ", function () {
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: CurrentRead | CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -46,9 +46,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: CurrentRead", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -64,9 +64,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -82,9 +82,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: undefined", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -100,9 +100,9 @@ describe("testing Variables ", function () {
 
     // accessLevel CurrentRead
     it("accessLevel: CurrentRead \tuserAccessLevel: CurrentRead | CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -118,9 +118,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentRead \tuserAccessLevel: CurrentRead", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -136,9 +136,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentRead \tuserAccessLevel: CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -154,9 +154,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentRead \tuserAccessLevel: undefined", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -172,9 +172,9 @@ describe("testing Variables ", function () {
 
     // accessLevel CurrentWrite
     it("accessLevel: CurrentWrite \tuserAccessLevel: CurrentRead | CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -190,9 +190,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentWrite \tuserAccessLevel: CurrentRead", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -208,9 +208,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentWrite \tuserAccessLevel: CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -226,9 +226,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: CurrentWrite \tuserAccessLevel: undefined", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -244,9 +244,9 @@ describe("testing Variables ", function () {
 
     // accessLevel undefined
     it("accessLevel: undefined \tuserAccessLevel: CurrentRead | CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -261,9 +261,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: undefined \tuserAccessLevel: CurrentRead", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -278,9 +278,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: undefined \tuserAccessLevel: CurrentWrite", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,
@@ -295,9 +295,9 @@ describe("testing Variables ", function () {
     });
 
     it("accessLevel: undefined \tuserAccessLevel: undefined", function(){
-        var addressSpace = new address_space.AddressSpace();
+        const addressSpace = new address_space.AddressSpace();
 
-        var v = new UAVariable({
+        const v = new UAVariable({
             browseName: "some variable",
             addressSpace: addressSpace,
             minimumSamplingInterval: 10,

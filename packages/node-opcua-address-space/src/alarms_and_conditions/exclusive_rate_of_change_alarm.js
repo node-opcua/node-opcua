@@ -3,11 +3,11 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var util = require("util");
+const util = require("util");
 
 
 
-var UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
+const UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
 
 /**
  * @class UAExclusiveRateOfChangeAlarm

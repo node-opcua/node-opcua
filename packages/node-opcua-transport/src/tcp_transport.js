@@ -5,29 +5,29 @@
 
 
 // system requires
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const util = require("util");
 
 // opcua requires
-var PacketAssembler = require("node-opcua-packet-assembler").PacketAssembler;
+const PacketAssembler = require("node-opcua-packet-assembler").PacketAssembler;
 
-var writeTCPMessageHeader = require("./tools").writeTCPMessageHeader;
-
-
-var readRawMessageHeader =  require("./message_builder_base").readRawMessageHeader;
+const writeTCPMessageHeader = require("./tools").writeTCPMessageHeader;
 
 
-var buffer_utils = require("node-opcua-buffer-utils");
-var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
+const readRawMessageHeader =  require("./message_builder_base").readRawMessageHeader;
 
 
-var debug = require("node-opcua-debug");
-var debugLog = debug.make_debugLog(__filename);
-var doDebug = debug.checkDebugFlag(__filename);
+const buffer_utils = require("node-opcua-buffer-utils");
+const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-var fakeSocket = {invalid: true};
+
+const debug = require("node-opcua-debug");
+const debugLog = debug.make_debugLog(__filename);
+const doDebug = debug.checkDebugFlag(__filename);
+
+let fakeSocket = {invalid: true};
 
 exports.setFakeTransport = function (socket_like_mock) {
     fakeSocket = socket_like_mock;
@@ -115,8 +115,8 @@ TCP_transport.prototype.createChunk = function (msg_type, chunk_type, length) {
     assert(msg_type === "MSG");
     assert(this._pending_buffer === undefined, "createChunk has already been called ( use write first)");
 
-    var total_length = length + this.headerSize;
-    var buffer = createFastUninitializedBuffer(total_length);
+    const total_length = length + this.headerSize;
+    const buffer = createFastUninitializedBuffer(total_length);
     writeTCPMessageHeader("MSG", chunk_type, total_length, buffer);
 
     this._pending_buffer = buffer;
@@ -124,15 +124,15 @@ TCP_transport.prototype.createChunk = function (msg_type, chunk_type, length) {
     return buffer;
 };
 
-var counter =0;
+let counter =0;
 function record(data,extra) {
 
     extra = extra || "";
 
-    var c = ("00000000" +counter.toString(10)).substr(-8);
+    const c = ("00000000" +counter.toString(10)).substr(-8);
     data._serialNumber = c;
     data.info = data.info || "";
-    var l ="";// "-L="+("00000000" +data.length).substr(-8);
+    const l ="";// "-L="+("00000000" +data.length).substr(-8);
     require("fs").writeFileSync("data"+c+l+data.info+extra+".org",data,"binary");
     counter++;
 }
@@ -161,7 +161,7 @@ TCP_transport.prototype.write = function (message_chunk) {
 
     assert((this._pending_buffer === undefined) || this._pending_buffer === message_chunk, " write should be used with buffer created by createChunk");
 
-    var header = readRawMessageHeader(message_chunk);
+    const header = readRawMessageHeader(message_chunk);
     assert(header.length === message_chunk.length);
     assert(["F", "C", "A"].indexOf(header.messageHeader.isFinal) !== -1);
 
@@ -173,11 +173,11 @@ TCP_transport.prototype.write = function (message_chunk) {
 
 function _fulfill_pending_promises(err, data) {
 
-    var self = this;
+    const self = this;
 
     _cleanup_timers.call(self);
 
-    var the_callback = self._the_callback;
+    const the_callback = self._the_callback;
     self._the_callback = null;
 
     if (the_callback) {
@@ -190,8 +190,8 @@ function _fulfill_pending_promises(err, data) {
 
 function _on_message_received(message_chunk) {
 
-    var self = this;
-    var has_callback = _fulfill_pending_promises.call(self, null, message_chunk);
+    const self = this;
+    const has_callback = _fulfill_pending_promises.call(self, null, message_chunk);
     self.chunkReadCount ++;
 
     if (!has_callback) {
@@ -207,7 +207,7 @@ function _on_message_received(message_chunk) {
 
 function _cleanup_timers() {
 
-    var self = this;
+    const self = this;
     if (self._timerId) {
         clearTimeout(self._timerId);
         this._timerId = null;
@@ -216,7 +216,7 @@ function _cleanup_timers() {
 
 function _start_timeout_timer() {
 
-    var self = this;
+    const self = this;
     assert(!self._timerId, "timer already started");
     self._timerId = setTimeout(function () {
         self._timerId =null;
@@ -227,7 +227,7 @@ function _start_timeout_timer() {
 
 TCP_transport.prototype.on_socket_closed = function(err) {
 
-    var self = this;
+    const self = this;
     if (self._on_socket_closed_called) {
         return;
     }
@@ -242,7 +242,7 @@ TCP_transport.prototype.on_socket_closed = function(err) {
 };
 
 TCP_transport.prototype.on_socket_ended = function(err) {
-    var self = this;
+    const self = this;
     assert(!self._on_socket_ended_called);
     self._on_socket_ended_called = true; // we don't want to send close event twice ...
     /**
@@ -255,7 +255,7 @@ TCP_transport.prototype.on_socket_ended = function(err) {
 
 TCP_transport.prototype._on_socket_ended_message =  function(err) {
 
-    var self = this;
+    const self = this;
     if (self.__disconnecting__) {
         return;
     }
@@ -284,7 +284,7 @@ TCP_transport.prototype._on_socket_ended_message =  function(err) {
 TCP_transport.prototype._install_socket = function (socket) {
 
     assert(socket);
-    var self = this;
+    const self = this;
 
     self.name = " Transport " + counter;
     counter += 1;
@@ -321,7 +321,7 @@ TCP_transport.prototype._install_socket = function (socket) {
                 self._socket.destroy();
             }
         }
-        var err = had_error ? new Error("ERROR IN SOCKET") : null;
+        const err = had_error ? new Error("ERROR IN SOCKET") : null;
         self.on_socket_closed(err);
 
     }).on("end", function (err) {
@@ -372,7 +372,7 @@ TCP_transport.prototype._install_socket = function (socket) {
  */
 TCP_transport.prototype._install_one_time_message_receiver = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(!self._the_callback, "callback already set");
     assert(_.isFunction(callback));
     self._the_callback = callback;
@@ -393,7 +393,7 @@ TCP_transport.prototype.disconnect = function (callback) {
 
     assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
 
-    var self = this;
+    const self = this;
     if (self.__disconnecting__) {
         callback();
         return;
@@ -419,7 +419,7 @@ TCP_transport.prototype.disconnect = function (callback) {
 };
 
 TCP_transport.prototype.isValid = function() {
-    var self = this;
+    const self = this;
     return self._socket && !self._socket.destroyed && !self.__disconnecting__;
 };
 exports.TCP_transport = TCP_transport;

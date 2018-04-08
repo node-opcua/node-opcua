@@ -1,24 +1,24 @@
 "use strict";
 
-var generate_address_space = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
-var DataType = require("node-opcua-variant").DataType;
-var should = require("should");
-var path = require("path");
-var fs = require("fs");
+const generate_address_space = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
+const DataType = require("node-opcua-variant").DataType;
+const should = require("should");
+const path = require("path");
+const fs = require("fs");
 var getFixture = require("node-opcua-test-fixtures").getFixture;
-var nodesets = require("node-opcua-nodesets");
+const nodesets = require("node-opcua-nodesets");
 var getFixture = require("node-opcua-test-fixtures").getFixture;
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing NodeSet XML file loading", function () {
 
 
     this.timeout(200000); // could be slow on appveyor !
 
-    var addressSpace;
+    let addressSpace;
 
 
     beforeEach(function () {
@@ -40,7 +40,7 @@ describe("testing NodeSet XML file loading", function () {
 
     it("should load a nodeset xml file", function (done) {
 
-        var xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -60,7 +60,7 @@ describe("testing NodeSet XML file loading", function () {
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
         this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard_nodeset_file;
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -78,7 +78,7 @@ describe("testing NodeSet XML file loading", function () {
 
     it("should load the DI nodeset ", function (done) {
 
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file,
             nodesets.di_nodeset_filename
         ];
@@ -101,9 +101,9 @@ describe("testing NodeSet XML file loading", function () {
 
         this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
+        const xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file,
             xml_file
         ];
@@ -113,17 +113,17 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
 
-            var someVariable = addressSpace.findNode("ns=1;i=2");
+            const someVariable = addressSpace.findNode("ns=1;i=2");
             someVariable.browseName.toString().should.eql("1:SomeVariable");
             someVariable.userAccessLevel.toString().should.eql("CurrentRead");
 
 
-            var readOnlyVar = addressSpace.findNode("ns=1;i=3");
+            const readOnlyVar = addressSpace.findNode("ns=1;i=3");
             readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
             readOnlyVar.userAccessLevel.toString().should.eql("CurrentRead");
 
 
-            var readWriteVar = addressSpace.findNode("ns=1;i=4");
+            const readWriteVar = addressSpace.findNode("ns=1;i=4");
             readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
             readWriteVar.userAccessLevel.toString().should.eql("CurrentRead | CurrentWrite");
 
@@ -136,9 +136,9 @@ describe("testing NodeSet XML file loading", function () {
 
         this.timeout(Math.max(400000, this._timeout));
 
-        var xml_file = getFixture("fixture_node_with_predefined_variable.xml");
+        const xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file,
             xml_file
         ];
@@ -148,12 +148,12 @@ describe("testing NodeSet XML file loading", function () {
 
         generate_address_space(addressSpace, xml_files, function (err) {
 
-            var someStringVariable = addressSpace.findNode("ns=1;i=2");
+            const someStringVariable = addressSpace.findNode("ns=1;i=2");
             someStringVariable.browseName.toString().should.eql("1:SomeStringVariable");
             someStringVariable.readValue().value.dataType.key.should.be.type('string');
             someStringVariable.readValue().value.value.should.eql("any predefined string value");
 
-            var someBoolVariable = addressSpace.findNode("ns=1;i=3");
+            const someBoolVariable = addressSpace.findNode("ns=1;i=3");
             someBoolVariable.browseName.toString().should.eql("1:SomeBoolVariable");
             someBoolVariable.readValue().value.dataType.should.equal(DataType.Boolean);
             someBoolVariable.readValue().value.value.should.eql(true);
@@ -164,18 +164,18 @@ describe("testing NodeSet XML file loading", function () {
 
     it("Q1 should read a VariableType with a default value", function (done) {
 
-        var Variant = require("node-opcua-variant").Variant;
+        const Variant = require("node-opcua-variant").Variant;
 
-        var xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
-        var xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
 
-        var xml_files = [
+        const xml_files = [
             xml_file1, xml_file2
         ];
         generate_address_space(addressSpace, xml_files, function (err) {
 
-            var ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
-            var my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType", ns);
+            const ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
+            const my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType", ns);
             my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
 
             addressSpace.findDataType(my3x3MatrixType.dataType).browseName.toString().should.eql("Float");
@@ -186,7 +186,7 @@ describe("testing NodeSet XML file loading", function () {
                 dataType: "Float", value: [11, 12, 13, 21, 22, 23, 31, 32, 33]
             }).toString());
 
-            var myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns);
+            const myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns);
             myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
             myDoubleArrayType.valueRank.should.eql(1);
             myDoubleArrayType.arrayDimensions.should.eql([5]);
@@ -199,7 +199,7 @@ describe("testing NodeSet XML file loading", function () {
 
     it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", function (done) {
 
-        var xml_files = [
+        const xml_files = [
             nodesets.standard_nodeset_file
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");

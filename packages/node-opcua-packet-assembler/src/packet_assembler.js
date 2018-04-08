@@ -3,11 +3,11 @@
  * @module opcua.transport
  */
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var doDebug = false;
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const doDebug = false;
 
 /***
  * @class PacketAssembler
@@ -17,7 +17,7 @@ var doDebug = false;
  *                                             readMessageFunc can be called
  * @constructor
  */
-var PacketAssembler = function (options) {
+const PacketAssembler = function (options) {
 
     this._stack = [];
     this.expectedLength = 0;
@@ -53,9 +53,9 @@ PacketAssembler.prototype._build_data = function (data) {
 
 PacketAssembler.prototype.feed = function (data) {
 
-    var self = this;
+    const self = this;
 
-    var messageChunk;
+    let messageChunk;
     //xx assert(data instanceof Buffer);
     // xx assert(data.length > 0, "PacketAssembler expects a no-zero size data block");
     //xx assert(this.expectedLength === 0 || this.currentLength <= this.expectedLength);
@@ -96,7 +96,7 @@ PacketAssembler.prototype.feed = function (data) {
 
         // istanbul ignore next
         if (doDebug) {
-            var packet_info = this._read_packet_info(messageChunk);
+            const packet_info = this._read_packet_info(messageChunk);
             assert(this.packet_info.length === packet_info.length);
             assert(messageChunk.length === packet_info.length);
         }
@@ -109,12 +109,12 @@ PacketAssembler.prototype.feed = function (data) {
     } else {
         // there is more data in this chunk than expected...
         // the chunk need to be split
-        var size1 = this.expectedLength - this.currentLength;
+        const size1 = this.expectedLength - this.currentLength;
         if (size1 > 0) {
-            var chunk1 = data.slice(0, size1);
+            const chunk1 = data.slice(0, size1);
             self.feed(chunk1);
         }
-        var chunk2 = data.slice(size1);
+        const chunk2 = data.slice(size1);
         if (chunk2.length > 0) {
             self.feed(chunk2);
         }

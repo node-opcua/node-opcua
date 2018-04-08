@@ -1,9 +1,9 @@
 /*global describe, it, require*/
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 module.exports = function (test) {
 
@@ -12,8 +12,8 @@ module.exports = function (test) {
         it("should detect badly formed nodeId on the client level and raise an exception",function(done) {
 
 
-            var client = new OPCUAClient({});
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient({});
+            const endpointUrl = test.endpointUrl;
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 

@@ -4,29 +4,29 @@
  * @type {async|exports}
  */
 
-var net = require("net");
-var util = require("util");
-var path = require("path");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var _ = require("underscore");
-var EventEmitter = require("events").EventEmitter;
+const net = require("net");
+const util = require("util");
+const path = require("path");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const _ = require("underscore");
+const EventEmitter = require("events").EventEmitter;
 
-var UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
-var fromURI = require("node-opcua-secure-channel").fromURI;
+const UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const fromURI = require("node-opcua-secure-channel").fromURI;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var ServerSecureChannelLayer = require("node-opcua-secure-channel/src/server/server_secure_channel_layer").ServerSecureChannelLayer;
-var toURI = require("node-opcua-secure-channel").toURI;
+const ServerSecureChannelLayer = require("node-opcua-secure-channel/src/server/server_secure_channel_layer").ServerSecureChannelLayer;
+const toURI = require("node-opcua-secure-channel").toURI;
 
 
-var EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
+const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
-var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
 
 /**
  * OPCUAServerEndPoint a Server EndPoint.
@@ -56,7 +56,7 @@ var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_de
  */
 function OPCUAServerEndPoint(options) {
 
-    var self = this;
+    const self = this;
 
     assert(!options.hasOwnProperty("certificate"), "expecting a certificateChain instead");
     assert(options.hasOwnProperty("certificateChain"), "expecting a certificateChain");
@@ -103,7 +103,7 @@ util.inherits(OPCUAServerEndPoint, EventEmitter);
 
 OPCUAServerEndPoint.prototype.dispose = function() {
 
-    var self = this;
+    const self = this;
     self._certificateChain = null;
     self._privateKey = null;
 
@@ -123,7 +123,7 @@ OPCUAServerEndPoint.prototype.dispose = function() {
 };
 OPCUAServerEndPoint.prototype._dump_statistics = function () {
 
-    var self = this;
+    const self = this;
 
     self._server.getConnections(function (err, count) {
         debugLog("CONCURRENT CONNECTION = ".cyan, count);
@@ -133,7 +133,7 @@ OPCUAServerEndPoint.prototype._dump_statistics = function () {
 
 
 OPCUAServerEndPoint.prototype._setup_server = function () {
-    var self = this;
+    const self = this;
 
     assert(self._server === null);
     self._server = net.createServer(self._on_client_connection.bind(self));
@@ -171,7 +171,7 @@ function dumpChannelInfo(channels) {
         console.log("        bytesWritten  = ", channel.bytesWritten);
         console.log("        bytesRead     = ", channel.bytesRead);
         
-        var socket = channel.transport._socket;
+        const socket = channel.transport._socket;
         if (!socket) {
             console.log(" SOCKET IS CLOSED");
         } else {
@@ -191,14 +191,14 @@ function dumpChannelInfo(channels) {
  */
 function _prevent_DOS_Attack(self, establish_connection) {
 
-    var nbConnections = self.activeChannelCount;
+    const nbConnections = self.activeChannelCount;
 
     if (nbConnections >= self.maxConnections) {
         // istanbul ignore next
         if (doDebug) {
             console.log(" PREVENTING DOS ATTACK => Closing unused channels".bgRed.white);
         }
-        var unused_channels = _.filter(self._channels, function (channel) {
+        const unused_channels = _.filter(self._channels, function (channel) {
             return !channel.isOpened && !channel.hasSession;
         });
         if (unused_channels.length === 0) {
@@ -218,7 +218,7 @@ function _prevent_DOS_Attack(self, establish_connection) {
                 return channel.hashKey;
             }).join(" "));
         }
-        var channel = unused_channels[0];
+        const channel = unused_channels[0];
         channel.close(function () {
             // istanbul ignore next
             if (doDebug) {
@@ -237,7 +237,7 @@ function _prevent_DOS_Attack(self, establish_connection) {
 OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
 
     // a client is attempting a connection on the socket
-    var self = this;
+    const self = this;
 
     socket.setNoDelay(true);
 
@@ -256,7 +256,7 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
 
     function establish_connection() {
 
-        var nbConnections = Object.keys(self._channels).length;
+        const nbConnections = Object.keys(self._channels).length;
         debugLog(" nbConnections ", nbConnections, " self._server.maxConnections", self._server.maxConnections, self.maxConnections);
         if (nbConnections >= self.maxConnections) {
             debugLog("OPCUAServerEndPoint#_on_client_connection The maximum number of connection has been reached - Connection is refused".bgWhite.bold.cyan);
@@ -266,7 +266,7 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
 
         debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
 
-        var channel = new ServerSecureChannelLayer({
+        const channel = new ServerSecureChannelLayer({
             parent: self,
             timeout: self.timeout,
             defaultSecureTokenLifetime: self.defaultSecureTokenLifetime,
@@ -323,12 +323,12 @@ OPCUAServerEndPoint.prototype.__defineGetter__("currentChannelCount", function (
     return Object.keys(this._channels).length;
 });
 
-var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
+const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 
 
-var get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
+const get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
 
-var default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
+const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
 
 /**
  * @method _makeEndpointDescription
@@ -364,12 +364,12 @@ function _makeEndpointDescription(options) {
     options.securityLevel = (options.securityLevel === undefined) ? 3 : options.securityLevel;
     assert(_.isFinite(options.securityLevel), "expecting a valid securityLevel");
 
-    var securityPolicyUri = toURI(options.securityPolicy);
+    const securityPolicyUri = toURI(options.securityPolicy);
 
     // resource Path is a string added at the end of the url such as "/UA/Server"
-    var resourcePath = options.resourcePath || "";
+    const resourcePath = options.resourcePath || "";
 
-    var userIdentityTokens = [];
+    const userIdentityTokens = [];
 
     if (options.securityPolicy === SecurityPolicy.None) {
 
@@ -422,9 +422,9 @@ function _makeEndpointDescription(options) {
         });
     }
 
-    var endpointUrl = "opc.tcp://" + options.hostname + ":" + path.join("" + options.port, resourcePath).replace(/\\/g, "/");
+    const endpointUrl = "opc.tcp://" + options.hostname + ":" + path.join("" + options.port, resourcePath).replace(/\\/g, "/");
     // return the endpoint object
-    var endpoint = new EndpointDescription({
+    const endpoint = new EndpointDescription({
 
         endpointUrl: endpointUrl,
         server: options.server,
@@ -455,7 +455,7 @@ function matching_endpoint(securityMode, securityPolicy, endpoint) {
     assert(endpoint instanceof EndpointDescription);
     assert(_.isObject(securityMode));
     assert(_.isObject(securityPolicy));
-    var endpoint_securityPolicy = fromURI(endpoint.securityPolicyUri);
+    const endpoint_securityPolicy = fromURI(endpoint.securityPolicyUri);
     return (endpoint.securityMode.value === securityMode.value && endpoint_securityPolicy.value === securityPolicy.value);
 }
 
@@ -467,9 +467,9 @@ function matching_endpoint(securityMode, securityPolicy, endpoint) {
  */
 OPCUAServerEndPoint.prototype.getEndpointDescription = function (securityMode, securityPolicy) {
 
-    var self = this;
-    var endpoints = self.endpointDescriptions();
-    var arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy));
+    const self = this;
+    const endpoints = self.endpointDescriptions();
+    const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy));
     assert(arr.length === 0 || arr.length === 1);
     return arr.length === 0 ? null : arr[0];
 };
@@ -477,7 +477,7 @@ OPCUAServerEndPoint.prototype.getEndpointDescription = function (securityMode, s
 
 OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, securityPolicy, options) {
 
-    var self = this;
+    const self = this;
 
     options = options || {};
     options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
@@ -494,11 +494,11 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
         throw new Error(" invalid security ");
     }
     //
-    var endpoint_desc = self.getEndpointDescription(securityMode, securityPolicy);
+    const endpoint_desc = self.getEndpointDescription(securityMode, securityPolicy);
     if (endpoint_desc) {
         throw new Error(" endpoint already exist");
     }
-    var port = self.port;
+    const port = self.port;
 
     options.hostname = options.hostname || get_fully_qualified_domain_name();
 
@@ -516,18 +516,18 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
 };
 
 OPCUAServerEndPoint.prototype.addRestrictedEndpointDescription = function (options) {
-    var self = this;
+    const self = this;
     options = _.clone(options);
     options.restricted = true;
     return self.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None, options);
 };
 
-var defaultSecurityModes = [
+const defaultSecurityModes = [
     MessageSecurityMode.NONE,
     MessageSecurityMode.SIGN,
     MessageSecurityMode.SIGNANDENCRYPT
 ];
-var defaultSecurityPolicies = [
+const defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
     SecurityPolicy.Basic256,
 //xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
@@ -536,7 +536,7 @@ var defaultSecurityPolicies = [
 
 OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (options) {
 
-    var self = this;
+    const self = this;
 
     options = options || {};
 
@@ -552,14 +552,14 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
     }
 
 
-        for (var i = 0; i < options.securityModes.length; i++) {
-            var securityMode = options.securityModes[i];
+        for (let i = 0; i < options.securityModes.length; i++) {
+            const securityMode = options.securityModes[i];
             if (securityMode === MessageSecurityMode.NONE) {
                 continue;
             }
 
-            for (var j = 0; j < options.securityPolicies.length; j++) {
-                var securityPolicy = options.securityPolicies[j];
+            for (let j = 0; j < options.securityPolicies.length; j++) {
+                const securityPolicy = options.securityPolicies[j];
                 if (securityPolicy === SecurityPolicy.None) {
                     continue;
                 }
@@ -574,7 +574,7 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
  * @return {Array}
  */
 OPCUAServerEndPoint.prototype.endpointDescriptions = function () {
-    var self = this;
+    const self = this;
     return self._endpoints;
 };
 
@@ -586,7 +586,7 @@ OPCUAServerEndPoint.prototype.endpointDescriptions = function () {
  */
 OPCUAServerEndPoint.prototype._registerChannel = function (channel) {
 
-    var self = this;
+    const self = this;
 
     if (self._started) {
 
@@ -621,7 +621,7 @@ OPCUAServerEndPoint.prototype._registerChannel = function (channel) {
  */
 OPCUAServerEndPoint.prototype._unregisterChannel = function (channel) {
 
-    var self = this;
+    const self = this;
     debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
 
     if (!self._channels.hasOwnProperty(channel.hashKey)) {
@@ -653,7 +653,7 @@ OPCUAServerEndPoint.prototype._unregisterChannel = function (channel) {
 
 OPCUAServerEndPoint.prototype._end_listen = function (err) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(self._listen_callback));
     self._listen_callback(err);
     self._listen_callback = null;
@@ -665,7 +665,7 @@ OPCUAServerEndPoint.prototype._end_listen = function (err) {
  */
 OPCUAServerEndPoint.prototype.listen = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback));
     assert(!self._started, "OPCUAServerEndPoint is already listening");
 
@@ -688,8 +688,8 @@ OPCUAServerEndPoint.prototype.listen = function (callback) {
 
 OPCUAServerEndPoint.prototype.killClientSockets = function (callback) {
 
-    var self = this;
-    var chnls = _.values(this._channels);
+    const self = this;
+    const chnls = _.values(this._channels);
     chnls.forEach(function(channel){
         return;
         if (channel.transport && channel.transport._socket) {
@@ -704,7 +704,7 @@ OPCUAServerEndPoint.prototype.killClientSockets = function (callback) {
 
 OPCUAServerEndPoint.prototype.suspendConnection = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(self._started);
     self._server.close(function () {
 //xx        assert(self._started);
@@ -715,7 +715,7 @@ OPCUAServerEndPoint.prototype.suspendConnection = function (callback) {
 };
 
 OPCUAServerEndPoint.prototype.restoreConnection = function (callback) {
-    var self = this;
+    const self = this;
     self.listen(callback);
 };
 
@@ -725,7 +725,7 @@ OPCUAServerEndPoint.prototype.restoreConnection = function (callback) {
  * @param inner_callback
  */
 function shutdown_channel(channel, inner_callback) {
-    var self = this;
+    const self = this;
     assert(_.isFunction(inner_callback));
 
     channel.on("close", function () {
@@ -744,13 +744,13 @@ function shutdown_channel(channel, inner_callback) {
  * @param callback {Function}
  */
 OPCUAServerEndPoint.prototype.shutdown = function (callback) {
-    var self = this;
+    const self = this;
 
     if (self._started) {
         // make sure we don't accept new connection any more ...
         self.suspendConnection(function () {
             // shutdown all opened channels ...
-            var _channels = _.values(self._channels);
+            const _channels = _.values(self._channels);
             async.each(_channels, shutdown_channel.bind(self), function (err) {
                 assert(Object.keys(self._channels).length === 0, "channel must have unregistered themselves");
                 callback(err);
@@ -772,7 +772,7 @@ OPCUAServerEndPoint.prototype.start = function (callback) {
 };
 
 OPCUAServerEndPoint.prototype.__defineGetter__("bytesWritten", function () {
-    var chnls = _.values(this._channels);
+    const chnls = _.values(this._channels);
     return this.bytesWrittenInOldChannels + chnls.reduce(
       function (accumulated, channel) {
           return accumulated + channel.bytesWritten;
@@ -780,7 +780,7 @@ OPCUAServerEndPoint.prototype.__defineGetter__("bytesWritten", function () {
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("bytesRead", function () {
-    var chnls = _.values(this._channels);
+    const chnls = _.values(this._channels);
     return this.bytesReadInOldChannels + chnls.reduce(
       function (accumulated, channel) {
           return accumulated + channel.bytesRead;
@@ -788,7 +788,7 @@ OPCUAServerEndPoint.prototype.__defineGetter__("bytesRead", function () {
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("transactionsCount", function () {
-    var chnls = _.values(this._channels);
+    const chnls = _.values(this._channels);
     return this.transactionsCountOldChannels + chnls.reduce(
       function (accumulated, channel) {
           return accumulated + channel.transactionsCount;
@@ -796,7 +796,7 @@ OPCUAServerEndPoint.prototype.__defineGetter__("transactionsCount", function () 
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("securityTokenCount", function () {
-    var chnls = _.values(this._channels);
+    const chnls = _.values(this._channels);
     return this.securityTokenCountOldChannels + chnls.reduce(
       function (accumulated, channel) {
           return accumulated + channel.securityTokenCount;
@@ -804,7 +804,7 @@ OPCUAServerEndPoint.prototype.__defineGetter__("securityTokenCount", function ()
 });
 
 OPCUAServerEndPoint.prototype.__defineGetter__("activeChannelCount", function () {
-    var self = this;
+    const self = this;
     return Object.keys(self._channels).length;
 });
 

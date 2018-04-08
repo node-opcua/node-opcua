@@ -1,19 +1,19 @@
 "use strict";
 
 
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 module.exports = function (test) {
 
     describe("ClientSession#readVariableValue", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
 
         beforeEach(function (done) {
@@ -62,11 +62,11 @@ module.exports = function (test) {
         it("ClientSession#readVariableValue - case 3 - a single ReadValueId", function (done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                var readValueId1 = {
+                const readValueId1 = {
                     nodeId: "ns=0;i=2258",
                     attributeId: opcua.AttributeIds.BrowseName
                 };
-                var readValueId2 = {
+                const readValueId2 = {
                     nodeId: "ns=0;i=2258",
                     attributeId: opcua.AttributeIds.NodeClass
                 };

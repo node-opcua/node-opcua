@@ -3,31 +3,31 @@
    Write a ByteString value to a node of type Byte[].
 */
 
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var _ = require("underscore");
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const _ = require("underscore");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
     describe("Testing ctt  - write a ByteString value to a node of type Byte[]", function () {
 
         it("should write a ByteString value into a node  of type Byte[]",function(done) {
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var nodeToRead = {
+            const nodeToRead = {
                 nodeId: "ns=411;s=Scalar_Static_Array_Byte",
                 attributeId: 13
             };
 
             perform_operation_on_subscription(client,endpointUrl,function(session,subscription,inner_done){
 
-                var l = 0;
+                let l = 0;
                 async.series([
                     function read_initial_value(callback) {
 
@@ -40,7 +40,7 @@ module.exports = function (test) {
                     },
                     function write_byteString_in_arrayOfByte(callback) {
 
-                        var nodeToWrite= {
+                        const nodeToWrite= {
                             nodeId:"ns=411;s=Scalar_Static_Array_Byte",
                             attributeId: 13,
                             value: {

@@ -1,16 +1,16 @@
 "use strict";
 /* global describe,it,before*/
-var should = require("should");
+const should = require("should");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var Variant = require("node-opcua-variant").Variant;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const Variant = require("node-opcua-variant").Variant;
 
 module.exports = function (test) {
 
 
     describe("Deviation Alarms : ExclusiveDeviation Alarms ", function () {
 
-        var addressSpace, source, engine, variableWithAlarm, setpointNodeNode;
+        let addressSpace, source, engine, variableWithAlarm, setpointNodeNode;
         before(function () {
             addressSpace = test.addressSpace;
             source = test.source;
@@ -24,7 +24,7 @@ module.exports = function (test) {
 
         describe("ExclusiveDeviationAlarm", function () {
 
-            var alarm;
+            let alarm;
             before(function () {
 
                 setpointNodeNode.setValueFromSource({dataType: "Double", value: 0});

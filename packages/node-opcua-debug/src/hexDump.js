@@ -3,7 +3,7 @@ function hexDump(buffer, width) {
         return "<>";
     }
     width = width || 32;
-    var hexy = require("hexy");
+    const hexy = require("hexy");
     if (buffer.length > 1024) {
 
         return hexy.hexy(buffer.slice(0, 1024), {width: width, format: "twos"}) + "\n .... ( " + buffer.length + ")";

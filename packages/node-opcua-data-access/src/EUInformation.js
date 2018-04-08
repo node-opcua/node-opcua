@@ -31,9 +31,9 @@ exports.EUInformation  = require("../_generated_/_auto_generated_EUInformation")
 // to convert the Common Code into an Int32 as needed for EUInformation.unitId:
 exports.commonCodeToUInt = function (code) {
     // CEL =>
-    var unitId = 0, c;
-    var m = Math.min(4, code.length);
-    for (var i = 0; i < m; i++) {
+    let unitId = 0, c;
+    const m = Math.min(4, code.length);
+    for (let i = 0; i < m; i++) {
         c = code[i].charCodeAt();
         /* istanbul ignore if*/
         if (c === 0) {
@@ -45,7 +45,7 @@ exports.commonCodeToUInt = function (code) {
     return unitId;
 };
 
-var makeEUInformation = function (symbol, shortName, longName) {
+const makeEUInformation = function (symbol, shortName, longName) {
 
     return new exports.EUInformation({
         unitId: exports.commonCodeToUInt(symbol),

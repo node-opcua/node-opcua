@@ -4,13 +4,13 @@
  */
 
 
-var factories = require("node-opcua-factory");
-var is_internal_id = require("node-opcua-factory").is_internal_id;
+const factories = require("node-opcua-factory");
+const is_internal_id = require("node-opcua-factory").is_internal_id;
 
-var ec = require("node-opcua-basic-types");
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const ec = require("node-opcua-basic-types");
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
-var ExtensionObject = function () {
+const ExtensionObject = function () {
 
 };
 
@@ -84,21 +84,21 @@ function encodeExtensionObject(object, stream) {
 
 function decodeExtensionObject(stream) {
 
-    var nodeId = ec.decodeNodeId(stream);
-    var encodingType = stream.readUInt8();
+    const nodeId = ec.decodeNodeId(stream);
+    const encodingType = stream.readUInt8();
 
     if (encodingType === 0) {
         return null;
     }
 
-    var length = stream.readUInt32();
+    const length = stream.readUInt32();
 
     /* istanbul ignore next */
     if (nodeId.value === 0 || encodingType === 0) {
         return null;
     }
 
-    var object = constructEmptyExtensionObject(nodeId);
+    const object = constructEmptyExtensionObject(nodeId);
 
     /* istanbul ignore next */
     if (object === null) {

@@ -1,22 +1,22 @@
 "use strict";
 
 
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
 
-var perform_operation_on_raw_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_raw_subscription;
+const perform_operation_on_raw_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_raw_subscription;
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var DataValue = opcua.DataValue;
-var DataType = opcua.DataType;
-var Range = opcua.Range;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const DataValue = opcua.DataValue;
+const DataType = opcua.DataType;
+const Range = opcua.Range;
 
 function getEURangeNodeId(session, nodeId, callback) {
 
-    var euRangeNodeId = null;
-    var browsePath = [
+    let euRangeNodeId = null;
+    const browsePath = [
         opcua.makeBrowsePath(nodeId, ".EURange")
     ];
     session.translateBrowsePath(browsePath, function (err, results) {
@@ -32,11 +32,11 @@ function getEURangeNodeId(session, nodeId, callback) {
 
 function writeIncrement(session, analogDataItem, done) {
 
-    var value = null;
+    let value = null;
     async.series([
 
         function (callback) {
-            var nodeToRead = {
+            const nodeToRead = {
                 nodeId: analogDataItem,
                 attributeId: opcua.AttributeIds.Value,
                 indexRange: null,
@@ -51,7 +51,7 @@ function writeIncrement(session, analogDataItem, done) {
         },
 
         function (callback) {
-            var nodeToWrite = {
+            const nodeToWrite = {
                 nodeId: analogDataItem,
                 attributeId: opcua.AttributeIds.Value,
                 value: new DataValue({
@@ -67,8 +67,8 @@ function writeIncrement(session, analogDataItem, done) {
 }
 
 function readEURange(session, nodeId, done) {
-    var euRangeNodeId;
-    var euRange;
+    let euRangeNodeId;
+    let euRange;
     async.series([
         function (callback) {
             getEURangeNodeId(session, nodeId, function (err, result) {
@@ -77,7 +77,7 @@ function readEURange(session, nodeId, done) {
             });
         },
         function (callback) {
-            var nodesToRead = {
+            const nodesToRead = {
                 nodeId: euRangeNodeId,
                 attributeId: opcua.AttributeIds.Value,
                 indexRange: null,
@@ -100,7 +100,7 @@ function readEURange(session, nodeId, done) {
 
 function writeEURange(session, nodeId, euRange, done) {
 
-    var euRangeNodeId;
+    let euRangeNodeId;
     async.series([
         function (callback) {
             getEURangeNodeId(session, nodeId, function (err, result) {
@@ -109,7 +109,7 @@ function writeEURange(session, nodeId, euRange, done) {
             });
         },
         function (callback) {
-            var nodeToWrite = {
+            const nodeToWrite = {
                 nodeId: euRangeNodeId,
                 attributeId: opcua.AttributeIds.Value,
                 value: new DataValue({
@@ -133,7 +133,7 @@ module.exports = function (test) {
 
     describe("Testing SemanticChanged Bit on statusCode monitoredItemData", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient({});
@@ -149,12 +149,12 @@ module.exports = function (test) {
 
         function check_semantic_change(samplingInterval, done) {
 
-            var analogDataItem = "ns=411;s=DoubleAnalogDataItem";
+            const analogDataItem = "ns=411;s=DoubleAnalogDataItem";
 
 
             perform_operation_on_raw_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                var orgEURange = null;
+                let orgEURange = null;
                 async.series([
 
                     // Read current Range
@@ -170,13 +170,13 @@ module.exports = function (test) {
                     // - create Monitored Item
                     function (callback) {
 
-                        var itemToMonitor = new opcua.read_service.ReadValueId({
+                        const itemToMonitor = new opcua.read_service.ReadValueId({
                             attributeId: opcua.AttributeIds.Value,
                             nodeId: analogDataItem
                         });
-                        var monitoringMode = opcua.subscription_service.MonitoringMode.Reporting;
+                        const monitoringMode = opcua.subscription_service.MonitoringMode.Reporting;
 
-                        var monitoringParameters = new opcua.subscription_service.MonitoringParameters({
+                        const monitoringParameters = new opcua.subscription_service.MonitoringParameters({
                             clientHandle: 1000,
                             samplingInterval: samplingInterval,
                             filter: null,
@@ -184,15 +184,15 @@ module.exports = function (test) {
                             discardOldest: true
                         });
 
-                        var itemsToCreate = [{
+                        const itemsToCreate = [{
                             itemToMonitor: itemToMonitor,
                             monitoringMode: monitoringMode,
                             requestedParameters: monitoringParameters
                         }];
 
-                        var timestampsToReturn = opcua.read_service.TimestampsToReturn.Neither;
+                        const timestampsToReturn = opcua.read_service.TimestampsToReturn.Neither;
 
-                        var createMonitorItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                        const createMonitorItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
                             subscriptionId: subscription.subscriptionId,
                             timestampsToReturn: timestampsToReturn,
                             itemsToCreate: itemsToCreate
@@ -209,14 +209,14 @@ module.exports = function (test) {
 
                     // now get initial request
                     function (callback) {
-                        var publish_request = new opcua.subscription_service.PublishRequest({
+                        const publish_request = new opcua.subscription_service.PublishRequest({
                             requestHeader: {timeoutHint: 100000}, // see note
                             subscriptionAcknowledgements: []
                         });
                         session.publish(publish_request, function (err, publish_response) {
                             ///xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
-                            var monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
+                            const monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
                             monitoredData.value.statusCode.hasSemanticChangedBit.should.eql(false, "SemanticChange Bit shall not be set");
                             callback();
                         });
@@ -224,13 +224,13 @@ module.exports = function (test) {
 
                     // Write modified range
                     function (callback) {
-                        var newEURange = {low: orgEURange.low - 1, high: orgEURange.high + 1};
+                        const newEURange = {low: orgEURange.low - 1, high: orgEURange.high + 1};
                         writeEURange(session, analogDataItem, newEURange, callback);
                     },
 
                     // now submit a publish request
                     function (callback) {
-                        var publish_request = new opcua.subscription_service.PublishRequest({
+                        const publish_request = new opcua.subscription_service.PublishRequest({
                             requestHeader: {timeoutHint: 100000}, // see note
                             subscriptionAcknowledgements: []
                         });
@@ -240,7 +240,7 @@ module.exports = function (test) {
                             }
                             //xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
-                            var monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
+                            const monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
                             monitoredData.value.statusCode.hasSemanticChangedBit.should.eql(true, "SemanticChange Bit shall be set");
                             callback();
                         });
@@ -253,14 +253,14 @@ module.exports = function (test) {
 
                     // now submit a publish request
                     function (callback) {
-                        var publish_request = new opcua.subscription_service.PublishRequest({
+                        const publish_request = new opcua.subscription_service.PublishRequest({
                             requestHeader: {timeoutHint: 100000}, // see note
                             subscriptionAcknowledgements: []
                         });
                         session.publish(publish_request, function (err, publish_response) {
                             //xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
-                            var monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
+                            const monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
                             monitoredData.value.statusCode.hasSemanticChangedBit.should.eql(false, "SemanticChange Bit shall not be set");
                             callback();
                         });

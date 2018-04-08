@@ -1,33 +1,33 @@
 "use strict";
 
 
-var should = require("should");
-var os = require("os");
-var path = require("path");
-var fs = require("fs");
-var opcua = require("node-opcua");
-var OPCUAServer = opcua.OPCUAServer;
-var OPCUAClient = opcua.OPCUAClient;
+const should = require("should");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+const opcua = require("node-opcua");
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
 
 function getFixture(file) {
     file = path.join(__dirname, "../../node-opcua-address-space/test_helpers/test_fixtures", file);
     fs.existsSync(file).should.be.eql(true);
     return file;
 }
-var empty_nodeset_filename = getFixture("fixture_empty_nodeset2.xml");
+const empty_nodeset_filename = getFixture("fixture_empty_nodeset2.xml");
 
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var port = 4000;
+let port = 4000;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ChannelSecurityToken lifetime", function () {
 
     this.timeout(Math.max(100000,this._timeout));
 
-    var server, client;
-    var endpointUrl;
+    let server, client;
+    let endpointUrl;
 
     beforeEach(function (done) {
 
@@ -94,12 +94,12 @@ describe("Testing ChannelSecurityToken lifetime", function () {
             should(!!err).equal(false);
         });
 
-        var security_token_renewed_counter = 0;
+        let security_token_renewed_counter = 0;
         client._secureChannel.on("security_token_renewed", function () {
             debugLog(" received security_token_renewed");
             security_token_renewed_counter += 1;
         });
-        var waitingTime = 1000;
+        let waitingTime = 1000;
         if (os.arch() === "arm") {
             // give more time for slow raspberry to react */
             waitingTime += 4000;

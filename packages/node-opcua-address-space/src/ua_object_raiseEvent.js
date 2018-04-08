@@ -1,13 +1,13 @@
 "use strict";
 
-var assert = require("node-opcua-assert");
-var DataType = require("node-opcua-variant").DataType;
+const assert = require("node-opcua-assert");
+const DataType = require("node-opcua-variant").DataType;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
 exports.install = function (UAObject) {
 
-    var UAObjectType = require("./ua_object_type").UAObjectType;
+    const UAObjectType = require("./ua_object_type").UAObjectType;
 
 
     /**
@@ -19,8 +19,8 @@ exports.install = function (UAObject) {
     UAObject.prototype.raiseEvent = function (eventType, data)
     {
 
-        var self = this;
-        var addressSpace = self.addressSpace;
+        const self = this;
+        const addressSpace = self.addressSpace;
 
         if (typeof(eventType) === "string") {
             eventType = addressSpace.findEventType(eventType);
@@ -30,7 +30,7 @@ exports.install = function (UAObject) {
         }
         assert(eventType instanceof UAObjectType);
 
-        var eventTypeNode = eventType;
+        let eventTypeNode = eventType;
         // istanbul ignore next
         if (!eventTypeNode) {
             throw new Error("UAObject#raiseEventType : Cannot find event type :" + eventType.toString());
@@ -38,29 +38,29 @@ exports.install = function (UAObject) {
 
         // coerce EventType
         eventTypeNode = addressSpace.findEventType(eventType);
-        var baseEventType = addressSpace.findEventType("BaseEventType");
+        const baseEventType = addressSpace.findEventType("BaseEventType");
         assert(eventTypeNode.isSupertypeOf(baseEventType));
 
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = data.sourceNode || {dataType: DataType.NodeId, value: self.nodeId};
 
-        var eventData = addressSpace.constructEventData(eventTypeNode, data);
+        const eventData = addressSpace.constructEventData(eventTypeNode, data);
 
         self._bubble_up_event(eventData);
     };
 
     UAObject.prototype._bubble_up_event = function(eventData)
     {
-        var self = this;
-        var addressSpace = self.addressSpace;
+        const self = this;
+        const addressSpace = self.addressSpace;
 
-        var queue = [];
+        const queue = [];
         // walk up the hasNotify / hasEventSource chain
-        var m = {};
+        const m = {};
 
         // all events are notified to the server object
         // emit on server object
-        var server = addressSpace.findNode("Server");
+        const server = addressSpace.findNode("Server");
 
         if (server) {
             assert(server.eventNotifier > 0x00, "Server must be an event notifier");
@@ -73,7 +73,7 @@ exports.install = function (UAObject) {
         addinqueue(self);
 
         function addinqueue(obj) {
-            var key = obj.nodeId.toString();
+            const key = obj.nodeId.toString();
             if (!m[key]) {
                 m[key] = obj;
                 queue.push(obj);
@@ -81,14 +81,14 @@ exports.install = function (UAObject) {
         }
 
         while (queue.length) {
-            var obj = queue.pop();
+            const obj = queue.pop();
             // emit on object itself
             obj.emit("event", eventData);
 
-            var elements1 = obj.findReferencesAsObject("HasNotifier", false);
+            const elements1 = obj.findReferencesAsObject("HasNotifier", false);
             elements1.forEach(addinqueue);
 
-            var elements2 = obj.findReferencesAsObject("HasEventSource", false);
+            const elements2 = obj.findReferencesAsObject("HasEventSource", false);
             elements2.forEach(addinqueue);
         }
     };

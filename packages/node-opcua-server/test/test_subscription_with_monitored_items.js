@@ -2,43 +2,43 @@
 "use strict";
 
 
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var subscription_service = require("node-opcua-service-subscription");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const subscription_service = require("node-opcua-service-subscription");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var Subscription = require("../src/subscription").Subscription;
-var SubscriptionState = require("../src/subscription").SubscriptionState;
-var ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
+const Subscription = require("../src/subscription").Subscription;
+const SubscriptionState = require("../src/subscription").SubscriptionState;
+const ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
 
-var TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
 
-var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
-var makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
+const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
+const makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
 
-var DataType = require("node-opcua-variant").DataType;
-var DataValue = require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DataType = require("node-opcua-variant").DataType;
+const DataValue = require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-var MonitoredItem = require("../src/monitored_item").MonitoredItem;
-var encode_decode = require("node-opcua-basic-types");
+const MonitoredItem = require("../src/monitored_item").MonitoredItem;
+const encode_decode = require("node-opcua-basic-types");
 
-var SessionContext = require("node-opcua-address-space").SessionContext;
-var context = SessionContext.defaultContext;
-var MonitoringParameters = subscription_service.MonitoringParameters;
+const SessionContext = require("node-opcua-address-space").SessionContext;
+const context = SessionContext.defaultContext;
+const MonitoringParameters = subscription_service.MonitoringParameters;
 
-var doDebug = false;
+const doDebug = false;
 
-var now = (new Date()).getTime();
+const now = (new Date()).getTime();
 
-var fake_publish_engine = {
+const fake_publish_engine = {
     pendingPublishRequestCount: 0,
     send_notification_message: function () {
     },
@@ -58,7 +58,7 @@ var fake_publish_engine = {
 
 };
 
-var dataSourceFrozen = false;
+let dataSourceFrozen = false;
 
 function freeze_data_source() {
     dataSourceFrozen = true;
@@ -70,42 +70,42 @@ function unfreeze_data_source() {
 
 function install_spying_samplingFunc() {
     unfreeze_data_source();
-    var sample_value = 0;
-    var spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+    let sample_value = 0;
+    const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
         //xx console.log(" OOOOO ----- OOOOOOO");
-        var dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
+        const dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
         callback(null, dataValue);
     });
     return spy_samplingEventCall;
 }
 
-var server_engine = require("../src/server_engine");
+const server_engine = require("../src/server_engine");
 
-var add_eventGeneratorObject = require("node-opcua-address-space/test_helpers/add_event_generator_object").add_eventGeneratorObject;
+const add_eventGeneratorObject = require("node-opcua-address-space/test_helpers/add_event_generator_object").add_eventGeneratorObject;
 
 
 function simulate_client_adding_publish_request(publishEngine, callback) {
     callback = callback || function () {
     };
-    var publishRequest = new subscription_service.PublishRequest({});
+    const publishRequest = new subscription_service.PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
-var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
 describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
-    var addressSpace;
-    var someVariableNode;
-    var analogItemNode;
-    var accessLevel_CurrentRead_NotUserNode;
+    let addressSpace;
+    let someVariableNode;
+    let analogItemNode;
+    let accessLevel_CurrentRead_NotUserNode;
 
-    var engine;
-    var test = this;
+    let engine;
+    const test = this;
 
     before(function (done) {
         engine = new server_engine.ServerEngine();
@@ -114,7 +114,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
-            var node = addressSpace.addVariable({
+            const node = addressSpace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
@@ -150,9 +150,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             addVar("Double", 0);
 
 
-            var name = "AccessLevel_CurrentRead_NotUser";
-            var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-            var namespaceIndex = 100;
+            const name = "AccessLevel_CurrentRead_NotUser";
+            const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+            const namespaceIndex = 100;
 
             accessLevel_CurrentRead_NotUserNode = addressSpace.addVariable({
                 organizedBy: "RootFolder",
@@ -173,12 +173,12 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 })
             });
 
-            var standardUnits = require("node-opcua-data-access").standardUnits;
+            const standardUnits = require("node-opcua-data-access").standardUnits;
 
             function addAnalogItem(dataType) {
 
-                var name = "AnalogItem" + dataType;
-                var nodeId = makeNodeId(name, namespaceIndex);
+                const name = "AnalogItem" + dataType;
+                const nodeId = makeNodeId(name, namespaceIndex);
 
                 addressSpace.addAnalogDataItem({
 
@@ -222,7 +222,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     it("a subscription should accept monitored item", function (done) {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
@@ -232,7 +232,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         });
 
 
-        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+        const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
 
@@ -244,7 +244,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
         subscription.monitoredItemCount.should.eql(1);
@@ -264,7 +264,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     it("a subscription should fire the event removeMonitoredItem", function (done) {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
@@ -275,7 +275,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         subscription.on("removeMonitoredItem", done.bind(null, null));
 
-        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+        const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
 
@@ -292,7 +292,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     it("a subscription should collect monitored item notification with _collectNotificationData", function (done) {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
@@ -303,7 +303,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         });
 
 
-        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+        const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
@@ -312,17 +312,17 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
         monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
 
-        var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
         // data collection is done asynchronously => let give some time for this to happen
         this.clock.tick(5);
 
         // at first, _collectNotificationData  should has 1 notification with current dataItem value
-        var notifications = subscription._collectNotificationData();
+        let notifications = subscription._collectNotificationData();
         should(notifications.length).equal(1);
 
         // now simulate some data change
@@ -351,10 +351,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         unfreeze_data_source();
 
-        var publishEngine = new ServerSidePublishEngine();
+        const publishEngine = new ServerSidePublishEngine();
 
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 500,
             maxKeepAliveCount: 20,
             publishEngine: publishEngine,
@@ -375,10 +375,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 
         // let spy the notifications event handler
-        var spy_notification_event = sinon.spy();
+        const spy_notification_event = sinon.spy();
         subscription.on("notification", spy_notification_event);
 
-        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+        const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
@@ -394,11 +394,11 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-        var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
         monitoredItem.samplingInterval.should.eql(100);
 
         // data collection is done asynchronously => let give some time for this to happen
@@ -453,7 +453,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", function (done) {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
@@ -463,7 +463,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         });
 
 
-        var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+        const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {nodeId: someVariableNode},
             monitoringMode: subscription_service.MonitoringMode.Reporting,
             requestedParameters: {
@@ -473,12 +473,12 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             }
         });
 
-        var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-        var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
-        var result = subscription.getMonitoredItems({});
+        const result = subscription.getMonitoredItems({});
         result.statusCode.should.eql(StatusCodes.Good);
         result.serverHandles.map(parseInt).should.eql([monitoredItem.monitoredItemId]);
         result.clientHandles.map(parseInt).should.eql([monitoredItem.clientHandle]);
@@ -492,7 +492,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     function on_subscription(actionFunc, done) {
 
         // see Err-03.js
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             id: 42,
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -517,9 +517,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     it("should return BadMonitoredItemFilterUnsupported if filter is DataChangeFilter PercentDeadBand and variable has no EURange", function (done) {
 
-        var not_a_analogItemNode = someVariableNode;
+        const not_a_analogItemNode = someVariableNode;
         on_subscription(function (subscription) {
-            var monitoredItemCreateRequest1 = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest1 = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: not_a_analogItemNode,
                     attributeId: AttributeIds.Value
@@ -536,7 +536,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 }
             });
 
-            var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            const monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
             monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
         }, done);
     });
@@ -565,16 +565,16 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         on_subscription(function (subscription) {
 
-            var monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
-            var monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            const monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
+            const monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
             monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
-            var monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
-            var monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
+            const monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
+            const monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
             monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
-            var monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
-            var monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
+            const monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
+            const monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
             monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
 
         }, done);
@@ -586,7 +586,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         on_subscription(function (subscription) {
 
             function test_with_attributeId(attributeId, statusCode) {
-                var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: {
                         nodeId: analogItemNode,
                         attributeId: attributeId
@@ -602,7 +602,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                         })
                     }
                 });
-                var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
                 return monitoredItemCreateResult.statusCode;
             }
 
@@ -624,21 +624,21 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         test.clock = sinon.useFakeTimers(now);
 
-        var publishEngine = new ServerSidePublishEngine({});
+        const publishEngine = new ServerSidePublishEngine({});
 
-        var _clientHandle = 1;
+        let _clientHandle = 1;
 
         function my_samplingFunc(oldData, callback) {
-            var self = this;
+            const self = this;
             //xx console.log(self.toString());
-            var dataValue = addressSpace.findNode(self.node.nodeId).readAttribute(null,13);
+            const dataValue = addressSpace.findNode(self.node.nodeId).readAttribute(null,13);
             callback(null, dataValue);
         }
 
         function add_monitoredItem(subscription) {
 
-            var nodeId = 'ns=100;s=Static_Float';
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const nodeId = 'ns=100;s=Static_Float';
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -651,7 +651,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 }
             });
 
-            var n = addressSpace.findNode('ns=100;s=Static_Float');
+            const n = addressSpace.findNode('ns=100;s=Static_Float');
             //xx console.log(n.toString());
 
             subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
@@ -661,7 +661,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         function perform_publish_transaction_and_check_subscriptionId(subscription) {
 
-            var pubFunc = sinon.spy();
+            const pubFunc = sinon.spy();
 
             simulate_client_adding_publish_request(publishEngine, pubFunc);
 
@@ -691,7 +691,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         // +---o-------------------o-------------------o-------------------o-------------------o--------------o
         //
         // we use a subscription with a small publishingInterval interval here
-        var subscription1 = new Subscription({
+        const subscription1 = new Subscription({
             publishingInterval: 250,
             maxKeepAliveCount: 10,
             id: 10000,
@@ -713,7 +713,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         subscription1.state.should.eql(SubscriptionState.NORMAL);
 
         //---------------------------------------------------- Subscription 2 - 1000 ms
-        var subscription2 = new Subscription({
+        const subscription2 = new Subscription({
             id: 20000,
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -731,7 +731,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         subscription1.state.should.eql(SubscriptionState.NORMAL);
 
         //---------------------------------------------------- Subscription 3 - 5000 ms
-        var subscription3 = new Subscription({
+        const subscription3 = new Subscription({
             id: 30000,
             publishingInterval: 5000,
             maxKeepAliveCount: 20,
@@ -764,7 +764,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     it("should return BadFilterNotAllowed if DeadBandFilter is specified on non-Numeric value monitored item", function () {
 
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
@@ -774,7 +774,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         });
 
         function test_with_nodeId(nodeId, statusCode) {
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -790,7 +790,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                     })
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             return monitoredItemCreateResult.statusCode;
         }
 
@@ -806,9 +806,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     describe("MonitoredItem - Access Right - and Unknown Nodes", function () {
 
 
-        var subscription = null;
+        let subscription = null;
 
-        var test = this;
+        let test = this;
 
         beforeEach(function () {
 
@@ -823,13 +823,13 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             //xx publishEngine.add_subscription(subscription);
 
             // let spy the notifications event handler
-            var spy_notification_event = sinon.spy();
+            const spy_notification_event = sinon.spy();
             subscription.on("notification", spy_notification_event);
 
             subscription.on("monitoredItem", function (monitoredItem) {
 
                 monitoredItem.samplingFunc = sinon.spy(function (oldValue, callback) {
-                    var dataValue = monitoredItem.node.readAttribute(null,monitoredItem.itemToMonitor.attributeId);
+                    const dataValue = monitoredItem.node.readAttribute(null,monitoredItem.itemToMonitor.attributeId);
                     //xx console.log("dataValue ",dataValue.toString());
                     callback(null, dataValue);
                 });
@@ -850,7 +850,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             test.clock.tick(100);
 
             // process publish
-            var notifs = monitoredItem.extractMonitoredItemNotifications();
+            const notifs = monitoredItem.extractMonitoredItemNotifications();
 
             monitoredItem.queue.length.should.eql(0);
 
@@ -885,10 +885,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             accessLevel_CurrentRead_NotUserNode.isReadable(context).should.eql(true);
             accessLevel_CurrentRead_NotUserNode.isUserReadable(context).should.eql(false);
 
-            var nodeId = accessLevel_CurrentRead_NotUserNode.nodeId;
+            const nodeId = accessLevel_CurrentRead_NotUserNode.nodeId;
             nodeId.should.be.instanceOf(NodeId);
 
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -901,11 +901,11 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
 
@@ -918,9 +918,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         it("FGFG1 should return BadNodeIdUnknown when trying to monitor an invalid node",function(done) {
 
-            var nodeId = "ns=5;s=MyVariable";
+            const nodeId = "ns=5;s=MyVariable";
 
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -933,7 +933,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             if (doDebug) {
                 console.log(monitoredItemCreateResult.toString());
@@ -941,15 +941,15 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
 
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
             should.not.exist(monitoredItem);
 
             done();
         });
         it("FGFG2 should eventually emit DataChangeNotification when trying to monitor an invalid node that become valid",function(done) {
 
-            var nodeId = "ns=5;s=MyVariable";
-            var nodeVariable = addressSpace.addVariable({
+            const nodeId = "ns=5;s=MyVariable";
+            const nodeVariable = addressSpace.addVariable({
                 browseName: "MyVar",
                 nodeId: nodeId,
                 dataType: "Double",
@@ -959,7 +959,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 
 
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -972,7 +972,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             if (doDebug) {
                 console.log(monitoredItemCreateResult.toString());
@@ -980,7 +980,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
             should.exist(monitoredItem);
 
             simulate_publish_request_expected_statusCode(monitoredItem,StatusCodes.Good);
@@ -1000,9 +1000,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
     describe("DeadBandFilter !!!", function () {
 
-        var subscription = null;
+        let subscription = null;
 
-        var test = this;
+        let test = this;
 
         before(function () {
 
@@ -1017,7 +1017,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             //xx publishEngine.add_subscription(subscription);
 
             // let spy the notifications event handler
-            var spy_notification_event = sinon.spy();
+            const spy_notification_event = sinon.spy();
             subscription.on("notification", spy_notification_event);
 
             subscription.on("monitoredItem", function (monitoredItem) {
@@ -1035,17 +1035,17 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             done();
         });
 
-        var integerDeadband = 2;
-        var integerWritesFail = [8, 7, 10];
-        var integerWritesPass = [3, 6, 13];
+        const integerDeadband = 2;
+        const integerWritesFail = [8, 7, 10];
+        const integerWritesPass = [3, 6, 13];
 
-        var floatDeadband = 2.2;
-        var floatWritesFail = [2.3, 4.4, 1.6];
-        var floatWritesPass = [6.4, 4.1, 8.4];
+        const floatDeadband = 2.2;
+        const floatWritesFail = [2.3, 4.4, 1.6];
+        const floatWritesPass = [6.4, 4.1, 8.4];
 
-        var integer64Deadband = 2;
-        var integer64WritesFail = [[0, 8], [0, 7], [0, 10]];
-        var integer64WritesPass = [[0, 3], [0, 6], [0, 13]];
+        const integer64Deadband = 2;
+        const integer64WritesFail = [[0, 8], [0, 7], [0, 10]];
+        const integer64WritesPass = [[0, 3], [0, 6], [0, 13]];
 
         /*
          Specify a filter using a deadband absolute.
@@ -1055,14 +1055,14 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
          */
         function test_deadband(dataType, deadband, writesPass, writesFail) {
 
-            var nodeId = "ns=100;s=Static_" + dataType;
-            var node = engine.addressSpace.findNode(nodeId);
+            const nodeId = "ns=100;s=Static_" + dataType;
+            const node = engine.addressSpace.findNode(nodeId);
             should(!!node).not.eql(false);
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
             function simulate_nodevalue_change(currentValue) {
 
-                var v = new Variant({
+                const v = new Variant({
                     dataType: DataType[dataType],
                     arrayType: VariantArrayType.Scalar,
                     value: currentValue
@@ -1074,13 +1074,13 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 node.readValue().value.value.should.eql(currentValue, "value must have been recorded");
             }
 
-            var notifs;
+            let notifs;
 
-            var currentValue = writesFail[0];
+            let currentValue = writesFail[0];
             simulate_nodevalue_change(currentValue);
 
             // create monitor item
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -1098,14 +1098,14 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(
+            const monitoredItemCreateResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(5);
 
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
@@ -1190,16 +1190,16 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         it("ZZ0 testing with String and DeadBandFilter", function (done) {
 
-            var nodeId = "ns=100;s=Static_LocalizedText";
+            const nodeId = "ns=100;s=Static_LocalizedText";
 
-            var filter = new subscription_service.DataChangeFilter({
+            const filter = new subscription_service.DataChangeFilter({
                 trigger: subscription_service.DataChangeTrigger.StatusValue,
                 deadbandType: subscription_service.DeadbandType.Absolute,
                 deadbandValue: 10.0
             });
 
             // create monitor item
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
@@ -1213,7 +1213,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             });
 
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(
+            const monitoredItemCreateResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
 
@@ -1221,10 +1221,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             test.clock.tick(5);
 
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             // now modify monitoredItem setting a filter
-            var res = monitoredItem.modify(null, new subscription_service.MonitoringParameters({
+            const res = monitoredItem.modify(null, new subscription_service.MonitoringParameters({
                 samplingInterval: 0,
                 discardOldest: true,
                 queueSize: 1,
@@ -1244,9 +1244,9 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 
         function changeEURange(analogItem, done) {
-            var dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
+            const dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
 
-            var dataValue = {
+            const dataValue = {
                 value: {
                     dataType: DataType.ExtensionObject,
                     value: new Range({
@@ -1256,7 +1256,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 }
             };
 
-            var writeValue = new WriteValue({
+            const writeValue = new WriteValue({
                 attributeId: AttributeIds.Value,
                 value: dataValue
             });
@@ -1284,7 +1284,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 subscription.on("monitoredItem", function (monitoredItem) {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
                 });
-                var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: {nodeId: someVariableNode},
                     monitoringMode: subscription_service.MonitoringMode.Reporting,
                     requestedParameters: {
@@ -1295,10 +1295,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 });
                 monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(100, "Requesting a very small sampling interval");
 
-                var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
                 monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-                var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
                 monitoredItem.samplingInterval.should.eql(1000, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
@@ -1306,14 +1306,14 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 // Modifying sampling interval
                 // ---------------------------------------------------------------------------------------------------------
 
-                var timestampsToReturn = TimestampsToReturn.Both;
-                var requestedParameters = new MonitoringParameters({
+                const timestampsToReturn = TimestampsToReturn.Both;
+                const requestedParameters = new MonitoringParameters({
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1000
                 });
 
-                var monitoredItemModifyResult = monitoredItem.modify(timestampsToReturn, requestedParameters);
+                const monitoredItemModifyResult = monitoredItem.modify(timestampsToReturn, requestedParameters);
 
                 monitoredItemModifyResult.revisedSamplingInterval.should.eql(1000);
 
@@ -1350,7 +1350,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
                 });
 
-                var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: {nodeId: someVariableNode},
                     monitoringMode: subscription_service.MonitoringMode.Reporting,
                     requestedParameters: {
@@ -1361,10 +1361,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 });
                 monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(10, "Requesting a very small sampling interval");
 
-                var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
                 monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-                var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
                 monitoredItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
@@ -1372,14 +1372,14 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                 // Modifying sampling interval
                 // ---------------------------------------------------------------------------------------------------------
 
-                var timestampsToReturn = TimestampsToReturn.Both;
-                var requestedParameters = new MonitoringParameters({
+                const timestampsToReturn = TimestampsToReturn.Both;
+                const requestedParameters = new MonitoringParameters({
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1000
                 });
 
-                var monitoredItemModifyResult = monitoredItem.modify(timestampsToReturn, requestedParameters);
+                const monitoredItemModifyResult = monitoredItem.modify(timestampsToReturn, requestedParameters);
 
                 monitoredItemModifyResult.revisedSamplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
 
@@ -1402,10 +1402,10 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 describe("monitoredItem advanced", function () {
 
-    var addressSpace;
-    var someVariableNode;
-    var engine;
-    var publishEngine;
+    let addressSpace;
+    let someVariableNode;
+    let engine;
+    let publishEngine;
     before(function (done) {
         engine = new server_engine.ServerEngine();
 
@@ -1414,7 +1414,7 @@ describe("monitoredItem advanced", function () {
             addressSpace = engine.addressSpace;
 
 
-            var node = addressSpace.addVariable({
+            const node = addressSpace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
@@ -1424,9 +1424,9 @@ describe("monitoredItem advanced", function () {
 
             add_eventGeneratorObject(engine.addressSpace, "ObjectsFolder");
 
-            var browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
+            const browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
 
-            var opts = {addressSpace: engine.addressSpace};
+            const opts = {addressSpace: engine.addressSpace};
             //xx console.log("eventGeneratingObject",browsePath.toString(opts));
             //xx console.log("eventGeneratingObject",eventGeneratingObject.toString(opts));
 
@@ -1456,7 +1456,7 @@ describe("monitoredItem advanced", function () {
 
     describe("#maxNotificationsPerPublish", function () {
         it("should have a proper maxNotificationsPerPublish default value", function (done) {
-            var subscription = new Subscription({
+            const subscription = new Subscription({
                 publishEngine: publishEngine
             });
             subscription.on("monitoredItem", function (monitoredItem) {
@@ -1474,7 +1474,7 @@ describe("monitoredItem advanced", function () {
         });
 
         function numberOfnotifications(publishResponse) {
-            var notificationData = publishResponse.notificationMessage.notificationData;
+            const notificationData = publishResponse.notificationMessage.notificationData;
 
             return notificationData.reduce(function (accumulated, data) {
                 return accumulated + data.monitoredItems.length;
@@ -1482,7 +1482,7 @@ describe("monitoredItem advanced", function () {
         }
 
         function createMonitoredItem(subscription, clientHandle) {
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {nodeId: someVariableNode},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
@@ -1492,19 +1492,19 @@ describe("monitoredItem advanced", function () {
                 }
             });
 
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
             should.exist(monitoredItem);
             return monitoredItem;
         }
 
         it("QA should not publish more notifications than expected", function (done) {
 
-            var spy_callback = sinon.spy();
+            const spy_callback = sinon.spy();
 
-            var subscription = new Subscription({
+            const subscription = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
                 publishEngine: publishEngine,
@@ -1532,10 +1532,10 @@ describe("monitoredItem advanced", function () {
             //xx subscription.on("notification", spy_notification_event);
 
 
-            var monitoredItem1 = createMonitoredItem(subscription, 123);
-            var monitoredItem2 = createMonitoredItem(subscription, 124);
-            var monitoredItem3 = createMonitoredItem(subscription, 125);
-            var monitoredItem4 = createMonitoredItem(subscription, 126);
+            const monitoredItem1 = createMonitoredItem(subscription, 123);
+            const monitoredItem2 = createMonitoredItem(subscription, 124);
+            const monitoredItem3 = createMonitoredItem(subscription, 125);
+            const monitoredItem4 = createMonitoredItem(subscription, 126);
 
 
             // simulate client sending publish request
@@ -1570,26 +1570,26 @@ describe("monitoredItem advanced", function () {
 
 
             // verify that publishResponse has been send
-            var publishResponse0 = spy_callback.getCall(0).args[1];
+            const publishResponse0 = spy_callback.getCall(0).args[1];
             numberOfnotifications(publishResponse0).should.eql(0); // KeepAlive
 
 
-            var publishResponse1 = spy_callback.getCall(1).args[1];
+            const publishResponse1 = spy_callback.getCall(1).args[1];
             numberOfnotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse1.moreNotifications.should.eql(true);
 
 
             spy_callback.callCount.should.eql(6);
 
-            var publishResponse2 = spy_callback.getCall(2).args[1];
+            const publishResponse2 = spy_callback.getCall(2).args[1];
             numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse2.moreNotifications.should.eql(true);
 
-            var publishResponse3 = spy_callback.getCall(4).args[1];
+            const publishResponse3 = spy_callback.getCall(4).args[1];
             numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse3.moreNotifications.should.eql(true);
 
-            var publishResponse4 = spy_callback.getCall(5).args[1];
+            const publishResponse4 = spy_callback.getCall(5).args[1];
             numberOfnotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse4.moreNotifications.should.eql(false);
 
@@ -1611,7 +1611,7 @@ describe("monitoredItem advanced", function () {
     describe("Subscription.subscriptionDiagnostics", function () {
 
 
-        var subscription;
+        let subscription;
         beforeEach(function () {
             fake_publish_engine.pendingPublishRequestCount = 1000;
 
@@ -1636,8 +1636,8 @@ describe("monitoredItem advanced", function () {
 
         function add_monitored_item() {
 
-            var nodeId = "i=2258"; // CurrentTime
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const nodeId = "i=2258"; // CurrentTime
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {nodeId: nodeId},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
 
@@ -1646,9 +1646,9 @@ describe("monitoredItem advanced", function () {
                     samplingInterval: 1200
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             return monitoredItem;
         }
@@ -1660,7 +1660,7 @@ describe("monitoredItem advanced", function () {
             subscription = null;
         });
 
-        var MonitoringMode = subscription_service.MonitoringMode;
+        const MonitoringMode = subscription_service.MonitoringMode;
 
         it("should update Subscription.subscriptionDiagnostics.sessionId", function () {
             subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.getSessionId());
@@ -1710,9 +1710,9 @@ describe("monitoredItem advanced", function () {
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
             subscription.monitoredItemCount.should.eql(0);
 
-            var m1 = add_monitored_item();
-            var m2 = add_monitored_item();
-            var m3 = add_monitored_item();
+            const m1 = add_monitored_item();
+            const m2 = add_monitored_item();
+            const m3 = add_monitored_item();
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(3);
             subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(0);
@@ -1749,14 +1749,14 @@ describe("monitoredItem advanced", function () {
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(0);
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(0);
 
-            var evtNotificationCounter = 0;
+            let evtNotificationCounter = 0;
             subscription.on("notificationMessage", function (/*notificationMessage*/) {
                 evtNotificationCounter += 1;
             });
 
             subscription.publishingInterval.should.eql(100);
 
-            var m = add_monitored_item();
+            const m = add_monitored_item();
             m.samplingInterval.should.eql(1200, "monitored item sampling interval should be 1 seconds");
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(1);
 

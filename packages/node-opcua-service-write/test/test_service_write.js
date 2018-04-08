@@ -1,7 +1,7 @@
 "use strict";
-var should = require("should");
-var write_service = require("..");
-var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
+const should = require("should");
+const write_service = require("..");
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("Write Service",function() {
 
@@ -22,7 +22,7 @@ describe("WriteValue", function () {
 
     it("should create a default WriteValue", function () {
 
-        var wv = new write_service.WriteValue({});
+        const wv = new write_service.WriteValue({});
         should(wv.indexRange.type.key).equal("Empty");
 
     });
@@ -33,7 +33,7 @@ describe("WriteRequest", function () {
 
     it("should create a default WriteRequest", function () {
 
-        var wv = new write_service.WriteRequest({
+        const wv = new write_service.WriteRequest({
             nodesToWrite: [{}, {}]
         });
         should(wv.nodesToWrite[0].indexRange.type.key).equal("Empty");

@@ -1,8 +1,8 @@
 /*global describe, it, require*/
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
 module.exports = function (test) {
 
@@ -11,10 +11,10 @@ module.exports = function (test) {
         it("test",function(done) {
 
 
-            var client1 = new OPCUAClient({});
-            var endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient({});
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
             async.series([
 
@@ -24,7 +24,7 @@ module.exports = function (test) {
 
                 // create a session using client1
                 function (callback) {
-                    var userIdentityInfo = null;
+                    const userIdentityInfo = null;
                     client1.createSession(userIdentityInfo,function (err, session) {
                         if (err) {
                             return callback(err);

@@ -1,36 +1,36 @@
 "use strict";
-var should = require("should");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var Variant = require("..").Variant;
-var DataType = require("..").DataType;
-var VariantArrayType = require("..").VariantArrayType;
+const Variant = require("..").Variant;
+const DataType = require("..").DataType;
+const VariantArrayType = require("..").VariantArrayType;
 
-var ec = require("node-opcua-basic-types");
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
+const ec = require("node-opcua-basic-types");
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test")
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test")
     .encode_decode_round_trip_test;
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
-var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var Variant_ArrayMask = 0x80;
-var Variant_ArrayDimensionsMask = 0x40;
-var Variant_TypeMask = 0x3f;
+const Variant_ArrayMask = 0x80;
+const Variant_ArrayDimensionsMask = 0x40;
+const Variant_TypeMask = 0x3f;
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var NumericRange = require("node-opcua-numeric-range").NumericRange;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 describe("Variant", function() {
     it("should create a empty Variant", function() {
-        var var1 = new Variant();
+        const var1 = new Variant();
 
         var1.dataType.should.eql(DataType.Null);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -43,7 +43,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar UInt32 Variant", function() {
-        var var1 = new Variant({ dataType: DataType.UInt32, value: 10 });
+        const var1 = new Variant({ dataType: DataType.UInt32, value: 10 });
 
         var1.dataType.should.eql(DataType.UInt32);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -54,7 +54,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar UInt64 Variant", function() {
-        var var1 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.UInt64, value: [10, 20] });
+        const var1 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.UInt64, value: [10, 20] });
 
         var1.dataType.should.eql(DataType.UInt64);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -65,7 +65,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar LocalizedText Variant 1/2", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.LocalizedText,
             value: new LocalizedText({ text: "Hello", locale: "en" })
         });
@@ -81,7 +81,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar LocalizedText Variant 2/2", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.LocalizedText,
             value: { text: "Hello", locale: "en" }
         });
@@ -97,7 +97,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar QualifiedName Variant 1/2", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.QualifiedName,
             value: new QualifiedName({ name: "Hello", namespaceIndex: 0 })
         });
@@ -112,7 +112,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar QualifiedName Variant 2/2", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.QualifiedName,
             value: { name: "Hello", namespaceIndex: 0 }
         });
@@ -128,7 +128,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar ByteString  Variant - null", function() {
-        var var1 = new Variant({ dataType: DataType.ByteString, value: null });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: null });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -139,7 +139,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar ByteString  Variant - empty buffer", function() {
-        var var1 = new Variant({ dataType: DataType.ByteString, value: new Buffer(0) });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: new Buffer(0) });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -150,7 +150,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar ByteString  Variant - 3 bytes", function() {
-        var var1 = new Variant({ dataType: DataType.ByteString, value: new Buffer("ABC") });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: new Buffer("ABC") });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -161,7 +161,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar String  Variant", function() {
-        var var1 = new Variant({ dataType: DataType.String, value: "Hello" });
+        const var1 = new Variant({ dataType: DataType.String, value: "Hello" });
 
         var1.dataType.should.eql(DataType.String);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -172,7 +172,7 @@ describe("Variant", function() {
     });
 
     it("should create a Array String Variant", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Array,
             value: ["Hello", "World"]
@@ -190,7 +190,7 @@ describe("Variant", function() {
     });
 
     it("should create a Array QualifiedName Variant", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.QualifiedName,
             arrayType: VariantArrayType.Array,
             value: [{ name: "Hello", namespaceIndex: 0 }, { name: "World", namespaceIndex: 0 }]
@@ -207,7 +207,7 @@ describe("Variant", function() {
     });
 
     it("should create a Array of GUID Variant", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.Guid,
             arrayType: VariantArrayType.Array,
             value: [ec.emptyGuid, ec.randomGuid(), ec.randomGuid(), ec.emptyGuid, ec.randomGuid(), ec.randomGuid()]
@@ -224,7 +224,7 @@ describe("Variant", function() {
     });
 
     it("should detect invalid SByte Variant", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.SByte,
             value: 63
         });
@@ -234,7 +234,7 @@ describe("Variant", function() {
     });
 
     it("should detect invalid Array<Int32> Variant", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,
             value: [2, 3, 4, 5]
@@ -252,7 +252,7 @@ describe("Variant", function() {
     });
 
     it("should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a flat array", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
             dimensions: [2, 3],
@@ -279,7 +279,7 @@ describe("Variant", function() {
     });
 
     xit("not  supported !! should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", function() {
-        var var1 = new {
+        const var1 = new {
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
             dimensions: [2, 3],
@@ -309,7 +309,7 @@ describe("Variant", function() {
 
     it("should raise an exception when construction a Matrix with incorrect element size", function() {
         should(function construct_matrix_variant_with_invalid_value() {
-            var var1 = new Variant({
+            const var1 = new Variant({
                 dataType: DataType.UInt32,
                 arrayType: VariantArrayType.Matrix,
                 dimensions: [2, 3],
@@ -319,7 +319,7 @@ describe("Variant", function() {
     });
 
     it("should create a Array ByteString  Variant ", function() {
-        var var1 = new Variant({ dataType: DataType.ByteString, value: [new Buffer("ABC"), null] });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: [new Buffer("ABC"), null] });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Array);
@@ -329,7 +329,7 @@ describe("Variant", function() {
         });
     });
     it("should create a Array UInt64 Variant", function() {
-        var var1 = new Variant({
+        const var1 = new Variant({
             arrayType: VariantArrayType.Array,
             dataType: DataType.UInt64,
             value: [[1, 2], [3, 4]]
@@ -344,9 +344,9 @@ describe("Variant", function() {
     });
 
     it("should create a Array of ByteString Variant", function() {
-        var value = [new Buffer("ABCD"), null];
+        const value = [new Buffer("ABCD"), null];
 
-        var var1 = new Variant({
+        const var1 = new Variant({
             arrayType: VariantArrayType.Array,
             dataType: DataType.ByteString,
             value: value
@@ -361,23 +361,23 @@ describe("Variant", function() {
     });
 });
 
-var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 describe("Variant - Analyser", function() {
     // increase timeout to cope with istanbul
     this.timeout(Math.max(400000, this._timeout));
 
-    var manyValues = [];
+    const manyValues = [];
     for (var i = 0; i < 1000; i++) {
         manyValues[i] = Math.random() * 1000 - 500;
     }
 
-    var veryLargeFloatArray = new Float64Array(10 * 1024);
+    const veryLargeFloatArray = new Float64Array(10 * 1024);
     for (var i = 0; i < veryLargeFloatArray.length; i++) {
         veryLargeFloatArray[i] = (Math.random() - 0.5) * 10000;
     }
-    var various_variants = [
+    const various_variants = [
         new Variant({ dataType: DataType.NodeId, arrayType: VariantArrayType.Scalar, value: makeNodeId(1, 2) }),
         new Variant({
             dataType: DataType.LocalizedText,
@@ -443,30 +443,30 @@ describe("Variant - Analyser", function() {
     });
 
     it("should encode/decode a very large array of Float - 1", function() {
-        var get_clock_tick = require("node-opcua-utils").get_clock_tick;
+        const get_clock_tick = require("node-opcua-utils").get_clock_tick;
 
-        var nbElements = 1500 * 1024;
+        const nbElements = 1500 * 1024;
 
-        var t0 = get_clock_tick();
-        var very_large = new Variant({
+        const t0 = get_clock_tick();
+        const very_large = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Array,
             value: new Float64Array(nbElements)
         });
 
-        for (var i = 0; i < nbElements; i++) {
+        for (let i = 0; i < nbElements; i++) {
             very_large.value[i] = Math.random();
         }
 
-        var t1 = get_clock_tick();
-        var size = very_large.binaryStoreSize();
+        const t1 = get_clock_tick();
+        const size = very_large.binaryStoreSize();
         size.should.eql(nbElements * 8 + 5);
 
-        var t2 = get_clock_tick();
-        var stream = new BinaryStream(new Buffer(size));
-        var t3 = get_clock_tick();
+        const t2 = get_clock_tick();
+        const stream = new BinaryStream(new Buffer(size));
+        const t3 = get_clock_tick();
         very_large.encode(stream);
-        var t4 = get_clock_tick();
+        const t4 = get_clock_tick();
 
         console.log(" t1 = create variant   ", t1 - t0);
         console.log(" t2 = binaryStoreSize  ", t2 - t1);
@@ -475,14 +475,14 @@ describe("Variant - Analyser", function() {
     });
 
     it("should encode/decode a very large array of Float", function() {
-        var nbElements = 1500 * 1024;
-        var very_large = new Variant({
+        const nbElements = 1500 * 1024;
+        const very_large = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Array,
             value: new Float64Array(nbElements)
         });
 
-        for (var i = 0; i < nbElements; i++) {
+        for (let i = 0; i < nbElements; i++) {
             very_large.value[i] = Math.random();
         }
         encode_decode_round_trip_test(very_large, function(stream) {
@@ -493,27 +493,27 @@ describe("Variant - Analyser", function() {
     it("should check the performance of encode/decode a very large array of Float", function() {
         this.timeout(Math.max(300000, this._timeout));
 
-        var length = 500 * 1024;
+        const length = 500 * 1024;
 
         console.log("    array size = ", length);
 
-        var obj = new Variant({
+        const obj = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Array,
             value: new Float64Array(length)
         });
 
-        for (var i = 0; i < length; i++) {
+        for (let i = 0; i < length; i++) {
             obj.value[i] = i;
         }
         obj.value[100].should.eql(100);
 
-        var size = obj.binaryStoreSize();
-        var stream = new BinaryStream(new Buffer(size));
+        const size = obj.binaryStoreSize();
+        const stream = new BinaryStream(new Buffer(size));
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
-        var obj_reloaded = new Variant();
+        const obj_reloaded = new Variant();
 
         bench
             .add("Variant.encode", function() {
@@ -537,7 +537,7 @@ describe("Variant - Analyser", function() {
         // note : the following test could be *slow* with large value of length
         //        for (var i=0;i<length;i++) { obj.value[i].should.eql(i); }
         function validate_array() {
-            for (var i = 0; i < length; i++) {
+            for (let i = 0; i < length; i++) {
                 if (obj.value[i] !== i) {
                     return false;
                 }
@@ -549,25 +549,25 @@ describe("Variant - Analyser", function() {
     });
 });
 
-var old_encode = function(variant, stream) {
+const old_encode = function(variant, stream) {
     // NOTE: this code matches the old implement and should not be changed
     //       It is useful to compare new performance of the encode method
     //       with the old implementation.
     assert(variant.isValid());
 
-    var encodingByte = variant.dataType.value;
+    let encodingByte = variant.dataType.value;
 
     if (variant.arrayType === VariantArrayType.Array) {
         encodingByte |= Variant_ArrayMask;
     }
     ec.encodeUInt8(encodingByte, stream);
-    var encode = factories.findBuiltInType(variant.dataType.key).encode;
+    const encode = factories.findBuiltInType(variant.dataType.key).encode;
     /* istanbul ignore next */
     if (!encode) {
         throw new Error("Cannot find encode function for dataType " + variant.dataType.key);
     }
     if (variant.arrayType === VariantArrayType.Array) {
-        var arr = variant.value || [];
+        const arr = variant.value || [];
         ec.encodeUInt32(arr.length, stream);
         arr.forEach(function(el) {
             encode(el, stream);
@@ -579,7 +579,7 @@ var old_encode = function(variant, stream) {
 
 describe("benchmarking variant encode", function() {
     function perform_benchmark(done) {
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
         function test_iteration(v, s, encode) {
             s.rewind();
@@ -587,7 +587,7 @@ describe("benchmarking variant encode", function() {
         }
 
         var stream = new BinaryStream(4096);
-        var variant = new Variant({
+        const variant = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,
             value: []
@@ -1106,43 +1106,43 @@ describe("benchmarking float Array encode/decode", function() {
 
     function test_1(stream, arr) {
         stream.writeUInt32(arr.length);
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             stream.writeFloat(arr[i]);
         }
     }
 
     function test_2(stream, arr) {
         stream.writeUInt32(arr.length);
-        var byteArr = new Uint8Array(arr.buffer);
-        var n = byteArr.length;
-        for (var i = 0; i < n; i++) {
+        const byteArr = new Uint8Array(arr.buffer);
+        const n = byteArr.length;
+        for (let i = 0; i < n; i++) {
             stream.writeUInt8(byteArr[i]);
         }
     }
 
     function test_3(stream, arr) {
         stream.writeUInt32(arr.length);
-        var byteArr = new Uint32Array(arr.buffer);
-        var n = byteArr.length;
-        for (var i = 0; i < n; i++) {
+        const byteArr = new Uint32Array(arr.buffer);
+        const n = byteArr.length;
+        for (let i = 0; i < n; i++) {
             stream.writeUInt32(byteArr[i]);
         }
     }
 
     function test_4(stream, arr) {
         stream.writeUInt32(arr.length);
-        var intArray = new Uint32Array(arr.buffer);
-        var n = intArray.length;
-        for (var i = 0; i < n; i++) {
+        const intArray = new Uint32Array(arr.buffer);
+        const n = intArray.length;
+        for (let i = 0; i < n; i++) {
             stream.writeUInt32(intArray[i], true);
         }
     }
 
     function test_5(stream, arr) {
         stream.writeUInt32(arr.length);
-        var byteArr = new Uint8Array(arr.buffer);
-        var n = byteArr.length;
-        for (var i = 0; i < n; i++) {
+        const byteArr = new Uint8Array(arr.buffer);
+        const n = byteArr.length;
+        for (let i = 0; i < n; i++) {
             stream._buffer[stream.length++] = byteArr[i];
         }
     }
@@ -1158,16 +1158,16 @@ describe("benchmarking float Array encode/decode", function() {
     }
 
     function perform_benchmark(done) {
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
-        var length = 1024;
-        var sampleArray = new Float32Array(length);
-        for (var i = 0; i < length; i++) {
+        const length = 1024;
+        const sampleArray = new Float32Array(length);
+        for (let i = 0; i < length; i++) {
             sampleArray[i] = 1.0 / (i + 1);
         }
 
-        var stream = new BinaryStream(length * 4 + 30);
-        var variant = new Variant({
+        const stream = new BinaryStream(length * 4 + 30);
+        const variant = new Variant({
             dataType: DataType.Float,
             arrayType: VariantArrayType.Array,
             value: sampleArray
@@ -1175,10 +1175,10 @@ describe("benchmarking float Array encode/decode", function() {
         assert(variant.value.buffer instanceof ArrayBuffer);
 
         stream.rewind();
-        var r = [test_1, test_2, test_3, test_4, test_5, test_6].map(function(fct) {
+        const r = [test_1, test_2, test_3, test_4, test_5, test_6].map(function(fct) {
             stream.rewind();
             fct(stream, variant.value);
-            var reference_buf = stream._buffer.slice(0, stream._buffer.length);
+            const reference_buf = stream._buffer.slice(0, stream._buffer.length);
             return reference_buf.toString("hex");
         });
         r[0].should.eql(r[1]);
@@ -1226,7 +1226,7 @@ describe("benchmarking float Array encode/decode", function() {
 
 describe("Variant with Advanced Array", function() {
     it("should automatically detect that variant is an array when ArrayType is missing ", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: "Float",
             //  EXPLICITLY MISSING arrayType : VariantArrayType.Array
             value: [1, 2]
@@ -1240,7 +1240,7 @@ describe("Variant with Advanced Array", function() {
     });
 
     it("should be possible to handle an Float array  with a Float32Array", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: DataType.Float,
             arrayType: VariantArrayType.Array,
             value: [1, 2, 3, 4]
@@ -1251,14 +1251,14 @@ describe("Variant with Advanced Array", function() {
     });
 
     it("should be possible to encode/decode an subarray of Float32Array", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: DataType.Float,
             arrayType: VariantArrayType.Array,
             value: [0, 1, 2, 3, 4, 5]
         });
 
-        var NumericRange = require("node-opcua-numeric-range").NumericRange;
-        var nr = new NumericRange("3:4");
+        const NumericRange = require("node-opcua-numeric-range").NumericRange;
+        const nr = new NumericRange("3:4");
         v.value = nr.extract_values(v.value).array;
         v.value[0].should.eql(3);
         v.value[1].should.eql(4);
@@ -1268,24 +1268,24 @@ describe("Variant with Advanced Array", function() {
     });
 
     it("should be possible to read a sub matrix of a array of byte strings", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Array,
             value: ["ABCDEFGHIJKL", "BCDEFGHIJKLA", "CDEFGHIJKLAB", "DEFGHIJKLABC", "EFGHIJKLABCD", "FGHIJKLABCDE"]
         });
 
-        var nr = new NumericRange("3:4,1:3");
+        const nr = new NumericRange("3:4,1:3");
 
         nr.isValid().should.eql(true);
 
-        var results = nr.extract_values(v.value);
+        const results = nr.extract_values(v.value);
         results.statusCode.should.eql(StatusCodes.Good);
 
         results.array.should.eql([new Buffer("EFG"), new Buffer("FGH")]);
     });
 
     it("AA should be possible to read a sub matrix of a matrix of double", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
             dimensions: [5, 4],
@@ -1313,11 +1313,11 @@ describe("Variant with Advanced Array", function() {
             ]
         });
 
-        var nr = new NumericRange("3:4,1:3");
+        const nr = new NumericRange("3:4,1:3");
 
         nr.isValid().should.eql(true);
 
-        var results = nr.extract_values(v.value, v.dimensions); // << We must provide dimension here
+        const results = nr.extract_values(v.value, v.dimensions); // << We must provide dimension here
         results.statusCode.should.eql(StatusCodes.Good);
 
         results.dimensions.should.eql([2, 3]);
@@ -1327,7 +1327,7 @@ describe("Variant with Advanced Array", function() {
 });
 
 describe("Variant with enumeration", function() {
-    var SomeEnum = DataType;
+    const SomeEnum = DataType;
 
     before(function() {
         should.exist(SomeEnum.DiagnosticInfo);
@@ -1335,7 +1335,7 @@ describe("Variant with enumeration", function() {
 
     it("should fail to create a variant from a enumeration item if dataType is not Int32", function() {
         should(function() {
-            var v = new Variant({
+            const v = new Variant({
                 dataType: DataType.UInt32,
                 value: SomeEnum.DiagnosticInfo
             });
@@ -1345,7 +1345,7 @@ describe("Variant with enumeration", function() {
 
     it("should create a variant from a enumeration item", function() {
         should.exist(SomeEnum.DiagnosticInfo);
-        var v = new Variant({
+        const v = new Variant({
             dataType: DataType.Int32,
             value: SomeEnum.DiagnosticInfo
         });
@@ -1354,7 +1354,7 @@ describe("Variant with enumeration", function() {
     });
 
     xit("should not be necessary to specify the dataType for  a variant containing  enumeration item", function() {
-        var v = new Variant({
+        const v = new Variant({
             value: SomeEnum.DiagnosticInfo
         });
         // console.log(v.toString());
@@ -1363,7 +1363,7 @@ describe("Variant with enumeration", function() {
     });
 
     it("should create a variant with builtin type 'Duration'", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: "Duration",
             value: 0.1
         });
@@ -1371,7 +1371,7 @@ describe("Variant with enumeration", function() {
         v.value.should.eql(0.1);
     });
     it("should create a variant with builtin type 'ByteString'", function() {
-        var v = new Variant({
+        const v = new Variant({
             dataType: "ByteString",
             value: new Buffer("abcd")
         });
@@ -1379,13 +1379,13 @@ describe("Variant with enumeration", function() {
         v.value.toString("ascii").should.eql("abcd");
     });
     it("should create a variant copy (with it's own array) ", function() {
-        var options = {
+        const options = {
             dataType: DataType.Float,
             arrayType: VariantArrayType.Array,
             value: [0, 1, 2, 3, 4, 5]
         };
 
-        var v1, v2, v3;
+        let v1, v2, v3;
         v1 = new Variant(options);
 
         v2 = new Variant({
@@ -1421,9 +1421,9 @@ describe("Variant with enumeration", function() {
     });
 });
 
-var sameVariant = require("..").sameVariant;
+const sameVariant = require("..").sameVariant;
 
-var sameVariantSlow = function(v1, v2) {
+const sameVariantSlow = function(v1, v2) {
     return _.isEqual(v1, v2);
 };
 
@@ -1431,17 +1431,17 @@ describe("testing sameVariant Performance", function() {
     this.timeout(40000);
 
     function largeArray(n) {
-        var a = new Int32Array(n);
-        for (var i = 0; i < n; i++) {
+        const a = new Int32Array(n);
+        for (let i = 0; i < n; i++) {
             a[i] = Math.random() * 10000;
         }
         return a;
     }
 
-    var largeArray1 = largeArray(10000);
+    const largeArray1 = largeArray(10000);
 
     function build_variants() {
-        var a = [
+        const a = [
             new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Array, value: null }),
             new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: null }),
             new Variant({ dataType: DataType.String, value: "Hello" }),
@@ -1532,17 +1532,17 @@ describe("testing sameVariant Performance", function() {
         return a;
     }
 
-    var variousVariants = build_variants();
-    var variousVariants_clone = build_variants();
+    const variousVariants = build_variants();
+    const variousVariants_clone = build_variants();
 
     function _t(t) {
         return t ? t.toString() : "<null>";
     }
 
     function test_variant(index, sameVariant) {
-        var v1 = variousVariants[index];
+        const v1 = variousVariants[index];
 
-        for (var i = 0; i < variousVariants.length; i++) {
+        for (let i = 0; i < variousVariants.length; i++) {
             if (i === index) {
                 sameVariant(v1, variousVariants[i]).should.eql(true, _t(v1) + " === " + _t(variousVariants[i]));
             } else {
@@ -1555,25 +1555,25 @@ describe("testing sameVariant Performance", function() {
         sameVariant(v1, variousVariants_clone[index]).should.eql(true);
     }
 
-    for (var i = 0; i < variousVariants.length; i++) {
-        var v1 = variousVariants[i];
+    for (let i = 0; i < variousVariants.length; i++) {
+        const v1 = variousVariants[i];
         it("#sameVariant with " + (v1 ? v1.toString() : "null"), test_variant.bind(null, i, sameVariant));
     }
 
     it("sameVariant should be very efficient ", function() {
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
         bench
             .add("fast sameVariant", function() {
-                for (var i = 0; i < variousVariants.length; i++) {
-                    for (var j = 0; j < variousVariants.length; j++) {
+                for (let i = 0; i < variousVariants.length; i++) {
+                    for (let j = 0; j < variousVariants.length; j++) {
                         sameVariant(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
             })
             .add("slow sameVariant", function() {
-                for (var i = 0; i < variousVariants.length; i++) {
-                    for (var j = 0; j < variousVariants.length; j++) {
+                for (let i = 0; i < variousVariants.length; i++) {
+                    for (let j = 0; j < variousVariants.length; j++) {
                         sameVariantSlow(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
@@ -1607,23 +1607,23 @@ describe("testing variant Clone & Copy Construct", function() {
 
     function install_test(copy_construct_or_clone, copy_construct_or_clone_func) {
         it("should " + copy_construct_or_clone + " a simple variant", function() {
-            var v = new Variant({
+            const v = new Variant({
                 dataType: DataType.UInt32,
                 value: 36
             });
 
-            var cloned = copy_construct_or_clone_func(v);
+            const cloned = copy_construct_or_clone_func(v);
 
             cloned.dataType.should.eql(v.dataType);
             cloned.value.should.eql(v.value);
         });
         it("should " + copy_construct_or_clone + " a variant array", function() {
-            var v = new Variant({
+            const v = new Variant({
                 dataType: DataType.UInt32,
                 value: [36, 37]
             });
 
-            var cloned = copy_construct_or_clone_func(v);
+            const cloned = copy_construct_or_clone_func(v);
 
             cloned.dataType.should.eql(v.dataType);
             cloned.value.should.eql(v.value);
@@ -1637,13 +1637,13 @@ describe("testing variant Clone & Copy Construct", function() {
             cloned.value[1].should.eql(37);
         });
         it("should " + copy_construct_or_clone + " a variant containing a extension object", function() {
-            var extObj = new SomeExtensionObject({ a: 36 });
-            var v = new Variant({
+            const extObj = new SomeExtensionObject({ a: 36 });
+            const v = new Variant({
                 dataType: DataType.ExtensionObject,
                 value: extObj
             });
 
-            var cloned = copy_construct_or_clone_func(v);
+            const cloned = copy_construct_or_clone_func(v);
 
             cloned.dataType.should.eql(v.dataType);
             cloned.value.a.should.eql(v.value.a);
@@ -1656,16 +1656,16 @@ describe("testing variant Clone & Copy Construct", function() {
             v.value.a.should.eql(1000);
         });
         it("should " + copy_construct_or_clone + " a variant containing a extension object array", function() {
-            var extObj1 = new SomeExtensionObject({ a: 36 });
-            var extObj2 = new SomeExtensionObject({ a: 37 });
-            var v = new Variant({
+            const extObj1 = new SomeExtensionObject({ a: 36 });
+            const extObj2 = new SomeExtensionObject({ a: 37 });
+            const v = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: [extObj1, extObj2]
             });
 
             // copy construct;,
-            var cloned = copy_construct_or_clone_func(v);
+            const cloned = copy_construct_or_clone_func(v);
 
             cloned.dataType.should.eql(v.dataType);
             cloned.value[0].a.should.eql(36);

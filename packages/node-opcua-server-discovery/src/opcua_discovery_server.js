@@ -1,49 +1,49 @@
 "use strict";
-var util = require("util");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var path = require("path");
-var fs = require("fs");
+const util = require("util");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
+const path = require("path");
+const fs = require("fs");
 
-var OPCUABaseServer = require("node-opcua-server").OPCUABaseServer;
-var OPCUAServerEndPoint = require("node-opcua-server").OPCUAServerEndPoint;
+const OPCUABaseServer = require("node-opcua-server").OPCUABaseServer;
+const OPCUAServerEndPoint = require("node-opcua-server").OPCUAServerEndPoint;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var register_server_service = require("node-opcua-service-register-server");
-var RegisterServerRequest = register_server_service.RegisterServerRequest;
-var RegisterServerResponse = register_server_service.RegisterServerResponse;
+const register_server_service = require("node-opcua-service-register-server");
+const RegisterServerRequest = register_server_service.RegisterServerRequest;
+const RegisterServerResponse = register_server_service.RegisterServerResponse;
 
-var endpoints_service = require("node-opcua-service-endpoints");
-var ApplicationType = endpoints_service.ApplicationType;
+const endpoints_service = require("node-opcua-service-endpoints");
+const ApplicationType = endpoints_service.ApplicationType;
 
-var get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
+const get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
 
 function constructFilename(p) {
-    var filename = path.join(__dirname, "..", p);
+    const filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
     return filename;
 }
 
-var makeApplicationUrn = require("node-opcua-common").makeApplicationUrn;
+const makeApplicationUrn = require("node-opcua-common").makeApplicationUrn;
 
 function OPCUADiscoveryServer(options) {
 
-    var self = this;
+    const self = this;
 
-    var default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
+    const default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
     options.certificateFile = options.certificateFile || default_certificate_file;
     assert(fs.existsSync(options.certificateFile));
 
-    var default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
+    const default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
     options.privateKeyFile = options.privateKeyFile || default_private_key_file;
     assert(fs.existsSync(options.certificateFile));
 
-    var defaultApplicationUri = makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-DiscoveryServer");
+    const defaultApplicationUri = makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-DiscoveryServer");
 
     OPCUABaseServer.apply(this, arguments);
 
-    var serverInfo = options.serverInfo || {};
+    const serverInfo = options.serverInfo || {};
 
     serverInfo.applicationType = ApplicationType.DISCOVERYSERVER;
     serverInfo.applicationUri = serverInfo.applicationUri || defaultApplicationUri;
@@ -55,13 +55,13 @@ function OPCUADiscoveryServer(options) {
 
     self.serverInfo = serverInfo;
 
-    var port = options.port || 4840;
+    const port = options.port || 4840;
 
     self.registered_servers = {};
     // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
     // opc.tcp://localhost:4840/UADiscovery
 
-    var endPoint = new OPCUAServerEndPoint({
+    const endPoint = new OPCUAServerEndPoint({
         port: port,
         certificateChain: self.getCertificateChain(),
         privateKey: self.getPrivateKey(),
@@ -105,15 +105,15 @@ function _isValideServerType(serverType) {
 }
 
 OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, channel) {
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
 
     assert(request._schema.name === "RegisterServerRequest");
     assert(request instanceof RegisterServerRequest);
 
     function sendError(statusCode) {
         ///Xx xconsole.log("_on_RegisterServerRequest error".red, statusCode.toString());
-        var response = new RegisterServerResponse({responseHeader: {serviceResult: statusCode}});
+        const response = new RegisterServerResponse({responseHeader: {serviceResult: statusCode}});
         return channel.send_response("MSG", response, message);
     }
 
@@ -135,14 +135,14 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
         return sendError(StatusCodes.BadDiscoveryUrlMissing);
     }
 
-    var key = request.server.serverUri;
+    const key = request.server.serverUri;
 
     if (request.server.isOnline) {
         //xx console.log(" registering server : ".cyan, request.server.serverUri.yellow);
         server.registered_servers[key] = request.server;
 
         // prepare serverInfo which will be used by FindServers
-        var serverInfo = {};
+        const serverInfo = {};
         serverInfo.applicationUri = request.server.serverUri;
         serverInfo.applicationType = request.server.serverType;
         serverInfo.productUri = request.server.productUri;
@@ -159,7 +159,7 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
         }
     }
 
-    var response = new RegisterServerResponse({});
+    const response = new RegisterServerResponse({});
     channel.send_response("MSG", response, message);
 };
 
@@ -181,9 +181,9 @@ OPCUADiscoveryServer.prototype.__defineGetter__("registeredServerCount", functio
 //};
 
 OPCUADiscoveryServer.prototype.getServers = function (channel) {
-    var self = this;
+    const self = this;
     self.serverInfo.discoveryUrls = self.getDiscoveryUrls(channel);
-    var servers = [self.serverInfo];
+    const servers = [self.serverInfo];
     _.forEach(self.registered_servers, function (registered_server) {
         servers.push(registered_server.serverInfo);
     });

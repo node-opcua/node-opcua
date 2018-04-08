@@ -1,28 +1,28 @@
 
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var util = require("util");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const util = require("util");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
-var resolveNodeId = opcua.resolveNodeId;
+const opcua = require("node-opcua");
+const resolveNodeId = opcua.resolveNodeId;
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
 
-var BrowseDirection = opcua.browse_service.BrowseDirection;
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const BrowseDirection = opcua.browse_service.BrowseDirection;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
 module.exports = function (test) {
 
     describe("Test Browse Request", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
-        var g_session = null;
+        let g_session = null;
         beforeEach(function (done) {
 
             endpointUrl = test.endpointUrl;
@@ -51,7 +51,7 @@ module.exports = function (test) {
         it("T1 - #Browse should return BadNothingToDo if nodesToBrowse is empty ", function (done) {
 
 
-            var browseRequest = new opcua.browse_service.BrowseRequest({
+            const browseRequest = new opcua.browse_service.BrowseRequest({
                 nodesToBrowse: []
             });
             g_session.performMessageTransaction(browseRequest, function (err, result) {
@@ -64,13 +64,13 @@ module.exports = function (test) {
 
         it("T2 - #Browse should return BadViewIdInvalid if viewId is invalid", function (done) {
 
-            var browseDesc = {
+            const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
                 referenceTypeId: null,
                 browseDirection: BrowseDirection.Forward
             };
 
-            var browseRequest = new opcua.browse_service.BrowseRequest({
+            const browseRequest = new opcua.browse_service.BrowseRequest({
                 view: {
                     viewId: 'ns=1256;i=1' //<< invalid viewId
                 },
@@ -84,13 +84,13 @@ module.exports = function (test) {
 
         it("T3 - #Browse should return BadViewUnknown if object referenced by viewId is not a view", function (done) {
 
-            var browseDesc = {
+            const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
                 referenceTypeId: null,
                 browseDirection: BrowseDirection.Forward
             };
 
-            var browseRequest = new opcua.browse_service.BrowseRequest({
+            const browseRequest = new opcua.browse_service.BrowseRequest({
                 view: {
                     viewId: 'ns=0;i=85',
                 },
@@ -105,7 +105,7 @@ module.exports = function (test) {
 
         it("T4 - #Browse server should respect Browse maxReferencesPerNode ", function (done) {
 
-            var browseDesc = {
+            const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
                 referenceTypeId: null,
                 includeSubtypes: true,
@@ -116,7 +116,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    var browseRequest1 = new opcua.browse_service.BrowseRequest({
+                    const browseRequest1 = new opcua.browse_service.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 10,
                         nodesToBrowse: [browseDesc]
@@ -133,7 +133,7 @@ module.exports = function (test) {
                     });
                 },
                 function (callback) {
-                    var browseRequest2 = new opcua.browse_service.BrowseRequest({
+                    const browseRequest2 = new opcua.browse_service.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 1,
                         nodesToBrowse: [browseDesc]
@@ -158,7 +158,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                    const browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                         continuationPoints: null
                     });
                     g_session.performMessageTransaction(browseNextRequest, function (err, response) {
@@ -171,7 +171,7 @@ module.exports = function (test) {
             ], done);
         });
         it("T6 - #BrowseNext response ", function (done) {
-            var browseDesc = {
+            const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
                 referenceTypeId: null,
                 includeSubtypes: true,
@@ -179,12 +179,12 @@ module.exports = function (test) {
                 resultMask: 63
             };
 
-            var allReferences;
-            var continuationPoint;
+            let allReferences;
+            let continuationPoint;
             async.series([
 
                 function (callback) {
-                    var browseRequest1 = new opcua.browse_service.BrowseRequest({
+                    const browseRequest1 = new opcua.browse_service.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 10,
                         nodesToBrowse: [browseDesc]
@@ -203,7 +203,7 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    var browseRequest2 = new opcua.browse_service.BrowseRequest({
+                    const browseRequest2 = new opcua.browse_service.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 2,
                         nodesToBrowse: [browseDesc]
@@ -228,7 +228,7 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                    const browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                         continuationPoints: [continuationPoint],
 //xx                    releaseContinuationPoints: true
                     });
@@ -257,7 +257,7 @@ module.exports = function (test) {
 
                 // we reach the end of the sequence. continuationPoint shall not be usable anymore
                 function (callback) {
-                    var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                    const browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                         continuationPoints: [continuationPoint],
                         releaseContinuationPoints: true
                     });
@@ -278,7 +278,7 @@ module.exports = function (test) {
 
         });
 
-        var IT = test.server ? it : xit;
+        const IT = test.server ? it : xit;
         IT("T7 - #BrowseNext with releaseContinuousPoint set to false then set to true", function (done) {
             /*
              * inspired by    Test 5.7.2-9 prepared by Dale Pope dale.pope@matrikon.com
@@ -311,10 +311,10 @@ module.exports = function (test) {
                 //  Given one node to browse
                 nodeId = resolveNodeId(nodeId);
                 //     And the node exists
-                var obj = server.engine.addressSpace.findNode(nodeId, BrowseDirection.Forward);
+                const obj = server.engine.addressSpace.findNode(nodeId, BrowseDirection.Forward);
                 should.exist(obj);
 
-                var browseDesc = new opcua.browse_service.BrowseDescription({
+                const browseDesc = new opcua.browse_service.BrowseDescription({
                     nodeId: nodeId,
                     referenceTypeId: "i=47", // HasComponents
                     includeSubtypes: true,
@@ -323,15 +323,15 @@ module.exports = function (test) {
                 });
 
 
-                var continuationPoint;
+                let continuationPoint;
 
-                var allReferences;
+                let allReferences;
 
                 async.series([
 
                     // browse all references
                     function (callback) {
-                        var browseRequestAll = new opcua.browse_service.BrowseRequest({
+                        const browseRequestAll = new opcua.browse_service.BrowseRequest({
                             view: null,//{ viewId: 'ns=0;i=85'},
                             requestedMaxReferencesPerNode: 10,
                             nodesToBrowse: [browseDesc]
@@ -351,7 +351,7 @@ module.exports = function (test) {
 
                     function (callback) {
 
-                        var browseRequest1 = new opcua.browse_service.BrowseRequest({
+                        const browseRequest1 = new opcua.browse_service.BrowseRequest({
                             view: null,
                             requestedMaxReferencesPerNode: 1,
                             nodesToBrowse: [browseDesc]
@@ -374,7 +374,7 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                        const browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                             releaseContinuationPoints: false,
                             continuationPoints: [continuationPoint]
                         });
@@ -398,7 +398,7 @@ module.exports = function (test) {
 
                     },
                     function (callback) {
-                        var browseNextRequest = new opcua.browse_service.BrowseNextRequest({
+                        const browseNextRequest = new opcua.browse_service.BrowseNextRequest({
                             releaseContinuationPoints: true,
                             continuationPoints: [continuationPoint]
                         });

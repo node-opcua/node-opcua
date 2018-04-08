@@ -1,21 +1,21 @@
 "use strict";
 
 
-var async = require("async");
-var assert = require("node-opcua-assert");
-var EventEmitter = require("events").EventEmitter;
-var util = require("util");
+const async = require("async");
+const assert = require("node-opcua-assert");
+const EventEmitter = require("events").EventEmitter;
+const util = require("util");
 /**
  * @module opcua.client
  */
 
 
-var UAProxyManager = require("./proxy").UAProxyManager;
-var makeRefId = require("./proxy").makeRefId;
+const UAProxyManager = require("./proxy").UAProxyManager;
+const makeRefId = require("./proxy").makeRefId;
 
 function UAStateMachineProxy(proxyManager, nodeId, reference) {
 
-    var self = this;
+    const self = this;
     self.nodeId = nodeId;
     self.proxyManager = proxyManager;
     assert(self.proxyManager.session, "expecting valid session");
@@ -44,14 +44,14 @@ util.inherits(UAStateMachineProxy, EventEmitter);
 //}];
 
 function ProxyState(proxyNode) {
-    var self = this;
+    const self = this;
     Object.defineProperty(this, "_node", {value: proxyNode, enumerable: false});
     //xx self._node = proxyNode;
 }
 
 Object.defineProperty(ProxyState.prototype, "browseName", {
     get: function () {
-        var self = this;
+        const self = this;
         return self._node.browseName.toString();
     }, hidden: false, enumerable: true
 });
@@ -62,13 +62,13 @@ Object.defineProperty(ProxyState.prototype, "browseName", {
 //xx });
 ProxyState.prototype.__defineGetter__("stateNumber", function () {
     // note stateNumber has no real dataValue
-    var self = this;
+    const self = this;
     return self._node.stateNumber.nodeId.value.toString();
 });
 
 ProxyState.prototype.__defineGetter__("nodeId", function () {
     // note stateNumber has no real dataValue
-    var self = this;
+    const self = this;
     return self._node.nodeId;
 });
 
@@ -82,36 +82,36 @@ ProxyState.prototype.toString = function () {
 };
 
 function makeProxyState(node) {
-    var ret = new ProxyState(node);
+    const ret = new ProxyState(node);
     return ret;
 }
 
 function ProxyTransition(proxyNode) {
-    var self = this;
+    const self = this;
     Object.defineProperty(this, "_node", {value: proxyNode, enumerable: false});
     //xx self._node = proxyNode;
 }
 ProxyTransition.prototype.__defineGetter__("nodeId", function () {
     // note stateNumber has no real dataValue
-    var self = this;
+    const self = this;
     return self._node.nodeId.value.toString();
 });
 
 
 Object.defineProperty(ProxyTransition.prototype, "browseName", {
     get: function () {
-        var self = this;
+        const self = this;
         return self._node.browseName.toString();
     }, hidden: false, enumerable: true
 });
 
 
 ProxyTransition.prototype.__defineGetter__("fromStateNode", function () {
-    var self = this;
+    const self = this;
     return self._node.$fromState;
 });
 ProxyTransition.prototype.__defineGetter__("toStateNode", function () {
-    var self = this;
+    const self = this;
     return self._node.$toState;
 });
 
@@ -120,10 +120,10 @@ function makeProxyTransition(node) {
 }
 
 function UAStateMachineType(obj) {
-    var self = this;
+    const self = this;
 
 
-    var local_initialState = obj.$components.filter(function (component) {
+    const local_initialState = obj.$components.filter(function (component) {
         if(!component.typeDefinition) { return false; }
         return component.typeDefinition.toString() === "InitialStateType";
     });
@@ -149,15 +149,15 @@ UAProxyManager.prototype.getStateMachineType = function (nodeId, callback) {
 
 
     if (typeof nodeId === "string") {
-        var org_nodeId = nodeId;
+        const org_nodeId = nodeId;
         nodeId = makeRefId(nodeId);
     }
-    var self = this;
+    const self = this;
 
     self.getObject(nodeId, function (err, obj) {
 
         // read fromState and toState Reference on
-        var stateMachineType;
+        let stateMachineType;
         if (!err) {
             stateMachineType = new UAStateMachineType(obj);
         }

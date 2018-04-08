@@ -1,20 +1,20 @@
-var should = require("should");
+const should = require("should");
 
-var ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
+const ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var MockTransport = require("./mock/mock_transport").MockTransport;
-var fake_AcknowledgeMessage = require("./mock/mock_transport").fake_AcknowledgeMessage;
+const MockTransport = require("./mock/mock_transport").MockTransport;
+const fake_AcknowledgeMessage = require("./mock/mock_transport").fake_AcknowledgeMessage;
 
-var packTcpMessage = require("node-opcua-transport/src/tools").packTcpMessage;
+const packTcpMessage = require("node-opcua-transport/src/tools").packTcpMessage;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ClientSecureChannelLayer ", function() {
     this.timeout(100000);
 
     it("should create and close a ClientSecureChannelLayer", function(done) {
-        var mock = new MockTransport(
+        const mock = new MockTransport(
             [
                 // ---------------------------------------------------- Transaction 1
                 // Client will send a HEl_message
@@ -41,7 +41,7 @@ describe("testing ClientSecureChannelLayer ", function() {
             done
         );
 
-        var secureChannel = new ClientSecureChannelLayer();
+        const secureChannel = new ClientSecureChannelLayer();
 
         secureChannel.create("fake://localhost:2033/SomeAddress", function(err) {
             if (err) {
@@ -54,7 +54,7 @@ describe("testing ClientSecureChannelLayer ", function() {
     });
 
     it("should use token provided by server in messages", function(done) {
-        var mock = new MockTransport(
+        const mock = new MockTransport(
             [
                 // ---------------------------------------------------- Transaction 1
                 // Client will send a HEl_message
@@ -76,7 +76,7 @@ describe("testing ClientSecureChannelLayer ", function() {
             done
         );
 
-        var secureChannel = new ClientSecureChannelLayer({});
+        const secureChannel = new ClientSecureChannelLayer({});
 
         // before connection the securityToken shall not exist
         should(secureChannel.securityToken).equal(undefined);
@@ -99,11 +99,11 @@ describe("testing ClientSecureChannelLayer ", function() {
     });
 
     it("should callback with an error if performMessageTransaction is called before connection", function(done) {
-        var secureChannel = new ClientSecureChannelLayer({});
+        const secureChannel = new ClientSecureChannelLayer({});
 
-        var endpoints_service = require("node-opcua-service-endpoints");
-        var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
-        var message = new GetEndpointsRequest();
+        const endpoints_service = require("node-opcua-service-endpoints");
+        const GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
+        const message = new GetEndpointsRequest();
 
         secureChannel.performMessageTransaction(message, function(err /*, response*/) {
             // err.message.should.equal("Client not connected");
@@ -113,7 +113,7 @@ describe("testing ClientSecureChannelLayer ", function() {
     });
 
     it("should expose the total number of bytes read and written", function(done) {
-        var mock = new MockTransport(
+        const mock = new MockTransport(
             [
                 // ---------------------------------------------------- Transaction 1
                 // Client will send a HEl_message
@@ -135,7 +135,7 @@ describe("testing ClientSecureChannelLayer ", function() {
             done
         );
 
-        var secureChannel = new ClientSecureChannelLayer();
+        const secureChannel = new ClientSecureChannelLayer();
 
         secureChannel.bytesRead.should.equal(0);
         secureChannel.bytesWritten.should.equal(0);
@@ -151,7 +151,7 @@ describe("testing ClientSecureChannelLayer ", function() {
 
             secureChannel.isTransactionInProgress().should.eql(false);
 
-            var spyOnClose = new require("sinon").spy();
+            const spyOnClose = new require("sinon").spy();
             secureChannel.on("close", spyOnClose);
 
             secureChannel.close(function(err) {

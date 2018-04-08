@@ -4,21 +4,21 @@
  * @type {async|exports}
  */
 
-var async = require("async");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var EventEmitter = require("events").EventEmitter;
+const async = require("async");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const EventEmitter = require("events").EventEmitter;
 
-var util = require("util");
+const util = require("util");
 
-var utils = require("node-opcua-utils");
-var display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
-var ServiceFault= require("node-opcua-service-secure-channel").ServiceFault;
+const utils = require("node-opcua-utils");
+const display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
+const ServiceFault= require("node-opcua-service-secure-channel").ServiceFault;
 
 function constructFilename(p) {
-    var path = require("path");
-    var fs = require("fs");
-    var filename = path.join(__dirname, "..", p);
+    const path = require("path");
+    const fs = require("fs");
+    let filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
     if(!fs.existsSync(filename)) {
         // try one level up
@@ -30,23 +30,23 @@ function constructFilename(p) {
     return filename;
 }
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var endpoints_service = require("node-opcua-service-endpoints");
-var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
-var ApplicationType = endpoints_service.ApplicationType;
+const endpoints_service = require("node-opcua-service-endpoints");
+const GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
+const ApplicationType = endpoints_service.ApplicationType;
 
-var OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
+const OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
 
 
-var register_server_service = require("node-opcua-service-register-server");
-var FindServersRequest = register_server_service.FindServersRequest;
-var FindServersResponse = register_server_service.FindServersResponse;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
+const register_server_service = require("node-opcua-service-register-server");
+const FindServersRequest = register_server_service.FindServersRequest;
+const FindServersResponse = register_server_service.FindServersResponse;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var default_server_info = {
+const default_server_info = {
 
     // The globally unique identifier for the application instance. This URI is used as
     // ServerUri in Services if the application is a Server.
@@ -79,7 +79,7 @@ var default_server_info = {
  */
 function OPCUABaseServer(options) {
 
-    var self = this;
+    const self = this;
 
     options = options || {};
 
@@ -127,11 +127,11 @@ OPCUABaseServer.prototype.__defineGetter__("serverType", function () {
  */
 OPCUABaseServer.prototype.start = function (done) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(done));
     assert(_.isArray(this.endpoints));
 
-    var tasks = [];
+    const tasks = [];
     this.endpoints.forEach(function (endPoint) {
         tasks.push(function (callback) {
 
@@ -163,9 +163,9 @@ OPCUABaseServer.prototype.start = function (done) {
 OPCUABaseServer.prototype.shutdown = function (done) {
 
     assert(_.isFunction(done));
-    var self = this;
+    const self = this;
 
-    var tasks = [];
+    const tasks = [];
     self.endpoints.forEach(function (endPoint) {
         tasks.push(function (callback) {
             endPoint.shutdown(callback);
@@ -192,7 +192,7 @@ OPCUABaseServer.prototype.shutdown = function (done) {
  * @param messages
  */
 function makeServiceFault(statusCode, messages) {
-    var response = new ServiceFault();
+    const response = new ServiceFault();
     response.responseHeader.serviceResult = statusCode;
     //xx response.serviceDiagnostics.push( new DiagnosticInfo({ additionalInfo: messages.join("\n")}));
 
@@ -214,7 +214,7 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
 
     assert(message.request);
     assert(message.requestId);
-    var request = message.request;
+    const request = message.request;
 
 
     // install channel._on_response so we can intercept its call and  emit the "response" event.
@@ -230,12 +230,12 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
 
     var self = this;
     debugLog("--------------------------------------------------------".green.bold, channel.secureChannelId, request._schema.name);
-    var errMessage, response;
+    let errMessage, response;
     self.emit("request", request, channel);
 
     try {
         // handler must be named _on_ActionRequest()
-        var handler = self["_on_" + request._schema.name];
+        const handler = self["_on_" + request._schema.name];
         if (_.isFunction(handler)) {
             handler.apply(self, arguments);
         } else {
@@ -257,7 +257,7 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
 
             display_trace_from_this_projet_only(err);
 
-            var additional_messages = [];
+            let additional_messages = [];
             additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request._schema.name);
             additional_messages.push(err.message);
             if (err.stack) {
@@ -275,9 +275,9 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
 
 OPCUABaseServer.prototype._get_endpoints = function () {
 
-    var endpoints = [];
+    let endpoints = [];
     this.endpoints.map(function (endPoint) {
-        var ep = endPoint.endpointDescriptions();
+        const ep = endPoint.endpointDescriptions();
         endpoints = endpoints.concat(ep);
     });
     return endpoints;
@@ -292,12 +292,12 @@ OPCUABaseServer.prototype._get_endpoints = function () {
  */
 OPCUABaseServer.prototype._on_GetEndpointsRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
 
     assert(request._schema.name === "GetEndpointsRequest");
 
-    var response = new GetEndpointsResponse({});
+    const response = new GetEndpointsResponse({});
 
 
     response.endpoints = server._get_endpoints();
@@ -326,7 +326,7 @@ OPCUABaseServer.prototype._on_GetEndpointsRequest = function (message, channel) 
 
 
 OPCUABaseServer.prototype.getDiscoveryUrls = function () {
-    var discoveryUrls = this.endpoints.map(function (e) {
+    const discoveryUrls = this.endpoints.map(function (e) {
         return e._endpoints[0].endpointUrl;
     });
     return discoveryUrls;
@@ -335,9 +335,9 @@ OPCUABaseServer.prototype.getDiscoveryUrls = function () {
 };
 
 OPCUABaseServer.prototype.getServers = function (channel) {
-    var server = this;
+    const server = this;
     server.serverInfo.discoveryUrls = server.getDiscoveryUrls(channel);
-    var servers = [server.serverInfo];
+    const servers = [server.serverInfo];
     return servers;
 };
 
@@ -350,7 +350,7 @@ OPCUABaseServer.prototype.getServers = function (channel) {
  */
 OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
 
-    var server = this;
+    const server = this;
     // Release 1.02  13  OPC Unified Architecture, Part 4 :
     //   This  Service  can be used without security and it is therefore vulnerable to Denial Of Service (DOS)
     //   attacks. A  Server  should minimize the amount of processing required to send the response for this
@@ -358,14 +358,14 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
     //   short delay before starting processing of a request during high traffic conditions.
 
 
-    var shortDelay = 2;
+    const shortDelay = 2;
     setTimeout(function () {
 
-        var request = message.request;
+        const request = message.request;
         assert(request._schema.name === "FindServersRequest");
         assert(request instanceof FindServersRequest);
 
-        var servers = server.getServers(channel);
+        let servers = server.getServers(channel);
         // apply filters
         // TODO /
         if (request.serverUris && request.serverUris.length > 0) {
@@ -375,7 +375,7 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
             });
         }
 
-        var response = new FindServersResponse({
+        const response = new FindServersResponse({
             servers: servers
         });
         channel.send_response("MSG", response, message);
@@ -390,9 +390,9 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
  * @return {Array<ServerSecureChannelLayer>}
  */
 OPCUABaseServer.prototype.getChannels = function () {
-    var channels = [];
+    let channels = [];
     this.endpoints.map(function (endpoint) {
-        var c = _.values(endpoint._channels);
+        const c = _.values(endpoint._channels);
         channels = channels.concat(c);
     });
     return channels;
@@ -410,7 +410,7 @@ OPCUABaseServer.prototype.getChannels = function () {
  */
 OPCUABaseServer.prototype.suspendEndPoints = function (callback) {
 
-    var self = this;
+    const self = this;
     async.forEach(self.endpoints, function (ep, _inner_callback) {
         ep.suspendConnection(_inner_callback);
     }, function () {
@@ -425,7 +425,7 @@ OPCUABaseServer.prototype.suspendEndPoints = function (callback) {
  * @param callback {Function}
  */
 OPCUABaseServer.prototype.resumeEndPoints = function (callback) {
-    var self = this;
+    const self = this;
     async.forEach(self.endpoints, function (ep, _inner_callback) {
         ep.restoreConnection(_inner_callback);
     }, callback);

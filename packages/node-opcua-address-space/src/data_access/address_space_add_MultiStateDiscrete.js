@@ -1,18 +1,18 @@
 
-var assert = require("node-opcua-assert");
-var util = require("util");
-var address_space = require("../address_space");
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const assert = require("node-opcua-assert");
+const util = require("util");
+const address_space = require("../address_space");
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
-var add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
-var _ = require("underscore");
+const _ = require("underscore");
 
 
-var UAVariable = require("../ua_variable").UAVariable;
+const UAVariable = require("../ua_variable").UAVariable;
 /**
  * @class UAMultiStateDiscreteType
  * @constructor
@@ -32,16 +32,16 @@ UAMultiStateDiscreteType.prototype.getValue = function() {
  */
 UAMultiStateDiscreteType.prototype.getValueAsString = function() {
 
-    var index = this.getValue();
-    var arr = this.enumStrings.readValue().value.value;
+    const index = this.getValue();
+    const arr = this.enumStrings.readValue().value.value;
     assert(_.isArray(arr));
     return arr[index].text.toString();
 };
 
 UAMultiStateDiscreteType.prototype.getIndex = function(value) {
-    var arr = this.enumStrings.readValue().value.value;
+    const arr = this.enumStrings.readValue().value.value;
     assert(_.isArray(arr));
-    var index  = arr.findIndex(function(a) { return a.text === value;});
+    const index  = arr.findIndex(function(a) { return a.text === value;});
 
     return index;
 };
@@ -49,7 +49,7 @@ UAMultiStateDiscreteType.prototype.getIndex = function(value) {
 UAMultiStateDiscreteType.prototype.setValue = function(value) {
 
     if (typeof(value) === "string") {
-        var index = this.getIndex(value);
+        const index = this.getIndex(value);
         assert(index>=0," invalid multi state value provided");
         return this.setValue(index);
     }
@@ -74,17 +74,17 @@ module.exports.install = function(AddressSpace) {
         assert(options.hasOwnProperty("enumStrings"));
         assert(!options.hasOwnProperty("ValuePrecision"));
 
-        var addressSpace = this;
+        const addressSpace = this;
         assert(addressSpace instanceof AddressSpace);
 
-        var multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
+        const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
         assert(multiStateDiscreteType, "expecting MultiStateDiscreteType to be defined , check nodeset xml file");
 
         // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
 
         options.value = ( options.value === undefined) ? 0 : options.value;
 
-        var variable = addressSpace.addVariable(_.extend(options,{
+        const variable = addressSpace.addVariable(_.extend(options,{
             typeDefinition: multiStateDiscreteType.nodeId,
             dataType: "UInteger",
             valueRank: -2,
@@ -93,11 +93,11 @@ module.exports.install = function(AddressSpace) {
 
         add_dataItem_stuff(variable,options);
 
-        var enumStrings = options.enumStrings.map(function(value) {
+        const enumStrings = options.enumStrings.map(function(value) {
             return coerceLocalizedText(value)
         });
 
-        var enumStringsNode = addressSpace.addVariable({
+        const enumStringsNode = addressSpace.addVariable({
             modellingRule: options.modellingRule ? "Mandatory" : undefined,
             propertyOf: variable,
             typeDefinition: "PropertyType",
@@ -113,7 +113,7 @@ module.exports.install = function(AddressSpace) {
             })
         });
 
-        var handler = variable.handle_semantic_changed.bind(variable);
+        const handler = variable.handle_semantic_changed.bind(variable);
         enumStringsNode.on("value_changed",handler);
 
         variable.install_extra_properties();

@@ -4,26 +4,26 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
 
 
-var historizing_service = require("node-opcua-service-history");
-var HistoryReadRequest = historizing_service.HistoryReadRequest;
-var HistoryReadDetails = historizing_service.HistoryReadDetails;
-var HistoryReadResult = historizing_service.HistoryReadResult;
-var HistoryData = historizing_service.HistoryData;
+const historizing_service = require("node-opcua-service-history");
+const HistoryReadRequest = historizing_service.HistoryReadRequest;
+const HistoryReadDetails = historizing_service.HistoryReadDetails;
+const HistoryReadResult = historizing_service.HistoryReadResult;
+const HistoryData = historizing_service.HistoryData;
 
-var AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
-var makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
+const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
 
-var DataType = require("node-opcua-variant").DataType;
+const DataType = require("node-opcua-variant").DataType;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var UAVariable = require("../ua_variable").UAVariable;
-var SessionContext = require("../session_context").SessionContext;
+const UAVariable = require("../ua_variable").UAVariable;
+const SessionContext = require("../session_context").SessionContext;
 
 exports.install = function (AddressSpace) {
 
@@ -39,8 +39,8 @@ exports.install = function (AddressSpace) {
     }
 
     function filter_dequeue(q, predicate) {
-        var r = [];
-        var c = q.head.next;
+        const r = [];
+        let c = q.head.next;
         while (c.data) {
             if (predicate(c.data)) {
                 r.push(c.data);
@@ -59,7 +59,7 @@ exports.install = function (AddressSpace) {
     }
 
     function _update_startOfOnlineArchive(newDate) {
-        var node = this;
+        const node = this;
 
         // The StartOfArchive Variable specifies the date before which there is no data in the archive either online or offline.
         // The StartOfOnlineArchive Variable specifies the date of the earliest data in the online archive.
@@ -67,7 +67,7 @@ exports.install = function (AddressSpace) {
             dataType: DataType.DateTime, value: newDate
         });
 
-        var startOfArchiveDataValue = _get_startOfOfflineArchive(node);
+        const startOfArchiveDataValue = _get_startOfOfflineArchive(node);
         if (startOfArchiveDataValue.statusCode !== StatusCodes.Good || startOfArchiveDataValue.value.value.getTime() >= newDate.getTime()) {
             node.$historicalDataConfiguration.startOfArchive.setValueFromSource({
                 dataType: DataType.DateTime, value: newDate
@@ -77,7 +77,7 @@ exports.install = function (AddressSpace) {
 
     function _historyPush(newDataValue) {
 
-        var node = this;
+        const node = this;
 
         assert(node.hasOwnProperty("historizing"),"expecting a historizing attribute on node");
 
@@ -88,8 +88,8 @@ exports.install = function (AddressSpace) {
 
         node._timeline.push(newDataValue);
 
-        var sourceTime = newDataValue.sourceTimestamp || new Date();
-        var sourcePicoSeconds = newDataValue.sourcePicoseconds || 0;
+        const sourceTime = newDataValue.sourceTimestamp || new Date();
+        const sourcePicoSeconds = newDataValue.sourcePicoseconds || 0;
 
         // ensure that values are set with date increasing
         if (sourceTime.getTime() <= node.lastDate.getTime()) {
@@ -110,7 +110,7 @@ exports.install = function (AddressSpace) {
         }
 
         if (node._timeline.length >= node._maxOnlineValues || node._timeline.length === 1) {
-            var first = node._timeline.first();
+            const first = node._timeline.first();
             _update_startOfOnlineArchive.call(node, first.sourceTimestamp);
             //we update the node startOnlineDate
         }
@@ -121,11 +121,11 @@ exports.install = function (AddressSpace) {
         //xx console.log("historyReadDetails = ", historyReadDetails.toString());
         assert(context instanceof SessionContext);
         assert(callback instanceof Function);
-        var node = this;
+        const node = this;
 
-        var dataValues = filter_dequeue(node._timeline, inInTimeRange.bind(null, historyReadDetails));
+        const dataValues = filter_dequeue(node._timeline, inInTimeRange.bind(null, historyReadDetails));
 
-        var result = new HistoryReadResult({
+        const result = new HistoryReadResult({
             historyData: new HistoryData({dataValues: dataValues}),
             statusCode: StatusCodes.Good
         });
@@ -133,10 +133,10 @@ exports.install = function (AddressSpace) {
         callback(null, result);
     }
 
-    var Dequeue = require("dequeue");
+    const Dequeue = require("dequeue");
 
     function on_value_change(newDataValue) {
-        var node = this;
+        const node = this;
         node._historyPush.call(node, newDataValue);
     }
 
@@ -151,7 +151,7 @@ exports.install = function (AddressSpace) {
         assert(node instanceof UAVariable);
         options = options || {};
 
-        var addressSpace = node.addressSpace;
+        const addressSpace = node.addressSpace;
 
         // install specific history behavior
         node._historyRead = _historyRead;
@@ -164,12 +164,12 @@ exports.install = function (AddressSpace) {
 
 
 
-        var historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
+        const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
         node.historizing = true;
         node.accessLevel = AccessLevelFlag.get(node.accessLevel.key + " | CurrentRead | HistoryRead");
         node.userAccessLevel = AccessLevelFlag.get(node.userAccessLevel.key + " | CurrentRead | HistoryRead");
 
-        var optionals = [
+        const optionals = [
             "Definition",
             "MaxTimeInterval",
             "MinTimeInterval",
@@ -179,7 +179,7 @@ exports.install = function (AddressSpace) {
 
         // Note from spec : If a HistoricalDataNode has configuration defined then one
         //                    instance shall have a BrowseName of ‘HA Configuration’
-        var historicalDataConfiguration = historicalDataConfigurationType.instantiate({
+        const historicalDataConfiguration = historicalDataConfigurationType.instantiate({
             browseName: "HA Configuration",
             optionals: optionals,
         });
@@ -211,7 +211,7 @@ exports.install = function (AddressSpace) {
         //  either online or offline.
 
         // The StartOfOnlineArchive Variable specifies the date of the earliest data in the online archive.
-        var startOfOnlineArchive = new Date(Date.now);
+        const startOfOnlineArchive = new Date(Date.now);
         historicalDataConfiguration.startOfOnlineArchive.setValueFromSource({
             dataType: DataType.DateTime,
             value: startOfOnlineArchive
@@ -254,7 +254,7 @@ exports.install = function (AddressSpace) {
 
         node.$historicalDataConfiguration = historicalDataConfiguration;
 
-        var dataValue = node.readValue();
+        const dataValue = node.readValue();
         if (dataValue.statusCode !== StatusCodes.BadWaitingForInitialData) {
             on_value_change.call(node,dataValue);
         }

@@ -1,15 +1,15 @@
 /*global it,describe,beforeEach,afterEach,require*/
 "use strict";
 
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var securityMode = opcua.MessageSecurityMode.NONE;
-var securityPolicy = opcua.SecurityPolicy.None;
+const OPCUAClient = opcua.OPCUAClient;
+const securityMode = opcua.MessageSecurityMode.NONE;
+const securityPolicy = opcua.SecurityPolicy.None;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable constructed with variation 1");
 
@@ -18,13 +18,13 @@ module.exports = function (test) {
 
     describe("Testing bug #141 -  Client should have a appropriated timeoutHint on PublishRequest ", function () {
 
-        var options = {
+        const options = {
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: null
         };
 
-        var server, client, endpointUrl;
+        let server, client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient(options);
@@ -40,11 +40,11 @@ module.exports = function (test) {
 
         it("#141-A Client#Subscription : PublishRequest.requestHeader.timeoutHint shall not be lesser that time between 2 keepalive responses", function (done) {
 
-            var timeout = 25000;
+            const timeout = 25000;
 
-            var the_subscription;
+            let the_subscription;
 
-            var keepaliveCounter = 0;
+            let keepaliveCounter = 0;
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 the_subscription = new opcua.ClientSubscription(session, {
@@ -56,7 +56,7 @@ module.exports = function (test) {
                     priority: 10
                 });
 
-                var timerId;
+                let timerId;
                 if (timeout > 0) {
                     timerId = setTimeout(function () {
                         the_subscription.terminate(function() {
@@ -90,7 +90,7 @@ module.exports = function (test) {
 
         it("#141-B client should raise an event to observer when a request has timed out ( timeoutHint exhausted without response)", function (done) {
 
-            var node = server.engine.addressSpace.addVariable({
+            const node = server.engine.addressSpace.addVariable({
 
                 browseName: "MySlowVariable",
                 dataType: "Int32",
@@ -111,7 +111,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var request = new opcua.read_service.ReadRequest({
+                const request = new opcua.read_service.ReadRequest({
                     nodesToRead: [{
                         nodeId: node.nodeId,
                         attributeId: 13
@@ -122,8 +122,8 @@ module.exports = function (test) {
                 // let specify a very short timeout hint ...
                 request.requestHeader.timeoutHint = 10;
 
-                var callback_received = false;
-                var event_received = false;
+                let callback_received = false;
+                let event_received = false;
 
                 session.performMessageTransaction(request, function (err) {
                     //

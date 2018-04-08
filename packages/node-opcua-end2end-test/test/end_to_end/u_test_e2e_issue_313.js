@@ -1,13 +1,13 @@
 "use strict";
 
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var coerceNodeId = opcua.coerceNodeId;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const coerceNodeId = opcua.coerceNodeId;
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
@@ -25,12 +25,12 @@ module.exports = function (test) {
 
         it("Should not crash when monitoring the same invalid nodeId for the second time ", function (done) {
 
-            var nodeId = coerceNodeId("ns=4;s=TestVerzeichnis.TestKnotn"); // Server Object
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const nodeId = coerceNodeId("ns=4;s=TestVerzeichnis.TestKnotn"); // Server Object
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
             function add_monitored_item(subscription, callback) {
-                var monitoredItem = subscription.monitor({
+                const monitoredItem = subscription.monitor({
                       nodeId: nodeId,
                       attributeId: opcua.AttributeIds.Value
                   },

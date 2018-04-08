@@ -4,18 +4,18 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
 
-var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
-var UAVariable = require("../ua_variable").UAVariable;
-var ConditionInfo = require("./condition").ConditionInfo;
-var DataValue = require("node-opcua-data-value").DataValue;
-var NodeId = require("node-opcua-nodeid").NodeId;
+const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
+const UAVariable = require("../ua_variable").UAVariable;
+const ConditionInfo = require("./condition").ConditionInfo;
+const DataValue = require("node-opcua-data-value").DataValue;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
 
 /**
@@ -105,7 +105,7 @@ UALimitAlarm.prototype.setLowLowLimit = function (value) {
 UALimitAlarm.prototype._onInputDataValueChange = function (dataValue) {
 
     assert(dataValue instanceof DataValue);
-    var alarm = this;
+    const alarm = this;
 
     if (dataValue.statusCode === StatusCodes.BadWaitingForInitialData) {
         // we are not ready yet to use the input node value
@@ -121,14 +121,14 @@ UALimitAlarm.prototype._onInputDataValueChange = function (dataValue) {
         alarm._signalNewCondition(null);
         return;
     }
-    var value = dataValue.value.value;
+    const value = dataValue.value.value;
     alarm._setStateBasedOnInputValue(value);
 };
 
 
 UALimitAlarm.prototype._watchLimits = function() {
 
-    var alarm = this;
+    const alarm = this;
     /// ----------------------------------------------------------------------
     /// Installing Limits monitored
     function _updateState() { alarm.updateState(); }
@@ -167,7 +167,7 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
     assert(options.hasOwnProperty("inputNode"), "UALimitAlarm.instantiate: options must provide the inputNode");
 
     options.optionals = options.optionals || [];
-    var count = 0;
+    let count = 0;
     if (options.hasOwnProperty("highHighLimit")) {
         options.optionals.push("HighHighLimit");
         options.optionals.push("HighHighState");
@@ -190,12 +190,12 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
     }
 
     //xx assert(options.optionals,"must provide an optionals");
-    var alarmNode = UAAlarmConditionBase.instantiate(addressSpace, limitAlarmTypeId, options, data);
+    const alarmNode = UAAlarmConditionBase.instantiate(addressSpace, limitAlarmTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UALimitAlarm.prototype);
 
     assert(alarmNode.conditionOfNode() !== null);
 
-    var inputNode = addressSpace._coerceNode(options.inputNode);
+    const inputNode = addressSpace._coerceNode(options.inputNode);
     assert(inputNode, "Expecting a valid input node");
     assert(inputNode instanceof UAVariable);
 
@@ -213,7 +213,7 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
         throw new Error("at least one limit is required");
     }
 
-    var dataType = addressSpace.findCorrespondingBasicDataType(options.inputNode.dataType);
+    const dataType = addressSpace.findCorrespondingBasicDataType(options.inputNode.dataType);
     alarmNode._dataType = dataType;
 
     if (options.hasOwnProperty("highHighLimit")) {
@@ -249,7 +249,7 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
 UALimitAlarm.prototype.evaluateConditionsAfterEnabled = function () {
     assert(this.getEnabledState() === true);
     //simulate input value event
-    var alarmNode = this;
-    var dataValue = alarmNode.getInputNodeNode().readValue();
+    const alarmNode = this;
+    const dataValue = alarmNode.getInputNodeNode().readValue();
     alarmNode._onInputDataValueChange(dataValue);
 };

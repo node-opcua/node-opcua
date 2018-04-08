@@ -1,77 +1,77 @@
 "use strict";
 
-var getRandomInt = require("./utils").getRandomInt;
-var _ = require("underscore");
-var assert=require("node-opcua-assert");
+const getRandomInt = require("./utils").getRandomInt;
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 
-exports.isValidUInt16 = function (value) {
+exports.isValidUInt16 = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    return value >= 0 && value <= 0xFFFF;
+    return value >= 0 && value <= 0xffff;
 };
 
-exports.randomUInt16 = function () {
-    return getRandomInt(0, 0xFFFF);
+exports.randomUInt16 = function() {
+    return getRandomInt(0, 0xffff);
 };
 
-exports.encodeUInt16 = function (value, stream) {
+exports.encodeUInt16 = function(value, stream) {
     stream.writeUInt16(value);
 };
 
-exports.decodeUInt16 = function (stream) {
+exports.decodeUInt16 = function(stream) {
     return stream.readUInt16();
 };
 
-exports.isValidInt16 = function (value) {
+exports.isValidInt16 = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    return value >= -0x8000 && value <= 0x7FFF;
+    return value >= -0x8000 && value <= 0x7fff;
 };
 
-exports.randomInt16 = function () {
-    return getRandomInt(-0x8000, 0x7FFF);
+exports.randomInt16 = function() {
+    return getRandomInt(-0x8000, 0x7fff);
 };
-exports.encodeInt16 = function (value, stream) {
+exports.encodeInt16 = function(value, stream) {
     assert(_.isFinite(value));
     stream.writeInt16(value);
 };
-exports.decodeInt16 = function (stream) {
+exports.decodeInt16 = function(stream) {
     return stream.readInt16();
 };
 
-exports.isValidInt32 = function (value) {
+exports.isValidInt32 = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
     return value >= -0x80000000 && value <= 0x7fffffff;
 };
-exports.randomInt32 = function () {
+exports.randomInt32 = function() {
     return getRandomInt(-0x80000000, 0x7fffffff);
 };
-exports.encodeInt32 = function (value, stream) {
+exports.encodeInt32 = function(value, stream) {
     assert(_.isFinite(value));
     stream.writeInteger(value);
 };
-exports.decodeInt32 = function (stream) {
+exports.decodeInt32 = function(stream) {
     return stream.readInteger();
 };
 
-exports.isValidUInt32 = function (value) {
+exports.isValidUInt32 = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    return value >= 0 && value <= 0xFFFFFFFF;
+    return value >= 0 && value <= 0xffffffff;
 };
 
-exports.randomUInt32 = function () {
-    return getRandomInt(0, 0xFFFFFFFF);
+exports.randomUInt32 = function() {
+    return getRandomInt(0, 0xffffffff);
 };
-exports.encodeUInt32 = function (value, stream) {
+exports.encodeUInt32 = function(value, stream) {
     stream.writeUInt32(value);
 };
-exports.decodeUInt32 = function (stream) {
+exports.decodeUInt32 = function(stream) {
     return stream.readUInt32();
 };
 
@@ -79,41 +79,39 @@ function isValidInt8(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    return value >= -0x80 && value <= 0x7F;
+    return value >= -0x80 && value <= 0x7f;
 }
 exports.isValidInt8 = isValidInt8;
 
-exports.randomInt8 = function () {
-    return getRandomInt(-0x7F, 0x7E);
+exports.randomInt8 = function() {
+    return getRandomInt(-0x7f, 0x7e);
 };
-exports.encodeInt8 = function (value, stream) {
+exports.encodeInt8 = function(value, stream) {
     assert(isValidInt8(value));
     stream.writeInt8(value);
 };
-exports.decodeInt8 = function (stream) {
+exports.decodeInt8 = function(stream) {
     return stream.readInt8();
 };
-
 
 exports.isValidSByte = exports.isValidInt8;
 exports.randomSByte = exports.randomInt8;
 exports.encodeSByte = exports.encodeInt8;
 exports.decodeSByte = exports.decodeInt8;
 
-
-exports.isValidUInt8 = function (value) {
+exports.isValidUInt8 = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    return value >= -0x00 && value <= 0xFF;
+    return value >= -0x00 && value <= 0xff;
 };
-exports.randomUInt8 = function () {
-    return getRandomInt(0x00, 0xFF);
+exports.randomUInt8 = function() {
+    return getRandomInt(0x00, 0xff);
 };
-exports.encodeUInt8 = function (value, stream) {
+exports.encodeUInt8 = function(value, stream) {
     stream.writeUInt8(value);
 };
-exports.decodeUInt8 = function (stream) {
+exports.decodeUInt8 = function(stream) {
     return stream.readUInt8();
 };
 
@@ -122,15 +120,13 @@ exports.randomByte = exports.randomUInt8;
 exports.encodeByte = exports.encodeUInt8;
 exports.decodeByte = exports.decodeUInt8;
 
-
-exports.isValidUInt64 = function (value) {
+exports.isValidUInt64 = function(value) {
     return value instanceof Array && value.length === 2;
 };
-exports.randomUInt64 = function () {
-    return [getRandomInt(0, 0xFFFFFFFF), getRandomInt(0, 0xFFFFFFFF)];
+exports.randomUInt64 = function() {
+    return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
 };
-exports.encodeUInt64 = function (value, stream) {
-
+exports.encodeUInt64 = function(value, stream) {
     if (_.isNumber(value)) {
         value = exports.coerceUInt64(value);
     }
@@ -138,20 +134,19 @@ exports.encodeUInt64 = function (value, stream) {
     stream.writeUInt32(value[0]);
 };
 
-exports.decodeUInt64 = function (stream) {
-    var low = stream.readUInt32();
-    var high = stream.readUInt32();
+exports.decodeUInt64 = function(stream) {
+    const low = stream.readUInt32();
+    const high = stream.readUInt32();
     return exports.constructInt64(high, low);
 };
-exports.constructInt64 = function (high, low) {
-    assert(low >= 0 && low <= 0xFFFFFFFF);
-    assert(high >= 0 && high <= 0xFFFFFFFF);
+exports.constructInt64 = function(high, low) {
+    assert(low >= 0 && low <= 0xffffffff);
+    assert(high >= 0 && high <= 0xffffffff);
     return [high, low];
 };
 
-exports.coerceUInt64 = function (value) {
-
-    var high, low, v;
+exports.coerceUInt64 = function(value) {
+    let high, low, v;
     if (value === null || value === undefined) {
         return value;
     }
@@ -166,7 +161,7 @@ exports.coerceUInt64 = function (value) {
         low = parseInt(v[1], 10);
         return exports.constructInt64(high, low);
     }
-    if (value > 0xFFFFFFFF) {
+    if (value > 0xffffffff) {
         // beware : as per javascript, value is a double here !
         //          our conversion will suffer from some inacuracy
 
@@ -177,16 +172,14 @@ exports.coerceUInt64 = function (value) {
     return exports.constructInt64(0, value);
 };
 
-exports.randomInt64 = function () {
+exports.randomInt64 = function() {
     // High, low
-    return [getRandomInt(0, 0xFFFFFFFF), getRandomInt(0, 0xFFFFFFFF)];
+    return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
 };
 exports.coerceInt64 = exports.coerceUInt64;
 exports.isValidInt64 = exports.isValidUInt64;
 exports.encodeInt64 = exports.encodeUInt64;
 exports.decodeInt64 = exports.decodeUInt64;
-
-
 
 exports.coerceInt8 = function coerceInt8(value) {
     if (value === null || value === undefined) {

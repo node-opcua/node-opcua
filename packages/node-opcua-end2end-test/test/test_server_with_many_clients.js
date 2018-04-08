@@ -1,38 +1,38 @@
 "use strict";
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var ClientSession = opcua.ClientSession;
+const ClientSession = opcua.ClientSession;
 
-var ClientSubscription = opcua.ClientSubscription;
+const ClientSubscription = opcua.ClientSubscription;
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var makeNodeId = opcua.makeNodeId;
-var VariableIds = opcua.VariableIds;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const makeNodeId = opcua.makeNodeId;
+const VariableIds = opcua.VariableIds;
 
 //xx opcua.utils.setDebugFlag(__filename,true);
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var port = 2000;
-var maxConnectionsPerEndpoint = 100;
-var maxAllowedSessionNumber   =  50;
+const port = 2000;
+const maxConnectionsPerEndpoint = 100;
+const maxAllowedSessionNumber   =  50;
 
-var build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Functional test : one server with many concurrent clients", function () {
 
-    var server, temperatureVariableId, endpointUrl;
+    let server, temperatureVariableId, endpointUrl;
 
     this.timeout(Math.max(20000,this._timeout));
 
-    var serverCertificateChain = null;
+    let serverCertificateChain = null;
     before(function (done) {
 
         server = build_server_with_temperature_device({
@@ -62,7 +62,7 @@ describe("Functional test : one server with many concurrent clients", function (
         });
     });
 
-    var expectedSubscriptionCount = 0;
+    const expectedSubscriptionCount = 0;
 
     function wait_randomly(callback) {
        setTimeout(callback, Math.ceil(100+Math.random() * 1500));
@@ -70,7 +70,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
     function construct_client_scenario(data) {
 
-        var client = new OPCUAClient({
+        const client = new OPCUAClient({
             serverCertificate: serverCertificateChain,
             requestedSessionTimeout: 120 * 1000
         });
@@ -78,11 +78,11 @@ describe("Functional test : one server with many concurrent clients", function (
         data.client = client;
         data.nb_received_changed_event = 0;
 
-        var name = data.name;
+        const name = data.name;
 
         debugLog(" configuring ", data.name);
 
-        var tasks = [
+        const tasks = [
 
             wait_randomly,
 
@@ -112,10 +112,10 @@ describe("Functional test : one server with many concurrent clients", function (
             function (callback) {
 
                 debugLog(" Creating monitored Item for client", name);
-                var session = data.session;
+                const session = data.session;
                 assert(session instanceof ClientSession);
 
-                var subscription = new ClientSubscription(session, {
+                const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 200,
                     requestedLifetimeCount:      10 * 60 * 10,
                     requestedMaxKeepAliveCount:  10,
@@ -132,7 +132,7 @@ describe("Functional test : one server with many concurrent clients", function (
                     debugLog("subscription terminated".red.bold, name);
                 });
 
-                var monitoredItem = subscription.monitor(
+                const monitoredItem = subscription.monitor(
                     {
                         nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
                         attributeId: AttributeIds.Value
@@ -145,7 +145,7 @@ describe("Functional test : one server with many concurrent clients", function (
                     //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
                 });
 
-                var counter = 0;
+                let counter = 0;
                 monitoredItem.on("changed", function (dataValue) {
                     debugLog(" client ", name, " received value change ", dataValue.value.value);
                     data.nb_received_changed_event += 1;
@@ -184,13 +184,13 @@ describe("Functional test : one server with many concurrent clients", function (
     it("it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId", function (done) {
 
 
-        var nb_clients = server.maxAllowedSessionNumber;
+        const nb_clients = server.maxAllowedSessionNumber;
 
 
-        var clients = [];
+        const clients = [];
 
-        for (var i = 0; i < nb_clients; i++) {
-            var data = {};
+        for (let i = 0; i < nb_clients; i++) {
+            const data = {};
             data.name = "client " + i;
             data.tasks = construct_client_scenario(data);
             clients.push(data);

@@ -1,48 +1,36 @@
+const Benchmarker = require("..").Benchmarker;
 
+describe("Testing ", function() {
+    it("forEach vs simple loops", function(done) {
+        const bench = new Benchmarker();
 
-var Benchmarker = require("..").Benchmarker;
-
-
-describe("Testing ", function () {
-
-
-    it("forEach vs simple loops", function (done) {
-
-        var bench = new Benchmarker();
-
-        var values = [];
+        const values = [];
         for (var i = 0; i < 10000; i++) {
             values[i] = Math.random();
         }
 
         bench
-            .add('for simple loop', function () {
-
-                var sum = 0;
+            .add("for simple loop", function() {
+                let sum = 0;
                 for (i = 0; i < values.length; i++) {
                     sum += values[i];
                 }
-
             })
-            .add('forEach        ', function () {
-
-                var sum = 0;
-                values.forEach(function (e) {
+            .add("forEach        ", function() {
+                let sum = 0;
+                values.forEach(function(e) {
                     sum += e;
                 });
-
             })
-            .on('cycle', function (message) {
+            .on("cycle", function(message) {
                 console.log(message);
             })
-            .on('complete', function () {
-
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                console.log(' count    :  ', this.fastest.count);
+            .on("complete", function() {
+                console.log(" Fastest is " + this.fastest.name);
+                console.log(" Speed Up : x", this.speedUp);
+                console.log(" count    :  ", this.fastest.count);
                 done();
             })
-            .run({max_time: 0.1});
-
+            .run({ max_time: 0.1 });
     });
 });

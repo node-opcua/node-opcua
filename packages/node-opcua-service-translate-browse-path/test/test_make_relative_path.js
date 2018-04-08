@@ -1,26 +1,26 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
 
-var tbp_service = require("..");
+const tbp_service = require("..");
 
-var makeRelativePath = tbp_service.makeRelativePath;
-var RelativePath = tbp_service.RelativePath;
-var RelativePathElement = tbp_service.RelativePathElement;
+const makeRelativePath = tbp_service.makeRelativePath;
+const RelativePath = tbp_service.RelativePath;
+const RelativePathElement = tbp_service.RelativePathElement;
 
 describe("makeRelativePath", function () {
 
 
-    var hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
-    var aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
-    var sinon = require("sinon");
+    const hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
+    const aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
+    const sinon = require("sinon");
 
     it("T1 should construct simple RelativePath for '/' ", function () {
-        var relativePath = makeRelativePath("/");
+        const relativePath = makeRelativePath("/");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -31,7 +31,7 @@ describe("makeRelativePath", function () {
     });
 
     it("T2 should construct simple RelativePath for '.' ", function () {
-        var relativePath = makeRelativePath(".");
+        const relativePath = makeRelativePath(".");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,
@@ -42,7 +42,7 @@ describe("makeRelativePath", function () {
     });
 
     it("T3 should construct simple RelativePath for '<HasChild>' ", function () {
-        var relativePath = makeRelativePath("<HasChild>");
+        const relativePath = makeRelativePath("<HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
@@ -52,7 +52,7 @@ describe("makeRelativePath", function () {
         }));
     });
     it("T3 should construct simple RelativePath for '<!HasSubtype>' ", function () {
-        var relativePath = makeRelativePath("<!HasSubtype>");
+        const relativePath = makeRelativePath("<!HasSubtype>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasSubtype"),
@@ -64,7 +64,7 @@ describe("makeRelativePath", function () {
 
 
     it("T4 should construct simple RelativePath for '<#HasChild>' ", function () {
-        var relativePath = makeRelativePath("<#HasChild>");
+        const relativePath = makeRelativePath("<#HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
@@ -75,7 +75,7 @@ describe("makeRelativePath", function () {
     });
 
     it("T5 should construct simple RelativePath for '<!HasChild>' ", function () {
-        var relativePath = makeRelativePath("<!HasChild>");
+        const relativePath = makeRelativePath("<!HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
@@ -85,7 +85,7 @@ describe("makeRelativePath", function () {
         }));
     });
     it("T6 should construct simple RelativePath for '<#!HasChild>' ", function () {
-        var relativePath = makeRelativePath("<#!HasChild>");
+        const relativePath = makeRelativePath("<#!HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: resolveNodeId("HasChild"),
@@ -96,7 +96,7 @@ describe("makeRelativePath", function () {
     });
     it("T7 should construct simple RelativePath for '/3:Truck'", function () {
 
-        var relativePath = makeRelativePath("/3:Truck");
+        const relativePath = makeRelativePath("/3:Truck");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -112,7 +112,7 @@ describe("makeRelativePath", function () {
     // Aggregates Reference to a target with BrowseName “0:NodeVersion”.
     it("T8 should construct simple RelativePath for '/3:Truck.0:NodeVersion' ", function () {
 
-        var relativePath = makeRelativePath("/3:Truck.0:NodeVersion");
+        const relativePath = makeRelativePath("/3:Truck.0:NodeVersion");
         relativePath.elements.length.should.eql(2);
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -131,7 +131,7 @@ describe("makeRelativePath", function () {
 
     /// “/2:Block&.Output”  Follows any forward hierarchical Reference with target BrowseName = “2:Block.Output”.
     it("T9 should construct simple RelativePath for '/2:Block&.Output'", function () {
-        var relativePath = makeRelativePath("/2:Block&.Output");
+        const relativePath = makeRelativePath("/2:Block&.Output");
 
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(new RelativePathElement({
@@ -149,11 +149,11 @@ describe("makeRelativePath", function () {
     // Reference and find targets with BrowseName = ‘1:HeatSensor’.
     it("TA should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/1:HeatSensor'", function () {
 
-        var sinon = require("sinon");
-        var addressSpace = {
+        const sinon = require("sinon");
+        const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
-        var relativePath = makeRelativePath("<1:ConnectedTo>1:Boiler/1:HeatSensor", addressSpace);
+        const relativePath = makeRelativePath("<1:ConnectedTo>1:Boiler/1:HeatSensor", addressSpace);
 
         relativePath.elements.length.should.eql(2);
         relativePath.elements[0].should.eql(new RelativePathElement({
@@ -177,11 +177,11 @@ describe("makeRelativePath", function () {
     // with BrowseName = ‘1:Boiler’. From there it finds all targets of hierarchical References.
     it("TB should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/'", function () {
 
-        var sinon = require("sinon");
-        var addressSpace = {
+        const sinon = require("sinon");
+        const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
-        var relativePath = makeRelativePath("<1:ConnectedTo>1:Boiler/", addressSpace);
+        const relativePath = makeRelativePath("<1:ConnectedTo>1:Boiler/", addressSpace);
 
         addressSpace.findReferenceType.getCall(0).args[0].should.eql("ConnectedTo");
         addressSpace.findReferenceType.getCall(0).args[1].should.eql(1);
@@ -207,10 +207,10 @@ describe("makeRelativePath", function () {
     // with the default OPC UA namespace. Then find targets with BrowseName =
     //     ‘Wheel’ qualified with namespace index ‘2’.
     it("TC should construct simple RelativePath for '<0:HasChild>2:Wheel'", function () {
-        var addressSpace = {
+        const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
-        var relativePath = makeRelativePath("<0:HasChild>2:Wheel", addressSpace);
+        const relativePath = makeRelativePath("<0:HasChild>2:Wheel", addressSpace);
 
         addressSpace.findReferenceType.getCall(0).args[0].should.eql("HasChild");
         addressSpace.findReferenceType.getCall(0).args[1].should.eql(0);
@@ -228,10 +228,10 @@ describe("makeRelativePath", function () {
     //  Follows any inverse Reference with a BrowseName = ‘HasChild’. Then find targets with BrowseName = ‘Truck’.
     // In both cases, the namespace component of the BrowseName is assumed to be 0.
     it("TD should construct simple RelativePath for '<!HasChild>2:Wheel'", function () {
-        var addressSpace = {
+        const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
-        var relativePath = makeRelativePath("<!HasChild>2:Wheel", addressSpace);
+        const relativePath = makeRelativePath("<!HasChild>2:Wheel", addressSpace);
 
         addressSpace.findReferenceType.callCount.should.eql(0);
 
@@ -248,11 +248,11 @@ describe("makeRelativePath", function () {
     // and qualified with the default OPC UA namespace.
     it("TE should construct simple RelativePath for '<0:HasChild>'", function () {
 
-        var addressSpace = {
+        const addressSpace = {
             findReferenceType: sinon.stub().returns(resolveNodeId("HasChild"))
         };
 
-        var relativePath = makeRelativePath("<0:HasChild>", addressSpace);
+        const relativePath = makeRelativePath("<0:HasChild>", addressSpace);
 
         addressSpace.findReferenceType.callCount.should.eql(1);
 
@@ -268,7 +268,7 @@ describe("makeRelativePath", function () {
 
     it("TF should construct simple RelativePath for '<Organizes>Server.ServerStatus.CurrentTime'", function () {
 
-        var relativePath = makeRelativePath("<Organizes>Server.ServerStatus.CurrentTime", null);
+        const relativePath = makeRelativePath("<Organizes>Server.ServerStatus.CurrentTime", null);
 
         relativePath.elements.length.should.eql(3);
 
@@ -294,7 +294,7 @@ describe("makeRelativePath", function () {
 
     it("TG should construct simple RelativePath for '<Organizes>Server2.ServerStatus.1.2'", function () {
 
-        var relativePath = makeRelativePath("<Organizes>Server2.ServerStatus.100.200", null);
+        const relativePath = makeRelativePath("<Organizes>Server2.ServerStatus.100.200", null);
 
         relativePath.elements.length.should.eql(4);
 
@@ -321,7 +321,7 @@ describe("makeRelativePath", function () {
     it("TH should construct simple RelativePath for '/3:TOTO/1:Channel#1/2:TOTO'", function () {
 
         // note : # is a reserved char and must be prepended with &
-        var relativePath = makeRelativePath("/3:Tag1/1:Channel&#1/2:Tag2", null);
+        const relativePath = makeRelativePath("/3:Tag1/1:Channel&#1/2:Tag2", null);
 
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -345,7 +345,7 @@ describe("makeRelativePath", function () {
     });
     it("TI (issue#344) should construct simple RelativePath for '/0:Objects/2:test-path'", function () {
         // note : # is a reserved char and must be prepended with &
-        var relativePath = makeRelativePath("/0:Objects/2:test-path", null);
+        const relativePath = makeRelativePath("/0:Objects/2:test-path", null);
 
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -363,7 +363,7 @@ describe("makeRelativePath", function () {
     });
     it("TJ should construct simple RelativePath for SessionDiagnostics.TotalRequestsCount.TotalCount", function () {
 
-        var relativePath = makeRelativePath(".SessionDiagnostics.TotalRequestsCount.TotalCount", null);
+        const relativePath = makeRelativePath(".SessionDiagnostics.TotalRequestsCount.TotalCount", null);
 
         relativePath.elements[0].should.eql(new RelativePathElement({
             referenceTypeId: aggregatesReferenceTypeNodeId,

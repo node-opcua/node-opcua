@@ -4,28 +4,28 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var EventEmitter = require("events").EventEmitter;
+const EventEmitter = require("events").EventEmitter;
 
-var utils = require("node-opcua-utils");
+const utils = require("node-opcua-utils");
 
-var subscription_service = require("node-opcua-service-subscription");
+const subscription_service = require("node-opcua-service-subscription");
 
-var ClientSession = require("../src/client_session").ClientSession;
-var ClientMonitoredItem = require("../src/client_monitored_item").ClientMonitoredItem;
+const ClientSession = require("../src/client_session").ClientSession;
+const ClientMonitoredItem = require("../src/client_monitored_item").ClientMonitoredItem;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 /**
  * a object to manage a subscription on the client side.
@@ -54,7 +54,7 @@ function ClientSubscription(session, options) {
 
     assert(session instanceof ClientSession);
 
-    var self = this;
+    const self = this;
     self.publish_engine = session.getPublishEngine();
 
 
@@ -123,13 +123,13 @@ ClientSubscription.prototype.__create_subscription = function (callback) {
 
     assert(_.isFunction(callback));
 
-    var self = this;
+    const self = this;
 
-    var session = self.publish_engine.session;
+    const session = self.publish_engine.session;
 
     debugLog("ClientSubscription created ".yellow.bold);
 
-    var request = new subscription_service.CreateSubscriptionRequest({
+    const request = new subscription_service.CreateSubscriptionRequest({
         requestedPublishingInterval: self.publishingInterval,
         requestedLifetimeCount: self.lifetimeCount,
         requestedMaxKeepAliveCount: self.maxKeepAliveCount,
@@ -177,13 +177,13 @@ ClientSubscription.prototype.__on_publish_response_DataChangeNotification = func
 
     assert(notification._schema.name === "DataChangeNotification");
 
-    var self = this;
+    const self = this;
 
-    var monitoredItems = notification.monitoredItems;
+    const monitoredItems = notification.monitoredItems;
 
     monitoredItems.forEach(function (monitoredItem) {
 
-        var monitorItemObj = self.monitoredItems[monitoredItem.clientHandle];
+        const monitorItemObj = self.monitoredItems[monitoredItem.clientHandle];
         if (monitorItemObj) {
             if (monitorItemObj.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
                 console.log("Warning".yellow, " Server send a DataChangeNotification for an EventNotifier. EventNotificationList was expected".cyan);
@@ -199,7 +199,7 @@ ClientSubscription.prototype.__on_publish_response_DataChangeNotification = func
 
 ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = function (notification) {
 
-    var self = this;
+    const self = this;
 
     assert(notification._schema.name === "StatusChangeNotification");
 
@@ -247,10 +247,10 @@ ClientSubscription.prototype.__on_publish_response_StatusChangeNotification = fu
 ClientSubscription.prototype.__on_publish_response_EventNotificationList = function (notification) {
     assert(notification._schema.name === "EventNotificationList");
 
-    var self = this;
+    const self = this;
 
     notification.events.forEach(function (event) {
-        var monitorItemObj = self.monitoredItems[event.clientHandle];
+        const monitorItemObj = self.monitoredItems[event.clientHandle];
         assert(monitorItemObj, "Expecting a monitored item");
 
 
@@ -260,14 +260,14 @@ ClientSubscription.prototype.__on_publish_response_EventNotificationList = funct
 
 ClientSubscription.prototype.onNotificationMessage = function (notificationMessage) {
 
-    var self = this;
+    const self = this;
     assert(notificationMessage.hasOwnProperty("sequenceNumber"));
 
     self.lastSequenceNumber = notificationMessage.sequenceNumber;
 
     self.emit("raw_notification", notificationMessage);
 
-    var notificationData = notificationMessage.notificationData;
+    const notificationData = notificationMessage.notificationData;
 
     if (notificationData.length === 0) {
         // this is a keep alive message
@@ -322,7 +322,7 @@ ClientSubscription.prototype.__defineGetter__("session", function () {
 
 
 ClientSubscription.prototype._terminate_step2 = function (callback) {
-    var self = this;
+    const self = this;
 
 
     setImmediate(function () {
@@ -344,7 +344,7 @@ ClientSubscription.prototype._terminate_step2 = function (callback) {
  */
 ClientSubscription.prototype.terminate = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isFunction(callback), "expecting a callback function");
 
     if (self.subscriptionId === "terminated" || self.subscriptionId == "terminating") {
@@ -354,7 +354,7 @@ ClientSubscription.prototype.terminate = function (callback) {
 
     if (_.isFinite(self.subscriptionId)) {
 
-        var subscriptionId = self.subscriptionId;
+        const subscriptionId = self.subscriptionId;
         self.subscriptionId = "terminating";
         self.publish_engine.unregisterSubscription(subscriptionId);
 
@@ -393,7 +393,7 @@ ClientSubscription.prototype.nextClientHandle = function () {
 
 
 ClientSubscription.prototype._add_monitored_item = function (clientHandle, monitoredItem) {
-    var self = this;
+    const self = this;
     assert(self.isActive(), "subscription must be active and not terminated");
     assert(monitoredItem.monitoringParameters.clientHandle === clientHandle);
     self.monitoredItems[clientHandle] = monitoredItem;
@@ -409,9 +409,9 @@ ClientSubscription.prototype._add_monitored_item = function (clientHandle, monit
 
 ClientSubscription.prototype._wait_for_subscription_to_be_ready = function (done) {
 
-    var self = this;
+    const self = this;
 
-    var _watch_dog = 0;
+    let _watch_dog = 0;
 
     function wait_for_subscription_and_monitor() {
 
@@ -552,11 +552,11 @@ ClientSubscription.prototype._wait_for_subscription_to_be_ready = function (done
  *
  */
 ClientSubscription.prototype.monitor = function (itemToMonitor, requestedParameters, timestampsToReturn, done) {
-    var self = this;
+    const self = this;
     assert(done === undefined || _.isFunction(done));
 
     itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId);
-    var monitoredItem = new ClientMonitoredItem(this, itemToMonitor, requestedParameters, timestampsToReturn);
+    const monitoredItem = new ClientMonitoredItem(this, itemToMonitor, requestedParameters, timestampsToReturn);
 
     self._wait_for_subscription_to_be_ready(function (err) {
         if (err) {
@@ -573,7 +573,7 @@ ClientSubscription.prototype.monitor = function (itemToMonitor, requestedParamet
 };
 
 
-var ClientMonitoredItemGroup = require("./client_monitored_item_group").ClientMonitoredItemGroup;
+const ClientMonitoredItemGroup = require("./client_monitored_item_group").ClientMonitoredItemGroup;
 /**
  * @method monitorItems
  * @param itemsToMonitor
@@ -582,14 +582,14 @@ var ClientMonitoredItemGroup = require("./client_monitored_item_group").ClientMo
  * @param done
  */
 ClientSubscription.prototype.monitorItems = function (itemsToMonitor, requestedParameters, timestampsToReturn, done) {
-    var self = this;
+    const self = this;
 
     // Try to resolve the nodeId and fail fast if we can't.
     itemsToMonitor.forEach(function (itemToMonitor) {
         itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId);
     });
 
-    var monitoredItemGroup = new ClientMonitoredItemGroup(this, itemsToMonitor, requestedParameters, timestampsToReturn);
+    const monitoredItemGroup = new ClientMonitoredItemGroup(this, itemsToMonitor, requestedParameters, timestampsToReturn);
 
     self._wait_for_subscription_to_be_ready(function (err) {
         if (err) {
@@ -651,13 +651,13 @@ ClientSubscription.prototype.monitorItems = function (itemsToMonitor, requestedP
 // };
 
 ClientSubscription.prototype.isActive = function () {
-    var self = this;
+    const self = this;
     return typeof self.subscriptionId !== "string";
 };
 
 ClientSubscription.prototype._remove = function (monitoredItem) {
-    var self = this;
-    var clientHandle = monitoredItem.monitoringParameters.clientHandle;
+    const self = this;
+    const clientHandle = monitoredItem.monitoringParameters.clientHandle;
     assert(clientHandle);
     assert(self.monitoredItems.hasOwnProperty(clientHandle));
     monitoredItem.removeAllListeners();
@@ -668,7 +668,7 @@ ClientSubscription.prototype._delete_monitored_items = function (monitoredItems,
 
     assert(_.isFunction(callback));
     assert(_.isArray(monitoredItems));
-    var self = this;
+    const self = this;
 
     assert(self.isActive());
 
@@ -689,13 +689,13 @@ ClientSubscription.prototype._delete_monitored_items = function (monitoredItems,
 };
 
 ClientSubscription.prototype._delete_monitored_item = function (monitoredItem, callback) {
-    var self = this;
+    const self = this;
     self._delete_monitored_items([monitoredItem], callback);
 };
 
 ClientSubscription.prototype.setPublishingMode = function (publishingEnabled, callback) {
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
     self.session.setPublishingMode(publishingEnabled, self.subscriptionId, function (err, results) {
         if (err) {
             return callback(err);
@@ -708,7 +708,7 @@ ClientSubscription.prototype.setPublishingMode = function (publishingEnabled, ca
 };
 
 
-var async = require("async");
+const async = require("async");
 /**
  *  utility function to recreate new subscription
  *  @method recreateSubscriptionAndMonitoredItem
@@ -716,9 +716,9 @@ var async = require("async");
 ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (callback) {
 
     debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
-    var subscription = this;
+    const subscription = this;
 
-    var monitoredItems_old = subscription.monitoredItems;
+    const monitoredItems_old = subscription.monitoredItems;
 
     subscription.publish_engine.unregisterSubscription(subscription.subscriptionId);
 
@@ -728,12 +728,12 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
 
         function (callback) {
 
-            var test = subscription.publish_engine.getSubscription(subscription.subscriptionId);
+            const test = subscription.publish_engine.getSubscription(subscription.subscriptionId);
             assert(test === subscription);
 
             // re-create monitored items
 
-            var itemsToCreate = [];
+            const itemsToCreate = [];
             _.forEach(monitoredItems_old, function (monitoredItem /*, clientHandle*/) {
                 assert(monitoredItem.monitoringParameters.clientHandle > 0);
                 itemsToCreate.push({
@@ -744,7 +744,7 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
 
             });
 
-            var createMonitorItemsRequest = new subscription_service.CreateMonitoredItemsRequest({
+            const createMonitorItemsRequest = new subscription_service.CreateMonitoredItemsRequest({
                 subscriptionId: subscription.subscriptionId,
                 timestampsToReturn: TimestampsToReturn.Both, // self.timestampsToReturn,
                 itemsToCreate: itemsToCreate
@@ -754,12 +754,12 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
 
                 if (!err) {
                     assert(response instanceof subscription_service.CreateMonitoredItemsResponse);
-                    var monitoredItemResults = response.results;
+                    const monitoredItemResults = response.results;
 
                     monitoredItemResults.forEach(function (monitoredItemResult, index) {
 
-                        var clientHandle = itemsToCreate[index].requestedParameters.clientHandle;
-                        var monitoredItem = subscription.monitoredItems[clientHandle];
+                        const clientHandle = itemsToCreate[index].requestedParameters.clientHandle;
+                        const monitoredItem = subscription.monitoredItems[clientHandle];
 
                         if (monitoredItemResult.statusCode === StatusCodes.Good) {
 
@@ -791,8 +791,8 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
 
 ClientSubscription.prototype.toString = function () {
 
-    var subscription = this;
-    var str = "";
+    const subscription = this;
+    let str = "";
     str += "subscriptionId      :" + subscription.subscriptionId + "\n";
     str += "publishingInterval  :" + subscription.publishingInterval + "\n";
     str += "lifetimeCsount      :" + subscription.lifetimeCount + "\n";
@@ -802,7 +802,7 @@ ClientSubscription.prototype.toString = function () {
 
 exports.ClientSubscription = ClientSubscription;
 
-var thenify = require("thenify");
+const thenify = require("thenify");
 
 ClientSubscription.prototype.setPublishingMode = thenify.withCallback(ClientSubscription.prototype.setPublishingMode);
 //xx ClientSubscription.prototype.monitor           = thenify.withCallback(ClientSubscription.prototype.monitor);

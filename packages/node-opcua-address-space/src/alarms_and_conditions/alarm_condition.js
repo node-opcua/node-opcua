@@ -5,29 +5,29 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var UAVariable = require("../ua_variable").UAVariable;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
+const UAVariable = require("../ua_variable").UAVariable;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
-var util = require("util");
+const util = require("util");
 
-var conditions = require("./condition");
-var ConditionInfo = require("./condition").ConditionInfo;
-var ConditionSnapshot = conditions.ConditionSnapshot;
-var AddressSpace = require("../address_space").AddressSpace;
-var NodeId = require("node-opcua-nodeid").NodeId;
+const conditions = require("./condition");
+const ConditionInfo = require("./condition").ConditionInfo;
+const ConditionSnapshot = conditions.ConditionSnapshot;
+const AddressSpace = require("../address_space").AddressSpace;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
+const UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
 
-var doDebug = false;
+const doDebug = false;
 //----------------------------------------------------------------------------------------------------------------------
 // UAShelvingStateMachine
 //----------------------------------------------------------------------------------------------------------------------
-var UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
+const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
 
 function UAShelvingStateMachine() {
 
@@ -75,7 +75,7 @@ UAShelvingStateMachine.promote = function (shelvingState) {
  * @return {Boolean}
  */
 ConditionSnapshot.prototype.getSuppressedState = function () {
-    var self = this;
+    const self = this;
     return self._get_twoStateVariable("suppressedState");
 };
 
@@ -85,17 +85,17 @@ ConditionSnapshot.prototype.getSuppressedState = function () {
  */
 ConditionSnapshot.prototype.setSuppressedState = function (suppressed) {
     suppressed = !!suppressed;
-    var self = this;
+    const self = this;
     self._set_twoStateVariable("suppressedState", suppressed);
 };
 
 ConditionSnapshot.prototype.getActiveState = function () {
-    var self = this;
+    const self = this;
     return self._get_twoStateVariable("activeState");
 };
 
 ConditionSnapshot.prototype.setActiveState = function (newActiveState) {
-    var self = this;
+    const self = this;
     //xx var activeState = self.getActiveState();
     //xx if (activeState === newActiveState) {
     //xx     return StatusCodes.Bad;
@@ -120,7 +120,7 @@ function UAAlarmConditionBase() {
 util.inherits(UAAlarmConditionBase, UAAcknowledgeableConditionBase);
 
 UAAlarmConditionBase.prototype.dispose = function () {
-    var self = this;
+    const self = this;
     if (self.shelvingState) {
         _clear_timer_if_any(self.shelvingState);
     }
@@ -133,8 +133,8 @@ UAAlarmConditionBase.prototype.dispose = function () {
  */
 UAAlarmConditionBase.prototype.activateAlarm = function () {
     // will set acknowledgeable to false and retain to true
-    var self = this;
-    var branch = self.currentBranch();
+    const self = this;
+    const branch = self.currentBranch();
     branch.setRetain(true);
     branch.setActiveState(true);
     branch.setAckedState(false);
@@ -144,8 +144,8 @@ UAAlarmConditionBase.prototype.activateAlarm = function () {
  * @method desactivateAlarm
  */
 UAAlarmConditionBase.prototype.desactivateAlarm = function () {
-    var self = this;
-    var branch = self.currentBranch();
+    const self = this;
+    const branch = self.currentBranch();
     branch.setRetain(true);
     branch.setActiveState(false);
 };
@@ -157,14 +157,14 @@ UAAlarmConditionBase.prototype.desactivateAlarm = function () {
  */
 UAAlarmConditionBase.prototype.isSuppressedOrShelved = function () {
 
-    var node = this;
-    var suppressed = false;
+    const node = this;
+    let suppressed = false;
     if (node.suppressedState) {
         suppressed = node.suppressedState.id.readValue().value.value;
     }
-    var shelved = false;
+    let shelved = false;
     if (node.shelvingState) {
-        var shelvedValue = node.shelvingState.currentState.readValue().value.value;
+        const shelvedValue = node.shelvingState.currentState.readValue().value.value;
         if (shelvedValue && shelvedValue.text !== "Unshelved") {
             shelved = true;
         }
@@ -179,7 +179,7 @@ UAAlarmConditionBase.prototype.isSuppressedOrShelved = function () {
  * @return {Boolean}
  */
 UAAlarmConditionBase.prototype.getSuppressedOrShelved = function () {
-    var node = this;
+    const node = this;
     return node.suppressedOrShelved.readValue().value.value;
 };
 
@@ -199,7 +199,7 @@ UAAlarmConditionBase.MaxDuration = Math.pow(2,31);
  */
 UAAlarmConditionBase.prototype.setMaxTimeShelved = function (duration) {
 
-    var self = this;
+    const self = this;
     if (duration < 10 || duration >= Math.pow(2,31)) {
         throw new Error(" Invalid maxTimeShelved duration: " + duration+ "  must be [10,2**31] ");
     }
@@ -214,13 +214,13 @@ UAAlarmConditionBase.prototype.setMaxTimeShelved = function (duration) {
  * @return {Duration}
  */
 UAAlarmConditionBase.prototype.getMaxTimeShelved = function () {
-    var node = this;
+    const node = this;
     if (!node.maxTimeShelved) {
         // if maxTimeShelved is not provided we assume MaxDuration
         assert(UAAlarmConditionBase.MaxDuration <= 2147483648 , "MaxDuration cannot be greater than 2**31");
         return UAAlarmConditionBase.MaxDuration;
     }
-    var dataValue = node.maxTimeShelved.readValue();
+    const dataValue = node.maxTimeShelved.readValue();
     assert(dataValue.value.dataType === DataType.Double); // Double <= Duration
     return dataValue.value.value;
 };
@@ -252,7 +252,7 @@ function _unshelve_method(inputArguments, context, callback) {
     //     return callback(null, {statusCode: StatusCodes.BadConditionDisabled});
     // }
 
-    var shelvingState = context.object;
+    const shelvingState = context.object;
     if (shelvingState.getCurrentState() === "Unshelved") {
         return callback(null, {
             statusCode: StatusCodes.BadConditionNotShelved
@@ -338,7 +338,7 @@ function _start_timer_for_automatic_unshelve(shelvingState, duration) {
 function _timedShelve_method(inputArguments, context, callback) {
     assert(inputArguments.length === 1);
 
-    var shelvingState = context.object;
+    const shelvingState = context.object;
     assert(shelvingState instanceof UAShelvingStateMachine);
 
     if (shelvingState.getCurrentState() !== "Unshelved") {
@@ -347,7 +347,7 @@ function _timedShelve_method(inputArguments, context, callback) {
         });
     }
     // checking duration ...
-    var alarmNode = context.object.parent;
+    const alarmNode = context.object.parent;
 
     // istanbul ignore next
     if (!(alarmNode instanceof UAAlarmConditionBase)) {
@@ -355,7 +355,7 @@ function _timedShelve_method(inputArguments, context, callback) {
             statusCode: StatusCodes.BadNodeIdInvalid
         });
     }
-    var maxTimeShelved = alarmNode.getMaxTimeShelved();
+    const maxTimeShelved = alarmNode.getMaxTimeShelved();
     assert(_.isFinite(maxTimeShelved));
 
     assert(inputArguments[0].dataType === DataType.Double); // Duration
@@ -363,7 +363,7 @@ function _timedShelve_method(inputArguments, context, callback) {
 
     //xx console.log("inputArguments",inputArguments[0].toString());
 
-    var proposedDuration = inputArguments[0].value; // as double (milliseconds)
+    const proposedDuration = inputArguments[0].value; // as double (milliseconds)
     if (proposedDuration > maxTimeShelved) {
         return callback(null, {
             statusCode: StatusCodes.BadShelvingTimeOutOfRange
@@ -397,14 +397,14 @@ function _timedShelve_method(inputArguments, context, callback) {
 function _oneShotShelve_method(inputArguments, context, callback) {
 
     assert(inputArguments.length === 0);
-    var shelvingState = context.object;
+    const shelvingState = context.object;
     if (shelvingState.getCurrentState() === "OneShotShelved") {
         return callback(null, {
             statusCode: StatusCodes.BadConditionAlreadyShelved
         });
     }
     // checking duration ...
-    var alarmNode = context.object.parent;
+    const alarmNode = context.object.parent;
 
     // istanbul ignore next
     if (!(alarmNode instanceof UAAlarmConditionBase)) {
@@ -414,7 +414,7 @@ function _oneShotShelve_method(inputArguments, context, callback) {
     }
 
 
-    var maxTimeShelved = alarmNode.getMaxTimeShelved();
+    const maxTimeShelved = alarmNode.getMaxTimeShelved();
     assert(_.isFinite(maxTimeShelved));
     assert(maxTimeShelved !== UAAlarmConditionBase.MaxDuration);
 
@@ -457,8 +457,8 @@ function _unShelveTimeFunc(shelvingState) {
             value: UAAlarmConditionBase.MaxDuration
         });
     }
-    var now = new Date();
-    var timeToAutomaticUnshelvedState = shelvingState._duration - (now.getTime() - shelvingState._sheveldTime.getTime());
+    const now = new Date();
+    let timeToAutomaticUnshelvedState = shelvingState._duration - (now.getTime() - shelvingState._sheveldTime.getTime());
     // timeToAutomaticUnshelvedState should always be greater than (or equal) zero
     timeToAutomaticUnshelvedState = Math.max(timeToAutomaticUnshelvedState,0);
     return new Variant({
@@ -478,7 +478,7 @@ function _unShelveTimeFunc(shelvingState) {
  *       whose node id is stored in alarm.inputNode
  */
 UAAlarmConditionBase.prototype.getInputNodeNode = function () {
-    var nodeId = this.inputNode.readValue().value.value;
+    const nodeId = this.inputNode.readValue().value.value;
     assert(nodeId instanceof NodeId || nodeId === null);
     return this.addressSpace.findNode(nodeId);
 };
@@ -488,7 +488,7 @@ UAAlarmConditionBase.prototype.getInputNodeNode = function () {
  * @return {*}
  */
 UAAlarmConditionBase.prototype.getInputNodeValue = function () {
-    var node = this.getInputNodeNode();
+    const node = this.getInputNodeNode();
     if (!node) {
         return null;
     }
@@ -497,8 +497,8 @@ UAAlarmConditionBase.prototype.getInputNodeValue = function () {
 };
 
 UAAlarmConditionBase.prototype.updateState = function () {
-    var alarm = this;
-    var dataValue = alarm.getInputNodeNode().readValue();
+    const alarm = this;
+    const dataValue = alarm.getInputNodeNode().readValue();
     alarm._onInputDataValueChange(dataValue);
 };
 
@@ -516,7 +516,7 @@ UAAlarmConditionBase.prototype._onInputDataValueChange = function (newValue) {
  * @protected
  */
 UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode) {
-    var alarm = this;
+    const alarm = this;
     /**
      *
      * The InputNode Property provides the NodeId of the Variable the Value of which is used as
@@ -530,7 +530,7 @@ UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode
     assert(alarm.inputNode instanceof UAVariable);
 
 
-    var addressSpace = this.addressSpace;
+    const addressSpace = this.addressSpace;
     assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
     if (inputNode === NodeId.NullNodeId) {
@@ -547,7 +547,7 @@ UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode
             value: inputNode.nodeId
         });
 
-        var _node = addressSpace._coerceNode(inputNode);
+        const _node = addressSpace._coerceNode(inputNode);
         if (!_node) {
             console.log(" cannot find nodeId ", inputNode);
         }
@@ -571,14 +571,14 @@ UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode
 
 UAAlarmConditionBase.prototype.getCurrentConditionInfo = function () {
 
-    var alarm = this;
+    const alarm = this;
 
-    var oldSeverity = alarm.currentBranch().getSeverity();
-    var oldQuality = alarm.currentBranch().getQuality();
-    var oldMessage = alarm.currentBranch().getMessage();
-    var oldRetain = alarm.currentBranch().getRetain();
+    const oldSeverity = alarm.currentBranch().getSeverity();
+    const oldQuality = alarm.currentBranch().getQuality();
+    const oldMessage = alarm.currentBranch().getMessage();
+    const oldRetain = alarm.currentBranch().getRetain();
 
-    var oldConditionInfo = new ConditionInfo({
+    const oldConditionInfo = new ConditionInfo({
         severity: oldSeverity,
         quality: oldQuality,
         message: oldMessage,
@@ -639,13 +639,13 @@ UAAlarmConditionBase.prototype._calculateConditionInfo = function (stateData, is
 };
 
 UAAlarmConditionBase.prototype._signalInitialCondition = function () {
-    var alarm = this;
+    const alarm = this;
     alarm.currentBranch().setActiveState(false);
     alarm.currentBranch().setAckedState(true);
 };
 UAAlarmConditionBase.prototype._signalNewCondition = function (stateName, isActive, value) {
 
-    var alarm = this;
+    const alarm = this;
     //xx if(stateName === null) {
     //xx     alarm.currentBranch().setActiveState(false);
     //xx     alarm.currentBranch().setAckedState(true);
@@ -655,8 +655,8 @@ UAAlarmConditionBase.prototype._signalNewCondition = function (stateName, isActi
     assert(alarm.getEnabledState() === true);
     //xx assert(isActive !== alarm.activeState.getValue());
 
-    var oldConditionInfo = alarm.getCurrentConditionInfo();
-    var newConditionInfo = alarm._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
+    const oldConditionInfo = alarm.getCurrentConditionInfo();
+    const newConditionInfo = alarm._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
 
     // detect potential internal bugs due to misused of _signalNewCondition
     if (_.isEqual(oldConditionInfo, newConditionInfo)) {
@@ -678,7 +678,7 @@ UAAlarmConditionBase.prototype._signalNewCondition = function (stateName, isActi
             if (alarm.currentBranch().getRetain()) {
 
                 // we need to create a new branch so the previous state could be acknowledged
-                var newBranch = alarm.createBranch();
+                const newBranch = alarm.createBranch();
                 assert(newBranch.getBranchId() !== NodeId.NullNodeId);
                 // also raised a new Event for the new branch as branchId has changed
                 alarm.raiseNewBranchState(newBranch);
@@ -708,14 +708,14 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
 
     //xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
     assert(options.hasOwnProperty("inputNode")); // must provide a inputNode
-    var alarmConditionType = addressSpace.findEventType(alarmConditionTypeId);
+    const alarmConditionType = addressSpace.findEventType(alarmConditionTypeId);
 
     /* istanbul ignore next */
     if (!alarmConditionType) {
         throw new Error(" cannot find Alarm Condition Type for " + alarmConditionTypeId);
     }
 
-    var alarmConditionTypeBase = addressSpace.findEventType("AlarmConditionType");
+    const alarmConditionTypeBase = addressSpace.findEventType("AlarmConditionType");
     /* istanbul ignore next */
     if (!alarmConditionTypeBase) {
         throw new Error("cannot find AlarmConditionType");
@@ -729,7 +729,7 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
 
     assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
 
-    var alarmNode = UAAcknowledgeableConditionBase.instantiate(addressSpace, alarmConditionTypeId, options, data);
+    const alarmNode = UAAcknowledgeableConditionBase.instantiate(addressSpace, alarmConditionTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UAAlarmConditionBase.prototype);
 
     // ----------------------- Install Alarm specifics

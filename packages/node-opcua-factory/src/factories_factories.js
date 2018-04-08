@@ -1,4 +1,4 @@
-    "use strict";
+"use strict";
 /**
  * @module opcua.miscellaneous
  * @class Factory
@@ -6,19 +6,19 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 
-var constructorMap = {};
+const constructorMap = {};
 
-var _global_factories = {};
+const _global_factories = {};
 
 exports.getFactory = function (type_name) {
     return _global_factories[type_name];
 };
 
-var registerFactory = function (type_name, constructor) {
+const registerFactory = function (type_name, constructor) {
 
     /* istanbul ignore next */
     if (exports.getFactory(type_name)) {
@@ -42,14 +42,14 @@ function callConstructor(constructor) {
 
     assert(_.isFunction(constructor));
 
-    var FactoryFunction = constructor.bind.apply(constructor, arguments);
+    const FactoryFunction = constructor.bind.apply(constructor, arguments);
 
     return new FactoryFunction();
 }
 exports.callConstructor = callConstructor;
 
 
-var getConstructor = function (expandedId) {
+const getConstructor = function getConstructor(expandedId) {
 
     if (!(expandedId && (expandedId.value in constructorMap))) {
         console.log("#getConstructor : cannot find constructor for expandedId ".red.bold, expandedId.toString());
@@ -68,20 +68,20 @@ exports.hasConstructor = function(expandedId) {
 };
 
 exports.constructObject = function (expandedNodeId) {
-    var constructor = getConstructor(expandedNodeId);
+    const constructor = getConstructor(expandedNodeId);
     if (!constructor) { return null; }
     return callConstructor(constructor);
 };
 
-function register_class_definition(classname, class_constructor) {
+function register_class_definition(className, class_constructor) {
 
-    registerFactory(classname, class_constructor);
+    registerFactory(className, class_constructor);
 
-    var expandedNodeId = class_constructor.prototype.encodingDefaultBinary;
+    const expandedNodeId = class_constructor.prototype.encodingDefaultBinary;
 
     /* istanbul ignore next */
     if (expandedNodeId.value in constructorMap) {
-        throw new Error(" Class " + classname + " with ID " + expandedNodeId + "  already in constructorMap for  " + constructorMap[expandedNodeId.value].name);
+        throw new Error(" Class " + className + " with ID " + expandedNodeId + "  already in constructorMap for  " + constructorMap[expandedNodeId.value].name);
     }
     constructorMap[expandedNodeId.value] = class_constructor;
 }

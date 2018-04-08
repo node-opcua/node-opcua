@@ -3,17 +3,17 @@
 
 require("should");
 
-var _ = require("underscore");
+const _ = require("underscore");
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
-var NodeClass = require("node-opcua-data-model").NodeClass;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing add new ObjectType ", function () {
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
@@ -27,14 +27,14 @@ describe("testing add new ObjectType ", function () {
     });
     it("should add a new ObjectType (=> BaseObjectType)", function () {
 
-        var myObjectType = addressSpace.addObjectType({browseName: "MyObjectType"});
+        const myObjectType = addressSpace.addObjectType({browseName: "MyObjectType"});
         myObjectType.browseName.toString().should.eql("MyObjectType");
         myObjectType.subtypeOfObj.browseName.toString().should.eql("BaseObjectType");
         myObjectType.nodeClass.should.eql(NodeClass.ObjectType);
     });
     it("should add a new VariableType (=> BaseVariableType)", function () {
 
-        var myVariableType = addressSpace.addVariableType({browseName: "MyVariableType"});
+        const myVariableType = addressSpace.addVariableType({browseName: "MyVariableType"});
         myVariableType.browseName.toString().should.eql("MyVariableType");
         myVariableType.subtypeOfObj.browseName.toString().should.eql("BaseVariableType");
         myVariableType.nodeClass.should.eql(NodeClass.VariableType);
@@ -42,7 +42,7 @@ describe("testing add new ObjectType ", function () {
     });
     it("should add a new VariableType (=> BaseDataVariableType)", function () {
 
-        var myVariableType = addressSpace.addVariableType({
+        const myVariableType = addressSpace.addVariableType({
             browseName: "MyVariableType2",
             subtypeOf: "BaseDataVariableType"
         });

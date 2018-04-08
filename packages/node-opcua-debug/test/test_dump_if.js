@@ -1,9 +1,9 @@
-var dumpIf = require("..").dumpIf;
+const dumpIf = require("..").dumpIf;
 
 describe("dumpIf",function() {
 
 
-    var old_console_log;
+    let old_console_log;
     beforeEach(function () {
         old_console_log = console.log;
         console.log = function () {

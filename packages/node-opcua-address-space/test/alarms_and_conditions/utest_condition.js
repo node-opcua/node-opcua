@@ -1,30 +1,30 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
+const should = require("should");
 
-var async = require("async");
-var sinon = require("sinon");
+const async = require("async");
+const sinon = require("sinon");
 
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var DataType = require("node-opcua-variant").DataType;
+const DataType = require("node-opcua-variant").DataType;
 
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-var Variant = require("node-opcua-variant").Variant;
-var NodeId = require("node-opcua-nodeid").NodeId;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const Variant = require("node-opcua-variant").Variant;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var ConditionInfo = require("../..").ConditionInfo;
+const ConditionInfo = require("../..").ConditionInfo;
 
-var SessionContext = require("../..").SessionContext;
-var UAObject = require("../..").UAObject;
+const SessionContext = require("../..").SessionContext;
+const UAObject = require("../..").UAObject;
 
 module.exports = function (test) {
 
     describe("AddressSpace : Conditions ", function () {
 
-        var addressSpace,source;
+        let addressSpace, source;
         before(function() {
             addressSpace = test.addressSpace;
             source = test.source;
@@ -32,12 +32,12 @@ module.exports = function (test) {
 
         it("should fail to instantiate a ConditionType (because it's abstract)", function () {
 
-            var conditionType = addressSpace.findEventType("ConditionType");
+            const conditionType = addressSpace.findEventType("ConditionType");
 
             conditionType.isAbstract.should.eql(true);
 
             should(function attempt_to_instantiate_an_AbstractConditionType() {
-                var instance = conditionType.instantiate({
+                const instance = conditionType.instantiate({
                     componentOf: source,
                     browseName: "ConditionType"
                 });
@@ -47,10 +47,10 @@ module.exports = function (test) {
 
         describe("With a custom condition type", function () {
 
-            var myCustomConditionType;
+            let myCustomConditionType;
             before(function (done) {
 
-                var conditionType = addressSpace.findEventType("ConditionType");
+                const conditionType = addressSpace.findEventType("ConditionType");
                 // create a custom conditionType
                 myCustomConditionType = addressSpace.addObjectType({
                     subtypeOf: conditionType,
@@ -62,7 +62,7 @@ module.exports = function (test) {
 
             it("should instantiate a custom ConditionType", function () {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
                     browseName: "MyCustomCondition"
@@ -74,7 +74,7 @@ module.exports = function (test) {
 
             it("should be possible to enable and disable a condition using the enable & disable methods ( as a client would do)", function (done) {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2",
                     conditionSource: null,
                     organizedBy: addressSpace.rootFolder.objects
@@ -85,11 +85,11 @@ module.exports = function (test) {
 
                 condition.setEnabledState(true);
 
-                var dataValue = condition.enabledState.id.readValue();
+                const dataValue = condition.enabledState.id.readValue();
                 dataValue.value.value.should.eql(true);
                 condition.browseName.toString().should.eql("MyCustomCondition2");
 
-                var context = new SessionContext();
+                const context = new SessionContext();
 
                 condition.setEnabledState(false);
                 condition.getEnabledState().should.eql(false);
@@ -158,7 +158,7 @@ module.exports = function (test) {
 
 
             describe("Testing Branches ",function() {
-                var condition;
+                let condition;
                 before(function() {
                     condition = addressSpace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition2B",
@@ -168,7 +168,7 @@ module.exports = function (test) {
                 });
                 it("writing to a master branch (branch0) variable should affect the underlying variable",function() {
                    
-                    var currentBranch = condition.currentBranch();
+                    const currentBranch = condition.currentBranch();
 
                     currentBranch.isCurrentBranch().should.eql(true);
 
@@ -179,10 +179,10 @@ module.exports = function (test) {
                     
                 });
                 it("writing to a new created branch variable should  NOT affect the underlying variable",function() {
-                    var currentBranch = condition.currentBranch();
+                    const currentBranch = condition.currentBranch();
 
                     
-                    var newBranch   = condition.createBranch();
+                    const newBranch   = condition.createBranch();
 
 
                     newBranch.isCurrentBranch().should.eql(false);
@@ -249,7 +249,7 @@ module.exports = function (test) {
                 //   should report the properties as NULL or with a status of Bad_ConditionDisabled.
 
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2",
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: source,
@@ -265,7 +265,7 @@ module.exports = function (test) {
                 condition.currentBranch().getEnabledStateAsString().should.eql("Enabled");
                 
 
-                var spyOnEvent = sinon.spy();
+                const spyOnEvent = sinon.spy();
                 condition.on("event", spyOnEvent);
 
                 /* event should be raised when enable state is true  */
@@ -284,7 +284,7 @@ module.exports = function (test) {
                 condition.enabledState.readValue().value.value.text.should.eql("Enabled");
 
                 //  When the Condition instance enters the Disabled state, ...
-                var statusCode = condition.setEnabledState(false);
+                let statusCode = condition.setEnabledState(false);
                 statusCode.should.eql(StatusCodes.Good);
                 
                 condition.getEnabledState().should.eql(false);
@@ -355,7 +355,7 @@ module.exports = function (test) {
             
             it("should be possible to activate the EnabledState.TransitionTime optional property", function (done) {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition4",
                     conditionSource: null,
@@ -375,7 +375,7 @@ module.exports = function (test) {
 
             it("should be possible to activate the EnabledState.EffectiveTransitionTime optional property", function (done) {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition4",
                     conditionSource: null,
@@ -396,7 +396,7 @@ module.exports = function (test) {
 
             it("should be possible to activate the EnabledState.EffectiveDisplayName optional property", function (done) {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition3",
                     conditionSource: null,
@@ -415,14 +415,14 @@ module.exports = function (test) {
                 // any SubStateMachines in account. As an example, the EffectiveDisplayName of the
                 // EnabledState could contain “Active/HighHigh” to specify that the Condition is active and has
                 // exceeded the HighHigh limit.
-                var v = condition.enabledState.effectiveDisplayName.readValue();
+                const v = condition.enabledState.effectiveDisplayName.readValue();
                 //xx v.value.value.should.eql("Enabled");
                 done();
             });
 
             it("should be possible to set the comment of a condition using the addComment method of the condition instance", function (done) {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
                     browseName: "MyCustomCondition4"
@@ -430,12 +430,12 @@ module.exports = function (test) {
 
                 // make sure condition is raised once
                 condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
-                var eventId = condition.eventId.readValue().value.value;
+                const eventId = condition.eventId.readValue().value.value;
                 should(eventId).be.instanceOf(Buffer);
 
-                var context = new SessionContext({object: condition});
+                const context = new SessionContext({object: condition});
 
-                var param = [
+                const param = [
                     // the eventId
                     new Variant({dataType: DataType.ByteString, value: eventId}),
                     //
@@ -453,7 +453,7 @@ module.exports = function (test) {
 
             it("should be possible to set the comment of a condition using the addComment method of the conditionType", function (done) {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
                     browseName: "MyCustomCondition12"
@@ -461,18 +461,18 @@ module.exports = function (test) {
 
                 condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
 
-                var context = new SessionContext({object: condition});
-                var eventId = condition.eventId.readValue().value.value;
+                const context = new SessionContext({object: condition});
+                const eventId = condition.eventId.readValue().value.value;
                 should(eventId).be.instanceOf(Buffer);
 
-                var param = [
+                const param = [
                     // the eventId
                     new Variant({dataType: DataType.ByteString, value:eventId }),
                     //
                     new Variant({dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message")})
                 ];
 
-                var conditionType = addressSpace.findObjectType("ConditionType");
+                const conditionType = addressSpace.findObjectType("ConditionType");
 
                 conditionType.addComment.execute(param, context, function (err, callMethodResponse) {
                     callMethodResponse.statusCode.should.equal(StatusCodes.Good);
@@ -485,7 +485,7 @@ module.exports = function (test) {
 
             it("should install the conditionSource in SourceNode and SourceName", function () {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition3",
                     conditionSource: source,
@@ -500,7 +500,7 @@ module.exports = function (test) {
             });
 
             it("initial value of lastSeverity should be zero", function () {
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition_last_severity_initial_value",
                     conditionSource: source,
@@ -514,7 +514,7 @@ module.exports = function (test) {
 
             it("setting severity should record lastSeverity", function () {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition_last_severity_recorded",
                     conditionSource: source,
@@ -534,7 +534,7 @@ module.exports = function (test) {
 
             it("should produce eventData ",function() {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition_last_severity_recorded",
                     conditionSource: source,
@@ -544,11 +544,11 @@ module.exports = function (test) {
                     ]
                 });
 
-                var eventData1 = condition.currentBranch()._constructEventData();
+                const eventData1 = condition.currentBranch()._constructEventData();
 
-                var nullVariant = {};
+                const nullVariant = {};
 
-                var data= {
+                const data= {
                     sourceNode: condition.sourceNode.readValue().value,
                     conditionClassId: nullVariant,
                     conditionClassName: nullVariant,
@@ -568,7 +568,7 @@ module.exports = function (test) {
                     "comment": nullVariant,
                     "comment.sourceTimestamp": nullVariant
                 };
-                var eventData2 = addressSpace.constructEventData(myCustomConditionType,data);
+                const eventData2 = addressSpace.constructEventData(myCustomConditionType,data);
 
                 function f(a) {
                     if (a === "$eventDataSource") return false;
@@ -576,8 +576,8 @@ module.exports = function (test) {
                     return true;
                 }
 
-                var checker1 = Object.keys(eventData1).filter(f).sort().join(" ");
-                var checker2 = Object.keys(eventData2).filter(f).sort().join(" ");
+                const checker1 = Object.keys(eventData1).filter(f).sort().join(" ");
+                const checker2 = Object.keys(eventData2).filter(f).sort().join(" ");
 
                 checker1.should.eql(checker2);
 
@@ -586,7 +586,7 @@ module.exports = function (test) {
 
             it("should raise a new condition ", function () {
 
-                var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition3",
                     conditionSource: source,
@@ -597,10 +597,10 @@ module.exports = function (test) {
                 });
 
                 // install the event catcher
-                var serverObject = addressSpace.rootFolder.objects.server;
+                const serverObject = addressSpace.rootFolder.objects.server;
 
 
-                var spy_on_event = sinon.spy();
+                const spy_on_event = sinon.spy();
 
                 serverObject.on("event", spy_on_event);
 
@@ -614,7 +614,7 @@ module.exports = function (test) {
 
                 spy_on_event.callCount.should.eql(1);
 
-                var evtData = spy_on_event.getCall(0).args[0];
+                const evtData = spy_on_event.getCall(0).args[0];
 
                 //xx console.log("evtData = ", evtData.constructor.name);
                 //xx console.log("evtData = ", evtData);
@@ -643,7 +643,7 @@ module.exports = function (test) {
 
                 spy_on_event.callCount.should.eql(2);
 
-                var evtData1 = spy_on_event.getCall(1).args[0];
+                const evtData1 = spy_on_event.getCall(1).args[0];
                 //xx console.log(" EVENT RECEIVED :", evtData1.sourceName.readValue().value.value);
                 //xx console.log(" EVENT ID :", evtData1.eventId.readValue().value.value.toString("hex"));
 
@@ -655,7 +655,7 @@ module.exports = function (test) {
                     severity: 1001
                 });
                 spy_on_event.callCount.should.eql(3);
-                var evtData2 = spy_on_event.getCall(2).args[0];
+                const evtData2 = spy_on_event.getCall(2).args[0];
                 //xx console.log(" EVENT RECEIVED :", evtData2.sourceName.readValue().value.value);
                 //xx console.log(" EVENT ID :", evtData2.eventId.readValue().value.value.toString("hex"));
 
@@ -670,7 +670,7 @@ module.exports = function (test) {
 
                 it("should be possible to create several branches of a condition state", function () {
 
-                    var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                    const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                         organizedBy: addressSpace.rootFolder.objects,
                         browseName: "MyCustomCondition_branch",
                         conditionSource: source,
@@ -682,12 +682,12 @@ module.exports = function (test) {
 
                     condition.getBranchCount().should.eql(0);
 
-                    var branch1 = condition.createBranch();
+                    const branch1 = condition.createBranch();
                     branch1.getBranchId().should.be.an.instanceOf(NodeId);
 
                     condition.getBranchCount().should.eql(1);
 
-                    var branch2 = condition.createBranch();
+                    const branch2 = condition.createBranch();
                     branch2.getBranchId().should.be.an.instanceOf(NodeId);
 
                     condition.getBranchCount().should.eql(2);
@@ -707,7 +707,7 @@ module.exports = function (test) {
 
                 it("should be possible to refresh a condition", function () {
 
-                    var condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                    const condition = addressSpace.instantiateCondition(myCustomConditionType, {
                         organizedBy: addressSpace.rootFolder.objects,
                         browseName: "MyCustomCondition_to_test_condition_refresh",
                         conditionSource: source
@@ -717,20 +717,20 @@ module.exports = function (test) {
                     condition.currentBranch().setRetain(true);
 
                     // conditionRefresh shall be called from ConditionType
-                    var conditionType = addressSpace.findObjectType("ConditionType");
+                    const conditionType = addressSpace.findObjectType("ConditionType");
 
-                    var context = new SessionContext({
+                    const context = new SessionContext({
                         server: addressSpace.rootFolder.objects.server,
                         object: conditionType
                     });
 
 
                     // install the event catcher
-                    var serverObject = addressSpace.rootFolder.objects.server;
-                    var spy_on_event = sinon.spy();
+                    const serverObject = addressSpace.rootFolder.objects.server;
+                    const spy_on_event = sinon.spy();
                     serverObject.on("event", spy_on_event);
 
-                    var subscriptionIdVar = new Variant({dataType: DataType.UInt32, value: 2});
+                    const subscriptionIdVar = new Variant({dataType: DataType.UInt32, value: 2});
                     conditionType.conditionRefresh.execute([subscriptionIdVar], context, function (err, callMethodResponse) {
 
                         //
@@ -739,7 +739,7 @@ module.exports = function (test) {
                         //
                         // spy_on_event.callCount.should.eql(4," expecting 3 events");
                         for(let  i=0;i<spy_on_event.callCount;i++) {
-                            var t = spy_on_event.getCall(i).args[0].eventType.toString();
+                            const t = spy_on_event.getCall(i).args[0].eventType.toString();
                             //    console.log(" i=",i,t)
                         }
 

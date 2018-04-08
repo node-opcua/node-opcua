@@ -1,13 +1,13 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var AddressSpace = require("../../").AddressSpace;
+const AddressSpace = require("../../").AddressSpace;
 
 module.exports = function(maintest) {
 
     describe("TwoStateDiscreteType", function () {
 
-        var addressSpace;
+        let addressSpace;
         before(function() {
             addressSpace = maintest.addressSpace;
             should(addressSpace).be.instanceof(AddressSpace);
@@ -15,10 +15,10 @@ module.exports = function(maintest) {
 
         it("should add a TwoStateDiscreteType variable",function() {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var prop = addressSpace.addTwoStateDiscrete({
+            const prop = addressSpace.addTwoStateDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MySwitch",
                 trueState: "busy",

@@ -1,20 +1,20 @@
 "use strict";
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 
 
-var factories = require("node-opcua-factory");
-var ec = require("node-opcua-basic-types");
-var Variant = require("node-opcua-variant").Variant;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const factories = require("node-opcua-factory");
+const ec = require("node-opcua-basic-types");
+const Variant = require("node-opcua-variant").Variant;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 
-var UADataType = require("./ua_data_type").UADataType;
-var UAMethod = require("./ua_method").UAMethod;
+const UADataType = require("./ua_data_type").UADataType;
+const UAMethod = require("./ua_method").UAMethod;
 
-var Argument = require("node-opcua-service-call").Argument;
+const Argument = require("node-opcua-service-call").Argument;
 
 exports.Argument = Argument;
 
@@ -22,8 +22,8 @@ function myfindBuiltInType(dataType) {
     return factories.findBuiltInType(dataType.key);
 }
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 
 function encode_ArgumentList(definition, args, stream) {
@@ -37,18 +37,18 @@ function encode_ArgumentList(definition, args, stream) {
 
     // we only encode arguments by following the definition
 
-    for (var i = 0; i < definition.length; i++) {
+    for (let i = 0; i < definition.length; i++) {
 
-        var def = definition[i];
-        var value = args[i];
+        const def = definition[i];
+        const value = args[i];
 
-        var encodeFunc = myfindBuiltInType(def.dataType).encode;
+        const encodeFunc = myfindBuiltInType(def.dataType).encode;
 
         // xx console.log(" cxxxxxxxxxxc ",def);
         // assert((def.valueRank === -1) || (def.valueRank === 0));
 
         // todo : handle -3 -2
-        var isArray = (def.valueRank && ( def.valueRank === 1 || def.valueRank !== -1)) ? true : false;
+        const isArray = (def.valueRank && ( def.valueRank === 1 || def.valueRank !== -1)) ? true : false;
 
         if (isArray) {
             ec.encodeArray(value, stream, encodeFunc);
@@ -60,7 +60,7 @@ function encode_ArgumentList(definition, args, stream) {
 }
 exports.encode_ArgumentList = encode_ArgumentList;
 
-var decode_ArgumentList = function (definition, stream) {
+const decode_ArgumentList = function (definition, stream) {
 
     if (!_.isArray(definition)) {
         throw new Error(
@@ -69,17 +69,17 @@ var decode_ArgumentList = function (definition, stream) {
         );
     }
 
-    var args = [];
-    var value;
+    const args = [];
+    let value;
 
-    for (var i = 0; i < definition.length; i++) {
+    for (let i = 0; i < definition.length; i++) {
 
-        var def = definition[i];
+        const def = definition[i];
 
-        var decodeFunc = myfindBuiltInType(def.dataType).decode;
+        const decodeFunc = myfindBuiltInType(def.dataType).decode;
 
         //xx assert(def.valueRank === -1 || def.valueRank==0);
-        var isArray = ( def.valueRank === 1 || def.valueRank === -1) ? true : false;
+        const isArray = ( def.valueRank === 1 || def.valueRank === -1) ? true : false;
 
         if (isArray) {
             value = ec.decodeArray(stream, decodeFunc);
@@ -93,14 +93,14 @@ var decode_ArgumentList = function (definition, stream) {
 
 exports.decode_ArgumentList = decode_ArgumentList;
 
-var BinaryStreamSizeCalculator = require("node-opcua-binary-stream").BinaryStreamSizeCalculator;
-var binaryStoreSize_ArgumentList = function (description, args) {
+const BinaryStreamSizeCalculator = require("node-opcua-binary-stream").BinaryStreamSizeCalculator;
+const binaryStoreSize_ArgumentList = function (description, args) {
 
     assert(_.isArray(description));
     assert(_.isArray(args));
     assert(args.length === description.length);
 
-    var stream = new BinaryStreamSizeCalculator();
+    const stream = new BinaryStreamSizeCalculator();
     encode_ArgumentList(description, args, stream);
     return stream.length;
 };
@@ -112,7 +112,7 @@ function getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId) {
     assert(objectId instanceof NodeId);
     assert(methodId instanceof NodeId);
     // find object in address space
-    var obj = addressSpace.findNode(objectId);
+    const obj = addressSpace.findNode(objectId);
     if (!obj) {
 
         // istanbul ignore next
@@ -124,7 +124,7 @@ function getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId) {
     if (!obj.hasMethods) {
         return {statusCode: StatusCodes.BadNodeIdInvalid};
     }
-    var objectMethod = obj.getMethodById(methodId);
+    let objectMethod = obj.getMethodById(methodId);
     if (!objectMethod) {
 
         // the method doesn't belong to the object, nevertheless
@@ -135,9 +135,9 @@ function getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId) {
         }
     }
 
-    var methodDeclarationId = objectMethod.methodDeclarationId;
+    const methodDeclarationId = objectMethod.methodDeclarationId;
 
-    var methodDeclaration = addressSpace.findNode(methodDeclarationId);
+    const methodDeclaration = addressSpace.findNode(methodDeclarationId);
     if (!methodDeclaration) {
         //  return {statusCode: StatusCodes.BadMethodInvalid};
         return {statusCode: StatusCodes.Good, methodDeclaration: objectMethod};
@@ -161,8 +161,8 @@ function isArgumentValid(addressSpace,argDefinition, arg) {
     assert(argDefinition.hasOwnProperty("valueRank"));
     assert(arg instanceof Variant);
 
-    var argDefDataType = addressSpace.findDataType(argDefinition.dataType);
-    var argDataType = addressSpace.findDataType(arg.dataType);
+    const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
+    const argDataType = addressSpace.findDataType(arg.dataType);
 
     if (! argDataType) {
         console.log(" cannot find dataType ",arg.dataType);
@@ -178,7 +178,7 @@ function isArgumentValid(addressSpace,argDefinition, arg) {
     }
 
 
-    var isArray = (arg.arrayType === VariantArrayType.Array);
+    const isArray = (arg.arrayType === VariantArrayType.Array);
 
     if (argDefinition.valueRank > 0) {
 
@@ -208,7 +208,7 @@ function isArgumentValid(addressSpace,argDefinition, arg) {
  */
 function verifyArguments_ArgumentList(addressSpace,methodInputArguments, inputArguments) {
 
-    var inputArgumentResults = [];
+    const inputArgumentResults = [];
 
     if (methodInputArguments.length === 0 && !inputArguments) {
         // it is possible to not provide inputArguments when method  has no arguments
@@ -240,12 +240,12 @@ function verifyArguments_ArgumentList(addressSpace,methodInputArguments, inputAr
         return {statusCode: StatusCodes.BadArgumentsMissing};
     }
 
-    var errorCount = 0;
-    for (var i = 0; i < methodInputArguments.length; i++) {
+    let errorCount = 0;
+    for (let i = 0; i < methodInputArguments.length; i++) {
 
-        var argDefinition = methodInputArguments[i];
+        const argDefinition = methodInputArguments[i];
 
-        var arg = inputArguments[i];
+        const arg = inputArguments[i];
 
         // istanbul ignore next
         if (doDebug) {
@@ -269,7 +269,7 @@ function verifyArguments_ArgumentList(addressSpace,methodInputArguments, inputAr
     }
     assert(inputArgumentResults.length === methodInputArguments.length);
 
-    var ret = {
+    const ret = {
         statusCode: errorCount === 0 ? StatusCodes.Good : StatusCodes.BadInvalidArgument,
         inputArgumentResults: inputArgumentResults
     };
@@ -282,18 +282,18 @@ exports.verifyArguments_ArgumentList = verifyArguments_ArgumentList;
 
 
 function build_retrieveInputArgumentsDefinition(addressSpace) {
-    var the_address_space = addressSpace;
+    const the_address_space = addressSpace;
     return function (objectId, methodId) {
-        var response = getMethodDeclaration_ArgumentList(the_address_space, objectId, methodId);
+        const response = getMethodDeclaration_ArgumentList(the_address_space, objectId, methodId);
 
         /* istanbul ignore next */
         if (response.statusCode !== StatusCodes.Good) {
             console.log(" StatusCode  = " + response.statusCode.toString());
             throw new Error("Invalid Method " + response.statusCode.toString() + "ObjectId= " + objectId.toString() + "Method Id =" + methodId.toString());
         }
-        var methodDeclaration = response.methodDeclaration;
+        const methodDeclaration = response.methodDeclaration;
         // verify input Parameters
-        var methodInputArguments = methodDeclaration.getInputArguments();
+        const methodInputArguments = methodDeclaration.getInputArguments();
         assert(_.isArray(methodInputArguments));
         return methodInputArguments;
     };
@@ -308,9 +308,9 @@ function convertJavaScriptToVariant(argumentDefinition, values) {
 
     return _.zip(values, argumentDefinition).map(function (pair) {
 
-        var value = pair[0];
-        var arg = pair[1];
-        var variant = _.extend({}, arg);
+        const value = pair[0];
+        const arg = pair[1];
+        const variant = _.extend({}, arg);
         variant.value = value;
         return new Variant(variant);
     });

@@ -4,165 +4,165 @@
  * @module opcua.server
  */
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var util = require("util");
-var fs = require("fs");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const async = require("async");
+const util = require("util");
+const fs = require("fs");
+const _ = require("underscore");
 
-var ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
+const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var SessionContext = require("node-opcua-address-space").SessionContext;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const SessionContext = require("node-opcua-address-space").SessionContext;
 var fromURI = require("node-opcua-secure-channel").fromURI;
 var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-var utils = require("node-opcua-utils");
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var forceGarbageCollectionOnSessionClose = false;
+const utils = require("node-opcua-utils");
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const forceGarbageCollectionOnSessionClose = false;
 
-var ServerEngine = require("./server_engine").ServerEngine;
-
-
-var browse_service = require("node-opcua-service-browse");
-var read_service = require("node-opcua-service-read");
-var write_service = require("node-opcua-service-write");
-var historizing_service = require("node-opcua-service-history");
-var subscription_service = require("node-opcua-service-subscription");
-var register_server_service = require("node-opcua-service-register-server");
-var translate_service = require("node-opcua-service-translate-browse-path");
-var session_service = require("node-opcua-service-session");
-var register_node_service = require("node-opcua-service-register-node");
-var call_service = require("node-opcua-service-call");
-var endpoints_service = require("node-opcua-service-endpoints");
-var query_service = require("node-opcua-service-query");
-
-var ServerState = require("node-opcua-common").ServerState;
-var EndpointDescription = endpoints_service.EndpointDescription;
-
-var TimestampsToReturn = read_service.TimestampsToReturn;
-
-var ActivateSessionRequest = session_service.ActivateSessionRequest;
-var ActivateSessionResponse = session_service.ActivateSessionResponse;
-
-var CreateSessionRequest = session_service.CreateSessionRequest;
-var CreateSessionResponse = session_service.CreateSessionResponse;
+const ServerEngine = require("./server_engine").ServerEngine;
 
 
-var CloseSessionRequest = session_service.CloseSessionRequest;
-var CloseSessionResponse = session_service.CloseSessionResponse;
+const browse_service = require("node-opcua-service-browse");
+const read_service = require("node-opcua-service-read");
+const write_service = require("node-opcua-service-write");
+const historizing_service = require("node-opcua-service-history");
+const subscription_service = require("node-opcua-service-subscription");
+const register_server_service = require("node-opcua-service-register-server");
+const translate_service = require("node-opcua-service-translate-browse-path");
+const session_service = require("node-opcua-service-session");
+const register_node_service = require("node-opcua-service-register-node");
+const call_service = require("node-opcua-service-call");
+const endpoints_service = require("node-opcua-service-endpoints");
+const query_service = require("node-opcua-service-query");
 
-var DeleteMonitoredItemsRequest = subscription_service.DeleteMonitoredItemsRequest;
-var DeleteMonitoredItemsResponse = subscription_service.DeleteMonitoredItemsResponse;
+const ServerState = require("node-opcua-common").ServerState;
+const EndpointDescription = endpoints_service.EndpointDescription;
 
-var RepublishRequest = subscription_service.RepublishRequest;
-var RepublishResponse = subscription_service.RepublishResponse;
+const TimestampsToReturn = read_service.TimestampsToReturn;
 
-var PublishRequest = subscription_service.PublishRequest;
-var PublishResponse = subscription_service.PublishResponse;
+const ActivateSessionRequest = session_service.ActivateSessionRequest;
+const ActivateSessionResponse = session_service.ActivateSessionResponse;
 
-var CreateSubscriptionRequest = subscription_service.CreateSubscriptionRequest;
-var CreateSubscriptionResponse = subscription_service.CreateSubscriptionResponse;
-
-var DeleteSubscriptionsRequest = subscription_service.DeleteSubscriptionsRequest;
-var DeleteSubscriptionsResponse = subscription_service.DeleteSubscriptionsResponse;
-
-var TransferSubscriptionsRequest = subscription_service.TransferSubscriptionsRequest;
-var TransferSubscriptionsResponse = subscription_service.TransferSubscriptionsResponse;
-
-var CreateMonitoredItemsRequest = subscription_service.CreateMonitoredItemsRequest;
-var CreateMonitoredItemsResponse = subscription_service.CreateMonitoredItemsResponse;
-
-var ModifyMonitoredItemsRequest = subscription_service.ModifyMonitoredItemsRequest;
-var ModifyMonitoredItemsResponse = subscription_service.ModifyMonitoredItemsResponse;
-var MonitoredItemModifyResult = subscription_service.MonitoredItemModifyResult;
-
-var MonitoredItemCreateResult = subscription_service.MonitoredItemCreateResult;
-var SetPublishingModeRequest = subscription_service.SetPublishingModeRequest;
-var SetPublishingModeResponse = subscription_service.SetPublishingModeResponse;
-
-var CallRequest = call_service.CallRequest;
-var CallResponse = call_service.CallResponse;
-
-var ReadRequest = read_service.ReadRequest;
-var ReadResponse = read_service.ReadResponse;
-
-var WriteRequest = write_service.WriteRequest;
-var WriteResponse = write_service.WriteResponse;
-
-var ReadValueId = read_service.ReadValueId;
-
-var HistoryReadRequest = historizing_service.HistoryReadRequest;
-var HistoryReadResponse = historizing_service.HistoryReadResponse;
-
-var BrowseRequest = browse_service.BrowseRequest;
-var BrowseResponse = browse_service.BrowseResponse;
-
-var BrowseNextRequest = browse_service.BrowseNextRequest;
-var BrowseNextResponse = browse_service.BrowseNextResponse;
-
-var RegisterNodesRequest = register_node_service.RegisterNodesRequest;
-var RegisterNodesResponse = register_node_service.RegisterNodesResponse;
-var UnregisterNodesRequest = register_node_service.UnregisterNodesRequest;
-var UnregisterNodesResponse = register_node_service.UnregisterNodesResponse;
-
-var TranslateBrowsePathsToNodeIdsRequest = translate_service.TranslateBrowsePathsToNodeIdsRequest;
-var TranslateBrowsePathsToNodeIdsResponse = translate_service.TranslateBrowsePathsToNodeIdsResponse;
-
-var RegisterServerRequest = register_server_service.RegisterServerRequest;
-var RegisterServerResponse = register_server_service.RegisterServerResponse;
+const CreateSessionRequest = session_service.CreateSessionRequest;
+const CreateSessionResponse = session_service.CreateSessionResponse;
 
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var DataValue = require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const CloseSessionRequest = session_service.CloseSessionRequest;
+const CloseSessionResponse = session_service.CloseSessionResponse;
 
-var MonitoredItem = require("./monitored_item").MonitoredItem;
+const DeleteMonitoredItemsRequest = subscription_service.DeleteMonitoredItemsRequest;
+const DeleteMonitoredItemsResponse = subscription_service.DeleteMonitoredItemsResponse;
 
-var View = require("node-opcua-address-space").View;
+const RepublishRequest = subscription_service.RepublishRequest;
+const RepublishResponse = subscription_service.RepublishResponse;
 
-var crypto = require("crypto");
+const PublishRequest = subscription_service.PublishRequest;
+const PublishResponse = subscription_service.PublishResponse;
 
-var dump = require("node-opcua-debug").dump;
+const CreateSubscriptionRequest = subscription_service.CreateSubscriptionRequest;
+const CreateSubscriptionResponse = subscription_service.CreateSubscriptionResponse;
 
-var OPCUAServerEndPoint = require("./server_end_point").OPCUAServerEndPoint;
+const DeleteSubscriptionsRequest = subscription_service.DeleteSubscriptionsRequest;
+const DeleteSubscriptionsResponse = subscription_service.DeleteSubscriptionsResponse;
 
-var OPCUABaseServer = require("./base_server").OPCUABaseServer;
+const TransferSubscriptionsRequest = subscription_service.TransferSubscriptionsRequest;
+const TransferSubscriptionsResponse = subscription_service.TransferSubscriptionsResponse;
 
-var OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
-var exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
+const CreateMonitoredItemsRequest = subscription_service.CreateMonitoredItemsRequest;
+const CreateMonitoredItemsResponse = subscription_service.CreateMonitoredItemsResponse;
+
+const ModifyMonitoredItemsRequest = subscription_service.ModifyMonitoredItemsRequest;
+const ModifyMonitoredItemsResponse = subscription_service.ModifyMonitoredItemsResponse;
+const MonitoredItemModifyResult = subscription_service.MonitoredItemModifyResult;
+
+const MonitoredItemCreateResult = subscription_service.MonitoredItemCreateResult;
+const SetPublishingModeRequest = subscription_service.SetPublishingModeRequest;
+const SetPublishingModeResponse = subscription_service.SetPublishingModeResponse;
+
+const CallRequest = call_service.CallRequest;
+const CallResponse = call_service.CallResponse;
+
+const ReadRequest = read_service.ReadRequest;
+const ReadResponse = read_service.ReadResponse;
+
+const WriteRequest = write_service.WriteRequest;
+const WriteResponse = write_service.WriteResponse;
+
+const ReadValueId = read_service.ReadValueId;
+
+const HistoryReadRequest = historizing_service.HistoryReadRequest;
+const HistoryReadResponse = historizing_service.HistoryReadResponse;
+
+const BrowseRequest = browse_service.BrowseRequest;
+const BrowseResponse = browse_service.BrowseResponse;
+
+const BrowseNextRequest = browse_service.BrowseNextRequest;
+const BrowseNextResponse = browse_service.BrowseNextResponse;
+
+const RegisterNodesRequest = register_node_service.RegisterNodesRequest;
+const RegisterNodesResponse = register_node_service.RegisterNodesResponse;
+const UnregisterNodesRequest = register_node_service.UnregisterNodesRequest;
+const UnregisterNodesResponse = register_node_service.UnregisterNodesResponse;
+
+const TranslateBrowsePathsToNodeIdsRequest = translate_service.TranslateBrowsePathsToNodeIdsRequest;
+const TranslateBrowsePathsToNodeIdsResponse = translate_service.TranslateBrowsePathsToNodeIdsResponse;
+
+const RegisterServerRequest = register_server_service.RegisterServerRequest;
+const RegisterServerResponse = register_server_service.RegisterServerResponse;
 
 
-var Factory = function Factory(engine) {
+const NodeId = require("node-opcua-nodeid").NodeId;
+const DataValue = require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+
+const MonitoredItem = require("./monitored_item").MonitoredItem;
+
+const View = require("node-opcua-address-space").View;
+
+const crypto = require("crypto");
+
+const dump = require("node-opcua-debug").dump;
+
+const OPCUAServerEndPoint = require("./server_end_point").OPCUAServerEndPoint;
+
+const OPCUABaseServer = require("./base_server").OPCUABaseServer;
+
+const OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
+const exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
+
+
+const Factory = function Factory(engine) {
     assert(_.isObject(engine));
     this.engine = engine;
 };
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 Factory.prototype.constructObject = function (id) {
     return factories.constructObject(id);
 };
 
-var default_maxAllowedSessionNumber = 10;
-var default_maxConnectionsPerEndpoint = 10;
+const default_maxAllowedSessionNumber = 10;
+const default_maxConnectionsPerEndpoint = 10;
 
 
 function g_sendError(channel, message, ResponseClass, statusCode) {
-    var response = new ResponseClass({
+    const response = new ResponseClass({
         responseHeader: {serviceResult: statusCode}
     });
     return channel.send_response("MSG", response, message);
 }
 
 
-var package_info = require("../package.json");
+const package_info = require("../package.json");
 //xx var package_info = JSON.parse(fs.readFileSync(package_json_file));
 
-var default_build_info = {
+const default_build_info = {
     productName: "NODEOPCUA-SERVER",
     productUri: null, // << should be same as default_server_info.productUri?
     manufacturerName: "Node-OPCUA : MIT Licence ( see http://node-opcua.github.io/)",
@@ -212,7 +212,7 @@ function OPCUAServer(options) {
 
     OPCUABaseServer.apply(this, arguments);
 
-    var self = this;
+    const self = this;
 
     self.options = options;
 
@@ -221,7 +221,7 @@ function OPCUAServer(options) {
     self.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
     // build Info
-    var buildInfo = _.clone(default_build_info);
+    let buildInfo = _.clone(default_build_info);
     buildInfo = _.extend(buildInfo, options.buildInfo);
 
     // repair product name
@@ -240,7 +240,7 @@ function OPCUAServer(options) {
 
     self.protocolVersion = 0;
 
-    var port = options.port || 26543;
+    const port = options.port || 26543;
     assert(_.isFinite(port));
     self.objectFactory = new Factory(self.engine);
     // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
@@ -250,7 +250,7 @@ function OPCUAServer(options) {
     //xx console.log(" maxConnectionsPerEndpoint = ",self.maxConnectionsPerEndpoint);
 
     // add the tcp/ip endpoint with no security
-    var endPoint = new OPCUAServerEndPoint({
+    const endPoint = new OPCUAServerEndPoint({
         port: port,
         defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
         timeout: options.timeout || 10000,
@@ -300,7 +300,7 @@ function OPCUAServer(options) {
 
 util.inherits(OPCUAServer, OPCUABaseServer);
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 OPCUAServer.registry = new ObjectRegistry();
 
 
@@ -356,7 +356,7 @@ OPCUAServer.prototype.__defineGetter__("buildInfo", function () {
  */
 OPCUAServer.prototype.__defineGetter__("currentChannelCount", function () {
     // TODO : move to base
-    var self = this;
+    const self = this;
     return self.endpoints.reduce(function (currentValue, endPoint) {
         return currentValue + endPoint.currentChannelCount;
     }, 0);
@@ -369,7 +369,7 @@ OPCUAServer.prototype.__defineGetter__("currentChannelCount", function () {
  * @type {Number}
  */
 OPCUAServer.prototype.__defineGetter__("currentSubscriptionCount", function () {
-    var self = this;
+    const self = this;
     return self.engine.currentSubscriptionCount;
 });
 
@@ -408,7 +408,7 @@ OPCUAServer.prototype.__defineGetter__("publishingIntervalCount", function () {
  * @return {ServerSession}
  */
 OPCUAServer.prototype.createSession = function (options) {
-    var self = this;
+    const self = this;
     return self.engine.createSession(options);
 };
 
@@ -429,7 +429,7 @@ OPCUAServer.prototype.__defineGetter__("currentSessionCount", function () {
  * @param activeOnly search only within sessions that are not closed
  */
 OPCUAServer.prototype.getSession = function (authenticationToken, activeOnly) {
-    var self = this;
+    const self = this;
     return self.engine.getSession(authenticationToken, activeOnly);
 };
 
@@ -440,7 +440,7 @@ OPCUAServer.prototype.getSession = function (authenticationToken, activeOnly) {
  *
  */
 OPCUAServer.prototype.__defineGetter__("initialized", function () {
-    var self = this;
+    const self = this;
     return self.engine.addressSpace !== null;
 });
 
@@ -459,7 +459,7 @@ OPCUAServer.prototype.__defineGetter__("initialized", function () {
  */
 OPCUAServer.prototype.initialize = function (done) {
 
-    var self = this;
+    const self = this;
     assert(!self.initialized);// already initialized ?
 
     OPCUAServer.registry.register(self);
@@ -479,8 +479,8 @@ OPCUAServer.prototype.initialize = function (done) {
  */
 OPCUAServer.prototype.start = function (done) {
 
-    var self = this;
-    var tasks = [];
+    const self = this;
+    const tasks = [];
     if (!self.initialized) {
         tasks.push(function (callback) {
             self.initialize(callback);
@@ -533,7 +533,7 @@ OPCUAServer.prototype.shutdown = function (timeout, callback) {
         timeout = 10;
     }
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
     debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
 
@@ -557,7 +557,7 @@ OPCUAServer.prototype.shutdown = function (timeout, callback) {
 
 OPCUAServer.prototype.dispose = function() {
 
-    var self = this;
+    const self = this;
 
 
     self.endpoints.forEach(function(endpoint){ endpoint.dispose();  });
@@ -568,36 +568,36 @@ OPCUAServer.prototype.dispose = function() {
     OPCUAServer.registry.unregister(self);
 };
 
-var computeSignature = require("node-opcua-secure-channel").computeSignature;
-var verifySignature = require("node-opcua-secure-channel").verifySignature;
+const computeSignature = require("node-opcua-secure-channel").computeSignature;
+const verifySignature = require("node-opcua-secure-channel").verifySignature;
 
 OPCUAServer.prototype.computeServerSignature = function (channel, clientCertificate, clientNonce) {
-    var self = this;
+    const self = this;
     return computeSignature(clientCertificate, clientNonce, self.getPrivateKey(), channel.messageBuilder.securityPolicy);
 };
 
-var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
 
 OPCUAServer.prototype.verifyClientSignature = function (session, channel, clientSignature) {
 
-    var self = this;
+    const self = this;
 
-    var clientCertificate = channel.receiverCertificate;
-    var securityPolicy = channel.messageBuilder.securityPolicy;
-    var serverCertificateChain = self.getCertificateChain();
+    const clientCertificate = channel.receiverCertificate;
+    const securityPolicy = channel.messageBuilder.securityPolicy;
+    const serverCertificateChain = self.getCertificateChain();
 
-    var result = verifySignature(serverCertificateChain, session.nonce, clientSignature, clientCertificate, securityPolicy);
+    const result = verifySignature(serverCertificateChain, session.nonce, clientSignature, clientCertificate, securityPolicy);
 
     return result;
 };
 
 
-var minSessionTimeout = 100; // 100 milliseconds
-var defaultSessionTimeout = 1000 * 30; // 30 seconds
-var maxSessionTimeout = 1000 * 60 * 50; // 50 minutes
+const minSessionTimeout = 100; // 100 milliseconds
+const defaultSessionTimeout = 1000 * 30; // 30 seconds
+const maxSessionTimeout = 1000 * 60 * 50; // 50 minutes
 
 function _adjust_session_timeout(sessionTimeout) {
-    var revisedSessionTimeout = sessionTimeout || defaultSessionTimeout;
+    let revisedSessionTimeout = sessionTimeout || defaultSessionTimeout;
     revisedSessionTimeout = Math.min(revisedSessionTimeout, maxSessionTimeout);
     revisedSessionTimeout = Math.max(revisedSessionTimeout, minSessionTimeout);
     return revisedSessionTimeout;
@@ -627,7 +627,7 @@ function moveSessionToChannel(session, channel) {
 
 function _attempt_to_close_some_old_unactivated_session(server) {
 
-    var session = server.engine.getOldestUnactivatedSession();
+    const session = server.engine.getOldestUnactivatedSession();
     if (session) {
         server.engine.closeSession(session.authenticationToken, false, "Forcing");
     }
@@ -647,7 +647,7 @@ function getRequiredEndpointInfo(endpoint) {
     // other parameters set to null. Only the recommended parameters shall be verified by
     // the client.
 
-    var e=  new EndpointDescription({
+    const e=  new EndpointDescription({
         endpointUrl:      endpoint.endpointUrl,
         securityMode: endpoint.securityMode,
         securityPolicyUri: endpoint.securityPolicyUri,
@@ -678,15 +678,15 @@ function _serverEndpointsForCreateSessionResponse(server,serverUri) {
 // session services
 OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof CreateSessionRequest);
 
     function rejectConnection(statusCode) {
 
         server.engine._rejectedSessionCount += 1;
 
-        var response = new CreateSessionResponse({responseHeader: {serviceResult: statusCode}});
+        const response = new CreateSessionResponse({responseHeader: {serviceResult: statusCode}});
         channel.send_response("MSG", response, message);
         // and close !
     }
@@ -721,7 +721,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     // Duration Requested maximum number of milliseconds that a Session should remain open without activity.
     // If the Client fails to issue a Service request within this interval, then the Server shall automatically
     // terminate the Client Session.
-    var revisedSessionTimeout = _adjust_session_timeout(request.requestedSessionTimeout);
+    const revisedSessionTimeout = _adjust_session_timeout(request.requestedSessionTimeout);
 
 
     // Release 1.02 page 27 OPC Unified Architecture, Part 4: CreateSession.clientNonce
@@ -745,8 +745,8 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         if (!clientCertificate || clientCertificate.length === 0) {
             return true;// can't check
         }
-        var e = exploreCertificate(clientCertificate);
-        var applicationUriFromCert = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+        const e = exploreCertificate(clientCertificate);
+        const applicationUriFromCert = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
         return applicationUriFromCert === applicationUri;
     }
 
@@ -758,20 +758,20 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
     function validate_security_endpoint(channel) {
 
-        var endpoints = server._get_endpoints();
+        let endpoints = server._get_endpoints();
 
         // ignore restricted endpoints
         endpoints = endpoints.filter(function (endpoint) {
             return !endpoint.restricted;
         });
 
-        var endpoints_matching_security_mode = endpoints.filter(function (e) {
+        const endpoints_matching_security_mode = endpoints.filter(function (e) {
             return e.securityMode === channel.securityMode;
         });
         if (endpoints_matching_security_mode.length === 0) {
             return StatusCodes.BadSecurityModeRejected;
         }
-        var endpoints_matching_security_policy = endpoints_matching_security_mode.filter(function (e) {
+        const endpoints_matching_security_policy = endpoints_matching_security_mode.filter(function (e) {
             return e.securityPolicyUri === channel.securityHeader.securityPolicyUri;
         });
 
@@ -781,7 +781,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         return StatusCodes.Good;
     }
 
-    var errStatus = validate_security_endpoint(channel);
+    const errStatus = validate_security_endpoint(channel);
     if (errStatus !== StatusCodes.Good) {
         return rejectConnection(errStatus);
     }
@@ -799,7 +799,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
 
     // see Release 1.02  27  OPC Unified Architecture, Part 4
-    var session = server.createSession({
+    const session = server.createSession({
         sessionTimeout: revisedSessionTimeout,
         clientDescription: request.clientDescription
     });
@@ -830,9 +830,9 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
     session._attach_channel(channel);
 
-    var serverCertificateChain = server.getCertificateChain();
+    const serverCertificateChain = server.getCertificateChain();
 
-    var hasEncryption = true;
+    const hasEncryption = true;
     // If the securityPolicyUri is NONE and none of the UserTokenPolicies requires encryption
     if (session.channel.securityMode === MessageSecurityMode.NONE) {
         // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
@@ -840,7 +840,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     }
 
 
-    var response = new CreateSessionResponse({
+    const response = new CreateSessionResponse({
         // A identifier which uniquely identifies the session.
         sessionId: session.nodeId,
 
@@ -903,7 +903,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         if (server.isAuditing) {
 
             assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
-            var sourceName = "Session/" + reason;
+            const sourceName = "Session/" + reason;
 
             server.raiseEvent("AuditSessionEventType", {
                 /* part 5 -  6.4.3 AuditEventType */
@@ -977,16 +977,16 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     channel.send_response("MSG", response, message);
 };
 
-var UserNameIdentityToken = session_service.UserNameIdentityToken;
-var AnonymousIdentityToken = session_service.AnonymousIdentityToken;
+const UserNameIdentityToken = session_service.UserNameIdentityToken;
+const AnonymousIdentityToken = session_service.AnonymousIdentityToken;
 
 var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 var fromURI = require("node-opcua-secure-channel").fromURI;
-var getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
+const getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
 
 function adjustSecurityPolicy(channel, userTokenPolicy_securityPolicyUri) {
     // check that userIdentityToken
-    var securityPolicy = fromURI(userTokenPolicy_securityPolicyUri);
+    let securityPolicy = fromURI(userTokenPolicy_securityPolicyUri);
 
     // if the security policy is not specified we use the session security policy
     if (securityPolicy === SecurityPolicy.Invalid) {
@@ -998,13 +998,13 @@ function adjustSecurityPolicy(channel, userTokenPolicy_securityPolicyUri) {
 
 OPCUAServer.prototype.isValidUserNameIdentityToken = function (channel, session, userTokenPolicy, userIdentityToken) {
 
-    var self = this;
+    const self = this;
 
     assert(userIdentityToken instanceof UserNameIdentityToken);
 
-    var securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
+    const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
-    var cryptoFactory = getCryptoFactory(securityPolicy);
+    const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
         throw new Error(" Unsupported security Policy");
     }
@@ -1015,8 +1015,8 @@ OPCUAServer.prototype.isValidUserNameIdentityToken = function (channel, session,
         console.log("userTokenPolicy", userIdentityToken.toString());
         return false;
     }
-    var userName = userIdentityToken.userName;
-    var password = userIdentityToken.password;
+    const userName = userIdentityToken.userName;
+    const password = userIdentityToken.password;
     if (!userName || !password) {
         return false;
     }
@@ -1036,32 +1036,32 @@ OPCUAServer.prototype.isValidUserNameIdentityToken = function (channel, session,
  */
 OPCUAServer.prototype.userNameIdentityTokenAuthenticateUser = function (channel, session, userTokenPolicy, userIdentityToken, done) {
 
-    var self = this;
+    const self = this;
     assert(userIdentityToken instanceof UserNameIdentityToken);
     assert(self.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken));
 
-    var securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
+    const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
-    var serverPrivateKey = self.getPrivateKey();
+    const serverPrivateKey = self.getPrivateKey();
 
-    var serverNonce = session.nonce;
+    const serverNonce = session.nonce;
     assert(serverNonce instanceof Buffer);
 
-    var cryptoFactory = getCryptoFactory(securityPolicy);
+    const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
         return done(new Error(" Unsupported security Policy"));
     }
-    var userName = userIdentityToken.userName;
-    var password = userIdentityToken.password;
+    const userName = userIdentityToken.userName;
+    let password = userIdentityToken.password;
 
-    var buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
-    var length = buff.readUInt32LE(0) - serverNonce.length;
+    const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
+    const length = buff.readUInt32LE(0) - serverNonce.length;
     password = buff.slice(4, 4 + length).toString("utf-8");
 
     if (_.isFunction(self.userManager.isValidUserAsync)) {
         self.userManager.isValidUserAsync.call(session, userName, password, done);
     } else {
-        var authorized = self.userManager.isValidUser.call(session, userName, password);
+        const authorized = self.userManager.isValidUser.call(session, userName, password);
         async.setImmediate(function () {
             done(null, authorized)
         });
@@ -1072,7 +1072,7 @@ OPCUAServer.prototype.userNameIdentityTokenAuthenticateUser = function (channel,
 
 function findUserTokenByPolicy(endpoint_description, policyId) {
     assert(endpoint_description instanceof EndpointDescription);
-    var r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
+    const r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
         // assert(userIdentity instanceof UserTokenPolicy)
         assert(userIdentity.tokenType);
         return userIdentity.policyId === policyId;
@@ -1080,10 +1080,10 @@ function findUserTokenByPolicy(endpoint_description, policyId) {
     return r.length === 0 ? null : r[0];
 }
 
-var UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+const UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
 function findUserTokenPolicy(endpoint_description, userTokenType) {
     assert(endpoint_description instanceof EndpointDescription);
-    var r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
+    const r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
         // assert(userIdentity instanceof UserTokenPolicy)
         assert(userIdentity.tokenType);
         return userIdentity.tokenType === userTokenType;
@@ -1092,7 +1092,7 @@ function findUserTokenPolicy(endpoint_description, userTokenType) {
 }
 function createAnonymousIdentityToken(endpoint_desc) {
     assert(endpoint_desc instanceof EndpointDescription);
-    var userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.ANONYMOUS);
+    const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.ANONYMOUS);
     if (!userTokenPolicy) {
         throw new Error("Cannot find ANONYMOUS user token policy in end point description");
     }
@@ -1102,13 +1102,13 @@ function createAnonymousIdentityToken(endpoint_desc) {
 
 OPCUAServer.prototype.isValidUserIdentityToken = function (channel, session, userIdentityToken) {
 
-    var self = this;
+    const self = this;
     assert(userIdentityToken);
 
-    var endpoint_desc = channel.endpoint;
+    const endpoint_desc = channel.endpoint;
     assert(endpoint_desc instanceof EndpointDescription);
 
-    var userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId);
+    const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId);
     if (!userTokenPolicy) {
         // cannot find token with this policyId
         return false;
@@ -1123,14 +1123,14 @@ OPCUAServer.prototype.isValidUserIdentityToken = function (channel, session, use
 
 OPCUAServer.prototype.isUserAuthorized = function (channel, session, userIdentityToken, done) {
 
-    var self = this;
+    const self = this;
     assert(userIdentityToken);
     assert(_.isFunction(done));
 
-    var endpoint_desc = channel.endpoint;
+    const endpoint_desc = channel.endpoint;
     assert(endpoint_desc instanceof EndpointDescription);
 
-    var userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId);
+    const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId);
     assert(userTokenPolicy);
     // find if a userToken exists
     if (userIdentityToken instanceof UserNameIdentityToken) {
@@ -1196,25 +1196,25 @@ function thumbprint(certificate) {
  */
 OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof ActivateSessionRequest);
 
     // get session from authenticationToken
-    var authenticationToken = request.requestHeader.authenticationToken;
+    const authenticationToken = request.requestHeader.authenticationToken;
 
-    var session = server.getSession(authenticationToken);
+    const session = server.getSession(authenticationToken);
 
 
     function rejectConnection(statusCode) {
         server.engine._rejectedSessionCount += 1;
-        var response = new ActivateSessionResponse({responseHeader: {serviceResult: statusCode}});
+        const response = new ActivateSessionResponse({responseHeader: {serviceResult: statusCode}});
 
         channel.send_response("MSG", response, message);
         // and close !
     }
 
-    var response;
+    let response;
 
     /* istanbul ignore next */
     if (!session) {
@@ -1250,8 +1250,8 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
 
             // session is being reassigned to a new Channel,
             // we shall verify that the certificate used to create the Session is the same as the current channel certificate.
-            var old_channel_cert_thumbprint = thumbprint(session.channel.clientCertificate);
-            var new_channel_cert_thumbprint = thumbprint(channel.clientCertificate);
+            const old_channel_cert_thumbprint = thumbprint(session.channel.clientCertificate);
+            const new_channel_cert_thumbprint = thumbprint(channel.clientCertificate);
             if (old_channel_cert_thumbprint !== new_channel_cert_thumbprint) {
                 return rejectConnection(StatusCodes.BadNoValidCertificates); // not sure about this code !
             }
@@ -1308,8 +1308,8 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
             response = new ActivateSessionResponse({serverNonce: session.nonce});
             channel.send_response("MSG", response, message);
 
-            var userIdentityTokenPasswordRemoved = function (userIdentityToken) {
-                var a = userIdentityToken;
+            const userIdentityTokenPasswordRemoved = function (userIdentityToken) {
+                const a = userIdentityToken;
                 // to do remove password
                 return a;
             };
@@ -1318,7 +1318,7 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
             // see part 5 : 6.4.3 AuditEventType
             //              6.4.7 AuditSessionEventType
             //              6.4.10 AuditActivateSessionEventType
-            var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+            const VariantArrayType = require("node-opcua-variant").VariantArrayType;
             assert(session.nodeId); // sessionId
             //xx assert(session.channel.clientCertificate instanceof Buffer);
             assert(session.sessionTimeout > 0);
@@ -1370,27 +1370,27 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
 
 };
 
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
 
 
 OPCUAServer.prototype.raiseEvent = function (eventType, options) {
 
-    var self = this;
+    const self = this;
 
     if (!self.engine.addressSpace) {
         console.log("addressSpace missing");
         return;
     }
 
-    var server = self.engine.addressSpace.findNode("Server");
+    const server = self.engine.addressSpace.findNode("Server");
 
     if (!server) {
         //xx throw new Error("OPCUAServer#raiseEvent : cannot find Server object");
         return;
     }
 
-    var eventTypeNode = eventType;
+    let eventTypeNode = eventType;
     if (typeof(eventType) === "string") {
         eventTypeNode = self.engine.addressSpace.findEventType(eventType);
     }
@@ -1439,10 +1439,10 @@ OPCUAServer.prototype._apply_on_SessionObject = function (ResponseClass, message
         return g_sendError(channel, message, ResponseClass, statusCode, diagnostics);
     }
 
-    var response;
+    let response;
     /* istanbul ignore next */
     if (!message.session || message.session_statusCode !== StatusCodes.Good) {
-        var errMessage = "INVALID SESSION  !! ";
+        const errMessage = "INVALID SESSION  !! ";
         response = new ResponseClass({responseHeader: {serviceResult: message.session_statusCode}});
         debugLog(errMessage.red.bold , message.session_statusCode.toString().yellow,response.constructor.name);
         return sendResponse(response);
@@ -1493,11 +1493,11 @@ OPCUAServer.prototype._apply_on_SessionObject = function (ResponseClass, message
 OPCUAServer.prototype._apply_on_Subscription = function (ResponseClass, message, channel, action_to_perform) {
 
     assert(_.isFunction(action_to_perform));
-    var request = message.request;
+    const request = message.request;
     assert(request.hasOwnProperty("subscriptionId"));
 
     this._apply_on_SessionObject(ResponseClass, message, channel, function (session, sendResponse, sendError) {
-        var subscription = session.getSubscription(request.subscriptionId);
+        const subscription = session.getSubscription(request.subscriptionId);
         if (!subscription) {
             return sendError(StatusCodes.BadSubscriptionIdInvalid);
         }
@@ -1517,22 +1517,22 @@ OPCUAServer.prototype._apply_on_Subscription = function (ResponseClass, message,
 OPCUAServer.prototype._apply_on_SubscriptionIds = function (ResponseClass, message, channel, action_to_perform) {
 
     assert(_.isFunction(action_to_perform));
-    var request = message.request;
+    const request = message.request;
     assert(request.hasOwnProperty("subscriptionIds"));
 
     this._apply_on_SessionObject(ResponseClass, message, channel, function (session, sendResponse, sendError) {
 
-        var subscriptionIds = request.subscriptionIds;
+        const subscriptionIds = request.subscriptionIds;
 
         if (!request.subscriptionIds || request.subscriptionIds.length === 0) {
             return sendError(StatusCodes.BadNothingToDo);
         }
 
-        var results = subscriptionIds.map(function (subscriptionId) {
+        const results = subscriptionIds.map(function (subscriptionId) {
             return action_to_perform(session, subscriptionId)
         });
 
-        var response = new ResponseClass({
+        const response = new ResponseClass({
             results: results
         });
         sendResponse(response);
@@ -1554,7 +1554,7 @@ OPCUAServer.prototype._apply_on_Subscriptions = function (ResponseClass, message
         if (subscriptionId <= 0) {
             return StatusCodes.BadSubscriptionIdInvalid;
         }
-        var subscription = session.getSubscription(subscriptionId);
+        const subscription = session.getSubscription(subscriptionId);
         if (!subscription) {
             return StatusCodes.BadSubscriptionIdInvalid;
         }
@@ -1571,12 +1571,12 @@ OPCUAServer.prototype._apply_on_Subscriptions = function (ResponseClass, message
  */
 OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
 
-    var server = this;
+    const server = this;
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof CloseSessionRequest);
 
-    var response;
+    let response;
 
     message.session_statusCode = StatusCodes.Good;
 
@@ -1590,13 +1590,13 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
     //this._apply_on_SessionObject(CloseSessionResponse, message, channel, function (session) {
     //});
 
-    var session = message.session;
+    const session = message.session;
     if (!session) {
         return sendError(StatusCodes.BadSessionIdInvalid);
     }
 
     // session has been created but not activated !
-    var wasNotActivated = (session.status === "new");
+    const wasNotActivated = (session.status === "new");
 
     server.engine.closeSession(request.requestHeader.authenticationToken, request.deleteSubscriptions, "CloseSession");
 
@@ -1629,18 +1629,18 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
  * @private
  */
 OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof BrowseRequest);
-    var diagnostic = {};
+    const diagnostic = {};
 
     this._apply_on_SessionObject(BrowseResponse, message, channel, function (session, sendResponse, sendError) {
-        var response;
+        let response;
         // test view
         if (request.view && !request.view.viewId.isEmpty()) {
             //xx console.log("xxxx ",request.view.toString());
             //xx console.log("xxxx NodeClas",View.prototype.nodeClass);
-            var theView = server.engine.addressSpace.findNode(request.view.viewId);
+            let theView = server.engine.addressSpace.findNode(request.view.viewId);
             if (theView && theView.constructor.nodeClass !== View.prototype.nodeClass) {
                 // Error: theView is not a View
                 diagnostic.localizedText = {text: "blah"};
@@ -1662,9 +1662,9 @@ OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
         }
 
         // ToDo: limit results to requestedMaxReferencesPerNode
-        var requestedMaxReferencesPerNode = request.requestedMaxReferencesPerNode;
+        const requestedMaxReferencesPerNode = request.requestedMaxReferencesPerNode;
 
-        var results = [];
+        let results = [];
         assert(request.nodesToBrowse[0]._schema.name === "BrowseDescription");
         results = server.engine.browse(request.nodesToBrowse, session);
         assert(results[0]._schema.name === "BrowseResult");
@@ -1672,7 +1672,7 @@ OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
         // handle continuation point and requestedMaxReferencesPerNode
         results = results.map(function (result) {
             assert(!result.continuationPoint);
-            var r = session.continuationPointManager.register(requestedMaxReferencesPerNode, result.references);
+            const r = session.continuationPointManager.register(requestedMaxReferencesPerNode, result.references);
             assert(r.statusCode === StatusCodes.Good);
             r.statusCode = result.statusCode;
             return r;
@@ -1695,12 +1695,12 @@ OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
 OPCUAServer.prototype._on_BrowseNextRequest = function (message, channel) {
 
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof BrowseNextRequest);
 
     this._apply_on_SessionObject(BrowseNextResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var response;
+        let response;
 
         if (!request.continuationPoints || request.continuationPoints.length === 0) {
             return sendError(StatusCodes.BadNothingToDo);
@@ -1708,7 +1708,7 @@ OPCUAServer.prototype._on_BrowseNextRequest = function (message, channel) {
 
         // A Boolean parameter with the following values:
 
-        var results;
+        let results;
         if (request.releaseContinuationPoints) {
             //releaseContinuationPoints = TRUE
             //   passed continuationPoints shall be reset to free resources in
@@ -1740,19 +1740,19 @@ OPCUAServer.prototype._on_BrowseNextRequest = function (message, channel) {
 // read services
 OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof ReadRequest);
 
     this._apply_on_SessionObject(ReadResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var context = new SessionContext({session, server});
+        const context = new SessionContext({session, server});
 
-        var response;
+        let response;
 
-        var results = [];
+        let results = [];
 
-        var timestampsToReturn = request.timestampsToReturn;
+        const timestampsToReturn = request.timestampsToReturn;
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             return sendError(StatusCodes.BadTimestampsToReturnInvalid);
@@ -1809,16 +1809,16 @@ OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
 // read services
 OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
 
     assert(request instanceof HistoryReadRequest);
 
     this._apply_on_SessionObject(HistoryReadResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var response;
+        let response;
 
-        var timestampsToReturn = request.timestampsToReturn;
+        const timestampsToReturn = request.timestampsToReturn;
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             return sendError(StatusCodes.BadTimestampsToReturnInvalid);
@@ -1855,7 +1855,7 @@ OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
             }
         }
 
-        var context = new SessionContext({session, server});
+        const context = new SessionContext({session, server});
 
         // ask for a refresh of asynchronous variables
         server.engine.refreshValues(request.nodesToRead, function (err) {
@@ -1895,13 +1895,13 @@ OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
  */
 OPCUAServer.prototype._on_WriteRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof WriteRequest);
     assert(!request.nodesToWrite || _.isArray(request.nodesToWrite));
 
     this._apply_on_SessionObject(WriteResponse, message, channel, function (session, sendResponse, sendError) {
-        var response;
+        let response;
 
         if (!request.nodesToWrite || request.nodesToWrite.length === 0) {
             return sendError(StatusCodes.BadNothingToDo);
@@ -1918,7 +1918,7 @@ OPCUAServer.prototype._on_WriteRequest = function (message, channel) {
             request.nodesToWrite[i].nodeId = session.resolveRegisteredNode(request.nodesToWrite[i].nodeId);
         }
 
-        var context = new SessionContext({session, server});
+        const context = new SessionContext({session, server});
 
         assert(request.nodesToWrite[0]._schema.name === "WriteValue");
         server.engine.write(context, request.nodesToWrite, function (err, results) {
@@ -1951,7 +1951,7 @@ function monitoredItem_read_and_record_value(self, oldValue, node, itemToMonitor
     assert(oldValue instanceof DataValue);
     assert(itemToMonitor.attributeId === AttributeIds.Value);
 
-    var dataValue = node.readAttribute(itemToMonitor.attributeId, itemToMonitor.indexRange, itemToMonitor.dataEncoding);
+    const dataValue = node.readAttribute(itemToMonitor.attributeId, itemToMonitor.indexRange, itemToMonitor.dataEncoding);
 
     callback(null, dataValue);
 }
@@ -1987,7 +1987,7 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
     assert(addressSpace.constructor.name === "AddressSpace");
     assert(itemToMonitor instanceof ReadValueId);
 
-    var node = addressSpace.findNode(itemToMonitor.nodeId);
+    const node = addressSpace.findNode(itemToMonitor.nodeId);
 
     /* istanbul ignore next */
     if (!node) {
@@ -2006,7 +2006,7 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
 
     if (itemToMonitor.attributeId === AttributeIds.Value) {
 
-        var monitoredItem_read_and_record_value_func =
+        const monitoredItem_read_and_record_value_func =
             (itemToMonitor.attributeId === AttributeIds.Value && _.isFunction(node.readValueAsync)) ?
                 monitoredItem_read_and_record_value_async :
                 monitoredItem_read_and_record_value;
@@ -2027,12 +2027,12 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
         // only record value when it has changed
         return function (oldDataValue, callback) {
 
-            var self = this;
+            const self = this;
             assert(self instanceof MonitoredItem);
             assert(oldDataValue instanceof DataValue);
             assert(_.isFunction(callback));
 
-            var newDataValue = node.readAttribute(itemToMonitor.attributeId);
+            const newDataValue = node.readAttribute(itemToMonitor.attributeId);
             callback(null, newDataValue);
         };
     }
@@ -2040,8 +2040,8 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
 
 
 function prepareMonitoredItem(context, addressSpace, monitoredItem) {
-    var itemToMonitor = monitoredItem.itemToMonitor;
-    var readNodeFunc = build_scanning_node_function(context, addressSpace, monitoredItem, itemToMonitor);
+    const itemToMonitor = monitoredItem.itemToMonitor;
+    const readNodeFunc = build_scanning_node_function(context, addressSpace, monitoredItem, itemToMonitor);
     monitoredItem.samplingFunc = readNodeFunc;
 }
 
@@ -2051,28 +2051,28 @@ OPCUAServer.MAX_SUBSCRIPTION = 50;
 // subscription services
 OPCUAServer.prototype._on_CreateSubscriptionRequest = function (message, channel) {
 
-    var server = this;
-    var engine = server.engine;
-    var addressSpace = engine.addressSpace;
+    const server = this;
+    const engine = server.engine;
+    const addressSpace = engine.addressSpace;
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof CreateSubscriptionRequest);
 
     this._apply_on_SessionObject(CreateSubscriptionResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var context = new SessionContext({session, server});
+        const context = new SessionContext({session, server});
 
         if (session.currentSubscriptionCount >= OPCUAServer.MAX_SUBSCRIPTION) {
             return sendError(StatusCodes.BadTooManySubscriptions);
         }
 
-        var subscription = session.createSubscription(request);
+        const subscription = session.createSubscription(request);
 
         subscription.on("monitoredItem", function (monitoredItem) {
             prepareMonitoredItem(context, addressSpace, monitoredItem);
         });
 
-        var response = new CreateSubscriptionResponse({
+        const response = new CreateSubscriptionResponse({
             subscriptionId: subscription.id,
             revisedPublishingInterval: subscription.publishingInterval,
             revisedLifetimeCount: subscription.lifeTimeCount,
@@ -2084,12 +2084,12 @@ OPCUAServer.prototype._on_CreateSubscriptionRequest = function (message, channel
 
 OPCUAServer.prototype._on_DeleteSubscriptionsRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof DeleteSubscriptionsRequest);
     this._apply_on_SubscriptionIds(DeleteSubscriptionsResponse, message, channel, function (session, subscriptionId) {
 
-        var subscription = server.engine.findOrphanSubscription(subscriptionId);
+        const subscription = server.engine.findOrphanSubscription(subscriptionId);
         if (subscription) {
             return server.engine.deleteOrphanSubscription(subscription);
         }
@@ -2111,10 +2111,10 @@ OPCUAServer.prototype._on_TransferSubscriptionsRequest = function (message, chan
     //    This parameter only applies to MonitoredItems used for monitoring Attribute changes.
     //
 
-    var server = this;
-    var engine = server.engine;
+    const server = this;
+    const engine = server.engine;
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof TransferSubscriptionsRequest);
     this._apply_on_SubscriptionIds(TransferSubscriptionsResponse, message, channel, function (session, subscriptionId) {
         return engine.transferSubscription(session, subscriptionId, request.sendInitialValues);
@@ -2124,12 +2124,12 @@ OPCUAServer.prototype._on_TransferSubscriptionsRequest = function (message, chan
 
 OPCUAServer.prototype.prepare = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
 
     // --- check that session is correct
-    var authenticationToken = request.requestHeader.authenticationToken;
-    var session = server.getSession(authenticationToken, /*activeOnly*/true);
+    const authenticationToken = request.requestHeader.authenticationToken;
+    const session = server.getSession(authenticationToken, /*activeOnly*/true);
     message.session = session;
     if (!session) {
         message.session_statusCode = StatusCodes.BadSessionIdInvalid;
@@ -2156,17 +2156,17 @@ OPCUAServer.prototype.prepare = function (message, channel) {
 
 OPCUAServer.prototype._on_CreateMonitoredItemsRequest = function (message, channel) {
 
-    var server = this;
-    var engine = server.engine;
-    var addressSpace = engine.addressSpace;
+    const server = this;
+    const engine = server.engine;
+    const addressSpace = engine.addressSpace;
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof CreateMonitoredItemsRequest);
 
 
     this._apply_on_Subscription(CreateMonitoredItemsResponse, message, channel, function (session, subscription, sendResponse,sendError) {
 
-        var timestampsToReturn = request.timestampsToReturn;
+        const timestampsToReturn = request.timestampsToReturn;
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             return sendError(StatusCodes.BadTimestampsToReturnInvalid);
         }
@@ -2181,10 +2181,10 @@ OPCUAServer.prototype._on_CreateMonitoredItemsRequest = function (message, chann
         }
 
 
-        var results = request.itemsToCreate.map(
+        const results = request.itemsToCreate.map(
             subscription.createMonitoredItem.bind(subscription, addressSpace, timestampsToReturn));
 
-        var response = new CreateMonitoredItemsResponse({
+        const response = new CreateMonitoredItemsResponse({
             responseHeader: {serviceResult: StatusCodes.Good},
             results: results
             //,diagnosticInfos: []
@@ -2196,19 +2196,19 @@ OPCUAServer.prototype._on_CreateMonitoredItemsRequest = function (message, chann
 
 };
 
-var ModifySubscriptionRequest = subscription_service.ModifySubscriptionRequest;
-var ModifySubscriptionResponse = subscription_service.ModifySubscriptionResponse;
+const ModifySubscriptionRequest = subscription_service.ModifySubscriptionRequest;
+const ModifySubscriptionResponse = subscription_service.ModifySubscriptionResponse;
 
 OPCUAServer.prototype._on_ModifySubscriptionRequest = function (message, channel) {
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof ModifySubscriptionRequest);
 
     this._apply_on_Subscription(ModifySubscriptionResponse, message, channel, function (session, subscription, sendResponse, sendError) {
 
         subscription.modify(request);
 
-        var response = new ModifySubscriptionResponse({
+        const response = new ModifySubscriptionResponse({
             revisedPublishingInterval: subscription.publishingInterval,
             revisedLifetimeCount: subscription.lifeTimeCount,
             revisedMaxKeepAliveCount: subscription.maxKeepAliveCount
@@ -2221,13 +2221,13 @@ OPCUAServer.prototype._on_ModifySubscriptionRequest = function (message, channel
 
 OPCUAServer.prototype._on_ModifyMonitoredItemsRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof ModifyMonitoredItemsRequest);
 
     this._apply_on_Subscription(ModifyMonitoredItemsResponse, message, channel, function (session, subscription, sendResponse,sendError) {
 
-        var timestampsToReturn = request.timestampsToReturn;
+        const timestampsToReturn = request.timestampsToReturn;
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             return sendError(StatusCodes.BadTimestampsToReturnInvalid);
         }
@@ -2241,12 +2241,12 @@ OPCUAServer.prototype._on_ModifyMonitoredItemsRequest = function (message, chann
             }
         }
 
-        var itemsToModify = request.itemsToModify; // MonitoredItemModifyRequest
+        const itemsToModify = request.itemsToModify; // MonitoredItemModifyRequest
 
         function modifyMonitoredItem(item) {
 
-            var monitoredItemId = item.monitoredItemId;
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+            const monitoredItemId = item.monitoredItemId;
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
             if (!monitoredItem) {
                 return new MonitoredItemModifyResult({statusCode: StatusCodes.BadMonitoredItemIdInvalid});
             }
@@ -2259,9 +2259,9 @@ OPCUAServer.prototype._on_ModifyMonitoredItemsRequest = function (message, chann
             return monitoredItem.modify(timestampsToReturn, item.requestedParameters);
         }
 
-        var results = itemsToModify.map(modifyMonitoredItem);
+        const results = itemsToModify.map(modifyMonitoredItem);
 
-        var response = new ModifyMonitoredItemsResponse({
+        const response = new ModifyMonitoredItemsResponse({
             results: results
         });
         sendResponse(response);
@@ -2271,7 +2271,7 @@ OPCUAServer.prototype._on_ModifyMonitoredItemsRequest = function (message, chann
 
 OPCUAServer.prototype._on_PublishRequest = function (message, channel) {
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof PublishRequest);
 
     this._apply_on_SessionObject(PublishResponse, message, channel, function (session, sendResponse, sendError) {
@@ -2286,17 +2286,17 @@ OPCUAServer.prototype._on_PublishRequest = function (message, channel) {
 
 OPCUAServer.prototype._on_SetPublishingModeRequest = function (message, channel) {
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof SetPublishingModeRequest);
-    var publishingEnabled = request.publishingEnabled;
+    const publishingEnabled = request.publishingEnabled;
     this._apply_on_Subscriptions(SetPublishingModeResponse, message, channel, function (session, subscription) {
         return subscription.setPublishingMode(publishingEnabled);
     });
 };
 
 OPCUAServer.prototype._on_DeleteMonitoredItemsRequest = function (message, channel) {
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof DeleteMonitoredItemsRequest);
 
     this._apply_on_Subscription(DeleteMonitoredItemsResponse, message, channel, function (session, subscription, sendResponse,sendError) {
@@ -2309,11 +2309,11 @@ OPCUAServer.prototype._on_DeleteMonitoredItemsRequest = function (message, chann
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
-        var results = request.monitoredItemIds.map(function (monitoredItemId) {
+        const results = request.monitoredItemIds.map(function (monitoredItemId) {
             return subscription.removeMonitoredItem(monitoredItemId);
         });
 
-        var response = new DeleteMonitoredItemsResponse({
+        const response = new DeleteMonitoredItemsResponse({
             results: results,
             diagnosticInfos: null
         });
@@ -2324,7 +2324,7 @@ OPCUAServer.prototype._on_DeleteMonitoredItemsRequest = function (message, chann
 
 OPCUAServer.prototype._on_RepublishRequest = function (message, channel) {
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof RepublishRequest);
 
     this._apply_on_Subscription(RepublishResponse, message, channel, function (session, subscription, sendResponse, sendError) {
@@ -2332,13 +2332,13 @@ OPCUAServer.prototype._on_RepublishRequest = function (message, channel) {
         // update diagnostic counter
         subscription.subscriptionDiagnostics.republishRequestCount += 1;
 
-        var retransmitSequenceNumber = request.retransmitSequenceNumber;
-        var msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+        const retransmitSequenceNumber = request.retransmitSequenceNumber;
+        const msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
 
         if (!msgSequence) {
             return sendError(StatusCodes.BadMessageNotAvailable);
         }
-        var response = new RepublishResponse({
+        const response = new RepublishResponse({
             responseHeader: {
                 serviceResult: StatusCodes.Good
             },
@@ -2349,16 +2349,16 @@ OPCUAServer.prototype._on_RepublishRequest = function (message, channel) {
     });
 };
 
-var SetMonitoringModeRequest = subscription_service.SetMonitoringModeRequest;
-var SetMonitoringModeResponse = subscription_service.SetMonitoringModeResponse;
+const SetMonitoringModeRequest = subscription_service.SetMonitoringModeRequest;
+const SetMonitoringModeResponse = subscription_service.SetMonitoringModeResponse;
 
 // Bad_NothingToDo
 // Bad_TooManyOperations
 // Bad_SubscriptionIdInvalid
 // Bad_MonitoringModeInvalid
 OPCUAServer.prototype._on_SetMonitoringModeRequest = function (message, channel) {
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof SetMonitoringModeRequest);
 
 
@@ -2372,15 +2372,15 @@ OPCUAServer.prototype._on_SetMonitoringModeRequest = function (message, channel)
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
-        var monitoringMode = request.monitoringMode;
+        const monitoringMode = request.monitoringMode;
 
         if (monitoringMode === subscription_service.MonitoringMode.Invalid) {
             return sendError(StatusCodes.BadMonitoringModeInvalid);
         }
 
-        var results = request.monitoredItemIds.map(function (monitoredItemId) {
+        const results = request.monitoredItemIds.map(function (monitoredItemId) {
 
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
             if (!monitoredItem) {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }
@@ -2388,7 +2388,7 @@ OPCUAServer.prototype._on_SetMonitoringModeRequest = function (message, channel)
             return StatusCodes.Good;
         });
 
-        var response = new SetMonitoringModeResponse({
+        const response = new SetMonitoringModeResponse({
             results: results
         });
         sendResponse(response);
@@ -2399,9 +2399,9 @@ OPCUAServer.prototype._on_SetMonitoringModeRequest = function (message, channel)
 // _on_TranslateBrowsePathsToNodeIds service
 OPCUAServer.prototype._on_TranslateBrowsePathsToNodeIdsRequest = function (message, channel) {
 
-    var request = message.request;
+    const request = message.request;
     assert(request instanceof TranslateBrowsePathsToNodeIdsRequest);
-    var server = this;
+    const server = this;
 
 
     this._apply_on_SessionObject(TranslateBrowsePathsToNodeIdsResponse, message, channel, function (session,sendResponse, sendError) {
@@ -2415,10 +2415,10 @@ OPCUAServer.prototype._on_TranslateBrowsePathsToNodeIdsRequest = function (messa
             }
         }
 
-        var browsePathResults = request.browsePath.map(function (browsePath) {
+        const browsePathResults = request.browsePath.map(function (browsePath) {
             return server.engine.browsePath(browsePath);
         });
-        var response = new TranslateBrowsePathsToNodeIdsResponse({
+        const response = new TranslateBrowsePathsToNodeIdsResponse({
             results: browsePathResults,
             diagnosticInfos: null
         });
@@ -2445,41 +2445,41 @@ OPCUAServer.prototype._on_TranslateBrowsePathsToNodeIdsRequest = function (messa
 //                               A server shall accept a ByteString if an array of Byte is expected.
 // Bad_NoCommunication
 
-var getMethodDeclaration_ArgumentList = require("node-opcua-address-space").getMethodDeclaration_ArgumentList;
-var verifyArguments_ArgumentList = require("node-opcua-address-space").verifyArguments_ArgumentList;
+const getMethodDeclaration_ArgumentList = require("node-opcua-address-space").getMethodDeclaration_ArgumentList;
+const verifyArguments_ArgumentList = require("node-opcua-address-space").verifyArguments_ArgumentList;
 
 function callMethod(session, callMethodRequest, callback) {
     /* jshint validthis: true */
-    var server = this;
-    var addressSpace = server.engine.addressSpace;
+    const server = this;
+    const addressSpace = server.engine.addressSpace;
 
-    var objectId = callMethodRequest.objectId;
-    var methodId = callMethodRequest.methodId;
-    var inputArguments = callMethodRequest.inputArguments;
+    const objectId = callMethodRequest.objectId;
+    const methodId = callMethodRequest.methodId;
+    const inputArguments = callMethodRequest.inputArguments;
 
     assert(objectId instanceof NodeId);
     assert(methodId instanceof NodeId);
 
 
-    var response = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
+    let response = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
 
     if (response.statusCode !== StatusCodes.Good) {
         return callback(null, {statusCode: response.statusCode});
     }
-    var methodDeclaration = response.methodDeclaration;
+    const methodDeclaration = response.methodDeclaration;
 
     // verify input Parameters
-    var methodInputArguments = methodDeclaration.getInputArguments();
+    const methodInputArguments = methodDeclaration.getInputArguments();
 
     response = verifyArguments_ArgumentList(addressSpace, methodInputArguments, inputArguments);
     if (response.statusCode !== StatusCodes.Good) {
         return callback(null, response);
     }
 
-    var methodObj = addressSpace.findNode(methodId);
+    const methodObj = addressSpace.findNode(methodId);
 
     // invoke method on object
-    var context = new SessionContext({
+    const context = new SessionContext({
         session: session,
         object: addressSpace.findNode(objectId),
         server: server
@@ -2517,13 +2517,13 @@ function callMethod(session, callMethodRequest, callback) {
 //
 OPCUAServer.prototype._on_CallRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof CallRequest);
 
     this._apply_on_SessionObject(CallResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var response;
+        let response;
 
         if (!request.methodsToCall || request.methodsToCall.length === 0) {
             return sendError(StatusCodes.BadNothingToDo);
@@ -2531,7 +2531,7 @@ OPCUAServer.prototype._on_CallRequest = function (message, channel) {
 
         // the MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array when
         // a Client calls the Call Service.
-        var maxNodesPerMethodCall = server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
+        let maxNodesPerMethodCall = server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
         maxNodesPerMethodCall = maxNodesPerMethodCall <= 0 ? 1000 : maxNodesPerMethodCall;
         if (request.methodsToCall.length >= maxNodesPerMethodCall) {
             return sendError(StatusCodes.BadTooManyOperations);
@@ -2557,14 +2557,14 @@ OPCUAServer.prototype._on_CallRequest = function (message, channel) {
 
 
 OPCUAServer.prototype._on_RegisterNodesRequest = function (message, channel) {
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof RegisterNodesRequest);
     //xx var server = this;
 
     this._apply_on_SessionObject(RegisterNodesResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var response;
+        let response;
 
         if (!request.nodesToRegister || request.nodesToRegister.length === 0) {
             response = new RegisterNodesResponse({responseHeader: {serviceResult: StatusCodes.BadNothingToDo}});
@@ -2582,7 +2582,7 @@ OPCUAServer.prototype._on_RegisterNodesRequest = function (message, channel) {
         // is recommended that the Server return a numeric NodeIds for aliasing.
         // In case no optimization is supported for a Node, the Server shall return the
         // NodeId from the request.
-        var registeredNodeIds = request.nodesToRegister.map(nodeId => session.registerNode(nodeId));
+        const registeredNodeIds = request.nodesToRegister.map(nodeId => session.registerNode(nodeId));
 
         response = new RegisterNodesResponse({
             registeredNodeIds: registeredNodeIds
@@ -2592,14 +2592,14 @@ OPCUAServer.prototype._on_RegisterNodesRequest = function (message, channel) {
 };
 OPCUAServer.prototype._on_UnregisterNodesRequest = function (message, channel) {
 
-    var server = this;
-    var request = message.request;
+    const server = this;
+    const request = message.request;
     assert(request instanceof UnregisterNodesRequest);
     //xx var server = this;
 
     this._apply_on_SessionObject(UnregisterNodesResponse, message, channel, function (session, sendResponse, sendError) {
 
-        var response;
+        let response;
 
         if (!request.nodesToUnregister || request.nodesToUnregister.length === 0) {
             response = new UnregisterNodesResponse({responseHeader: {serviceResult: StatusCodes.BadNothingToDo}});
@@ -2628,7 +2628,7 @@ OPCUAServer.prototype._on_Cancel = function (message, channel) {
 // This Service Set defines Services to add and delete AddressSpace Nodes and References between them. All added
 // Nodes continue to exist in the AddressSpace even if the Client that created them disconnects from the Server.
 //
-var node_managment_service = require("node-opcua-service-node-management");
+const node_managment_service = require("node-opcua-service-node-management");
 
 OPCUAServer.prototype._on_AddNodes = function (message, channel) {
     return g_sendError(channel, message, node_managment_service.AddNodesResponse, StatusCodes.BadNotImplemented);
@@ -2670,7 +2670,7 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
 
 
     function findSecureEndpoint(endpoints) {
-        var endpoint = endpoints.filter(function (e) {
+        let endpoint = endpoints.filter(function (e) {
             return e.securityMode === MessageSecurityMode.SIGNANDENCRYPT;
         });
         if (endpoint.length === 0) {
@@ -2687,15 +2687,15 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
     }
 
 
-    var self = this;
+    const self = this;
     assert(self.serverType, " must have a valid server Type");
 
-    var client = new OPCUAClientBase({
+    let client = new OPCUAClientBase({
         certificateFile: self.certificateFile,
         privateKeyFile: self.privateKeyFile
     });
 
-    var discoveryServerCertificateChain = null;
+    let discoveryServerCertificateChain = null;
 
     async.series([
 
@@ -2709,7 +2709,7 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
             client.getEndpointsRequest(function (err, endpoints) {
                 if (!err) {
 
-                    var endpoint = findSecureEndpoint(endpoints);
+                    const endpoint = findSecureEndpoint(endpoints);
                     assert(endpoint);
                     if (endpoint.serverCertificate) {
                         assert(endpoint.serverCertificate);
@@ -2731,7 +2731,7 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
             if (!discoveryServerCertificateChain) { return callback(); }
             //xx var discoveryServerCertificate = split_der(discoveryServerCertificateChain)[0];
 
-            var options = {
+            const options = {
                 securityMode: MessageSecurityMode.SIGN,
                 securityPolicy: SecurityPolicy.Basic128Rsa15,
                 serverCertificate: discoveryServerCertificateChain,
@@ -2759,9 +2759,9 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
         function (callback) {
             if (!discoveryServerCertificateChain) { return callback(); }
 
-            var discoveryUrls = self.getDiscoveryUrls();
+            const discoveryUrls = self.getDiscoveryUrls();
 
-            var request = new RegisterServerRequest({
+            const request = new RegisterServerRequest({
                 server: {
 
                     // The globally unique identifier for the Server instance. The serverUri matches

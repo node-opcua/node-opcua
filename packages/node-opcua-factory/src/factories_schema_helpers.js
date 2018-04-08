@@ -5,19 +5,19 @@
 
 
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 
-var _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
-var TypeSchema = require("./factories_builtin_types").TypeSchema;
+const _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
+const TypeSchema = require("./factories_builtin_types").TypeSchema;
 
-var _enumerations = require("./factories_enumerations")._private._enumerations;
-var getFactory = require("./factories_factories").getFactory;
+const _enumerations = require("./factories_enumerations")._private._enumerations;
+const getFactory = require("./factories_factories").getFactory;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 exports.doDebug = !!process.env.DEBUG_CLASS;
 
-var display_trace_from_this_projet_only = require("node-opcua-utils").display_trace_from_this_projet_only;
+const display_trace_from_this_projet_only = require("node-opcua-utils").display_trace_from_this_projet_only;
 
 
 /**
@@ -43,13 +43,13 @@ exports.check_schema_correctness = check_schema_correctness;
  */
 function get_base_schema(schema) {
 
-    var base_schema = schema._base_schema;
+    let base_schema = schema._base_schema;
     if (base_schema) {
         return base_schema;
     }
 
     if (schema.baseType && schema.baseType !== "BaseUAObject") {
-        var baseType = getFactory(schema.baseType);
+        const baseType = getFactory(schema.baseType);
 
         // istanbul ignore next
         if (!baseType) {
@@ -80,15 +80,15 @@ function extract_all_fields(schema) {
         return schema._possible_fields;
     }
     // extract the possible fields from the schema.
-    var possible_fields = schema.fields.map(function (field) {
+    let possible_fields = schema.fields.map(function (field) {
         return field.name;
     });
 
-    var base_schema = get_base_schema(schema);
+    const base_schema = get_base_schema(schema);
 
     // istanbul ignore next
     if (base_schema) {
-        var fields = extract_all_fields(base_schema);
+        const fields = extract_all_fields(base_schema);
         possible_fields = fields.concat(possible_fields);
     }
 
@@ -113,7 +113,7 @@ function check_options_correctness_against_schema(obj, schema, options) {
 
     // istanbul ignore next
     if (!_.isObject(options)) {
-        var message = " Invalid options specified while trying to construct a ".red.bold + " " + schema.name.yellow;
+        let message = " Invalid options specified while trying to construct a ".red.bold + " " + schema.name.yellow;
         message += " expecting a ".red.bold + " Object ".yellow;
         message += " and got a ".red.bold + (typeof options).yellow + " instead ".red.bold;
         console.log(" Schema  = ", schema);
@@ -127,14 +127,14 @@ function check_options_correctness_against_schema(obj, schema, options) {
     }
 
     // extract the possible fields from the schema.
-    var possible_fields = obj.constructor.possibleFields;
+    const possible_fields = obj.constructor.possibleFields;
 
     // extracts the fields exposed by the option object
-    var current_fields = Object.keys(options);
+    const current_fields = Object.keys(options);
 
 
     // get a list of field that are in the 'options' object but not in schema
-    var invalid_options_fields = _.difference(current_fields, possible_fields);
+    const invalid_options_fields = _.difference(current_fields, possible_fields);
 
     /* istanbul ignore next */
     if (invalid_options_fields.length > 0) {
@@ -156,7 +156,7 @@ exports.check_options_correctness_against_schema = check_options_correctness_aga
 function __field_category(field) {
 
     if (!field.category) {
-        var fieldType = field.fieldType;
+        const fieldType = field.fieldType;
 
         if (_enumerations[fieldType]) {
 
@@ -205,7 +205,6 @@ function resolve_schema_field_types(schema) {
             field.schema = schema;
         } else {
             __field_category(field);
-
         }
         assert(field.category);
     }
@@ -222,13 +221,13 @@ exports.resolve_schema_field_types = resolve_schema_field_types;
  */
 exports.initialize_field = function (field, value) {
 
-    var _t = field.schema;
+    const _t = field.schema;
     assert(_t instanceof TypeSchema);
     assert(_.isObject(_t), "expecting a object here ");
     assert(_.isObject(field));
     assert(!field.isArray);
 
-    var defaultValue = _t.computer_default_value(field.defaultValue);
+    const defaultValue = _t.computer_default_value(field.defaultValue);
 
     value = _t.initialize_value(value, defaultValue);
 
@@ -275,9 +274,9 @@ exports.initialize_field = function (field, value) {
  */
 exports.initialize_field_array = function (field, valueArray) {
 
-    var _t = field.schema;
+    const _t = field.schema;
 
-    var value, i;
+    let value, i;
     assert(_.isObject(field));
     assert(field.isArray);
 
@@ -286,9 +285,9 @@ exports.initialize_field_array = function (field, valueArray) {
     }
 
     valueArray = valueArray || [];
-    var defaultValue = _t.computer_default_value(field.defaultValue);
+    const defaultValue = _t.computer_default_value(field.defaultValue);
 
-    var arr = [];
+    const arr = [];
     for (i = 0; i < valueArray.length; i++) {
         value = _t.initialize_value(valueArray[i], defaultValue);
         arr.push(value);

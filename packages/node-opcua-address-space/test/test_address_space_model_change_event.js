@@ -1,13 +1,13 @@
 "use strict";
 
 
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
 
-var generate_address_space = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
-var standard_nodeset_file = require("node-opcua-nodesets").standard_nodeset_file;
+const generate_address_space = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
+const standard_nodeset_file = require("node-opcua-nodesets").standard_nodeset_file;
 
 describe("address_space ModelChangeEvent",function(){
 
@@ -84,13 +84,13 @@ describe("address_space ModelChangeEvent",function(){
     //                         removed from a view but still exists in other Views.
     //
 
-    var addressSpace;
+    let addressSpace;
 
 
     before(function (done) {
         addressSpace = new AddressSpace();
 
-        var xml_files = standard_nodeset_file;
+        const xml_files = standard_nodeset_file;
 
         generate_address_space(addressSpace, xml_files, function (err) {
             done(err);
@@ -105,7 +105,7 @@ describe("address_space ModelChangeEvent",function(){
 
     function createNodeWithNodeVersion(addressSpace,options) {
 
-        var versionableNode = addressSpace.addObject({
+        const versionableNode = addressSpace.addObject({
             browseName: "VersionableNode" + options.browseName,
             nodeVersion: "0"
         });
@@ -115,21 +115,21 @@ describe("address_space ModelChangeEvent",function(){
     it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its NodeVersion when a object is added as one of its component",function() {
 
 
-        var node = createNodeWithNodeVersion(addressSpace,{ browseName: "1" });
+        const node = createNodeWithNodeVersion(addressSpace,{ browseName: "1" });
 
-        var nodeVersionBefore = node.nodeVersion.readValue().value.value;
+        const nodeVersionBefore = node.nodeVersion.readValue().value.value;
         nodeVersionBefore.toString().should.eql("1");
 
 
         sinon.spy(addressSpace,"_collectModelChange");
 
-        var n1 = addressSpace.addObject({
+        const n1 = addressSpace.addObject({
             componentOf: node,
             browseName: "SomeNode"
         });
 
 
-        var nodeVersionAfter = node.nodeVersion.readValue().value.value;
+        const nodeVersionAfter = node.nodeVersion.readValue().value.value;
         nodeVersionAfter.toString().should.eql("2");
 
         addressSpace.rootFolder.objects.server.on("event",function(eventData) {
@@ -145,13 +145,13 @@ describe("address_space ModelChangeEvent",function(){
         // -------------------------------------------------------------------------------------------------------------
         // Given :  a version-able node containing a component
         // -------------------------------------------------------------------------------------------------------------
-        var node = createNodeWithNodeVersion(addressSpace,{ browseName: "2" });
-        var n1 = addressSpace.addObject({
+        const node = createNodeWithNodeVersion(addressSpace,{ browseName: "2" });
+        const n1 = addressSpace.addObject({
             componentOf: node,
             browseName: "SomeNode"
         });
 
-        var nodeVersionBefore = node.nodeVersion.readValue().value.value;
+        const nodeVersionBefore = node.nodeVersion.readValue().value.value;
         nodeVersionBefore.toString().should.eql("2");
 
         sinon.spy(addressSpace,"_collectModelChange");
@@ -171,7 +171,7 @@ describe("address_space ModelChangeEvent",function(){
         addressSpace._collectModelChange.callCount.should.eql(2);
 
         //   2. node version should increase
-        var nodeVersionAfter = node.nodeVersion.readValue().value.value;
+        const nodeVersionAfter = node.nodeVersion.readValue().value.value;
         nodeVersionAfter.toString().should.eql("3");
 
         // -------------------------------------------------------------------------------------------------------------
@@ -183,13 +183,13 @@ describe("address_space ModelChangeEvent",function(){
     it("a node with a NodeVersion property shall trigger a ModelChangeEvent and update its NodeVersion when a reference is added",function() {
 
 
-        var n1 = addressSpace.addObject({
+        const n1 = addressSpace.addObject({
             browseName: "SomeNode3"
         });
 
-        var node = createNodeWithNodeVersion(addressSpace,{ browseName: "3" });
+        const node = createNodeWithNodeVersion(addressSpace,{ browseName: "3" });
 
-        var nodeVersionBefore = node.nodeVersion.readValue().value.value;
+        const nodeVersionBefore = node.nodeVersion.readValue().value.value;
         nodeVersionBefore.toString().should.eql("1");
 
 
@@ -197,7 +197,7 @@ describe("address_space ModelChangeEvent",function(){
 
         n1.addReference({referenceType: "Organizes", isForward: false, nodeId: node});
 
-        var nodeVersionAfter = node.nodeVersion.readValue().value.value;
+        const nodeVersionAfter = node.nodeVersion.readValue().value.value;
         nodeVersionAfter.toString().should.eql("2");
 
         addressSpace.rootFolder.objects.server.on("event",function(eventData) {
@@ -215,9 +215,9 @@ describe("address_space ModelChangeEvent",function(){
         // -------------------------------------------------------------------------------------------------------------
         // Given :  a version-able node containing a component
         // -------------------------------------------------------------------------------------------------------------
-        var node = createNodeWithNodeVersion(addressSpace,{ browseName: "3" });
+        const node = createNodeWithNodeVersion(addressSpace,{ browseName: "3" });
 
-        var nodeVersionBefore = node.nodeVersion.readValue().value.value;
+        const nodeVersionBefore = node.nodeVersion.readValue().value.value;
         nodeVersionBefore.toString().should.eql("1");
 
         sinon.spy(addressSpace,"_collectModelChange");
@@ -229,16 +229,16 @@ describe("address_space ModelChangeEvent",function(){
         // When:  many operations are applied to a node , within a ModelChange Scope
         // -------------------------------------------------------------------------------------------------------------
         addressSpace.modelChangeTransaction(function() {
-            var n1 = addressSpace.addObject({
+            const n1 = addressSpace.addObject({
                 componentOf: node,
                 browseName: "SomeNode2"
             });
-            var n2 = addressSpace.addObject({
+            const n2 = addressSpace.addObject({
                 componentOf: node,
                 browseName: "SomeNode2"
             });
 
-            var n3 = addressSpace.addObject({
+            const n3 = addressSpace.addObject({
                 componentOf: node,
                 browseName: "SomeNode3"
             });
@@ -252,7 +252,7 @@ describe("address_space ModelChangeEvent",function(){
         addressSpace._collectModelChange.callCount.should.eql(8);
 
         //   2. node version should increase ony by one
-        var nodeVersionAfter = node.nodeVersion.readValue().value.value;
+        const nodeVersionAfter = node.nodeVersion.readValue().value.value;
         nodeVersionAfter.toString().should.eql("2");
 
         // -------------------------------------------------------------------------------------------------------------

@@ -1,27 +1,27 @@
 "use strict";
-var path = require("path");
-var should = require("should");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
+const path = require("path");
+const should = require("should");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var UAStateMachine = require("../..").UAStateMachine;
+const UAStateMachine = require("../..").UAStateMachine;
 
-var AddressSpace = require("../..").AddressSpace;
-var generate_address_space = require("../..").generate_address_space;
+const AddressSpace = require("../..").AddressSpace;
+const generate_address_space = require("../..").generate_address_space;
 
-var doDebug = false;
+const doDebug = false;
 
 // make sure extra error checking is made on object constructions
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Finite State Machine", function () {
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
 
         addressSpace = new AddressSpace();
-        var xml_files = [
+        const xml_files = [
             // opcua.mini_nodeset_filename,
             path.join(__dirname, "../../test_helpers/test_fixtures/fixture_simple_statemachine_nodeset2.xml")
         ];
@@ -39,7 +39,7 @@ describe("Testing Finite State Machine", function () {
 
     it("finite state machine should have expected mandatory and optional fields", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
         stateMachineType.currentState.modellingRule.should.eql("Mandatory");
         stateMachineType.currentState.id.modellingRule.should.eql("Mandatory");
@@ -63,9 +63,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should instantiate a finite state machine", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        var stateMachine = stateMachineType.instantiate({browseName: "MyStateMachine"});
+        const stateMachine = stateMachineType.instantiate({browseName: "MyStateMachine"});
 
         stateMachine.getComponentByName("CurrentState").browseName.toString().should.eql("CurrentState");
 
@@ -79,9 +79,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should instantiate a finite state machine with lastTransition", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        var stateMachine = stateMachineType.instantiate({
+        const stateMachine = stateMachineType.instantiate({
             browseName: "MyStateMachine",
             optionals: ["LastTransition"]
         });
@@ -97,9 +97,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should bind a finite state machine state variable", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        var stateMachine = stateMachineType.instantiate({
+        const stateMachine = stateMachineType.instantiate({
             browseName: "MyStateMachine2",
             optionals: ["LastTransition"]
         });
@@ -124,7 +124,7 @@ describe("Testing Finite State Machine", function () {
 
     it("should explore FiniteStateMachineType", function (done) {
 
-        var finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
+        const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
 
         finiteStateMachineType.currentState.modellingRule.should.eql("Mandatory");
         finiteStateMachineType.currentState.id.modellingRule.should.eql("Mandatory");
@@ -145,12 +145,12 @@ describe("Testing Finite State Machine", function () {
 
 
     it("should handle a FiniteStateMachine Type defined in a nodeset.xml file", function () {
-        var exclusiveLimitStateMachineType = addressSpace.findObjectType("ExclusiveLimitStateMachineType");
+        const exclusiveLimitStateMachineType = addressSpace.findObjectType("ExclusiveLimitStateMachineType");
         exclusiveLimitStateMachineType.browseName.toString().should.eql("ExclusiveLimitStateMachineType");
 
         // instantiate a state machine
 
-        var myStateMachine = exclusiveLimitStateMachineType.instantiate({
+        const myStateMachine = exclusiveLimitStateMachineType.instantiate({
             browseName: "MyStateMachine"
         });
         if (doDebug) {
@@ -159,9 +159,9 @@ describe("Testing Finite State Machine", function () {
         UAStateMachine.promote(myStateMachine);
 
         // get the states
-        var a = myStateMachine.getStates().map(function (e) {
+        const a = myStateMachine.getStates().map(function (e) {
 
-            var stateNumber = e.stateNumber.readValue().value.value;
+            const stateNumber = e.stateNumber.readValue().value.value;
             return e.browseName.toString() + ( (stateNumber !== null ) ? (" ( " + stateNumber + " )") : "" );
         });
 
@@ -170,8 +170,8 @@ describe("Testing Finite State Machine", function () {
         }
 
         // get the transitions
-        var t = myStateMachine.getTransitions().map(function (e) {
-            var transitionNumber = e.transitionNumber.readValue().value.value;
+        const t = myStateMachine.getTransitions().map(function (e) {
+            const transitionNumber = e.transitionNumber.readValue().value.value;
             return e.browseName.toString() + ( (transitionNumber !== null ) ? (" ( " + transitionNumber + " )") : "" );
 
         });
@@ -194,13 +194,13 @@ describe("Testing Finite State Machine", function () {
         myStateMachine.setState(myStateMachine.getStates()[3]);
 
 
-        var lowlowState = myStateMachine.getStateByName("LowLow");
+        const lowlowState = myStateMachine.getStateByName("LowLow");
         lowlowState.browseName.toString().should.eql("LowLow");
 
-        var lowState = myStateMachine.getStateByName("Low");
+        const lowState = myStateMachine.getStateByName("Low");
         lowState.browseName.toString().should.eql("Low");
 
-        var lowToLowLowTransition = myStateMachine.findTransitionNode(lowState, lowlowState);
+        const lowToLowLowTransition = myStateMachine.findTransitionNode(lowState, lowlowState);
 
         lowToLowLowTransition.browseName.toString().should.eql("LowToLowLow");
 
@@ -231,7 +231,7 @@ describe("Testing Finite State Machine", function () {
          */
 
 
-        var myFiniteStateMachine = addressSpace.addObjectType({
+        const myFiniteStateMachine = addressSpace.addObjectType({
             browseName: "MyFiniteStateMachine",
             subtypeOf: "FiniteStateMachineType"
         });

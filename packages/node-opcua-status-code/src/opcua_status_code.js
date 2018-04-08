@@ -3,13 +3,13 @@
  * @module opcua.status-code
  */
 
-var util = require("util");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
 
-var StatusCodes = require("node-opcua-constants").StatusCodes;
+const StatusCodes = require("node-opcua-constants").StatusCodes;
 
-var extraStatusCodeBits = {
+const extraStatusCodeBits = {
 
 // StatusCode Special bits
 //
@@ -178,7 +178,7 @@ StatusCode.prototype.equals = function equals(other) {
     return this.value === other.value;
 };
 
-var encodeStatusCode = function (statusCode, stream) {
+const encodeStatusCode = function (statusCode, stream) {
     assert(statusCode instanceof StatusCode || statusCode instanceof ConstantStatusCode);
     stream.writeUInt32(statusCode.value);
 };
@@ -186,25 +186,25 @@ var encodeStatusCode = function (statusCode, stream) {
 exports.encodeStatusCode = encodeStatusCode;
 
 function b(c) {
-    var tmp ="0000000000000000000000"+(c >>>0).toString(2);
+    const tmp ="0000000000000000000000"+(c >>>0).toString(2);
     return tmp.substr(-32);
 }
-var decodeStatusCode = function (stream) {
-    var code = stream.readUInt32();
+const decodeStatusCode = function (stream) {
+    const code = stream.readUInt32();
 
-    var code_without_info_bits = (code &  0xFFFF0000)>>>0;
-    var info_bits = code & 0x0000FFFF;
+    const code_without_info_bits = (code &  0xFFFF0000)>>>0;
+    const info_bits = code & 0x0000FFFF;
     //xx console.log(b(mask));
     //xx console.log(b(~mask));
     //xx console.log(b(code));
     //xx console.log(b(code_without_info_bits));
-    var sc = StatusCodes_reverse_map[code_without_info_bits];
+    let sc = StatusCodes_reverse_map[code_without_info_bits];
     if(!sc) {
         sc = StatusCodes.Bad;
         console.warn("expecting a known StatusCode but got 0x"+ code_without_info_bits.toString(16));
     }
     if (info_bits) {
-        var tmp = new ModifiableStatusCode({_base: sc});
+        const tmp = new ModifiableStatusCode({_base: sc});
         tmp.set(info_bits);
         sc =tmp;
     }
@@ -240,8 +240,8 @@ util.inherits(ModifiableStatusCode, StatusCode);
 
 ModifiableStatusCode.prototype._getExtraName= function() {
 
-    var self = this;
-    var str = [];
+    const self = this;
+    const str = [];
     _.forEach(extraStatusCodeBits,function(value,key){
         if ((self._extraBits & value ) === value) {
             str.push(key);
@@ -271,14 +271,14 @@ ModifiableStatusCode.prototype.valueOf = function()  {
 ModifiableStatusCode.prototype.set = function(bit) {
 
     if (typeof bit === "string") {
-        var bitsarray = bit.split(" | ");
+        const bitsarray = bit.split(" | ");
         if (bitsarray.length > 1) {
-            for (var i = 0; i < bitsarray.length; i++) {
+            for (let i = 0; i < bitsarray.length; i++) {
                 this.set(bitsarray[i]);
             }
             return;
         }
-        var tmp = extraStatusCodeBits[bit];
+        const tmp = extraStatusCodeBits[bit];
         if (!tmp) {
             throw new Error("Invalid StatusCode Bit "+ bit);
         }
@@ -291,9 +291,9 @@ ModifiableStatusCode.prototype.unset = function(bit) {
 
     if (typeof bit === "string") {
 
-        var bitsarray = bit.split(" | ");
+        const bitsarray = bit.split(" | ");
         if (bitsarray.length > 1) {
-            for (var i = 0; i < bitsarray.length; i++) {
+            for (let i = 0; i < bitsarray.length; i++) {
 
                 console.log(" Unset",this._extraBits.toString(16));
                 this.unset(bitsarray[i]);
@@ -301,7 +301,7 @@ ModifiableStatusCode.prototype.unset = function(bit) {
             }
             return;
         }
-        var tmp = extraStatusCodeBits[bit];
+        const tmp = extraStatusCodeBits[bit];
         if (!tmp) {
             throw new Error("Invalid StatusCode Bit "+ bit);
         }
@@ -314,7 +314,7 @@ ModifiableStatusCode.prototype.unset = function(bit) {
 
 // return a status code that can be modified
 exports.StatusCodes.makeStatusCode = function(statusCode,optionalBits) {
-    var tmp = new ModifiableStatusCode({
+    const tmp = new ModifiableStatusCode({
         _base: statusCode
     });
     if (optionalBits) {

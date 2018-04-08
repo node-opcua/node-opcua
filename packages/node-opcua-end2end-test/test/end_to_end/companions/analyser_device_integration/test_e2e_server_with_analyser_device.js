@@ -1,21 +1,21 @@
 "use strict";
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
-var makeResultMask = opcua.makeResultMask;
+const makeResultMask = opcua.makeResultMask;
 
-var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
-var makeRefId = require("node-opcua-client-proxy").makeRefId;
+const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
+const makeRefId = require("node-opcua-client-proxy").makeRefId;
 
-var dumpStateMachineToGraphViz = require("node-opcua-address-space/test_helpers/dump_statemachine").dumpStateMachineToGraphViz;
-var dumpStateMachineToPlantUML = require("node-opcua-address-space/test_helpers/dump_statemachine").dumpStateMachineToPlantUML;
+const dumpStateMachineToGraphViz = require("node-opcua-address-space/test_helpers/dump_statemachine").dumpStateMachineToGraphViz;
+const dumpStateMachineToPlantUML = require("node-opcua-address-space/test_helpers/dump_statemachine").dumpStateMachineToPlantUML;
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
-var doDebug = false;
+const doDebug = false;
 
 function ns(namespaceIndex, browseName) {
     return namespaceIndex.toString() + ":" + browseName;
@@ -23,22 +23,22 @@ function ns(namespaceIndex, browseName) {
 
 function create_analyser_device(addressSpace) {
 
-    var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
-    var di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+    const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+    const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
 
-    var deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
+    const deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
     //xx console.log(deviceType.toString());
 
-    var analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);
+    const analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);
     //xx console.log(analyserDeviceType.toString());
 
-    var myAnalyserDeviceType = addressSpace.addObjectType({
+    const myAnalyserDeviceType = addressSpace.addObjectType({
         browseName: "MyAnalyserDeviceType",
         subtypeOf: analyserDeviceType
     });
 
 
-    var myAnalyser = myAnalyserDeviceType.instantiate({
+    const myAnalyser = myAnalyserDeviceType.instantiate({
         browseName: "MyAnalyser"
     });
     return myAnalyser;
@@ -46,18 +46,18 @@ function create_analyser_device(addressSpace) {
 }
 
 
-var build_server_with_temperature_device = require("../../../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("../../../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const build_server_with_temperature_device = require("../../../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
-    var server, client, endpointUrl;
+    let server, client, endpointUrl;
 
     this.timeout(Math.max(50000, this._timeout));
 
-    var server_options = {
+    const server_options = {
         port: 2000,
         nodeset_filename: [
             opcua.nodesets.standard_nodeset_file,
@@ -66,10 +66,10 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         ]
     };
 
-    var analyser_device;
-    var port = 2000;
+    let analyser_device;
+    let port = 2000;
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         port += 1;
         server = build_server_with_temperature_device(server_options, function (err) {
@@ -97,24 +97,24 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     it("should have a DeviceType in DI namespace", function () {
 
-        var di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         di_namespace.should.eql(2);
 
-        var deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
+        const deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
         (!!deviceType).should.eql(true, "DeviceType must exist in DI namespace");
     });
 
     it("should instantiate a DeviceType", function () {
 
-        var di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
-        var deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
+        const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        const deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
 
-        var myDeviceType = addressSpace.addObjectType({
+        const myDeviceType = addressSpace.addObjectType({
             browseName: "MyDeviceType",
             subtypeOf: addressSpace.findObjectType("DeviceType")
-        })
+        });
         //xx console.log(deviceType.toString());
-        var myDevice = myDeviceType.instantiate({
+        const myDevice = myDeviceType.instantiate({
             browseName: "MyDevice"
         });
     });
@@ -136,7 +136,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
             });
         }
         //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + objectType.browseName.toString());
-        var baseType = objectType.subtypeOfObj;
+        let baseType = objectType.subtypeOfObj;
 
         if (doDebug) {
             baseType.getComponents().forEach(function (c) {
@@ -156,12 +156,12 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     it("should instantiate a AnalyserChannelType", function () {
 
-        var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+        const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
 
-        var analyserChannelType = addressSpace.findObjectType("AnalyserChannelType", adi_namespace);
+        const analyserChannelType = addressSpace.findObjectType("AnalyserChannelType", adi_namespace);
         analyserChannelType.browseName.toString().should.eql("3:AnalyserChannelType");
 
-        var channel1 = analyserChannelType.instantiate({
+        const channel1 = analyserChannelType.instantiate({
             browseName: "__Channel1"
         });
 
@@ -172,7 +172,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
             dumpObjectType(analyserChannelType);
         }
 
-        var channel2 = analyserChannelType.instantiate({
+        const channel2 = analyserChannelType.instantiate({
             browseName: "__Channel2",
         });
 
@@ -191,11 +191,11 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         channel2.getComponentByName("2:ParameterSet").browseName.toString().should.eql("2:ParameterSet");
 
         // isEnable Property
-        var isEnableParameter_variation1 = channel2.parameterSet.getComponentByName("3:IsEnabled");
+        const isEnableParameter_variation1 = channel2.parameterSet.getComponentByName("3:IsEnabled");
         isEnableParameter_variation1.browseName.toString().should.eql("3:IsEnabled");
 
 
-        var isEnableParameter_variation2 = channel2.parameterSet.isEnabled;
+        const isEnableParameter_variation2 = channel2.parameterSet.isEnabled;
         isEnableParameter_variation2.browseName.toString().should.eql("3:IsEnabled");
 
         // verify that the isEnableParameter is also present in the "Configuration FunctionalGroup
@@ -214,14 +214,14 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     it("should have an AnalyserDeviceType", function () {
 
 
-        var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
-        var di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+        const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
 
         //xxx console.log(addressSpace.getNamespaceArray());
         di_namespace.should.eql(2);
         adi_namespace.should.eql(3);
 
-        var analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);
+        const analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);
 
         should.exist(analyserDeviceType);
 
@@ -231,9 +231,9 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     it("should have an AnalyserDeviceType v2", function () {
 
-        var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+        const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
 
-        var analyserDeviceType = addressSpace.findObjectType(ns(adi_namespace, "AnalyserDeviceType"));
+        const analyserDeviceType = addressSpace.findObjectType(ns(adi_namespace, "AnalyserDeviceType"));
 
         analyserDeviceType.browseName.toString().should.eql("3:AnalyserDeviceType");
 
@@ -247,7 +247,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     function dumpStateMachine(stateMachineType) {
 
-        var addressSpace = stateMachineType.addressSpace;
+        const addressSpace = stateMachineType.addressSpace;
         should(!!addressSpace).eql(true);
         // enumerate states from components
 
@@ -257,27 +257,27 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         // TransitionType
 
-        var initialStateType = addressSpace.findObjectType("InitialStateType");
+        const initialStateType = addressSpace.findObjectType("InitialStateType");
         should(!!initialStateType).eql(true);
 
-        var stateType = addressSpace.findObjectType("StateType");
+        const stateType = addressSpace.findObjectType("StateType");
         should(!!stateType).eql(true);
 
-        var transitionType = addressSpace.findObjectType("TransitionType");
+        const transitionType = addressSpace.findObjectType("TransitionType");
         should(!!transitionType).eql(true);
 
-        var browse_service = require("node-opcua-service-browse");
+        const browse_service = require("node-opcua-service-browse");
 
-        var resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
+        const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
-        var bd = new opcua.browse_service.BrowseDescription({
+        const bd = new opcua.browse_service.BrowseDescription({
             nodeId: stateMachineType.nodeId,
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: makeRefId("HasComponent"),
             resultMask: resultMask
 
         });
-        var results = stateMachineType.browseNode(bd);
+        const results = stateMachineType.browseNode(bd);
         if (doDebug) {
             results.forEach(function (result) {
                 console.log(result.toString());
@@ -308,8 +308,8 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
          5026 --> [*]
          @enduml
          */
-        var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
-        var analyserDeviceStateMachineType = addressSpace.findObjectType(ns(adi_namespace, "AnalyserDeviceStateMachineType"));
+        const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+        const analyserDeviceStateMachineType = addressSpace.findObjectType(ns(adi_namespace, "AnalyserDeviceStateMachineType"));
 
         analyserDeviceStateMachineType.browseName.toString().should.eql("3:AnalyserDeviceStateMachineType");
 
@@ -322,14 +322,14 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
                 dumpStateMachine(analyserDeviceStateMachineType);
             }
 
-            var proxyManager = new UAProxyManager(session);
+            const proxyManager = new UAProxyManager(session);
 
             async.series([
                 function (callback) {
                     proxyManager.start(callback);
                 },
                 function (callback) {
-                    var stateMachineTypeId = analyserDeviceStateMachineType.nodeId;
+                    const stateMachineTypeId = analyserDeviceStateMachineType.nodeId;
                     //"3:AnalyserDeviceStateMachineType";
 
                     proxyManager.getStateMachineType(stateMachineTypeId, function (err, obj) {
@@ -348,15 +348,15 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     it("ZZ1 should retrieve the AnalyserChannel_OperatingModeSubStateMachineType", function (done) {
 
 
-        var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+        const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
 
-        var subStateMachineType = addressSpace.findObjectType("AnalyserChannel_OperatingModeSubStateMachineType", adi_namespace);
+        const subStateMachineType = addressSpace.findObjectType("AnalyserChannel_OperatingModeSubStateMachineType", adi_namespace);
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeSubStateMachineType");
 
-        var UAStateMachine = require("node-opcua-address-space").UAStateMachine;
+        const UAStateMachine = require("node-opcua-address-space").UAStateMachine;
 
-        var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
+        const sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
         UAStateMachine.promote(sm);
 
@@ -374,15 +374,15 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     it("ZZ2 should retrieve the AnalyserChannel_OperatingModeExecuteSubStateMachineType", function (done) {
 
 
-        var adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+        const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
 
-        var subStateMachineType = addressSpace.findObjectType("AnalyserChannel_OperatingModeExecuteSubStateMachineType", adi_namespace);
+        const subStateMachineType = addressSpace.findObjectType("AnalyserChannel_OperatingModeExecuteSubStateMachineType", adi_namespace);
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeExecuteSubStateMachineType");
 
-        var UAStateMachine = require("node-opcua-address-space").UAStateMachine;
+        const UAStateMachine = require("node-opcua-address-space").UAStateMachine;
 
-        var sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
+        const sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
         UAStateMachine.promote(sm);
 

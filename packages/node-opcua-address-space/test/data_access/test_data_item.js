@@ -1,28 +1,28 @@
 "use strict";
 
-var should = require("should");
-var path = require("path");
-var fs= require("fs");
+const should = require("should");
+const path = require("path");
+const fs= require("fs");
 
 
-var standardUnits = require("node-opcua-data-access").standardUnits;
+const standardUnits = require("node-opcua-data-access").standardUnits;
 
-var nodesets = require("node-opcua-nodesets");
+const nodesets = require("node-opcua-nodesets");
 
-var AddressSpace = require("../../").AddressSpace;
-var generate_address_space = require("../..").generate_address_space;
+const AddressSpace = require("../../").AddressSpace;
+const generate_address_space = require("../..").generate_address_space;
 
 
 describe("DataAccess", function () {
 
 
-    var addressSpace;
-    var data = { };
+    let addressSpace;
+    const data = { };
     before(function (done) {
         addressSpace = new AddressSpace();
         data.addressSpace = addressSpace;
 
-        var xmlFiles = [
+        const xmlFiles = [
             nodesets.standard_nodeset_file
         ];
         fs.existsSync(xmlFiles[0]).should.eql(true);
@@ -52,75 +52,75 @@ describe("DataAccess", function () {
     //                                TwoStateDiscreteType  MultiStateDiscreteType  MultiStateValueDiscreteType
 
     it("should find a BaseDataVariableType in the addressSpace", function () {
-        var baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
+        const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
         baseDataVariableType.browseName.toString().should.eql("BaseDataVariableType");
         //xx baseDataVariableType.isAbstract.should.eql(true); ?
     });
 
     it("should find a DataItemType in the addressSpace", function () {
-        var dataItemType = addressSpace.findVariableType("DataItemType");
+        const dataItemType = addressSpace.findVariableType("DataItemType");
         dataItemType.browseName.toString().should.eql("DataItemType");
         //xxx dataItemType.isAbstract.should.eql(true);
     });
 
     it("should find a ArrayItemType in the addressSpace", function () {
-        var arrayItemType = addressSpace.findVariableType("ArrayItemType");
+        const arrayItemType = addressSpace.findVariableType("ArrayItemType");
         arrayItemType.browseName.toString().toString().should.eql("ArrayItemType");
     });
 
     it("should find a AnalogItemType in the addressSpace", function () {
-        var analogItemType = addressSpace.findVariableType("AnalogItemType");
+        const analogItemType = addressSpace.findVariableType("AnalogItemType");
         analogItemType.browseName.toString().should.eql("AnalogItemType");
     });
     it("should find a DiscreteItemType in the addressSpace", function () {
-        var discreteItemType = addressSpace.findVariableType("DiscreteItemType");
+        const discreteItemType = addressSpace.findVariableType("DiscreteItemType");
         discreteItemType.browseName.toString().should.eql("DiscreteItemType");
         discreteItemType.isAbstract.should.eql(true);
     });
 
     it("should find a TwoStateDiscreteType in the addressSpace", function () {
-        var twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
+        const twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
         twoStateDiscreteType.browseName.toString().should.eql("TwoStateDiscreteType");
     });
     it("should find a MultiStateDiscreteType in the addressSpace", function () {
-        var multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
+        const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
         multiStateDiscreteType.browseName.toString().should.eql("MultiStateDiscreteType");
     });
 
     it("should find a MultiStateValueDiscreteType in the addressSpace", function () {
-        var multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
+        const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
         multiStateValueDiscreteType.browseName.toString().should.eql("MultiStateValueDiscreteType");
     });
 
 
     it("should find a EUInformation in the addressSpace", function () {
-        var _EUInformation = addressSpace.findDataType("EUInformation");
+        const _EUInformation = addressSpace.findDataType("EUInformation");
         _EUInformation.browseName.toString().should.eql("EUInformation");
     });
 
     it("should find a Range in the addressSpace", function () {
-        var range = addressSpace.findDataType("Range");
+        const range = addressSpace.findDataType("Range");
         range.browseName.toString().should.eql("Range");
     });
 
     it("should have a UAVariableType XYArrayItemType", function () {
-        var xyArrayItemType = addressSpace.findVariableType("XYArrayItemType");
+        const xyArrayItemType = addressSpace.findVariableType("XYArrayItemType");
         xyArrayItemType.arrayDimensions.should.eql([0]);
     });
 
     it("should have a ImageItemType ", function () {
-        var xyArrayItemType = addressSpace.findVariableType("ImageItemType");
+        const xyArrayItemType = addressSpace.findVariableType("ImageItemType");
         xyArrayItemType.arrayDimensions.should.eql([0, 0]);
     });
 
     it("should have a CubeItemType ", function () {
-        var xyArrayItemType = addressSpace.findVariableType("CubeItemType");
+        const xyArrayItemType = addressSpace.findVariableType("CubeItemType");
         xyArrayItemType.arrayDimensions.should.eql([0, 0, 0]);
     });
 
     it("should encode and decode a string containing fancy characters", function (done) {
-        var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test
-        var engineeringUnits = standardUnits.degree_celsius;
+        const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+        const engineeringUnits = standardUnits.degree_celsius;
         encode_decode_round_trip_test(engineeringUnits, function (buffer, id) {
             buffer.length.should.equal(82);
             done();

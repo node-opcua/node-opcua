@@ -4,16 +4,16 @@
  * @module opcua.datamodel
  */
 
-var Enum = require("node-opcua-enum");
-var assert = require("node-opcua-assert");
-var isValidGuid = require("node-opcua-guid").isValidGuid;
-var emptyGuid = require("node-opcua-guid").emptyGuid;
-var _ = require("underscore");
+const Enum = require("node-opcua-enum");
+const assert = require("node-opcua-assert");
+const isValidGuid = require("node-opcua-guid").isValidGuid;
+const emptyGuid = require("node-opcua-guid").emptyGuid;
+const _ = require("underscore");
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.
  * @class NodeIdType
  */
-var NodeIdType = new Enum({
+const NodeIdType = new Enum({
     /**
      * @static
      * @property NUMERIC
@@ -110,8 +110,8 @@ NodeId.NodeIdType = NodeIdType;
  */
 NodeId.prototype.toString = function (options) {
 
-    var addressSpace = options ? options.addressSpace : null;
-    var str;
+    const addressSpace = options ? options.addressSpace : null;
+    let str;
     switch (this.identifierType) {
         case NodeIdType.NUMERIC:
             str = "ns=" + this.namespace + ";i=" + this.value;
@@ -135,12 +135,12 @@ NodeId.prototype.toString = function (options) {
     if (addressSpace) {
         if (this.namespace === 0 && (this.identifierType === NodeIdType.NUMERIC)) {
             // find standard browse name
-            var name = reverse_map(this.value) || "<undefined>";
+            const name = reverse_map(this.value) || "<undefined>";
             str += " " + name.green.bold;
         } else {
             // let use the provided address space to figure out the browseNode of this node.
             // to make the message a little bit more useful.
-            var n = addressSpace.findNode(this);
+            const n = addressSpace.findNode(this);
             str += " " + (n ? n.browseName.toString().green : " (????)");
         }
     }
@@ -181,10 +181,10 @@ NodeId.NullNodeId = new NodeId(NodeIdType.NUMERIC,0);
 exports.NodeId = NodeId;
 
 
-var rege_ns_i = /ns=([0-9]+);i=([0-9]+)/;
-var rege_ns_s = /ns=([0-9]+);s=(.*)/;
-var rege_ns_b = /ns=([0-9]+);b=(.*)/;
-var rege_ns_g = /ns=([0-9]+);g=(.*)/;
+const rege_ns_i = /ns=([0-9]+);i=([0-9]+)/;
+const rege_ns_s = /ns=([0-9]+);s=(.*)/;
+const rege_ns_b = /ns=([0-9]+);b=(.*)/;
+const rege_ns_g = /ns=([0-9]+);g=(.*)/;
 
 
 /**
@@ -203,7 +203,7 @@ var rege_ns_g = /ns=([0-9]+);g=(.*)/;
  */
 function coerceNodeId(value, namespace) {
 
-    var matches, two_first;
+    let matches, two_first;
 
     if (value instanceof NodeId) {
         return value;
@@ -212,7 +212,7 @@ function coerceNodeId(value, namespace) {
     value = value || 0;
     namespace = namespace || 0;
 
-    var identifierType = NodeIdType.NUMERIC;
+    let identifierType = NodeIdType.NUMERIC;
 
     if (typeof value === "string") {
         identifierType = NodeIdType.STRING;
@@ -272,7 +272,7 @@ function coerceNodeId(value, namespace) {
     } else if (value instanceof Object) {
 
         // it could be a Enum or a NodeId Like object
-        var tmp = value;
+        const tmp = value;
         value = tmp.value;
         namespace = namespace || tmp.namespace;
         identifierType = tmp.identifierType || identifierType;
@@ -293,12 +293,12 @@ exports.coerceNodeId = coerceNodeId;
  * @param [namespace]=0 {Number} the node id namespace
  * @return {NodeId}
  */
-var makeNodeId = function makeNodeId(value, namespace) {
+const makeNodeId = function makeNodeId(value, namespace) {
 
     value = value || 0;
     namespace = namespace || 0;
 
-    var identifierType = NodeIdType.NUMERIC;
+    let identifierType = NodeIdType.NUMERIC;
     if (typeof value === "string") {
         //            1         2         3
         //  012345678901234567890123456789012345
@@ -314,7 +314,7 @@ var makeNodeId = function makeNodeId(value, namespace) {
         identifierType = NodeIdType.BYTESTRING;
     }
 
-    var nodeId = new NodeId(identifierType, value, namespace);
+    const nodeId = new NodeId(identifierType, value, namespace);
 
     assert(nodeId.hasOwnProperty("identifierType"));
 
@@ -323,26 +323,26 @@ var makeNodeId = function makeNodeId(value, namespace) {
 
 exports.makeNodeId = makeNodeId;
 
-var constants = require("node-opcua-constants");
+const constants = require("node-opcua-constants");
 
-var DataTypeIds = constants.DataTypeIds;
-var VariableIds = constants.VariableIds;
-var ObjectIds = constants.ObjectIds;
-var ObjectTypeIds = constants.ObjectTypeIds;
-var VariableTypeIds = constants.VariableTypeIds;
-var MethodIds = constants.MethodIds;
-var ReferenceTypeIds = constants.ReferenceTypeIds;
+const DataTypeIds = constants.DataTypeIds;
+const VariableIds = constants.VariableIds;
+const ObjectIds = constants.ObjectIds;
+const ObjectTypeIds = constants.ObjectTypeIds;
+const VariableTypeIds = constants.VariableTypeIds;
+const MethodIds = constants.MethodIds;
+const ReferenceTypeIds = constants.ReferenceTypeIds;
 
 // reverse maps
-var _nodeid_to_name_index = {};
-var _name_to_nodeid_index = {};
+let _nodeid_to_name_index = {};
+let _name_to_nodeid_index = {};
 
 (function build_standard_nodeid_indexes() {
 
     function expand_map(direct_index) {
-        for (var name in direct_index) {
+        for (const name in direct_index) {
             if (direct_index.hasOwnProperty(name)) {
-                var value = direct_index[name];
+                const value = direct_index[name];
                 _nodeid_to_name_index[value] = name;
                 _name_to_nodeid_index[name] = new NodeId(NodeIdType.NUMERIC, value, 0);
             }
@@ -375,9 +375,9 @@ function reverse_map(nodeId) {
  */
 function resolveNodeId(node_or_string) {
 
-    var nodeId;
+    let nodeId;
 
-    var raw_id = (typeof node_or_string === "string") ? _name_to_nodeid_index[node_or_string] : undefined ;
+    const raw_id = (typeof node_or_string === "string") ? _name_to_nodeid_index[node_or_string] : undefined;
     if (raw_id !== undefined) {
         return raw_id;
     } else {
@@ -397,7 +397,7 @@ exports.resolveNodeId = resolveNodeId;
 NodeId.prototype.displayText = function () {
 
     if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
-        var name = reverse_map(this.value);
+        const name = reverse_map(this.value);
         if (name) {
             return name + " (" + this.toString() + ")";
         }

@@ -2,7 +2,7 @@
   "name": "node-opcua",
   "version": "0.2.2",
   "private": true,
-  "description": "pure nodejs OPCUA SDK",
+  "description": "pnure nodejs OPCUA SDK",
   "homepage": "http://node-opcua.github.io/",
   "main": "index.js",
   "bin": {},
@@ -20,7 +20,9 @@
     "eslint-fix": "eslint --fix packages/*/src/**.js packages/*/__tests__/ utils/*.js scripts/*.js",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js",
-    "ncu": "ncu -au && node  ./node_modules/lerna/bin/lerna.js exec ncu -- -au"
+    "ncu": "ncu -au && node  ./node_modules/lerna/bin/lerna.js exec ncu -- -au",
+    "prettier-watch": "onchange \"packages/*/(src|test)/**/*.js\" -v -p -- prettier --write {{changed}}",
+    "lebab-let": "node  ./node_modules/lerna/bin/lerna.js exec lebab  --replace index.js  --transform let && node  ./node_modules/lerna/bin/lerna.js exec lebab  --replace test  --transform let && node  ./node_modules/lerna/bin/lerna.js exec lebab  --replace src  --transform let"
   },
   "repository": {
     "type": "git",

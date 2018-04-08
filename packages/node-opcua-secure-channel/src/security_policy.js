@@ -3,9 +3,9 @@
  * @module opcua.miscellaneous
  */
 
-var Enum = require("node-opcua-enum");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const Enum = require("node-opcua-enum");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
 /**
  * @class SecurityPolicy
@@ -62,7 +62,7 @@ var _ = require("underscore");
  *
  *
  */
-var SecurityPolicy = new Enum({
+const SecurityPolicy = new Enum({
     Invalid: "invalid",
     None: "http://opcfoundation.org/UA/SecurityPolicy#None",
     Basic128: "http://opcfoundation.org/UA/SecurityPolicy#Basic128",
@@ -79,17 +79,17 @@ exports.fromURI = function (uri) {
     if (typeof uri !== "string") {
         return SecurityPolicy.Invalid;
     }
-    var a = uri.split("#");
+    const a = uri.split("#");
     // istanbul ignore next
     if (a.length < 2) {
         return SecurityPolicy.Invalid;
     }
-    var v = SecurityPolicy[a[1]];
+    const v = SecurityPolicy[a[1]];
     return v || SecurityPolicy.Invalid;
 };
 
 exports.toURI = function (value) {
-    var securityPolicy = SecurityPolicy.get(value) || SecurityPolicy.Invalid;
+    const securityPolicy = SecurityPolicy.get(value) || SecurityPolicy.Invalid;
     if (securityPolicy === SecurityPolicy.Invalid) {
         throw new Error("trying to convert an invalid Security Policy into a URI: " + value);
     }
@@ -99,32 +99,32 @@ exports.toURI = function (value) {
 exports.SecurityPolicy = SecurityPolicy;
 
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto").crypto_utils;
 
 
 // --------------------
 function RSAPKCS1V15_Decrypt(buffer, privateKey) {
-    var block_size = crypto_utils.rsa_length(privateKey);
+    const block_size = crypto_utils.rsa_length(privateKey);
     return crypto_utils.privateDecrypt_long(buffer, privateKey, block_size, crypto_utils.RSA_PKCS1_PADDING);
 }
 function RSAOAEP_Decrypt(buffer, privateKey) {
-    var block_size = crypto_utils.rsa_length(privateKey);
+    const block_size = crypto_utils.rsa_length(privateKey);
     return crypto_utils.privateDecrypt_long(buffer, privateKey, block_size, crypto_utils.RSA_PKCS1_OAEP_PADDING);
 }
 // --------------------
 
 function asymmetricVerifyChunk(chunk, certificate) {
 
-    var crypto_factory = this;
+    const crypto_factory = this;
     assert(chunk instanceof Buffer);
     assert(certificate instanceof Buffer);
     // let's get the signatureLength by checking the size
     // of the certificate's public key
-    var cert = crypto_utils.exploreCertificate(certificate);
+    const cert = crypto_utils.exploreCertificate(certificate);
 
-    var signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
-    var block_to_verify = chunk.slice(0, chunk.length - signatureLength);
-    var signature = chunk.slice(chunk.length - signatureLength);
+    const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
+    const block_to_verify = chunk.slice(0, chunk.length - signatureLength);
+    const signature = chunk.slice(chunk.length - signatureLength);
     return crypto_factory.asymmetricVerify(block_to_verify, signature, certificate);
 
 }
@@ -132,16 +132,16 @@ function asymmetricVerifyChunk(chunk, certificate) {
 function RSAPKCS1V15SHA1_Verify(buffer, signature, certificate) {
     assert(certificate instanceof Buffer);
     assert(signature instanceof Buffer);
-    var options = {
+    const options = {
         algorithm: "RSA-SHA1",
         publicKey: crypto_utils.toPem(certificate, "CERTIFICATE")
     };
     return crypto_utils.verifyMessageChunkSignature(buffer, signature, options);
 }
-var RSAPKCS1OAEPSHA1_Verify = RSAPKCS1V15SHA1_Verify;
+const RSAPKCS1OAEPSHA1_Verify = RSAPKCS1V15SHA1_Verify;
 
 function RSAPKCS1OAEPSHA256_Verify(buffer, signature, certificate) {
-    var options = {
+    const options = {
         algorithm: "RSA-SHA256",
         publicKey: crypto_utils.toPem(certificate, "CERTIFICATE")
     };
@@ -154,7 +154,7 @@ function RSAPKCS1V15SHA1_Sign(buffer, privateKey) {
     if (privateKey instanceof Buffer) {
         privateKey = crypto_utils.toPem(privateKey, "RSA PRIVATE KEY");
     }
-    var params = {
+    const params = {
         signatureLength: crypto_utils.rsa_length(privateKey),
         algorithm: "RSA-SHA1",
         privateKey: privateKey
@@ -167,7 +167,7 @@ function RSAPKCS1V15SHA256_Sign(buffer, privateKey) {
     if (privateKey instanceof Buffer) {
         privateKey = crypto_utils.toPem(privateKey, "RSA PRIVATE KEY");
     }
-    var params = {
+    const params = {
         signatureLength: crypto_utils.rsa_length(privateKey),
         algorithm: "RSA-SHA256",
         privateKey: privateKey
@@ -175,16 +175,16 @@ function RSAPKCS1V15SHA256_Sign(buffer, privateKey) {
     return crypto_utils.makeMessageChunkSignature(buffer, params);
 }
 
-var RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
+const RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
 
 function RSAPKCS1V15_Encrypt(buffer, publicKey) {
 
-    var key_length = crypto_utils.rsa_length(publicKey);
+    const key_length = crypto_utils.rsa_length(publicKey);
     return crypto_utils.publicEncrypt_long(buffer, publicKey, key_length, 11, crypto_utils.RSA_PKCS1_PADDING);
 }
 
 function RSAOAEP_Encrypt(buffer, publicKey) {
-    var key_length = crypto_utils.rsa_length(publicKey);
+    const key_length = crypto_utils.rsa_length(publicKey);
     return crypto_utils.publicEncrypt_long(buffer, publicKey, key_length, 42, crypto_utils.RSA_PKCS1_OAEP_PADDING);
 }
 
@@ -192,17 +192,17 @@ function RSAOAEP_Encrypt(buffer, publicKey) {
 
 function compute_derived_keys(serverNonce, clientNonce) {
 
-    var self = this;
+    const self = this;
 
     // calculate derived keys
-    var derivedKeys = {
+    const derivedKeys = {
         derivedClientKeys: null,
         derivedServerKeys: null,
         algorithm: null
     };
 
     if (clientNonce && serverNonce) {
-        var options = {
+        const options = {
             signingKeyLength: self.derivedSignatureKeyLength,
             encryptingKeyLength: self.derivedEncryptionKeyLength,
             encryptingBlockSize: self.encryptingBlockSize,
@@ -219,7 +219,7 @@ function compute_derived_keys(serverNonce, clientNonce) {
 
 exports.compute_derived_keys = compute_derived_keys;
 
-var _Basic128Rsa15 = {
+const _Basic128Rsa15 = {
     securityPolicy: SecurityPolicy.Basic128Rsa15,
 
     symmetricKeyLength: 16,
@@ -251,7 +251,7 @@ var _Basic128Rsa15 = {
 
 };
 
-var _Basic256 = {
+const _Basic256 = {
     securityPolicy: SecurityPolicy.Basic256,
     symmetricKeyLength: 32,
     derivedEncryptionKeyLength: 32,
@@ -281,7 +281,7 @@ var _Basic256 = {
 };
 
 
-var _Basic256Sha256 = {
+const _Basic256Sha256 = {
     securityPolicy: SecurityPolicy.Basic256Sha256,
 
     symmetricKeyLength: 32,
@@ -330,8 +330,8 @@ function getCryptoFactory(securityPolicy) {
 }
 exports.getCryptoFactory = getCryptoFactory;
 
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
-var SignatureData = require("node-opcua-service-secure-channel").SignatureData;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const SignatureData = require("node-opcua-service-secure-channel").SignatureData;
 
 function computeSignature(senderCertificate, senderNonce, receiverPrivatekey, securityPolicy) {
 
@@ -339,15 +339,15 @@ function computeSignature(senderCertificate, senderNonce, receiverPrivatekey, se
         return null;
     }
 
-    var crypto_factory = getCryptoFactory(securityPolicy);
+    const crypto_factory = getCryptoFactory(securityPolicy);
     if (!crypto_factory) {
         return null;
     }
     // This parameter is calculated by appending the clientNonce to the clientCertificate
-    var buffer = Buffer.concat([senderCertificate, senderNonce]);
+    const buffer = Buffer.concat([senderCertificate, senderNonce]);
 
     // ... and signing the resulting sequence of bytes.
-    var signature = crypto_factory.asymmetricSign(buffer, receiverPrivatekey);
+    const signature = crypto_factory.asymmetricSign(buffer, receiverPrivatekey);
 
     return new SignatureData({
         // This is a signature generated with the private key associated with a Certificate
@@ -367,7 +367,7 @@ function verifySignature(receiverCertificate, receiverNonce, signature, senderCe
     if (securityPolicy === SecurityPolicy.None) {
         return true;
     }
-    var crypto_factory = getCryptoFactory(securityPolicy);
+    const crypto_factory = getCryptoFactory(securityPolicy);
     if (!crypto_factory) {
         return false;
     }
@@ -384,7 +384,7 @@ function verifySignature(receiverCertificate, receiverNonce, signature, senderCe
 
     assert(signature.signature instanceof Buffer);
     // This parameter is calculated by appending the clientNonce to the clientCertificate
-    var buffer = Buffer.concat([receiverCertificate, receiverNonce]);
+    const buffer = Buffer.concat([receiverCertificate, receiverNonce]);
 
     return crypto_factory.asymmetricVerify(buffer, signature.signature, senderCertificate);
 }
@@ -396,7 +396,7 @@ function getOptionsForSymmetricSignAndEncrypt(securityMode, derivedKeys) {
     assert(derivedKeys.hasOwnProperty("signatureLength"));
     assert(securityMode !== MessageSecurityMode.NONE && securityMode !== MessageSecurityMode.INVALID);
 
-    var options = {
+    let options = {
         signatureLength: derivedKeys.signatureLength,
         signingFunc: function (chunk) {
             return crypto_utils.makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys);

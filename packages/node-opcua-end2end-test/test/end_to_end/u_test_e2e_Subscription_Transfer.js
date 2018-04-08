@@ -4,39 +4,39 @@
 // We ARE checking if TransferSubscription is Bad_NotImplemented. If so, then the test result is a Warning with a message of Inconclusive. */
 /*global it,describe,beforeEach*/
 "use strict";
-var async = require("async");
-var should = require("should");
-var sinon = require("sinon");
+const async = require("async");
+const should = require("should");
+const sinon = require("sinon");
 
-var opcua = require("node-opcua");
-var StatusCodes = opcua.StatusCodes;
-var OPCUAClient = opcua.OPCUAClient;
-var ClientSubscription = opcua.ClientSubscription;
+const opcua = require("node-opcua");
+const StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSubscription = opcua.ClientSubscription;
 
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
     describe("#TSS TransferSessionService", function () {
 
-        var endpointUrl;
+        let endpointUrl;
         beforeEach(function (done) {
             endpointUrl = test.endpointUrl;
             done();
         });
-        var subscription;
+        let subscription;
 
-        var spy_on_terminated = new sinon.spy();
+        const spy_on_terminated = new sinon.spy();
 
         function create_subscription_and_close_session(callback) {
 
-            var client = new OPCUAClient();
-            var the_subscriptionId;
+            const client = new OPCUAClient();
+            let the_subscriptionId;
 
-            var the_session;
+            let the_session;
 
             async.series([
 
@@ -88,7 +88,7 @@ module.exports = function (test) {
 
         it("TSS-1 should transfer a subscription", function (done) {
 
-            var the_subscriptionId;
+            let the_subscriptionId;
             async.series([
 
                 function (callback) {
@@ -102,7 +102,7 @@ module.exports = function (test) {
                     callback();
                 },
                 function (callback) {
-                    var client2 = new OPCUAClient();
+                    const client2 = new OPCUAClient();
                     perform_operation_on_client_session(client2, endpointUrl, function (session, done) {
 
                         session.transferSubscriptions({
@@ -130,12 +130,12 @@ module.exports = function (test) {
 
         it("TSS-2 should transfer a subscription from a live session to an other", function (done) {
 
-            var client = new OPCUAClient();
+            const client = new OPCUAClient();
 
-            var the_subscriptionId;
+            let the_subscriptionId;
 
-            var the_session1;
-            var the_session2;
+            let the_session1;
+            let the_session2;
 
             async.series([
 
@@ -185,7 +185,7 @@ module.exports = function (test) {
 
                 // session2.transferSubscriptions
                 function (callback) {
-                    var options = {
+                    const options = {
                         subscriptionIds: [the_subscriptionId],
                         sendInitialValues: true
                     };
@@ -202,7 +202,7 @@ module.exports = function (test) {
                 // deleting subscription on session1 shall fail
                 function (callback) {
 
-                    var options = {
+                    const options = {
                         subscriptionIds: [the_subscriptionId]
                     };
 
@@ -217,7 +217,7 @@ module.exports = function (test) {
                 // deleting subscription on session2 shall succeed
                 function (callback) {
 
-                    var options = {
+                    const options = {
                         subscriptionIds: [the_subscriptionId]
                     };
 
@@ -251,10 +251,10 @@ module.exports = function (test) {
         });
 
         it("TSS-3 should send a StatusChangeNotification to the old session with GoodSubscriptionTransferred", function (done) {
-            var client = new OPCUAClient();
-            var spy_status_changed = new sinon.spy();
-            var the_session2;
-            var spy_keepalive = new sinon.spy();
+            const client = new OPCUAClient();
+            const spy_status_changed = new sinon.spy();
+            let the_session2;
+            const spy_keepalive = new sinon.spy();
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
@@ -263,7 +263,7 @@ module.exports = function (test) {
                 async.series([
                     function (callback) {
 
-                        var timeout = subscription.publishingInterval * 2;
+                        const timeout = subscription.publishingInterval * 2;
                         setTimeout(function () {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);
@@ -286,7 +286,7 @@ module.exports = function (test) {
 
                     // session2.transferSubscriptions
                     function (callback) {
-                        var options = {
+                        const options = {
                             subscriptionIds: [subscription.subscriptionId],
                             sendInitialValues: true
                         };
@@ -322,15 +322,15 @@ module.exports = function (test) {
 
         it("TSS-4 should resend initialValue on monitored Item", function (done) {
 
-            var client = new OPCUAClient();
-            var the_session2;
+            const client = new OPCUAClient();
+            let the_session2;
 
-            var itemToMonitor = new opcua.read_service.ReadValueId({
+            const itemToMonitor = new opcua.read_service.ReadValueId({
                 nodeId: "ns=411;s=Scalar_Static_Double",
                 attributeId: opcua.AttributeIds.Value
             });
 
-            var parameters = {
+            const parameters = {
                 clientHandle: 26,
                 samplingInterval: 250,
                 discardOldest: false,
@@ -339,17 +339,17 @@ module.exports = function (test) {
             };
 
 
-            var spy_publish_session1 = new sinon.spy();
-            var spy_publish_session2 = new sinon.spy();
+            const spy_publish_session1 = new sinon.spy();
+            const spy_publish_session2 = new sinon.spy();
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var subscriptionId;
+                let subscriptionId;
                 async.series([
 
                     // Create Subscription on session1
                     function (callback) {
-                        var request = new opcua.subscription_service.CreateSubscriptionRequest({
+                        const request = new opcua.subscription_service.CreateSubscriptionRequest({
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 1000,
                             requestedMaxKeepAliveCount: 30,
@@ -369,7 +369,7 @@ module.exports = function (test) {
                     // Create MonitoredItem on session1 with many publish request in queue
                     function (callback) {
                         // CreateMonitoredItemsRequest
-                        var request = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                        const request = new opcua.subscription_service.CreateMonitoredItemsRequest({
                             subscriptionId: subscriptionId,
                             timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
                             itemsToCreate: [
@@ -419,7 +419,7 @@ module.exports = function (test) {
 
                     // session2.transferSubscriptions
                     function (callback) {
-                        var options = {
+                        const options = {
                             subscriptionIds: [subscriptionId],
                             sendInitialValues: true
                         };
@@ -445,18 +445,18 @@ module.exports = function (test) {
 
                         //xx console.log("count = ", spy_publish_session1.callCount);
 
-                        var response0 = spy_publish_session1.getCall(0).args[1];
+                        const response0 = spy_publish_session1.getCall(0).args[1];
                         //xx console.log("response=",response0.toString());
                         response0.notificationMessage.notificationData.length.should.eql(1);
                         response0.subscriptionId.should.eql(subscriptionId);
-                        var notification0 = response0.notificationMessage.notificationData[0];
+                        const notification0 = response0.notificationMessage.notificationData[0];
                         notification0.constructor.name.should.eql("DataChangeNotification");
 
-                        var response1 = spy_publish_session1.getCall(1).args[1];
+                        const response1 = spy_publish_session1.getCall(1).args[1];
                         //xx console.log("response=",response1.toString());
                         response1.notificationMessage.notificationData.length.should.eql(1);
                         response1.subscriptionId.should.eql(subscriptionId);
-                        var notification1 = response1.notificationMessage.notificationData[0];
+                        const notification1 = response1.notificationMessage.notificationData[0];
                         notification1.constructor.name.should.eql("StatusChangeNotification");
 
                         callback();
@@ -487,11 +487,11 @@ module.exports = function (test) {
                     function (callback) {
                         //Xx console.log("count = ", spy_publish_session2.callCount);
 
-                        var response0 = spy_publish_session2.getCall(0).args[1];
+                        const response0 = spy_publish_session2.getCall(0).args[1];
                         //xx console.log("response=",response0.toString());
                         response0.notificationMessage.notificationData.length.should.eql(1);
                         response0.subscriptionId.should.eql(subscriptionId);
-                        var notification0 = response0.notificationMessage.notificationData[0];
+                        const notification0 = response0.notificationMessage.notificationData[0];
                         notification0.constructor.name.should.eql("DataChangeNotification");
 
                         callback();
@@ -510,9 +510,9 @@ module.exports = function (test) {
                         //xx console.log("count = ", spy_publish_session2.callCount);
                         spy_publish_session2.callCount.should.eql(4);
 
-                        var response1 = spy_publish_session2.getCall(1).args[1];
-                        var response2 = spy_publish_session2.getCall(2).args[1];
-                        var response3 = spy_publish_session2.getCall(3).args[1];
+                        const response1 = spy_publish_session2.getCall(1).args[1];
+                        const response2 = spy_publish_session2.getCall(2).args[1];
+                        const response3 = spy_publish_session2.getCall(3).args[1];
 
                         response1.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
                         response2.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);

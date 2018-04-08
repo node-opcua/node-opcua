@@ -1,32 +1,32 @@
 "use strict";
-var createHVACSystem = require("../../test_helpers/hvac_system").createHVACSystem;
+const createHVACSystem = require("../../test_helpers/hvac_system").createHVACSystem;
 
 
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var DataType = opcua.DataType;
+const DataType = opcua.DataType;
 
-var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
+const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy", function () {
 
     this.timeout(Math.max(600000,this._timeout));
 
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
-    var HVAC_on_server = null;
+    let HVAC_on_server = null;
 
-    var port = 2000;
+    let port = 2000;
     before(function (done) {
         port += 1;
         server = build_server_with_temperature_device({port: port}, function (err) {
@@ -56,14 +56,14 @@ describe("testing client Proxy", function () {
 
     it("client should expose a nice little handy javascript object that proxies the HVAC UAObject", function (done) {
 
-        var proxyManager;
+        let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
-            var hvacNodeId = HVAC_on_server;
+            const hvacNodeId = HVAC_on_server;
 
 
-            var hvac;
+            let hvac;
             async.series([
                 function (callback) {
                     proxyManager.start(callback);
@@ -100,15 +100,15 @@ describe("testing client Proxy", function () {
 
     it("client should expose a nice little handy javascript object that proxies the server UAObject", function (done) {
 
-        var proxyManager ;
+        let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
 
-            var serverNodeId = opcua.coerceNodeId("i=2253");
+            const serverNodeId = opcua.coerceNodeId("i=2253");
 
-            var serverObject = null;
-            var subscriptionId =-1;
+            let serverObject = null;
+            let subscriptionId =-1;
 
             async.series([
 
@@ -208,14 +208,14 @@ describe("testing client Proxy", function () {
     it("AA one can subscribe to proxy object property change", function (done) {
 
         this.timeout(Math.max(20000,this._timeout));
-        var proxyManager;
+        let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
-            var hvacNodeId = HVAC_on_server;
+            const hvacNodeId = HVAC_on_server;
 
 
-            var hvac;
+            let hvac;
             async.series([
                 function (callback) {
                     proxyManager.start(callback);
@@ -335,17 +335,17 @@ describe("testing client Proxy", function () {
 
     it("ZZ1 should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", function(done) {
 
-        var proxyManager;
+        let proxyManager;
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager = new UAProxyManager(session);
 
-            var makeNodeId = opcua.makeNodeId;
+            const makeNodeId = opcua.makeNodeId;
 
-            var subscriptionDiagnosticsArray =null;
+            let subscriptionDiagnosticsArray =null;
 
-            var subscriptionId =null;
+            let subscriptionId =null;
 
             async.series([
                 function (callback) {

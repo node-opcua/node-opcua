@@ -1,18 +1,18 @@
 "use strict";
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
+const _ = require("underscore");
+const assert = require("node-opcua-assert");
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var ec = require("node-opcua-basic-types");
+const ec = require("node-opcua-basic-types");
 
-var DataType = require("../schemas/DataType_enum").DataType;
-var VariantArrayType = require("../schemas/VariantArrayType_enum").VariantArrayType;
+const DataType = require("../schemas/DataType_enum").DataType;
+const VariantArrayType = require("../schemas/VariantArrayType_enum").VariantArrayType;
 
-var encode_decode = require("node-opcua-basic-types");
+const encode_decode = require("node-opcua-basic-types");
 
-var utils = require("node-opcua-utils");
+const utils = require("node-opcua-utils");
 
 function isEnumerationItem(value) {
     return (value instanceof Object && (value.hasOwnProperty("value")) && value.hasOwnProperty("key"));
@@ -147,7 +147,7 @@ function isValidArrayVariant(dataType, value) {
     }
     // array values can be store in Buffer, Float32Array
     assert(_.isArray(value));
-    for (var i=0;i<value.length;i++) {
+    for (let i=0;i<value.length;i++) {
         if (!isValidScalarVariant(dataType, value[i])) {
             return false;
         }
@@ -186,7 +186,7 @@ exports.isValidVariant = isValidVariant;
 
 function buildVariantArray(dataType, nbElements, defaultValue) {
 
-    var value;
+    let value;
     switch (dataType) {
         case DataType.Float:
             value = new Float32Array(nbElements);
@@ -215,7 +215,7 @@ function buildVariantArray(dataType, nbElements, defaultValue) {
         default:
             //xx console.log("xxxx DataType = ",dataType ? dataType.toString(): null,"nb Elements =",nbElements);
             value = new Array(nbElements);
-            for (var i = 0; i < nbElements; i++) {
+            for (let i = 0; i < nbElements; i++) {
                 value[i] = defaultValue;
             }
         //xx console.log("xxx done");
@@ -226,7 +226,7 @@ exports.buildVariantArray = buildVariantArray;
 
 
 // old version of nodejs do not provide a Buffer#equals test
-var oldNodeVersion =  (process.versions.node && process.versions.node.substring(0,1) === "0");
+const oldNodeVersion =  (process.versions.node && process.versions.node.substring(0,1) === "0");
 
 
 function __check_same_array(arr1,arr2) {
@@ -246,12 +246,12 @@ function __check_same_array(arr1,arr2) {
         // this is the most efficient way to compare 2 buffers but it doesn't work with node <= 0.12
         assert(arr2.buffer);
         // compare byte by byte
-        var b1 = Buffer.from(arr1.buffer,arr1.byteOffset,arr1.byteLength);
-        var b2 = Buffer.from(arr2.buffer,arr2.byteOffset,arr2.byteLength);
+        const b1 = Buffer.from(arr1.buffer,arr1.byteOffset,arr1.byteLength);
+        const b2 = Buffer.from(arr2.buffer,arr2.byteOffset,arr2.byteLength);
         return b1.equals(b2);
     }
-    var n = arr1.length;
-    for (var i = 0; i < n; i++) {
+    const n = arr1.length;
+    for (let i = 0; i < n; i++) {
         if (!_.isEqual(arr1[i], arr2[i])) {
             return false;
         }

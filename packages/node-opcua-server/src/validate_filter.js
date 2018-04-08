@@ -1,13 +1,13 @@
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert");
+const _ = require("underscore");
 
-var subscription_service = require("node-opcua-service-subscription");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const subscription_service = require("node-opcua-service-subscription");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var UAVariable = require("node-opcua-address-space").UAVariable;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var EventFilter = require("node-opcua-service-filter").EventFilter;
+const UAVariable = require("node-opcua-address-space").UAVariable;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const EventFilter = require("node-opcua-service-filter").EventFilter;
 
 function __validateDataChangeFilter(filter,itemToMonitor,node) {
 
@@ -23,9 +23,9 @@ function __validateDataChangeFilter(filter,itemToMonitor,node) {
 
     // if node is not Numerical=> DataChangeFilter
     assert(node.dataType instanceof NodeId);
-    var dataType = node.addressSpace.findDataType(node.dataType);
+    const dataType = node.addressSpace.findDataType(node.dataType);
 
-    var dataTypeNumber = node.addressSpace.findDataType("Number");
+    const dataTypeNumber = node.addressSpace.findDataType("Number");
     if (!dataType.isSupertypeOf(dataTypeNumber)) {
         return StatusCodes.BadFilterNotAllowed;
     }

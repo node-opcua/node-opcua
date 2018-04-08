@@ -15,21 +15,21 @@ const getTempFilename = require("./get_temp_filename").getTempFilename;
  */
 function redirectToFile(tmpfile, action_func, callback) {
 
-    var old_console_log;
+    let old_console_log;
 
     assert(_.isFunction(action_func));
     assert(!callback || _.isFunction(callback));
 
-    var is_async = action_func && action_func.length;
+    const is_async = action_func && action_func.length;
 
-    var log_file = getTempFilename(tmpfile);
+    const log_file = getTempFilename(tmpfile);
 
     //xx    console.log(" log_file ",log_file);
-    var f = fs.createWriteStream(log_file, {flags: 'w', encoding: "ascii"});
+    const f = fs.createWriteStream(log_file, {flags: 'w', encoding: "ascii"});
 
     function _write_to_file(d) { //
 
-        var msg = util.format.apply(null, arguments);
+        const msg = util.format.apply(null, arguments);
 
         f.write(msg + '\n');
         if (process.env.DEBUG) {

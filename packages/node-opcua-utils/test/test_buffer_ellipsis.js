@@ -1,5 +1,5 @@
-var buffer_ellipsis = require("..").buffer_ellipsis;
-var should =require("should");
+const buffer_ellipsis = require("..").buffer_ellipsis;
+const should =require("should");
 
 describe("buffer_ellipsis",function() {
 

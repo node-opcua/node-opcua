@@ -1,15 +1,15 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var _ = require("underscore");
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const _ = require("underscore");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var date_time = require("..");
-var ec = require("../src/encode_decode");
+const date_time = require("..");
+const ec = require("../src/encode_decode");
 
-var offset_factor_1601 = date_time.offset_factor_1601;
-var offset = offset_factor_1601[0];
-var factor = offset_factor_1601[1];
+const offset_factor_1601 = date_time.offset_factor_1601;
+const offset = offset_factor_1601[0];
+const factor = offset_factor_1601[1];
 
 function isValidUInt32(value) {
     if (!_.isFinite(value)) {
@@ -20,11 +20,11 @@ function isValidUInt32(value) {
 
 
 // deprecated (inaccurate)
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert");
 function deprecated_dateToHundredNanoSecondFrom1601(date) {
 
     assert(date instanceof Date);
-    var t = date.getTime(); // number of milliseconds since 1/1/70
+    const t = date.getTime(); // number of milliseconds since 1/1/70
     assert(new Date(t).getTime() === t);
 
     return (t + offset) * factor;
@@ -41,33 +41,33 @@ describe("check OPCUA Date conversion version 0", function () {
 
     it("should convert date in 2014 ", function () {
 
-        var date = new Date(2014, 0, 1);
-        var nano = deprecated_dateToHundredNanoSecondFrom1601(date);
-        var date2 = deprecated_hundredNanoSecondFrom1601ToDate(nano);
+        const date = new Date(2014, 0, 1);
+        const nano = deprecated_dateToHundredNanoSecondFrom1601(date);
+        const date2 = deprecated_hundredNanoSecondFrom1601ToDate(nano);
         date2.toString().should.equal(date.toString());
 
     });
     it("dateToHundredNanoSecondFrom1601 should return 0 for 1st of January 1601", function () {
 
-        var date = new Date(Date.UTC(1601, 0, 1, 0, 0));
-        var nano = deprecated_dateToHundredNanoSecondFrom1601(date);
+        const date = new Date(Date.UTC(1601, 0, 1, 0, 0));
+        const nano = deprecated_dateToHundredNanoSecondFrom1601(date);
         nano.should.equal(0);
     });
 
     it("dateToHundredNanoSecondFrom1601 should return xx nanos for 2st of January 1601", function () {
 
-        var date = new Date(Date.UTC(1601, 0, 2, 0, 0));
-        var nano = deprecated_dateToHundredNanoSecondFrom1601(date);
+        const date = new Date(Date.UTC(1601, 0, 2, 0, 0));
+        const nano = deprecated_dateToHundredNanoSecondFrom1601(date);
         nano.should.equal(24 * 60 * 60 * 1000 * 10000);
-        var date2 = deprecated_hundredNanoSecondFrom1601ToDate(nano);
+        const date2 = deprecated_hundredNanoSecondFrom1601ToDate(nano);
         date2.toString().should.equal(date.toString());
     });
 
     it("hundredNanoSecondFrom1601ToDate and dateToHundredNanoSecondFrom1601 ", function () {
 
-        var date = new Date(1789, 6, 14, 19, 47);
-        var nano = deprecated_dateToHundredNanoSecondFrom1601(date);
-        var date2 = deprecated_hundredNanoSecondFrom1601ToDate(nano);
+        const date = new Date(1789, 6, 14, 19, 47);
+        const nano = deprecated_dateToHundredNanoSecondFrom1601(date);
+        const date2 = deprecated_hundredNanoSecondFrom1601ToDate(nano);
 
         date2.toString().should.equal(date.toString());
 
@@ -82,8 +82,8 @@ describe("check OPCUA Date conversion version 2", function () {
 
     it("should verify that Date.getTime returns the number of millisecond since January, 1st 1970 UTC", function () {
 
-        var january = 1;
-        var first_of_jan_1970_UTC = new Date(Date.UTC(1970, january - 1, 1, 0, 0, 0));
+        const january = 1;
+        const first_of_jan_1970_UTC = new Date(Date.UTC(1970, january - 1, 1, 0, 0, 0));
 
         //xx console.log("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
         //xx console.log(" Local Time",first_of_jan_1970_UTC.toString());
@@ -95,16 +95,16 @@ describe("check OPCUA Date conversion version 2", function () {
     });
 
     it("bn_dateToHundredNanoSecondFrom1601 should return n=(number of nanosecond in a single day) for January, 2nd 1601 00:00:00 UTC", function () {
-        var date = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
-        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
-        var value = 24 * 60 * 60 * 1000 * 10000; // number of nanosecond in a single day
+        const date = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
+        const nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        const value = 24 * 60 * 60 * 1000 * 10000; // number of nanosecond in a single day
         nano[0].should.equal(Math.floor(value / 0x100000000));
         nano[1].should.equal(value % 0x100000000);
     });
 
     it("should decode 0xd353c292 0x01cef70c DateTime as 2013-12-12T07:36:09.747Z", function () {
 
-        var buf = new Buffer(8);
+        const buf = new Buffer(8);
         buf.writeUInt32LE(0xd353c292, 0);
         buf.writeUInt32LE(0x01cef70c, 4);
 
@@ -113,25 +113,25 @@ describe("check OPCUA Date conversion version 2", function () {
         buf.readUInt8(2).should.equal(0x53);
         buf.readUInt8(7).should.equal(0x01);
 
-        var stream = new BinaryStream(buf);
-        var date = ec.decodeDateTime(stream);
+        const stream = new BinaryStream(buf);
+        const date = ec.decodeDateTime(stream);
         //xx console.log("DDD = ",date.toUTCString(), " ms=", date.getMilliseconds());
         date.toISOString().should.eql("2013-12-12T07:36:09.747Z");
     });
 
     it("should handle 100 nanoseconds", function () {
 
-        var date1 = new Date(Date.UTC(2013, 11, 12, 7, 36, 6));
+        const date1 = new Date(Date.UTC(2013, 11, 12, 7, 36, 6));
         date1.toISOString().should.eql("2013-12-12T07:36:06.000Z");
-        var t1 = date1.getTime();
-        var q1 = date_time.bn_dateToHundredNanoSecondFrom1601(date1);
+        const t1 = date1.getTime();
+        const q1 = date_time.bn_dateToHundredNanoSecondFrom1601(date1);
 
         // construct the same date with 713 millisecond more ...
-        var date2 = new Date(Date.UTC(2013, 11, 12, 7, 36, 6));
+        const date2 = new Date(Date.UTC(2013, 11, 12, 7, 36, 6));
         date2.setMilliseconds(713);
         date2.toISOString().should.eql("2013-12-12T07:36:06.713Z");
-        var t2 = date2.getTime();
-        var q2 = date_time.bn_dateToHundredNanoSecondFrom1601(date2);
+        const t2 = date2.getTime();
+        const q2 = date_time.bn_dateToHundredNanoSecondFrom1601(date2);
 
         (t2 - t1).should.eql(713, " there must be a difference of 713 milliseconds");
 
@@ -143,53 +143,53 @@ describe("check OPCUA Date conversion version 2", function () {
 });
 
 
-var BigNumber = require("bignumber.js");
+const BigNumber = require("bignumber.js");
 
 function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     assert(date instanceof Date);
-    var t = date.getTime(); // number of milliseconds since 1/1/70
+    const t = date.getTime(); // number of milliseconds since 1/1/70
 
-    var bn_value = new BigNumber(t).plus(offset).times(factor);
-    var high = bn_value.div(0x100000000);
-    var low = bn_value.mod(0x100000000);
+    const bn_value = new BigNumber(t).plus(offset).times(factor);
+    const high = bn_value.div(0x100000000);
+    const low = bn_value.mod(0x100000000);
     return [parseInt(high.toString(), 10), parseInt(low.toString(), 10)];
 }
 
 function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
-    var offset = offset_factor_1601[0];
-    var factor = offset_factor_1601[1];
-    var value = new BigNumber(high).times(0x100000000).plus(low).div(factor).minus(offset);
+    const offset = offset_factor_1601[0];
+    const factor = offset_factor_1601[1];
+    let value = new BigNumber(high).times(0x100000000).plus(low).div(factor).minus(offset);
     value = parseInt(value, 10);
     return new Date(value);
 }
 
 
-var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("Benchmarking Date conversion routines", function () {
 
     it("should check that slow and fast method produce same result", function () {
 
-        var date = new Date(2014, 0, 1);
-        var nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
-        var nano2 = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        const date = new Date(2014, 0, 1);
+        const nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+        const nano2 = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         nano1.should.eql(nano2);
     });
 
     it("should ensure that fast method (bn_dateToHundredNanoSecondFrom1601) is faster than slow method", function (done) {
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
         bench.add('bn_dateToHundredNanoSecondFrom1601_safe', function () {
 
-            var date = new Date(2014, 0, 1);
-            var nano = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+            const date = new Date(2014, 0, 1);
+            const nano = bn_dateToHundredNanoSecondFrom1601_big_number(date);
 
         })
             .add('bn_dateToHundredNanoSecondFrom1601_fast', function () {
 
-                var date = new Date(2014, 0, 1);
-                var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+                const date = new Date(2014, 0, 1);
+                const nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
 
             })
             .on('cycle', function (message) {
@@ -208,10 +208,10 @@ describe("Benchmarking Date conversion routines", function () {
     it("should ensure that fast method (bn_hundredNanoSecondFrom1601ToDate) is faster than slow method", function (done) {
 
 
-        var date = new Date(2014, 0, 1);
-        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        const date = new Date(2014, 0, 1);
+        const nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
         bench.add('bn_hundredNanoSecondFrom1601ToDate_safe', function () {
             bn_hundredNanoSecondFrom1601ToDate_big_number(nano[0], nano[1]);
 
@@ -235,7 +235,7 @@ describe("Benchmarking Date conversion routines", function () {
 
     it("should convert any random date", function () {
 
-        var dates_to_check = [
+        const dates_to_check = [
             new Date(1, 1, 1601),
             new Date(14, 7, 1789),
             new Date(14, 4, 1929),
@@ -243,16 +243,16 @@ describe("Benchmarking Date conversion routines", function () {
             new Date(14, 4, 1972),
             new Date(14, 4, 2172)
         ];
-        var i;
+        let i;
         for (i = 0; i < 100; i++) {
             dates_to_check.push(ec.randomDateTime());
         }
-        var date, check_date, check_date_bn;
-        var bs = new BinaryStream();
+        let date, check_date, check_date_bn;
+        const bs = new BinaryStream();
         for (i = 0; i < dates_to_check.length; i++) {
             date = dates_to_check[i];
-            var hl = date_time.bn_dateToHundredNanoSecondFrom1601(date);
-            var hl_bn = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+            const hl = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+            const hl_bn = bn_dateToHundredNanoSecondFrom1601_big_number(date);
 
             check_date = date_time.bn_hundredNanoSecondFrom1601ToDate(hl[0], hl[1]);
             check_date_bn = bn_hundredNanoSecondFrom1601ToDate_big_number(hl[0], hl[1]);
@@ -267,17 +267,17 @@ describe("Benchmarking Date conversion routines", function () {
     });
 
     it("bn_dateToHundredNanoSecondFrom1601 should return 0 for January, 1st 1601 00:00:00 UTC", function () {
-        var date = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        const date = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+        const nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         nano[0].should.equal(0);
         nano[1].should.equal(0);
     });
 
     it("bn_dateToHundredNanoSecondFrom1601 should return 0x019DB1DE-D53E8000 = 116444736000000000 for January, 1st 1970 00:00:00 UTC", function () {
 
-        var date = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
-        var nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
-        var verif = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+        const date = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
+        const nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+        const verif = bn_dateToHundredNanoSecondFrom1601_big_number(date);
         //xx console.log(date.toUTCString(), "0x0"+nano[0].toString(16),"0x"+nano[1].toString(16),nano,verif[0].toString(16),verif[1].toString(16));
         nano[0].should.equal(0x019DB1DE); // hi
         nano[1].should.equal(0xD53E8000); // lo
@@ -312,41 +312,41 @@ describe("understanding Javascript date", function () {
         // number of seconds that have elapsed since 00:00:00 Coordinated Universal Time (UTC), Thursday, 1 January 1970,
         // not counting leap seconds.
 
-        var date1 = new Date(Date.UTC(2010, 2, 25));
-        var date2 = new Date(Date.UTC(2011, 2, 25));
+        const date1 = new Date(Date.UTC(2010, 2, 25));
+        const date2 = new Date(Date.UTC(2011, 2, 25));
 
         // number of millisecond , not adjusted
-        var nms = 1000 * 60 * 60 * 24 * 365;
+        const nms = 1000 * 60 * 60 * 24 * 365;
 
-        var diff1 = date2.getTime() - date1.getTime();
+        const diff1 = date2.getTime() - date1.getTime();
 
         // according to http://en.wikipedia.org/wiki/Leap_second
         // a leap second should have been introduced on 2012, June the 30th,
         // causing this year to be (1000*60*60*24*365 + 1000) milliseconds long
-        var date3 = new Date(Date.UTC(2012, 2, 25));
-        var date4 = new Date(Date.UTC(2013, 2, 25));
-        var diff2 = date4.getTime() - date3.getTime();
+        const date3 = new Date(Date.UTC(2012, 2, 25));
+        const date4 = new Date(Date.UTC(2013, 2, 25));
+        const diff2 = date4.getTime() - date3.getTime();
         (diff2 - nms).should.eql(0, "I though Javascript used a simplified version of UTC time , that ignore leap seconds");
 
     });
     it("should have a expected number of millisecond in a year span (without leap seconds)", function () {
 
-        var n_leap = 366 * 24 * 60 * 60;
-        var n_no_leap = 365 * 24 * 60 * 60;
+        const n_leap = 366 * 24 * 60 * 60;
+        const n_no_leap = 365 * 24 * 60 * 60;
 
         function inner_test(year) {
 
-            var date1 = new Date(Date.UTC(year, 1, 25)); // year February 25th
-            var date2 = new Date(Date.UTC(year + 1, 1, 25)); // year February 25th
+            const date1 = new Date(Date.UTC(year, 1, 25)); // year February 25th
+            const date2 = new Date(Date.UTC(year + 1, 1, 25)); // year February 25th
 
-            var n = ((year % 4 ) === 0) ? n_leap : n_no_leap;
+            const n = ((year % 4 ) === 0) ? n_leap : n_no_leap;
 
-            var d = (date2.getTime() - date1.getTime()) / 1000;
+            const d = (date2.getTime() - date1.getTime()) / 1000;
             (d - n).should.eql(0);
             // console.log("year = ", year, date1.toUTCString(), " => ",d,n,d -n);
         }
 
-        for (var y = 1970; y < 2020; y++) {
+        for (let y = 1970; y < 2020; y++) {
             inner_test(y);
         }
     });

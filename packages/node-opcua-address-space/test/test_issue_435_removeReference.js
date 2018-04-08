@@ -1,19 +1,19 @@
 "use strict";
 /* global describe,it,before*/
-var should = require("should");
-var nodesets = require("node-opcua-nodesets");
-var generateAddressSpace = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
-var createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
+const should = require("should");
+const nodesets = require("node-opcua-nodesets");
+const generateAddressSpace = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
+const createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("UANode#removeReference",function() {
 
-    var nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard_nodeset_file;
 
 
-    var addressSpace = null;
-    var boilerType = null;
+    let addressSpace = null;
+    let boilerType = null;
     before(function (done) {
         addressSpace = new AddressSpace();
         generateAddressSpace(addressSpace, nodesetFilename, function () {
@@ -32,7 +32,7 @@ describe("UANode#removeReference",function() {
     it("should be possible to remove a reference ", function () {
 
 
-        var boiler = boilerType.instantiate({
+        const boiler = boilerType.instantiate({
             browseName: "Boiler#1",
             nodeId: "ns=36;s=MyBoiler"
         });

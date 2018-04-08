@@ -1,16 +1,16 @@
 "use strict";
 
-var should = require("should");
+const should = require("should");
 
-var ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
-var ServerSecureChannelLayer = require("../src/server/server_secure_channel_layer").ServerSecureChannelLayer;
+const ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
+const ServerSecureChannelLayer = require("../src/server/server_secure_channel_layer").ServerSecureChannelLayer;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ClientSecureChannel 1", function () {
 
     this.timeout(Math.max(this._timeout, 100000));
 
-    var options = {
+    const options = {
         connectionStrategy: {
             maxRetry: 1,
             initialDelay:1,
@@ -21,9 +21,9 @@ describe("Testing ClientSecureChannel 1", function () {
 
     it("should not receive a close event with an error when attempting to connect to a non existent server", function (done) {
 
-        var secureChannel = new ClientSecureChannelLayer(options);
+        const secureChannel = new ClientSecureChannelLayer(options);
 
-        var client_has_received_close_event = 0;
+        let client_has_received_close_event = 0;
 
         secureChannel.on("close", function (err) {
             should(err).eql(null);
@@ -43,9 +43,9 @@ describe("Testing ClientSecureChannel 1", function () {
 
     it("should not receive a close event with an error when attempting to connect to a valid server on a invalid port", function (done) {
 
-        var secureChannel = new ClientSecureChannelLayer(options);
+        const secureChannel = new ClientSecureChannelLayer(options);
 
-        var client_has_received_close_event = 0;
+        let client_has_received_close_event = 0;
 
         secureChannel.on("close", function (err) {
             should(err).eql(null);
@@ -69,8 +69,8 @@ describe("Testing ClientSecureChannel 1", function () {
 
 function startServer(holder,callback) {
 
-    var net = require("net");
-    var server_socket = new net.Server();
+    const net = require("net");
+    const server_socket = new net.Server();
     holder.server_socket = server_socket;
 
     //xx console.log(" max connection = ", server_socket.maxConnections);
@@ -78,7 +78,7 @@ function startServer(holder,callback) {
     server_socket.listen(1234);
     server_socket.on("connection", function on_connection(socket) {
 
-        var serverChannel = new ServerSecureChannelLayer();
+        const serverChannel = new ServerSecureChannelLayer();
         holder.serverChannel = serverChannel;
         serverChannel.timeout = 10050;
         serverChannel.init(socket, function () {
@@ -111,7 +111,7 @@ describe("Testing ClientSecureChannel 2", function () {
 
     it("should establish a client secure channel ", function (done) {
 
-        var secureChannel = new ClientSecureChannelLayer({});
+        const secureChannel = new ClientSecureChannelLayer({});
 
         secureChannel.protocolVersion.should.equal(0);
 
@@ -146,7 +146,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
     it("WW2-a connectionStrategy: should retry many times and fail eventually ",function(done) {
 
-        var options = {
+        const options = {
             connectionStrategy: {
                 maxRetry: 3,
                 initialDelay:10,
@@ -154,10 +154,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
                 randomisationFactor: 0.1,
             }
         };
-        var secureChannel = new ClientSecureChannelLayer(options);
+        const secureChannel = new ClientSecureChannelLayer(options);
 
-        var endpoint  = "opc.tcp://localhost:1234/UA/Sample";
-        var nbRetry =0;
+        const endpoint  = "opc.tcp://localhost:1234/UA/Sample";
+        let nbRetry =0;
         secureChannel.on("backoff",function(number,delay){
             console.log(number + " " + delay + "ms");
             nbRetry = number+1;
@@ -174,7 +174,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     // waiting for https://github.com/MathieuTurcotte/node-backoff/issues/15 to be fixed
     it("WW2-b should be possible to interrupt the retry process  ",function(done) {
 
-        var options = {
+        const options = {
             connectionStrategy: {
                 maxRetry:     3000,
                 initialDelay: 10,
@@ -183,10 +183,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             }
         };
 
-        var secureChannel = new ClientSecureChannelLayer(options);
+        const secureChannel = new ClientSecureChannelLayer(options);
 
-        var endpoint  = "opc.tcp://localhost:1234/UA/Sample";
-        var nbRetry =0;
+        const endpoint  = "opc.tcp://localhost:1234/UA/Sample";
+        let nbRetry =0;
 
         secureChannel.on("backoff",function(number,delay){
             console.log(number + " " + delay + "ms");
@@ -208,11 +208,11 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         });
     });
 
-    var test = this;
+    const test = this;
     it("WW2-c secureChannel that starts before the server is up and running should eventually connect without error",function(done) {
 
 
-        var options = {
+        const options = {
             connectionStrategy: {
                 maxRetry:     3000,
                 initialDelay: 10,
@@ -221,10 +221,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             }
         };
 
-        var secureChannel = new ClientSecureChannelLayer(options);
+        const secureChannel = new ClientSecureChannelLayer(options);
 
-        var endpoint  = "opc.tcp://localhost:1234/UA/Sample";
-        var nbRetry =0;
+        const endpoint  = "opc.tcp://localhost:1234/UA/Sample";
+        let nbRetry =0;
 
         secureChannel.on("backoff",function(number,delay){
             console.log(number + " " + delay + "ms");

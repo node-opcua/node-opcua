@@ -1,12 +1,12 @@
 "use strict";
 
-var path = require("path");
-var fs = require("fs");
+const path = require("path");
+const fs = require("fs");
 function getTempFilename(tmpfile) {
     tmpfile = tmpfile || "";
 
-    var this_dirname = __dirname;
-    var temporaryFolder = path.join(this_dirname, '../../../../tmp/');
+    const this_dirname = __dirname;
+    const temporaryFolder = path.join(this_dirname, '../../../../tmp/');
     if (!fs.existsSync(temporaryFolder)) {
         fs.mkdirSync(temporaryFolder);
     }

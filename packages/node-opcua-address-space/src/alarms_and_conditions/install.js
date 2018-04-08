@@ -23,8 +23,8 @@ exports.install = function (AddressSpace) {
      //             │  │  └─ CertificateExpirationAlarmType
      //             │  └─ TripAlarmType
 
-    var UAConditionBase = require("./condition").UAConditionBase;
-    var UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
+    const UAConditionBase = require("./condition").UAConditionBase;
+    const UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
 
     /**
      * @class AddressSpace
@@ -59,7 +59,7 @@ exports.install = function (AddressSpace) {
         return UAAcknowledgeableConditionBase.instantiate(this, conditionTypeId, options, data);
     };
 
-    var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
+    const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
     /**
      * @class AddressSpace
      * @method instantiateAlarmCondition
@@ -72,7 +72,7 @@ exports.install = function (AddressSpace) {
         return UAAlarmConditionBase.instantiate(this, alarmConditionTypeId, options, data);
     };
 
-    var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+    const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
     /**
      * @class AddressSpace
      * @method instantiateLimitAlarm
@@ -85,7 +85,7 @@ exports.install = function (AddressSpace) {
         return UALimitAlarm.instantiate(this, limitAlarmTypeId, options, data);
     };
 
-    var UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
+    const UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
     /**
      * @class AddressSpace
      * @method instantiateExclusiveLimitAlarm
@@ -98,7 +98,7 @@ exports.install = function (AddressSpace) {
         return UAExclusiveLimitAlarm.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
     };
 
-    var UAExclusiveDeviationAlarm = require("./exclusive_deviation_alarm").UAExclusiveDeviationAlarm;
+    const UAExclusiveDeviationAlarm = require("./exclusive_deviation_alarm").UAExclusiveDeviationAlarm;
     /**
      * @class AddressSpace
      * @method instantiateExclusiveDeviationAlarm
@@ -110,7 +110,7 @@ exports.install = function (AddressSpace) {
         return UAExclusiveDeviationAlarm.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
     };
 
-    var UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
+    const UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
     /**
      * @class AddressSpace
      * @method instantiateNonExclusiveLimitAlarm
@@ -123,7 +123,7 @@ exports.install = function (AddressSpace) {
         return UANonExclusiveLimitAlarm.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
     };
 
-    var UANonExclusiveDeviationAlarm = require("./non_exclusive_deviation_alarm").UANonExclusiveDeviationAlarm;
+    const UANonExclusiveDeviationAlarm = require("./non_exclusive_deviation_alarm").UANonExclusiveDeviationAlarm;
     /**
      * @class AddressSpace
      * @method instantiateNonExclusiveDeviationAlarm
@@ -137,7 +137,7 @@ exports.install = function (AddressSpace) {
 
 
     // --------------------------------- Discrete Alarms
-    var UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
+    const UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
     /**
      * @class AddressSpace
      * @method instantiateOffNormalAlarm
@@ -149,7 +149,7 @@ exports.install = function (AddressSpace) {
         return UADiscreteAlarm.instantiate(this, discreteAlarmType, options, data);
     };
 
-    var UAOffNormalAlarm = require("./off_normal_alarm").UAOffNormalAlarm;
+    const UAOffNormalAlarm = require("./off_normal_alarm").UAOffNormalAlarm;
     /**
      * @class AddressSpace
      * @method instantiateOffNormalAlarm

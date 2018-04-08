@@ -1,20 +1,20 @@
 "use strict";
 /* global it,before*/
 
-var should = require("should");
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const should = require("should");
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var DataValue = require("node-opcua-data-value").DataValue;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const DataValue = require("node-opcua-data-value").DataValue;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/449", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
@@ -31,8 +31,8 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
     it("#449 should be possible to access this in UAVariable get/set value accessor", function (done) {
 
-        var node;
-        var counterVar = {
+        let node;
+        const counterVar = {
             browseName: "TEST",
             dataType: "String",
             value: {
@@ -54,7 +54,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
         node = addressSpace.addVariable(counterVar);
 
-        var dataValue = new DataValue({
+        const dataValue = new DataValue({
             value :{ dataType:"String",value:""}
         });
 
