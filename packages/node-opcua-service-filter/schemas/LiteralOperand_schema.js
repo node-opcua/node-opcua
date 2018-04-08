@@ -1,6 +1,6 @@
 require("node-opcua-variant");
 
-var LiteralOperand_Schema = {
+const LiteralOperand_Schema = {
     name:"LiteralOperand",
     baseType:"FilterOperand",
     fields: [

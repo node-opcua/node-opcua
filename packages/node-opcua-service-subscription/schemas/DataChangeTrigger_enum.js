@@ -1,7 +1,7 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
-var DataChangeTrigger_Schema = {
+const factories = require("node-opcua-factory");
+const DataChangeTrigger_Schema = {
     name:"DataChangeTrigger",
     enumValues: {
         Status:                  0x00,

@@ -8,7 +8,7 @@ const util = require("util");
 const EventEmitter = require("events").EventEmitter;
 
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 

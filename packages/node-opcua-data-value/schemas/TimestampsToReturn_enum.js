@@ -1,10 +1,10 @@
 "use strict";
 
-var assert = require("node-opcua-assert");
-var factories = require("node-opcua-factory");
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var TimestampsToReturn;
-var TimestampsToReturn_Schema = {
+const assert = require("node-opcua-assert").assert;
+const factories = require("node-opcua-factory");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+let TimestampsToReturn;
+const TimestampsToReturn_Schema = {
     name: "TimestampsToReturn",
     enumValues: {
         Invalid:      -1,
@@ -16,7 +16,7 @@ var TimestampsToReturn_Schema = {
     decode: function(stream) {
 
         assert(stream instanceof BinaryStream);
-        var value = stream.readInteger();
+        const value = stream.readInteger();
         if (value<0 || value>3) {
             return TimestampsToReturn.Invalid;
         }

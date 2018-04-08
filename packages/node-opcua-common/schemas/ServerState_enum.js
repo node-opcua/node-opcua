@@ -1,8 +1,8 @@
 // --------- This code has been automatically generated !!! 2017-06-18T14:21:04.743Z
 // namespace http://opcfoundation.org/UA/
-var factories  = require("node-opcua-factory");
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var ServerState_Schema = {
+const factories  = require("node-opcua-factory");
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const ServerState_Schema = {
   id:  makeNodeId(852,0),
   name: 'ServerState',
   namespace: '0',

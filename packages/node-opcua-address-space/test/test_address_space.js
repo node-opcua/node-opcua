@@ -1,7 +1,7 @@
 "use strict";
 
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 

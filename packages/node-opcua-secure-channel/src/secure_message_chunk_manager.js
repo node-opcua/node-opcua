@@ -3,30 +3,26 @@
  * @module opcua.miscellaneous
  */
 
-
 const util = require("util");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 const EventEmitter = require("events").EventEmitter;
 
 const ChunkManager = require("node-opcua-chunkmanager").ChunkManager;
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
+const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel")
+    .AsymmetricAlgorithmSecurityHeader;
 const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
 const SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
 
-
 function chooseSecurityHeader(msgType) {
-
-    const securityHeader = (msgType === "OPN") ?
-        new AsymmetricAlgorithmSecurityHeader() :
-        new SymmetricAlgorithmSecurityHeader();
+    const securityHeader =
+        msgType === "OPN" ? new AsymmetricAlgorithmSecurityHeader() : new SymmetricAlgorithmSecurityHeader();
     return securityHeader;
 }
 
 exports.chooseSecurityHeader = chooseSecurityHeader;
-
 
 /**
  * @class SecureMessageChunkManager
@@ -43,8 +39,7 @@ exports.chooseSecurityHeader = chooseSecurityHeader;
  * @param sequenceNumberGenerator
  * @constructor
  */
-const SecureMessageChunkManager = function (msgType, options, securityHeader, sequenceNumberGenerator) {
-
+const SecureMessageChunkManager = function(msgType, options, securityHeader, sequenceNumberGenerator) {
     const self = this;
     self.aborted = false;
 
@@ -55,7 +50,7 @@ const SecureMessageChunkManager = function (msgType, options, securityHeader, se
 
     // the maximum size of a message chunk:
     // Note: OPCUA requires that chunkSize is at least 8196
-    self.chunkSize = options.chunkSize || 1024*128;
+    self.chunkSize = options.chunkSize || 1024 * 128;
 
     self.msgType = msgType;
 
@@ -71,7 +66,7 @@ const SecureMessageChunkManager = function (msgType, options, securityHeader, se
 
     assert(requestId > 0, "expecting a valid request ID");
 
-    self.sequenceHeader = new SequenceHeader({requestId: requestId, sequenceNumber: -1});
+    self.sequenceHeader = new SequenceHeader({ requestId: requestId, sequenceNumber: -1 });
 
     const securityHeaderSize = self.securityHeader.binaryStoreSize();
     const sequenceHeaderSize = self.sequenceHeader.binaryStoreSize();
@@ -83,15 +78,14 @@ const SecureMessageChunkManager = function (msgType, options, securityHeader, se
         chunkSize: self.chunkSize,
 
         headerSize: self.headerSize,
-        writeHeaderFunc: function (block, isLast, totalLength) {
-
+        writeHeaderFunc: function(block, isLast, totalLength) {
             let finalC = isLast ? "F" : "C";
             finalC = this.aborted ? "A" : finalC;
             self.write_header(finalC, block, totalLength);
         },
 
         sequenceHeaderSize: options.sequenceHeaderSize,
-        writeSequenceHeaderFunc: function (block) {
+        writeSequenceHeaderFunc: function(block) {
             assert(block.length === this.sequenceHeaderSize);
             self.writeSequenceHeader(block);
         },
@@ -108,20 +102,17 @@ const SecureMessageChunkManager = function (msgType, options, securityHeader, se
 
     self.chunkManager = new ChunkManager(params);
 
-    self.chunkManager.on("chunk", function (chunk, is_last) {
+    self.chunkManager.on("chunk", function(chunk, is_last) {
         /**
          * @event chunk
          * @param chunk {Buffer}
          */
         self.emit("chunk", chunk, is_last || self.aborted);
-
     });
 };
 util.inherits(SecureMessageChunkManager, EventEmitter);
 
-
-SecureMessageChunkManager.prototype.write_header = function (finalC, buf, length) {
-
+SecureMessageChunkManager.prototype.write_header = function(finalC, buf, length) {
     assert(buf.length > 12);
     assert(finalC.length === 1);
     assert(buf instanceof Buffer);
@@ -153,13 +144,12 @@ SecureMessageChunkManager.prototype.write_header = function (finalC, buf, length
     assert(bs.length === this.headerSize);
 };
 
-SecureMessageChunkManager.prototype.writeSequenceHeader = function (block) {
+SecureMessageChunkManager.prototype.writeSequenceHeader = function(block) {
     const bs = new BinaryStream(block);
     // write Sequence Header -----------------
     this.sequenceHeader.sequenceNumber = this.sequenceNumberGenerator.next();
     this.sequenceHeader.encode(bs);
     assert(bs.length === 8);
-
 };
 
 /**
@@ -167,7 +157,7 @@ SecureMessageChunkManager.prototype.writeSequenceHeader = function (block) {
  * @param buffer {Buffer}
  * @param length {Integer} - optional if not provided  buffer.length is used instead.
  */
-SecureMessageChunkManager.prototype.write = function (buffer, length) {
+SecureMessageChunkManager.prototype.write = function(buffer, length) {
     length = length || buffer.length;
     this.chunkManager.write(buffer, length);
 };
@@ -176,7 +166,7 @@ SecureMessageChunkManager.prototype.write = function (buffer, length) {
  * @method abort
  *
  */
-SecureMessageChunkManager.prototype.abort = function () {
+SecureMessageChunkManager.prototype.abort = function() {
     this.aborted = true;
     this.end();
 };
@@ -184,11 +174,9 @@ SecureMessageChunkManager.prototype.abort = function () {
 /**
  * @method end
  */
-SecureMessageChunkManager.prototype.end = function () {
+SecureMessageChunkManager.prototype.end = function() {
     this.chunkManager.end();
     this.emit("finished");
 };
 
-
 exports.SecureMessageChunkManager = SecureMessageChunkManager;
-

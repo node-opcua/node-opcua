@@ -1,5 +1,5 @@
 
-var PublishRequest_Schema = {
+const PublishRequest_Schema = {
     name: "PublishRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },

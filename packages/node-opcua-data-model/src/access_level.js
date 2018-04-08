@@ -5,7 +5,7 @@
 
 
 const Enum = require("node-opcua-enum");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const registerBasicType = require("node-opcua-factory").registerBasicType;
 const utils = require("node-opcua-utils");

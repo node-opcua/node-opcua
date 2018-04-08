@@ -1,7 +1,7 @@
 require("node-opcua-service-endpoints");
 require("node-opcua-nodeid");
 
-var SessionDiagnostics_Schema = {
+const SessionDiagnostics_Schema = {
     id: "ns=0;i=867",
     name: "SessionDiagnostics",
     fields: [

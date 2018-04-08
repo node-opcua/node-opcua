@@ -7,7 +7,7 @@ require("node-opcua-data-model");
  * node types shall have an associated status code.
  */
 
-var ParsingResult_Schema = {
+const ParsingResult_Schema = {
     name:"ParsingResult",
 
     fields: [

@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 
 const BrowsePath = require("../_generated_/_auto_generated_BrowsePath").BrowsePath;

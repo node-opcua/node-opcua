@@ -13,7 +13,7 @@
  -    * compare the published NotificationMessage to the republished NotificationMessage (should equal).
  */
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const async = require("async");
 const should = require("should");
 const sinon = require("sinon");

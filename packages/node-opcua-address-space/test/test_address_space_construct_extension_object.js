@@ -11,7 +11,7 @@
 "use strict";
 
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const path = require("path");
 const fs = require("fs");
 const EUInformation = require("node-opcua-data-access").EUInformation;

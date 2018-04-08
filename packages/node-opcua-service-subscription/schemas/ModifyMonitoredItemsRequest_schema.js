@@ -1,5 +1,5 @@
 
-var ModifyMonitoredItemsRequest_Schema = {
+const ModifyMonitoredItemsRequest_Schema = {
     name: "ModifyMonitoredItemsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },

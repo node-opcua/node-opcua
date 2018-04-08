@@ -1,7 +1,7 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
-var DataValueEncodingByte_Schema = {
+const factories = require("node-opcua-factory");
+const DataValueEncodingByte_Schema = {
     name:"DataValue_EncodingByte",
     enumValues: {
         Value:              0x01,

@@ -1,4 +1,4 @@
-var AddNodes_VariableTypeAttributes_Schema = {
+const AddNodes_VariableTypeAttributes_Schema = {
     name: "VariableTypeAttributes",
     fields: [
         {

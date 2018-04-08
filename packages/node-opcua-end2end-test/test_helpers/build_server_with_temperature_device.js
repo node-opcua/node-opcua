@@ -1,6 +1,6 @@
 "use strict";
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 require("should");
 
 const opcua = require("node-opcua");

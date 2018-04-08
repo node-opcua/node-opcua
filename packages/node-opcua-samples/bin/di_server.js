@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 "use strict";
-var opcua = require("node-opcua");
-var _ = require("underscore");
+const opcua = require("node-opcua");
+const _ = require("underscore");
 
 Error.stackTraceLimit = Infinity;
 
-var assert = require("node-opcua-assert");
-var argv = require("yargs")
+const assert = require("node-opcua-assert").assert;
+const argv = require("yargs")
     .wrap(132)
     .string("alternateHostname")
     .describe("alternateHostname")
@@ -16,17 +16,17 @@ var argv = require("yargs")
     .alias("p","port")
     .argv;
 
-var OPCUAServer = opcua.OPCUAServer;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
+const OPCUAServer = opcua.OPCUAServer;
+const Variant = opcua.Variant;
+const DataType = opcua.DataType;
 
-var makeApplicationUrn = opcua.makeApplicationUrn;
-var standard_nodeset_file = opcua.standard_nodeset_file;
-var get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
+const makeApplicationUrn = opcua.makeApplicationUrn;
+const standard_nodeset_file = opcua.standard_nodeset_file;
+const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 
-var port = parseInt(argv.port) || 26543;
+const port = parseInt(argv.port) || 26543;
 
-var userManager = {
+const userManager = {
     isValidUser: function (userName,password) {
 
         if (userName === "user1" && password === "password1") {
@@ -40,7 +40,7 @@ var userManager = {
 };
 
 
-var server_options ={
+const server_options ={
 
     port: port,
     resourcePath: "UA/Server",
@@ -77,44 +77,44 @@ process.title ="Node OPCUA Server on port : " + server_options.port;
 
 server_options.alternateHostname = argv.alternateHostname;
 
-var server = new OPCUAServer(server_options);
+const server = new OPCUAServer(server_options);
 
-var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
-var hostname = require("os").hostname();
+const hostname = require("os").hostname();
 
 
 
 server.on("post_initialize", function () {
 
 
-    var addressSpace = server.engine.addressSpace;
+    const addressSpace = server.engine.addressSpace;
 
-    var rootFolder = addressSpace.findNode("RootFolder");
+    const rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
 
-    var deviceSet = rootFolder.objects.deviceSet;
+    const deviceSet = rootFolder.objects.deviceSet;
     assert(deviceSet.browseName.toString() === "2:DeviceSet");
 
-    var baseObjectType = addressSpace.findObjectType("BaseObjectType");
+    const baseObjectType = addressSpace.findObjectType("BaseObjectType");
 
-    var nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
-    var topologyElementType    = addressSpace.findObjectType("TopologyElementType",nsDI);
+    const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+    const topologyElementType    = addressSpace.findObjectType("TopologyElementType",nsDI);
 
-    var nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
+    const nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
 
-    var spectrometerDeviceType = addressSpace.findObjectType("SpectrometerDeviceType",nsADI);
+    const spectrometerDeviceType = addressSpace.findObjectType("SpectrometerDeviceType",nsADI);
     assert(spectrometerDeviceType.browseName.toString() === "3:SpectrometerDeviceType");
 
-    var analyserChannelType    = addressSpace.findObjectType("AnalyserChannelType",nsADI);
-    var accessorySlotType      = addressSpace.findObjectType("AccessorySlotType",  nsADI);
-    var functionalGroupType    = addressSpace.findObjectType("FunctionalGroupType",nsADI);
+    const analyserChannelType    = addressSpace.findObjectType("AnalyserChannelType",nsADI);
+    const accessorySlotType      = addressSpace.findObjectType("AccessorySlotType",  nsADI);
+    const functionalGroupType    = addressSpace.findObjectType("FunctionalGroupType",nsADI);
 
     console.log("ADI namespace = ",nsADI);
     console.log("ADI namespace = ",spectrometerDeviceType.browseName.toString());
 
-    var mySpectrometer= spectrometerDeviceType.instantiate({browseName: "MySpectrometer", organizedBy: deviceSet});
+    const mySpectrometer= spectrometerDeviceType.instantiate({browseName: "MySpectrometer", organizedBy: deviceSet});
     // create a spectro meter
 
 
@@ -122,13 +122,13 @@ server.on("post_initialize", function () {
         assert(typeof options.browseName === "string");
         assert(options.componentOf);
 
-        var channel       = analyserChannelType.instantiate({
+        const channel       = analyserChannelType.instantiate({
             browseName: options.browseName,
             componentOf: options.componentOf,
             optionals: ["ParameterSet"]
         });
 
-        var parameterSet = channel.parameterSet;
+        const parameterSet = channel.parameterSet;
 
         //var parameterSet  = topologyElementType.instantiate({ browseName: "ParameterSet", componentOf: channel });
         ///  var methodSet     = topologyElementType.instantiate({ browseName: "MethodSet",    componentOf: channel });
@@ -145,8 +145,8 @@ server.on("post_initialize", function () {
         return channel;
     }
     // add channel 1
-    var channel1 = createChannel({ browseName: "Channel1", componentOf: mySpectrometer });
-    var channel2 = createChannel({ browseName: "Channel2", componentOf: mySpectrometer });
+    const channel1 = createChannel({ browseName: "Channel1", componentOf: mySpectrometer });
+    const channel2 = createChannel({ browseName: "Channel2", componentOf: mySpectrometer });
 
     console.log(mySpectrometer.toString());
 
@@ -159,13 +159,13 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    var view = addressSpace.addView({
+    const view = addressSpace.addView({
         organizedBy: rootFolder.views,
         browseName:"MyView"
     });
 
-    var createBoilerType = opcua.createBoilerType;
-    var makeBoiler = opcua.makeBoiler;
+    const createBoilerType = opcua.createBoilerType;
+    const makeBoiler = opcua.makeBoiler;
 
     createBoilerType(addressSpace);
     makeBoiler(addressSpace,{
@@ -179,7 +179,7 @@ server.on("post_initialize", function () {
 
 function dumpNode(node) {
     function w(str,width) {
-        var tmp =str+ "                                        ";
+        const tmp =str+ "                                        ";
         return tmp.substr(0,width);
     }
     return   _.map(node,function(value,key) {
@@ -245,7 +245,7 @@ server.on("response", function (response) {
 });
 
 function indent(str,nb) {
-    var spacer = "                                             ".slice(0,nb);
+    const spacer = "                                             ".slice(0,nb);
     return str.split("\n").map(function(s) { return spacer + s; }).join("\n");
 }
 server.on("request", function (request,channel) {
@@ -278,7 +278,7 @@ process.on("SIGINT", function() {
     });
 });
 
-var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
+const discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
 
 console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
 

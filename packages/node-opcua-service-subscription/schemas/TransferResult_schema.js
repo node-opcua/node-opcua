@@ -1,5 +1,5 @@
 require("node-opcua-service-filter");
-var TransferResult_Schema= {
+const TransferResult_Schema= {
     name:"TransferResult",
     fields: [
         { name:"statusCode",                             fieldType:"StatusCode"},

@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const QualifiedName = require("node-opcua-data-model").QualifiedName;
 const LocalizedText = require("node-opcua-data-model").LocalizedText;
 

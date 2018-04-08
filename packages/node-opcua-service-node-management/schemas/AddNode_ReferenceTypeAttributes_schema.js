@@ -1,4 +1,4 @@
-var AddNodes_ReferenceTypeAttributes_Schema = {
+const AddNodes_ReferenceTypeAttributes_Schema = {
     name: "ReferenceTypeAttributes",
     fields: [
         {

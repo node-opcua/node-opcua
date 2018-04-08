@@ -2,7 +2,7 @@
 const _ = require("underscore");
 const util = require("util");
 const EventEmitter = require("events").EventEmitter;
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 function WatchDog() {
     this._subscriber = {};

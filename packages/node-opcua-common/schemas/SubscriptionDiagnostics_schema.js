@@ -1,4 +1,4 @@
-var SubscriptionDiagnostics_Schema = {
+const SubscriptionDiagnostics_Schema = {
     id: "ns=0;i=876",
     name: "SubscriptionDiagnostics",
     fields: [

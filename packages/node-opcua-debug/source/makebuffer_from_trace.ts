@@ -1,25 +1,22 @@
-"use strict";
+import { makeBuffer } from "node-opcua-buffer-utils";
 
-const deprecated_trim = function (str) {
-    return str.replace(/^\s+|\s+$/g, "");
-};
+//xx const deprecated_trim = function (str:string):string {
+//xx     return str.replace(/^\s+|\s+$/g, "");
+//xx };
 
-function inlineText(f) {
-
+export function inlineText(f:any):string {
     let k = f.toString().
         replace(/^[^\/]+\/\*!?/, '').
         replace(/\*\/[^\/]+$/, '');
-    k = k.split("\n").map(function(t){  t = t.trim(); return t; }).join("\n");
+    k = k.split("\n").map((t:string)=> t.trim()).join("\n");
     return k;
 }
-const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
 
-const hexString = function (str) {
+function hexString(str:string):string {
 
-    let hexline = "";
+    let hexline:string = "";
     const lines = str.split("\n");
-    lines.forEach(function (line) {
-
+    for (let line of lines) {
         line = line.trim();
         if (line.length > 80) {
             line = line.substr(10, 98).trim();
@@ -28,12 +25,10 @@ const hexString = function (str) {
             line = line.substr(7, 48).trim();
             hexline = hexline ? hexline + " " + line : line;
         }
-    });
+    }
     return hexline;
-};
+}
 
-function makebuffer_from_trace(func) {
+export function makebuffer_from_trace(func:any):Buffer {
     return makeBuffer(hexString(inlineText(func)));
 }
-exports.inlineText = inlineText;
-exports.makebuffer_from_trace = makebuffer_from_trace;

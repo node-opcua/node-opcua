@@ -18,7 +18,7 @@ const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 function _dumpDisplayName(xw, node) {

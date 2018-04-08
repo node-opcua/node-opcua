@@ -1,13 +1,13 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var is_valid_attributeId = require("node-opcua-data-model").is_valid_attributeId;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const is_valid_attributeId = require("node-opcua-data-model").is_valid_attributeId;
 
 require("node-opcua-numeric-range");
 
-var ReadValueId_Schema = {
+const ReadValueId_Schema = {
     name: "ReadValueId",
     fields: [
         { name: "nodeId" ,       fieldType: "NodeId"},

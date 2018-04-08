@@ -1,4 +1,4 @@
-var ModifyMonitoredItemsResponse_Schema = {
+const ModifyMonitoredItemsResponse_Schema = {
     name: "ModifyMonitoredItemsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

@@ -1,8 +1,8 @@
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
 /*
  * results []
@@ -10,7 +10,7 @@ var NodeId = require("node-opcua-nodeid").NodeId;
  * CallMethodResult
  *
  */
-var CallMethodResult_Schema = {
+const CallMethodResult_Schema = {
     name: "CallMethodResult",
     documentation: "The result of a Method call.",
     fields: [

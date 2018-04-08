@@ -1,10 +1,10 @@
-var NumericRange = require("node-opcua-numeric-range").NumericRange;
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
 // The SimpleAttributeOperand is a simplified form of the AttributeOperand and all of the rules that
 // apply to the AttributeOperand also apply to the SimpleAttributeOperand. The examples provided in
 // B.1 only use AttributeOperand, however, the AttributeOperand can be replaced by a
 // SimpleAttributeOperand whenever all ReferenceTypes in the RelativePath are subtypes of
 // HierarchicalReferences and the targets are Object or Variable Nodes and an Alias is not required
-var SimpleAttributeOperand_Schema = {
+const SimpleAttributeOperand_Schema = {
 
     name:"SimpleAttributeOperand",
 

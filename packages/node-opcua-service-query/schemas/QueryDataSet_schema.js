@@ -1,5 +1,5 @@
 
-var QueryDataSet_Schema = {
+const QueryDataSet_Schema = {
     documentation:"Data related to a Node returned in a Query response.",
     name:"QueryDataSet",
     fields: [

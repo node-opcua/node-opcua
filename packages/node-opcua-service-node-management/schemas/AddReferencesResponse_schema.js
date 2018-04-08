@@ -1,5 +1,5 @@
 
-var AddReferencesResponse_Schema = {
+const AddReferencesResponse_Schema = {
     name:"AddReferencesResponse",
     fields: [
         {name: "responseHeader", fieldType: "ResponseHeader", documentation: "A standard header included in all responses returned by servers."},

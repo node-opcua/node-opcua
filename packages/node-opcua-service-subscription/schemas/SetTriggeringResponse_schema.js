@@ -1,4 +1,4 @@
-var SetTriggeringResponse_Schema = {
+const SetTriggeringResponse_Schema = {
     name: "SetTriggeringResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

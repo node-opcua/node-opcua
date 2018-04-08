@@ -4,7 +4,7 @@
  */
 
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const SimpleAttributeOperand = require("../_generated_/_auto_generated_SimpleAttributeOperand").SimpleAttributeOperand;
 const EventFilter = require("../_generated_/_auto_generated_EventFilter").EventFilter;

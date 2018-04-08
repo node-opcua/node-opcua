@@ -1,4 +1,4 @@
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const fs = require("fs");
 const crypto_utils = require("node-opcua-crypto").crypto_utils;
 

@@ -1,4 +1,4 @@
-var EventNotificationList_Schema = {
+const EventNotificationList_Schema = {
     name: "EventNotificationList",
     fields: [
         {

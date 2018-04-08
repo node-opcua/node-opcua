@@ -1,4 +1,4 @@
-var ServiceCounter_Schema = {
+const ServiceCounter_Schema = {
     id: "ns=0;i=873",
     name: "ServiceCounter",
     fields: [

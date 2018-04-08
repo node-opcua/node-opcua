@@ -1,7 +1,7 @@
 "use strict";
 
 const Enum = require("node-opcua-enum");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const makeNodeId = (exports.makeNodeId = require("node-opcua-nodeid").makeNodeId);
 const NodeIdType = (exports.NodeIdType = require("node-opcua-nodeid").NodeIdType);

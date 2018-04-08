@@ -1,5 +1,5 @@
 // --------- This code has been automatically generated !!! 2017-06-18T14:21:04.808Z
-var SamplingIntervalDiagnostics_Schema = {
+const SamplingIntervalDiagnostics_Schema = {
     id: "ns=0;i=858",
     name: "SamplingIntervalDiagnostics",
     fields: [

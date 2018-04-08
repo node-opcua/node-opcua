@@ -3,7 +3,7 @@
  */
 
 const crypto = require("crypto");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 

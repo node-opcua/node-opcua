@@ -1,6 +1,6 @@
 "use strict";
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const trace_from_this_projet_only = require("node-opcua-debug").trace_from_this_projet_only;
 
 const g_registries = [];

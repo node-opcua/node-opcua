@@ -6,7 +6,7 @@ const NodeId = require("..").NodeId;
 const sameNodeId = require("..").sameNodeId;
 
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("testing NodeIds", function() {

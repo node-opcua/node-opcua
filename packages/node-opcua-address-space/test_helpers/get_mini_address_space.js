@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const path = require("path");
 const address_space = require("..");
 

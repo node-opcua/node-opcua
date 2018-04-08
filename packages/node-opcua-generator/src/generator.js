@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const normalize_require_file = require("node-opcua-utils").normalize_require_file;
 

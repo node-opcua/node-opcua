@@ -7,7 +7,7 @@
     <opc:Field Name="AggregateConfiguration" TypeName="tns:AggregateConfiguration" />
   </opc:StructuredType>
 */
-var AggregateFilter_Schema = {
+const AggregateFilter_Schema = {
     name: "AggregateFilter",
     fields: [
         { name: "StartTime",          isArray: false, fieldType: "DateTime" },

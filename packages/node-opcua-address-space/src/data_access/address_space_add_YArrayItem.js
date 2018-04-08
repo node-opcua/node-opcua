@@ -18,7 +18,7 @@ const AxisScale       = part8.AxisScale;
 const Range           = part8.Range;
 
 const utils = require("node-opcua-utils");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 

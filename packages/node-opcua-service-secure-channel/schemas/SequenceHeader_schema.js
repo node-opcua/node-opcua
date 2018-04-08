@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var SequenceHeader_Schema = {
+const SequenceHeader_Schema = {
     name: "SequenceHeader",
     id: factories.next_available_id(),
     fields: [

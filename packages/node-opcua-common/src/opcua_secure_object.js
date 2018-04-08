@@ -6,7 +6,7 @@
 
 const crypto_utils = require("node-opcua-crypto").crypto_utils;
 const fs = require("fs");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 function _load_certificate(certificate_file) {
     return crypto_utils.readCertificate(certificate_file);

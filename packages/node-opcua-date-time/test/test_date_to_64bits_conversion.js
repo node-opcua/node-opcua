@@ -20,7 +20,7 @@ function isValidUInt32(value) {
 
 
 // deprecated (inaccurate)
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 function deprecated_dateToHundredNanoSecondFrom1601(date) {
 
     assert(date instanceof Date);

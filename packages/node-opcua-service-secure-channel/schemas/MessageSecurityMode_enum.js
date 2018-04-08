@@ -1,9 +1,9 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // see part 4 $7.14
-var MessageSecurityMode_Schema = {
+const MessageSecurityMode_Schema = {
     name: "MessageSecurityMode",
     enumValues: {
         INVALID: 0, // The MessageSecurityMode is invalid

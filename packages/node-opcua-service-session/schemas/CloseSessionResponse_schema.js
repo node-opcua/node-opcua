@@ -1,4 +1,4 @@
-var CloseSessionResponse_Schema =  {
+const CloseSessionResponse_Schema =  {
     documentation: "Closes a session with the server.",
     name: "CloseSessionResponse",
     fields: [

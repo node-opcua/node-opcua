@@ -5,7 +5,7 @@
 
 
 // system requires
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const net = require("net");
 const _ = require("underscore");

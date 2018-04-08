@@ -5,7 +5,7 @@
 
 
 const util = require("util");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 const MessageBuilderBase = require("node-opcua-transport/src/message_builder_base").MessageBuilderBase;

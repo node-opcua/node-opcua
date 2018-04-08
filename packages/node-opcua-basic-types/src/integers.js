@@ -2,7 +2,7 @@
 
 const getRandomInt = require("./utils").getRandomInt;
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 exports.isValidUInt16 = function(value) {
     if (!_.isFinite(value)) {

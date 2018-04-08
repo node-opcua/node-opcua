@@ -10,7 +10,7 @@ const subscription_service = require("node-opcua-service-subscription");
 const NotificationMessage = subscription_service.NotificationMessage;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 

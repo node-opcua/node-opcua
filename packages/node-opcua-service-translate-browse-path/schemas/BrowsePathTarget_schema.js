@@ -1,5 +1,5 @@
 
-var BrowsePathTarget_Schema = {
+const BrowsePathTarget_Schema = {
     name: "BrowsePathTarget",
     documentation: "The target of the translated path.",
     fields: [

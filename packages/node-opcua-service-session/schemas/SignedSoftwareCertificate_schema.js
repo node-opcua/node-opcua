@@ -1,5 +1,5 @@
 
-var SignedSoftwareCertificate_Schema = {
+const SignedSoftwareCertificate_Schema = {
     name: "SignedSoftwareCertificate",
     fields: [
         { name: "certificateData", fieldType: "ByteString", documentation: "The data of the certificate." },

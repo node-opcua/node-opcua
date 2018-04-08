@@ -1,4 +1,4 @@
-var TransferSubscriptionsRequest_Schema = {
+const TransferSubscriptionsRequest_Schema = {
     name: "TransferSubscriptionsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },

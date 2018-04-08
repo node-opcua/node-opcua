@@ -16,7 +16,7 @@ const DataValue = require("node-opcua-data-value").DataValue;
 const VariableIds = require("node-opcua-constants").VariableIds;
 
 const ec = require("node-opcua-basic-types");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const util = require("util");
 const EventEmitter = require("events").EventEmitter;
 const eoan = require("node-opcua-address-space");

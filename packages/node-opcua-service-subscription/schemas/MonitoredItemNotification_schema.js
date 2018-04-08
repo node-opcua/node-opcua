@@ -1,6 +1,6 @@
 
 
-var MonitoredItemNotification_Schema = {
+const MonitoredItemNotification_Schema = {
     name: "MonitoredItemNotification",
     fields: [
         { name: "clientHandle", fieldType: "IntegerId" ,documentation:"Client-supplied handle for the MonitoredItem. "},

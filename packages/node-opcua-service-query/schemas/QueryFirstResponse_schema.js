@@ -1,7 +1,7 @@
 require("node-opcua-service-secure-channel");
 require("node-opcua-service-subscription"); // for ContentFilterResult
 
-var QueryFirstResponse_Schema = {
+const QueryFirstResponse_Schema = {
     name: "QueryFirstResponse",
     fields: [
         { name: "responseHeader",                   fieldType: "ResponseHeader" },

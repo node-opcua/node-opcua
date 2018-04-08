@@ -1,10 +1,8 @@
-"use strict";
-
 const path = require("path");
 const fs = require("fs");
-function getTempFilename(tmpfile) {
-    tmpfile = tmpfile || "";
 
+export function getTempFilename(tmpfile:string|null):string {
+    tmpfile = tmpfile || "";
     const this_dirname = __dirname;
     const temporaryFolder = path.join(this_dirname, '../../../../tmp/');
     if (!fs.existsSync(temporaryFolder)) {
@@ -12,6 +10,6 @@ function getTempFilename(tmpfile) {
     }
     return path.normalize(path.join(temporaryFolder,tmpfile));
 }
-exports.getTempFilename = getTempFilename;
+
 
 

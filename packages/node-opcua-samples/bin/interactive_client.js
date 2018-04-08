@@ -2,45 +2,45 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 
-var readline = require("readline");
-var treeify = require("treeify");
+const readline = require("readline");
+const treeify = require("treeify");
 require("colors");
-var sprintf = require("sprintf");
-var util = require("util");
-var fs = require("fs");
-var path = require("path");
-var _ = require("underscore");
+const sprintf = require("sprintf");
+const util = require("util");
+const fs = require("fs");
+const path = require("path");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
-var UAProxyManager = opcua.UAProxyManager;
+const opcua = require("node-opcua");
+const UAProxyManager = opcua.UAProxyManager;
 
 
 
-var utils = opcua.utils;
+const utils = opcua.utils;
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 console.log(" Version ", opcua.version);
 
-var sessionTimeout = 2 * 60 * 1000; // 2 minutes
+const sessionTimeout = 2 * 60 * 1000; // 2 minutes
 
-var client = new opcua.OPCUAClient({
+const client = new opcua.OPCUAClient({
     requestedSessionTimeout: sessionTimeout,
     keepSessionAlive: true
 });
 
-var the_session  = null;
-var proxyManager = null;
+let the_session  = null;
+let proxyManager = null;
 
-var crawler           = null;
-var dumpPacket        = false;
-var dumpMessageChunk  = false;
-var endpoints_history = [];
+let crawler           = null;
+let dumpPacket        = false;
+const dumpMessageChunk  = false;
+let endpoints_history = [];
 
-var endpoints_history_file = path.join(__dirname, ".history_endpoints");
+const endpoints_history_file = path.join(__dirname, ".history_endpoints");
 
-var curNode = null;
-var curNodeCompletion = [];
+let curNode = null;
+let curNodeCompletion = [];
 
 function save_endpoint_history(callback) {
     if (endpoints_history.length > 0) {
@@ -58,7 +58,7 @@ function add_endpoint_to_history(endpoint) {
     save_endpoint_history();
 }
 
-var lines = [];
+let lines = [];
 
 
 
@@ -67,16 +67,16 @@ if (fs.existsSync(endpoints_history_file)) {
     endpoints_history = lines.split(/\r\n|\n/);
 }
 
-var history_file = path.join(__dirname, ".history");
+const history_file = path.join(__dirname, ".history");
 
 
 function completer(line,callback) {
 
-    var completions, hits;
+    let completions, hits;
 
     if ( (line.trim() === "" ) && curNode) {
         // console.log(" completions ",completions);
-        var c = [".."].concat(curNodeCompletion);
+        let c = [".."].concat(curNodeCompletion);
         if (curNodeCompletion.length === 1) {
             c = curNodeCompletion;
         }
@@ -106,18 +106,18 @@ function completer(line,callback) {
 }
 
 
-var rl = readline.createInterface({
+const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
     completer: completer
 });
 
-var the_prompt = ">".cyan;
+let the_prompt = ">".cyan;
 rl.setPrompt(the_prompt);
 rl.prompt();
 
 function save_history(callback) {
-    var history_uniq = _.uniq(rl.history);
+    const history_uniq = _.uniq(rl.history);
     fs.writeFileSync(history_file, history_uniq.join("\n"), "ascii");
     callback();
 }
@@ -138,7 +138,7 @@ function w(str,width) {
  */
 function toDate(str) {
     console.log(" parsing : '" + str + "'");
-    var now = new Date();
+    const now = new Date();
     if (!str) {
         return now;
     }
@@ -148,24 +148,24 @@ function toDate(str) {
 
     // check if provided date is  <HH>:<MM>
 
-    var t = /([0-9]{1,2}):([0-9]{1,2})/;
-    var tt = str.match(t);
+    const t = /([0-9]{1,2}):([0-9]{1,2})/;
+    const tt = str.match(t);
     if (tt) {
         // HH:MM of current date
-        var year = now.getFullYear();
-        var month = now.getMonth(); // 0  : jan , 1: feb etc ...
-        var day  = now.getDate();
-        var hours = parseInt(tt[1]);
-        var minutes = parseInt(tt[2]);
-        var seconds = 0;
-        var date = new Date(year,month,day,hours,minutes,seconds);
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0  : jan , 1: feb etc ...
+        const day  = now.getDate();
+        const hours = parseInt(tt[1]);
+        const minutes = parseInt(tt[2]);
+        const seconds = 0;
+        const date = new Date(year,month,day,hours,minutes,seconds);
         return date;
     }
     // check if provided date looks like "3 hours ago" | "1 day ago" etc...
-    var r = /([0-9]*)(day|days|d|hours|hour|h|minutes|minutes|m)\s?((ago)?)/;
-    var m = str.match(r);
+    const r = /([0-9]*)(day|days|d|hours|hour|h|minutes|minutes|m)\s?((ago)?)/;
+    const m = str.match(r);
     if (m) {
-        var tvalue = parseInt(m[1]);
+        let tvalue = parseInt(m[1]);
         switch(m[2][0]) {
             case "d":
                 tvalue *= 24*3600;
@@ -189,22 +189,22 @@ function log()
 {
     rl.pause();
     rl.clearLine(process.stdout);
-    var str =_.map(arguments).join(" ");
+    const str =_.map(arguments).join(" ");
     process.stdout.write(str);
     rl.resume();
 }
 
-var rootFolder   = null;
+let rootFolder   = null;
 
-var nodePath = [];
-var nodePathName = [];
-var lowerFirstLetter = opcua.utils.lowerFirstLetter;
+let nodePath = [];
+let nodePathName = [];
+const lowerFirstLetter = opcua.utils.lowerFirstLetter;
 
 
 function setCurrentNode(node) {
 
     curNode = node;
-    var curNodeBrowseName = lowerFirstLetter(curNode.browseName.name.toString());
+    const curNodeBrowseName = lowerFirstLetter(curNode.browseName.name.toString());
     nodePathName.push(curNodeBrowseName);
     nodePath.push(node);
     curNodeCompletion = node.$components.map(function(c) {
@@ -230,7 +230,7 @@ function moveToChild(browseName) {
         rl.setPrompt(the_prompt);
         return;
     }
-    var child= curNode[browseName];
+    const child= curNode[browseName];
     if (!child) {
         return;
     }
@@ -287,7 +287,7 @@ client.on("receive_response", function (message) {
 
 
 function dumpNodeResult(node) {
-    var str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
+    const str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
     log(str);
 }
 function colorize(value) {
@@ -302,7 +302,7 @@ if (rl.history) {
         lines = lines.split(/\r\n|\n/);
     }
     if (lines.length === 0) {
-        var hostname = require("os").hostname();
+        let hostname = require("os").hostname();
         hostname = hostname.toLowerCase();
         rl.history.push("open opc.tcp://opcua.demo-this.com:51210/UA/SampleServer");
         rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
@@ -350,8 +350,8 @@ function apply_on_valid_session(cmd, func ,callback) {
 }
 
 function dump_dataValues(nodesToRead, dataValues) {
-    for (var i = 0; i < dataValues.length; i++) {
-        var dataValue = dataValues[i];
+    for (let i = 0; i < dataValues.length; i++) {
+        const dataValue = dataValues[i];
         log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold, nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
             log("           type : ", colorize(dataValue.value.dataType.key));
@@ -376,7 +376,7 @@ function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult)
 
     log("historyReadResult = ",historyReadResult.toString());
 
-    var dataValues = historyReadResult.historyData.dataValues;
+    const dataValues = historyReadResult.historyData.dataValues;
     log(" Length = ",dataValues.length);
 
     if (!dataValues || dataValues.length === 0) {
@@ -386,8 +386,8 @@ function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult)
     if (dataValues.length > 0 && dataValues[0].value) {
         log("           type : ", colorize(dataValues[0].value.dataType.key));
     }
-    for (var i = 0; i < dataValues.length; i++) {
-        var dataValue = dataValues[i];
+    for (let i = 0; i < dataValues.length; i++) {
+        const dataValue = dataValues[i];
         if (dataValue.value) {
             log(
               dataValue.sourceTimestamp,
@@ -465,9 +465,9 @@ function set_debug(flag) {
 }
 
 function process_line(line) {
-    var nodes;
-    var args = line.trim().split(/ +/);
-    var cmd = args[0];
+    let nodes;
+    const args = line.trim().split(/ +/);
+    const cmd = args[0];
 
     if (curNode) {
         moveToChild(cmd);
@@ -475,17 +475,17 @@ function process_line(line) {
     }
     switch (cmd) {
         case "debug":
-            var flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
+            const flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
             set_debug(flag);
             break;
         case "open":
-            var endpointUrl = args[1];
+            let endpointUrl = args[1];
             if (!endpointUrl.match(/^opc.tcp:\/\//)) {
                 endpointUrl = "opc.tcp://" + endpointUrl;
             }
-            var p = opcua.parseEndpointUrl(endpointUrl);
-            var hostname = p.hostname;
-            var port = p.port;
+            const p = opcua.parseEndpointUrl(endpointUrl);
+            const hostname = p.hostname;
+            const port = p.port;
             log(" open    url : ", endpointUrl);
             log("    hostname : ", (hostname || "<null>").yellow);
             log("        port : ", port.toString().yellow);
@@ -575,7 +575,7 @@ function process_line(line) {
                         save_history(function () {
                         });
 
-                        for (var i = 0; i < nodeResults.length; i++) {
+                        for (let i = 0; i < nodeResults.length; i++) {
                             log("Node: ", nodes[i]);
                             log(" StatusCode =", nodeResults[i].statusCode.toString(16));
                             nodeResults[i].references.forEach(dumpNodeResult);
@@ -604,10 +604,10 @@ function process_line(line) {
                 // hr ns=2;s=Demo.History.DoubleWithHistory 13:45 13:59
                 nodes = [args[1]];
 
-                var startTime = toDate(args[2]);// "2015-06-10T09:00:00.000Z"
-                var endTime = toDate(args[3]);  // "2015-06-10T09:01:00.000Z"
+                let startTime = toDate(args[2]);// "2015-06-10T09:00:00.000Z"
+                let endTime = toDate(args[3]);  // "2015-06-10T09:01:00.000Z"
                 if (startTime>endTime) {
-                    var tmp = endTime;endTime = startTime;startTime =tmp;
+                    const tmp = endTime;endTime = startTime;startTime =tmp;
                 }
                 nodes = nodes.map(opcua.coerceNodeId);
 
@@ -655,7 +655,7 @@ function process_line(line) {
         case "ra":
         case "readall":
             apply_on_valid_session(cmd, function (the_session, callback) {
-                var node = args[1];
+                const node = args[1];
 
                 the_session.readAllAttributes(node, function (err, result/*,diagnosticInfos*/) {
                     if (!err) {
@@ -672,7 +672,7 @@ function process_line(line) {
         case "tb":
             apply_on_valid_session(cmd, function (the_session, callback) {
 
-                var path = args[1];
+                const path = args[1];
                 the_session.translateBrowsePath(path, function (err, results) {
                     if (err) {
                         log(err.message);
@@ -696,7 +696,7 @@ function process_line(line) {
 
                 }
 
-                var nodeId = args[1] || "ObjectsFolder";
+                const nodeId = args[1] || "ObjectsFolder";
                 log("now crawling " + nodeId.yellow + " ...please wait...");
                 crawler.read(nodeId, function (err, obj) {
                     if (!err) {

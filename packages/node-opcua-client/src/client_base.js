@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const async = require("async");
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const once = require("once");
 const delayed = require("delayed");
 

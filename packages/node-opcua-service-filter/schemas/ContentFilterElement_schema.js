@@ -12,7 +12,7 @@ require("./FilterOperator_enum");
 
 // see OPCUA 1.02 Part 4 : section 7.4 Content Filter Part
 
-var ContentFilterElement_Schema = {
+const ContentFilterElement_Schema = {
     name: "ContentFilterElement",
     fields: [
         // Filter operator to be evaluated.

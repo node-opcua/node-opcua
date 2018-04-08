@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var AddNodesResponse_Schema = {
+const AddNodesResponse_Schema = {
     name:"AddNodesResponse",
     fields: [
         {name: "responseHeader", fieldType: "ResponseHeader", documentation: "A standard header included in all responses returned by servers."},

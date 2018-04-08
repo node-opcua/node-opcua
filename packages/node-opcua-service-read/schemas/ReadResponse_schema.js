@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var ReadResponse_Schema = {
+const ReadResponse_Schema = {
     name: "ReadResponse",
     fields: [
         { name: "responseHeader" ,                fieldType: "ResponseHeader"},

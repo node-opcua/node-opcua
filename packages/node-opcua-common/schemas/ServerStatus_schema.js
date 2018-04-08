@@ -2,7 +2,7 @@
 require("./ServerState_enum");
 require("node-opcua-data-model");
 
-var ServerStatus_Schema = {
+const ServerStatus_Schema = {
     id: "ns=0;i=864",
     name: "ServerStatus",
     fields: [

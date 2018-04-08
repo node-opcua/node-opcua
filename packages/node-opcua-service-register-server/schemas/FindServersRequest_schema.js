@@ -1,7 +1,7 @@
 require("node-opcua-service-secure-channel");
 require("node-opcua-data-model");
 
-var FindServersRequest_Schema = {
+const FindServersRequest_Schema = {
     documentation:"Finds the servers known to the discovery server.",
     name: "FindServersRequest",
     fields: [

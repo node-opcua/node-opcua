@@ -1,7 +1,7 @@
 "use strict";
 
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const SequenceNumberGenerator = require("../src/sequence_number_generator").SequenceNumberGenerator;
 const SecureMessageChunkManager = require("../src/secure_message_chunk_manager").SecureMessageChunkManager;
 

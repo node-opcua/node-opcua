@@ -13,7 +13,7 @@
 
  */
 
-var SetMonitoringModeRequest_Schema = {
+const SetMonitoringModeRequest_Schema = {
     name: "SetMonitoringModeRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },

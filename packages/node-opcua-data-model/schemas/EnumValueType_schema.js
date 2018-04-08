@@ -1,6 +1,6 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // OPCUA 1.03 : Part 3  $ 8.40 page 65
 
@@ -8,7 +8,7 @@ var factories = require("node-opcua-factory");
 // When this type is used in an array representing human-readable representations of an enumeration,
 // each Value shall be unique in that array.
 
-var EnumValueType_Schema = {
+const EnumValueType_Schema = {
     name: "EnumValueType",
     fields: [
         {

@@ -2,7 +2,7 @@
 
 const _ = require("underscore");
 const subscription_service = require("node-opcua-service-subscription");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);

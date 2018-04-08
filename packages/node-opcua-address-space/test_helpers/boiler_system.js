@@ -2,7 +2,7 @@
 // see ftp://ftp.nist.gov/pub/mel/michalos/Software/OPC%20UA%20Companion/InformationModel.pdf
 
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const UAMethod = require("..").UAMethod;
 const UAObject = require("..").UAObject;

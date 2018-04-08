@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;

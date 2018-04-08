@@ -6,7 +6,7 @@
 require("set-prototype-of");
 const EventEmitter = require("events").EventEmitter;
 const util = require("util");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 const UAVariable = require("../ua_variable").UAVariable;

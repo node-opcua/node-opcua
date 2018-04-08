@@ -1,4 +1,4 @@
-var ModifySubscriptionRequest_Schema = {
+const ModifySubscriptionRequest_Schema = {
     name: "ModifySubscriptionRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },

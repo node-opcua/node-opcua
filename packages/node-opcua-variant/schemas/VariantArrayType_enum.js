@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var VariantArrayType_Schema = {
+const VariantArrayType_Schema = {
     name:"VariantArrayType",
     enumValues: {
         Scalar: 0x00,

@@ -1,7 +1,7 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
-var AxisScaleEnumeration_Schema = {
+const factories = require("node-opcua-factory");
+const AxisScaleEnumeration_Schema = {
     name:"AxisScaleEnumeration",
     enumValues: {
         Linear: 0,

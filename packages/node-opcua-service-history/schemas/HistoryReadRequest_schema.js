@@ -1,9 +1,9 @@
 require("node-opcua-extension-object");
 require("node-opcua-service-secure-channel");
-var TimestampsToReturn = require("node-opcua-data-value").TimestampsToReturn;
+const TimestampsToReturn = require("node-opcua-data-value").TimestampsToReturn;
 
 
-var HistoryReadRequest_Schema = {
+const HistoryReadRequest_Schema = {
     name: "HistoryReadRequest",
     fields: [
         {   name: "requestHeader", fieldType: "RequestHeader"},

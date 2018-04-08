@@ -1,7 +1,7 @@
 "use strict";
 
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const ServerEngine = require("node-opcua-server").ServerEngine;
 const Variant = require("node-opcua-variant").Variant;

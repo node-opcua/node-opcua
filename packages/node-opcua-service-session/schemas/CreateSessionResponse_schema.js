@@ -2,7 +2,7 @@
 require("../src/SessionAuthenticationToken");
 
 
-var CreateSessionResponse_Schema = {
+const CreateSessionResponse_Schema = {
     documentation: "Creates a new session with the server.",
     name: "CreateSessionResponse",
     fields: [

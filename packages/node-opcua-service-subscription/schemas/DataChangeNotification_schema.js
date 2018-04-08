@@ -1,5 +1,5 @@
 "use strict";
-var DataChangeNotification_Schema = {
+const DataChangeNotification_Schema = {
     name: "DataChangeNotification",
     //  BaseType="NotificationData"
     fields: [

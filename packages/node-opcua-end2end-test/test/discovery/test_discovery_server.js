@@ -4,7 +4,7 @@ const opcua = require("node-opcua");
 const should = require("should");
 const async = require("async");
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const OPCUAServer = opcua.OPCUAServer;
 const OPCUAClient = opcua.OPCUAClient;

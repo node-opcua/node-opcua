@@ -2,7 +2,7 @@ require("node-opcua-service-secure-channel");
 require("node-opcua-data-model");
 
 
-var RegisterServerRequest_Schema = {
+const RegisterServerRequest_Schema = {
     documentation:"Registers a server with the discovery server.",
     name: "RegisterServerRequest",
     fields: [

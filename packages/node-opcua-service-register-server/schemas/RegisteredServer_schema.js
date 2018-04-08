@@ -1,9 +1,9 @@
 "use strict";
 require("node-opcua-data-model");
 require("node-opcua-service-endpoints")
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var RegisteredServer_Schema = {
+const RegisteredServer_Schema = {
     documentation:"The information required to register a server with a discovery server.",
     name: "RegisteredServer",
     id: factories.next_available_id(),

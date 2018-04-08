@@ -1,4 +1,4 @@
-var ServerDiagnosticsSummary_Schema = {
+const ServerDiagnosticsSummary_Schema = {
     id: "ns=0;i=861",
     name: "ServerDiagnosticsSummary",
     fields: [

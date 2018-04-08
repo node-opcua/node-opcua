@@ -10,8 +10,8 @@
  *                                       include the DST correction and DST may or may not have
  *                                       been in effect.
  */
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-var TimeZone_Schema = {
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const TimeZone_Schema = {
     id: coerceNodeId("ns=0;i=8917"),
     name: "TimeZone",
     fields: [

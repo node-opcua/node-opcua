@@ -1,4 +1,4 @@
-var ModelChangeStructure_Schema = {
+const ModelChangeStructure_Schema = {
     id: "ns=0;i=879",
     name: "ModelChangeStructure",
     fields: [

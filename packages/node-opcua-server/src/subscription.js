@@ -15,7 +15,7 @@ const MonitoringMode = subscription_service.MonitoringMode;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const Enum = require("node-opcua-enum");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 const AttributeIds = require("node-opcua-data-model").AttributeIds;

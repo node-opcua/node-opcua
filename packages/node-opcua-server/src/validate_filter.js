@@ -1,4 +1,4 @@
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 const subscription_service = require("node-opcua-service-subscription");

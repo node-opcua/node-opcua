@@ -4,7 +4,7 @@
  */
 
 const util = require("util");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 /**
  * set a flag

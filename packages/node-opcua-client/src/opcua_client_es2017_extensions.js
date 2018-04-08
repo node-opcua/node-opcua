@@ -1,6 +1,6 @@
 const OPCUAClient = require("./opcua_client").OPCUAClient;
 const ClientSubscription = require("./client_subscription").ClientSubscription;
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 /**

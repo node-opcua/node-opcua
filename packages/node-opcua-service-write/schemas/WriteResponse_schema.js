@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var WriteResponse_Schema = {
+const WriteResponse_Schema = {
     name: "WriteResponse",
     fields: [
         { name: "responseHeader" ,                fieldType: "ResponseHeader" },

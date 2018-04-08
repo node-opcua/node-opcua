@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var DeleteSubscriptionsResponse_Schema = {
+const DeleteSubscriptionsResponse_Schema = {
     name: "DeleteSubscriptionsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

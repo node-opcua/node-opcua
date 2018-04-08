@@ -1,5 +1,5 @@
 
-var MonitoredItemCreateResult_Schema = {
+const MonitoredItemCreateResult_Schema = {
     name: "MonitoredItemCreateResult",
     fields: [
         { name: "statusCode", fieldType: "StatusCode" },

@@ -1,8 +1,8 @@
 "use strict";
 require("node-opcua-service-translate-browse-path");
-var NumericRange = require("node-opcua-numeric-range").NumericRange;
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
 
-var AttributeOperand_Schema = {
+const AttributeOperand_Schema = {
     name:"AttributeOperand",
     baseType:"FilterOperand",
     fields:[

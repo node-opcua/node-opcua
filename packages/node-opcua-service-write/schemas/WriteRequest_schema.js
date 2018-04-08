@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var WriteRequest_Schema = {
+const WriteRequest_Schema = {
     name: "WriteRequest",
     fields: [
         { name: "requestHeader" ,               fieldType: "RequestHeader"},

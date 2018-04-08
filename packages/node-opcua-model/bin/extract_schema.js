@@ -1,10 +1,10 @@
-var opcua = require("node-opcua-client");
-var async = require("async");
-var assert = require("node-opcua-assert");
+const opcua = require("node-opcua-client");
+const async = require("async");
+const assert = require("node-opcua-assert").assert;
 
-var yargs = require("yargs/yargs");
+const yargs = require("yargs/yargs");
 
-var argv = yargs(process.argv)
+const argv = yargs(process.argv)
 .wrap(132)
 //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 .demand("endpoint")
@@ -25,13 +25,13 @@ var argv = yargs(process.argv)
 .alias("p", "password")
   .argv;
 
-var endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
-var parse_opcua_common = require("../lib/parse_server_common").parse_opcua_common;
+const endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
+const parse_opcua_common = require("../lib/parse_server_common").parse_opcua_common;
 
 
 function parse_opcua_server(endpoint,callback) {
 
-    var options = {
+    const options = {
         endpoint_must_exist: false,
         keepSessionAlive: true,
         connectionStrategy: {
@@ -41,7 +41,7 @@ function parse_opcua_server(endpoint,callback) {
         }
     };
 
-    var client = new opcua.OPCUAClient(options);
+    const client = new opcua.OPCUAClient(options);
     client.withSession(endpointUrl, function (session, callback) {
         parse_opcua_common(session,callback);
     }, function (err) {

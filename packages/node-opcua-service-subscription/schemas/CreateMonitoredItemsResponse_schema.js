@@ -1,5 +1,5 @@
 
-var CreateMonitoredItemsResponse_Schema = {
+const CreateMonitoredItemsResponse_Schema = {
     name: "CreateMonitoredItemsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

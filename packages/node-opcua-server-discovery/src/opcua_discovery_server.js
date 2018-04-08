@@ -1,7 +1,7 @@
 "use strict";
 const util = require("util");
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const path = require("path");
 const fs = require("fs");
 

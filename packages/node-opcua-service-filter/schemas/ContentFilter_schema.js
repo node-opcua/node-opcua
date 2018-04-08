@@ -1,6 +1,6 @@
 
 
-var ContentFilter_Schema = {
+const ContentFilter_Schema = {
     name: "ContentFilter",
     fields: [
         // List of operators and their operands that compose the filter criteria. The filter is

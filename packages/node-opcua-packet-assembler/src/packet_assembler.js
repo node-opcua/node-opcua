@@ -5,7 +5,7 @@
 
 const util = require("util");
 const EventEmitter = require("events").EventEmitter;
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 const doDebug = false;
 

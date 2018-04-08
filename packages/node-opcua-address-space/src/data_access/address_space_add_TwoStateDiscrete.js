@@ -1,5 +1,5 @@
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const address_space = require("../address_space");
 const DataType = require("node-opcua-variant").DataType;
 const Variant = require("node-opcua-variant").Variant;

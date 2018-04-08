@@ -10,7 +10,7 @@ const EventEmitter = require("events").EventEmitter;
 const subscription_service = require("node-opcua-service-subscription");
 const read_service = require("node-opcua-service-read");
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const TimestampsToReturn = read_service.TimestampsToReturn;
 
 const ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;

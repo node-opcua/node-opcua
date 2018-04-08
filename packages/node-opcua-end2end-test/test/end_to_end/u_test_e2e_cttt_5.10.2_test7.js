@@ -4,7 +4,7 @@
    Server should revise the value to a value it supports. */
 
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const should = require("should");
 const opcua = require("node-opcua");
 const _ = require("underscore");

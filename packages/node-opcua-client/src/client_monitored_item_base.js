@@ -11,7 +11,7 @@ const subscription_service = require("node-opcua-service-subscription");
 const read_service = require("node-opcua-service-read");
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const TimestampsToReturn = read_service.TimestampsToReturn;
 
 const AttributeIds = require("node-opcua-data-model").AttributeIds;

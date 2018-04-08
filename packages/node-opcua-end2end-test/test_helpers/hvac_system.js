@@ -2,7 +2,7 @@
 
 
 var _ = require("underscore");
-var assert = require("node-opcua-assert");
+var assert = require("node-opcua-assert").assert;
 var opcua = require("node-opcua");
 var StatusCodes = opcua.StatusCodes;
 var DataType = opcua.DataType;

@@ -1,7 +1,7 @@
 /**
  * @module opcua.miscellaneous
  */
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 const hexDump = require("node-opcua-debug").hexDump;

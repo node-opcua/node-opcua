@@ -1,7 +1,7 @@
 require("node-opcua-service-secure-channel");
 
 
-var QueryNextRequest_Schema = {
+const QueryNextRequest_Schema = {
     name: "QueryNextRequest",
     fields: [
         { name:"requestHeader",               fieldType:"RequestHeader",   documentation: "A standard header included in all requests sent to a server."},

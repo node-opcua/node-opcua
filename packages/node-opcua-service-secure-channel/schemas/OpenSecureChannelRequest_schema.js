@@ -1,12 +1,12 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var MessageSecurityMode =  require("./MessageSecurityMode_enum").MessageSecurityMode;
-var SecurityTokenRequestType = require("./SecurityTokenRequestType_enum").SecurityTokenRequestType;
+const MessageSecurityMode =  require("./MessageSecurityMode_enum").MessageSecurityMode;
+const SecurityTokenRequestType = require("./SecurityTokenRequestType_enum").SecurityTokenRequestType;
 
 // see OPCUA.Part4. page 22
-var OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
+const OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
     name: "OpenSecureChannelRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  },
@@ -20,7 +20,7 @@ var OpenSecureChannelRequest_Schema_as_per_SPEC_Part4 = {
     ]
 };
 // or  OPCUA.Part6. Release 1.0  6.4.4 Establishing a ClientSecureChannelLayer page 39
-var OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA = {
+const OpenSecureChannelRequest_Schema_as_per_XMLSCHEMA = {
     name: "OpenSecureChannelRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  },

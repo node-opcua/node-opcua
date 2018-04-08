@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 const createFastUninitializedBuffer = require("node-opcua-buffer-utils").createFastUninitializedBuffer;

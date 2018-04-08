@@ -1,5 +1,5 @@
 
-var HistoryUpdateResult_Schema = {
+const HistoryUpdateResult_Schema = {
     name: "HistoryUpdateResult",
     fields: [
     /*=

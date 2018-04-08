@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var DeleteNodesRequest_Schema = {
+const DeleteNodesRequest_Schema = {
     name:"DeleteNodesRequest",
     fields: [
         { name:"requestHeader",  fieldType:"RequestHeader", documentation:"A standard header included in all requests sent to a server." },

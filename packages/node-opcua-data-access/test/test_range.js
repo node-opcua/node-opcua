@@ -1,7 +1,7 @@
 "use strict";
 const _ = require("underscore");
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const Range = require("..").Range;
 // DeadbandType = PercentDeadband

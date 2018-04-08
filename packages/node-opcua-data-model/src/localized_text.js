@@ -3,7 +3,7 @@
  * @module opcua.datamodel
  */
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const LocalizedText = require("../_generated_/_auto_generated_LocalizedText").LocalizedText;
 exports.LocalizedText = LocalizedText;

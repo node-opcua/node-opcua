@@ -3,7 +3,7 @@ const DirectTransport = require("../test_helpers/fake_socket").DirectTransport;
 const SocketTransport = require("../test_helpers/fake_socket").SocketTransport;
 
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 
 function installTestFor(Transport) {

@@ -5,7 +5,7 @@
  */
 
 const Enum = require("node-opcua-enum");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const isValidGuid = require("node-opcua-guid").isValidGuid;
 const emptyGuid = require("node-opcua-guid").emptyGuid;
 const _ = require("underscore");

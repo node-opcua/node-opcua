@@ -4,7 +4,7 @@
  */
 const _ = require("underscore");
 const util = require("util");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
 const registerType = require("./factories_builtin_types").registerType;

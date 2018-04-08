@@ -1,11 +1,9 @@
-"use strict";
-
 const _ = require("underscore");
-const assert = require("node-opcua-assert");
 const fs = require("fs");
 const util = require("util");
 
-const getTempFilename = require("./get_temp_filename").getTempFilename;
+import { assert } from "node-opcua-assert";
+import { getTempFilename } from "./get_temp_filename";
 
 /**
  * @method redirectToFile
@@ -13,9 +11,10 @@ const getTempFilename = require("./get_temp_filename").getTempFilename;
  * @param action_func {Function} - the inner function to execute
  * @param callback
  */
-function redirectToFile(tmpfile, action_func, callback) {
+declare function LogFunc(message: any): void;
 
-    let old_console_log;
+export function redirectToFile(tmpfile: string, action_func: Function, callback: Function | null): void {
+    let old_console_log: any;
 
     assert(_.isFunction(action_func));
     assert(!callback || _.isFunction(callback));
@@ -25,55 +24,50 @@ function redirectToFile(tmpfile, action_func, callback) {
     const log_file = getTempFilename(tmpfile);
 
     //xx    console.log(" log_file ",log_file);
-    const f = fs.createWriteStream(log_file, {flags: 'w', encoding: "ascii"});
+    const f = fs.createWriteStream(log_file, { flags: "w", encoding: "ascii" });
 
-    function _write_to_file(d) { //
+    function _write_to_file(d: string) {
+        //
 
         const msg = util.format.apply(null, arguments);
 
-        f.write(msg + '\n');
+        f.write(msg + "\n");
         if (process.env.DEBUG) {
             old_console_log.call(console, msg);
         }
     }
 
-
     if (!is_async) {
-
         old_console_log = console.log;
 
         console.log = _write_to_file;
 
         // async version
-        try{
+        try {
             action_func();
-        }
-        catch(err){
+        } catch (err) {
             console.log = old_console_log;
 
-            console.log("redirectToFile  has intercepted an error :" , err);
+            console.log("redirectToFile  has intercepted an error :", err);
             // we don't want the callback anymore since we got an error
             // display file on screen  for insvestigation
 
             console.log(fs.readFileSync(log_file).toString("ascii"));
 
             f.end(function() {
-                callback(err);
+                callback && callback(err);
             });
-
         }
         console.log = old_console_log;
         f.end(callback);
-
     } else {
-
         old_console_log = console.log;
         console.log = _write_to_file;
 
         // async version
 
-        action_func(function (err) {
-            assert(callback);
+        action_func(function(err: Error) {
+            assert(_.isFunction(callback));
             console.log = old_console_log;
             if (err) {
                 console.log("redirectToFile  has intercepted an error");
@@ -83,4 +77,3 @@ function redirectToFile(tmpfile, action_func, callback) {
         });
     }
 }
-exports.redirectToFile = redirectToFile;

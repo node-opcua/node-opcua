@@ -3,9 +3,9 @@
 require("node-opcua-extension-object");
 require("node-opcua-service-secure-channel");
 
-var ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
+const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 
-var ActivateSessionRequest_Schema =  {
+const ActivateSessionRequest_Schema =  {
     documentation: "Activates a session with the server.",
     name: "ActivateSessionRequest",
     fields: [

@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var SessionSecurityDiagnostics_Schema = {
+const SessionSecurityDiagnostics_Schema = {
     id: "ns=0;i=870",
     name: "SessionSecurityDiagnostics",
     fields: [

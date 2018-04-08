@@ -1,5 +1,5 @@
 
-var ModifySubscriptionResponse_Schema = {
+const ModifySubscriptionResponse_Schema = {
     name: "ModifySubscriptionResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

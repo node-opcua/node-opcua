@@ -1,20 +1,20 @@
 "use strict";
-var _           = require("underscore");
-var assert      = require("node-opcua-assert");
+const _           = require("underscore");
+const assert      = require("node-opcua-assert").assert;
 
-var factories   = require("node-opcua-factory");
+const factories   = require("node-opcua-factory");
 
-var set_flag    = require("node-opcua-utils").set_flag;
-var check_flag  = require("node-opcua-utils").check_flag;
-var ec          = require("node-opcua-basic-types");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var StatusCode  = require("node-opcua-status-code").StatusCode;
-var Variant     = require("node-opcua-variant").Variant;
-var DataValueEncodingByte = require("../schemas/DataValueEncodingByte_enum").DataValueEncodingByte;
+const set_flag    = require("node-opcua-utils").set_flag;
+const check_flag  = require("node-opcua-utils").check_flag;
+const ec          = require("node-opcua-basic-types");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCode  = require("node-opcua-status-code").StatusCode;
+const Variant     = require("node-opcua-variant").Variant;
+const DataValueEncodingByte = require("../schemas/DataValueEncodingByte_enum").DataValueEncodingByte;
 
 
 function getDataValue_EncodingByte(dataValue) {
-    var encoding_mask = 0;
+    let encoding_mask = 0;
 
     if (dataValue.value) {
         encoding_mask = set_flag(encoding_mask,DataValueEncodingByte.Value);
@@ -39,7 +39,7 @@ function getDataValue_EncodingByte(dataValue) {
 }
 
 // OPC-UA part 4 -  $7.7
-var DataValue_Schema = {
+const DataValue_Schema = {
     name: "DataValue",
     id: factories.next_available_id(),
     fields: [
@@ -53,7 +53,7 @@ var DataValue_Schema = {
 
     encode: function( dataValue, stream) {
 
-        var encoding_mask = getDataValue_EncodingByte(dataValue);
+        const encoding_mask = getDataValue_EncodingByte(dataValue);
 
         assert(_.isFinite(encoding_mask) && encoding_mask>=0 && encoding_mask<= 0x3F);
 
@@ -95,10 +95,10 @@ var DataValue_Schema = {
     },
     decode_debug: function(dataValue,stream,options) {
 
-        var tracer = options.tracer;
+        const tracer = options.tracer;
 
-        var cur = stream.length;
-        var encoding_mask = ec.decodeUInt8(stream);
+        let cur = stream.length;
+        const encoding_mask = ec.decodeUInt8(stream);
         assert(encoding_mask<=0x3F);
 
         tracer.trace("member", "encodingByte", "0x" + encoding_mask.toString(16), cur, stream.length, "Mask");
@@ -144,7 +144,7 @@ var DataValue_Schema = {
 
     decode: function(dataValue,stream,options) {
 
-        var encoding_mask = ec.decodeUInt8(stream);
+        const encoding_mask = ec.decodeUInt8(stream);
 
         if( check_flag(encoding_mask,DataValueEncodingByte.Value)) {
             //xx var Variant =

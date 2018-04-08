@@ -1,9 +1,9 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // see part 4 $7.37
-var ViewDescription_Schema = {
+const ViewDescription_Schema = {
     name: "ViewDescription",
     documentation: 'the view to browse.',
     fields: [

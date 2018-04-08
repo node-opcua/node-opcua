@@ -27,7 +27,7 @@
 //     a  Client  may encounter cases where the value read back from a  Server  differs from the value that it
 //     wrote to the Server. This   difference shall be no more than the difference suggested by this  Property
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const address_space = require("../address_space");
 const AddressSpace = address_space.AddressSpace;
 const DataType = require("node-opcua-variant").DataType;

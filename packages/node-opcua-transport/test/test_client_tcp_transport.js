@@ -1,6 +1,6 @@
 "use strict";
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const color = require("colors");
 const sinon =require("sinon");
 

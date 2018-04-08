@@ -1,7 +1,7 @@
 /**
  * @module opcua.miscellaneous
  */
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 import "util";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import {isFinite} from "underscore";

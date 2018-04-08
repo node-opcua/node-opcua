@@ -1,6 +1,6 @@
 
 
-var PublishResponse_Schema = {
+const PublishResponse_Schema = {
     name: "PublishResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

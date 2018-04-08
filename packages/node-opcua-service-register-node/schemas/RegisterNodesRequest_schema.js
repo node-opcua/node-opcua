@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var RegisterNodesRequest_Schema = {
+const RegisterNodesRequest_Schema = {
     documentation:"Registers Nodes",
     name: "RegisterNodesRequest",
     fields: [

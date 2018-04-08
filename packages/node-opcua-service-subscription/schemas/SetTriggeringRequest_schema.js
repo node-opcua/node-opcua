@@ -1,4 +1,4 @@
-var SetTriggeringRequest_Schema = {
+const SetTriggeringRequest_Schema = {
     name:"SetTriggeringRequest",
     fields:[
         { name:"requestHeader",                            fieldType:"RequestHeader",               documentation:"A standard header included in all requests sent to a server." },

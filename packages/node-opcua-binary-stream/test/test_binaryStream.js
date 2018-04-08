@@ -3,7 +3,7 @@
 const BinaryStream = require("..").BinaryStream; // node-opcua-binary-stream
 const BinaryStreamSizeCalculator = require("..").BinaryStreamSizeCalculator;
 const should = require("should");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 

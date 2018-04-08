@@ -3,7 +3,7 @@
  * @module opcua.miscellaneous
  */
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 /**
  * SequenceNumberGenerator manages a monotonically increasing sequence number.

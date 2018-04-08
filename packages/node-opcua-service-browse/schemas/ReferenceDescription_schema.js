@@ -1,10 +1,10 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var ReferenceDescription_Schema = {
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const ReferenceDescription_Schema = {
     name: "ReferenceDescription",
     documentation: "The description of a reference.",
     id: factories.next_available_id(),

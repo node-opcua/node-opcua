@@ -10,7 +10,7 @@
 const ltxParser = require("ltx/lib/parsers/ltx.js");
 
 const fs = require("fs");
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 /**

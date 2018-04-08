@@ -3,7 +3,7 @@
 "use strict";
 const should = require("should");
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const util = require("util");
 
 const server_engine = require("../src/server_engine");

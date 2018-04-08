@@ -1,6 +1,6 @@
 "use strict";
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const DataType = require("node-opcua-variant").DataType;
 
 const NodeId = require("node-opcua-nodeid").NodeId;

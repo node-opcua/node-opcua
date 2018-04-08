@@ -1,6 +1,6 @@
 "use strict";
 // OPC Unified Architecture, Part 4 page 106
-var ApplicationInstanceCertificate_Schema = {
+const ApplicationInstanceCertificate_Schema = {
     // ApplicationInstanceCertificate with signature created by a Certificate Authority
     name: "ApplicationInstanceCertificate",
     id: -1,

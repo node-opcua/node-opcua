@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 const UAObjectType = require("./ua_object_type").UAObjectType;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;

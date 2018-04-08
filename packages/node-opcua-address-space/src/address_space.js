@@ -11,7 +11,7 @@ const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 const sameNodeId =require("node-opcua-nodeid").sameNodeId;
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 const Dequeue = require("dequeue");
 

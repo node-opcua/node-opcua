@@ -1,7 +1,7 @@
 "use strict";
 /* global describe,it,before*/
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 const Variant = require("node-opcua-variant").Variant;

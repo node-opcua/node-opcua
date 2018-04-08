@@ -2,7 +2,7 @@
 require("node-opcua-service-secure-channel");
 
 // OPC Unified Architecture, Part 4 page 16
-var GetEndpointsRequest_Schema = {
+const GetEndpointsRequest_Schema = {
     name: "GetEndpointsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  },

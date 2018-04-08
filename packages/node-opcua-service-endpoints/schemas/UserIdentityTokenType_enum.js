@@ -1,6 +1,6 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // OPC Unified Architecture, Part 4 $7.36 page 160
 // This value is an enumeration with one of the following values:
@@ -11,7 +11,7 @@ var factories = require("node-opcua-factory");
 //  A tokenType of ANONYMOUS indicates that the Server does not require any
 //  user identification. In this case the Client application instance Certificate is used
 //  as the user identification.
-var EnumUserIdentityTokenType_Schema = {
+const EnumUserIdentityTokenType_Schema = {
     name: "EnumUserIdentityTokenType",
     enumValues: {
         ANONYMOUS: 0,

@@ -1,23 +1,23 @@
 "use strict";
-var address_space = require("node-opcua-address-space");
+const address_space = require("node-opcua-address-space");
 var nodesets = require("node-opcua-nodesets");
-var parse_opcua_common = require("../lib/parse_server_common").parse_opcua_common;
+const parse_opcua_common = require("../lib/parse_server_common").parse_opcua_common;
 
-var _ = require("underscore");
-var PseudoSession = require("../lib/pseudo_session").PseudoSession;
+const _ = require("underscore");
+const PseudoSession = require("../lib/pseudo_session").PseudoSession;
 
 function parse_xml(nodeset_files, callback) {
 
-    var addressSpace = new address_space.AddressSpace();
+    const addressSpace = new address_space.AddressSpace();
 
     address_space.generate_address_space(addressSpace, nodeset_files, function (err) {
-        var pseudoSession = new PseudoSession(addressSpace);
+        const pseudoSession = new PseudoSession(addressSpace);
         parse_opcua_common(pseudoSession, callback);
     });
 
 }
 
-var path = require("path");
+const path = require("path");
 
 var nodesets = [
     nodesets.standard_nodeset_file,

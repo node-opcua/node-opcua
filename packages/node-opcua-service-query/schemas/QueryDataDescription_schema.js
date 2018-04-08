@@ -2,7 +2,7 @@ require("node-opcua-service-translate-browse-path"); // for RelativePath
 require("node-opcua-data-model");
 require("node-opcua-numeric-range");
 
-var QueryDataDescription_Schema = {
+const QueryDataDescription_Schema = {
     name: "QueryDataDescription",
     fields: [
         {name: "relativePath",fieldType: "RelativePath",

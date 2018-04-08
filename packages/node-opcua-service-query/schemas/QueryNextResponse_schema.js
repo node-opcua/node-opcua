@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var QueryNextResponse_Schema = {
+const QueryNextResponse_Schema = {
     name: "QueryNextResponse",
     fields: [
         { name: "responseHeader",                   fieldType: "ResponseHeader" },

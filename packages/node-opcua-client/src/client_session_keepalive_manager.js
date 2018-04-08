@@ -1,5 +1,5 @@
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const EventEmitter = require("events").EventEmitter;
 const util = require("util");
 

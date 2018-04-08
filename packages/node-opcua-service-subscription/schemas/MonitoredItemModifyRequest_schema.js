@@ -1,5 +1,5 @@
 
-var MonitoredItemModifyRequest_Schema = {
+const MonitoredItemModifyRequest_Schema = {
     name: "MonitoredItemModifyRequest",
     fields: [
         { name: "monitoredItemId", fieldType: "IntegerId" },

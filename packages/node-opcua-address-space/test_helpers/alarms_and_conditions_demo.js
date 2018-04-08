@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 function construct_demo_alarm_in_address_space(test,addressSpace) {
 

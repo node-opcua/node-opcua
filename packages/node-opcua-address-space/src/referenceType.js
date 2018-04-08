@@ -4,7 +4,7 @@
  * @module opcua.address_space
  */
 
-const assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 const util = require("util");
 
 const BaseNode = require("./base_node").BaseNode;
