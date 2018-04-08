@@ -31,9 +31,9 @@ function measure_cycle(func: () => void): number {
 export class Benchmarker extends EventEmitter {
     private readonly _suite: { [id: string]: TestRun };
 
-    fastest: TestRun;
-    slowest: TestRun;
-    speedUp: number;
+    fastest?: TestRun;
+    slowest?: TestRun;
+    speedUp: number = 0;
 
     constructor() {
         super();
