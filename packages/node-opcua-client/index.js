@@ -10,7 +10,9 @@ module.exports = {
 
     ClientSecureChannelLayer: require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer,
 
+    // tools
     perform_findServersRequest: require("./src/tools/findservers").perform_findServersRequest,
+    readHistorySeverCapabilities: require("./src/tools/read_history_server_capabilities").readHistorySeverCapabilities
 
 };
 
@@ -25,7 +27,6 @@ module.exports.makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_node
 module.exports.coerceExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").coerceExpandedNodeId;
 
 module.exports.StatusCodes = require("node-opcua-status-code").StatusCodes;
-
 
 module.exports.DataType = require("node-opcua-variant").DataType;
 module.exports.Variant = require("node-opcua-variant").Variant;

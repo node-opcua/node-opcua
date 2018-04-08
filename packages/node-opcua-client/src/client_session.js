@@ -367,14 +367,14 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
 
     var nodesToRead = [];
     var historyReadDetails = [];
-    nodes.forEach(function (node) {
+    for( const node of nodes) {
         nodesToRead.push({
             nodeId: resolveNodeId(node),
             indexRange: null,
             dataEncoding: {namespaceIndex: 0, name: null},
             continuationPoint: null
         });
-    });
+    }
 
     var ReadRawModifiedDetails = new historizing_service.ReadRawModifiedDetails({
         isReadModified: false,
@@ -650,7 +650,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
 
     var nodesToRead = [];
 
-    nodes.forEach(function (node) {
+    for (const node of nodes) {
         var nodeId = resolveNodeId(node);
         if (!nodeId) {
             throw new Error("cannot coerce " + node + " to a valid NodeId");
@@ -664,7 +664,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
                 dataEncoding: {namespaceIndex: 0, name: null}
             });
         }
-    });
+    }
 
     this.read(nodesToRead, function (err, dataValues) {
         if (err) return callback(err);
@@ -776,9 +776,9 @@ ClientSession.prototype.read = function (nodesToRead, maxAge, callback) {
     }
 
     // coerce nodeIds
-    nodesToRead.forEach(function (node) {
+    for (const node of nodesToRead) {
         node.nodeId = resolveNodeId(node.nodeId);
-    });
+    }
 
     var request = new read_service.ReadRequest({
         nodesToRead: nodesToRead,
@@ -1437,8 +1437,8 @@ ClientSession.prototype.getArgumentDefinition = function (methodId, callback) {
                 return callback(err);
             }
 
-            dataValues.forEach(function (result, index) {
-                actions[index].call(null, result);
+            dataValues.forEach(function (dataValue, index) {
+                actions[index].call(null, dataValue);
             });
 
             //xx console.log("xxxx result", util.inspect(result, {colors: true, depth: 10}));
