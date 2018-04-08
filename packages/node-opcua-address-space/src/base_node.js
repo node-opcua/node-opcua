@@ -134,9 +134,9 @@ function BaseNode(options) {
     // this will convert any referenceType expressed with its inverseName into
     // its normal name and fix the isForward flag accordingly.
     // ( e.g "ComponentOf" isForward:true => "HasComponent", isForward:false)
-    options.references.forEach(function(reference) {
+    for (const reference of options.references) {
         self.__addReference(reference);
-    });
+    }
 
 }
 util.inherits(BaseNode, EventEmitter);
@@ -930,7 +930,7 @@ BaseNode.prototype.propagate_back_references = function () {
 
         // this indicates that the base node is constructed from an xml definition
         // propagate_back_references will be called later once the file has been completely processed.
-        return; 
+        return;
     }
     var addressSpace = self.addressSpace;
     _.forEach(_private._referenceIdx,function (reference) {
@@ -1030,7 +1030,7 @@ BaseNode.prototype.addReference = function (reference) {
        throw new Error("BaseNode#addReference : invalid reference " + h + " " +reference.toString());
     }
     self._clear_caches();
-    
+
     _propagate_ref(self, addressSpace, reference);
     self.install_extra_properties();
     cetools._handle_add_reference_change_event(self,reference.nodeId);
@@ -1323,10 +1323,11 @@ BaseNode.prototype.browseNodeByTargetName = function (relativePathElement,isLast
 
     var nodeIdsMap = {};
     var nodeIds = [];
-    references.forEach(function (reference) {
+
+    for (const reference of references) {
 
         if (!_check_reference(reference)) {
-            return;
+            continue;
         }
 
         var obj = _resolveReferenceNode(self.addressSpace,reference);
@@ -1343,7 +1344,7 @@ BaseNode.prototype.browseNodeByTargetName = function (relativePathElement,isLast
                 nodeIdsMap[key] = obj;
             }
         }
-    });
+    }
     if (self.subtypeOf) {
         // browsing also InstanceDeclarations included in base type
         var baseType = self.addressSpace.findNode(self.subtypeOf);
@@ -1696,11 +1697,10 @@ function install_components_as_object_properties(parentObj) {
         return _resolveReferenceNode(addressSpace,r);
     });
 
-
-    children.forEach(function (child) {
+    for (const child of children) {
 
         if (!child) {
-            return;
+            continue;
         }
         // assumption: we ignore namespace here .
         var name = lowerFirstLetter(child.browseName.name.toString());
@@ -1708,11 +1708,11 @@ function install_components_as_object_properties(parentObj) {
 
         if (reservedNames.hasOwnProperty(name)) {
            if (doDebug) {console.log(("Ignoring reserved keyword                                               "+ name).bgWhite.red);}
-            return;
+            continue;
         }
         /* istanbul ignore next */
         if (parentObj.hasOwnProperty(name)) {
-            return;
+            continue;
         }
 
         Object.defineProperty(parentObj, name, {
@@ -1724,7 +1724,7 @@ function install_components_as_object_properties(parentObj) {
             }
             //value: child
         });
-    });
+    }
 }
 
 BaseNode.prototype.install_extra_properties = function () {

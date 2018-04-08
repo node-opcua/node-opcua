@@ -198,7 +198,7 @@ function resolve_schema_field_types(schema) {
     if (schema.resolved) {
         return;
     }
-    schema.fields.forEach(function (field) {
+    for(const field of schema.fields) {
         if (field.fieldType === schema.name) {
             // special case for structure recursion
             field.category = "complex";
@@ -208,7 +208,7 @@ function resolve_schema_field_types(schema) {
 
         }
         assert(field.category);
-    });
+    }
     schema.resolved = true;
 }
 exports.resolve_schema_field_types = resolve_schema_field_types;

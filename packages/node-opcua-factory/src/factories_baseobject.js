@@ -134,7 +134,8 @@ BaseUAObject.prototype.decode_debug = function (stream, options) {
 
     tracer.trace("start", options.name + "(" + schema.name + ")", stream.length, stream.length);
     var self = this;
-    schema.fields.forEach(function (field) {
+
+    for (const field of schema.fields)  {
 
         var value = self[field.name];
 
@@ -165,7 +166,7 @@ BaseUAObject.prototype.decode_debug = function (stream, options) {
 
         }
 
-    });
+    }
 
     tracer.trace("end", schema.name, stream.length, stream.length);
 };
@@ -209,7 +210,7 @@ function _array_ellypsis(value,field) {
 }
 
 
-var _exploreObject = function (self, field, data, args) {
+function _exploreObject(self, field, data, args) {
 
     if (!self) {
         return;
@@ -347,7 +348,7 @@ var _exploreObject = function (self, field, data, args) {
         default:
             throw new Error("internal error: unknown kind_of_field");
     }
-};
+}
 
 
 BaseUAObject.prototype.explore = function () {
@@ -371,38 +372,38 @@ function _visit_schema_chain(self, schema, options, func, extra_data) {
     func.call(self, schema, options, extra_data);
 }
 
+function jsonify(t,f,field,value) {
+
+    if (_.isFunction(field.toJSON)) {
+        return field.toJSON(value);
+    } else if (t && t.toJSON) {
+        return t.toJSON(value);
+    } else if (value.toJSON) {
+        return value.toJSON();
+    } else {
+        return f;
+    }
+
+}
+
 function _JSONify(schema, options) {
 
     /* jshint validthis: true */
     var self = this;
-    schema.fields.forEach(function (field) {
+    for (const field of schema.fields) {
         var f = self[field.name];
         if (f === null || f === undefined) {
-            return;
+            continue;
         }
 
         var t = _defaultTypeMap[field.fieldType];
 
-        function jsonify(value) {
-
-            if (_.isFunction(field.toJSON)) {
-                return field.toJSON(value);
-            } else if (t && t.toJSON) {
-                return t.toJSON(value);
-            } else if (value.toJSON) {
-                return value.toJSON();
-            } else {
-                return f;
-            }
-
-        }
-
         if (field.isArray) {
-            options[field.name] = f.map(jsonify);
+            options[field.name] = f.map(value => jsonify(t,f,field,value));
         } else {
-            options[field.name] = jsonify(f);
+            options[field.name] = jsonify(t,f,field,f);
         }
-    });
+    }
 }
 
 BaseUAObject.prototype.toJSON = function () {
@@ -430,18 +431,18 @@ BaseUAObject.prototype.clone = function (/*options,optionalfilter,extraInfo*/) {
         /* jshint validthis: true */
         var self = this;
 
-        schema.fields.forEach(function (field) {
+        for (const field of schema.fields) {
 
             var f = self[field.name];
             if (f === null || f === undefined) {
-                return;
+                continue;
             }
             if (field.isArray) {
                 options[field.name] = self[field.name];
             } else {
                 options[field.name] = self[field.name];
             }
-        });
+        }
     }
     construct_param.call(this,self._schema,params);
 
