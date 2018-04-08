@@ -2,8 +2,11 @@
  "name": "node-opcua-benchmarker",
  "version": "0.2.0",
  "description": "pure nodejs OPCUA SDK - module -benchmarker",
- "main": "src/benchmarker.js",
- "scripts": {},
+ "main": "dist/benchmarker.js",
+ "types": "dist/benchmarker.d.ts",
+ "scripts": {
+  "build": "tsc"
+ },
  "dependencies": {
   "async": "^2.6.0",
   "node-opcua-assert": "^0.2.0",
@@ -23,5 +26,8 @@
   "opc ua",
   "internet of things"
  ],
- "homepage": "http://node-opcua.github.io/"
+ "homepage": "http://node-opcua.github.io/",
+ "devDependencies": {
+  "@types/underscore": "^1.8.8"
+ }
 }
