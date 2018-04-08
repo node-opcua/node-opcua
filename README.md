@@ -90,7 +90,8 @@ Because nodeJs is a great framework to design asynchronous application.
 
 ## Supporting the project
 
-If you like the project, please [![Flattr us](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=me93y1&url=https%3A%2F%2Fnode-opcua.github.io%2F&title=Node-OPCUA&language=nodejs&tags=github&category=software).
+If you like the project, please 
+[![Flattr us](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/@gadz_er).
 This will give us full of motivation to carry on and keep working on the roadmap.
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
