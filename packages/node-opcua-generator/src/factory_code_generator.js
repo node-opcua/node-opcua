@@ -27,7 +27,7 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const utils = require("node-opcua-utils");
 const normalize_require_file = utils.normalize_require_file;
-const LineFile = require("node-opcua-utils/src/linefile").LineFile;
+const LineFile = require("node-opcua-utils").LineFile;
 
 //xx exports.folder_for_generated_file = path.normalize(path.join(__dirname,"../../node-opcua/generated"));
 //xx if (fs.existsSync && !fs.existsSync(exports.folder_for_generated_file)) {

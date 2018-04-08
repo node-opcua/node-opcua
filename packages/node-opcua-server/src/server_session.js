@@ -23,7 +23,7 @@ const eoan = require("node-opcua-address-space");
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const ObjectIds = require("node-opcua-constants").ObjectIds;
 
-const WatchDog = require("node-opcua-utils/src/watchdog").WatchDog;
+const WatchDog = require("node-opcua-utils").WatchDog;
 const theWatchDog = new WatchDog();
 
 const ContinuationPointManager = require("./continuation_point_manager").ContinuationPointManager;

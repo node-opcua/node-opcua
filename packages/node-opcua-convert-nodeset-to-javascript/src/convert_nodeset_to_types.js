@@ -11,7 +11,7 @@ const AddressSpace = require("node-opcua-address-space").AddressSpace;
 const UADataType = require("node-opcua-address-space").UADataType;
 
 const normalize_require_file = require("node-opcua-utils").normalize_require_file;
-const LineFile = require("node-opcua-utils/src/linefile").LineFile;
+const LineFile = require("node-opcua-utils").LineFile;
 const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
 const hasConstructor = require("node-opcua-factory").hasConstructor;

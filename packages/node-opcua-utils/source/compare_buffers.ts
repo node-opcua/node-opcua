@@ -1,9 +1,7 @@
-"use strict";
+import { buffer_ellipsis } from "./buffer_ellipsis";
+import chalk from "chalk";
 
-const buffer_ellipsis = require("./buffer_ellipsis").buffer_ellipsis;
-
-function compare_buffers(buf1, buf2, max_length) {
-
+export function compare_buffers(buf1: Buffer, buf2: Buffer, max_length?: number): void {
     max_length = max_length || buf2.length;
     const block_length = 80;
     let cursor = 0;
@@ -12,12 +10,10 @@ function compare_buffers(buf1, buf2, max_length) {
         const slice2 = buf2.slice(cursor, cursor + block_length);
         if (slice2.toString("hex") !== slice1.toString("hex")) {
             console.log("pos = ", cursor);
-            console.log("slice1 :", buffer_ellipsis(slice1).yellow);
-            console.log("slice2 :", buffer_ellipsis(slice2).blue);
+            console.log("slice1 :", chalk.yellow(buffer_ellipsis(slice1)));
+            console.log("slice2 :", chalk.blue(buffer_ellipsis(slice2)));
         }
         cursor += block_length;
     }
     // xx buf1.length.should.equal(max_length);
-
 }
-exports.compare_buffers = compare_buffers;

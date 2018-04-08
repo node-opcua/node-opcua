@@ -1,6 +1,4 @@
-"use strict";
-
-function replaceBufferWithHexDump(obj) {
+export function replaceBufferWithHexDump(obj: any): any {
     for (const p in obj) {
         if (obj.hasOwnProperty(p)) {
             if (obj[p] instanceof Buffer) {
@@ -12,8 +10,3 @@ function replaceBufferWithHexDump(obj) {
     }
     return obj;
 }
-
-
-
-exports.replaceBufferWithHexDump = replaceBufferWithHexDump;
-

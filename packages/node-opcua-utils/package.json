@@ -2,8 +2,10 @@
  "name": "node-opcua-utils",
  "version": "0.2.3",
  "description": "pure nodejs OPCUA SDK - module -utils",
- "main": "index.js",
+ "main": "dist/index.js",
+ "types": "dist/index.d.ts",
  "scripts": {
+  "build": "tsc",
   "test": "mocha test"
  },
  "dependencies": {
@@ -11,6 +13,10 @@
   "underscore": "^1.8.3"
  },
  "devDependencies": {
+  "@types/chalk": "^2.2.0",
+  "@types/node": "^9.6.2",
+  "@types/underscore": "^1.8.8",
+  "chalk": "^2.3.2",
   "should": "13.2.1",
   "sinon": "^4.5.0"
  },
